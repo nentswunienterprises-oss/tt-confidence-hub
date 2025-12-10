@@ -1,0 +1,74 @@
+/* TT Confidence Hub Landing Page Color Palette */
+
+:root {
+  --primary-gold: #F0C080;
+  --primary-brown: #503F10;
+  --standard-grey: #303030;
+  --logo-gold: #E2B463;
+  --background-cream: #F0F0E0;
+  --card-background: #F7F5E8;
+}
+
+/* Global Landing Styles */
+.landing-page {
+  background-color: var(--background-cream);
+  color: var(--standard-grey);
+}
+
+.landing-page h1,
+.landing-page h2,
+.landing-page h3,
+.landing-page h4,
+.landing-page h5,
+.landing-page h6 {
+  color: var(--primary-brown);
+}
+
+.landing-page p,
+.landing-page span,
+.landing-page li {
+  color: var(--standard-grey);
+}
+
+/* Button Styles */
+.landing-cta-button {
+  background-color: var(--primary-gold);
+  color: var(--primary-brown);
+  border: none;
+  font-weight: 600;
+}
+
+.landing-cta-button:hover {
+  background-color: #E5B571;
+  opacity: 0.95;
+}
+
+/* Card/Section Backgrounds */
+.landing-card,
+.landing-section {
+  background-color: var(--card-background);
+}
+
+/* Logo */
+.landing-logo {
+  color: var(--logo-gold);
+}
+
+/* Header */
+.landing-header {
+  background-color: var(--background-cream);
+  border-bottom-color: var(--card-background);
+}
+
+/* Footer */
+.landing-footer {
+  background-color: var(--primary-brown);
+}
+
+.landing-footer h4 {
+  color: var(--logo-gold);
+}
+
+.landing-footer p {
+  color: #D4C7AF;
+}
