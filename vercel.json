@@ -1,7 +1,6 @@
 {
   "version": 2,
   "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": null,
   "outputDirectory": "dist/public",
@@ -9,10 +8,6 @@
     {
       "src": "dist/index.js",
       "use": "@vercel/node"
-    },
-    {
-      "src": "client/**/*",
-      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -21,8 +16,16 @@
       "dest": "dist/index.js"
     },
     {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/(.*\\..+)",
+      "dest": "/$1"
+    },
+    {
       "src": "/(.*)",
-      "dest": "dist/public/$1"
+      "dest": "/index.html"
     }
   ],
   "env": {
