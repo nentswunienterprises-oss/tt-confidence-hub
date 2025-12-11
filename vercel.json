@@ -2,7 +2,6 @@
   "version": 2,
   "buildCommand": "npm run build",
   "installCommand": "npm install",
-  "framework": null,
   "outputDirectory": "dist/public",
   "builds": [
     {
@@ -16,19 +15,11 @@
       "dest": "dist/index.js"
     },
     {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
-    },
-    {
-      "src": "/(.*\\..+)",
-      "dest": "/$1"
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }
