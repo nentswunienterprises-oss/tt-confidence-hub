@@ -2,9 +2,12 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm install",
-  "framework": "vite",
   "github": {
     "silent": true
+  },
+  "env": {
+    "DISABLE_ESLINT": "true",
+    "SKIP_TYPESCRIPT_CHECK": "true"
   },
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }

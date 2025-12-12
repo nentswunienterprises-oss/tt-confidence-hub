@@ -1,0 +1,8 @@
+# Ignore server files - backend is on Railway
+server/
+api/
+*.sql
+*.bundle
+migrations/
+nixpacks.toml
+railway.json

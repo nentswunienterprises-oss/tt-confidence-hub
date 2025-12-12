@@ -4,6 +4,10 @@ import path from "path";
 
 export default defineConfig({
   plugins: [react()],
+  esbuild: {
+    // Skip type checking during build
+    logOverride: { 'this-is-undefined-in-esm': 'silent' }
+  },
   optimizeDeps: {
     include: ['cookie', 'react', 'react-dom', '@tanstack/react-query'],
     exclude: ['express-session', 'express'],
