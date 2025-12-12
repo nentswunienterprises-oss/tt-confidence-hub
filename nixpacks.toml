@@ -1,3 +1,6 @@
+# Disable TypeScript auto-detection
+providers = []
+
 [phases.setup]
 nixPkgs = ["nodejs_20"]
 
