@@ -77,7 +77,7 @@ app.use((req, res, next) => {
         logLine = logLine.slice(0, 79) + "…";
       }
 
-      log(logLine);
+      console.log(`[express] ${logLine}`);
     }
   });
 
@@ -97,10 +97,12 @@ app.use((req, res, next) => {
 
   // Setup Vite/static serving LAST, after all API routes
   // Only needed in development - in production, Vercel serves the frontend
-  if (isDev) {
-    const { setupVite } = await import("./vite");
-    await setupVite(app, server);
-  }
+  // NOTE: Dynamic import is commented out for production build
+  // In development, run with tsx which handles this properly
+  // if (isDev) {
+  //   const { setupVite } = await import("./vite");
+  //   await setupVite(app, server);
+  // }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
   const port = parseInt(process.env.PORT || '5000', 10);

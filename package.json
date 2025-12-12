@@ -10,7 +10,7 @@
     "build": "vite build",
     "build:full": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "build:frontend": "vite build",
-    "build:backend": "esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
+    "build:backend": "esbuild server/index.ts --platform=node --packages=external --external:vite --external:./vite --external:./vite.ts --bundle --format=esm --outdir=dist",
     "vercel-build": "vite build",
     "start": "node dist/index.js",
     "check": "tsc",
