@@ -670,9 +670,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
 
         console.log("📤 Returning emotionalInsights:", JSON.stringify(student.emotionalInsights, null, 2));
-        const insights = student.emotionalInsights as any;
-        console.log("confidenceTriggers type:", typeof insights?.confidenceTriggers, "IsArray:", Array.isArray(insights?.confidenceTriggers));
-        console.log("confidenceKillers type:", typeof insights?.confidenceKillers, "IsArray:", Array.isArray(insights?.confidenceKillers));
+        const insights = (student.emotionalInsights || {}) as any;
+        console.log("confidenceTriggers type:", typeof (insights as any)?.confidenceTriggers, "IsArray:", Array.isArray((insights as any)?.confidenceTriggers));
+        console.log("confidenceKillers type:", typeof (insights as any)?.confidenceKillers, "IsArray:", Array.isArray((insights as any)?.confidenceKillers));
         
         res.json(identitySheetData);
       } catch (error) {
@@ -3405,7 +3405,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .maybeSingle();
 
           if (tutorAssignment?.pod) {
-            podName = (tutorAssignment.pod as any).pod_name;
+            podName = (tutorAssignment.pod as any)?.pod_name;
           }
         }
       }
@@ -4001,7 +4001,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         if (tutorAssignment?.pod) {
-          podName = (tutorAssignment.pod as any).pod_name;
+          podName = (tutorAssignment.pod as any)?.pod_name;
         }
       }
 
