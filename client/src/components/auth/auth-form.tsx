@@ -15,6 +15,8 @@ import { useNavigate } from "react-router-dom"; // ✅ React Router hook
 import { getDefaultDashboardRoute } from "@shared/portals";
 import type { Role } from "@shared/portals";
 
+const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+
 interface AuthFormProps {
   mode: "signup" | "login";
   defaultRole?: Role;
@@ -74,7 +76,7 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
         };
         console.log("📤 Sending signup body:", JSON.stringify(body, null, 2));
         
-        const response = await fetch("/api/auth/signup", {
+        const response = await fetch(`${API_URL}/api/auth/signup`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -124,7 +126,7 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
 
       if (mode === "login") {
         // Call backend signin endpoint with role validation
-        const response = await fetch("/api/auth/signin", {
+        const response = await fetch(`${API_URL}/api/auth/signin`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",

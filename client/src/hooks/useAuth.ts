@@ -4,6 +4,8 @@ import { getQueryFn } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { supabase } from "@/lib/supabaseClient";
 
+const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+
 export function useAuth() {
   const [, setLocation] = useLocation();
   
@@ -26,7 +28,7 @@ export function useAuth() {
   const logout = async () => {
     try {
       // Call backend logout endpoint
-      await fetch("/api/auth/logout", {
+      await fetch(`${API_URL}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
       });

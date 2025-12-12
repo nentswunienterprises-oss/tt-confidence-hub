@@ -13,6 +13,8 @@ import { supabase } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
+const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+
 type Role = "coo" | "hr" | "ceo";
 
 interface ExecutiveAuthFormProps {
@@ -52,7 +54,7 @@ export function ExecutiveAuthForm({ role, mode, setMode }: ExecutiveAuthFormProp
       if (mode === "signup") {
         // Call backend signup endpoint with executive role
         console.log("📝 Creating account with role:", role);
-        const response = await fetch("/api/auth/signup", {
+        const response = await fetch(`${API_URL}/api/auth/signup`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -101,7 +103,7 @@ export function ExecutiveAuthForm({ role, mode, setMode }: ExecutiveAuthFormProp
       if (mode === "login") {
         // Call backend signin endpoint with role validation
         console.log("📤 Sending signin request with role:", role);
-        const response = await fetch("/api/auth/signin", {
+        const response = await fetch(`${API_URL}/api/auth/signin`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
