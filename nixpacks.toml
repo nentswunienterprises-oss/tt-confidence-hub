@@ -5,10 +5,10 @@ providers = []
 nixPkgs = ["nodejs_20"]
 
 [phases.install]
-cmds = ["npm install"]
+cmds = ["npm install --include=dev"]
 
 [phases.build]
 cmds = ["npm run build:backend"]
 
 [start]
-cmd = "npm start"
+cmd = "NODE_ENV=production node dist/index.js"

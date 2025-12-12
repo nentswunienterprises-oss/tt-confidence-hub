@@ -1,8 +1,10 @@
 import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
 import cors from 'cors';
+
+// Only import Vite-related stuff in development
+const isDev = process.env.NODE_ENV === 'development';
 
 const app = express();
 
@@ -94,11 +96,10 @@ app.use((req, res, next) => {
   });
 
   // Setup Vite/static serving LAST, after all API routes
-  // This is important because these are catch-all handlers
-  if (app.get("env") === "development") {
+  // Only needed in development - in production, Vercel serves the frontend
+  if (isDev) {
+    const { setupVite } = await import("./vite");
     await setupVite(app, server);
-  } else {
-    serveStatic(app);
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
@@ -107,6 +108,6 @@ app.use((req, res, next) => {
     port,
     host: "0.0.0.0"
   }, () => {
-    log(`serving on port ${port}`);
+    console.log(`[express] serving on port ${port}`);
   });
 })();
