@@ -535,7 +535,7 @@ export async function setupAuth(app: Express) {
           if (parentLead) {
             console.log("📋 Parent has lead relationship:");
             console.log("  Affiliate ID:", parentLead.affiliate_id);
-            const affiliate = parentLead.affiliate as any;
+            const affiliate = parentLead.affiliate as { role?: string } | null;
             console.log("  Affiliate role:", affiliate?.role);
           }
         } catch (debugError) {
