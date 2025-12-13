@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
+import { API_URL } from "@/lib/config";
+import { supabase } from "@/lib/supabaseClient";
 import {
   Dialog,
   DialogContent,
@@ -210,7 +212,15 @@ export default function StudentIdentitySheet({
     if (open && studentId && loadedStudentId !== studentId) {
       const loadExistingData = async () => {
         try {
-          const response = await fetch(`/api/tutor/students/${studentId}/identity-sheet`);
+          const { data: { session } } = await supabase.auth.getSession();
+          const headers: HeadersInit = {};
+          if (session?.access_token) {
+            headers.Authorization = `Bearer ${session.access_token}`;
+          }
+          const response = await fetch(`${API_URL}/api/tutor/students/${studentId}/identity-sheet`, {
+            headers,
+            credentials: "include",
+          });
           if (response.ok) {
             const data = await response.json();
             
@@ -301,9 +311,15 @@ export default function StudentIdentitySheet({
       console.log("🔵 FRONTEND - About to save formData.confidenceKillers:", formData.confidenceKillers);
       console.log("Type:", typeof formData.confidenceKillers, "IsArray:", Array.isArray(formData.confidenceKillers));
       
-      const response = await fetch(`/api/tutor/students/${studentId}/identity-sheet`, {
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: HeadersInit = { "Content-Type": "application/json" };
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+      
+      const response = await fetch(`${API_URL}/api/tutor/students/${studentId}/identity-sheet`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify(formData),
         credentials: "include",
       });

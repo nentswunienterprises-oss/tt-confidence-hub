@@ -3,6 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { API_URL } from "@/lib/config";
+import { supabase } from "@/lib/supabaseClient";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -66,9 +68,17 @@ export default function TutorPod() {
     if (podData?.students && podData.students.length > 0) {
       const fetchIdentitySheets = async () => {
         const sheets: Record<string, any> = {};
+        const { data: { session } } = await supabase.auth.getSession();
+        const headers: HeadersInit = {};
+        if (session?.access_token) {
+          headers.Authorization = `Bearer ${session.access_token}`;
+        }
         for (const student of podData.students) {
           try {
-            const response = await fetch(`/api/tutor/students/${student.id}/identity-sheet`);
+            const response = await fetch(`${API_URL}/api/tutor/students/${student.id}/identity-sheet`, {
+              headers,
+              credentials: "include",
+            });
             if (response.ok) {
               const data = await response.json();
               // Store if any identity sheet data exists
@@ -527,7 +537,15 @@ export default function TutorPod() {
           onSaved={async () => {
             // Refresh identity sheet data
             if (selectedStudentId) {
-              const res = await fetch(`/api/tutor/students/${selectedStudentId}/identity-sheet`);
+              const { data: { session } } = await supabase.auth.getSession();
+              const headers: HeadersInit = {};
+              if (session?.access_token) {
+                headers.Authorization = `Bearer ${session.access_token}`;
+              }
+              const res = await fetch(`${API_URL}/api/tutor/students/${selectedStudentId}/identity-sheet`, {
+                headers,
+                credentials: "include",
+              });
               if (res.ok) {
                 const data = await res.json();
                 console.log("🔍 Data received after save:", data);
