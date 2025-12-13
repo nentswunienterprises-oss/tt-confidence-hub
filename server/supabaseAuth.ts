@@ -558,20 +558,46 @@ export const isAuthenticated: RequestHandler = async (
   next: NextFunction,
 ) => {
   try {
-    const userId = (req.session as any).userId;
+    // First, try session-based auth (for same-origin requests)
+    const sessionUserId = (req.session as any).userId;
 
-    if (!userId) {
-      return res.status(401).json({ message: "Unauthorized" });
+    if (sessionUserId) {
+      // Session auth found - use it
+      const user = await storage.getUser(sessionUserId);
+      if (user) {
+        (req as any).dbUser = user;
+        return next();
+      }
     }
 
-    // Get user from database and attach to request
-    const user = await storage.getUser(userId);
-    if (!user) {
-      return res.status(401).json({ message: "Unauthorized" });
+    // Second, try Bearer token auth (for cross-origin requests from Vercel frontend)
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.substring(7);
+      
+      // Verify the JWT token with Supabase
+      const { data: { user: supabaseUser }, error } = await supabase.auth.getUser(token);
+      
+      if (error) {
+        console.error("Token verification failed:", error.message);
+        return res.status(401).json({ message: "Invalid token" });
+      }
+      
+      if (supabaseUser) {
+        // Get user from our database
+        const user = await storage.getUser(supabaseUser.id);
+        if (user) {
+          (req as any).dbUser = user;
+          return next();
+        } else {
+          console.error("User not found in database for Supabase user:", supabaseUser.id);
+          return res.status(401).json({ message: "User not found" });
+        }
+      }
     }
 
-    (req as any).dbUser = user;
-    next();
+    // No valid auth found
+    return res.status(401).json({ message: "Unauthorized" });
   } catch (error) {
     console.error("Auth middleware error:", error);
     res.status(401).json({ message: "Unauthorized" });
