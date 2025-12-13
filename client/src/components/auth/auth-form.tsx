@@ -14,8 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom"; // ✅ React Router hook
 import { getDefaultDashboardRoute } from "@shared/portals";
 import type { Role } from "@shared/portals";
-
-const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+import { API_URL } from "@/lib/config";
 
 interface AuthFormProps {
   mode: "signup" | "login";

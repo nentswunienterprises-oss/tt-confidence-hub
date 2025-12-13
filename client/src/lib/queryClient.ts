@@ -1,6 +1,7 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { supabase } from "./supabaseClient";
+import { API_URL } from "./config";
 
 // Check if we're online
 const isOnline = () => typeof navigator !== 'undefined' ? navigator.onLine : true;
@@ -16,8 +17,6 @@ async function throwIfResNotOk(res: Response) {
     throw new Error(`${res.status}: ${text}`);
   }
 }
-
-const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 
 export async function apiRequest(
   method: string,

@@ -3,8 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { supabase } from "@/lib/supabaseClient";
-
-const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+import { API_URL } from "@/lib/config";
 
 export function useAuth() {
   const [, setLocation] = useLocation();
