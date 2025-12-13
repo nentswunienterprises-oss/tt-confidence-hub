@@ -1,5 +1,5 @@
 {
-  "buildCommand": "rm -rf node_modules/.cache && npm run build",
+  "buildCommand": "rm -rf node_modules/.cache && rm -rf dist && npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm ci",
   "github": {
@@ -10,6 +10,14 @@
     "SKIP_TYPESCRIPT_CHECK": "true",
     "VERCEL_FORCE_NO_BUILD_CACHE": "1"
   },
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    }
+  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
