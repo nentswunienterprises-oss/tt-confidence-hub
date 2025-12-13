@@ -73,12 +73,16 @@ export default function TutorPod() {
         if (session?.access_token) {
           headers.Authorization = `Bearer ${session.access_token}`;
         }
+        console.log("🔍 Fetching identity sheets, API_URL:", API_URL);
         for (const student of podData.students) {
           try {
-            const response = await fetch(`${API_URL}/api/tutor/students/${student.id}/identity-sheet`, {
+            const url = `${API_URL}/api/tutor/students/${student.id}/identity-sheet`;
+            console.log("📡 Fetching identity sheet from:", url);
+            const response = await fetch(url, {
               headers,
               credentials: "include",
             });
+            console.log("📥 Response status:", response.status, "for student:", student.id);
             if (response.ok) {
               const data = await response.json();
               // Store if any identity sheet data exists
