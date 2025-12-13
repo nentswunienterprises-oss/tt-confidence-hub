@@ -1,24 +1,23 @@
 // Runtime configuration for API URL
-// This determines the backend URL based on the current hostname
+// HARDCODED to avoid Vite build-time environment variable issues
+
+// Production Railway backend URL - hardcoded because VITE_API_URL doesn't work at build time
+const RAILWAY_URL = 'https://tt-confidence-hub-production.up.railway.app';
 
 export function getApiUrl(): string {
-  // If running locally, use local backend
+  // Check if we're in a browser
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     
-    // Local development
+    // Local development - use local backend
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
       return 'http://localhost:5000';
     }
-    
-    // Production - Vercel frontend connects to Railway backend
-    if (hostname.includes('vercel.app') || hostname.includes('tt-confidence-hub')) {
-      return 'https://tt-confidence-hub-production.up.railway.app';
-    }
   }
   
-  // Fallback to env var or empty string
-  return (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+  // For all production/deployed environments, use Railway
+  return RAILWAY_URL;
 }
 
-export const API_URL = getApiUrl();
+// This MUST be a getter to ensure it runs at runtime, not build time
+export const API_URL = RAILWAY_URL;
