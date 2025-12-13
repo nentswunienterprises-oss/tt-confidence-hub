@@ -41,10 +41,11 @@ import type {
 import { db } from "./db";
 import { weeklyCheckIns } from "@shared/schema";
 
-// Initialize Supabase client
+// Initialize Supabase client with service role key to bypass RLS
 const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!;
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Use service role key if available (bypasses RLS), fall back to anon key
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY!;
+export const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Helper function to transform snake_case to camelCase
 function transformSnakeToCamel(obj: any): any {
