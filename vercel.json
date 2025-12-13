@@ -1,13 +1,14 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "rm -rf node_modules/.cache && npm run build",
   "outputDirectory": "dist",
-  "installCommand": "npm install",
+  "installCommand": "npm ci",
   "github": {
     "silent": true
   },
   "env": {
     "DISABLE_ESLINT": "true",
-    "SKIP_TYPESCRIPT_CHECK": "true"
+    "SKIP_TYPESCRIPT_CHECK": "true",
+    "VERCEL_FORCE_NO_BUILD_CACHE": "1"
   },
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
