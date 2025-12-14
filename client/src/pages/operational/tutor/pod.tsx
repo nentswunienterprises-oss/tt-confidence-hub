@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { API_URL } from "@/lib/config";
 import { supabase } from "@/lib/supabaseClient";
+import { authorizedGetJson } from "@/lib/api";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -79,31 +80,10 @@ export default function TutorPod() {
         console.log("🔍 Fetching identity sheets, API_URL:", API_URL, "hostname:", window.location.hostname);
         for (const student of podData.students) {
           try {
-            const url = `${API_URL}/api/tutor/students/${student.id}/identity-sheet`;
-            console.log("📡 Fetching identity sheet from:", url);
-            const response = await fetch(url, {
-              headers,
-              credentials: "include",
-            });
-            console.log("📥 Response status:", response.status, "content-type:", response.headers.get("content-type"), "for student:", student.id);
-            if (response.ok) {
-              // Check content-type before parsing as JSON
-              const contentType = response.headers.get("content-type");
-              if (!contentType?.includes("application/json")) {
-                // Log first 100 chars of response to debug HTML responses
-                const text = await response.text();
-                console.error(`Invalid content-type for student ${student.id}: ${contentType}, body starts with: ${text.substring(0, 100)}`);
-                continue;
-              }
-              const data = await response.json();
-              // Store if any identity sheet data exists
-              if (data && (data.identitySheet || data.personalProfile || data.emotionalInsights || data.academicDiagnosis)) {
-                sheets[student.id] = data;
-              }
-            } else {
-              // Log error response body for debugging
-              const errorText = await response.text();
-              console.error(`Identity sheet fetch failed for student ${student.id}: status ${response.status}, body: ${errorText.substring(0, 200)}`);
+            const path = `/api/tutor/students/${student.id}/identity-sheet`;
+            const data = await authorizedGetJson(path);
+            if (data && (data.identitySheet || data.personalProfile || data.emotionalInsights || data.academicDiagnosis)) {
+              sheets[student.id] = data;
             }
           } catch (error) {
             console.error(`Failed to fetch identity sheet for student ${student.id}:`, error);
@@ -561,18 +541,8 @@ export default function TutorPod() {
               if (session?.access_token) {
                 headers.Authorization = `Bearer ${session.access_token}`;
               }
-              const res = await fetch(`${API_URL}/api/tutor/students/${selectedStudentId}/identity-sheet`, {
-                headers,
-                credentials: "include",
-              });
-              if (res.ok) {
-                // Check content-type before parsing as JSON
-                const contentType = res.headers.get("content-type");
-                if (!contentType?.includes("application/json")) {
-                  console.error("❌ Invalid content-type after save:", contentType);
-                  return;
-                }
-                const data = await res.json();
+              try {
+                const data = await authorizedGetJson(`/api/tutor/students/${selectedStudentId}/identity-sheet`);
                 console.log("🔍 Data received after save:", data);
                 console.log("🔍 Has any data?", !!(data && (data.identitySheet || data.personalProfile || data.emotionalInsights || data.academicDiagnosis)));
                 if (data && (data.identitySheet || data.personalProfile || data.emotionalInsights || data.academicDiagnosis)) {
@@ -588,8 +558,8 @@ export default function TutorPod() {
                 } else {
                   console.error("❌ No valid data in response");
                 }
-              } else {
-                console.error("❌ Failed to fetch, status:", res.status);
+              } catch (err) {
+                console.error("❌ Failed to fetch after save:", err);
               }
             }
             

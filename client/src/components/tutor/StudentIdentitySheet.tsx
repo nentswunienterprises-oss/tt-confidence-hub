@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
 import { API_URL } from "@/lib/config";
 import { supabase } from "@/lib/supabaseClient";
+import { authorizedGetJson } from "@/lib/api";
 import {
   Dialog,
   DialogContent,
@@ -217,18 +218,8 @@ export default function StudentIdentitySheet({
           if (session?.access_token) {
             headers.Authorization = `Bearer ${session.access_token}`;
           }
-          const response = await fetch(`${API_URL}/api/tutor/students/${studentId}/identity-sheet`, {
-            headers,
-            credentials: "include",
-          });
-          if (response.ok) {
-            // Check content-type before parsing as JSON
-            const contentType = response.headers.get("content-type");
-            if (!contentType?.includes("application/json")) {
-              console.error("Invalid content-type when loading identity sheet:", contentType);
-              return;
-            }
-            const data = await response.json();
+          try {
+            const data = await authorizedGetJson(`/api/tutor/students/${studentId}/identity-sheet`);
             
             // Check if there's actual saved data
             const hasData = !!(data.identitySheet || data.personalProfile || data.emotionalInsights || data.academicDiagnosis);
@@ -271,6 +262,8 @@ export default function StudentIdentitySheet({
             } else {
               setOriginalData(null);
             }
+          } catch (err) {
+            console.error("Failed to load identity sheet:", err);
           }
           setLoadedStudentId(studentId);
         } catch (error) {
