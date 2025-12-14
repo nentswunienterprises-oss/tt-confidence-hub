@@ -72,6 +72,9 @@ export default function TutorPod() {
         const headers: HeadersInit = {};
         if (session?.access_token) {
           headers.Authorization = `Bearer ${session.access_token}`;
+          console.log("🔐 Auth token found, adding to headers");
+        } else {
+          console.warn("⚠️ No Supabase session token - requests may fail on cross-origin");
         }
         console.log("🔍 Fetching identity sheets, API_URL:", API_URL, "hostname:", window.location.hostname);
         for (const student of podData.students) {

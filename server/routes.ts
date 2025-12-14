@@ -649,14 +649,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const { studentId } = req.params;
         const dbUser = (req as any).dbUser;
+        
+        console.log("📋 Identity sheet request - studentId:", studentId, "tutorId:", dbUser?.id);
 
         // Verify student exists and belongs to this tutor
         const student = await storage.getStudent(studentId);
         if (!student) {
+          console.log("❌ Student not found:", studentId);
           return res.status(404).json({ message: "Student not found" });
         }
 
+        console.log("✅ Student found:", student.id, "student.tutorId:", student.tutorId);
+
         if (student.tutorId !== dbUser.id) {
+          console.log("❌ Tutor mismatch - student.tutorId:", student.tutorId, "dbUser.id:", dbUser.id);
           return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
         }
 
@@ -669,6 +675,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           completedAt: student.identitySheetCompletedAt || null,
         };
 
+        console.log("✅ Returning identity sheet data for student:", studentId);
         res.json(identitySheetData);
       } catch (error) {
         console.error("Error fetching identity sheet:", error);
