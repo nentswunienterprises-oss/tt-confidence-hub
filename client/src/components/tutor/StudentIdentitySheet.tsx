@@ -222,6 +222,12 @@ export default function StudentIdentitySheet({
             credentials: "include",
           });
           if (response.ok) {
+            // Check content-type before parsing as JSON
+            const contentType = response.headers.get("content-type");
+            if (!contentType?.includes("application/json")) {
+              console.error("Invalid content-type when loading identity sheet:", contentType);
+              return;
+            }
             const data = await response.json();
             
             // Check if there's actual saved data

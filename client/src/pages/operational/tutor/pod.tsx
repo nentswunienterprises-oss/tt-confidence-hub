@@ -73,7 +73,7 @@ export default function TutorPod() {
         if (session?.access_token) {
           headers.Authorization = `Bearer ${session.access_token}`;
         }
-        console.log("🔍 Fetching identity sheets, API_URL:", API_URL);
+        console.log("🔍 Fetching identity sheets, API_URL:", API_URL, "hostname:", window.location.hostname);
         for (const student of podData.students) {
           try {
             const url = `${API_URL}/api/tutor/students/${student.id}/identity-sheet`;
@@ -82,13 +82,25 @@ export default function TutorPod() {
               headers,
               credentials: "include",
             });
-            console.log("📥 Response status:", response.status, "for student:", student.id);
+            console.log("📥 Response status:", response.status, "content-type:", response.headers.get("content-type"), "for student:", student.id);
             if (response.ok) {
+              // Check content-type before parsing as JSON
+              const contentType = response.headers.get("content-type");
+              if (!contentType?.includes("application/json")) {
+                // Log first 100 chars of response to debug HTML responses
+                const text = await response.text();
+                console.error(`Invalid content-type for student ${student.id}: ${contentType}, body starts with: ${text.substring(0, 100)}`);
+                continue;
+              }
               const data = await response.json();
               // Store if any identity sheet data exists
               if (data && (data.identitySheet || data.personalProfile || data.emotionalInsights || data.academicDiagnosis)) {
                 sheets[student.id] = data;
               }
+            } else {
+              // Log error response body for debugging
+              const errorText = await response.text();
+              console.error(`Identity sheet fetch failed for student ${student.id}: status ${response.status}, body: ${errorText.substring(0, 200)}`);
             }
           } catch (error) {
             console.error(`Failed to fetch identity sheet for student ${student.id}:`, error);
@@ -551,6 +563,12 @@ export default function TutorPod() {
                 credentials: "include",
               });
               if (res.ok) {
+                // Check content-type before parsing as JSON
+                const contentType = res.headers.get("content-type");
+                if (!contentType?.includes("application/json")) {
+                  console.error("❌ Invalid content-type after save:", contentType);
+                  return;
+                }
                 const data = await res.json();
                 console.log("🔍 Data received after save:", data);
                 console.log("🔍 Has any data?", !!(data && (data.identitySheet || data.personalProfile || data.emotionalInsights || data.academicDiagnosis)));

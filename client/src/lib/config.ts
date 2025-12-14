@@ -19,5 +19,5 @@ export function getApiUrl(): string {
   return RAILWAY_URL;
 }
 
-// This MUST be a getter to ensure it runs at runtime, not build time
-export const API_URL = RAILWAY_URL;
+// Use the getter function to ensure runtime evaluation
+export const API_URL = getApiUrl();
