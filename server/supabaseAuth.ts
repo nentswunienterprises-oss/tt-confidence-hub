@@ -331,15 +331,40 @@ export async function setupAuth(app: Express) {
 
       // Get user from our database
       // ✅ Get user directly from Supabase 'users' table
-      const { data: user, error: fetchError } = await supabase
+      let { data: user, error: fetchError } = await supabase
         .from("users")
         .select("*")
         .eq("email", email)
         .maybeSingle();
 
-      if (fetchError || !user) {
-        console.error("User fetch error:", fetchError);
-        return res.status(401).json({ message: "User not found" });
+      // If user record doesn't exist yet, auto-provision it using auth info
+      if (!user) {
+        console.warn("⚠️  No user record found, auto-provisioning user:", email);
+        const roleToAssign = expectedRole || "tutor";
+        const name = (authData.user.user_metadata as any)?.name || email.split("@")[0];
+        const first_name = (authData.user.user_metadata as any)?.first_name || "";
+        const last_name = (authData.user.user_metadata as any)?.last_name || "";
+
+        const { data: newUser, error: insertError } = await supabase
+          .from("users")
+          .insert({
+            id: authData.user.id,
+            email,
+            role: roleToAssign,
+            first_name,
+            last_name,
+            name,
+          })
+          .select()
+          .maybeSingle();
+
+        if (insertError || !newUser) {
+          console.error("❌ Failed to auto-provision user:", insertError);
+          return res.status(401).json({ message: "User not found" });
+        }
+
+        console.log("✅ Auto-provisioned user record:", newUser.id, newUser.role);
+        user = newUser;
       }
 
       console.log("═══════════════════════════════════════");

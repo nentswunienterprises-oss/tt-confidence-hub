@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { API_URL } from "@/lib/config";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import type { User } from "@shared/schema";
 import { Upload, X, Loader2, Edit3, Check, AlertCircle } from "lucide-react";
@@ -120,8 +121,8 @@ export default function TutorProfile() {
               const base64 = result.split(',')[1];
               console.log("Base64 encoded, length:", base64.length);
               
-              console.log("Sending POST to /api/tutor/profile/upload-image");
-              const response = await fetch("/api/tutor/profile/upload-image", {
+              console.log("Sending POST to API_URL /api/tutor/profile/upload-image", API_URL);
+              const response = await fetch(`${API_URL}/api/tutor/profile/upload-image`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

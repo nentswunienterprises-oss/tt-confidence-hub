@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { API_URL } from "@/lib/config";
 import {
   Dialog,
   DialogContent,
@@ -198,7 +199,7 @@ export default function ParentOnboardingProposal({
 
   const handleSendProposal = async () => {
     try {
-      const response = await fetch("/api/tutor/proposal", {
+      const response = await fetch(`${API_URL}/api/tutor/proposal`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

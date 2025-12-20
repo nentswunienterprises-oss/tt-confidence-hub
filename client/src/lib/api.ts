@@ -13,7 +13,7 @@ export async function authorizedGetJson(path: string): Promise<any> {
 
   const fullUrl = API_URL + path;
   console.log("🔗 authorizedGetJson: GET", fullUrl);
-
+  
   const res = await fetch(fullUrl, {
     headers,
     credentials: "include",
@@ -27,8 +27,9 @@ export async function authorizedGetJson(path: string): Promise<any> {
   const contentType = res.headers.get("content-type") || "";
   if (!contentType.includes("application/json")) {
     const text = await res.text();
-    throw new Error(`Invalid content-type: ${contentType}. Body: ${text.substring(0, 200)}`);
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'server';
+    throw new Error(`Invalid content-type from ${fullUrl} (origin ${origin}): ${contentType}. Body: ${text.substring(0, 200)}`);
   }
 
-  return res.json();
+  return await res.json();
 }

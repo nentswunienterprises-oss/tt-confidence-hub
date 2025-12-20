@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { API_URL } from "@/lib/config";
 import { ChevronRight, Plus, X } from "lucide-react";
 
 interface EncounterFormProps {
@@ -66,7 +67,7 @@ export default function EncounterForm({ onSuccess }: EncounterFormProps) {
   const logEncounterMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       if (!data.parentName) throw new Error("Parent name is required");
-      const res = await fetch("/api/affiliate/encounters", {
+      const res = await fetch(`${API_URL}/api/affiliate/encounters`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

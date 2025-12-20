@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "@/lib/config";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
@@ -17,7 +18,7 @@ export default function StudentDashboard() {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch("/api/student/logout", {
+      const response = await fetch(`${API_URL}/api/student/logout`, {
         method: "POST",
         credentials: "include",
       });

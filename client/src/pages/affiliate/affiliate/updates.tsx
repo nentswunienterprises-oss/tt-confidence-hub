@@ -5,6 +5,7 @@ import { Eye, Mail } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { authorizedGetJson } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 
 export default function AffiliateUpdates() {
@@ -24,10 +25,7 @@ export default function AffiliateUpdates() {
 
   const fetchBroadcasts = async () => {
     try {
-      const res = await fetch("/api/broadcasts?role=affiliate", {
-        credentials: "include",
-      });
-      const data = await res.json();
+      const data = await authorizedGetJson("/api/broadcasts?role=affiliate");
       setBroadcasts(data);
     } catch (error) {
       console.error("Error fetching broadcasts:", error);

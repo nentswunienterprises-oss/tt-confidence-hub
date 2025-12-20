@@ -34,6 +34,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import type { Pod, TutorAssignment, User } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { API_URL } from "@/lib/config";
 
 interface NavItem {
   label: string;
@@ -63,7 +64,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     // Check if student is authenticated
     const checkStudentAuth = async () => {
       try {
-        const response = await fetch("/api/student/me", { credentials: "include" });
+        const response = await fetch(`${API_URL}/api/student/me`, { credentials: "include" });
         if (response.ok) {
           const data = await response.json();
           console.log("🎓 Student authenticated:", data);

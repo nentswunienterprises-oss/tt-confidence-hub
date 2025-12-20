@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
+import { API_URL } from "@/lib/config";
 import { Target, Plus, CheckCircle2, Flame, Calendar, Edit2, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -72,8 +73,8 @@ export default function StudentGrowth() {
   const saveCommitmentMutation = useMutation({
     mutationFn: async (data: typeof commitmentForm & { id?: string }) => {
       const url = data.id 
-        ? `/api/student/commitments/${data.id}` 
-        : "/api/student/commitments";
+        ? `${API_URL}/api/student/commitments/${data.id}` 
+        : `${API_URL}/api/student/commitments`;
       const method = data.id ? "PUT" : "POST";
       
       const response = await fetch(url, {
@@ -105,7 +106,7 @@ export default function StudentGrowth() {
   // Log commitment completion mutation
   const completeCommitmentMutation = useMutation({
     mutationFn: async (commitmentId: string) => {
-      const response = await fetch(`/api/student/commitments/${commitmentId}/complete`, {
+      const response = await fetch(`${API_URL}/api/student/commitments/${commitmentId}/complete`, {
         method: "POST",
         credentials: "include",
       });
@@ -125,7 +126,7 @@ export default function StudentGrowth() {
   // Delete commitment mutation
   const deleteCommitmentMutation = useMutation({
     mutationFn: async (commitmentId: string) => {
-      const response = await fetch(`/api/student/commitments/${commitmentId}`, {
+      const response = await fetch(`${API_URL}/api/student/commitments/${commitmentId}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -144,7 +145,7 @@ export default function StudentGrowth() {
   // Create reflection mutation
   const createReflectionMutation = useMutation({
     mutationFn: async (data: typeof reflectionForm) => {
-      const response = await fetch("/api/student/reflections", {
+      const response = await fetch(`${API_URL}/api/student/reflections`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

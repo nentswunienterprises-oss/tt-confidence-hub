@@ -8,6 +8,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
 import ProposalView from "@/components/parent/ProposalView";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "@/lib/config";
 
 interface EnrollmentStatus {
   status: "not_enrolled" | "awaiting_assignment" | "assigned" | "proposal_sent" | "session_booked" | "report_received" | "confirmed";
@@ -47,7 +48,7 @@ export default function ParentGateway() {
   const { data: proposal, isLoading: proposalLoading, error: proposalError } = useQuery<any>({
     queryKey: ["/api/parent/proposal"],
     queryFn: async () => {
-      const response = await fetch("/api/parent/proposal", {
+      const response = await fetch(`${API_URL}/api/parent/proposal`, {
         credentials: "include",
       });
       
@@ -167,7 +168,7 @@ export default function ParentGateway() {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch("/api/parent/enroll", {
+      const response = await fetch(`${API_URL}/api/parent/enroll`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -199,7 +200,7 @@ export default function ParentGateway() {
   const handleAcceptProposal = async () => {
     setIsProcessingProposal(true);
     try {
-      const response = await fetch("/api/parent/proposal/accept", {
+      const response = await fetch(`${API_URL}/api/parent/proposal/accept`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -239,7 +240,7 @@ export default function ParentGateway() {
   const handleDeclineProposal = async () => {
     setIsProcessingProposal(true);
     try {
-      const response = await fetch("/api/parent/proposal/decline", {
+      const response = await fetch(`${API_URL}/api/parent/proposal/decline`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -761,7 +762,7 @@ export default function ParentGateway() {
                             onClick={async () => {
                               try {
                                 console.log("🎓 Generating student code...");
-                                const response = await fetch("/api/parent/generate-student-code", {
+                                const response = await fetch(`${API_URL}/api/parent/generate-student-code`, {
                                   method: "POST",
                                   headers: { "Content-Type": "application/json" },
                                   credentials: "include",

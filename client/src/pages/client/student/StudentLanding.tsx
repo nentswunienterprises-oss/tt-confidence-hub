@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "@/lib/config";
 
 export default function StudentLanding() {
   const [mode, setMode] = useState<"signin" | "signup">("signup");
@@ -51,7 +52,7 @@ export default function StudentLanding() {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch("/api/student/signup", {
+      const response = await fetch(`${API_URL}/api/student/signup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -97,7 +98,7 @@ export default function StudentLanding() {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch("/api/student/signin", {
+      const response = await fetch(`${API_URL}/api/student/signin`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

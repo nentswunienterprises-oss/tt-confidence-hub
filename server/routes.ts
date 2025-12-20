@@ -39,6 +39,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
+  // Simple health check to verify JSON responses and CORS
+  app.get("/api/health", (_req: Request, res: Response) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
   // ========================================
   // AUTH ROUTES
   // ========================================
@@ -221,6 +226,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error("Error fetching pod:", error);
         res.status(500).json({ message: "Failed to fetch pod" });
+      }
+    }
+  );
+
+  // Backfill students from assigned parent_enrollments for the authenticated tutor
+  // Useful in split deployments if automatic creation didn't run
+  app.post(
+    "/api/tutor/backfill-students",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const tutorId = (req as any).dbUser.id;
+        const created: string[] = [];
+
+        const { data: assignedEnrollments, error: enrollErr } = await supabase
+          .from("parent_enrollments")
+          .select("*")
+          .eq("assigned_tutor_id", tutorId)
+          .eq("status", "assigned");
+
+        if (enrollErr) {
+          return res.status(500).json({ message: "Failed to fetch enrollments" });
+        }
+
+        if (assignedEnrollments && assignedEnrollments.length > 0) {
+          for (const enrollment of assignedEnrollments) {
+            const { data: existingStudent } = await supabase
+              .from("students")
+              .select("id")
+              .eq("name", enrollment.student_full_name)
+              .eq("tutor_id", tutorId)
+              .maybeSingle();
+
+            if (!existingStudent) {
+              const confidenceLevelMap: any = {
+                "very confident": 9,
+                "confident": 8,
+                "somewhat confident": 6,
+                "not confident": 3,
+              };
+              const confidenceText = (enrollment.confidence_level || "").toLowerCase();
+              const confidenceScore = confidenceLevelMap[confidenceText] || 5;
+
+              const { error: insertErr } = await supabase
+                .from("students")
+                .insert({
+                  name: enrollment.student_full_name,
+                  grade: enrollment.student_grade,
+                  tutor_id: tutorId,
+                  confidence_score: confidenceScore,
+                  session_progress: 0,
+                  parent_contact: enrollment.parent_email,
+                });
+              if (!insertErr) {
+                created.push(enrollment.student_full_name);
+              }
+            }
+          }
+        }
+
+        res.json({ success: true, created });
+      } catch (error) {
+        console.error("Error backfilling students:", error);
+        res.status(500).json({ message: "Failed to backfill students" });
       }
     }
   );
@@ -649,6 +719,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const { studentId } = req.params;
         const dbUser = (req as any).dbUser;
+        console.log("📋 Identity sheet request:", {
+          studentId,
+          tutorId: dbUser?.id,
+          origin: req.headers.origin,
+          authHeader: req.headers.authorization ? 'present' : 'missing',
+        });
         
         console.log("📋 Identity sheet request - studentId:", studentId, "tutorId:", dbUser?.id);
 
