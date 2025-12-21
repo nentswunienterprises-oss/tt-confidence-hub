@@ -29,3 +29,5 @@ app.zip
 repo.bundle
 *.zip
 *.bundle
+.vercel
+.env*.local
