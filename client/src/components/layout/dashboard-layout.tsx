@@ -195,6 +195,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     { label: "Updates", path: "/client/student/updates", icon: <Bell className="w-5 h-5" /> },
   ];
 
+  const affiliateNav: NavItem[] = [
+    { label: "Home", path: "/affiliate/affiliate/home", icon: <Home className="w-5 h-5" /> },
+    { label: "Disc & Deli", path: "/affiliate/affiliate/discover-deliver", icon: <FolderKanban className="w-5 h-5" /> },
+    { label: "Tracking", path: "/affiliate/affiliate/tracking", icon: <TrendingUp className="w-5 h-5" /> },
+    { label: "Updates", path: "/affiliate/affiliate/updates", icon: <Bell className="w-5 h-5" /> },
+  ];
+
   const getRoleNavigation = (): NavItem[] => {
     if (!effectiveUser?.role) {
       console.log("❌ No user role available");
@@ -221,6 +228,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     if (effectiveUser.role === "student") {
       console.log("  → Using student hardcoded nav");
       return studentNav;
+    }
+    
+    // Check for affiliate role
+    if (isAffiliate(effectiveUser)) {
+      console.log("  → Using affiliate hardcoded nav");
+      return affiliateNav;
     }
     
     // For all other roles, use ROLE_NAVIGATION config

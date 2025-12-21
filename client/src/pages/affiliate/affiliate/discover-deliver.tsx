@@ -1,93 +1,19 @@
-import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
-import { Home, FolderKanban, TrendingUp, AlertCircle, LogOut, User } from "lucide-react";
-import { useState } from "react";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
 
 export default function AffiliateDiscoverDeliver() {
-  const navigate = useNavigate();
-  const { user, logout } = useAuth();
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
-
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Top Navigation */}
-      <nav className="border-b bg-card/50 backdrop-blur-sm p-4 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex justify-center flex-1 gap-4">
-            <Link to="/affiliate/affiliate/home">
-              <Button variant="ghost" size="sm" className="gap-2">
-                <Home className="w-4 h-4" />
-                Home
-              </Button>
-            </Link>
-            <Link to="/affiliate/affiliate/discover-deliver">
-              <Button variant="default" size="sm" className="gap-2">
-                <FolderKanban className="w-4 h-4" />
-                Discover & Deliver
-              </Button>
-            </Link>
-            <Link to="/affiliate/affiliate/tracking">
-              <Button variant="ghost" size="sm" className="gap-2">
-                <TrendingUp className="w-4 h-4" />
-                Tracking
-              </Button>
-            </Link>
-            <Link to="/affiliate/affiliate/updates">
-              <Button variant="ghost" size="sm" className="gap-2">
-                <AlertCircle className="w-4 h-4" />
-                Updates
-              </Button>
-            </Link>
-          </div>
-          <div className="relative">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-10 h-10 rounded-full p-0 flex items-center justify-center"
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
-            >
-              <User className="w-5 h-5" />
-            </Button>
-            {showProfileMenu && (
-              <div className="absolute right-0 mt-2 w-64 bg-card border rounded-lg shadow-lg z-50">
-                <div className="p-4 border-b">
-                  <p className="font-semibold text-foreground">{user?.name || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Affiliate'}</p>
-                  <p className="text-sm text-muted-foreground">{user?.email}</p>
-                </div>
-                <button
-                  onClick={async () => {
-                    await logout();
-                    navigate("/");
-                  }}
-                  className="w-full text-left px-4 py-3 flex items-center gap-2 hover:bg-accent text-destructive"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Logout
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+    <DashboardLayout>
+      <div className="space-y-8">
         {/* Welcome Hero */}
-        <div className="bg-gradient-to-r from-primary/10 to-amber-500/10 border-b p-8">
-          <div className="max-w-6xl mx-auto">
-            <h1 className="text-4xl font-bold mb-2">Sales Intro: Discovery & Delivery</h1>
-            <p className="text-lg text-muted-foreground">
-              Master the art of connecting with people and showing them solutions that work for their world.
-            </p>
-          </div>
+        <div className="space-y-3">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Sales Intro: Discovery & Delivery</h1>
+          <p className="text-lg text-muted-foreground">
+            Master the art of connecting with people and showing them solutions that work for their world.
+          </p>
         </div>
 
-        <div className="p-8">
-          <div className="max-w-4xl mx-auto space-y-8">
+        <div className="space-y-8">
             {/* What is Sales */}
             <section>
               <h2 className="text-2xl font-bold mb-4">What is Sales?</h2>
@@ -257,7 +183,6 @@ export default function AffiliateDiscoverDeliver() {
             </section>
           </div>
         </div>
-      </div>
-    </div>
+    </DashboardLayout>
   );
 }
