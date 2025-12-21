@@ -46,10 +46,7 @@ app.use((req, res) => {
 
 // Vercel serverless handler
 export default function handler(req: VercelRequest, res: VercelResponse) {
-  // Strip /api prefix since Express routes don't have it
-  if (req.url?.startsWith('/api')) {
-    req.url = req.url.replace('/api', '') || '/';
-  }
-  
+  // Routes are registered with /api prefix, so pass through as-is
+  console.log(`[Vercel Handler] ${req.method} ${req.url}`);
   return app(req as any, res as any);
 }
