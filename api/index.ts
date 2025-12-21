@@ -6,20 +6,19 @@ import cors from 'cors';
 
 const app = express();
 
+// Trust proxy for Vercel
+app.set('trust proxy', 1);
+
 // CORS configuration
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    const isLocal = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
-    const isHttps = /^https:\/\//.test(origin);
-    if (isLocal || isHttps) return callback(null, true);
-    callback(new Error(`CORS blocked for origin: ${origin}`));
-  },
+  origin: true,
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  optionsSuccessStatus: 200,
 }));
+
+// Handle preflight
+app.options('*', cors());
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
@@ -27,8 +26,10 @@ app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 // Register API routes
 registerRoutes(app);
 
-// Vercel serverless handler
-export default function handler(req: VercelRequest, res: VercelResponse) {
-  // Pass the request to Express
+// Vercel serverless handler - export as default AND named
+const handler = (req: VercelRequest, res: VercelResponse) => {
   return app(req as any, res as any);
-}
+};
+
+export default handler;
+export { handler };
