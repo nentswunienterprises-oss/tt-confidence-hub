@@ -95,11 +95,17 @@ app.use((req, res, next) => {
   // }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
-  const port = parseInt(process.env.PORT || '5000', 10);
+  const portEnv = process.env.PORT;
+  console.log(`[express] PORT env value: "${portEnv}"`);
+  const port = portEnv ? parseInt(portEnv, 10) : 5000;
+  if (isNaN(port) || port < 0 || port > 65535) {
+    console.error(`Invalid PORT: ${portEnv}, using 5000`);
+  }
+  const finalPort = isNaN(port) ? 5000 : port;
   server.listen({
-    port,
+    port: finalPort,
     host: "0.0.0.0"
   }, () => {
-    console.log(`[express] serving on port ${port}`);
+    console.log(`[express] serving on port ${finalPort}`);
   });
 })();
