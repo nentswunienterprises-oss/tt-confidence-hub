@@ -3,11 +3,6 @@
   "outputDirectory": "dist",
   "installCommand": "npm ci",
   "framework": null,
-  "functions": {
-    "api/**/*.ts": {
-      "maxDuration": 30
-    }
-  },
   "github": {
     "silent": true
   },
@@ -20,7 +15,7 @@
     }
   ],
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index.ts" },
+    { "source": "/api/(.*)", "destination": "/api" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
