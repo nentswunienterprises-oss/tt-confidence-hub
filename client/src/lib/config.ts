@@ -1,6 +1,6 @@
 // Runtime configuration for API URL
 
-const RAILWAY_URL = 'https://tt-confidence-hub-production.up.railway.app';
+const RENDER_URL = 'https://tt-confidence-hub-api.onrender.com';
 
 export function getApiUrl(): string {
   if (typeof window !== 'undefined') {
@@ -10,8 +10,8 @@ export function getApiUrl(): string {
       return 'http://localhost:5000';
     }
   }
-  // Production: use Railway backend
-  return RAILWAY_URL;
+  // Production: use Render backend
+  return RENDER_URL;
 }
 
 // Use the getter function to ensure runtime evaluation
