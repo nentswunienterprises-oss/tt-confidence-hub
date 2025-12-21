@@ -108,7 +108,7 @@ export default function AffiliateTracking() {
             {showProfileMenu && (
               <div className="absolute right-0 mt-2 w-64 bg-card border rounded-lg shadow-lg z-50">
                 <div className="p-4 border-b">
-                  <p className="font-semibold text-foreground">{user?.firstName} {user?.lastName || ""}</p>
+                  <p className="font-semibold text-foreground">{user?.name || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Affiliate'}</p>
                   <p className="text-sm text-muted-foreground">{user?.email}</p>
                 </div>
                 <button

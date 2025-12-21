@@ -8,7 +8,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { Home, FolderKanban, TrendingUp, AlertCircle, Copy, Users, Target, CheckCircle, LogOut, User, Plus } from "lucide-react";
 import { useState } from "react";
 import EncounterForm from "@/components/EncounterForm";
-import { DashboardLayout } from "@/components/layout/dashboard-layout";
 
 export default function AffiliateDashboard() {
   const navigate = useNavigate();
@@ -37,17 +36,80 @@ export default function AffiliateDashboard() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-8">
-        {/* Personal Greeting */}
-        <div className="space-y-3">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-            Welcome Back, {user?.firstName}!
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            Share your unique code with parents and track every step of their journey to tutoring success.
-          </p>
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Top Navigation */}
+      <nav className="border-b bg-card/50 backdrop-blur-sm p-4 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="text-lg font-bold text-foreground">TT Confidence Hub</div>
+          <div className="flex justify-center flex-1 gap-4">
+            <Link to="/affiliate/affiliate/home">
+              <Button variant="default" size="sm" className="gap-2">
+                <Home className="w-4 h-4" />
+                Home
+              </Button>
+            </Link>
+            <Link to="/affiliate/affiliate/discover-deliver">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <FolderKanban className="w-4 h-4" />
+                Discover & Deliver
+              </Button>
+            </Link>
+            <Link to="/affiliate/affiliate/tracking">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <TrendingUp className="w-4 h-4" />
+                Tracking
+              </Button>
+            </Link>
+            <Link to="/affiliate/affiliate/updates">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <AlertCircle className="w-4 h-4" />
+                Updates
+              </Button>
+            </Link>
+          </div>
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-10 h-10 rounded-full p-0 flex items-center justify-center border border-foreground/30"
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+            >
+              <User className="w-5 h-5" />
+            </Button>
+            {showProfileMenu && (
+              <div className="absolute right-0 mt-2 w-64 bg-card border rounded-lg shadow-lg z-50">
+                <div className="p-4 border-b">
+                  <p className="font-semibold text-foreground">{user?.name || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Affiliate'}</p>
+                  <p className="text-sm text-muted-foreground">{user?.email}</p>
+                </div>
+                <button
+                  onClick={async () => {
+                    await logout();
+                    navigate("/");
+                  }}
+                  className="w-full text-left px-4 py-3 flex items-center gap-2 hover:bg-accent text-destructive"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
         </div>
+      </nav>
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto p-8">
+        <div className="max-w-6xl mx-auto space-y-8">
+          {/* Personal Greeting */}
+          <div className="space-y-3">
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+              Welcome, {user?.firstName || user?.name?.split(' ')[0] || 'Affiliate'}!
+            </h1>
+            <p className="text-lg text-muted-foreground">
+              Share your unique code with parents and track every step of their journey to tutoring success.
+            </p>
+          </div>
 
         {/* Key Metrics - Stats */}
         <div className="grid md:grid-cols-3 gap-6">
@@ -111,7 +173,8 @@ export default function AffiliateDashboard() {
         <EncounterForm onSuccess={() => {
           refetchStats();
         }} />
+        </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 }
