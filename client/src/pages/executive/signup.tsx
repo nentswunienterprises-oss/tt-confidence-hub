@@ -1,11 +1,35 @@
 import { useState } from "react";
 import { ExecutiveAuthForm } from "@/components/auth/executive-auth-form";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Building2, Users, TrendingUp } from "lucide-react";
+import { Building2, Users, TrendingUp, ArrowLeft, ArrowRight, Check } from "lucide-react";
 
 type Role = "coo" | "hr" | "ceo";
+
+const roleData = {
+  coo: {
+    title: "Chief Operating Officer",
+    shortTitle: "COO",
+    description: "Manage day-to-day operations, pods, tutor assignments, and communications",
+    icon: Building2,
+    features: ["Pod Management", "Tutor Assignments", "Broadcast System", "Performance Analytics"],
+  },
+  hr: {
+    title: "Head of Human Resources",
+    shortTitle: "HR",
+    description: "Oversee staffing, metrics, personnel updates, and HR analytics",
+    icon: Users,
+    features: ["Staff Management", "Enrollment Metrics", "Personnel Updates", "Team Analytics"],
+  },
+  ceo: {
+    title: "Chief Executive Officer",
+    shortTitle: "CEO",
+    description: "View executive dashboard, strategic insights, and business intelligence",
+    icon: TrendingUp,
+    features: ["Executive Dashboard", "Strategic Insights", "Growth Metrics", "Company Analytics"],
+  },
+};
 
 export default function ExecutiveSignup() {
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
@@ -14,152 +38,94 @@ export default function ExecutiveSignup() {
 
   if (!selectedRole) {
     return (
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#FAF8F5" }}>
         {/* Header */}
-        <header className="border-b sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-            <div className="text-center flex-1">
-              <h1 className="font-bold text-lg">Executive Portal</h1>
-              <p className="text-xs text-muted-foreground">Leadership & Operations</p>
-            </div>
+        <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(250, 248, 245, 0.95)" }}>
+          <div className="max-w-7xl mx-auto px-6 md:px-12 h-20 flex items-center justify-between">
             <Button
               variant="ghost"
+              className="text-base font-medium hover:bg-transparent flex items-center gap-2"
+              style={{ color: "#1A1A1A" }}
               onClick={() => navigate("/executive/landing")}
             >
+              <ArrowLeft className="w-4 h-4" />
               Back
             </Button>
+            
+            <span className="text-xl lg:text-2xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
+              EXECUTIVE PORTAL
+            </span>
+            
+            <div className="w-20" /> {/* Spacer for centering */}
           </div>
         </header>
 
+        {/* Spacer for fixed header */}
+        <div className="h-20" />
+
         {/* Role Selection */}
-        <div className="flex-1 flex items-center justify-center px-4 py-12">
-          <div className="w-full max-w-4xl space-y-8">
-            <div className="text-center space-y-2">
-              <h2 className="text-3xl font-bold">
-                Select Your Executive Role
+        <div className="flex-1 flex items-center justify-center px-6 py-12">
+          <div className="w-full max-w-5xl space-y-10">
+            <div className="text-center space-y-4">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full" style={{ backgroundColor: "#FEF3EE" }}>
+                <span className="text-sm font-medium" style={{ color: "#E85A2C" }}>
+                  Select Your Role
+                </span>
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold" style={{ color: "#1A1A1A" }}>
+                Access Your <span style={{ color: "#E85A2C" }}>Executive Dashboard</span>
               </h2>
-              <p className="text-muted-foreground">
+              <p style={{ color: "#5A5A5A" }}>
                 Choose your role to access the appropriate dashboard and management tools
               </p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
-              {/* COO Role */}
-              <Card className="cursor-pointer transition-all hover:shadow-lg" onClick={() => setSelectedRole("coo")}>
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <Building2 className="w-5 h-5 text-primary" />
-                    <CardTitle>Chief Operating Officer</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Manage day-to-day operations, pods, tutor assignments, and communications
-                  </p>
-                  <div className="space-y-2 pt-4 border-t">
-                    <p className="text-xs font-semibold">ACCESS INCLUDES</p>
-                    <ul className="space-y-1">
-                      <li className="flex gap-2 text-xs">
-                        <span className="text-primary">•</span>
-                        Pod Management
-                      </li>
-                      <li className="flex gap-2 text-xs">
-                        <span className="text-primary">•</span>
-                        Tutor Assignments
-                      </li>
-                      <li className="flex gap-2 text-xs">
-                        <span className="text-primary">•</span>
-                        Broadcast System
-                      </li>
-                      <li className="flex gap-2 text-xs">
-                        <span className="text-primary">•</span>
-                        Performance Analytics
-                      </li>
+              {(Object.keys(roleData) as Role[]).map((roleKey) => {
+                const role = roleData[roleKey];
+                const Icon = role.icon;
+                return (
+                  <Card 
+                    key={roleKey}
+                    className="p-6 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group"
+                    style={{ backgroundColor: "white" }}
+                    onClick={() => setSelectedRole(roleKey)}
+                  >
+                    <div 
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform"
+                      style={{ backgroundColor: "#FEF3EE" }}
+                    >
+                      <Icon className="w-7 h-7" style={{ color: "#E85A2C" }} />
+                    </div>
+                    <h3 className="text-lg font-bold mb-2" style={{ color: "#1A1A1A" }}>
+                      {role.title}
+                    </h3>
+                    <p className="text-sm mb-4" style={{ color: "#5A5A5A" }}>
+                      {role.description}
+                    </p>
+                    
+                    <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: "#E85A2C" }}>
+                      Access Includes
+                    </p>
+                    <ul className="space-y-2 mb-5">
+                      {role.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-center gap-2 text-sm" style={{ color: "#5A5A5A" }}>
+                          <Check className="w-4 h-4 flex-shrink-0" style={{ color: "#E85A2C" }} />
+                          {feature}
+                        </li>
+                      ))}
                     </ul>
-                  </div>
-                  <Button className="w-full mt-auto">
-                    Continue as COO
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* HR Role */}
-              <Card className="cursor-pointer transition-all hover:shadow-lg" onClick={() => setSelectedRole("hr")}>
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-primary" />
-                    <CardTitle>Head of HR</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Oversee staffing, metrics, personnel updates, and HR analytics
-                  </p>
-                  <div className="space-y-2 pt-4 border-t">
-                    <p className="text-xs font-semibold">ACCESS INCLUDES</p>
-                    <ul className="space-y-1">
-                      <li className="flex gap-2 text-xs">
-                        <span className="text-primary">•</span>
-                        Staff Management
-                      </li>
-                      <li className="flex gap-2 text-xs">
-                        <span className="text-primary">•</span>
-                        Enrollment Metrics
-                      </li>
-                      <li className="flex gap-2 text-xs">
-                        <span className="text-primary">•</span>
-                        Personnel Updates
-                      </li>
-                      <li className="flex gap-2 text-xs">
-                        <span className="text-primary">•</span>
-                        Team Analytics
-                      </li>
-                    </ul>
-                  </div>
-                  <Button className="w-full mt-auto">
-                    Continue as HR
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* CEO Role */}
-              <Card className="cursor-pointer transition-all hover:shadow-lg" onClick={() => setSelectedRole("ceo")}>
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-primary" />
-                    <CardTitle>Chief Executive Officer</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    View executive dashboard, strategic insights, and business intelligence
-                  </p>
-                  <div className="space-y-2 pt-4 border-t">
-                    <p className="text-xs font-semibold">ACCESS INCLUDES</p>
-                    <ul className="space-y-1">
-                      <li className="flex gap-2 text-xs">
-                        <span className="text-primary">•</span>
-                        Executive Dashboard
-                      </li>
-                      <li className="flex gap-2 text-xs">
-                        <span className="text-primary">•</span>
-                        Strategic Insights
-                      </li>
-                      <li className="flex gap-2 text-xs">
-                        <span className="text-primary">•</span>
-                        Growth Metrics
-                      </li>
-                      <li className="flex gap-2 text-xs">
-                        <span className="text-primary">•</span>
-                        Company Analytics
-                      </li>
-                    </ul>
-                  </div>
-                  <Button className="w-full mt-auto">
-                    Continue as CEO
-                  </Button>
-                </CardContent>
-              </Card>
+                    
+                    <Button 
+                      className="w-full rounded-full py-5 font-semibold"
+                      style={{ backgroundColor: "#E85A2C", color: "white" }}
+                    >
+                      Continue as {role.shortTitle}
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </Card>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -167,33 +133,86 @@ export default function ExecutiveSignup() {
     );
   }
 
+  const currentRole = roleData[selectedRole];
+  const Icon = currentRole.icon;
+
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#FAF8F5" }}>
       {/* Header */}
-      <header className="border-b sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <button
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(250, 248, 245, 0.95)" }}>
+        <div className="max-w-7xl mx-auto px-6 md:px-12 h-20 flex items-center justify-between">
+          <Button
+            variant="ghost"
+            className="text-base font-medium hover:bg-transparent flex items-center gap-2"
+            style={{ color: "#1A1A1A" }}
             onClick={() => setSelectedRole(null)}
-            className="text-sm font-medium transition hover:opacity-70"
           >
-            ← Back to Roles
-          </button>
-          <div className="text-center">
-            <h1 className="font-bold text-lg">Executive Portal</h1>
-            <p className="text-xs text-muted-foreground">
-              {selectedRole === "coo" && "Chief Operating Officer"}
-              {selectedRole === "hr" && "Head of Human Resources"}
-              {selectedRole === "ceo" && "Chief Executive Officer"}
-            </p>
-          </div>
-          <div className="w-20" />
+            <ArrowLeft className="w-4 h-4" />
+            Back to Roles
+          </Button>
+          
+          <span className="text-xl lg:text-2xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
+            {currentRole.shortTitle}
+          </span>
+          
+          <div className="w-28" /> {/* Spacer for centering */}
         </div>
       </header>
 
+      {/* Spacer for fixed header */}
+      <div className="h-20" />
+
       {/* Auth Form */}
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md">
-          <ExecutiveAuthForm role={selectedRole as Role} mode={mode} setMode={setMode} />
+      <div className="flex-1 flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-md space-y-8">
+          {/* Hero Section */}
+          <div className="text-center space-y-4">
+            <div 
+              className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto"
+              style={{ backgroundColor: "#FEF3EE" }}
+            >
+              <Icon className="w-8 h-8" style={{ color: "#E85A2C" }} />
+            </div>
+            <h2 className="text-3xl font-bold" style={{ color: "#1A1A1A" }}>
+              {currentRole.title}
+            </h2>
+            <p style={{ color: "#5A5A5A" }}>
+              {currentRole.description}
+            </p>
+          </div>
+
+          {/* Mode Toggle */}
+          <div className="flex gap-2 justify-center p-1 rounded-full" style={{ backgroundColor: "#FEF3EE" }}>
+            <button
+              className={`flex-1 py-3 px-6 rounded-full font-semibold transition-all ${
+                mode === "login" ? "shadow-md" : ""
+              }`}
+              style={{ 
+                backgroundColor: mode === "login" ? "#E85A2C" : "transparent",
+                color: mode === "login" ? "white" : "#5A5A5A"
+              }}
+              onClick={() => setMode("login")}
+            >
+              Login
+            </button>
+            <button
+              className={`flex-1 py-3 px-6 rounded-full font-semibold transition-all ${
+                mode === "signup" ? "shadow-md" : ""
+              }`}
+              style={{ 
+                backgroundColor: mode === "signup" ? "#E85A2C" : "transparent",
+                color: mode === "signup" ? "white" : "#5A5A5A"
+              }}
+              onClick={() => setMode("signup")}
+            >
+              Sign Up
+            </button>
+          </div>
+
+          {/* Auth Form Container */}
+          <Card className="p-8 border-0 shadow-lg" style={{ backgroundColor: "white" }}>
+            <ExecutiveAuthForm role={selectedRole as Role} mode={mode} setMode={setMode} />
+          </Card>
         </div>
       </div>
     </div>

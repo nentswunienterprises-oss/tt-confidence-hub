@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { CheckCircle2, Circle } from "lucide-react";
+import { CheckCircle2, Circle, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
@@ -274,17 +274,40 @@ export default function ParentGateway() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen" style={{ backgroundColor: "#FAF8F5" }}>
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b bg-muted/30 backdrop-blur supports-[backdrop-filter]:bg-muted/30">
-        <div className="container mx-auto px-4 py-4">
-          <h1 className="font-bold text-lg">Confidence Hub Enrollment</h1>
-          <p className="text-xs text-muted-foreground">Parent Gateway</p>
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(250, 248, 245, 0.95)" }}>
+        <div className="max-w-7xl mx-auto px-6 md:px-12 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
+              TERRITORIAL TUTORING
+            </span>
+            <span className="text-xl font-bold" style={{ color: "#E85A2C" }}>+</span>
+          </div>
+          
+          <div className="hidden md:block">
+            <span className="text-2xl lg:text-3xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
+              Parent Enrollment
+            </span>
+          </div>
+          
+          <Button
+            variant="ghost"
+            className="text-base font-medium hover:bg-transparent flex items-center gap-2"
+            style={{ color: "#1A1A1A" }}
+            onClick={() => navigate("/")}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
         </div>
       </header>
 
+      {/* Spacer for fixed header */}
+      <div className="h-20" />
+
       {/* Journey Status Bar */}
-      <div className="border-b bg-muted/50">
+      <div style={{ backgroundColor: "#FEF3EE" }}>
         <div className="container mx-auto px-4 py-6 flex justify-center">
           <div className="flex items-center justify-between w-full max-w-2xl">
             {[
@@ -296,11 +319,12 @@ export default function ParentGateway() {
               <div key={item.label} className="flex items-center flex-1">
                 <div className="flex flex-col items-center">
                   <div
-                    className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition ${
-                      item.status
-                        ? "bg-primary border-primary text-primary-foreground"
-                        : "border-muted-foreground/30"
-                    }`}
+                    className="flex items-center justify-center w-8 h-8 rounded-full border-2 transition"
+                    style={{
+                      backgroundColor: item.status ? "#E85A2C" : "transparent",
+                      borderColor: item.status ? "#E85A2C" : "#D1D5DB",
+                      color: item.status ? "white" : "#9CA3AF"
+                    }}
                   >
                     {item.status ? (
                       <CheckCircle2 className="w-4 h-4" />
@@ -308,13 +332,12 @@ export default function ParentGateway() {
                       <Circle className="w-4 h-4" />
                     )}
                   </div>
-                  <span className="text-xs mt-2 font-medium">{item.label}</span>
+                  <span className="text-xs mt-2 font-medium" style={{ color: "#1A1A1A" }}>{item.label}</span>
                 </div>
                 {idx < arr.length - 1 && (
                   <div
-                    className={`flex-1 h-0.5 mx-2 transition ${
-                      item.status ? "bg-primary" : "bg-muted-foreground/20"
-                    }`}
+                    className="flex-1 h-0.5 mx-2 transition"
+                    style={{ backgroundColor: item.status ? "#E85A2C" : "#E5E5E5" }}
                   />
                 )}
               </div>
@@ -326,31 +349,31 @@ export default function ParentGateway() {
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         {/* Enrollment Form */}
         {step === "enrollment" && (
-          <Card>
+          <Card className="border-0 shadow-lg" style={{ backgroundColor: "white" }}>
             <CardHeader>
-              <CardTitle>Enrollment Form</CardTitle>
-              <CardDescription>
+              <CardTitle style={{ color: "#1A1A1A" }}>Enrollment Form</CardTitle>
+              <CardDescription style={{ color: "#5A5A5A" }}>
                 Territorial Tutoring – Confidence Pod Enrollment (Experimental Phase)
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-8">
               {/* Introduction */}
-              <div className="bg-muted/30 rounded-lg p-4 space-y-3">
-                <h3 className="font-semibold">"Confidence isn't a luxury. It's a skill we teach."</h3>
-                <p className="text-sm text-muted-foreground">
+              <div className="rounded-xl p-5 space-y-3" style={{ backgroundColor: "#FEF3EE" }}>
+                <h3 className="font-semibold" style={{ color: "#E85A2C" }}>"Confidence isn't a luxury. It's a skill we teach."</h3>
+                <p className="text-sm" style={{ color: "#5A5A5A" }}>
                   Welcome to Territorial Tutoring's Confidence Project, a national pilot program redefining how students rebuild confidence in mathematics.
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm" style={{ color: "#5A5A5A" }}>
                   This is a limited experimental phase where selected students join our structured Confidence Pods - a mentorship-based tutoring model designed and monitored by TT Headquarters.
                 </p>
               </div>
 
               {/* Parent Information */}
               <div className="space-y-4">
-                <h4 className="font-semibold text-sm uppercase tracking-wide">Parent / Guardian Information</h4>
+                <h4 className="font-semibold text-sm uppercase tracking-wide" style={{ color: "#E85A2C" }}>Parent / Guardian Information</h4>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Full Name *</label>
+                    <label className="block text-sm font-medium mb-1" style={{ color: "#1A1A1A" }}>Full Name *</label>
                     <Input
                       placeholder="Your full name"
                       value={formData.parentFullName}
@@ -359,7 +382,7 @@ export default function ParentGateway() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Phone Number (+27) *</label>
+                    <label className="block text-sm font-medium mb-1" style={{ color: "#1A1A1A" }}>Phone Number (+27) *</label>
                     <Input
                       placeholder="+27 71 234 5678"
                       value={formData.parentPhone}
@@ -390,10 +413,10 @@ export default function ParentGateway() {
 
               {/* Student Information */}
               <div className="space-y-4">
-                <h4 className="font-semibold text-sm uppercase tracking-wide">Student Information</h4>
+                <h4 className="font-semibold text-sm uppercase tracking-wide" style={{ color: "#E85A2C" }}>Student Information</h4>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Student's Full Name *</label>
+                    <label className="block text-sm font-medium mb-1" style={{ color: "#1A1A1A" }}>Student's Full Name *</label>
                     <Input
                       placeholder="Student's name"
                       value={formData.studentFullName}
@@ -402,17 +425,18 @@ export default function ParentGateway() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Grade in 2025 *</label>
+                    <label className="block text-sm font-medium mb-2" style={{ color: "#1A1A1A" }}>Grade in 2025 *</label>
                     <div className="grid grid-cols-2 gap-2">
                       {["Grade 6", "Grade 7", "Grade 8", "Grade 9"].map((grade) => (
                         <button
                           key={grade}
                           onClick={() => handleInputChange("studentGrade", grade)}
-                          className={`px-4 py-2 rounded-lg border text-sm font-medium transition ${
-                            formData.studentGrade === grade
-                              ? "bg-primary text-primary-foreground border-primary"
-                              : "border-border hover:border-primary/50"
-                          }`}
+                          className="px-4 py-2 rounded-lg border text-sm font-medium transition"
+                          style={{
+                            backgroundColor: formData.studentGrade === grade ? "#E85A2C" : "transparent",
+                            color: formData.studentGrade === grade ? "white" : "#1A1A1A",
+                            borderColor: formData.studentGrade === grade ? "#E85A2C" : "#E5E5E5"
+                          }}
                         >
                           {grade}
                         </button>
@@ -442,7 +466,7 @@ export default function ParentGateway() {
 
               {/* Background Questions */}
               <div className="space-y-4">
-                <h4 className="font-semibold text-sm uppercase tracking-wide">Background</h4>
+                <h4 className="font-semibold text-sm uppercase tracking-wide" style={{ color: "#E85A2C" }}>Background</h4>
                 <div className="space-y-3">
                   <div>
                     <label className="block text-sm font-medium mb-2">Has your child ever received tutoring before? *</label>
@@ -563,13 +587,14 @@ export default function ParentGateway() {
               <Button
                 onClick={handleSubmit}
                 disabled={!isFormValid() || isSubmitting}
-                className="w-full"
+                className="w-full rounded-full font-semibold"
                 size="lg"
+                style={{ backgroundColor: "#E85A2C", color: "white" }}
               >
                 {isSubmitting ? "Submitting..." : "Submit Enrollment"}
               </Button>
 
-              <p className="text-xs text-muted-foreground text-center">
+              <p className="text-xs text-center" style={{ color: "#5A5A5A" }}>
                 Due to high demand and limited tutor availability, placement is not guaranteed.
               </p>
             </CardContent>
@@ -578,10 +603,10 @@ export default function ParentGateway() {
 
         {/* Submitted Confirmation */}
         {step === "submitted" && enrollmentStatus && (
-          <Card className="text-center">
+          <Card className="text-center border-0 shadow-lg" style={{ backgroundColor: "white" }}>
             <CardHeader>
-              <CardTitle className="flex items-center justify-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
+              <CardTitle className="flex items-center justify-center gap-2" style={{ color: "#1A1A1A" }}>
+                <CheckCircle2 className="w-5 h-5" style={{ color: "#E85A2C" }} />
                 {enrollmentStatus.status === "awaiting_assignment" && "Application Under Review"}
                 {enrollmentStatus.status === "assigned" && "Tutor Assigned"}
                 {enrollmentStatus.status === "session_booked" && "Proposal Accepted"}

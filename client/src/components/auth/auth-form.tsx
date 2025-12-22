@@ -2,13 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { supabase } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom"; // ✅ React Router hook
@@ -178,63 +171,102 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle>{mode === "signup" ? "Create Account" : "Welcome Back"}</CardTitle>
-        <CardDescription>
+    <div className="w-full max-w-md">
+      <div className="mb-6">
+        <h3 className="text-2xl font-bold" style={{ color: "#1A1A1A" }}>
+          {mode === "signup" ? "Create Account" : "Welcome Back"}
+        </h3>
+        <p className="text-sm mt-1" style={{ color: "#5A5A5A" }}>
           {mode === "signup" ? "Enter your details to get started" : "Login to your dashboard"}
-        </CardDescription>
-      </CardHeader>
+        </p>
+      </div>
 
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {mode === "signup" && (
-            <>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {mode === "signup" && (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="firstName" style={{ color: "#1A1A1A" }}>First Name</Label>
+              <Input 
+                id="firstName" 
+                type="text" 
+                placeholder="John" 
+                value={firstName} 
+                onChange={(e) => setFirstName(e.target.value)} 
+                required 
+                className="rounded-lg border-gray-200 focus:border-[#E85A2C] focus:ring-[#E85A2C]"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="lastName" style={{ color: "#1A1A1A" }}>Last Name</Label>
+              <Input 
+                id="lastName" 
+                type="text" 
+                placeholder="Doe" 
+                value={lastName} 
+                onChange={(e) => setLastName(e.target.value)} 
+                required 
+                className="rounded-lg border-gray-200 focus:border-[#E85A2C] focus:ring-[#E85A2C]"
+              />
+            </div>
+
+            {defaultRole === "parent" && (
               <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" type="text" placeholder="John" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+                <Label htmlFor="code" style={{ color: "#1A1A1A" }}>
+                  Affiliate Code
+                  <span className="ml-1" style={{ color: "#E85A2C" }}>*</span>
+                </Label>
+                <Input
+                  id="code"
+                  type="text"
+                  placeholder="e.g., AFIX123456"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.toUpperCase())}
+                  required
+                  className="rounded-lg border-gray-200 focus:border-[#E85A2C] focus:ring-[#E85A2C]"
+                />
               </div>
+            )}
+          </>
+        )}
 
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" type="text" placeholder="Doe" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
-              </div>
+        <div className="space-y-2">
+          <Label htmlFor="email" style={{ color: "#1A1A1A" }}>Email</Label>
+          <Input 
+            id="email" 
+            type="email" 
+            placeholder="your@email.com" 
+            value={email} 
+            onChange={(e) => setEmail(e.target.value)} 
+            required 
+            className="rounded-lg border-gray-200 focus:border-[#E85A2C] focus:ring-[#E85A2C]"
+          />
+        </div>
 
-              {defaultRole === "parent" && (
-                <div className="space-y-2">
-                  <Label htmlFor="code">
-                    Affiliate Code
-                    <span className="text-destructive ml-1">*</span>
-                  </Label>
-                  <Input
-                    id="code"
-                    type="text"
-                    placeholder="e.g., AFIX123456"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value.toUpperCase())}
-                    required
-                  />
-                </div>
-              )}
-            </>
-          )}
+        <div className="space-y-2">
+          <Label htmlFor="password" style={{ color: "#1A1A1A" }}>Password</Label>
+          <Input 
+            id="password" 
+            type="password" 
+            placeholder="Enter your password" 
+            value={password} 
+            onChange={(e) => setPassword(e.target.value)} 
+            required 
+            minLength={6} 
+            className="rounded-lg border-gray-200 focus:border-[#E85A2C] focus:ring-[#E85A2C]"
+          />
+        </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
-          </div>
-
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Please wait..." : mode === "signup" ? "Sign Up" : "Login"}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+        <Button 
+          type="submit" 
+          className="w-full rounded-full font-semibold py-6 mt-6" 
+          style={{ backgroundColor: "#E85A2C", color: "white" }}
+          disabled={loading}
+        >
+          {loading ? "Please wait..." : mode === "signup" ? "Sign Up" : "Login"}
+        </Button>
+      </form>
+    </div>
   );
 }
 

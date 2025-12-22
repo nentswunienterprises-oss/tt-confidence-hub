@@ -2,13 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { supabase } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -150,120 +143,133 @@ export function ExecutiveAuthForm({ role, mode, setMode }: ExecutiveAuthFormProp
   };
 
   return (
-    <Card
-      style={{
-        backgroundColor: "#FFFFFF",
-        borderColor: "#F0C080",
-        borderWidth: "2px",
-      }}
-    >
-      <CardHeader>
-        <CardTitle style={{ color: "#503F10" }}>
-          {mode === "signup" ? "Create Executive Account" : "Executive Portal Login"}
-        </CardTitle>
-        <CardDescription style={{ color: "#8B7D60" }}>
-          {mode === "signup"
-            ? `Register as ${roleNames[role]}`
-            : `Sign in to access your ${roleNames[role]} dashboard`}
-        </CardDescription>
-      </CardHeader>
+    <div className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {mode === "signup" && (
+          <>
+            <div className="space-y-2">
+              <Label 
+                htmlFor="firstName" 
+                className="text-sm font-semibold"
+                style={{ color: "#1A1A1A" }}
+              >
+                First Name
+              </Label>
+              <Input
+                id="firstName"
+                type="text"
+                placeholder="John"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+                autoComplete="given-name"
+                className="h-12 rounded-xl border-2 focus:ring-2 focus:ring-offset-0"
+                style={{ 
+                  borderColor: "#E5E5E5",
+                  backgroundColor: "#FAFAFA"
+                }}
+              />
+            </div>
 
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {mode === "signup" && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="firstName" style={{ color: "#503F10" }}>
-                  First Name
-                </Label>
-                <Input
-                  id="firstName"
-                  type="text"
-                  placeholder="John"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  required
-                  autoComplete="given-name"
-                  style={{ borderColor: "#E2B463" }}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label 
+                htmlFor="lastName"
+                className="text-sm font-semibold"
+                style={{ color: "#1A1A1A" }}
+              >
+                Last Name
+              </Label>
+              <Input
+                id="lastName"
+                type="text"
+                placeholder="Doe"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                required
+                autoComplete="family-name"
+                className="h-12 rounded-xl border-2 focus:ring-2 focus:ring-offset-0"
+                style={{ 
+                  borderColor: "#E5E5E5",
+                  backgroundColor: "#FAFAFA"
+                }}
+              />
+            </div>
+          </>
+        )}
 
-              <div className="space-y-2">
-                <Label htmlFor="lastName" style={{ color: "#503F10" }}>
-                  Last Name
-                </Label>
-                <Input
-                  id="lastName"
-                  type="text"
-                  placeholder="Doe"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  required
-                  autoComplete="family-name"
-                  style={{ borderColor: "#E2B463" }}
-                />
-              </div>
-            </>
-          )}
-
-          <div className="space-y-2">
-            <Label htmlFor="email" style={{ color: "#503F10" }}>
-              Email
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="your@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-              style={{ borderColor: "#E2B463" }}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password" style={{ color: "#503F10" }}>
-              Password
-            </Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-              minLength={6}
-              style={{ borderColor: "#E2B463" }}
-            />
-          </div>
-
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={loading}
-            style={{ backgroundColor: "#F0C080", color: "#503F10" }}
+        <div className="space-y-2">
+          <Label 
+            htmlFor="email"
+            className="text-sm font-semibold"
+            style={{ color: "#1A1A1A" }}
           >
-            {loading ? "Please wait..." : mode === "signup" ? "Create Account" : "Sign In"}
-          </Button>
-        </form>
-
-        {/* Toggle Mode */}
-        <div className="mt-6 text-center border-t pt-4" style={{ borderTopColor: "#F0C080" }}>
-          <p style={{ color: "#303030" }}>
-            {mode === "signup" ? "Already have an account? " : "Don't have an account? "}
-            <button
-              type="button"
-              onClick={() => setMode(mode === "signup" ? "login" : "signup")}
-              style={{ color: "#F0C080", fontWeight: "600" }}
-              className="hover:opacity-80"
-            >
-              {mode === "signup" ? "Sign In" : "Sign Up"}
-            </button>
-          </p>
+            Email
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="your@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete="email"
+            className="h-12 rounded-xl border-2 focus:ring-2 focus:ring-offset-0"
+            style={{ 
+              borderColor: "#E5E5E5",
+              backgroundColor: "#FAFAFA"
+            }}
+          />
         </div>
-      </CardContent>
-    </Card>
+
+        <div className="space-y-2">
+          <Label 
+            htmlFor="password"
+            className="text-sm font-semibold"
+            style={{ color: "#1A1A1A" }}
+          >
+            Password
+          </Label>
+          <Input
+            id="password"
+            type="password"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="current-password"
+            minLength={6}
+            className="h-12 rounded-xl border-2 focus:ring-2 focus:ring-offset-0"
+            style={{ 
+              borderColor: "#E5E5E5",
+              backgroundColor: "#FAFAFA"
+            }}
+          />
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full h-12 rounded-full font-semibold text-base"
+          disabled={loading}
+          style={{ backgroundColor: "#E85A2C", color: "white" }}
+        >
+          {loading ? "Please wait..." : mode === "signup" ? "Create Account" : "Sign In"}
+        </Button>
+      </form>
+
+      {/* Toggle Mode - Hidden since parent handles toggle */}
+      <div className="text-center">
+        <p className="text-sm" style={{ color: "#5A5A5A" }}>
+          {mode === "signup" ? "Already have an account? " : "Don't have an account? "}
+          <button
+            type="button"
+            onClick={() => setMode(mode === "signup" ? "login" : "signup")}
+            className="font-semibold hover:opacity-80"
+            style={{ color: "#E85A2C" }}
+          >
+            {mode === "signup" ? "Sign In" : "Sign Up"}
+          </button>
+        </p>
+      </div>
+    </div>
   );
 }
