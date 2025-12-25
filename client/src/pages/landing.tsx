@@ -33,7 +33,7 @@ export default function Landing() {
               <span className="text-base sm:text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
                 TERRITORIAL TUTORING
               </span>
-              <span className="text-base sm:text-xl font-bold" style={{ color: "#E85A2C" }}>+</span>
+              <span className="text-base sm:text-xl font-bold" style={{ color: "#E63946" }}>+</span>
             </div>
           </div>
           
@@ -54,8 +54,8 @@ export default function Landing() {
               Log In
             </Button>
             <Button
-              className="text-sm sm:text-base font-semibold px-4 sm:px-6 py-2 sm:py-5 rounded-full"
-              style={{ backgroundColor: "#E85A2C", color: "white" }}
+              className="text-sm sm:text-base font-semibold px-4 sm:px-6 py-2 sm:py-5 rounded-full border-0 shadow-lg hover:shadow-xl transition-all"
+              style={{ backgroundColor: "#E63946", color: "white" }}
               onClick={() => window.location.href = "/auth?mode=signup"}
             >
               <span className="hidden sm:inline">Get Started</span>
@@ -80,9 +80,9 @@ export default function Landing() {
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
           {/* Left - Text Content */}
           <div className="space-y-5 sm:space-y-8">
-            <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full" style={{ backgroundColor: "#FEF3EE" }}>
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: "#E85A2C" }} />
-              <span className="text-xs sm:text-sm font-medium" style={{ color: "#E85A2C" }}>
+            <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: "#E63946" }} />
+              <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
                 Confidence-First Tutoring for Grades 6–9
               </span>
             </div>
@@ -90,7 +90,7 @@ export default function Landing() {
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight" style={{ color: "#1A1A1A" }}>
               We Don't Just Tutor.
               <br />
-              <span style={{ color: "#E85A2C" }}>We Build Confidence.</span>
+              <span style={{ color: "#E63946" }}>We Build Confidence.</span>
             </h1>
             
             <p className="text-base sm:text-lg md:text-xl leading-relaxed" style={{ color: "#5A5A5A" }}>
@@ -102,8 +102,8 @@ export default function Landing() {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 sm:pt-4">
               <Button
                 size="lg"
-                className="text-base sm:text-lg font-semibold px-6 sm:px-8 py-4 sm:py-6 rounded-full shadow-lg hover:shadow-xl transition-all"
-                style={{ backgroundColor: "#E85A2C", color: "white" }}
+                className="text-base sm:text-lg font-semibold px-6 sm:px-8 py-4 sm:py-6 rounded-full shadow-lg hover:shadow-xl transition-all border-0"
+                style={{ backgroundColor: "#E63946", color: "white" }}
                 onClick={() => window.location.href = "/auth?mode=signup"}
               >
                 Start Your Journey
@@ -112,8 +112,8 @@ export default function Landing() {
               <Button
                 size="lg"
                 variant="outline"
-                className="text-base sm:text-lg font-medium px-6 sm:px-8 py-4 sm:py-6 rounded-full border-2"
-                style={{ borderColor: "#1A1A1A", color: "#1A1A1A", backgroundColor: "transparent" }}
+                className="text-base sm:text-lg font-medium px-6 sm:px-8 py-4 sm:py-6 rounded-full"
+                style={{ borderColor: "#1A1A1A", borderWidth: "2px", color: "#1A1A1A", backgroundColor: "transparent" }}
                 onClick={() => window.location.href = "/auth?mode=login"}
               >
                 I'm Already a Member
@@ -128,9 +128,9 @@ export default function Landing() {
                     key={i} 
                     className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 flex items-center justify-center text-xs sm:text-sm font-medium"
                     style={{ 
-                      backgroundColor: i % 2 === 0 ? "#FEF3EE" : "#E85A2C", 
+                      backgroundColor: i % 2 === 0 ? "#FFF0F0" : "#E63946", 
                       borderColor: "#FFF5ED",
-                      color: i % 2 === 0 ? "#E85A2C" : "white"
+                      color: i % 2 === 0 ? "#E63946" : "white"
                     }}
                   >
                     {i % 2 === 0 ? "★" : "✓"}
@@ -148,7 +148,7 @@ export default function Landing() {
           <div className="relative">
             <div 
               className="absolute inset-0 rounded-3xl transform rotate-3"
-              style={{ backgroundColor: "#FEF3EE" }}
+              style={{ backgroundColor: "#FFF0F0" }}
             />
             <img
               src="/images/Benefits-of-Online-Tutoring-1-1080x589.png"
@@ -164,10 +164,10 @@ export default function Landing() {
             />
             <div 
               className="hidden relative rounded-3xl w-full flex items-center justify-center"
-              style={{ aspectRatio: "4/3", backgroundColor: "#FEF3EE" }}
+              style={{ aspectRatio: "4/3", backgroundColor: "#FFF0F0" }}
             >
               <div className="text-center p-8">
-                <GraduationCap className="w-20 h-20 mx-auto mb-4" style={{ color: "#E85A2C" }} />
+                <GraduationCap className="w-20 h-20 mx-auto mb-4" style={{ color: "#E63946" }} />
                 <p className="text-lg font-medium" style={{ color: "#5A5A5A" }}>
                   Add hero-student.jpg to<br />client/public/images/
                 </p>
@@ -182,9 +182,9 @@ export default function Landing() {
               <div className="flex items-center gap-2 sm:gap-3">
                 <div 
                   className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: "#FEF3EE" }}
+                  style={{ backgroundColor: "#FFF0F0" }}
                 >
-                  <Heart className="w-5 h-5 sm:w-6 sm:h-6 fill-current" style={{ color: "#E85A2C" }} />
+                  <Heart className="w-5 h-5 sm:w-6 sm:h-6 fill-current" style={{ color: "#E63946" }} />
                 </div>
                 <div>
                   <p className="font-bold text-sm sm:text-lg" style={{ color: "#1A1A1A" }}>Confidence First</p>
@@ -233,7 +233,7 @@ export default function Landing() {
               >
                 <div 
                   className="w-11 h-11 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl flex items-center justify-center mb-4 sm:mb-6"
-                  style={{ backgroundColor: "#E85A2C" }}
+                  style={{ backgroundColor: "#E63946" }}
                 >
                   <item.icon className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
                 </div>
@@ -250,7 +250,7 @@ export default function Landing() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-10 sm:py-16" style={{ backgroundColor: "#E85A2C" }}>
+      <section className="py-10 sm:py-16" style={{ backgroundColor: "#E63946" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 text-center">
             {[
@@ -309,7 +309,7 @@ export default function Landing() {
               >
                 <div className="flex gap-0.5 sm:gap-1 mb-3 sm:mb-4">
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className="w-4 h-4 sm:w-5 sm:h-5 fill-current" style={{ color: "#E85A2C" }} />
+                    <Star key={star} className="w-4 h-4 sm:w-5 sm:h-5 fill-current" style={{ color: "#E63946" }} />
                   ))}
                 </div>
                 <p className="text-base sm:text-lg mb-4 sm:mb-6 leading-relaxed" style={{ color: "#1A1A1A" }}>
@@ -340,15 +340,15 @@ export default function Landing() {
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {/* Parent/Student */}
             <Card 
-              className="p-5 sm:p-6 md:p-8 border-2 hover:border-[#E85A2C] cursor-pointer transition-all hover:shadow-xl group"
+              className="p-5 sm:p-6 md:p-8 border-2 hover:border-[#E63946] cursor-pointer transition-all hover:shadow-xl group"
               style={{ borderColor: "#E5E5E5" }}
               onClick={() => window.location.href = "/portal-landing"}
             >
               <div 
                 className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform"
-                style={{ backgroundColor: "#FEF3EE" }}
+                style={{ backgroundColor: "#FFF0F0" }}
               >
-                <Heart className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: "#E85A2C" }} />
+                <Heart className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: "#E63946" }} />
               </div>
               <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3" style={{ color: "#1A1A1A" }}>
                 Parents & Students
@@ -359,14 +359,14 @@ export default function Landing() {
               <ul className="space-y-2 sm:space-y-3 mb-6 sm:mb-8">
                 {["Access to dedicated tutors", "Track confidence growth", "Weekly progress updates", "Parent dashboard"].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 sm:gap-3">
-                    <Check className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" style={{ color: "#E85A2C" }} />
+                    <Check className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" style={{ color: "#E63946" }} />
                     <span className="text-sm sm:text-base" style={{ color: "#5A5A5A" }}>{item}</span>
                   </li>
                 ))}
               </ul>
               <Button 
-                className="w-full rounded-full py-4 sm:py-6 font-semibold group-hover:shadow-lg transition-all text-sm sm:text-base"
-                style={{ backgroundColor: "#E85A2C", color: "white" }}
+                className="w-full rounded-full py-4 sm:py-6 font-semibold group-hover:shadow-lg transition-all text-sm sm:text-base border-0"
+                style={{ backgroundColor: "#E63946", color: "white" }}
               >
                 Get Started
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -375,15 +375,15 @@ export default function Landing() {
 
             {/* Tutor */}
             <Card 
-              className="p-5 sm:p-6 md:p-8 border-2 hover:border-[#E85A2C] cursor-pointer transition-all hover:shadow-xl group"
+              className="p-5 sm:p-6 md:p-8 border-2 hover:border-[#E63946] cursor-pointer transition-all hover:shadow-xl group"
               style={{ borderColor: "#E5E5E5" }}
               onClick={() => window.location.href = "/auth?mode=signup"}
             >
               <div 
                 className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform"
-                style={{ backgroundColor: "#FEF3EE" }}
+                style={{ backgroundColor: "#FFF0F0" }}
               >
-                <GraduationCap className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: "#E85A2C" }} />
+                <GraduationCap className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: "#E63946" }} />
               </div>
               <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3" style={{ color: "#1A1A1A" }}>
                 Become a Tutor
@@ -394,14 +394,14 @@ export default function Landing() {
               <ul className="space-y-2 sm:space-y-3 mb-6 sm:mb-8">
                 {["Flexible schedule", "Meaningful work", "Training provided", "Grow your income"].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 sm:gap-3">
-                    <Check className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" style={{ color: "#E85A2C" }} />
+                    <Check className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" style={{ color: "#E63946" }} />
                     <span className="text-sm sm:text-base" style={{ color: "#5A5A5A" }}>{item}</span>
                   </li>
                 ))}
               </ul>
               <Button 
-                className="w-full rounded-full py-4 sm:py-6 font-semibold group-hover:shadow-lg transition-all text-sm sm:text-base"
-                style={{ backgroundColor: "#E85A2C", color: "white" }}
+                className="w-full rounded-full py-4 sm:py-6 font-semibold group-hover:shadow-lg transition-all text-sm sm:text-base border-0"
+                style={{ backgroundColor: "#E63946", color: "white" }}
               >
                 Apply Now
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -410,15 +410,15 @@ export default function Landing() {
 
             {/* Team */}
             <Card 
-              className="p-5 sm:p-6 md:p-8 border-2 hover:border-[#E85A2C] cursor-pointer transition-all hover:shadow-xl group sm:col-span-2 md:col-span-1"
+              className="p-5 sm:p-6 md:p-8 border-2 hover:border-[#E63946] cursor-pointer transition-all hover:shadow-xl group sm:col-span-2 md:col-span-1"
               style={{ borderColor: "#E5E5E5" }}
               onClick={() => window.location.href = "/auth?mode=login"}
             >
               <div 
                 className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform"
-                style={{ backgroundColor: "#FEF3EE" }}
+                style={{ backgroundColor: "#FFF0F0" }}
               >
-                <Target className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: "#E85A2C" }} />
+                <Target className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: "#E63946" }} />
               </div>
               <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3" style={{ color: "#1A1A1A" }}>
                 Team Login
@@ -429,7 +429,7 @@ export default function Landing() {
               <ul className="space-y-2 sm:space-y-3 mb-6 sm:mb-8">
                 {["Manage your pods", "Track student progress", "Access broadcasts", "View analytics"].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 sm:gap-3">
-                    <Check className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" style={{ color: "#E85A2C" }} />
+                    <Check className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" style={{ color: "#E63946" }} />
                     <span className="text-sm sm:text-base" style={{ color: "#5A5A5A" }}>{item}</span>
                   </li>
                 ))}
@@ -459,8 +459,8 @@ export default function Landing() {
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <Button
               size="lg"
-              className="text-base sm:text-lg font-semibold px-6 sm:px-10 py-4 sm:py-6 rounded-full"
-              style={{ backgroundColor: "#E85A2C", color: "white" }}
+              className="text-base sm:text-lg font-semibold px-6 sm:px-10 py-4 sm:py-6 rounded-full border-0 shadow-lg hover:shadow-xl transition-all"
+              style={{ backgroundColor: "#E63946", color: "white" }}
               onClick={() => window.location.href = "/auth?mode=signup"}
             >
               Start Your Journey Today
@@ -478,7 +478,7 @@ export default function Landing() {
               <span className="text-base sm:text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
                 TERRITORIAL TUTORING
               </span>
-              <span className="text-base sm:text-xl font-bold" style={{ color: "#E85A2C" }}>+</span>
+              <span className="text-base sm:text-xl font-bold" style={{ color: "#E63946" }}>+</span>
             </div>
             <p className="text-center md:text-right text-sm sm:text-base" style={{ color: "#5A5A5A" }}>
               © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd

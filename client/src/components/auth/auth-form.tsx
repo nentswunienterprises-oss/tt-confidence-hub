@@ -193,7 +193,7 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
                 value={firstName} 
                 onChange={(e) => setFirstName(e.target.value)} 
                 required 
-                className="rounded-lg border-gray-200 focus:border-[#E85A2C] focus:ring-[#E85A2C]"
+                className="rounded-lg border-gray-200 focus:border-[#E63946] focus:ring-[#E63946]"
               />
             </div>
 
@@ -206,7 +206,7 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
                 value={lastName} 
                 onChange={(e) => setLastName(e.target.value)} 
                 required 
-                className="rounded-lg border-gray-200 focus:border-[#E85A2C] focus:ring-[#E85A2C]"
+                className="rounded-lg border-gray-200 focus:border-[#E63946] focus:ring-[#E63946]"
               />
             </div>
 
@@ -214,7 +214,7 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
               <div className="space-y-2">
                 <Label htmlFor="code" style={{ color: "#1A1A1A" }}>
                   Affiliate Code
-                  <span className="ml-1" style={{ color: "#E85A2C" }}>*</span>
+                  <span className="ml-1" style={{ color: "#E63946" }}>*</span>
                 </Label>
                 <Input
                   id="code"
@@ -223,7 +223,7 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
                   value={code}
                   onChange={(e) => setCode(e.target.value.toUpperCase())}
                   required
-                  className="rounded-lg border-gray-200 focus:border-[#E85A2C] focus:ring-[#E85A2C]"
+                  className="rounded-lg border-gray-200 focus:border-[#E63946] focus:ring-[#E63946]"
                 />
               </div>
             )}
@@ -239,7 +239,7 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
             value={email} 
             onChange={(e) => setEmail(e.target.value)} 
             required 
-            className="rounded-lg border-gray-200 focus:border-[#E85A2C] focus:ring-[#E85A2C]"
+            className="rounded-lg border-gray-200 focus:border-[#E63946] focus:ring-[#E63946]"
           />
         </div>
 
@@ -253,14 +253,14 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
             onChange={(e) => setPassword(e.target.value)} 
             required 
             minLength={6} 
-            className="rounded-lg border-gray-200 focus:border-[#E85A2C] focus:ring-[#E85A2C]"
+            className="rounded-lg border-gray-200 focus:border-[#E63946] focus:ring-[#E63946]"
           />
         </div>
 
         <Button 
           type="submit" 
-          className="w-full rounded-full font-semibold py-6 mt-6" 
-          style={{ backgroundColor: "#E85A2C", color: "white" }}
+          className="w-full rounded-full font-semibold py-6 mt-6 border-0 shadow-lg hover:shadow-xl transition-all" 
+          style={{ backgroundColor: "#E63946", color: "white" }}
           disabled={loading}
         >
           {loading ? "Please wait..." : mode === "signup" ? "Sign Up" : "Login"}

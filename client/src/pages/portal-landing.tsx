@@ -37,7 +37,7 @@ export default function ClientLanding() {
               Log In
             </Button>
             <Button
-              className="text-sm sm:text-base font-semibold px-4 sm:px-6 py-2 sm:py-5 rounded-full"
+              className="text-sm sm:text-base font-semibold px-4 sm:px-6 py-2 sm:py-5 rounded-full border-0 shadow-lg hover:shadow-xl transition-all"
               style={{ backgroundColor: "#E63946", color: "white" }}
               onClick={() => navigate("/client/signup")}
             >
@@ -83,7 +83,7 @@ export default function ClientLanding() {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 sm:pt-4">
               <Button
                 size="lg"
-                className="text-base sm:text-lg font-semibold px-6 sm:px-8 py-4 sm:py-6 rounded-full shadow-lg hover:shadow-xl transition-all"
+                className="text-base sm:text-lg font-semibold px-6 sm:px-8 py-4 sm:py-6 rounded-full shadow-lg hover:shadow-xl transition-all border-0"
                 style={{ backgroundColor: "#E63946", color: "white" }}
                 onClick={() => navigate("/client/signup")}
               >

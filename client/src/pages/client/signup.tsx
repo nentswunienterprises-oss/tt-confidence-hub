@@ -17,7 +17,7 @@ export default function ClientSignup() {
             <span className="text-sm sm:text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
               TERRITORIAL TUTORING
             </span>
-            <span className="text-sm sm:text-xl font-bold" style={{ color: "#E85A2C" }}>+</span>
+            <span className="text-sm sm:text-xl font-bold" style={{ color: "#E63946" }}>+</span>
           </div>
           
           <div className="hidden md:block">
@@ -52,8 +52,8 @@ export default function ClientSignup() {
                 Parent Portal
               </span>
             </div>
-            <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full mx-auto" style={{ backgroundColor: "#FEF3EE" }}>
-              <span className="text-xs sm:text-sm font-medium" style={{ color: "#E85A2C" }}>
+            <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full mx-auto" style={{ backgroundColor: "#FFF0F0" }}>
+              <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
                 Free Trial • First 6-8 Weeks
               </span>
             </div>
@@ -68,9 +68,9 @@ export default function ClientSignup() {
           {/* Mode Toggle */}
           <div className="flex gap-2 sm:gap-3 justify-center">
             <Button
-              className="px-4 sm:px-6 py-3 sm:py-5 rounded-full font-semibold transition-all text-sm sm:text-base"
+              className="px-4 sm:px-6 py-3 sm:py-5 rounded-full font-semibold transition-all text-sm sm:text-base border-0"
               style={{ 
-                backgroundColor: mode === "signup" ? "#E85A2C" : "transparent",
+                backgroundColor: mode === "signup" ? "#E63946" : "transparent",
                 color: mode === "signup" ? "white" : "#1A1A1A",
                 border: mode === "signup" ? "none" : "2px solid #1A1A1A"
               }}
@@ -79,9 +79,9 @@ export default function ClientSignup() {
               Sign Up
             </Button>
             <Button
-              className="px-4 sm:px-6 py-3 sm:py-5 rounded-full font-semibold transition-all text-sm sm:text-base"
+              className="px-4 sm:px-6 py-3 sm:py-5 rounded-full font-semibold transition-all text-sm sm:text-base border-0"
               style={{ 
-                backgroundColor: mode === "login" ? "#E85A2C" : "transparent",
+                backgroundColor: mode === "login" ? "#E63946" : "transparent",
                 color: mode === "login" ? "white" : "#1A1A1A",
                 border: mode === "login" ? "none" : "2px solid #1A1A1A"
               }}
@@ -103,9 +103,9 @@ export default function ClientSignup() {
           <div className="flex items-center justify-center gap-2 sm:gap-3 pt-2 sm:pt-4">
             <div 
               className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: "#FEF3EE" }}
+              style={{ backgroundColor: "#FFF0F0" }}
             >
-              <Heart className="w-4 h-4 sm:w-5 sm:h-5 fill-current" style={{ color: "#E85A2C" }} />
+              <Heart className="w-4 h-4 sm:w-5 sm:h-5 fill-current" style={{ color: "#E63946" }} />
             </div>
             <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
               Trusted by <span className="font-semibold" style={{ color: "#1A1A1A" }}>500+ families</span> across South Africa
