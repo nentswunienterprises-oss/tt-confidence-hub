@@ -241,9 +241,9 @@ export default function ClientLanding() {
             >
               <div className="space-y-6">
                 {[
-                  { title: "Free Trial (First 6-8 Weeks)", desc: "Join an experimental phase at no cost - see if it's right for your family" },
+                  { title: "Limited Trial (First 6-8 Weeks)", desc: "Join an experimental phase at no cost - see if it's right for your family" },
                   { title: "Accountability & Growth", desc: "Reflections, feedback loops, and celebration of wins" },
-                  { title: "Confidence Blueprint", desc: "Scientifically-designed system that proves confidence is teachable" }
+                  { title: "Confidence Blueprint", desc: "Psychologically-designed system that proves confidence is teachable" }
                 ].map((item, i) => (
                   <div key={i} className="flex gap-4">
                     <div 
@@ -273,10 +273,10 @@ export default function ClientLanding() {
             ))}
           </div>
           <p className="text-2xl md:text-3xl font-medium text-white mb-6 leading-relaxed">
-            "My daughter went from hiding in the back of class to raising her hand every day. That's the real win."
+            "My daughter went from hiding in the back of class to raising her hand every day. That's our real win."
           </p>
           <p className="text-white/80">
-            — Nomsa M., Parent from Johannesburg
+            - Nomsa M., Parent from Johannesburg
           </p>
         </div>
       </section>

@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { CheckCircle2, Circle, ArrowLeft } from "lucide-react";
+import { CheckCircle2, Circle, ArrowLeft, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
@@ -23,6 +23,7 @@ export default function ParentGateway() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isProcessingProposal, setIsProcessingProposal] = useState(false);
   const [parentCode, setParentCode] = useState<string | null>(null);
+  const justSubmittedRef = useRef(false);
 
   // Fetch current user data
   const { data: user } = useQuery<any>({
@@ -83,7 +84,14 @@ export default function ParentGateway() {
     console.log("🔄 [Gateway] Enrollment status effect triggered", {
       hasEnrollmentStatus: !!enrollmentStatus,
       status: enrollmentStatus?.status,
+      justSubmitted: justSubmittedRef.current,
     });
+    
+    // Skip if we just submitted - let the submission handler control the step
+    if (justSubmittedRef.current) {
+      console.log("  → Skipping because justSubmitted is true");
+      return;
+    }
     
     if (!enrollmentStatus) {
       console.log("  → Setting step to 'loading'");
@@ -173,12 +181,19 @@ export default function ParentGateway() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
         throw new Error("Failed to submit enrollment");
       }
+
+      // Set flag to prevent useEffect from overriding step
+      justSubmittedRef.current = true;
+
+      // Invalidate the enrollment status query so it refetches with the new status
+      await queryClient.invalidateQueries({ queryKey: ["/api/parent/enrollment-status"] });
 
       toast({
         title: "Enrollment Submitted",
@@ -479,11 +494,12 @@ export default function ParentGateway() {
                         <button
                           key={option.value}
                           onClick={() => handleInputChange("previousTutoring", option.value)}
-                          className={`w-full px-4 py-2 rounded-lg border text-sm text-left transition ${
-                            formData.previousTutoring === option.value
-                              ? "bg-primary text-primary-foreground border-primary"
-                              : "border-border hover:border-primary/50"
-                          }`}
+                          className="w-full px-4 py-3 rounded-xl border-2 text-sm text-left transition"
+                          style={{
+                            backgroundColor: formData.previousTutoring === option.value ? "#E85A2C" : "#FEF3EE",
+                            color: formData.previousTutoring === option.value ? "white" : "#1A1A1A",
+                            borderColor: formData.previousTutoring === option.value ? "#E85A2C" : "#FEF3EE"
+                          }}
                         >
                           {option.label}
                         </button>
@@ -503,11 +519,12 @@ export default function ParentGateway() {
                         <button
                           key={option.value}
                           onClick={() => handleInputChange("confidenceLevel", option.value)}
-                          className={`w-full px-4 py-2 rounded-lg border text-sm text-left transition ${
-                            formData.confidenceLevel === option.value
-                              ? "bg-primary text-primary-foreground border-primary"
-                              : "border-border hover:border-primary/50"
-                          }`}
+                          className="w-full px-4 py-3 rounded-xl border-2 text-sm text-left transition"
+                          style={{
+                            backgroundColor: formData.confidenceLevel === option.value ? "#E85A2C" : "#FEF3EE",
+                            color: formData.confidenceLevel === option.value ? "white" : "#1A1A1A",
+                            borderColor: formData.confidenceLevel === option.value ? "#E85A2C" : "#FEF3EE"
+                          }}
                         >
                           {option.label}
                         </button>
@@ -526,11 +543,12 @@ export default function ParentGateway() {
                         <button
                           key={option.value}
                           onClick={() => handleInputChange("internetAccess", option.value)}
-                          className={`w-full px-4 py-2 rounded-lg border text-sm text-left transition ${
-                            formData.internetAccess === option.value
-                              ? "bg-primary text-primary-foreground border-primary"
-                              : "border-border hover:border-primary/50"
-                          }`}
+                          className="w-full px-4 py-3 rounded-xl border-2 text-sm text-left transition"
+                          style={{
+                            backgroundColor: formData.internetAccess === option.value ? "#E85A2C" : "#FEF3EE",
+                            color: formData.internetAccess === option.value ? "white" : "#1A1A1A",
+                            borderColor: formData.internetAccess === option.value ? "#E85A2C" : "#FEF3EE"
+                          }}
                         >
                           {option.label}
                         </button>
@@ -542,10 +560,14 @@ export default function ParentGateway() {
 
               {/* Motivation */}
               <div className="space-y-3">
-                <label className="block text-sm font-medium">Why join this pilot? (Optional but Encouraged)</label>
+                <label className="block text-sm font-medium" style={{ color: "#1A1A1A" }}>Why join this pilot? (Optional but Encouraged)</label>
                 <textarea
                   placeholder="In one or two sentences, tell us why you'd like your child to join this pilot..."
-                  className="w-full px-3 py-2 rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-offset-0"
+                  style={{ 
+                    borderColor: "#E5E5E5", 
+                    backgroundColor: "#FAFAFA",
+                  }}
                   rows={3}
                   value={formData.parentMotivation}
                   onChange={(e) => handleInputChange("parentMotivation", e.target.value)}
@@ -553,8 +575,8 @@ export default function ParentGateway() {
               </div>
 
               {/* Parent Agreement */}
-              <div className="space-y-3 bg-muted/20 rounded-lg p-4">
-                <h4 className="font-semibold text-sm">Parent Agreement *</h4>
+              <div className="space-y-3 rounded-xl p-5" style={{ backgroundColor: "#FEF3EE" }}>
+                <h4 className="font-semibold text-sm" style={{ color: "#1A1A1A" }}>Parent Agreement *</h4>
                 <div className="space-y-2 text-sm">
                   {[
                     "I understand this is an experimental pre-launch phase.",
@@ -564,21 +586,25 @@ export default function ParentGateway() {
                     "I understand there may be an option to continue tutoring beyond the free trial on a paid basis.",
                   ].map((agreement, idx) => (
                     <div key={idx} className="flex gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                      <span>{agreement}</span>
+                      <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#E85A2C" }} />
+                      <span style={{ color: "#5A5A5A" }}>{agreement}</span>
                     </div>
                   ))}
                 </div>
                 <button
                   onClick={() => handleInputChange("agreedToTerms", !formData.agreedToTerms)}
                   className="mt-4 flex items-center gap-2 text-sm font-medium cursor-pointer"
+                  style={{ color: "#1A1A1A" }}
                 >
-                  <input
-                    type="checkbox"
-                    checked={formData.agreedToTerms}
-                    onChange={() => {}}
-                    className="w-4 h-4 rounded border-border"
-                  />
+                  <div 
+                    className="w-5 h-5 rounded-md border-2 flex items-center justify-center"
+                    style={{ 
+                      borderColor: formData.agreedToTerms ? "#E85A2C" : "#E5E5E5",
+                      backgroundColor: formData.agreedToTerms ? "#E85A2C" : "white"
+                    }}
+                  >
+                    {formData.agreedToTerms && <Check className="w-3 h-3 text-white" />}
+                  </div>
                   I agree to the above terms
                 </button>
               </div>
