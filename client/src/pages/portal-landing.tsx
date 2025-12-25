@@ -9,9 +9,9 @@ export default function ClientLanding() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#FAF8F5" }}>
+    <div className="min-h-screen" style={{ backgroundColor: "#FFF5ED" }}>
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(250, 248, 245, 0.95)" }}>
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-6 md:px-12 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
@@ -93,7 +93,7 @@ export default function ClientLanding() {
                     className="w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium"
                     style={{ 
                       backgroundColor: i % 2 === 0 ? "#FEF3EE" : "#E85A2C", 
-                      borderColor: "#FAF8F5",
+                      borderColor: "#FFF5ED",
                       color: i % 2 === 0 ? "#E85A2C" : "white"
                     }}
                   >
@@ -197,7 +197,7 @@ export default function ClientLanding() {
       </section>
 
       {/* What You Get Section */}
-      <section className="py-20" style={{ backgroundColor: "#FAF8F5" }}>
+      <section className="py-20" style={{ backgroundColor: "#FFF5ED" }}>
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-6" style={{ color: "#1A1A1A" }}>
@@ -303,7 +303,7 @@ export default function ClientLanding() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12" style={{ backgroundColor: "#FAF8F5" }}>
+      <footer className="py-12" style={{ backgroundColor: "#FFF5ED" }}>
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid md:grid-cols-3 gap-8 pb-8 mb-8 border-b" style={{ borderColor: "#E5E5E5" }}>
             <div className="space-y-4">
