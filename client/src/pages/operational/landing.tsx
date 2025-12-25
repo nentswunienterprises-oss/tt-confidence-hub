@@ -15,14 +15,14 @@ export default function OperationalLanding() {
     <div className="min-h-screen" style={{ backgroundColor: "#FFF5ED" }}>
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
-        <div className="max-w-7xl mx-auto px-6 md:px-12 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
           <Button
             variant="ghost"
-            className="text-base font-medium hover:bg-transparent flex items-center gap-2"
+            className="text-sm sm:text-base font-medium hover:bg-transparent flex items-center gap-1 sm:gap-2 px-2 sm:px-4"
             style={{ color: "#1A1A1A" }}
             onClick={() => navigate("/")}
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Back
           </Button>
           
@@ -33,8 +33,8 @@ export default function OperationalLanding() {
           </div>
           
           <Button
-            className="text-base font-semibold px-6 py-5 rounded-full"
-            style={{ backgroundColor: "#E85A2C", color: "white" }}
+            className="text-sm sm:text-base font-semibold px-4 sm:px-6 py-2 sm:py-5 rounded-full border-0 shadow-lg hover:shadow-xl transition-all"
+            style={{ backgroundColor: "#E63946", color: "white" }}
             onClick={() => navigate("/operational/signup")}
           >
             Sign In
@@ -43,36 +43,43 @@ export default function OperationalLanding() {
       </header>
 
       {/* Spacer for fixed header */}
-      <div className="h-20" />
+      <div className="h-16 sm:h-20" />
 
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-6 md:px-12 pt-12 md:pt-20 pb-20">
-        <div className="text-center max-w-3xl mx-auto space-y-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full" style={{ backgroundColor: "#FEF3EE" }}>
-            <span className="text-sm font-medium" style={{ color: "#E85A2C" }}>
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-8 sm:pt-12 md:pt-20 pb-12 sm:pb-20">
+        {/* Mobile Title */}
+        <div className="md:hidden text-center mb-6">
+          <span className="text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
+            JOIN OUR TEAM
+          </span>
+        </div>
+        
+        <div className="text-center max-w-3xl mx-auto space-y-5 sm:space-y-8">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
+            <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
               Tutors & Territory Directors
             </span>
           </div>
           
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight" style={{ color: "#1A1A1A" }}>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight" style={{ color: "#1A1A1A" }}>
             Transform Confidence.
             <br />
-            <span style={{ color: "#E85A2C" }}>Change Lives.</span>
+            <span style={{ color: "#E63946" }}>Change Lives.</span>
           </h1>
           
-          <p className="text-lg md:text-xl leading-relaxed" style={{ color: "#5A5A5A" }}>
+          <p className="text-base sm:text-lg md:text-xl leading-relaxed" style={{ color: "#5A5A5A" }}>
             Everything tutors and Territory Directors need to run exceptional Confidence Pods:
             Tracking, feedback, performance management, and student success metrics.
           </p>
 
           <Button
             size="lg"
-            className="text-lg font-semibold px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all"
-            style={{ backgroundColor: "#E85A2C", color: "white" }}
+            className="text-base sm:text-lg font-semibold px-6 sm:px-8 py-4 sm:py-6 rounded-full shadow-lg hover:shadow-xl transition-all border-0"
+            style={{ backgroundColor: "#E63946", color: "white" }}
             onClick={() => navigate("/operational/signup")}
           >
             Join Our Team
-            <ArrowRight className="w-5 h-5 ml-2" />
+            <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
           </Button>
         </div>
       </section>
@@ -98,9 +105,9 @@ export default function OperationalLanding() {
             >
               <div 
                 className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
-                style={{ backgroundColor: "#FEF3EE" }}
+                style={{ backgroundColor: "#FFF0F0" }}
               >
-                <BookOpen className="w-8 h-8" style={{ color: "#E85A2C" }} />
+                <BookOpen className="w-8 h-8" style={{ color: "#E63946" }} />
               </div>
               <h3 className="text-2xl font-bold mb-3" style={{ color: "#1A1A1A" }}>
                 Tutor
@@ -109,21 +116,21 @@ export default function OperationalLanding() {
                 Lead student Confidence Pods and transform mathematical confidence
               </p>
               
-              <p className="text-xs font-semibold uppercase tracking-wide mb-4" style={{ color: "#E85A2C" }}>
+              <p className="text-xs font-semibold uppercase tracking-wide mb-4" style={{ color: "#E63946" }}>
                 Your Dashboard Includes
               </p>
               <ul className="space-y-3 mb-8">
                 {["Student Rosters & Profiles", "Weekly Check-In Forms", "Progress Tracking & Reflections", "Feedback & Coaching Notes", "Growth Metrics Dashboard"].map((item, i) => (
                   <li key={i} className="flex items-center gap-3">
-                    <Check className="w-5 h-5 flex-shrink-0" style={{ color: "#E85A2C" }} />
+                    <Check className="w-5 h-5 flex-shrink-0" style={{ color: "#E63946" }} />
                     <span style={{ color: "#5A5A5A" }}>{item}</span>
                   </li>
                 ))}
               </ul>
               
               <Button 
-                className="w-full rounded-full py-6 font-semibold"
-                style={{ backgroundColor: "#E85A2C", color: "white" }}
+                className="w-full rounded-full py-6 font-semibold border-0"
+                style={{ backgroundColor: "#E63946", color: "white" }}
               >
                 Continue as Tutor
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -138,9 +145,9 @@ export default function OperationalLanding() {
             >
               <div 
                 className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
-                style={{ backgroundColor: "#FEF3EE" }}
+                style={{ backgroundColor: "#FFF0F0" }}
               >
-                <Users className="w-8 h-8" style={{ color: "#E85A2C" }} />
+                <Users className="w-8 h-8" style={{ color: "#E63946" }} />
               </div>
               <h3 className="text-2xl font-bold mb-3" style={{ color: "#1A1A1A" }}>
                 Territory Director
@@ -149,21 +156,21 @@ export default function OperationalLanding() {
                 Oversee multiple pods, tutors, and ensure quality consistency
               </p>
               
-              <p className="text-xs font-semibold uppercase tracking-wide mb-4" style={{ color: "#E85A2C" }}>
+              <p className="text-xs font-semibold uppercase tracking-wide mb-4" style={{ color: "#E63946" }}>
                 Your Dashboard Includes
               </p>
               <ul className="space-y-3 mb-8">
                 {["Tutor Performance Reports", "All Student Check-Ins (Territory-wide)", "Territory Analytics & KPIs", "Tutor Coaching & Feedback Management", "Enrollment & Retention Tracking"].map((item, i) => (
                   <li key={i} className="flex items-center gap-3">
-                    <Check className="w-5 h-5 flex-shrink-0" style={{ color: "#E85A2C" }} />
+                    <Check className="w-5 h-5 flex-shrink-0" style={{ color: "#E63946" }} />
                     <span style={{ color: "#5A5A5A" }}>{item}</span>
                   </li>
                 ))}
               </ul>
               
               <Button 
-                className="w-full rounded-full py-6 font-semibold"
-                style={{ backgroundColor: "#E85A2C", color: "white" }}
+                className="w-full rounded-full py-6 font-semibold border-0"
+                style={{ backgroundColor: "#E63946", color: "white" }}
               >
                 Continue as Territory Director
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -194,9 +201,9 @@ export default function OperationalLanding() {
               <div className="flex items-center gap-3 mb-6">
                 <div 
                   className="w-12 h-12 rounded-xl flex items-center justify-center"
-                  style={{ backgroundColor: "#FEF3EE" }}
+                  style={{ backgroundColor: "#FFF0F0" }}
                 >
-                  <BookOpen className="w-6 h-6" style={{ color: "#E85A2C" }} />
+                  <BookOpen className="w-6 h-6" style={{ color: "#E63946" }} />
                 </div>
                 <h3 className="text-xl font-bold" style={{ color: "#1A1A1A" }}>Tutors</h3>
               </div>
@@ -209,7 +216,7 @@ export default function OperationalLanding() {
                   "Openness to feedback and continuous learning"
                 ].map((item, i) => (
                   <div key={i} className="flex gap-3">
-                    <Check className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "#E85A2C" }} />
+                    <Check className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "#E63946" }} />
                     <span className="text-sm" style={{ color: "#5A5A5A" }}>{item}</span>
                   </div>
                 ))}
@@ -224,9 +231,9 @@ export default function OperationalLanding() {
               <div className="flex items-center gap-3 mb-6">
                 <div 
                   className="w-12 h-12 rounded-xl flex items-center justify-center"
-                  style={{ backgroundColor: "#FEF3EE" }}
+                  style={{ backgroundColor: "#FFF0F0" }}
                 >
-                  <Users className="w-6 h-6" style={{ color: "#E85A2C" }} />
+                  <Users className="w-6 h-6" style={{ color: "#E63946" }} />
                 </div>
                 <h3 className="text-xl font-bold" style={{ color: "#1A1A1A" }}>Territory Directors</h3>
               </div>
@@ -239,7 +246,7 @@ export default function OperationalLanding() {
                   "Passion for educational impact"
                 ].map((item, i) => (
                   <div key={i} className="flex gap-3">
-                    <Check className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "#E85A2C" }} />
+                    <Check className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "#E63946" }} />
                     <span className="text-sm" style={{ color: "#5A5A5A" }}>{item}</span>
                   </div>
                 ))}
@@ -250,7 +257,7 @@ export default function OperationalLanding() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20" style={{ backgroundColor: "#E85A2C" }}>
+      <section className="py-20" style={{ backgroundColor: "#E63946" }}>
         <div className="max-w-4xl mx-auto px-6 md:px-12 text-center">
           <div className="flex justify-center mb-6">
             <div 
@@ -268,9 +275,9 @@ export default function OperationalLanding() {
           </p>
           <Button
             size="lg"
-            className="text-lg font-semibold px-10 py-6 rounded-full"
-            style={{ backgroundColor: "white", color: "#E85A2C" }}
-            onClick={() => navigate("/operational/signup")}
+            className="text-lg font-semibold px-10 py-6 rounded-full border-0"
+            style={{ backgroundColor: "white", color: "#E63946" }}
+            onClick={() => navigate("/operational/signup")}}
           >
             Apply Now
             <ArrowRight className="w-5 h-5 ml-2" />
@@ -286,7 +293,7 @@ export default function OperationalLanding() {
               <span className="text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
                 TERRITORIAL TUTORING
               </span>
-              <span className="text-xl font-bold" style={{ color: "#E85A2C" }}>+</span>
+              <span className="text-xl font-bold" style={{ color: "#E63946" }}>+</span>
             </div>
             <p className="text-center md:text-right" style={{ color: "#5A5A5A" }}>
               © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd

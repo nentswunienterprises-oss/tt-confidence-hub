@@ -15,14 +15,14 @@ export default function AffiliateLanding() {
     <div className="min-h-screen" style={{ backgroundColor: "#FFF5ED" }}>
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
-        <div className="max-w-7xl mx-auto px-6 md:px-12 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
           <Button
             variant="ghost"
-            className="text-base font-medium hover:bg-transparent flex items-center gap-2"
+            className="text-sm sm:text-base font-medium hover:bg-transparent flex items-center gap-1 sm:gap-2 px-2 sm:px-4"
             style={{ color: "#1A1A1A" }}
             onClick={() => navigate("/")}
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Back
           </Button>
           
@@ -33,8 +33,8 @@ export default function AffiliateLanding() {
           </div>
           
           <Button
-            className="text-base font-semibold px-6 py-5 rounded-full"
-            style={{ backgroundColor: "#E85A2C", color: "white" }}
+            className="text-sm sm:text-base font-semibold px-4 sm:px-6 py-2 sm:py-5 rounded-full border-0 shadow-lg hover:shadow-xl transition-all"
+            style={{ backgroundColor: "#E63946", color: "white" }}
             onClick={() => navigate("/affiliate/signup")}
           >
             Sign In
@@ -43,36 +43,43 @@ export default function AffiliateLanding() {
       </header>
 
       {/* Spacer for fixed header */}
-      <div className="h-20" />
+      <div className="h-16 sm:h-20" />
 
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-6 md:px-12 pt-12 md:pt-20 pb-20">
-        <div className="text-center max-w-3xl mx-auto space-y-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full" style={{ backgroundColor: "#FEF3EE" }}>
-            <span className="text-sm font-medium" style={{ color: "#E85A2C" }}>
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-8 sm:pt-12 md:pt-20 pb-12 sm:pb-20">
+        {/* Mobile Title */}
+        <div className="md:hidden text-center mb-6">
+          <span className="text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
+            AFFILIATE PROGRAM
+          </span>
+        </div>
+        
+        <div className="text-center max-w-3xl mx-auto space-y-5 sm:space-y-8">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
+            <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
               Earn While Growing Our Community
             </span>
           </div>
           
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight" style={{ color: "#1A1A1A" }}>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight" style={{ color: "#1A1A1A" }}>
             Turn Your Network
             <br />
-            <span style={{ color: "#E85A2C" }}>Into Income.</span>
+            <span style={{ color: "#E63946" }}>Into Income.</span>
           </h1>
           
-          <p className="text-lg md:text-xl leading-relaxed" style={{ color: "#5A5A5A" }}>
+          <p className="text-base sm:text-lg md:text-xl leading-relaxed" style={{ color: "#5A5A5A" }}>
             Join our Affiliate Program and earn competitive commissions by introducing families 
             to Territorial Tutoring's Confidence Pod system.
           </p>
 
           <Button
             size="lg"
-            className="text-lg font-semibold px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all"
-            style={{ backgroundColor: "#E85A2C", color: "white" }}
+            className="text-base sm:text-lg font-semibold px-6 sm:px-8 py-4 sm:py-6 rounded-full shadow-lg hover:shadow-xl transition-all border-0"
+            style={{ backgroundColor: "#E63946", color: "white" }}
             onClick={() => navigate("/affiliate/signup")}
           >
             Start Earning Today
-            <ArrowRight className="w-5 h-5 ml-2" />
+            <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
           </Button>
         </div>
       </section>
@@ -99,11 +106,11 @@ export default function AffiliateLanding() {
               <Card key={step.num} className="p-6 border-0 shadow-lg text-center" style={{ backgroundColor: "#FFF5ED" }}>
                 <div 
                   className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
-                  style={{ backgroundColor: "#FEF3EE", border: "2px solid #E85A2C" }}
+                  style={{ backgroundColor: "#FFF0F0", border: "2px solid #E63946" }}
                 >
                   <span 
                     className="text-xl"
-                    style={{ fontFamily: "Georgia, serif", fontStyle: "italic", color: "#E85A2C", fontWeight: "600" }}
+                    style={{ fontFamily: "Georgia, serif", fontStyle: "italic", color: "#E63946", fontWeight: "600" }}
                   >
                     {step.num}
                   </span>
@@ -137,9 +144,9 @@ export default function AffiliateLanding() {
             >
               <div 
                 className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
-                style={{ backgroundColor: "#FEF3EE" }}
+                style={{ backgroundColor: "#FFF0F0" }}
               >
-                <QrCode className="w-8 h-8" style={{ color: "#E85A2C" }} />
+                <QrCode className="w-8 h-8" style={{ color: "#E63946" }} />
               </div>
               <h3 className="text-2xl font-bold mb-3" style={{ color: "#1A1A1A" }}>
                 Affiliate
@@ -148,27 +155,27 @@ export default function AffiliateLanding() {
                 Individual referrer using unique code to drive enrollments
               </p>
               
-              <p className="text-xs font-semibold uppercase tracking-wide mb-4" style={{ color: "#E85A2C" }}>
+              <p className="text-xs font-semibold uppercase tracking-wide mb-4" style={{ color: "#E63946" }}>
                 Dashboard Includes
               </p>
               <ul className="space-y-3 mb-6">
                 {["Personal QR Code & Tracking Link", "Real-Time Signup Tracking", "Commission Earnings Dashboard", "Performance Analytics", "Marketing Materials Library"].map((item, i) => (
                   <li key={i} className="flex items-center gap-3">
-                    <Check className="w-5 h-5 flex-shrink-0" style={{ color: "#E85A2C" }} />
+                    <Check className="w-5 h-5 flex-shrink-0" style={{ color: "#E63946" }} />
                     <span style={{ color: "#5A5A5A" }}>{item}</span>
                   </li>
                 ))}
               </ul>
 
-              <div className="py-4 mb-6 rounded-xl text-center" style={{ backgroundColor: "#FEF3EE" }}>
+              <div className="py-4 mb-6 rounded-xl text-center" style={{ backgroundColor: "#FFF0F0" }}>
                 <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: "#5A5A5A" }}>Commission</p>
-                <p className="text-3xl font-bold" style={{ color: "#E85A2C" }}>R100-R150</p>
+                <p className="text-3xl font-bold" style={{ color: "#E63946" }}>R100-R150</p>
                 <p className="text-sm" style={{ color: "#5A5A5A" }}>per enrolled student</p>
               </div>
               
               <Button 
-                className="w-full rounded-full py-6 font-semibold"
-                style={{ backgroundColor: "#E85A2C", color: "white" }}
+                className="w-full rounded-full py-6 font-semibold border-0"
+                style={{ backgroundColor: "#E63946", color: "white" }}
               >
                 Become an Affiliate
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -183,15 +190,15 @@ export default function AffiliateLanding() {
             >
               <div 
                 className="absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-semibold"
-                style={{ backgroundColor: "#E85A2C", color: "white" }}
+                style={{ backgroundColor: "#E63946", color: "white" }}
               >
                 Popular
               </div>
               <div 
                 className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
-                style={{ backgroundColor: "#FEF3EE" }}
+                style={{ backgroundColor: "#FFF0F0" }}
               >
-                <Users className="w-8 h-8" style={{ color: "#E85A2C" }} />
+                <Users className="w-8 h-8" style={{ color: "#E63946" }} />
               </div>
               <h3 className="text-2xl font-bold mb-3" style={{ color: "#1A1A1A" }}>
                 Outreach Director
@@ -200,27 +207,27 @@ export default function AffiliateLanding() {
                 Strategic operator managing schools, institutions, and regional growth
               </p>
               
-              <p className="text-xs font-semibold uppercase tracking-wide mb-4" style={{ color: "#E85A2C" }}>
+              <p className="text-xs font-semibold uppercase tracking-wide mb-4" style={{ color: "#E63946" }}>
                 Dashboard Includes
               </p>
               <ul className="space-y-3 mb-6">
                 {["Multiple QR Codes & Campaign Links", "School & Institution Partnerships", "Advanced Analytics & Segmentation", "Team Performance Tracking", "Bonus Tier Eligibility & Tracking"].map((item, i) => (
                   <li key={i} className="flex items-center gap-3">
-                    <Check className="w-5 h-5 flex-shrink-0" style={{ color: "#E85A2C" }} />
+                    <Check className="w-5 h-5 flex-shrink-0" style={{ color: "#E63946" }} />
                     <span style={{ color: "#5A5A5A" }}>{item}</span>
                   </li>
                 ))}
               </ul>
 
-              <div className="py-4 mb-6 rounded-xl text-center" style={{ backgroundColor: "#FEF3EE" }}>
+              <div className="py-4 mb-6 rounded-xl text-center" style={{ backgroundColor: "#FFF0F0" }}>
                 <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: "#5A5A5A" }}>Commission</p>
-                <p className="text-3xl font-bold" style={{ color: "#E85A2C" }}>R5000+</p>
+                <p className="text-3xl font-bold" style={{ color: "#E63946" }}>R5000+</p>
                 <p className="text-sm" style={{ color: "#5A5A5A" }}>per Pod filled + bonuses</p>
               </div>
               
               <Button 
-                className="w-full rounded-full py-6 font-semibold"
-                style={{ backgroundColor: "#E85A2C", color: "white" }}
+                className="w-full rounded-full py-6 font-semibold border-0"
+                style={{ backgroundColor: "#E63946", color: "white" }}
               >
                 Become an Outreach Director
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -256,9 +263,9 @@ export default function AffiliateLanding() {
                 <Card key={feature.title} className="p-6 border-0 shadow-lg text-center" style={{ backgroundColor: "white" }}>
                   <div 
                     className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5"
-                    style={{ backgroundColor: "#FEF3EE" }}
+                    style={{ backgroundColor: "#FFF0F0" }}
                   >
-                    <Icon className="w-7 h-7" style={{ color: "#E85A2C" }} />
+                    <Icon className="w-7 h-7" style={{ color: "#E63946" }} />
                   </div>
                   <h4 className="font-bold text-lg mb-2" style={{ color: "#1A1A1A" }}>{feature.title}</h4>
                   <p className="text-sm" style={{ color: "#5A5A5A" }}>{feature.desc}</p>
@@ -270,7 +277,7 @@ export default function AffiliateLanding() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20" style={{ backgroundColor: "#E85A2C" }}>
+      <section className="py-20" style={{ backgroundColor: "#E63946" }}>
         <div className="max-w-4xl mx-auto px-6 md:px-12 text-center">
           <div className="flex justify-center mb-6">
             <div 
@@ -288,8 +295,8 @@ export default function AffiliateLanding() {
           </p>
           <Button
             size="lg"
-            className="text-lg font-semibold px-10 py-6 rounded-full"
-            style={{ backgroundColor: "white", color: "#E85A2C" }}
+            className="text-lg font-semibold px-10 py-6 rounded-full border-0"
+            style={{ backgroundColor: "white", color: "#E63946" }}
             onClick={() => navigate("/affiliate/signup")}
           >
             Sign Up Now
@@ -306,7 +313,7 @@ export default function AffiliateLanding() {
               <span className="text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
                 TERRITORIAL TUTORING
               </span>
-              <span className="text-xl font-bold" style={{ color: "#E85A2C" }}>+</span>
+              <span className="text-xl font-bold" style={{ color: "#E63946" }}>+</span>
             </div>
             <p className="text-center md:text-right" style={{ color: "#5A5A5A" }}>
               © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
