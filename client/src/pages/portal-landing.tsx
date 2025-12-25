@@ -17,7 +17,7 @@ export default function ClientLanding() {
             <span className="text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
               TERRITORIAL TUTORING
             </span>
-            <span className="text-xl font-bold" style={{ color: "#C41E3A" }}>+</span>
+            <span className="text-xl font-bold" style={{ color: "#E63946" }}>+</span>
           </div>
           
           {/* App Name - Center */}
@@ -38,7 +38,7 @@ export default function ClientLanding() {
             </Button>
             <Button
               className="text-base font-semibold px-6 py-5 rounded-full"
-              style={{ backgroundColor: "#C41E3A", color: "white" }}
+              style={{ backgroundColor: "#E63946", color: "white" }}
               onClick={() => navigate("/client/signup")}
             >
               Get Started
@@ -56,7 +56,7 @@ export default function ClientLanding() {
           {/* Left - Text Content */}
           <div className="space-y-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
-              <span className="text-sm font-medium" style={{ color: "#C41E3A" }}>
+              <span className="text-sm font-medium" style={{ color: "#E63946" }}>
                 For Parents of Grade 6–9 Students
               </span>
             </div>
@@ -64,7 +64,7 @@ export default function ClientLanding() {
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight" style={{ color: "#1A1A1A" }}>
               We Don't Just Tutor.
               <br />
-              <span style={{ color: "#C41E3A" }}>We Build Confidence.</span>
+              <span style={{ color: "#E63946" }}>We Build Confidence.</span>
             </h1>
             
             <p className="text-lg md:text-xl leading-relaxed" style={{ color: "#5A5A5A" }}>
@@ -76,7 +76,7 @@ export default function ClientLanding() {
               <Button
                 size="lg"
                 className="text-lg font-semibold px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all"
-                style={{ backgroundColor: "#C41E3A", color: "white" }}
+                style={{ backgroundColor: "#E63946", color: "white" }}
                 onClick={() => navigate("/client/signup")}
               >
                 Start Your Child's Journey
@@ -92,9 +92,9 @@ export default function ClientLanding() {
                     key={i} 
                     className="w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium"
                     style={{ 
-                      backgroundColor: i % 2 === 0 ? "#FFF0F0" : "#C41E3A", 
+                      backgroundColor: i % 2 === 0 ? "#FFF0F0" : "#E63946", 
                       borderColor: "#FFF5ED",
-                      color: i % 2 === 0 ? "#C41E3A" : "white"
+                      color: i % 2 === 0 ? "#E63946" : "white"
                     }}
                   >
                     {i % 2 === 0 ? "★" : "✓"}
@@ -131,7 +131,7 @@ export default function ClientLanding() {
                   className="w-12 h-12 rounded-full flex items-center justify-center"
                   style={{ backgroundColor: "#FFF0F0" }}
                 >
-                  <Heart className="w-6 h-6 fill-current" style={{ color: "#C41E3A" }} />
+                  <Heart className="w-6 h-6 fill-current" style={{ color: "#E63946" }} />
                 </div>
                 <div>
                   <p className="font-bold text-lg" style={{ color: "#1A1A1A" }}>Confidence First</p>
@@ -180,7 +180,7 @@ export default function ClientLanding() {
               >
                 <div 
                   className="w-14 h-14 rounded-full flex items-center justify-center mb-6"
-                  style={{ backgroundColor: "#C41E3A", color: "white", fontFamily: "Georgia, serif", fontSize: "1.75rem", fontWeight: "500", fontStyle: "italic" }}
+                  style={{ backgroundColor: "#E63946", color: "white", fontFamily: "Georgia, serif", fontSize: "1.75rem", fontWeight: "500", fontStyle: "italic" }}
                 >
                   {item.number}
                 </div>
@@ -224,7 +224,7 @@ export default function ClientLanding() {
                       className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
                       style={{ backgroundColor: "#FFF0F0" }}
                     >
-                      <Check className="w-4 h-4" style={{ color: "#C41E3A" }} />
+                      <Check className="w-4 h-4" style={{ color: "#E63946" }} />
                     </div>
                     <div>
                       <h4 className="font-semibold mb-1" style={{ color: "#1A1A1A" }}>{item.title}</h4>
@@ -250,7 +250,7 @@ export default function ClientLanding() {
                       className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
                       style={{ backgroundColor: "#FFF0F0" }}
                     >
-                      <Check className="w-4 h-4" style={{ color: "#C41E3A" }} />
+                      <Check className="w-4 h-4" style={{ color: "#E63946" }} />
                     </div>
                     <div>
                       <h4 className="font-semibold mb-1" style={{ color: "#1A1A1A" }}>{item.title}</h4>
@@ -265,7 +265,7 @@ export default function ClientLanding() {
       </section>
 
       {/* Testimonial Section */}
-      <section className="py-16" style={{ backgroundColor: "#C41E3A" }}>
+      <section className="py-16" style={{ backgroundColor: "#E63946" }}>
         <div className="max-w-4xl mx-auto px-6 md:px-12 text-center">
           <div className="flex justify-center gap-1 mb-6">
             {[1, 2, 3, 4, 5].map((star) => (
@@ -293,7 +293,7 @@ export default function ClientLanding() {
           <Button
             size="lg"
             className="text-lg font-semibold px-10 py-6 rounded-full border-0 outline-none"
-            style={{ backgroundColor: "#C41E3A", color: "white" }}
+            style={{ backgroundColor: "#E63946", color: "white" }}
             onClick={() => navigate("/client/signup")}
           >
             Start Your Child's Journey Today
@@ -344,7 +344,7 @@ export default function ClientLanding() {
               <span className="text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
                 TERRITORIAL TUTORING
               </span>
-              <span className="text-xl font-bold" style={{ color: "#C41E3A" }}>+</span>
+              <span className="text-xl font-bold" style={{ color: "#E63946" }}>+</span>
             </div>
             <p className="text-center md:text-right" style={{ color: "#5A5A5A" }}>
               © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
