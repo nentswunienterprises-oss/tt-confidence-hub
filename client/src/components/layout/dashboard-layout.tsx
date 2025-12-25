@@ -441,7 +441,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto p-4 md:p-8">{children}</main>
+      <main className="max-w-7xl mx-auto px-3 py-4 sm:px-4 md:px-6 md:py-8">{children}</main>
     </div>
   );
 }

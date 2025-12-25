@@ -83,79 +83,79 @@ export default function ParentDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Welcome Header */}
       <div>
-          <h1 className="text-3xl font-bold">Welcome, {user?.email?.split("@")[0]}!</h1>
-          <p className="text-muted-foreground">Track your child's confidence journey</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Welcome, {user?.email?.split("@")[0]}!</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Track your child's confidence journey</p>
           {studentInfo && (
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               Student: <span className="font-medium">{studentInfo.name}</span> • {studentInfo.grade}
             </p>
           )}
         </div>
 
         {/* Real-Time Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 sm:pt-6">
               <div className="text-center">
-                <Trophy className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold">{stats?.bossBattlesCompleted || 0}</p>
-                <p className="text-xs text-muted-foreground">Boss Battles</p>
+                <Trophy className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-600 mx-auto mb-1 sm:mb-2" />
+                <p className="text-xl sm:text-2xl font-bold">{stats?.bossBattlesCompleted || 0}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Boss Battles</p>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 sm:pt-6">
               <div className="text-center">
-                <Zap className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold">{stats?.solutionsUnlocked || 0}</p>
-                <p className="text-xs text-muted-foreground">Solutions Unlocked</p>
+                <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600 mx-auto mb-1 sm:mb-2" />
+                <p className="text-xl sm:text-2xl font-bold">{stats?.solutionsUnlocked || 0}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Solutions Unlocked</p>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 sm:pt-6">
               <div className="text-center">
-                <TrendingUp className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold">+{stats?.confidenceGrowth || 0}%</p>
-                <p className="text-xs text-muted-foreground">Confidence Growth</p>
+                <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-green-600 mx-auto mb-1 sm:mb-2" />
+                <p className="text-xl sm:text-2xl font-bold">+{stats?.confidenceGrowth || 0}%</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Confidence Growth</p>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 sm:pt-6">
               <div className="text-center">
-                <Calendar className="w-8 h-8 text-primary mx-auto mb-2" />
-                <p className="text-2xl font-bold">{stats?.sessionsCompleted || 0}</p>
-                <p className="text-xs text-muted-foreground">Sessions Completed</p>
+                <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-primary mx-auto mb-1 sm:mb-2" />
+                <p className="text-xl sm:text-2xl font-bold">{stats?.sessionsCompleted || 0}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Sessions Completed</p>
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Student Commitments Overview */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="w-5 h-5" />
+            <CardHeader className="pb-2 sm:pb-4">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <Target className="w-4 h-4 sm:w-5 sm:h-5" />
                 Student Commitments
               </CardTitle>
-              <CardDescription>Your child's active goals and habits</CardDescription>
+              <CardDescription className="text-xs sm:text-sm">Your child's active goals and habits</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Active Commitments</span>
-                  <span className="text-2xl font-bold">{stats?.totalCommitments || 0}</span>
+                  <span className="text-xs sm:text-sm text-muted-foreground">Active Commitments</span>
+                  <span className="text-xl sm:text-2xl font-bold">{stats?.totalCommitments || 0}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Current Streak</span>
-                  <span className="text-2xl font-bold text-orange-600">{stats?.currentStreak || 0} days</span>
+                  <span className="text-xs sm:text-sm text-muted-foreground">Current Streak</span>
+                  <span className="text-xl sm:text-2xl font-bold text-orange-600">{stats?.currentStreak || 0} days</span>
                 </div>
-                <p className="text-xs text-muted-foreground mt-4">
+                <p className="text-[10px] sm:text-xs text-muted-foreground mt-4">
                   These are personal goals your child is tracking daily
                 </p>
               </div>
@@ -163,23 +163,23 @@ export default function ParentDashboard() {
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5" />
+            <CardHeader className="pb-2 sm:pb-4">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
                 Academic Progress
               </CardTitle>
-              <CardDescription>Session-based learning metrics</CardDescription>
+              <CardDescription className="text-xs sm:text-sm">Session-based learning metrics</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4">
-                <p className="text-sm font-medium mb-2">3-Layer Solutions</p>
-                <p className="text-xs text-muted-foreground">
+            <CardContent className="space-y-3 sm:space-y-4">
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-3 sm:p-4">
+                <p className="text-xs sm:text-sm font-medium mb-1 sm:mb-2">3-Layer Solutions</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">
                   Your tutor tracks vocabulary, method, and reasoning for each concept mastered
                 </p>
               </div>
-              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-4">
-                <p className="text-sm font-medium mb-2">Boss Battles</p>
-                <p className="text-xs text-muted-foreground">
+              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-3 sm:p-4">
+                <p className="text-xs sm:text-sm font-medium mb-1 sm:mb-2">Boss Battles</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">
                   Challenging problems your child has conquered
                 </p>
               </div>
@@ -188,32 +188,32 @@ export default function ParentDashboard() {
         </div>
 
         {/* Main Content Sections */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
           {/* Learning Proposal */}
           {proposal && (
             <Card className="md:col-span-2 border-primary/30">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
+              <CardHeader className="pb-2 sm:pb-4">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
                   Your Personalized Learning Proposal
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs sm:text-sm">
                   A comprehensive plan designed specifically for your child's success
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-4 mb-4">
-                  <p className="text-sm text-muted-foreground mb-2">
+                <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-3 sm:p-4 mb-4">
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-2">
                     Your tutor has created a detailed proposal outlining your child's learning identity, 
                     strengths, growth areas, and recommended plan.
                   </p>
-                  <div className="flex gap-2 text-xs text-muted-foreground">
+                  <div className="flex gap-2 text-[10px] sm:text-xs text-muted-foreground">
                     <span>📋 Recommended Plan: <strong>{proposal.recommendedPlan}</strong></span>
                   </div>
                 </div>
                 <Button 
                   onClick={() => setProposalDialogOpen(true)}
-                  className="w-full"
+                  className="w-full text-sm sm:text-base"
                 >
                   View Full Proposal
                 </Button>
@@ -223,20 +223,20 @@ export default function ParentDashboard() {
 
           {/* Quick Actions */}
           <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-              <CardDescription>Common tasks and resources</CardDescription>
+            <CardHeader className="pb-2 sm:pb-4">
+              <CardTitle className="text-base sm:text-lg">Quick Actions</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Common tasks and resources</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-start gap-2">
+            <CardContent className="space-y-2 sm:space-y-3">
+              <Button variant="outline" className="w-full justify-start gap-2 text-sm">
                 <Calendar className="w-4 h-4" />
                 View Progress Reports
               </Button>
-              <Button variant="outline" className="w-full justify-start gap-2">
+              <Button variant="outline" className="w-full justify-start gap-2 text-sm">
                 <TrendingUp className="w-4 h-4" />
                 See Latest Updates
               </Button>
-              <Button variant="outline" className="w-full justify-start gap-2">
+              <Button variant="outline" className="w-full justify-start gap-2 text-sm">
                 <FileText className="w-4 h-4" />
                 Message Tutor
               </Button>
@@ -245,10 +245,10 @@ export default function ParentDashboard() {
 
           {/* How Stats Update */}
           <Card className="bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200">
-            <CardHeader>
-              <CardTitle className="text-slate-900">How Stats Update</CardTitle>
+            <CardHeader className="pb-2 sm:pb-4">
+              <CardTitle className="text-slate-900 text-base sm:text-lg">How Stats Update</CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-slate-700 space-y-2">
+            <CardContent className="text-xs sm:text-sm text-slate-700 space-y-2">
               <p><strong>Real-Time Tracking:</strong> Stats update automatically when your tutor logs a session</p>
               <p><strong>Boss Battles:</strong> Counted when tutor marks challenging problems completed</p>
               <p><strong>Solutions:</strong> Incremented based on 3-layer teaching model (vocabulary + method + reasoning)</p>
