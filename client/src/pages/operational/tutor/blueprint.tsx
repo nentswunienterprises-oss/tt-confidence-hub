@@ -1,4 +1,4 @@
-Ôªøimport { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -270,9 +270,9 @@ function ModuleOne({ expandedSections, toggleSection, onComplete, isComplete }: 
                 <div>
                   <h4 className="font-bold text-lg mb-2">Step 1: MODEL - "Get them READY."</h4>
                   <ul className="space-y-2 text-muted-foreground">
-                    <li>‚Ä¢ The tutor solves a full problem out loud</li>
-                    <li>‚Ä¢ Uses all 3 layers - calls out terms, follows steps, explains logic</li>
-                    <li>‚Ä¢ Student watches and listens</li>
+                    <li>ï The tutor solves a full problem out loud</li>
+                    <li>ï Uses all 3 layers - calls out terms, follows steps, explains logic</li>
+                    <li>ï Student watches and listens</li>
                     <li className="italic font-semibold">"This is what it looks like when it's done right."</li>
                   </ul>
                 </div>
@@ -283,9 +283,9 @@ function ModuleOne({ expandedSections, toggleSection, onComplete, isComplete }: 
                 <div>
                   <h4 className="font-bold text-lg mb-2">Step 2: APPLY - "Let them FIRE."</h4>
                   <ul className="space-y-2 text-muted-foreground">
-                    <li>‚Ä¢ Student does a similar problem right after</li>
-                    <li>‚Ä¢ Tutor supports - but doesn't lead</li>
-                    <li>‚Ä¢ Let them struggle strategically</li>
+                    <li>ï Student does a similar problem right after</li>
+                    <li>ï Tutor supports - but doesn't lead</li>
+                    <li>ï Let them struggle strategically</li>
                     <li className="italic font-semibold">"They don't attempt the skill - they experience it."</li>
                   </ul>
                 </div>
@@ -296,8 +296,8 @@ function ModuleOne({ expandedSections, toggleSection, onComplete, isComplete }: 
                 <div>
                   <h4 className="font-bold text-lg mb-2">Step 3: GUIDE - "Now we AIM."</h4>
                   <ul className="space-y-2 text-muted-foreground">
-                    <li>‚Ä¢ The tutor corrects, refines, and clarifies</li>
-                    <li>‚Ä¢ Points out which layer needs reinforcement</li>
+                    <li>ï The tutor corrects, refines, and clarifies</li>
+                    <li>ï Points out which layer needs reinforcement</li>
                     <li className="italic">"You knew the terms (Vocab), and you remembered the steps (Method), but you didn't explain why we flipped the fraction (Reason). Let's fix that."</li>
                     <li className="italic font-semibold">"They start to see how they learn, not just what they learned."</li>
                   </ul>
@@ -316,9 +316,9 @@ function ModuleOne({ expandedSections, toggleSection, onComplete, isComplete }: 
             <div className="space-y-4">
               <p className="font-semibold">A Boss Battle challenges the student to use all 3 layers:</p>
               <ul className="space-y-2 text-muted-foreground">
-                <li>‚Ä¢ Can they recognize and define the terms?</li>
-                <li>‚Ä¢ Can they follow a clear step-by-step method on their own?</li>
-                <li>‚Ä¢ Can they explain why each move was legit?</li>
+                <li>ï Can they recognize and define the terms?</li>
+                <li>ï Can they follow a clear step-by-step method on their own?</li>
+                <li>ï Can they explain why each move was legit?</li>
               </ul>
               
               <div className="bg-accent p-4 rounded-lg mt-4 border border-primary/10">
@@ -353,8 +353,8 @@ function ModuleOne({ expandedSections, toggleSection, onComplete, isComplete }: 
                   </table>
                   <p className="mt-4 font-semibold">Then:</p>
                   <ul className="mt-2 space-y-1 text-muted-foreground">
-                    <li>‚Üí Re-teach and reinforce that specific layer</li>
-                    <li>‚Üí Assign a rematch Boss Battle in the next session</li>
+                    <li>? Re-teach and reinforce that specific layer</li>
+                    <li>? Assign a rematch Boss Battle in the next session</li>
                   </ul>
                 </div>
               </div>
@@ -364,10 +364,10 @@ function ModuleOne({ expandedSections, toggleSection, onComplete, isComplete }: 
           <div className="bg-gradient-to-r from-primary to-primary/80 text-white p-6 rounded-lg shadow-md">
             <h4 className="font-bold text-xl mb-4">Why This Is Bulletproof</h4>
             <ul className="space-y-2">
-              <li>‚Ä¢ Visual & model-based teaching = stronger memory retention</li>
-              <li>‚Ä¢ Repetition of method + explanation = real confidence</li>
-              <li>‚Ä¢ Failsafe system for catching errors and learning from them</li>
-              <li>‚Ä¢ Clear, structured loop keeps sessions focused, efficient, and powerful</li>
+              <li>ï Visual & model-based teaching = stronger memory retention</li>
+              <li>ï Repetition of method + explanation = real confidence</li>
+              <li>ï Failsafe system for catching errors and learning from them</li>
+              <li>ï Clear, structured loop keeps sessions focused, efficient, and powerful</li>
             </ul>
             <p className="mt-6 text-lg font-bold italic border-t border-white/20 pt-4">
               "Practice makes perfect" is a lie.<br />
@@ -419,17 +419,17 @@ function ModuleTwo({ expandedSections, toggleSection, onComplete, isComplete }: 
               <p className="font-semibold">A student isn't a project. They're a patient.</p>
               <p>They walk in with:</p>
               <ul className="space-y-2 text-muted-foreground ml-4">
-                <li>‚Ä¢ Hidden pains (topics that never made sense)</li>
-                <li>‚Ä¢ Emotional injuries (shame, fear, anxiety)</li>
-                <li>‚Ä¢ Symptoms (giving up, blanking out, rushing, avoiding questions)</li>
+                <li>ï Hidden pains (topics that never made sense)</li>
+                <li>ï Emotional injuries (shame, fear, anxiety)</li>
+                <li>ï Symptoms (giving up, blanking out, rushing, avoiding questions)</li>
               </ul>
               
               <div className="bg-accent p-4 rounded-lg mt-4 border border-primary/10">
                 <p className="font-bold mb-2">The TT Tutor's job:</p>
                 <ul className="space-y-1">
-                  <li>‚úì Diagnose the pain</li>
-                  <li>‚úì Prescribe the system</li>
-                  <li>‚úì Treat consistently with structure and strategy</li>
+                  <li>? Diagnose the pain</li>
+                  <li>? Prescribe the system</li>
+                  <li>? Treat consistently with structure and strategy</li>
                 </ul>
               </div>
             </div>
@@ -490,19 +490,19 @@ function ModuleTwo({ expandedSections, toggleSection, onComplete, isComplete }: 
               <div className="bg-accent p-4 rounded-lg border border-primary/10">
                 <h4 className="font-bold mb-3 text-primary">We are...</h4>
                 <ul className="space-y-2">
-                  <li>‚úì A mentor</li>
-                  <li>‚úì A strategist</li>
-                  <li>‚úì A coach</li>
-                  <li>‚úì A partner</li>
+                  <li>? A mentor</li>
+                  <li>? A strategist</li>
+                  <li>? A coach</li>
+                  <li>? A partner</li>
                 </ul>
               </div>
               <div className="bg-muted p-4 rounded-lg border border-border">
                 <h4 className="font-bold mb-3 text-destructive">We are not...</h4>
                 <ul className="space-y-2">
-                  <li>‚úó A lecturer</li>
-                  <li>‚úó A solver</li>
-                  <li>‚úó A performer</li>
-                  <li>‚úó A parent</li>
+                  <li>? A lecturer</li>
+                  <li>? A solver</li>
+                  <li>? A performer</li>
+                  <li>? A parent</li>
                 </ul>
               </div>
             </div>
@@ -526,10 +526,10 @@ function ModuleTwo({ expandedSections, toggleSection, onComplete, isComplete }: 
               <div className="bg-accent p-4 rounded-lg border border-primary/10">
                 <p className="font-bold mb-3">Because systems:</p>
                 <ul className="space-y-2">
-                  <li>‚úì Don't get tired</li>
-                  <li>‚úì Don't panic</li>
-                  <li>‚úì Don't give up when the concept looks scary</li>
-                  <li>‚úì Break things down into steps, and steps make anything learnable</li>
+                  <li>? Don't get tired</li>
+                  <li>? Don't panic</li>
+                  <li>? Don't give up when the concept looks scary</li>
+                  <li>? Break things down into steps, and steps make anything learnable</li>
                 </ul>
               </div>
             </div>
@@ -657,7 +657,7 @@ function ModuleThree({ expandedSections, toggleSection, onComplete, isComplete }
 
           <SectionCard
             id="module3-connect"
-            title="1. Connect ‚Äì Who Are You? (25-45 min)"
+            title="1. Connect ñ Who Are You? (25-45 min)"
             expanded={expandedSections["module3-connect"] || false}
             onToggle={() => toggleSection("module3-connect")}
             gradient="from-primary to-primary/80"
@@ -665,19 +665,19 @@ function ModuleThree({ expandedSections, toggleSection, onComplete, isComplete }
             <div className="space-y-4">
               <p className="font-bold">Key Prompts:</p>
               <ul className="space-y-2 ml-4">
-                <li>‚Ä¢ "What's something in life or school you're proud of this year?"</li>
-                <li>‚Ä¢ "What's your dream life or job?"</li>
-                <li>‚Ä¢ "What subject just gets you‚Ä¶ and which one drains you?"</li>
-                <li>‚Ä¢ "If school was a playlist, what's your skip button?"</li>
+                <li>ï "What's something in life or school you're proud of this year?"</li>
+                <li>ï "What's your dream life or job?"</li>
+                <li>ï "What subject just gets youÖ and which one drains you?"</li>
+                <li>ï "If school was a playlist, what's your skip button?"</li>
               </ul>
               
               <div className="bg-accent p-4 rounded-lg mt-4 border border-primary/10">
                 <p className="font-bold mb-2">What You're Doing:</p>
                 <ul className="space-y-1">
-                  <li>‚Ä¢ Finding emotional drivers</li>
-                  <li>‚Ä¢ Spotting hidden confidence issues</li>
-                  <li>‚Ä¢ Beginning to build trust and rapport</li>
-                  <li>‚Ä¢ Logging student identity cues</li>
+                  <li>ï Finding emotional drivers</li>
+                  <li>ï Spotting hidden confidence issues</li>
+                  <li>ï Beginning to build trust and rapport</li>
+                  <li>ï Logging student identity cues</li>
                 </ul>
               </div>
 
@@ -688,54 +688,54 @@ function ModuleThree({ expandedSections, toggleSection, onComplete, isComplete }
                   <div>
                     <p className="font-semibold text-sm mb-2">Mindset & Self-Perception</p>
                     <ul className="space-y-1 text-sm ml-4">
-                      <li>‚Ä¢ "When do you feel most like yourself?"</li>
-                      <li>‚Ä¢ "What do you wish adults & parents understood better about you?"</li>
-                      <li>‚Ä¢ "If your brain had a voice, what would it say after a bad test?"</li>
-                      <li>‚Ä¢ "What's something you believe about yourself that no one sees?"</li>
+                      <li>ï "When do you feel most like yourself?"</li>
+                      <li>ï "What do you wish adults & parents understood better about you?"</li>
+                      <li>ï "If your brain had a voice, what would it say after a bad test?"</li>
+                      <li>ï "What's something you believe about yourself that no one sees?"</li>
                     </ul>
                   </div>
 
                   <div>
                     <p className="font-semibold text-sm mb-2">Values & Emotional Landscape</p>
                     <ul className="space-y-1 text-sm ml-4">
-                      <li>‚Ä¢ "What kind of person do you want to be remembered as?"</li>
-                      <li>‚Ä¢ "What's something that makes you feel safe? What makes you feel anxious?"</li>
-                      <li>‚Ä¢ "If you had a reset button for this year, what would you change?"</li>
-                      <li>‚Ä¢ "Who's someone in your life you deeply respect, and why?"</li>
+                      <li>ï "What kind of person do you want to be remembered as?"</li>
+                      <li>ï "What's something that makes you feel safe? What makes you feel anxious?"</li>
+                      <li>ï "If you had a reset button for this year, what would you change?"</li>
+                      <li>ï "Who's someone in your life you deeply respect, and why?"</li>
                     </ul>
                   </div>
 
                   <div>
                     <p className="font-semibold text-sm mb-2">Coping</p>
                     <ul className="space-y-1 text-sm ml-4">
-                      <li>‚Ä¢ "What's something you do that helps you feel proud or strong?"</li>
+                      <li>ï "What's something you do that helps you feel proud or strong?"</li>
                     </ul>
                   </div>
 
                   <div>
                     <p className="font-semibold text-sm mb-2">Social & Cultural Identity</p>
                     <ul className="space-y-1 text-sm ml-4">
-                      <li>‚Ä¢ "What do people usually get wrong about you?"</li>
-                      <li>‚Ä¢ "What does your culture, family, or background mean to you?"</li>
-                      <li>‚Ä¢ "Who do you look up to - in real life or online - and what do they teach you?"</li>
+                      <li>ï "What do people usually get wrong about you?"</li>
+                      <li>ï "What does your culture, family, or background mean to you?"</li>
+                      <li>ï "Who do you look up to - in real life or online - and what do they teach you?"</li>
                     </ul>
                   </div>
 
                   <div>
                     <p className="font-semibold text-sm mb-2">Creativity & Imagination</p>
                     <ul className="space-y-1 text-sm ml-4">
-                      <li>‚Ä¢ "If your life was a movie, what's the plot right now?"</li>
-                      <li>‚Ä¢ "What kind of stories or characters speak to you most?"</li>
-                      <li>‚Ä¢ "If you could design your own subject in school, what would it be called?"</li>
+                      <li>ï "If your life was a movie, what's the plot right now?"</li>
+                      <li>ï "What kind of stories or characters speak to you most?"</li>
+                      <li>ï "If you could design your own subject in school, what would it be called?"</li>
                     </ul>
                   </div>
 
                   <div>
                     <p className="font-semibold text-sm mb-2">Dreams & Inner Drive</p>
                     <ul className="space-y-1 text-sm ml-4">
-                      <li>‚Ä¢ "What's a dream you haven't told anyone about?"</li>
-                      <li>‚Ä¢ "What's something you really want - even if it feels out of reach/impossible?"</li>
-                      <li>‚Ä¢ "If nothing could stop you, what would you be doing five years from now?"</li>
+                      <li>ï "What's a dream you haven't told anyone about?"</li>
+                      <li>ï "What's something you really want - even if it feels out of reach/impossible?"</li>
+                      <li>ï "If nothing could stop you, what would you be doing five years from now?"</li>
                     </ul>
                   </div>
                 </div>
@@ -744,18 +744,18 @@ function ModuleThree({ expandedSections, toggleSection, onComplete, isComplete }
               <div className="mt-4 bg-muted p-4 rounded-lg">
                 <p className="font-bold mb-2">KPI</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Student shares personal insights</li>
-                  <li>‚Ä¢ Student feels relaxed, safe and seen by end of segment (measured by tone change or smile)</li>
+                  <li>ï Student shares personal insights</li>
+                  <li>ï Student feels relaxed, safe and seen by end of segment (measured by tone change or smile)</li>
                 </ul>
               </div>
 
               <div className="mt-4 bg-card p-4 rounded-lg border border-primary/20">
                 <p className="font-bold mb-2">Checklist:</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Greeted warmly and set casual tone</li>
-                  <li>‚Ä¢ Asked emotional driver questions - made it a first friendly date convo, not a job interview</li>
-                  <li>‚Ä¢ Logged identity cues in Student Identity Sheet</li>
-                  <li>‚Ä¢ Recorded all student answers in Google Docs</li>
+                  <li>ï Greeted warmly and set casual tone</li>
+                  <li>ï Asked emotional driver questions - made it a first friendly date convo, not a job interview</li>
+                  <li>ï Logged identity cues in Student Identity Sheet</li>
+                  <li>ï Recorded all student answers in Google Docs</li>
                 </ul>
               </div>
             </div>
@@ -763,7 +763,7 @@ function ModuleThree({ expandedSections, toggleSection, onComplete, isComplete }
 
           <SectionCard
             id="module3-surface"
-            title="2. Surface the Pains ‚Äì What Feels Off? (5‚Äì7 min)"
+            title="2. Surface the Pains ñ What Feels Off? (5ñ7 min)"
             expanded={expandedSections["module3-surface"] || false}
             onToggle={() => toggleSection("module3-surface")}
             gradient="from-primary/90 to-primary"
@@ -774,40 +774,40 @@ function ModuleThree({ expandedSections, toggleSection, onComplete, isComplete }
               <div className="bg-accent p-4 rounded-lg border border-primary/10">
                 <p className="font-bold mb-3">Questions (Human-Diagnostic Style):</p>
                 <ul className="space-y-2">
-                  <li>‚Ä¢ "Which topics in math have always felt confusing, no matter how many times they explained it?"</li>
-                  <li>‚Ä¢ "Are there moments in math where you just freeze or feel lost?"</li>
-                  <li>‚Ä¢ "Which topics do you secretly wish made more sense?"</li>
+                  <li>ï "Which topics in math have always felt confusing, no matter how many times they explained it?"</li>
+                  <li>ï "Are there moments in math where you just freeze or feel lost?"</li>
+                  <li>ï "Which topics do you secretly wish made more sense?"</li>
                 </ul>
               </div>
 
               <div className="bg-card p-4 rounded-lg border-l-4 border-primary mt-4">
                 <p className="font-bold mb-2">Power Line:</p>
-                <p className="italic">"If you woke up and forgot all of math, I'd still be excited to walk you through it. I don't care what you get wrong ‚Äì I care about what we build together."</p>
+                <p className="italic">"If you woke up and forgot all of math, I'd still be excited to walk you through it. I don't care what you get wrong ñ I care about what we build together."</p>
               </div>
 
               <div className="mt-4 bg-accent p-4 rounded-lg border border-primary/10">
                 <p className="font-bold mb-2">What You're Doing:</p>
                 <ul className="space-y-1">
-                  <li>‚Ä¢ Letting them reveal pain points without shame</li>
-                  <li>‚Ä¢ Showing you're not here to test - they're here to be helped</li>
-                  <li>‚Ä¢ Treating them like a real client and patient, not just a student</li>
+                  <li>ï Letting them reveal pain points without shame</li>
+                  <li>ï Showing you're not here to test - they're here to be helped</li>
+                  <li>ï Treating them like a real client and patient, not just a student</li>
                 </ul>
               </div>
 
               <div className="mt-4 bg-muted p-4 rounded-lg">
                 <p className="font-bold mb-2">KPI</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Student names at least 2 confusing math topics without hesitation</li>
-                  <li>‚Ä¢ Student feels safe admitting academic struggles (no defensiveness)</li>
+                  <li>ï Student names at least 2 confusing math topics without hesitation</li>
+                  <li>ï Student feels safe admitting academic struggles (no defensiveness)</li>
                 </ul>
               </div>
 
               <div className="mt-4 bg-card p-4 rounded-lg border border-primary/20">
                 <p className="font-bold mb-2">Checklist:</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Asked non-judgmental questions</li>
-                  <li>‚Ä¢ Listened deeply without correcting</li>
-                  <li>‚Ä¢ Wrote down student pain points</li>
+                  <li>ï Asked non-judgmental questions</li>
+                  <li>ï Listened deeply without correcting</li>
+                  <li>ï Wrote down student pain points</li>
                 </ul>
               </div>
             </div>
@@ -815,7 +815,7 @@ function ModuleThree({ expandedSections, toggleSection, onComplete, isComplete }
 
           <SectionCard
             id="module3-diagnose"
-            title="3. Diagnose ‚Äì Why Is This Happening? (10‚Äì15 min)"
+            title="3. Diagnose ñ Why Is This Happening? (10ñ15 min)"
             expanded={expandedSections["module3-diagnose"] || false}
             onToggle={() => toggleSection("module3-diagnose")}
             gradient="from-primary to-primary/70"
@@ -826,8 +826,8 @@ function ModuleThree({ expandedSections, toggleSection, onComplete, isComplete }
               <div className="bg-accent p-4 rounded-lg border border-primary/10">
                 <p className="font-bold mb-3">How:</p>
                 <ul className="space-y-2 ml-4">
-                  <li>‚Ä¢ Give 1-2 quick problems based on their pain points</li>
-                  <li>‚Ä¢ Watch and listen - don't interrupt</li>
+                  <li>ï Give 1-2 quick problems based on their pain points</li>
+                  <li>ï Watch and listen - don't interrupt</li>
                 </ul>
               </div>
 
@@ -860,8 +860,8 @@ function ModuleThree({ expandedSections, toggleSection, onComplete, isComplete }
               <div className="bg-accent p-4 rounded-lg mt-4 border border-primary/10">
                 <p className="font-bold mb-2">What You're Doing:</p>
                 <ul className="space-y-1">
-                  <li>‚Ä¢ Identifying their learning fracture</li>
-                  <li>‚Ä¢ Spotting how they think, not just what they know</li>
+                  <li>ï Identifying their learning fracture</li>
+                  <li>ï Spotting how they think, not just what they know</li>
                 </ul>
               </div>
 
@@ -874,17 +874,17 @@ function ModuleThree({ expandedSections, toggleSection, onComplete, isComplete }
               <div className="mt-4 bg-muted p-4 rounded-lg">
                 <p className="font-bold mb-2">KPI</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Tutor correctly identifies if fracture is Vocabulary, Method, or Reason</li>
-                  <li>‚Ä¢ Tutor can explain in 1-2 sentences why the student struggles</li>
+                  <li>ï Tutor correctly identifies if fracture is Vocabulary, Method, or Reason</li>
+                  <li>ï Tutor can explain in 1-2 sentences why the student struggles</li>
                 </ul>
               </div>
 
               <div className="mt-4 bg-card p-4 rounded-lg border border-primary/20">
                 <p className="font-bold mb-2">Checklist:</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Gave 1-2 sample problems based on pain points</li>
-                  <li>‚Ä¢ Observed problem-solving style quietly</li>
-                  <li>‚Ä¢ Marked which layer (Vocab, Method, Reason) needs focus</li>
+                  <li>ï Gave 1-2 sample problems based on pain points</li>
+                  <li>ï Observed problem-solving style quietly</li>
+                  <li>ï Marked which layer (Vocab, Method, Reason) needs focus</li>
                 </ul>
               </div>
             </div>
@@ -892,7 +892,7 @@ function ModuleThree({ expandedSections, toggleSection, onComplete, isComplete }
 
           <SectionCard
             id="module3-anchor"
-            title="4. Anchor ‚Äì What's the Plan? (5-7 min)"
+            title="4. Anchor ñ What's the Plan? (5-7 min)"
             expanded={expandedSections["module3-anchor"] || false}
             onToggle={() => toggleSection("module3-anchor")}
             gradient="from-primary/90 to-primary/80"
@@ -903,9 +903,9 @@ function ModuleThree({ expandedSections, toggleSection, onComplete, isComplete }
               <div className="bg-accent p-4 rounded-lg border border-primary/10">
                 <p className="font-bold mb-3">What to Do:</p>
                 <ul className="space-y-2">
-                  <li>‚Ä¢ Reflect their strengths: "You think visually. You explain well. You're a builder."</li>
-                  <li>‚Ä¢ Share your insight: "Your confidence breaks when the vocabulary isn't clear - so we'll start there."</li>
-                  <li>‚Ä¢ Introduce TT's tools:</li>
+                  <li>ï Reflect their strengths: "You think visually. You explain well. You're a builder."</li>
+                  <li>ï Share your insight: "Your confidence breaks when the vocabulary isn't clear - so we'll start there."</li>
+                  <li>ï Introduce TT's tools:</li>
                 </ul>
                 <ul className="ml-6 mt-2 space-y-1">
                   <li>- Learning ID (Lawyer; Problem-Solver/Entrepreneur; Movie Director; Doctor)</li>
@@ -919,24 +919,24 @@ function ModuleThree({ expandedSections, toggleSection, onComplete, isComplete }
                 <p className="italic">"We don't tutor. We train minds. And this? This is just your journey's beginning."</p>
                 <p className="mt-3">Say something like: "These trackers are your map. Every hero needs one. We're not just going to guess if you're improving - we'll prove it."</p>
                 <ul className="mt-2 space-y-1">
-                  <li>‚Ä¢ Walk through how the system works</li>
-                  <li>‚Ä¢ Let them ask questions - it builds buy-in</li>
+                  <li>ï Walk through how the system works</li>
+                  <li>ï Let them ask questions - it builds buy-in</li>
                 </ul>
               </div>
 
               <div className="mt-4 bg-muted p-4 rounded-lg">
                 <p className="font-bold mb-2">KPI</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Student leaves with simple, hopeful understanding of next steps</li>
-                  <li>‚Ä¢ Parent/guardian receives a proposal</li>
+                  <li>ï Student leaves with simple, hopeful understanding of next steps</li>
+                  <li>ï Parent/guardian receives a proposal</li>
                 </ul>
               </div>
 
               <div className="mt-4 bg-card p-4 rounded-lg border border-primary/20">
                 <p className="font-bold mb-2">Deliverables After Session:</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Log Student Identity Sheet</li>
-                  <li>‚Ä¢ Send Proposal within 24 hours</li>
+                  <li>ï Log Student Identity Sheet</li>
+                  <li>ï Send Proposal within 24 hours</li>
                 </ul>
               </div>
             </div>
@@ -978,10 +978,10 @@ function ModuleFour({ expandedSections, toggleSection, onComplete, isComplete }:
           <div className="bg-accent p-6 rounded-lg border border-primary/10">
             <h3 className="text-xl font-bold mb-4">Session Goal:</h3>
             <ul className="space-y-2">
-              <li>‚Ä¢ Translate the intro session into a trackable action plan</li>
-              <li>‚Ä¢ Set up the student's TT Identity (Lawyer or Problem-Solver)</li>
-              <li>‚Ä¢ Make the student feel seen, smart, and safe</li>
-              <li>‚Ä¢ Begin light practice that's strategic, not stressful</li>
+              <li>ï Translate the intro session into a trackable action plan</li>
+              <li>ï Set up the student's TT Identity (Lawyer or Problem-Solver)</li>
+              <li>ï Make the student feel seen, smart, and safe</li>
+              <li>ï Begin light practice that's strategic, not stressful</li>
             </ul>
           </div>
 
@@ -1003,10 +1003,10 @@ function ModuleFour({ expandedSections, toggleSection, onComplete, isComplete }:
               <div className="bg-accent p-4 rounded-lg border border-primary/10">
                 <p className="font-bold mb-3">Checklist:</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Know before you go</li>
-                  <li>‚Ä¢ Review Student identity</li>
-                  <li>‚Ä¢ Have teaching material ready</li>
-                  <li>‚Ä¢ Mentally review "growth mindset" opening (not perfection mindset)</li>
+                  <li>ï Know before you go</li>
+                  <li>ï Review Student identity</li>
+                  <li>ï Have teaching material ready</li>
+                  <li>ï Mentally review "growth mindset" opening (not perfection mindset)</li>
                 </ul>
               </div>
             </div>
@@ -1025,23 +1025,23 @@ function ModuleFour({ expandedSections, toggleSection, onComplete, isComplete }:
           >
             <div className="space-y-4">
               <ul className="space-y-2 ml-4">
-                <li>‚Ä¢ Welcome student + smile check</li>
-                <li>‚Ä¢ Introduce yourself again briefly</li>
+                <li>ï Welcome student + smile check</li>
+                <li>ï Introduce yourself again briefly</li>
               </ul>
               
               <div className="bg-muted p-4 rounded-lg mt-4">
                 <p className="font-bold mb-2">KPI</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Student shows visible comfort (smiling, open body language) within 5 minutes</li>
-                  <li>‚Ä¢ Student recalls previous session's momentum</li>
+                  <li>ï Student shows visible comfort (smiling, open body language) within 5 minutes</li>
+                  <li>ï Student recalls previous session's momentum</li>
                 </ul>
               </div>
 
               <div className="bg-accent p-4 rounded-lg border border-primary/10 mt-4">
                 <p className="font-bold mb-2">Checklist:</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Greet student warmly, re-introduce lightly</li>
-                  <li>‚Ä¢ Confirm emotional safety ("This is your space. Growth over perfection.")</li>
+                  <li>ï Greet student warmly, re-introduce lightly</li>
+                  <li>ï Confirm emotional safety ("This is your space. Growth over perfection.")</li>
                 </ul>
               </div>
             </div>
@@ -1060,31 +1060,31 @@ function ModuleFour({ expandedSections, toggleSection, onComplete, isComplete }:
               <div className="bg-accent p-4 rounded-lg border border-primary/10">
                 <p className="font-bold mb-3">Follow the TT teaching model:</p>
                 <ul className="space-y-2 ml-4">
-                  <li>‚Ä¢ Model the process</li>
-                  <li>‚Ä¢ Let them Apply the method</li>
-                  <li>‚Ä¢ Guide and correct gently</li>
-                  <li>‚Ä¢ Reinforce with a win</li>
-                  <li>‚Ä¢ Embrace 3-layer lens</li>
+                  <li>ï Model the process</li>
+                  <li>ï Let them Apply the method</li>
+                  <li>ï Guide and correct gently</li>
+                  <li>ï Reinforce with a win</li>
+                  <li>ï Embrace 3-layer lens</li>
                 </ul>
               </div>
 
-              <p className="italic mt-4 text-sm border-l-4 border-primary pl-4">Win = Momentum. You're not trying to teach a full concept‚Äîyou're showing them that they can.</p>
+              <p className="italic mt-4 text-sm border-l-4 border-primary pl-4">Win = Momentum. You're not trying to teach a full conceptóyou're showing them that they can.</p>
 
               <div className="bg-muted p-4 rounded-lg mt-4">
                 <p className="font-bold mb-2">KPI</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Tutor and student successfully completes 1 micro-win activity</li>
-                  <li>‚Ä¢ Student shows increased confidence or reduced fear with the step-by-step process</li>
+                  <li>ï Tutor and student successfully completes 1 micro-win activity</li>
+                  <li>ï Student shows increased confidence or reduced fear with the step-by-step process</li>
                 </ul>
               </div>
 
               <div className="bg-card p-4 rounded-lg border border-primary/20 mt-4">
                 <p className="font-bold mb-2">Checklist:</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Select a micro-concept based on diagnosis (start small)</li>
-                  <li>‚Ä¢ Model ‚Üí Apply ‚Üí Correct ‚Üí Reinforce (TT Teaching Model)</li>
-                  <li>‚Ä¢ Celebrate every partial win</li>
-                  <li>‚Ä¢ Record micro-win on Challenge Tracker</li>
+                  <li>ï Select a micro-concept based on diagnosis (start small)</li>
+                  <li>ï Model ? Apply ? Correct ? Reinforce (TT Teaching Model)</li>
+                  <li>ï Celebrate every partial win</li>
+                  <li>ï Record micro-win on Challenge Tracker</li>
                 </ul>
               </div>
             </div>
@@ -1113,26 +1113,26 @@ function ModuleFour({ expandedSections, toggleSection, onComplete, isComplete }:
               <div className="bg-accent p-4 rounded-lg border border-primary/10">
                 <p className="font-bold mb-2">Celebrate either way:</p>
                 <ul className="space-y-1">
-                  <li>‚Ä¢ "Great job getting it done. You now understand how to use the 3 layers to approach tough problems"</li>
-                  <li>‚Ä¢ "Next week, we'll beat this. Easy."</li>
+                  <li>ï "Great job getting it done. You now understand how to use the 3 layers to approach tough problems"</li>
+                  <li>ï "Next week, we'll beat this. Easy."</li>
                 </ul>
               </div>
 
               <div className="bg-muted p-4 rounded-lg mt-4">
                 <p className="font-bold mb-2">KPI</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Student completes Boss Battle attempt without giving up</li>
-                  <li>‚Ä¢ Result logged (pass or growth opportunity)</li>
+                  <li>ï Student completes Boss Battle attempt without giving up</li>
+                  <li>ï Result logged (pass or growth opportunity)</li>
                 </ul>
               </div>
 
               <div className="bg-card p-4 rounded-lg border border-primary/20 mt-4">
                 <p className="font-bold mb-2">Checklist:</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Frame Boss Battle positively ("Your first mini-mission.")</li>
-                  <li>‚Ä¢ Present challenge (aligned to their skill preview)</li>
-                  <li>‚Ä¢ Log result in Boss Battle Tracker</li>
-                  <li>‚Ä¢ Celebrate either outcome: "Victory OR Lesson = Progress."</li>
+                  <li>ï Frame Boss Battle positively ("Your first mini-mission.")</li>
+                  <li>ï Present challenge (aligned to their skill preview)</li>
+                  <li>ï Log result in Boss Battle Tracker</li>
+                  <li>ï Celebrate either outcome: "Victory OR Lesson = Progress."</li>
                 </ul>
               </div>
 
@@ -1144,10 +1144,10 @@ function ModuleFour({ expandedSections, toggleSection, onComplete, isComplete }:
                     <p className="font-semibold text-sm mb-2">A. Let Them Explain First (Teach-Back Method)</p>
                     <p className="text-sm mb-2">Ask:</p>
                     <ul className="ml-4 text-sm space-y-1">
-                      <li>‚Ä¢ "Tell me what you did here."</li>
-                      <li>‚Ä¢ "Walk me through your thought process."</li>
+                      <li>ï "Tell me what you did here."</li>
+                      <li>ï "Walk me through your thought process."</li>
                     </ul>
-                    <p className="text-sm mt-2 italic">Don't jump in to fix immediately‚Äîlet them reflect and verbalize. Scan for Reason.</p>
+                    <p className="text-sm mt-2 italic">Don't jump in to fix immediatelyólet them reflect and verbalize. Scan for Reason.</p>
                   </div>
 
                   <div>
@@ -1155,8 +1155,8 @@ function ModuleFour({ expandedSections, toggleSection, onComplete, isComplete }:
                     <p className="text-sm">Fix the mistake with them, not for them.</p>
                     <p className="text-sm mt-2">Re-do the problem side-by-side, asking:</p>
                     <ul className="ml-4 text-sm space-y-1">
-                      <li>‚Ä¢ "What could we do differently here?"</li>
-                      <li>‚Ä¢ "Which layer did we crack?"</li>
+                      <li>ï "What could we do differently here?"</li>
+                      <li>ï "Which layer did we crack?"</li>
                     </ul>
                     <p className="text-sm mt-2">Use arrows, symbols, colors, or highlights to show the difference clearly.</p>
                   </div>
@@ -1165,8 +1165,8 @@ function ModuleFour({ expandedSections, toggleSection, onComplete, isComplete }:
                     <p className="font-semibold text-sm mb-2">C. Celebrate the Recovery</p>
                     <p className="text-sm">Say things like:</p>
                     <ul className="ml-4 text-sm space-y-1">
-                      <li>‚Ä¢ "See? That's growth right there."</li>
-                      <li>‚Ä¢ "Now you really understand it."</li>
+                      <li>ï "See? That's growth right there."</li>
+                      <li>ï "Now you really understand it."</li>
                     </ul>
                     <p className="text-sm mt-2">Frame the mistake as part of the mission: "This is where most students get stuck. But not you anymore."</p>
                   </div>
@@ -1175,9 +1175,9 @@ function ModuleFour({ expandedSections, toggleSection, onComplete, isComplete }:
                     <p className="font-semibold text-sm mb-2">D. Record Learning Notes</p>
                     <p className="text-sm">Add a note in your Challenge Tracker:</p>
                     <ul className="ml-4 text-sm space-y-1">
-                      <li>‚Ä¢ What was misunderstood?</li>
-                      <li>‚Ä¢ What correction helped?</li>
-                      <li>‚Ä¢ What should be reinforced next time?</li>
+                      <li>ï What was misunderstood?</li>
+                      <li>ï What correction helped?</li>
+                      <li>ï What should be reinforced next time?</li>
                     </ul>
                   </div>
                 </div>
@@ -1203,17 +1203,17 @@ function ModuleFour({ expandedSections, toggleSection, onComplete, isComplete }:
               <div className="bg-muted p-4 rounded-lg mt-4">
                 <p className="font-bold mb-2">KPI</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Student can explain in their own words what's next</li>
-                  <li>‚Ä¢ Student leaves session feeling confident and seen</li>
+                  <li>ï Student can explain in their own words what's next</li>
+                  <li>ï Student leaves session feeling confident and seen</li>
                 </ul>
               </div>
 
               <div className="bg-accent p-4 rounded-lg border border-primary/10 mt-4">
                 <p className="font-bold mb-2">Checklist:</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Recap today's victories ("You built your learning system and cracked your first challenge.")</li>
-                  <li>‚Ä¢ Preview next focus area ("Next time, we'll hit __ even harder.")</li>
-                  <li>‚Ä¢ Speak belief into the student ("You're officially on your TT journey. You're built for this.")</li>
+                  <li>ï Recap today's victories ("You built your learning system and cracked your first challenge.")</li>
+                  <li>ï Preview next focus area ("Next time, we'll hit __ even harder.")</li>
+                  <li>ï Speak belief into the student ("You're officially on your TT journey. You're built for this.")</li>
                 </ul>
               </div>
             </div>
@@ -1222,11 +1222,11 @@ function ModuleFour({ expandedSections, toggleSection, onComplete, isComplete }:
           <div className="bg-gradient-to-r from-primary to-primary/80 text-white p-6 rounded-lg shadow-md">
             <h4 className="font-bold text-xl mb-4">First Session Deliverables:</h4>
             <ul className="space-y-2">
-              <li>‚Ä¢ Session Logged</li>
-              <li>‚Ä¢ TT Learning ID chosen</li>
-              <li>‚Ä¢ First skill logged</li>
-              <li>‚Ä¢ First Boss Battle recorded (optional)</li>
-              <li>‚Ä¢ Student feels clear, supported, and hyped</li>
+              <li>ï Session Logged</li>
+              <li>ï TT Learning ID chosen</li>
+              <li>ï First skill logged</li>
+              <li>ï First Boss Battle recorded (optional)</li>
+              <li>ï Student feels clear, supported, and hyped</li>
             </ul>
           </div>
 
@@ -1265,7 +1265,7 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
         <CardContent className="p-6 space-y-6">
           <SectionCard
             id="module5-prepare"
-            title="1. Prepare ‚Äì Know Before You Go"
+            title="1. Prepare ñ Know Before You Go"
             expanded={expandedSections["module5-prepare"] || false}
             onToggle={() => toggleSection("module5-prepare")}
             gradient="from-primary to-primary/80"
@@ -1282,42 +1282,42 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
                   <li>
                     <p className="font-semibold">1. Review Past Data</p>
                     <ul className="ml-4 mt-1 space-y-1">
-                      <li>‚Ä¢ Open the student's Tracker</li>
-                      <li>‚Ä¢ Check their last few Boss Battles or Learning Notes</li>
-                      <li>‚Ä¢ Look for: Topics frequently missed, Confidence dips, Skills that haven't been reinforced in the last 2 weeks</li>
+                      <li>ï Open the student's Tracker</li>
+                      <li>ï Check their last few Boss Battles or Learning Notes</li>
+                      <li>ï Look for: Topics frequently missed, Confidence dips, Skills that haven't been reinforced in the last 2 weeks</li>
                     </ul>
                   </li>
                   <li>
                     <p className="font-semibold">2. Identify the Session Objective</p>
                     <ul className="ml-4 mt-1 space-y-1">
-                      <li>‚Ä¢ Define what the student should achieve by the end of the session</li>
-                      <li>‚Ä¢ Choose one clear objective or skill to focus on</li>
-                      <li>‚Ä¢ Label it like a mini-quest: "Today's mission: ...."</li>
+                      <li>ï Define what the student should achieve by the end of the session</li>
+                      <li>ï Choose one clear objective or skill to focus on</li>
+                      <li>ï Label it like a mini-quest: "Today's mission: ...."</li>
                     </ul>
                   </li>
                   <li>
                     <p className="font-semibold">3. Prepare Your Teaching Tools</p>
                     <ul className="ml-4 mt-1 space-y-1">
-                      <li>‚Ä¢ Write out your example problems beforehand</li>
-                      <li>‚Ä¢ Keep secondary backup problems ready</li>
-                      <li>‚Ä¢ Check your gooseneck camera setup</li>
-                      <li>‚Ä¢ Trackers ready: Solutions Unlocked, Challenges Conquered, Boss Battles</li>
+                      <li>ï Write out your example problems beforehand</li>
+                      <li>ï Keep secondary backup problems ready</li>
+                      <li>ï Check your gooseneck camera setup</li>
+                      <li>ï Trackers ready: Solutions Unlocked, Challenges Conquered, Boss Battles</li>
                     </ul>
                   </li>
                   <li>
                     <p className="font-semibold">4. Mentally Rehearse the Explanation</p>
                     <ul className="ml-4 mt-1 space-y-1">
-                      <li>‚Ä¢ Think: "How would I explain this to my younger self or a 6-year old?"</li>
-                      <li>‚Ä¢ Break it into 3-5 micro-steps and write them down</li>
-                      <li>‚Ä¢ Anticipate common mistakes</li>
-                      <li>‚Ä¢ Optional: Add a metaphor or memory trick to make it stick</li>
+                      <li>ï Think: "How would I explain this to my younger self or a 6-year old?"</li>
+                      <li>ï Break it into 3-5 micro-steps and write them down</li>
+                      <li>ï Anticipate common mistakes</li>
+                      <li>ï Optional: Add a metaphor or memory trick to make it stick</li>
                     </ul>
                   </li>
                   <li>
                     <p className="font-semibold">5. Plan a Warm Opening</p>
                     <ul className="ml-4 mt-1 space-y-1">
-                      <li>‚Ä¢ Start with confidence: "Last week you did great on ___. Today, we're going to conquer ___."</li>
-                      <li>‚Ä¢ Use a compliment or small question to connect personally</li>
+                      <li>ï Start with confidence: "Last week you did great on ___. Today, we're going to conquer ___."</li>
+                      <li>ï Use a compliment or small question to connect personally</li>
                     </ul>
                   </li>
                 </ol>
@@ -1326,31 +1326,31 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
               <div className="bg-primary/10 p-4 rounded-lg border border-primary/30 mt-4">
                 <p className="font-bold mb-2">Why This Step is Bulletproof:</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Saves time & avoids confusion during the session</li>
-                  <li>‚Ä¢ Builds the student's confidence from the very beginning</li>
-                  <li>‚Ä¢ Makes you look and feel like a pro</li>
-                  <li>‚Ä¢ Helps the rest of the session flow easily</li>
+                  <li>ï Saves time & avoids confusion during the session</li>
+                  <li>ï Builds the student's confidence from the very beginning</li>
+                  <li>ï Makes you look and feel like a pro</li>
+                  <li>ï Helps the rest of the session flow easily</li>
                 </ul>
               </div>
 
               <div className="bg-muted p-4 rounded-lg mt-4">
                 <p className="font-bold mb-2">KPI</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Tutor enters with 1 clear mission/skill pre-planned</li>
-                  <li>‚Ä¢ Trackers are opened and reviewed before session starts</li>
-                  <li>‚Ä¢ Backup problems and metaphors written out</li>
+                  <li>ï Tutor enters with 1 clear mission/skill pre-planned</li>
+                  <li>ï Trackers are opened and reviewed before session starts</li>
+                  <li>ï Backup problems and metaphors written out</li>
                 </ul>
               </div>
 
               <div className="bg-card p-4 rounded-lg border border-primary/20 mt-4">
                 <p className="font-bold mb-2">Checklist:</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Reviewed last Boss Battle + tracker notes</li>
-                  <li>‚Ä¢ Identified today's skill + goal</li>
-                  <li>‚Ä¢ Wrote 2-3 example problems + 1 bonus</li>
-                  <li>‚Ä¢ Rehearsed explanation mentally (3-5 micro-steps)</li>
-                  <li>‚Ä¢ Setup environment + camera + workspace</li>
-                  <li>‚Ä¢ Planned a confidence-boosting opening</li>
+                  <li>ï Reviewed last Boss Battle + tracker notes</li>
+                  <li>ï Identified today's skill + goal</li>
+                  <li>ï Wrote 2-3 example problems + 1 bonus</li>
+                  <li>ï Rehearsed explanation mentally (3-5 micro-steps)</li>
+                  <li>ï Setup environment + camera + workspace</li>
+                  <li>ï Planned a confidence-boosting opening</li>
                 </ul>
               </div>
             </div>
@@ -1358,7 +1358,7 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
 
           <SectionCard
             id="module5-teach"
-            title="2. Model, Apply & Guide ‚Äì Show. Don't Just Tell."
+            title="2. Model, Apply & Guide ñ Show. Don't Just Tell."
             expanded={expandedSections["module5-teach"] || false}
             onToggle={() => toggleSection("module5-teach")}
             gradient="from-primary/90 to-primary"
@@ -1372,9 +1372,9 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
               <div className="bg-accent p-4 rounded-lg border border-primary/10">
                 <p className="font-bold mb-3">1. Start with Visual Demonstration</p>
                 <ul className="space-y-1 text-sm ml-4">
-                  <li>‚Ä¢ Use the Gooseneck Camera Setup to work through the problem in real time</li>
-                  <li>‚Ä¢ Speak your thought process aloud: "First, I.... Then, I..."</li>
-                  <li>‚Ä¢ Write cleanly and narrate each step - slow enough for them to follow</li>
+                  <li>ï Use the Gooseneck Camera Setup to work through the problem in real time</li>
+                  <li>ï Speak your thought process aloud: "First, I.... Then, I..."</li>
+                  <li>ï Write cleanly and narrate each step - slow enough for them to follow</li>
                 </ul>
               </div>
 
@@ -1401,8 +1401,8 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
                 <p className="font-bold mb-3">3. Key Check-Ins (after every move in each step)</p>
                 <p className="text-sm mb-2">Ask things like:</p>
                 <ul className="space-y-1 text-sm ml-4">
-                  <li>‚Ä¢ "Can you explain why I did that?"</li>
-                  <li>‚Ä¢ "What do you think happens next?"</li>
+                  <li>ï "Can you explain why I did that?"</li>
+                  <li>ï "What do you think happens next?"</li>
                 </ul>
                 <p className="text-sm mt-2 italic">This keeps them mentally invested and engaged</p>
               </div>
@@ -1411,9 +1411,9 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
                 <p className="font-bold mb-3">4. Teach in the 3 Layers</p>
                 <p className="text-sm mb-2">Break the concept into bite-size chunks: The 3 Layer Lens</p>
                 <ul className="space-y-1 text-sm ml-4">
-                  <li>‚Ä¢ <strong>Vocabulary</strong> - What's this called?</li>
-                  <li>‚Ä¢ <strong>Method</strong> - How do we solve it? step by step</li>
-                  <li>‚Ä¢ <strong>Reasoning</strong> - Why does it work?</li>
+                  <li>ï <strong>Vocabulary</strong> - What's this called?</li>
+                  <li>ï <strong>Method</strong> - How do we solve it? step by step</li>
+                  <li>ï <strong>Reasoning</strong> - Why does it work?</li>
                 </ul>
                 <p className="text-sm mt-3 italic">you're building a lawyer who should defend every statement with a valid reason (see how you can make the student tie math to real life?)</p>
                 <p className="text-sm mt-2">After the student masters all 3 layers of the lesson, track it down as/under "Solutions Unlocked".</p>
@@ -1428,34 +1428,34 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
               <div className="bg-primary/10 p-4 rounded-lg border border-primary/30 mt-4">
                 <p className="font-bold mb-2">Why This Step is Bulletproof:</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Visual and Model teaching = stronger memory retention</li>
-                  <li>‚Ä¢ The student doesn't just see the skill - they begin to own it</li>
-                  <li>‚Ä¢ The looped structure means they're never passive</li>
-                  <li>‚Ä¢ Confidence grows because the tutor is right there guiding without pressure or spoon-feeding and tracking growth</li>
-                  <li>‚Ä¢ Practice makes perfect is a lie, we believe practice makes improvement</li>
-                  <li>‚Ä¢ Lawyer personality breeds a problem-solver identity (that's how students fall in love with math)</li>
-                  <li>‚Ä¢ Progress is data, not a feeling. Every solution they unlock mentally - they just unlocked a new superpower</li>
-                  <li>‚Ä¢ It's hard to make mistakes with the 3 Layer Lens (hack of A+ math students)</li>
+                  <li>ï Visual and Model teaching = stronger memory retention</li>
+                  <li>ï The student doesn't just see the skill - they begin to own it</li>
+                  <li>ï The looped structure means they're never passive</li>
+                  <li>ï Confidence grows because the tutor is right there guiding without pressure or spoon-feeding and tracking growth</li>
+                  <li>ï Practice makes perfect is a lie, we believe practice makes improvement</li>
+                  <li>ï Lawyer personality breeds a problem-solver identity (that's how students fall in love with math)</li>
+                  <li>ï Progress is data, not a feeling. Every solution they unlock mentally - they just unlocked a new superpower</li>
+                  <li>ï It's hard to make mistakes with the 3 Layer Lens (hack of A+ math students)</li>
                 </ul>
               </div>
 
               <div className="bg-muted p-4 rounded-lg mt-4">
                 <p className="font-bold mb-2">KPI</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Student successfully applies the method with 80% accuracy after being shown</li>
-                  <li>‚Ä¢ Student can identify which step they struggled with using 3-Layer Lens</li>
-                  <li>‚Ä¢ At least 1 Boss Battle issued per session</li>
+                  <li>ï Student successfully applies the method with 80% accuracy after being shown</li>
+                  <li>ï Student can identify which step they struggled with using 3-Layer Lens</li>
+                  <li>ï At least 1 Boss Battle issued per session</li>
                 </ul>
               </div>
 
               <div className="bg-card p-4 rounded-lg border border-primary/20 mt-4">
                 <p className="font-bold mb-2">Checklist:</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Modeled example clearly, narrating steps</li>
-                  <li>‚Ä¢ Let student attempt similar problem(s)</li>
-                  <li>‚Ä¢ Guided corrections using 3-Layer lens</li>
-                  <li>‚Ä¢ Asked 2-3 engagement check-ins ("Why did I do that?" or "What's next?")</li>
-                  <li>‚Ä¢ Highlighted success verbally: "That method is yours now."</li>
+                  <li>ï Modeled example clearly, narrating steps</li>
+                  <li>ï Let student attempt similar problem(s)</li>
+                  <li>ï Guided corrections using 3-Layer lens</li>
+                  <li>ï Asked 2-3 engagement check-ins ("Why did I do that?" or "What's next?")</li>
+                  <li>ï Highlighted success verbally: "That method is yours now."</li>
                 </ul>
               </div>
             </div>
@@ -1463,7 +1463,7 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
 
           <SectionCard
             id="module5-correct"
-            title="3. Reflect & Correct ‚Äì Fix It to Master It."
+            title="3. Reflect & Correct ñ Fix It to Master It."
             expanded={expandedSections["module5-correct"] || false}
             onToggle={() => toggleSection("module5-correct")}
             gradient="from-primary to-primary/70"
@@ -1482,8 +1482,8 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
                     <p className="font-semibold text-sm mb-2">1. Let Them Explain First (Teach-Back Method)</p>
                     <p className="text-sm mb-2">Ask:</p>
                     <ul className="ml-4 text-sm space-y-1">
-                      <li>‚Ä¢ "Tell me what you did here."</li>
-                      <li>‚Ä¢ "Walk me through your thought process."</li>
+                      <li>ï "Tell me what you did here."</li>
+                      <li>ï "Walk me through your thought process."</li>
                     </ul>
                     <p className="text-sm mt-2 italic">Don't jump in to fix immediately - let them reflect and verbalize through the 3 Layer lens.</p>
                     <p className="text-sm mt-2">If they then realize they didn't approach it properly or have a "Wait a minute, ohhh I see now..." moment, let them go again e.g "Oh please, show me rather than telling how you could've done things differently."</p>
@@ -1494,9 +1494,9 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
                     <p className="text-sm">Fix the mistake with them, not for them.</p>
                     <p className="text-sm mt-2">Re-do the problem side-by-side, asking:</p>
                     <ul className="ml-4 text-sm space-y-1">
-                      <li>‚Ä¢ "What could we do differently here?"</li>
-                      <li>‚Ä¢ "Where did things go off track?"</li>
-                      <li>‚Ä¢ "Where did we make a mistake in our method?"</li>
+                      <li>ï "What could we do differently here?"</li>
+                      <li>ï "Where did things go off track?"</li>
+                      <li>ï "Where did we make a mistake in our method?"</li>
                     </ul>
                     <p className="text-sm mt-2">Use arrows, symbols, colors, or highlights to show the difference clearly.</p>
                   </div>
@@ -1505,9 +1505,9 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
                     <p className="font-semibold text-sm mb-2">3. Celebrate the Recovery</p>
                     <p className="text-sm">Say things like:</p>
                     <ul className="ml-4 text-sm space-y-1">
-                      <li>‚Ä¢ "See? That's growth right there."</li>
-                      <li>‚Ä¢ "Now you really understand it."</li>
-                      <li>‚Ä¢ "Now we can record this moment under Challenges Bounced Back From"</li>
+                      <li>ï "See? That's growth right there."</li>
+                      <li>ï "Now you really understand it."</li>
+                      <li>ï "Now we can record this moment under Challenges Bounced Back From"</li>
                     </ul>
                     <p className="text-sm mt-2">Frame the mistake as part of the mission: "This is where most students get stuck. But not you anymore."</p>
                   </div>
@@ -1516,9 +1516,9 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
                     <p className="font-semibold text-sm mb-2">4. Record Learning Notes</p>
                     <p className="text-sm">Add a note in your Challenge Tracker:</p>
                     <ul className="ml-4 text-sm space-y-1">
-                      <li>‚Ä¢ What was misunderstood?</li>
-                      <li>‚Ä¢ What correction helped?</li>
-                      <li>‚Ä¢ What should be reinforced next time?</li>
+                      <li>ï What was misunderstood?</li>
+                      <li>ï What correction helped?</li>
+                      <li>ï What should be reinforced next time?</li>
                     </ul>
                   </div>
                 </div>
@@ -1527,30 +1527,30 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
               <div className="bg-primary/10 p-4 rounded-lg border border-primary/30 mt-4">
                 <p className="font-bold mb-2">Why This Step is Bulletproof:</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ It normalizes making mistakes and replaces shame with strategy</li>
-                  <li>‚Ä¢ Students reflect, correct, and build deeper understanding</li>
-                  <li>‚Ä¢ Encourages metacognition - thinking about how they think</li>
-                  <li>‚Ä¢ Creates emotional safety, which increases retention and effort</li>
+                  <li>ï It normalizes making mistakes and replaces shame with strategy</li>
+                  <li>ï Students reflect, correct, and build deeper understanding</li>
+                  <li>ï Encourages metacognition - thinking about how they think</li>
+                  <li>ï Creates emotional safety, which increases retention and effort</li>
                 </ul>
               </div>
 
               <div className="bg-muted p-4 rounded-lg mt-4">
                 <p className="font-bold mb-2">KPI</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Student verbalizes mistake using 3-Layer Lens</li>
-                  <li>‚Ä¢ Tutor logs learning correction in Challenge Tracker</li>
-                  <li>‚Ä¢ Student shows 1 visible "aha" moment</li>
+                  <li>ï Student verbalizes mistake using 3-Layer Lens</li>
+                  <li>ï Tutor logs learning correction in Challenge Tracker</li>
+                  <li>ï Student shows 1 visible "aha" moment</li>
                 </ul>
               </div>
 
               <div className="bg-card p-4 rounded-lg border border-primary/20 mt-4">
                 <p className="font-bold mb-2">Checklist:</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Used Teach-Back: "Walk me through your process."</li>
-                  <li>‚Ä¢ Identified error layer: Vocabulary / Method / Reason</li>
-                  <li>‚Ä¢ Corrected side-by-side (not just told the answer)</li>
-                  <li>‚Ä¢ Celebrated bounce-back moment</li>
-                  <li>‚Ä¢ Logged learning notes in tracker</li>
+                  <li>ï Used Teach-Back: "Walk me through your process."</li>
+                  <li>ï Identified error layer: Vocabulary / Method / Reason</li>
+                  <li>ï Corrected side-by-side (not just told the answer)</li>
+                  <li>ï Celebrated bounce-back moment</li>
+                  <li>ï Logged learning notes in tracker</li>
                 </ul>
               </div>
             </div>
@@ -1558,7 +1558,7 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
 
           <SectionCard
             id="module5-reinforce"
-            title="4. Reinforce & Grow ‚Äì Drill It. Track It. Win."
+            title="4. Reinforce & Grow ñ Drill It. Track It. Win."
             expanded={expandedSections["module5-reinforce"] || false}
             onToggle={() => toggleSection("module5-reinforce")}
             gradient="from-primary/90 to-primary/80"
@@ -1577,13 +1577,13 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
                   <div>
                     <p className="font-semibold text-sm mb-2">1. Assign a Boss Battle</p>
                     <ul className="ml-4 text-sm space-y-1">
-                      <li>‚Ä¢ Choose a challenge problem based on the day's skill - not a copy, but a remix</li>
-                      <li>‚Ä¢ Deliver it as a mini-test: "This is a Boss Battle. No help. Let's see if it's impossible to be solved one go using the deadly method we just learned"</li>
+                      <li>ï Choose a challenge problem based on the day's skill - not a copy, but a remix</li>
+                      <li>ï Deliver it as a mini-test: "This is a Boss Battle. No help. Let's see if it's impossible to be solved one go using the deadly method we just learned"</li>
                     </ul>
                     <p className="text-sm mt-2">If they complete it:</p>
                     <ul className="ml-4 text-sm space-y-1">
-                      <li>‚Ä¢ Win - Celebrate and move forward</li>
-                      <li>‚Ä¢ Struggle - Note the pattern ‚Üí Reflect & Correct then loop it back into next week's plan</li>
+                      <li>ï Win - Celebrate and move forward</li>
+                      <li>ï Struggle - Note the pattern ? Reflect & Correct then loop it back into next week's plan</li>
                     </ul>
                   </div>
 
@@ -1591,11 +1591,11 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
                     <p className="font-semibold text-sm mb-2">2. Update the Boss Battle Log</p>
                     <p className="text-sm">Log the Boss Battle results with these details:</p>
                     <ul className="ml-4 text-sm space-y-1">
-                      <li>‚Ä¢ Topic/Skill</li>
-                      <li>‚Ä¢ Level of difficulty</li>
-                      <li>‚Ä¢ Score or completion status</li>
-                      <li>‚Ä¢ Notes on errors or progress</li>
-                      <li>‚Ä¢ Add a confidence score if possible (1-5)</li>
+                      <li>ï Topic/Skill</li>
+                      <li>ï Level of difficulty</li>
+                      <li>ï Score or completion status</li>
+                      <li>ï Notes on errors or progress</li>
+                      <li>ï Add a confidence score if possible (1-5)</li>
                     </ul>
                     <p className="text-sm mt-2 italic">"TT tutors never guess - they track. Data builds decisions."</p>
                   </div>
@@ -1603,8 +1603,8 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
                   <div>
                     <p className="font-semibold text-sm mb-2">3. Motivate & Close Strong</p>
                     <ul className="ml-4 text-sm space-y-1">
-                      <li>‚Ä¢ Give one specific piece of praise: "You asked the right questions today - that's elite learning."</li>
-                      <li>‚Ä¢ Leave them with momentum: "Next week we level up. This is where it gets fun. I'm so proud of you."</li>
+                      <li>ï Give one specific piece of praise: "You asked the right questions today - that's elite learning."</li>
+                      <li>ï Leave them with momentum: "Next week we level up. This is where it gets fun. I'm so proud of you."</li>
                     </ul>
                   </div>
                 </div>
@@ -1613,20 +1613,20 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
               <div className="bg-muted p-4 rounded-lg mt-4">
                 <p className="font-bold mb-2">KPI</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Boss Battle completed and tracked (win or rematch)</li>
-                  <li>‚Ä¢ Confidence rating added (1-5 scale)</li>
-                  <li>‚Ä¢ Next session direction clearly mapped out</li>
+                  <li>ï Boss Battle completed and tracked (win or rematch)</li>
+                  <li>ï Confidence rating added (1-5 scale)</li>
+                  <li>ï Next session direction clearly mapped out</li>
                 </ul>
               </div>
 
               <div className="bg-card p-4 rounded-lg border border-primary/20 mt-4">
                 <p className="font-bold mb-2">Checklist:</p>
                 <ul className="space-y-1 text-sm">
-                  <li>‚Ä¢ Assigned 1 new Boss Battle (based on session skill)</li>
-                  <li>‚Ä¢ Updated Challenge & Boss Battle Trackers</li>
-                  <li>‚Ä¢ Logged: topic, difficulty, win/loss, confidence score</li>
-                  <li>‚Ä¢ Reinforced with motivational praise</li>
-                  <li>‚Ä¢ Set goal for next session: Advance / Reinforce</li>
+                  <li>ï Assigned 1 new Boss Battle (based on session skill)</li>
+                  <li>ï Updated Challenge & Boss Battle Trackers</li>
+                  <li>ï Logged: topic, difficulty, win/loss, confidence score</li>
+                  <li>ï Reinforced with motivational praise</li>
+                  <li>ï Set goal for next session: Advance / Reinforce</li>
                 </ul>
               </div>
             </div>
@@ -1656,7 +1656,7 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
                   <td className="p-2">The core diagnostic + teaching framework</td>
                 </tr>
                 <tr className="border-b border-white/10">
-                  <td className="p-2">"Model ‚Üí Apply ‚Üí Guide"</td>
+                  <td className="p-2">"Model ? Apply ? Guide"</td>
                   <td className="p-2">TT's tutoring loop system</td>
                 </tr>
                 <tr className="border-b border-white/10">
@@ -1777,11 +1777,11 @@ function ModuleSix({ expandedSections, toggleSection, onComplete, isComplete }: 
               
               <div className="bg-accent p-4 rounded-lg border border-primary/10">
                 <ul className="space-y-2">
-                  <li>Challenge Tracker ‚Üí automated, visual, impossible to ignore</li>
-                  <li>Boss Battles ‚Üí integrated into session-logging</li>
-                  <li>Session Planner ‚Üí inside your workflow</li>
-                  <li>Student Identity Sheet ‚Üí intelligence stored per student</li>
-                  <li>3-Layer Lens ‚Üí embedded into lesson flow</li>
+                  <li>Challenge Tracker ? automated, visual, impossible to ignore</li>
+                  <li>Boss Battles ? integrated into session-logging</li>
+                  <li>Session Planner ? inside your workflow</li>
+                  <li>Student Identity Sheet ? intelligence stored per student</li>
+                  <li>3-Layer Lens ? embedded into lesson flow</li>
                 </ul>
               </div>
 
@@ -1915,16 +1915,16 @@ function ModuleSeven({ expandedSections, toggleSection, onComplete, isComplete }
             gradient="from-primary to-primary/80"
           >
             <div className="space-y-4">
-              <p className="font-bold text-lg">Training tutors not just to manage time ‚Äî but to hold space with rhythm, calm, and inner clarity.</p>
+              <p className="font-bold text-lg">Training tutors not just to manage time ó but to hold space with rhythm, calm, and inner clarity.</p>
               
               <div className="bg-muted p-4 rounded-lg border border-primary/10 mt-4">
                 <p className="font-bold mb-3">Outcome - TT Tutors will know how to:</p>
                 <ul className="space-y-2 ml-4">
-                  <li>‚Ä¢ Work in flow blocks, not panic hours</li>
-                  <li>‚Ä¢ Maintain emotional peace before, during, and after sessions</li>
-                  <li>‚Ä¢ Prioritize presence over perfection</li>
-                  <li>‚Ä¢ Create internal stillness, even when life is chaotic</li>
-                  <li>‚Ä¢ Build sessions that breathe, not rush</li>
+                  <li>ï Work in flow blocks, not panic hours</li>
+                  <li>ï Maintain emotional peace before, during, and after sessions</li>
+                  <li>ï Prioritize presence over perfection</li>
+                  <li>ï Create internal stillness, even when life is chaotic</li>
+                  <li>ï Build sessions that breathe, not rush</li>
                 </ul>
               </div>
             </div>
@@ -1942,21 +1942,21 @@ function ModuleSeven({ expandedSections, toggleSection, onComplete, isComplete }
                 <div className="bg-muted p-4 rounded-lg border border-destructive/30">
                   <p className="font-bold mb-2 text-destructive">The World's Way</p>
                   <ul className="space-y-1 text-sm">
-                    <li>‚Ä¢ Hustle harder</li>
-                    <li>‚Ä¢ Do more</li>
-                    <li>‚Ä¢ Grind 24/7</li>
-                    <li>‚Ä¢ Sacrifice well-being for results</li>
-                    <li>‚Ä¢ Burn out = badge of honor</li>
+                    <li>ï Hustle harder</li>
+                    <li>ï Do more</li>
+                    <li>ï Grind 24/7</li>
+                    <li>ï Sacrifice well-being for results</li>
+                    <li>ï Burn out = badge of honor</li>
                   </ul>
                 </div>
                 <div className="bg-accent p-4 rounded-lg border border-primary/20">
                   <p className="font-bold mb-2 text-primary">TT's Way</p>
                   <ul className="space-y-1 text-sm">
-                    <li>‚Ä¢ Slow down + focus deeper</li>
-                    <li>‚Ä¢ Feel more, hold better energy</li>
-                    <li>‚Ä¢ Work in sprints, then reset</li>
-                    <li>‚Ä¢ Prioritize your presence over output</li>
-                    <li>‚Ä¢ Peace = sustainable excellence</li>
+                    <li>ï Slow down + focus deeper</li>
+                    <li>ï Feel more, hold better energy</li>
+                    <li>ï Work in sprints, then reset</li>
+                    <li>ï Prioritize your presence over output</li>
+                    <li>ï Peace = sustainable excellence</li>
                   </ul>
                 </div>
               </div>
@@ -1982,9 +1982,9 @@ function ModuleSeven({ expandedSections, toggleSection, onComplete, isComplete }
                 
                 <div className="bg-card p-4 rounded-lg border-l-4 border-primary">
                   <ul className="space-y-2">
-                    <li>‚Ä¢ Let the student think</li>
-                    <li>‚Ä¢ Let the silence teach</li>
-                    <li>‚Ä¢ Let their brain breathe</li>
+                    <li>ï Let the student think</li>
+                    <li>ï Let the silence teach</li>
+                    <li>ï Let their brain breathe</li>
                   </ul>
                   <p className="italic mt-3">Silence isn't a lack of teaching. It's the space where learning downloads.</p>
                 </div>
@@ -1996,11 +1996,11 @@ function ModuleSeven({ expandedSections, toggleSection, onComplete, isComplete }
                 
                 <div className="bg-accent p-4 rounded-lg border border-primary/10">
                   <ul className="space-y-2">
-                    <li>‚òê Did I eat / hydrate?</li>
-                    <li>‚òê Do I feel rushed or grounded?</li>
-                    <li>‚òê What's the student's emotional state likely to be today?</li>
-                    <li>‚òê Am I here to prove something or serve someone?</li>
-                    <li>‚òê Deep breath. Shoulders down. Eyes soft. Calm energy ON.</li>
+                    <li>? Did I eat / hydrate?</li>
+                    <li>? Do I feel rushed or grounded?</li>
+                    <li>? What's the student's emotional state likely to be today?</li>
+                    <li>? Am I here to prove something or serve someone?</li>
+                    <li>? Deep breath. Shoulders down. Eyes soft. Calm energy ON.</li>
                   </ul>
                   <p className="font-bold mt-4">No session starts without intention.</p>
                 </div>
@@ -2029,8 +2029,8 @@ function ModuleSeven({ expandedSections, toggleSection, onComplete, isComplete }
                 <h4 className="font-bold text-lg mb-2">Lesson 2: Holding Space Like a Leader</h4>
                 <p className="text-muted-foreground mb-3">Your vibe regulates the room.</p>
                 <div className="bg-card p-4 rounded-lg border border-primary/20">
-                  <p>If you're rushed ‚Üí they'll feel anxious.</p>
-                  <p>If you're present ‚Üí they'll feel safe.</p>
+                  <p>If you're rushed ? they'll feel anxious.</p>
+                  <p>If you're present ? they'll feel safe.</p>
                   <p className="font-semibold mt-3">Your energy is a teaching tool.</p>
                 </div>
               </div>
@@ -2041,9 +2041,9 @@ function ModuleSeven({ expandedSections, toggleSection, onComplete, isComplete }
                 <div className="bg-muted p-4 rounded-lg">
                   <p className="font-semibold mb-2">Example:</p>
                   <ul className="space-y-1 ml-4">
-                    <li>‚Ä¢ Morning = deep prep (trackers, lesson planning)</li>
-                    <li>‚Ä¢ Afternoon = tutoring sessions (high presence)</li>
-                    <li>‚Ä¢ Evening = admin light (logs, messages)</li>
+                    <li>ï Morning = deep prep (trackers, lesson planning)</li>
+                    <li>ï Afternoon = tutoring sessions (high presence)</li>
+                    <li>ï Evening = admin light (logs, messages)</li>
                   </ul>
                   <p className="mt-3 italic">Match tasks to your natural rhythm, not arbitrary time slots.</p>
                 </div>

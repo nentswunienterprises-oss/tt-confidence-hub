@@ -12,9 +12,9 @@ export default function AffiliateLanding() {
   }, []);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#FAF8F5" }}>
+    <div className="min-h-screen" style={{ backgroundColor: "#FFF5ED" }}>
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(250, 248, 245, 0.95)" }}>
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-6 md:px-12 h-20 flex items-center justify-between">
           <Button
             variant="ghost"
@@ -96,7 +96,7 @@ export default function AffiliateLanding() {
               { num: "3", title: "Track Signups", desc: "See all referrals in real-time with a detailed analytics dashboard." },
               { num: "4", title: "Earn Commission", desc: "Receive commission when referred families enroll in pods." }
             ].map((step) => (
-              <Card key={step.num} className="p-6 border-0 shadow-lg text-center" style={{ backgroundColor: "#FAF8F5" }}>
+              <Card key={step.num} className="p-6 border-0 shadow-lg text-center" style={{ backgroundColor: "#FFF5ED" }}>
                 <div 
                   className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
                   style={{ backgroundColor: "#FEF3EE", border: "2px solid #E85A2C" }}
@@ -231,7 +231,7 @@ export default function AffiliateLanding() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20" style={{ backgroundColor: "#FAF8F5" }}>
+      <section className="py-20" style={{ backgroundColor: "#FFF5ED" }}>
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-6" style={{ color: "#1A1A1A" }}>
@@ -299,7 +299,7 @@ export default function AffiliateLanding() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12" style={{ backgroundColor: "#FAF8F5" }}>
+      <footer className="py-12" style={{ backgroundColor: "#FFF5ED" }}>
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
