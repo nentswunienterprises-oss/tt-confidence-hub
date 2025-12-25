@@ -8,7 +8,7 @@ nixPkgs = ["nodejs_20"]
 cmds = ["npm install --include=dev"]
 
 [phases.build]
-cmds = ["npm run build:backend"]
+cmds = ["npm run build:full"]
 
 [start]
 cmd = "NODE_ENV=production node dist/index.js"
