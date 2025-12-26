@@ -113,7 +113,6 @@ export default function COODashboard() {
       return await apiRequest("POST", "/api/coo/pods", {
         podName,
         podType: "Training",
-        phase: "Foundation",
         status: "Active",
       });
     },
@@ -205,12 +204,10 @@ export default function COODashboard() {
               {pods.map((pod: any) => {
                 const podType = (pod as any).pod_type || pod.podType || 'training';
                 const vehicle = (pod as any).vehicle || '4_seater';
-                const phase = pod.phase || 'foundation';
                 const tdId = (pod as any).td_id || pod.tdId;
                 
                 // Format display values
                 const typeDisplay = podType === 'training' ? 'Training' : 'Paid';
-                const phaseDisplay = phase === 'foundation' ? 'Foundation' : 'Scale Test';
                 const vehicleDisplay = vehicle.replace('_', '-').replace('seater', 'Seater');
                 
                 // Find TD name if assigned
@@ -235,10 +232,6 @@ export default function COODashboard() {
                         <div className="flex justify-between">
                           <span className="font-medium">Type:</span>
                           <span className="text-muted-foreground">{typeDisplay}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium">Phase:</span>
-                          <span className="text-muted-foreground">{phaseDisplay}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="font-medium">Vehicle:</span>

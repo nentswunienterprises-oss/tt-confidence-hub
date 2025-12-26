@@ -133,6 +133,8 @@ interface StudentIdentitySheetProps {
   studentId: string;
   studentName: string;
   onSaved?: () => void;
+  readOnly?: boolean;
+  apiBasePath?: string; // e.g., "/api/coo" for COO view, defaults to "/api/tutor"
 }
 
 interface FormData {
@@ -169,6 +171,8 @@ export default function StudentIdentitySheet({
   studentId,
   studentName,
   onSaved,
+  readOnly = false,
+  apiBasePath = "/api/tutor",
 }: StudentIdentitySheetProps) {
   const [formData, setFormData] = useState<FormData>({
     name: studentName,
@@ -219,7 +223,9 @@ export default function StudentIdentitySheet({
             headers.Authorization = `Bearer ${session.access_token}`;
           }
           try {
-            const data = await authorizedGetJson(`/api/tutor/students/${studentId}/identity-sheet`);
+            console.log(`📋 Loading identity sheet from: ${apiBasePath}/students/${studentId}/identity-sheet`);
+            const data = await authorizedGetJson(`${apiBasePath}/students/${studentId}/identity-sheet`);
+            console.log("📋 Identity sheet data received:", data);
             
             // Check if there's actual saved data
             const hasData = !!(data.identitySheet || data.personalProfile || data.emotionalInsights || data.academicDiagnosis);
@@ -272,7 +278,7 @@ export default function StudentIdentitySheet({
       };
       loadExistingData();
     }
-  }, [open, studentId, loadedStudentId, studentName]);
+  }, [open, studentId, loadedStudentId, studentName, apiBasePath]);
 
   const handleInputChange = (field: string, value: string | string[]) => {
     setFormData((prev) => ({
@@ -379,6 +385,7 @@ export default function StudentIdentitySheet({
                       value={formData.name}
                       onChange={(e) => handleInputChange("name", e.target.value)}
                       placeholder="Student name"
+                      readOnly={readOnly}
                     />
                   </div>
                   <div>
@@ -389,7 +396,7 @@ export default function StudentIdentitySheet({
                         handleInputChange("grade", value)
                       }
                     >
-                      <SelectTrigger id="grade">
+                      <SelectTrigger className={readOnly ? "pointer-events-none" : ""}>
                         <SelectValue placeholder="Select grade" />
                       </SelectTrigger>
                       <SelectContent>
@@ -411,6 +418,7 @@ export default function StudentIdentitySheet({
                       value={formData.school}
                       onChange={(e) => handleInputChange("school", e.target.value)}
                       placeholder="School name"
+                      readOnly={readOnly}
                     />
                   </div>
                   <div>
@@ -421,7 +429,7 @@ export default function StudentIdentitySheet({
                         handleInputChange("learningId", value)
                       }
                     >
-                      <SelectTrigger id="learningId">
+                      <SelectTrigger className={readOnly ? "pointer-events-none" : ""}>
                         <SelectValue placeholder="Select learning ID" />
                       </SelectTrigger>
                       <SelectContent>
@@ -443,7 +451,7 @@ export default function StudentIdentitySheet({
                       handleInputChange("personalityType", value)
                     }
                   >
-                    <SelectTrigger id="personalityType">
+                    <SelectTrigger className={readOnly ? "pointer-events-none" : ""}>
                       <SelectValue placeholder="Select personality type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -464,6 +472,7 @@ export default function StudentIdentitySheet({
                     onChange={(e) => handleInputChange("longTermGoals", e.target.value)}
                     placeholder="What are this student's long-term aspirations?"
                     rows={4}
+                    readOnly={readOnly}
                   />
                 </div>
               </CardContent>
@@ -485,6 +494,7 @@ export default function StudentIdentitySheet({
                     onChange={(e) => handleInputChange("relationshipWithMath", e.target.value)}
                     placeholder="How does this student feel about math?"
                     rows={3}
+                    readOnly={readOnly}
                   />
                 </div>
 
@@ -503,6 +513,7 @@ export default function StudentIdentitySheet({
                               handleInputChange("confidenceTriggers", formData.confidenceTriggers.filter(t => t !== trigger));
                             }
                           }}
+                          className={readOnly ? "pointer-events-none" : ""}
                         />
                         <label
                           htmlFor={`trigger-${trigger}`}
@@ -530,6 +541,7 @@ export default function StudentIdentitySheet({
                               handleInputChange("confidenceKillers", formData.confidenceKillers.filter(k => k !== killer));
                             }
                           }}
+                          className={readOnly ? "pointer-events-none" : ""}
                         />
                         <label
                           htmlFor={`killer-${killer}`}
@@ -550,6 +562,7 @@ export default function StudentIdentitySheet({
                     onChange={(e) => handleInputChange("pressureResponse", e.target.value)}
                     placeholder="How does this student respond to pressure?"
                     rows={3}
+                    readOnly={readOnly}
                   />
                 </div>
 
@@ -561,6 +574,7 @@ export default function StudentIdentitySheet({
                     onChange={(e) => handleInputChange("growthDrivers", e.target.value)}
                     placeholder="What motivates this student to grow?"
                     rows={3}
+                    readOnly={readOnly}
                   />
                 </div>
               </CardContent>
@@ -582,6 +596,7 @@ export default function StudentIdentitySheet({
                     onChange={(e) => handleInputChange("currentClassTopics", e.target.value)}
                     placeholder="What is the student currently studying?"
                     rows={3}
+                    readOnly={readOnly}
                   />
                 </div>
 
@@ -593,6 +608,7 @@ export default function StudentIdentitySheet({
                     onChange={(e) => handleInputChange("strugglesWith", e.target.value)}
                     placeholder="What specific math concepts are challenging?"
                     rows={3}
+                    readOnly={readOnly}
                   />
                 </div>
 
@@ -604,6 +620,7 @@ export default function StudentIdentitySheet({
                     onChange={(e) => handleInputChange("gapsIdentified", e.target.value)}
                     placeholder="What foundational gaps need to be addressed?"
                     rows={3}
+                    readOnly={readOnly}
                   />
                 </div>
 
@@ -614,6 +631,7 @@ export default function StudentIdentitySheet({
                     value={formData.bossBattlesCompleted}
                     onChange={(e) => handleInputChange("bossBattlesCompleted", e.target.value)}
                     placeholder="e.g., Algebra Fundamentals"
+                    readOnly={readOnly}
                   />
                 </div>
 
@@ -625,6 +643,7 @@ export default function StudentIdentitySheet({
                     onChange={(e) => handleInputChange("lastBossBattleResult", e.target.value)}
                     placeholder="How did the student perform?"
                     rows={3}
+                    readOnly={readOnly}
                   />
                 </div>
 
@@ -636,6 +655,7 @@ export default function StudentIdentitySheet({
                     onChange={(e) => handleInputChange("tutorNotes", e.target.value)}
                     placeholder="Any additional observations or notes"
                     rows={4}
+                    readOnly={readOnly}
                   />
                 </div>
               </CardContent>
@@ -677,6 +697,7 @@ export default function StudentIdentitySheet({
                           placeholder="Student's response..."
                           rows={2}
                           className="text-sm"
+                          readOnly={readOnly}
                         />
                       </div>
                     ))}
@@ -687,25 +708,27 @@ export default function StudentIdentitySheet({
           </TabsContent>
         </Tabs>
 
-        {/* Save Button */}
+        {/* Save Button - only show for editable mode */}
         <div className="flex justify-end gap-2 mt-6">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isSaving}
           >
-            Cancel
+            {readOnly ? "Close" : "Cancel"}
           </Button>
-          <Button 
-            onClick={handleSave} 
-            disabled={isSaving || (hasExistingSheet && !hasChanges())}
-          >
-            {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            {hasExistingSheet 
-              ? (hasChanges() ? "Save Changes" : "No Changes to Save")
-              : "Save Identity Sheet"
-            }
-          </Button>
+          {!readOnly && (
+            <Button 
+              onClick={handleSave} 
+              disabled={isSaving || (hasExistingSheet && !hasChanges())}
+            >
+              {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {hasExistingSheet 
+                ? (hasChanges() ? "Save Changes" : "No Changes to Save")
+                : "Save Identity Sheet"
+              }
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

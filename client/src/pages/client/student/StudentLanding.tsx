@@ -308,7 +308,7 @@ export default function StudentLanding() {
 
         {/* Footer */}
         <p className="text-center text-xs text-muted-foreground mt-6">
-          Powered by Transformation Tutoring
+          Powered by Territorial Tutoring SA (Pty) Ltd.
         </p>
       </div>
     </div>

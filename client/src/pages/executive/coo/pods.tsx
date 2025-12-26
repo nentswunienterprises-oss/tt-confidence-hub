@@ -40,7 +40,6 @@ export default function COOPods() {
     podName: "",
     podType: "training",
     vehicle: "4_seater",
-    phase: "foundation",
     tdId: "",
     tutorIds: [] as string[],
   });
@@ -102,7 +101,6 @@ export default function COOPods() {
         podName: data.podName,
         podType: data.podType,
         vehicle: data.vehicle,
-        phase: data.phase,
         tdId: data.tdId || null,
         status: "active",
         startDate: new Date().toISOString(),
@@ -113,7 +111,7 @@ export default function COOPods() {
       queryClient.invalidateQueries({ queryKey: ["/api/coo/pods"] });
       queryClient.invalidateQueries({ queryKey: ["/api/coo/stats"] });
       setDialogOpen(false);
-      setFormData({ podName: "", podType: "training", vehicle: "4_seater", phase: "foundation", tdId: "", tutorIds: [] });
+      setFormData({ podName: "", podType: "training", vehicle: "4_seater", tdId: "", tutorIds: [] });
       toast({
         title: "Pod created",
         description: "The pod has been created successfully.",
@@ -243,23 +241,6 @@ export default function COOPods() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phase">Phase *</Label>
-                    <Select
-                      value={formData.phase}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, phase: value })
-                      }
-                    >
-                      <SelectTrigger data-testid="select-phase">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="foundation">Foundation</SelectItem>
-                        <SelectItem value="scale_test">Scale Test</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
                     <Label htmlFor="td">Territory Director (Optional)</Label>
                     <Select
                       value={formData.tdId}
@@ -372,9 +353,6 @@ export default function COOPods() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-base sm:text-lg truncate">{(pod as any).pod_name || pod.podName}</h3>
-                        <p className="text-xs sm:text-sm text-muted-foreground capitalize">
-                          {pod.phase.replace("_", " ")} Phase
-                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-1 sm:gap-2 shrink-0">

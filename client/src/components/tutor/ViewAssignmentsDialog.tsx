@@ -31,6 +31,7 @@ interface ViewAssignmentsDialogProps {
   onOpenChange: (open: boolean) => void;
   studentId: string;
   studentName: string;
+  apiBasePath?: string; // e.g., "/api/coo" for COO view, defaults to "/api/tutor"
 }
 
 export default function ViewAssignmentsDialog({
@@ -38,9 +39,10 @@ export default function ViewAssignmentsDialog({
   onOpenChange,
   studentId,
   studentName,
+  apiBasePath = "/api/tutor",
 }: ViewAssignmentsDialogProps) {
   const { data: assignments, isLoading } = useQuery<Assignment[]>({
-    queryKey: [`/api/tutor/students/${studentId}/assignments`],
+    queryKey: [`${apiBasePath}/students/${studentId}/assignments`],
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: open && !!studentId,
   });

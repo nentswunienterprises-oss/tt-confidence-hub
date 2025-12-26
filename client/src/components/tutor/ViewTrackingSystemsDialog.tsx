@@ -56,6 +56,7 @@ interface ViewTrackingSystemsDialogProps {
   onOpenChange: (open: boolean) => void;
   studentId: string;
   studentName: string;
+  apiBasePath?: string; // e.g., "/api/coo" for COO view, defaults to "/api/tutor"
 }
 
 export default function ViewTrackingSystemsDialog({
@@ -63,9 +64,10 @@ export default function ViewTrackingSystemsDialog({
   onOpenChange,
   studentId,
   studentName,
+  apiBasePath = "/api/tutor",
 }: ViewTrackingSystemsDialogProps) {
   const { data: trackingData, isLoading } = useQuery<TrackingData>({
-    queryKey: [`/api/tutor/students/${studentId}/tracking`],
+    queryKey: [`${apiBasePath}/students/${studentId}/tracking`],
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: open && !!studentId,
   });

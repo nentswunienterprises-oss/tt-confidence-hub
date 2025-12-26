@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   ArrowLeft,
   Users,
@@ -22,6 +23,7 @@ import {
   Mail,
   Award,
   ChevronDown,
+  FileText,
 } from "lucide-react";
 import {
   Dialog,
@@ -44,6 +46,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import StudentIdentitySheet from "@/components/tutor/StudentIdentitySheet";
+import ViewAssignmentsDialog from "@/components/tutor/ViewAssignmentsDialog";
+import ViewTrackingSystemsDialog from "@/components/tutor/ViewTrackingSystemsDialog";
 import type { Pod, User } from "@shared/schema";
 
 export default function PodDetail() {
@@ -55,6 +60,13 @@ export default function PodDetail() {
   const [selectedTutorIds, setSelectedTutorIds] = useState<string[]>([]);
   const [tutorToRemove, setTutorToRemove] = useState<string | null>(null);
   const [expandedTutors, setExpandedTutors] = useState<Set<string>>(new Set());
+  
+  // Student dialog state
+  const [identitySheetOpen, setIdentitySheetOpen] = useState(false);
+  const [assignmentsDialogOpen, setAssignmentsDialogOpen] = useState(false);
+  const [trackingDialogOpen, setTrackingDialogOpen] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<string>("");
+  const [selectedStudentName, setSelectedStudentName] = useState<string>("");
 
   if (!podId) {
     navigate("/coo/pods");
@@ -185,12 +197,6 @@ export default function PodDetail() {
     return status === "active"
       ? "bg-green-100 text-green-800 border-green-200"
       : "bg-blue-100 text-blue-800 border-blue-200";
-  };
-
-  const getPhaseColor = (phase: string) => {
-    return phase === "foundation"
-      ? "bg-indigo-100 text-indigo-800 border border-indigo-300"
-      : "bg-orange-100 text-orange-800 border border-orange-300";
   };
 
   const getCertificationColor = (status: string) => {
@@ -330,16 +336,6 @@ export default function PodDetail() {
               </div>
             </Card>
 
-            {/* Phase */}
-            <Card className="p-4 sm:p-6 border">
-              <p className="text-xs sm:text-sm font-medium text-muted-foreground uppercase">Phase</p>
-              <div className="mt-2 sm:mt-3">
-                <Badge className={`${getPhaseColor((currentPod as Pod).phase)} border text-xs`}>
-                  {(currentPod as Pod).phase === "foundation" ? "Foundation" : "Scale Test"}
-                </Badge>
-              </div>
-            </Card>
-
             {/* Territory Director */}
             <Card className="p-4 sm:p-6 border">
               <div className="flex items-center gap-2 mb-2 sm:mb-3">
@@ -456,24 +452,28 @@ export default function PodDetail() {
 
                             {/* Expanded Details */}
                             {isExpanded && (
-                              <div className="mt-4 pt-4 border-t space-y-3">
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <p className="text-xs font-medium text-muted-foreground uppercase">Certification</p>
-                                    <Badge
-                                      className={`${getCertificationColor(
-                                        assignment.certification_status || "pending"
-                                      )} mt-2 border`}
-                                    >
-                                      {assignment.certification_status || "pending"}
-                                    </Badge>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs font-medium text-muted-foreground uppercase">Students</p>
-                                    <p className="font-semibold mt-2">{assignment.student_count || 0}</p>
-                                  </div>
-                                </div>
-                              </div>
+                              <TutorStudentsSection 
+                                tutorId={assignment.tutorId}
+                                tutorName={assignment.tutorName}
+                                certificationStatus={assignment.certification_status || "pending"}
+                                studentCount={assignment.student_count || 0}
+                                getCertificationColor={getCertificationColor}
+                                onViewIdentitySheet={(studentId, studentName) => {
+                                  setSelectedStudentId(studentId);
+                                  setSelectedStudentName(studentName);
+                                  setIdentitySheetOpen(true);
+                                }}
+                                onViewTrackingSystems={(studentId, studentName) => {
+                                  setSelectedStudentId(studentId);
+                                  setSelectedStudentName(studentName);
+                                  setTrackingDialogOpen(true);
+                                }}
+                                onViewAssignments={(studentId, studentName) => {
+                                  setSelectedStudentId(studentId);
+                                  setSelectedStudentName(studentName);
+                                  setAssignmentsDialogOpen(true);
+                                }}
+                              />
                             )}
                           </div>
                         </div>
@@ -570,6 +570,165 @@ export default function PodDetail() {
           </div>
         </div>
       </div>
+
+      {/* Student Dialogs - COO read-only view */}
+      <StudentIdentitySheet
+        open={identitySheetOpen}
+        onOpenChange={setIdentitySheetOpen}
+        studentId={selectedStudentId}
+        studentName={selectedStudentName}
+        readOnly={true}
+        apiBasePath="/api/coo"
+      />
+      
+      <ViewAssignmentsDialog
+        open={assignmentsDialogOpen}
+        onOpenChange={setAssignmentsDialogOpen}
+        studentId={selectedStudentId}
+        studentName={selectedStudentName}
+        apiBasePath="/api/coo"
+      />
+      
+      <ViewTrackingSystemsDialog
+        open={trackingDialogOpen}
+        onOpenChange={setTrackingDialogOpen}
+        studentId={selectedStudentId}
+        studentName={selectedStudentName}
+        apiBasePath="/api/coo"
+      />
     </DashboardLayout>
+  );
+}
+
+// Component to display tutor's students in expanded section
+interface TutorStudentsSectionProps {
+  tutorId: string;
+  tutorName: string;
+  certificationStatus: string;
+  studentCount: number;
+  getCertificationColor: (status: string) => string;
+  onViewIdentitySheet: (studentId: string, studentName: string) => void;
+  onViewTrackingSystems: (studentId: string, studentName: string) => void;
+  onViewAssignments: (studentId: string, studentName: string) => void;
+}
+
+function TutorStudentsSection({
+  tutorId,
+  tutorName,
+  certificationStatus,
+  studentCount,
+  getCertificationColor,
+  onViewIdentitySheet,
+  onViewTrackingSystems,
+  onViewAssignments,
+}: TutorStudentsSectionProps) {
+  const { data: students, isLoading } = useQuery<any[]>({
+    queryKey: [`/api/coo/tutors/${tutorId}/students`],
+    enabled: !!tutorId,
+  });
+
+  return (
+    <div className="mt-4 pt-4 border-t space-y-4">
+      {/* Certification Status */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <p className="text-xs font-medium text-muted-foreground uppercase">Certification</p>
+          <Badge
+            className={`${getCertificationColor(certificationStatus)} mt-2 border`}
+          >
+            {certificationStatus}
+          </Badge>
+        </div>
+        <div>
+          <p className="text-xs font-medium text-muted-foreground uppercase">Students</p>
+          <p className="font-semibold mt-2">{students?.length || studentCount || 0}</p>
+        </div>
+      </div>
+
+      {/* Students List */}
+      <div>
+        <p className="text-xs font-medium text-muted-foreground uppercase mb-3">Assigned Students</p>
+        {isLoading ? (
+          <div className="space-y-2">
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+          </div>
+        ) : !students || students.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-3 text-center bg-muted/30 rounded-lg">
+            No students assigned to this tutor yet
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {students.map((student: any) => {
+              const initials = student.name
+                .split(" ")
+                .map((n: string) => n[0])
+                .join("")
+                .toUpperCase()
+                .slice(0, 2);
+
+              return (
+                <div
+                  key={student.id}
+                  className="p-3 sm:p-4 bg-muted/30 rounded-lg border"
+                >
+                  <div className="flex items-start gap-3">
+                    <Avatar className="w-10 h-10 border border-primary/20">
+                      <AvatarFallback className="bg-accent text-foreground font-bold text-sm">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="font-semibold text-sm">{student.name}</h4>
+                        <Badge variant="secondary" className="text-xs">
+                          {student.grade || "No grade"}
+                        </Badge>
+                      </div>
+                      {student.sessionProgress !== undefined && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Sessions: {student.sessionProgress || 0}/16
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-7"
+                      onClick={() => onViewIdentitySheet(student.id, student.name)}
+                    >
+                      <FileText className="w-3 h-3 mr-1.5" />
+                      Identity Sheet
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-7"
+                      onClick={() => onViewTrackingSystems(student.id, student.name)}
+                    >
+                      <Calendar className="w-3 h-3 mr-1.5" />
+                      Tracking
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-7"
+                      onClick={() => onViewAssignments(student.id, student.name)}
+                    >
+                      <FileText className="w-3 h-3 mr-1.5" />
+                      Assignments
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

@@ -1613,6 +1613,158 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  // Get students for a specific tutor (COO view)
+  app.get(
+    "/api/coo/tutors/:tutorId/students",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { tutorId } = req.params;
+        console.log("📚 COO requesting students for tutor:", tutorId);
+        const students = await storage.getStudentsByTutor(tutorId);
+        console.log("📚 Found students:", students.map(s => ({ id: s.id, name: s.name })));
+        res.json(students);
+      } catch (error) {
+        console.error("Error fetching tutor students:", error);
+        res.status(500).json({ message: "Failed to fetch tutor students" });
+      }
+    }
+  );
+
+  // Get student identity sheet (COO read-only view)
+  app.get(
+    "/api/coo/students/:studentId/identity-sheet",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { studentId } = req.params;
+        console.log("📋 COO requesting identity sheet for student:", studentId);
+        
+        // Direct query to check what's in DB
+        const { data: directData, error: directError } = await supabase
+          .from("students")
+          .select("*")
+          .eq("id", studentId);
+        console.log("📋 Direct query result:", JSON.stringify(directData, null, 2));
+        console.log("📋 Direct query error:", directError);
+        
+        const student = await storage.getStudent(studentId);
+        
+        if (!student) {
+          console.log("❌ Student not found via storage:", studentId);
+          return res.status(404).json({ message: "Student not found" });
+        }
+
+        console.log("✅ Student found:", student.id);
+        console.log("📋 Student personalProfile:", student.personalProfile);
+        console.log("📋 Student emotionalInsights:", student.emotionalInsights);
+        console.log("📋 Student academicDiagnosis:", student.academicDiagnosis);
+        console.log("📋 Student identitySheet:", student.identitySheet);
+
+        const identitySheetData = {
+          personalProfile: student.personalProfile || null,
+          emotionalInsights: student.emotionalInsights || null,
+          academicDiagnosis: student.academicDiagnosis || null,
+          identitySheet: student.identitySheet || null,
+          completedAt: student.identitySheetCompletedAt || null,
+        };
+
+        console.log("📋 Returning identity sheet data:", identitySheetData);
+        res.json(identitySheetData);
+      } catch (error) {
+        console.error("Error fetching identity sheet for COO:", error);
+        res.status(500).json({ message: "Failed to fetch identity sheet" });
+      }
+    }
+  );
+
+  // Get student assignments (COO read-only view)
+  app.get(
+    "/api/coo/students/:studentId/assignments",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { studentId } = req.params;
+        const student = await storage.getStudent(studentId);
+        
+        if (!student) {
+          return res.status(404).json({ message: "Student not found" });
+        }
+
+        const { data: assignments, error } = await supabase
+          .from("assignments")
+          .select("*")
+          .eq("student_id", studentId)
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching assignments:", error);
+          return res.status(500).json({ message: "Failed to fetch assignments" });
+        }
+
+        res.json(assignments || []);
+      } catch (error) {
+        console.error("Error fetching student assignments for COO:", error);
+        res.status(500).json({ message: "Failed to fetch assignments" });
+      }
+    }
+  );
+
+  // Get student tracking data (COO read-only view)
+  app.get(
+    "/api/coo/students/:studentId/tracking",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { studentId } = req.params;
+        const student = await storage.getStudent(studentId);
+        
+        if (!student) {
+          return res.status(404).json({ message: "Student not found" });
+        }
+
+        // Get tutoring sessions
+        const { data: sessions, error: sessionsError } = await supabase
+          .from("tutoring_sessions")
+          .select("*")
+          .eq("student_id", studentId)
+          .order("session_date", { ascending: false });
+
+        // Get parent reports
+        const { data: parentReports, error: reportsError } = await supabase
+          .from("parent_reports")
+          .select("*")
+          .eq("student_id", studentId)
+          .order("created_at", { ascending: false });
+
+        // Get TD feedback
+        const { data: tdFeedback, error: feedbackError } = await supabase
+          .from("td_feedback")
+          .select("*")
+          .eq("student_id", studentId)
+          .order("created_at", { ascending: false });
+
+        if (sessionsError || reportsError || feedbackError) {
+          console.error("Error fetching tracking data:", { sessionsError, reportsError, feedbackError });
+          return res.status(500).json({ message: "Failed to fetch tracking data" });
+        }
+
+        res.json({
+          sessions: sessions || [],
+          parentReports: parentReports || [],
+          tdFeedback: tdFeedback || [],
+        });
+      } catch (error) {
+        console.error("Error fetching student tracking for COO:", error);
+        res.status(500).json({ message: "Failed to fetch tracking data" });
+      }
+    }
+  );
+
   // Remove tutor from pod
   app.delete(
     "/api/coo/pods/:podId/tutors/:assignmentId",
