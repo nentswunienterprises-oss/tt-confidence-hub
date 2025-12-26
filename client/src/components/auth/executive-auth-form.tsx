@@ -93,7 +93,20 @@ export function ExecutiveAuthForm({ role, mode, setMode }: ExecutiveAuthFormProp
       }
 
       if (mode === "login") {
-        // Call backend signin endpoint with role validation
+        // First sign in to Supabase on the client side to establish session
+        console.log("📤 Signing into Supabase first...");
+        const { error: supabaseError, data: supabaseData } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (supabaseError) {
+          throw new Error(supabaseError.message || "Login failed");
+        }
+
+        console.log("✅ Supabase client signin successful");
+
+        // Then call backend signin endpoint with role validation
         console.log("📤 Sending signin request with role:", role);
         const response = await fetch(`${API_URL}/api/auth/signin`, {
           method: "POST",
@@ -108,16 +121,6 @@ export function ExecutiveAuthForm({ role, mode, setMode }: ExecutiveAuthFormProp
           throw new Error(data.message || "Login failed");
         }
 
-        // Also sign in to Supabase on the client side
-        const { error: supabaseError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (supabaseError) {
-          console.warn("Supabase client signin failed:", supabaseError.message);
-        }
-
         redirectUrl = data.redirectUrl || dashboardRoutes[role];
 
         toast({
@@ -126,8 +129,8 @@ export function ExecutiveAuthForm({ role, mode, setMode }: ExecutiveAuthFormProp
         });
       }
 
-      // Wait a moment for session cookie to be set
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Wait for session to be fully established
+      await new Promise(resolve => setTimeout(resolve, 300));
 
       // Force page reload to ensure fresh session
       window.location.href = redirectUrl;
