@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { QrCode, TrendingUp, DollarSign, Users, Zap, Check, ArrowRight, ArrowLeft, Banknote } from "lucide-react";
+import { QrCode, TrendingUp, DollarSign, Compass, Zap, Check, ArrowRight, ArrowLeft, Banknote } from "lucide-react";
 import { useEffect } from "react";
 
 export default function AffiliateLanding() {
@@ -198,7 +198,7 @@ export default function AffiliateLanding() {
                 className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
                 style={{ backgroundColor: "#FFF0F0" }}
               >
-                <Users className="w-8 h-8" style={{ color: "#E63946" }} />
+                <Compass className="w-8 h-8" style={{ color: "#E63946" }} />
               </div>
               <h3 className="text-2xl font-bold mb-3" style={{ color: "#1A1A1A" }}>
                 Outreach Director

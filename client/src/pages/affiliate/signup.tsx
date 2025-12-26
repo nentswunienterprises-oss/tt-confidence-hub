@@ -3,7 +3,7 @@ import { AuthForm } from "@/components/auth/auth-form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { QrCode, Users, ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { QrCode, Compass, ArrowLeft, ArrowRight, Check } from "lucide-react";
 
 export default function AffiliateSignup() {
   const [selectedRole, setSelectedRole] = useState<"affiliate" | "od" | null>(null);
@@ -108,7 +108,7 @@ export default function AffiliateSignup() {
                   className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
                   style={{ backgroundColor: "#FFF0F0" }}
                 >
-                  <Users className="w-8 h-8" style={{ color: "#E63946" }} />
+                  <Compass className="w-8 h-8" style={{ color: "#E63946" }} />
                 </div>
                 <h3 className="text-2xl font-bold mb-3" style={{ color: "#1A1A1A" }}>Outreach Director</h3>
                 <p className="mb-4" style={{ color: "#5A5A5A" }}>
