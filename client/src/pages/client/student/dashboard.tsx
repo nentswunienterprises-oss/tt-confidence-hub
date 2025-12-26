@@ -147,7 +147,7 @@ export default function StudentDashboard() {
                   ? "You're crushing it!" 
                   : stats && stats.confidenceLevel >= 50 
                   ? "Keep pushing forward!" 
-                  : "Every session counts!"}}
+                  : "Every session counts!"}
               </p>
             </CardContent>
           </Card>
