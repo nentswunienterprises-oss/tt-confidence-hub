@@ -36,34 +36,34 @@ export default function StudentDashboard() {
     <div className="space-y-6">
       {/* Hero Section */}
       <div className="text-center">
-        <h1 className="text-4xl font-bold mb-2">
+        <h1 className="text-2xl sm:text-4xl font-bold mb-1 sm:mb-2">
           Welcome back, {studentInfo?.firstName || "Champion"}! 🎓
         </h1>
-        <p className="text-xl text-muted-foreground">Your progress at a glance</p>
+        <p className="text-base sm:text-xl text-muted-foreground">Your progress at a glance</p>
       </div>
 
       {/* Gamified Stats */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
           {/* Boss Battles */}
-          <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-300 hover:shadow-lg transition-all">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center justify-between text-yellow-900">
-                <span className="text-sm font-medium">Boss Battles</span>
-                <Trophy className="w-5 h-5 text-yellow-600" />
+          <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/30 hover:shadow-lg transition-all">
+            <CardHeader className="pb-2 sm:pb-3">
+              <CardTitle className="flex items-center justify-between text-foreground">
+                <span className="text-xs sm:text-sm font-medium">Boss Battles</span>
+                <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-5xl font-bold text-yellow-700 mb-2">
+              <div className="text-3xl sm:text-5xl font-bold text-primary mb-1 sm:mb-2">
                 {stats?.bossBattlesCompleted || 0}
               </div>
-              <p className="text-xs text-yellow-800">Challenges conquered</p>
-              <div className="mt-3 bg-yellow-200/50 rounded-full h-2">
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Challenges conquered</p>
+              <div className="mt-2 sm:mt-3 bg-primary/20 rounded-full h-1.5 sm:h-2">
                 <div 
-                  className="bg-yellow-600 h-2 rounded-full transition-all"
+                  className="bg-primary h-1.5 sm:h-2 rounded-full transition-all"
                   style={{ width: `${Math.min(((stats?.bossBattlesCompleted || 0) / 10) * 100, 100)}%` }}
                 />
               </div>
-              <p className="text-xs text-yellow-700 mt-1">
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
                 Next milestone: {Math.ceil(((stats?.bossBattlesCompleted || 0) + 1) / 10) * 10} battles
               </p>
             </CardContent>
@@ -71,24 +71,24 @@ export default function StudentDashboard() {
 
           {/* Solutions Unlocked */}
           <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-300 hover:shadow-lg transition-all">
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-2 sm:pb-3">
               <CardTitle className="flex items-center justify-between text-purple-900">
-                <span className="text-sm font-medium">Solutions Unlocked</span>
-                <Zap className="w-5 h-5 text-purple-600" />
+                <span className="text-xs sm:text-sm font-medium">Solutions Unlocked</span>
+                <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-5xl font-bold text-purple-700 mb-2">
+              <div className="text-3xl sm:text-5xl font-bold text-purple-700 mb-1 sm:mb-2">
                 {stats?.solutionsUnlocked || 0}
               </div>
-              <p className="text-xs text-purple-800">3-layer concepts mastered</p>
-              <div className="mt-3 bg-purple-200/50 rounded-full h-2">
+              <p className="text-[10px] sm:text-xs text-purple-800">3-layer concepts mastered</p>
+              <div className="mt-2 sm:mt-3 bg-purple-200/50 rounded-full h-1.5 sm:h-2">
                 <div 
-                  className="bg-purple-600 h-2 rounded-full transition-all"
+                  className="bg-purple-600 h-1.5 sm:h-2 rounded-full transition-all"
                   style={{ width: `${Math.min(((stats?.solutionsUnlocked || 0) / 20) * 100, 100)}%` }}
                 />
               </div>
-              <p className="text-xs text-purple-700 mt-1">
+              <p className="text-[10px] sm:text-xs text-purple-700 mt-1">
                 Next milestone: {Math.ceil(((stats?.solutionsUnlocked || 0) + 1) / 20) * 20} solutions
               </p>
             </CardContent>
@@ -96,22 +96,22 @@ export default function StudentDashboard() {
 
           {/* Current Streak */}
           <Card className="bg-gradient-to-br from-orange-50 to-red-50 border-orange-300 hover:shadow-lg transition-all">
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-2 sm:pb-3">
               <CardTitle className="flex items-center justify-between text-orange-900">
-                <span className="text-sm font-medium">Current Streak</span>
-                <Flame className="w-5 h-5 text-orange-600" />
+                <span className="text-xs sm:text-sm font-medium">Current Streak</span>
+                <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-5xl font-bold text-orange-700 mb-2">
+              <div className="text-3xl sm:text-5xl font-bold text-orange-700 mb-1 sm:mb-2">
                 {stats?.currentStreak || 0}
               </div>
-              <p className="text-xs text-orange-800">Days in a row</p>
-              <div className="mt-3 flex gap-1">
+              <p className="text-[10px] sm:text-xs text-orange-800">Days in a row</p>
+              <div className="mt-2 sm:mt-3 flex gap-0.5 sm:gap-1">
                 {Array.from({ length: 7 }).map((_, i) => (
                   <div
                     key={i}
-                    className={`flex-1 h-8 rounded ${
+                    className={`flex-1 h-4 sm:h-8 rounded ${
                       i < (stats?.currentStreak || 0) % 7
                         ? 'bg-orange-500'
                         : 'bg-orange-200/50'
@@ -119,35 +119,35 @@ export default function StudentDashboard() {
                   />
                 ))}
               </div>
-              <p className="text-xs text-orange-700 mt-1">Keep it going!</p>
+              <p className="text-[10px] sm:text-xs text-orange-700 mt-1">Keep it going!</p>
             </CardContent>
           </Card>
 
           {/* Confidence Level */}
           <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-300 hover:shadow-lg transition-all">
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-2 sm:pb-3">
               <CardTitle className="flex items-center justify-between text-green-900">
-                <span className="text-sm font-medium">Confidence</span>
-                <TrendingUp className="w-5 h-5 text-green-600" />
+                <span className="text-xs sm:text-sm font-medium">Confidence</span>
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-5xl font-bold text-green-700 mb-2">
+              <div className="text-3xl sm:text-5xl font-bold text-green-700 mb-1 sm:mb-2">
                 {stats?.confidenceLevel || 0}%
               </div>
-              <p className="text-xs text-green-800">Overall growth</p>
-              <div className="mt-3 bg-green-200/50 rounded-full h-2">
+              <p className="text-[10px] sm:text-xs text-green-800">Overall growth</p>
+              <div className="mt-2 sm:mt-3 bg-green-200/50 rounded-full h-1.5 sm:h-2">
                 <div 
-                  className="bg-green-600 h-2 rounded-full transition-all"
+                  className="bg-green-600 h-1.5 sm:h-2 rounded-full transition-all"
                   style={{ width: `${stats?.confidenceLevel || 0}%` }}
                 />
               </div>
-              <p className="text-xs text-green-700 mt-1">
+              <p className="text-[10px] sm:text-xs text-green-700 mt-1">
                 {stats && stats.confidenceLevel >= 75 
                   ? "You're crushing it!" 
                   : stats && stats.confidenceLevel >= 50 
                   ? "Keep pushing forward!" 
-                  : "Every session counts!"}
+                  : "Every session counts!"}}
               </p>
             </CardContent>
           </Card>

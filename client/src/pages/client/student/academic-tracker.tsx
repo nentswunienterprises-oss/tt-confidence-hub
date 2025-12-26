@@ -221,83 +221,87 @@ export default function StudentAcademicTracker() {
   }
 
   return (
-    <div className="space-y-8 container mx-auto px-4 py-8">
+    <div className="space-y-4 sm:space-y-8 container mx-auto px-2 sm:px-4 py-4 sm:py-8">
       {/* Header Section */}
-      <div className="flex flex-col gap-2 border-b pb-6">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+      <div className="flex flex-col gap-1 sm:gap-2 border-b pb-4 sm:pb-6">
+        <h1 className="text-xl sm:text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
           Academic Health Center
         </h1>
-        <p className="text-muted-foreground text-lg">
+        <p className="text-sm sm:text-lg text-muted-foreground">
           Your personal command center for academic excellence and strategic growth
         </p>
       </div>
 
       {/* Academic Profile Section */}
       <Card className="border-2 hover:border-primary/50 transition-colors">
-        <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0 pb-4 border-b">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 space-y-0 pb-4 border-b p-3 sm:p-6">
           <div>
-            <CardTitle className="flex items-center gap-3 text-2xl">
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <User className="w-6 h-6 text-primary" />
+            <CardTitle className="flex items-center gap-2 sm:gap-3 text-lg sm:text-2xl">
+              <div className="bg-primary/10 p-1.5 sm:p-2 rounded-lg">
+                <User className="w-4 h-4 sm:w-6 sm:h-6 text-primary" />
               </div>
               Academic Profile
             </CardTitle>
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">
               Your command center. Answer: What's happening? How do you feel? What's next?
             </p>
           </div>
           <Dialog open={profileDialogOpen} onOpenChange={setProfileDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="gap-2">
+              <Button size="sm" className="gap-2 w-full sm:w-auto">
                 <Edit className="w-4 h-4" />
                 Edit
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
               <DialogHeader>
-                <DialogTitle>Update Academic Profile</DialogTitle>
-                <DialogDescription>
+                <DialogTitle className="text-base sm:text-lg">Update Academic Profile</DialogTitle>
+                <DialogDescription className="text-xs sm:text-sm">
                   Update your academic profile and current status
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName">Full Name *</Label>
+              <div className="space-y-3 sm:space-y-4 py-3 sm:py-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label htmlFor="fullName" className="text-xs sm:text-sm">Full Name *</Label>
                     <Input
                       id="fullName"
+                      className="text-sm"
                       value={profileData.fullName}
                       onChange={(e) => setProfileData({ ...profileData, fullName: e.target.value })}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="grade">Grade *</Label>
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label htmlFor="grade" className="text-xs sm:text-sm">Grade *</Label>
                     <Input
                       id="grade"
+                      className="text-sm"
                       value={profileData.grade}
                       onChange={(e) => setProfileData({ ...profileData, grade: e.target.value })}
                     />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="school">School</Label>
+                <div className="space-y-1 sm:space-y-2">
+                  <Label htmlFor="school" className="text-xs sm:text-sm">School</Label>
                   <Input
                     id="school"
+                    className="text-sm"
                     value={profileData.school}
                     onChange={(e) => setProfileData({ ...profileData, school: e.target.value })}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="termReport">Latest Term Report</Label>
+                <div className="space-y-1 sm:space-y-2">
+                  <Label htmlFor="termReport" className="text-xs sm:text-sm">Latest Term Report</Label>
                   <Textarea
                     id="termReport"
+                    className="text-sm"
                     placeholder="Summary of recent academic performance..."
                     value={profileData.latestTermReport}
                     onChange={(e) => setProfileData({ ...profileData, latestTermReport: e.target.value })}
                     rows={3}
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1 sm:space-y-2">
                   <Label htmlFor="thoughts">My Thoughts</Label>
                   <Textarea
                     id="thoughts"
@@ -349,76 +353,76 @@ export default function StudentAcademicTracker() {
             </DialogContent>
           </Dialog>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 sm:p-6">
           {profileLoading ? (
             <div className="space-y-2">
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-3/4" />
             </div>
           ) : profile || profileData.fullName ? (
-            <div className="grid gap-4">
-              <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid gap-3 sm:gap-4">
+              <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Full Name</p>
-                  <p className="text-base">{profile?.fullName || profileData.fullName || "Not set"}</p>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">Full Name</p>
+                  <p className="text-sm sm:text-base">{profile?.fullName || profileData.fullName || "Not set"}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Grade</p>
-                  <p className="text-base">{profile?.grade || profileData.grade || "Not set"}</p>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">Grade</p>
+                  <p className="text-sm sm:text-base">{profile?.grade || profileData.grade || "Not set"}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">School</p>
-                  <p className="text-base">{profile?.school || profileData.school || "Not set"}</p>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">School</p>
+                  <p className="text-sm sm:text-base">{profile?.school || profileData.school || "Not set"}</p>
                 </div>
               </div>
               {(profile?.latestTermReport || profileData.latestTermReport) && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Latest Term Report</p>
-                  <p className="text-base whitespace-pre-wrap">{profile?.latestTermReport || profileData.latestTermReport}</p>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">Latest Term Report</p>
+                  <p className="text-sm sm:text-base whitespace-pre-wrap">{profile?.latestTermReport || profileData.latestTermReport}</p>
                 </div>
               )}
               {(profile?.myThoughts || profileData.myThoughts) && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">My Thoughts</p>
-                  <p className="text-base whitespace-pre-wrap">{profile?.myThoughts || profileData.myThoughts}</p>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">My Thoughts</p>
+                  <p className="text-sm sm:text-base whitespace-pre-wrap">{profile?.myThoughts || profileData.myThoughts}</p>
                 </div>
               )}
               {(profile?.currentChallenges || profileData.currentChallenges) && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Current Challenges</p>
-                  <p className="text-base whitespace-pre-wrap">{profile?.currentChallenges || profileData.currentChallenges}</p>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">Current Challenges</p>
+                  <p className="text-sm sm:text-base whitespace-pre-wrap">{profile?.currentChallenges || profileData.currentChallenges}</p>
                 </div>
               )}
               {(profile?.recentWins || profileData.recentWins) && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Recent Wins</p>
-                  <p className="text-base whitespace-pre-wrap">{profile?.recentWins || profileData.recentWins}</p>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">Recent Wins</p>
+                  <p className="text-sm sm:text-base whitespace-pre-wrap">{profile?.recentWins || profileData.recentWins}</p>
                 </div>
               )}
               {profileData.upcomingExamsProjects && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Upcoming Exams/Projects</p>
-                  <p className="text-base whitespace-pre-wrap">{profileData.upcomingExamsProjects}</p>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">Upcoming Exams/Projects</p>
+                  <p className="text-sm sm:text-base whitespace-pre-wrap">{profileData.upcomingExamsProjects}</p>
                 </div>
               )}
             </div>
           ) : (
-            <p className="text-muted-foreground">No profile data yet. Click Edit to get started.</p>
+            <p className="text-sm text-muted-foreground">No profile data yet. Click Edit to get started.</p>
           )}
         </CardContent>
       </Card>
 
       {/* Target Center Section */}
       <Card className="border-2 hover:border-primary/50 transition-colors">
-        <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0 pb-4 border-b">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 space-y-0 pb-4 border-b p-3 sm:p-6">
           <div>
-            <CardTitle className="flex items-center gap-3 text-2xl">
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <Target className="w-6 h-6 text-primary" />
+            <CardTitle className="flex items-center gap-2 sm:gap-3 text-lg sm:text-2xl">
+              <div className="bg-primary/10 p-1.5 sm:p-2 rounded-lg">
+                <Target className="w-4 h-4 sm:w-6 sm:h-6 text-primary" />
               </div>
               Strategy Center
             </CardTitle>
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">
               From stuck to strategic. Plan your bounce-back from academic struggles.
             </p>
           </div>
@@ -426,7 +430,7 @@ export default function StudentAcademicTracker() {
             <DialogTrigger asChild>
               <Button
                 size="sm"
-                className="gap-2"
+                className="gap-2 w-full sm:w-auto"
                 onClick={() => {
                   setEditingTargetId(null);
                   setTargetData({
@@ -442,60 +446,65 @@ export default function StudentAcademicTracker() {
                 Add Target
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl mx-2 sm:mx-auto">
               <DialogHeader>
-                <DialogTitle>
+                <DialogTitle className="text-base sm:text-lg">
                   {editingTargetId ? "Edit Struggle Target" : "New Struggle Target"}
                 </DialogTitle>
-                <DialogDescription>
+                <DialogDescription className="text-xs sm:text-sm" className="text-xs sm:text-sm">
                   Track a specific struggle and plan how to overcome it
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="subject">Subject *</Label>
+              <div className="space-y-3 sm:space-y-4 py-3 sm:py-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label htmlFor="subject" className="text-xs sm:text-sm">Subject *</Label>
                     <Input
                       id="subject"
+                      className="text-sm"
                       placeholder="e.g., Mathematics"
                       value={targetData.subject}
                       onChange={(e) => setTargetData({ ...targetData, subject: e.target.value })}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="topic">Topic/Concept *</Label>
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label htmlFor="topic" className="text-xs sm:text-sm">Topic/Concept *</Label>
                     <Input
                       id="topic"
+                      className="text-sm"
                       placeholder="e.g., Quadratic Equations"
                       value={targetData.topicConcept}
                       onChange={(e) => setTargetData({ ...targetData, topicConcept: e.target.value })}
                     />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="struggle">My Struggle *</Label>
+                <div className="space-y-1 sm:space-y-2">
+                  <Label htmlFor="struggle" className="text-xs sm:text-sm">My Struggle *</Label>
                   <Textarea
                     id="struggle"
+                    className="text-sm"
                     placeholder="What exactly are you struggling with?"
                     value={targetData.myStruggle}
                     onChange={(e) => setTargetData({ ...targetData, myStruggle: e.target.value })}
                     rows={3}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="strategy">Strategy *</Label>
+                <div className="space-y-1 sm:space-y-2">
+                  <Label htmlFor="strategy" className="text-xs sm:text-sm">Strategy *</Label>
                   <Textarea
                     id="strategy"
+                    className="text-sm"
                     placeholder="What will you do to overcome this?"
                     value={targetData.strategy}
                     onChange={(e) => setTargetData({ ...targetData, strategy: e.target.value })}
                     rows={3}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="consolidationDate">Consolidation Date</Label>
+                <div className="space-y-1 sm:space-y-2">
+                  <Label htmlFor="consolidationDate" className="text-xs sm:text-sm">Consolidation Date</Label>
                   <Input
                     id="consolidationDate"
+                    className="text-sm"
                     type="date"
                     value={targetData.consolidationDate}
                     onChange={(e) => setTargetData({ ...targetData, consolidationDate: e.target.value })}
@@ -519,46 +528,46 @@ export default function StudentAcademicTracker() {
             </DialogContent>
           </Dialog>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 sm:p-6">
           {targetsLoading ? (
             <div className="space-y-2">
               <Skeleton className="h-20" />
               <Skeleton className="h-20" />
             </div>
           ) : !targets || targets.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">
+            <p className="text-sm text-muted-foreground text-center py-6 sm:py-8">
               No struggle targets yet. Click "Add Target" to track a challenge.
             </p>
           ) : (
             <div className="space-y-3">
               {targets.map((target) => (
                 <Card key={target.id}>
-                  <CardContent className="py-4">
-                    <div className="flex items-start justify-between gap-4">
+                  <CardContent className="p-3 sm:py-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
                       <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Badge variant="outline">{target.subject}</Badge>
-                          <Badge variant="secondary">{target.topicConcept}</Badge>
+                        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                          <Badge variant="outline" className="text-xs">{target.subject}</Badge>
+                          <Badge variant="secondary" className="text-xs">{target.topicConcept}</Badge>
                           {target.overcame ? (
-                            <Badge className="bg-green-600 hover:bg-green-700">
+                            <Badge className="bg-green-600 hover:bg-green-700 text-xs">
                               <CheckCircle2 className="w-3 h-3 mr-1" />
                               Overcame
                             </Badge>
                           ) : (
-                            <Badge variant="outline">In Progress</Badge>
+                            <Badge variant="outline" className="text-xs">In Progress</Badge>
                           )}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-muted-foreground">Struggle:</p>
-                          <p className="text-sm">{target.myStruggle}</p>
+                          <p className="text-xs sm:text-sm font-medium text-muted-foreground">Struggle:</p>
+                          <p className="text-xs sm:text-sm">{target.myStruggle}</p>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-muted-foreground">Strategy:</p>
-                          <p className="text-sm">{target.strategy}</p>
+                          <p className="text-xs sm:text-sm font-medium text-muted-foreground">Strategy:</p>
+                          <p className="text-xs sm:text-sm">{target.strategy}</p>
                         </div>
                         {target.consolidationDate && (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Calendar className="w-4 h-4" />
+                          <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
+                            <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                             <span>
                               Target:{" "}
                               {format(
@@ -569,7 +578,7 @@ export default function StudentAcademicTracker() {
                           </div>
                         )}
                       </div>
-                      <div className="flex flex-col gap-2">
+                      <div className="flex flex-row sm:flex-col gap-2 justify-between sm:justify-start">
                         <div className="flex items-center gap-2">
                           <Label htmlFor={`overcame-${target.id}`} className="text-xs">
                             Overcame?

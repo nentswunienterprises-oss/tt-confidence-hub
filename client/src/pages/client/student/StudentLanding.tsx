@@ -138,47 +138,49 @@ export default function StudentLanding() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/10 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/10 flex items-center justify-center p-3 sm:p-4">
       <div className="w-full max-w-md">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-4xl font-bold mb-1 sm:mb-2 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             TT Student Portal
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             Your journey to math confidence starts here
           </p>
         </div>
 
         {/* Auth Card */}
         <Card>
-          <CardHeader>
-            <CardTitle>{mode === "signup" ? "Create Your Account" : "Welcome Back"}</CardTitle>
-            <CardDescription>
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="text-lg sm:text-xl">{mode === "signup" ? "Create Your Account" : "Welcome Back"}</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
               {mode === "signup" 
                 ? "Enter the code your parent gave you to get started" 
                 : "Sign in to access your learning dashboard"}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
             {mode === "signup" ? (
-              <form onSubmit={handleSignup} className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
+              <form onSubmit={handleSignup} className="space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label htmlFor="firstName" className="text-xs sm:text-sm">First Name</Label>
                     <Input
                       id="firstName"
                       type="text"
+                      className="text-sm"
                       value={signupData.firstName}
                       onChange={(e) => setSignupData({ ...signupData, firstName: e.target.value })}
                       required
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label htmlFor="lastName" className="text-xs sm:text-sm">Last Name</Label>
                     <Input
                       id="lastName"
                       type="text"
+                      className="text-sm"
                       value={signupData.lastName}
                       onChange={(e) => setSignupData({ ...signupData, lastName: e.target.value })}
                       required
@@ -186,11 +188,12 @@ export default function StudentLanding() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                <div className="space-y-1 sm:space-y-2">
+                  <Label htmlFor="email" className="text-xs sm:text-sm">Email</Label>
                   <Input
                     id="email"
                     type="email"
+                    className="text-sm"
                     placeholder="your.email@example.com"
                     value={signupData.email}
                     onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
@@ -198,11 +201,12 @@ export default function StudentLanding() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                <div className="space-y-1 sm:space-y-2">
+                  <Label htmlFor="password" className="text-xs sm:text-sm">Password</Label>
                   <Input
                     id="password"
                     type="password"
+                    className="text-sm"
                     placeholder="At least 8 characters"
                     value={signupData.password}
                     onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
@@ -210,11 +214,12 @@ export default function StudentLanding() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <div className="space-y-1 sm:space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-xs sm:text-sm">Confirm Password</Label>
                   <Input
                     id="confirmPassword"
                     type="password"
+                    className="text-sm"
                     placeholder="Re-enter your password"
                     value={signupData.confirmPassword}
                     onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
@@ -222,8 +227,8 @@ export default function StudentLanding() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="parentCode">Parent Code</Label>
+                <div className="space-y-1 sm:space-y-2">
+                  <Label htmlFor="parentCode" className="text-xs sm:text-sm">Parent Code</Label>
                   <Input
                     id="parentCode"
                     type="text"
@@ -231,15 +236,15 @@ export default function StudentLanding() {
                     value={signupData.parentCode}
                     onChange={(e) => setSignupData({ ...signupData, parentCode: e.target.value.toUpperCase() })}
                     maxLength={8}
-                    className="font-mono text-lg tracking-wider"
+                    className="font-mono text-base sm:text-lg tracking-wider"
                     required
                   />
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">
                     Ask your parent for this code
                   </p>
                 </div>
 
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                <Button type="submit" className="w-full text-sm sm:text-base" disabled={isSubmitting}>
                   {isSubmitting ? "Creating Account..." : "Create Account"}
                 </Button>
 
@@ -255,12 +260,13 @@ export default function StudentLanding() {
                 </div>
               </form>
             ) : (
-              <form onSubmit={handleSignin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signin-email">Email</Label>
+              <form onSubmit={handleSignin} className="space-y-3 sm:space-y-4">
+                <div className="space-y-1 sm:space-y-2">
+                  <Label htmlFor="signin-email" className="text-xs sm:text-sm">Email</Label>
                   <Input
                     id="signin-email"
                     type="email"
+                    className="text-sm"
                     placeholder="your.email@example.com"
                     value={signinData.email}
                     onChange={(e) => setSigninData({ ...signinData, email: e.target.value })}
@@ -268,11 +274,12 @@ export default function StudentLanding() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="signin-password">Password</Label>
+                <div className="space-y-1 sm:space-y-2">
+                  <Label htmlFor="signin-password" className="text-xs sm:text-sm">Password</Label>
                   <Input
                     id="signin-password"
                     type="password"
+                    className="text-sm"
                     placeholder="Enter your password"
                     value={signinData.password}
                     onChange={(e) => setSigninData({ ...signinData, password: e.target.value })}

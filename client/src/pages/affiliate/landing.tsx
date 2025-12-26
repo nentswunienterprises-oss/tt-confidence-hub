@@ -85,38 +85,38 @@ export default function AffiliateLanding() {
       </section>
 
       {/* How It Works */}
-      <section className="py-20" style={{ backgroundColor: "white" }}>
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6" style={{ color: "#1A1A1A" }}>
+      <section className="py-12 sm:py-20" style={{ backgroundColor: "white" }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
+          <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6" style={{ color: "#1A1A1A" }}>
               How It Works
             </h2>
-            <p className="text-lg" style={{ color: "#5A5A5A" }}>
+            <p className="text-sm sm:text-lg" style={{ color: "#5A5A5A" }}>
               Simple steps to start earning commissions
             </p>
           </div>
           
-          <div className="grid md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
             {[
               { num: "1", title: "Get Your QR Code", desc: "Log in and generate your unique referral QR code and tracking link." },
               { num: "2", title: "Share With Parents", desc: "Share your QR code and link with schools, community groups, and networks." },
               { num: "3", title: "Track Signups", desc: "See all referrals in real-time with a detailed analytics dashboard." },
               { num: "4", title: "Earn Commission", desc: "Receive commission when referred families enroll in pods." }
             ].map((step) => (
-              <Card key={step.num} className="p-6 border-0 shadow-lg text-center" style={{ backgroundColor: "#FFF5ED" }}>
+              <Card key={step.num} className="p-3 sm:p-6 border-0 shadow-lg text-center" style={{ backgroundColor: "#FFF5ED" }}>
                 <div 
-                  className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
+                  className="w-10 h-10 sm:w-14 sm:h-14 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-5"
                   style={{ backgroundColor: "#FFF0F0", border: "2px solid #E63946" }}
                 >
                   <span 
-                    className="text-xl"
+                    className="text-base sm:text-xl"
                     style={{ fontFamily: "Georgia, serif", fontStyle: "italic", color: "#E63946", fontWeight: "600" }}
                   >
                     {step.num}
                   </span>
                 </div>
-                <h4 className="font-bold text-lg mb-2" style={{ color: "#1A1A1A" }}>{step.title}</h4>
-                <p className="text-sm" style={{ color: "#5A5A5A" }}>{step.desc}</p>
+                <h4 className="font-bold text-xs sm:text-lg mb-1 sm:mb-2" style={{ color: "#1A1A1A" }}>{step.title}</h4>
+                <p className="text-[10px] sm:text-sm" style={{ color: "#5A5A5A" }}>{step.desc}</p>
               </Card>
             ))}
           </div>
@@ -124,113 +124,113 @@ export default function AffiliateLanding() {
       </section>
 
       {/* Affiliate Types */}
-      <section className="py-20" style={{ backgroundColor: "#1A1A1A" }}>
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6" style={{ color: "white" }}>
+      <section className="py-12 sm:py-20" style={{ backgroundColor: "#1A1A1A" }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
+          <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6" style={{ color: "white" }}>
               Choose Your Path
             </h2>
-            <p className="text-lg" style={{ color: "#A0A0A0" }}>
+            <p className="text-sm sm:text-lg" style={{ color: "#A0A0A0" }}>
               Pick the role that fits your business model
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-4 sm:gap-8 max-w-5xl mx-auto">
             {/* Affiliate Path */}
             <Card 
-              className="p-8 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group"
+              className="p-4 sm:p-8 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group"
               style={{ backgroundColor: "white" }}
               onClick={() => navigate("/affiliate/signup")}
             >
               <div 
-                className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
+                className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform"
                 style={{ backgroundColor: "#FFF0F0" }}
               >
-                <QrCode className="w-8 h-8" style={{ color: "#E63946" }} />
+                <QrCode className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: "#E63946" }} />
               </div>
-              <h3 className="text-2xl font-bold mb-3" style={{ color: "#1A1A1A" }}>
+              <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3" style={{ color: "#1A1A1A" }}>
                 Affiliate
               </h3>
-              <p className="mb-6" style={{ color: "#5A5A5A" }}>
+              <p className="text-xs sm:text-base mb-4 sm:mb-6" style={{ color: "#5A5A5A" }}>
                 Individual referrer using unique code to drive enrollments
               </p>
               
-              <p className="text-xs font-semibold uppercase tracking-wide mb-4" style={{ color: "#E63946" }}>
+              <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide mb-3 sm:mb-4" style={{ color: "#E63946" }}>
                 Dashboard Includes
               </p>
-              <ul className="space-y-3 mb-6">
+              <ul className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                 {["Personal QR Code & Tracking Link", "Real-Time Signup Tracking", "Commission Earnings Dashboard", "Performance Analytics", "Marketing Materials Library"].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3">
-                    <Check className="w-5 h-5 flex-shrink-0" style={{ color: "#E63946" }} />
-                    <span style={{ color: "#5A5A5A" }}>{item}</span>
+                  <li key={i} className="flex items-center gap-2 sm:gap-3">
+                    <Check className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" style={{ color: "#E63946" }} />
+                    <span className="text-xs sm:text-base" style={{ color: "#5A5A5A" }}>{item}</span>
                   </li>
                 ))}
               </ul>
 
-              <div className="py-4 mb-6 rounded-xl text-center" style={{ backgroundColor: "#FFF0F0" }}>
-                <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: "#5A5A5A" }}>Commission</p>
-                <p className="text-3xl font-bold" style={{ color: "#E63946" }}>R100-R150</p>
-                <p className="text-sm" style={{ color: "#5A5A5A" }}>per enrolled student</p>
+              <div className="py-3 sm:py-4 mb-4 sm:mb-6 rounded-xl text-center" style={{ backgroundColor: "#FFF0F0" }}>
+                <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: "#5A5A5A" }}>Commission</p>
+                <p className="text-2xl sm:text-3xl font-bold" style={{ color: "#E63946" }}>R100-R150</p>
+                <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>per enrolled student</p>
               </div>
               
               <Button 
-                className="w-full rounded-full py-6 font-semibold border-0"
+                className="w-full rounded-full py-4 sm:py-6 font-semibold border-0 text-sm sm:text-base"
                 style={{ backgroundColor: "#E63946", color: "white" }}
               >
                 Become an Affiliate
-                <ArrowRight className="w-4 h-4 ml-2" />
+                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-2" />
               </Button>
             </Card>
 
             {/* Outreach Director Path */}
             <Card 
-              className="p-8 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group relative overflow-hidden"
+              className="p-4 sm:p-8 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group relative overflow-hidden"
               style={{ backgroundColor: "white" }}
               onClick={() => navigate("/affiliate/signup")}
             >
               <div 
-                className="absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-semibold"
+                className="absolute top-3 right-3 sm:top-4 sm:right-4 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold"
                 style={{ backgroundColor: "#E63946", color: "white" }}
               >
                 Popular
               </div>
               <div 
-                className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
+                className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform"
                 style={{ backgroundColor: "#FFF0F0" }}
               >
-                <Compass className="w-8 h-8" style={{ color: "#E63946" }} />
+                <Compass className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: "#E63946" }} />
               </div>
-              <h3 className="text-2xl font-bold mb-3" style={{ color: "#1A1A1A" }}>
+              <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3" style={{ color: "#1A1A1A" }}>
                 Outreach Director
               </h3>
-              <p className="mb-6" style={{ color: "#5A5A5A" }}>
+              <p className="text-xs sm:text-base mb-4 sm:mb-6" style={{ color: "#5A5A5A" }}>
                 Strategic operator managing schools, institutions, and regional growth
               </p>
               
-              <p className="text-xs font-semibold uppercase tracking-wide mb-4" style={{ color: "#E63946" }}>
+              <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide mb-3 sm:mb-4" style={{ color: "#E63946" }}>
                 Dashboard Includes
               </p>
-              <ul className="space-y-3 mb-6">
+              <ul className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                 {["Multiple QR Codes & Campaign Links", "School & Institution Partnerships", "Advanced Analytics & Segmentation", "Team Performance Tracking", "Bonus Tier Eligibility & Tracking"].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3">
-                    <Check className="w-5 h-5 flex-shrink-0" style={{ color: "#E63946" }} />
-                    <span style={{ color: "#5A5A5A" }}>{item}</span>
+                  <li key={i} className="flex items-center gap-2 sm:gap-3">
+                    <Check className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" style={{ color: "#E63946" }} />
+                    <span className="text-xs sm:text-base" style={{ color: "#5A5A5A" }}>{item}</span>
                   </li>
                 ))}
               </ul>
 
-              <div className="py-4 mb-6 rounded-xl text-center" style={{ backgroundColor: "#FFF0F0" }}>
-                <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: "#5A5A5A" }}>Commission</p>
-                <p className="text-3xl font-bold" style={{ color: "#E63946" }}>R5000+</p>
-                <p className="text-sm" style={{ color: "#5A5A5A" }}>per Pod filled + bonuses</p>
+              <div className="py-3 sm:py-4 mb-4 sm:mb-6 rounded-xl text-center" style={{ backgroundColor: "#FFF0F0" }}>
+                <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: "#5A5A5A" }}>Commission</p>
+                <p className="text-2xl sm:text-3xl font-bold" style={{ color: "#E63946" }}>R5000+</p>
+                <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>per Pod filled + bonuses</p>
               </div>
               
               <Button 
-                className="w-full rounded-full py-6 font-semibold border-0"
+                className="w-full rounded-full py-4 sm:py-6 font-semibold border-0 text-sm sm:text-base"
                 style={{ backgroundColor: "#E63946", color: "white" }}
               >
                 Become an Outreach Director
-                <ArrowRight className="w-4 h-4 ml-2" />
+                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-2" />
               </Button>
             </Card>
           </div>
@@ -238,18 +238,18 @@ export default function AffiliateLanding() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20" style={{ backgroundColor: "#FFF5ED" }}>
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6" style={{ color: "#1A1A1A" }}>
+      <section className="py-12 sm:py-20" style={{ backgroundColor: "#FFF5ED" }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
+          <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6" style={{ color: "#1A1A1A" }}>
               Why Join Our Program?
             </h2>
-            <p className="text-lg" style={{ color: "#5A5A5A" }}>
+            <p className="text-sm sm:text-lg" style={{ color: "#5A5A5A" }}>
               Everything you need to succeed
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
             {[
               { icon: TrendingUp, title: "Real-Time Analytics", desc: "Track your referrals and earnings with live dashboards" },
               { icon: DollarSign, title: "Competitive Commissions", desc: "Earn R100-R150 per enrollment or more with our scale model" },
@@ -260,15 +260,15 @@ export default function AffiliateLanding() {
             ].map((feature) => {
               const Icon = feature.icon;
               return (
-                <Card key={feature.title} className="p-6 border-0 shadow-lg text-center" style={{ backgroundColor: "white" }}>
+                <Card key={feature.title} className="p-3 sm:p-6 border-0 shadow-lg text-center" style={{ backgroundColor: "white" }}>
                   <div 
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5"
+                    className="w-10 h-10 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-5"
                     style={{ backgroundColor: "#FFF0F0" }}
                   >
-                    <Icon className="w-7 h-7" style={{ color: "#E63946" }} />
+                    <Icon className="w-5 h-5 sm:w-7 sm:h-7" style={{ color: "#E63946" }} />
                   </div>
-                  <h4 className="font-bold text-lg mb-2" style={{ color: "#1A1A1A" }}>{feature.title}</h4>
-                  <p className="text-sm" style={{ color: "#5A5A5A" }}>{feature.desc}</p>
+                  <h4 className="font-bold text-xs sm:text-lg mb-1 sm:mb-2" style={{ color: "#1A1A1A" }}>{feature.title}</h4>
+                  <p className="text-[10px] sm:text-sm" style={{ color: "#5A5A5A" }}>{feature.desc}</p>
                 </Card>
               );
             })}
@@ -277,48 +277,48 @@ export default function AffiliateLanding() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20" style={{ backgroundColor: "#E63946" }}>
-        <div className="max-w-4xl mx-auto px-6 md:px-12 text-center">
-          <div className="flex justify-center mb-6">
+      <section className="py-12 sm:py-20" style={{ backgroundColor: "#E63946" }}>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-12 text-center">
+          <div className="flex justify-center mb-4 sm:mb-6">
             <div 
-              className="w-16 h-16 rounded-full flex items-center justify-center"
+              className="w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center"
               style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
             >
-              <Banknote className="w-8 h-8 text-white" />
+              <Banknote className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
             </div>
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 text-white">
             Ready to Start Earning?
           </h2>
-          <p className="text-lg mb-10 text-white/80">
+          <p className="text-sm sm:text-lg mb-6 sm:mb-10 text-white/80">
             Join hundreds of affiliates and outreach directors already earning with Territorial Tutoring.
           </p>
           <Button
             size="lg"
-            className="text-lg font-semibold px-10 py-6 rounded-full border-0"
+            className="text-base sm:text-lg font-semibold px-6 sm:px-10 py-4 sm:py-6 rounded-full border-0"
             style={{ backgroundColor: "white", color: "#E63946" }}
             onClick={() => navigate("/affiliate/signup")}
           >
             Sign Up Now
-            <ArrowRight className="w-5 h-5 ml-2" />
+            <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
           </Button>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12" style={{ backgroundColor: "#FFF5ED" }}>
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+      <footer className="py-8 sm:py-12" style={{ backgroundColor: "#FFF5ED" }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
+              <span className="text-base sm:text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
                 TERRITORIAL TUTORING
               </span>
-              <span className="text-xl font-bold" style={{ color: "#E63946" }}>+</span>
+              <span className="text-base sm:text-xl font-bold" style={{ color: "#E63946" }}>+</span>
             </div>
-            <p className="text-center md:text-right" style={{ color: "#5A5A5A" }}>
+            <p className="text-center md:text-right text-xs sm:text-base" style={{ color: "#5A5A5A" }}>
               © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
               <br />
-              <span className="text-sm">
+              <span className="text-[10px] sm:text-sm">
                 Manufacturing Confidence & Financial Independence in South African Youth.
               </span>
             </p>

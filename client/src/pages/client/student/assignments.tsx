@@ -99,43 +99,43 @@ export default function StudentAssignments() {
   const completedAssignments = assignments.filter(a => a.isCompleted);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">My Assignments</h1>
-        <p className="text-muted-foreground">Practice problems from your tutor</p>
+        <h1 className="text-xl sm:text-3xl font-bold">My Assignments</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">Practice problems from your tutor</p>
       </div>
 
       {/* Stats */}
-      <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <Clock className="w-8 h-8 text-orange-600" />
+            <CardContent className="p-3 sm:pt-6">
+              <div className="flex flex-col sm:flex-row items-center sm:gap-3 text-center sm:text-left">
+                <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600 mb-1 sm:mb-0" />
                 <div>
-                  <p className="text-2xl font-bold">{pendingAssignments.length}</p>
-                  <p className="text-xs text-muted-foreground">Pending</p>
+                  <p className="text-lg sm:text-2xl font-bold">{pendingAssignments.length}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Pending</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <CheckCircle2 className="w-8 h-8 text-green-600" />
+            <CardContent className="p-3 sm:pt-6">
+              <div className="flex flex-col sm:flex-row items-center sm:gap-3 text-center sm:text-left">
+                <CheckCircle2 className="w-6 h-6 sm:w-8 sm:h-8 text-green-600 mb-1 sm:mb-0" />
                 <div>
-                  <p className="text-2xl font-bold">{completedAssignments.length}</p>
-                  <p className="text-xs text-muted-foreground">Completed</p>
+                  <p className="text-lg sm:text-2xl font-bold">{completedAssignments.length}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Completed</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <FileText className="w-8 h-8 text-primary" />
+            <CardContent className="p-3 sm:pt-6">
+              <div className="flex flex-col sm:flex-row items-center sm:gap-3 text-center sm:text-left">
+                <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-primary mb-1 sm:mb-0" />
                 <div>
-                  <p className="text-2xl font-bold">{assignments.length}</p>
-                  <p className="text-xs text-muted-foreground">Total</p>
+                  <p className="text-lg sm:text-2xl font-bold">{assignments.length}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Total</p>
                 </div>
               </div>
             </CardContent>
@@ -143,55 +143,55 @@ export default function StudentAssignments() {
         </div>
 
         {/* Pending Assignments */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4">Pending Assignments</h2>
+        <div className="mb-6 sm:mb-8">
+          <h2 className="text-lg sm:text-2xl font-bold mb-3 sm:mb-4">Pending Assignments</h2>
           {pendingAssignments.length === 0 ? (
             <Card>
-              <CardContent className="pt-6 text-center text-muted-foreground">
-                <CheckCircle2 className="w-12 h-12 mx-auto mb-4 opacity-50 text-green-600" />
-                <p>All caught up! No pending assignments.</p>
+              <CardContent className="p-4 sm:pt-6 text-center text-muted-foreground">
+                <CheckCircle2 className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 opacity-50 text-green-600" />
+                <p className="text-sm sm:text-base">All caught up! No pending assignments.</p>
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4">
+            <div className="grid gap-3 sm:gap-4">
               {pendingAssignments.map((assignment) => (
                 <Card key={assignment.id} className="border-l-4 border-l-orange-500">
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
+                  <CardHeader className="p-3 sm:p-6">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                       <div>
-                        <CardTitle className="flex items-center gap-2">
+                        <CardTitle className="flex flex-wrap items-center gap-2 text-base sm:text-lg">
                           {assignment.title}
-                          <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                          <Badge variant="secondary" className="bg-orange-100 text-orange-800 text-xs">
                             Pending
                           </Badge>
                         </CardTitle>
-                        <CardDescription>
+                        <CardDescription className="text-xs sm:text-sm mt-1">
                           Assigned by {assignment.tutor.name} on {new Date(assignment.createdAt).toLocaleDateString()}
                         </CardDescription>
                         {assignment.dueDate && (
-                          <p className="text-sm text-orange-600 mt-2">
+                          <p className="text-xs sm:text-sm text-orange-600 mt-1 sm:mt-2">
                             Due: {new Date(assignment.dueDate).toLocaleDateString()}
                           </p>
                         )}
                       </div>
-                      <Button onClick={() => handleSubmit(assignment)} className="gap-2">
+                      <Button onClick={() => handleSubmit(assignment)} className="gap-2 w-full sm:w-auto" size="sm">
                         <Send className="w-4 h-4" />
                         Submit Work
                       </Button>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0 space-y-3 sm:space-y-4">
                     {assignment.description && (
                       <div>
-                        <h4 className="font-semibold text-sm mb-2">Instructions</h4>
-                        <p className="text-sm text-muted-foreground">{assignment.description}</p>
+                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Instructions</h4>
+                        <p className="text-xs sm:text-sm text-muted-foreground">{assignment.description}</p>
                       </div>
                     )}
                     
                     {assignment.problemsAssigned && (
-                      <div className="bg-muted/30 rounded-lg p-4">
-                        <h4 className="font-semibold text-sm mb-2">Problems to Complete</h4>
-                        <p className="text-sm whitespace-pre-wrap">{assignment.problemsAssigned}</p>
+                      <div className="bg-muted/30 rounded-lg p-3 sm:p-4">
+                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Problems to Complete</h4>
+                        <p className="text-xs sm:text-sm whitespace-pre-wrap">{assignment.problemsAssigned}</p>
                       </div>
                     )}
                   </CardContent>
@@ -203,53 +203,53 @@ export default function StudentAssignments() {
 
         {/* Completed Assignments */}
         <div>
-          <h2 className="text-2xl font-bold mb-4">Completed Assignments</h2>
+          <h2 className="text-lg sm:text-2xl font-bold mb-3 sm:mb-4">Completed Assignments</h2>
           {completedAssignments.length === 0 ? (
             <Card>
-              <CardContent className="pt-6 text-center text-muted-foreground">
-                <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>No completed assignments yet.</p>
+              <CardContent className="p-4 sm:pt-6 text-center text-muted-foreground">
+                <FileText className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 opacity-50" />
+                <p className="text-sm sm:text-base">No completed assignments yet.</p>
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4">
+            <div className="grid gap-3 sm:gap-4">
               {completedAssignments.map((assignment) => (
                 <Card key={assignment.id} className="border-l-4 border-l-green-500">
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
+                  <CardHeader className="p-3 sm:p-6">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
                       <div>
-                        <CardTitle className="flex items-center gap-2">
+                        <CardTitle className="flex flex-wrap items-center gap-2 text-base sm:text-lg">
                           {assignment.title}
-                          <Badge variant="secondary" className="bg-green-100 text-green-800 flex items-center gap-1">
+                          <Badge variant="secondary" className="bg-green-100 text-green-800 flex items-center gap-1 text-xs">
                             <CheckCircle2 className="w-3 h-3" />
                             Completed
                           </Badge>
                         </CardTitle>
-                        <CardDescription>
+                        <CardDescription className="text-xs sm:text-sm mt-1">
                           Completed on {new Date(assignment.completedAt!).toLocaleDateString()}
                         </CardDescription>
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0 space-y-3 sm:space-y-4">
                     {assignment.description && (
                       <div>
-                        <h4 className="font-semibold text-sm mb-2">Instructions</h4>
-                        <p className="text-sm text-muted-foreground">{assignment.description}</p>
+                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Instructions</h4>
+                        <p className="text-xs sm:text-sm text-muted-foreground">{assignment.description}</p>
                       </div>
                     )}
 
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
                       {assignment.studentResult && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                          <h4 className="font-semibold text-sm text-blue-900 mb-2">Your Result</h4>
-                          <p className="text-sm text-blue-800 whitespace-pre-wrap">{assignment.studentResult}</p>
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 sm:p-3">
+                          <h4 className="font-semibold text-xs sm:text-sm text-blue-900 mb-1 sm:mb-2">Your Result</h4>
+                          <p className="text-xs sm:text-sm text-blue-800 whitespace-pre-wrap">{assignment.studentResult}</p>
                         </div>
                       )}
                       {assignment.studentWork && (
-                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                          <h4 className="font-semibold text-sm text-purple-900 mb-2">Your Work & Reasoning</h4>
-                          <p className="text-sm text-purple-800 whitespace-pre-wrap">{assignment.studentWork}</p>
+                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-2 sm:p-3">
+                          <h4 className="font-semibold text-xs sm:text-sm text-purple-900 mb-1 sm:mb-2">Your Work & Reasoning</h4>
+                          <p className="text-xs sm:text-sm text-purple-800 whitespace-pre-wrap">{assignment.studentWork}</p>
                         </div>
                       )}
                     </div>

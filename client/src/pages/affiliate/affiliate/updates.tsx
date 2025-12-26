@@ -77,23 +77,23 @@ export default function AffiliateUpdates() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">Updates</h1>
-          <p className="text-muted-foreground">Stay informed with announcements from leadership</p>
+          <h1 className="text-xl sm:text-3xl font-bold tracking-tight mb-1 sm:mb-2">Updates</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Stay informed with announcements from leadership</p>
         </div>
 
         {loading ? (
-          <Card className="p-12 text-center">
-            <p className="text-muted-foreground">Loading updates...</p>
+          <Card className="p-6 sm:p-12 text-center">
+            <p className="text-sm sm:text-base text-muted-foreground">Loading updates...</p>
           </Card>
         ) : broadcasts.length === 0 ? (
-          <Card className="p-12 text-center">
-            <Mail className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-muted-foreground">No updates yet</p>
+          <Card className="p-6 sm:p-12 text-center">
+            <Mail className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground/30 mx-auto mb-2 sm:mb-3" />
+            <p className="text-sm sm:text-base text-muted-foreground">No updates yet</p>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {broadcasts.map((broadcast: any) => {
               const isExpanded = expandedId === broadcast.id;
               const isRead = readData?.readBroadcasts?.includes(broadcast.id);
@@ -102,27 +102,27 @@ export default function AffiliateUpdates() {
               return (
                 <Card
                   key={broadcast.id}
-                  className={`p-6 transition-all hover:shadow-md cursor-pointer border-l-4 ${
+                  className={`p-3 sm:p-6 transition-all hover:shadow-md cursor-pointer border-l-4 ${
                     isRead 
                       ? "border-l-muted opacity-75 bg-card" 
                       : "border-l-primary bg-primary/5"
                   }`}
                 >
                   <div 
-                    className="space-y-4"
+                    className="space-y-3 sm:space-y-4"
                     onClick={() => setExpandedId(isExpanded ? null : broadcast.id)}
                   >
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 sm:gap-3">
                           {!isRead && (
-                            <div className="w-3 h-3 rounded-full bg-primary flex-shrink-0" />
+                            <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-primary flex-shrink-0" />
                           )}
-                          <h3 className="font-bold text-lg text-foreground break-words">
+                          <h3 className="font-bold text-sm sm:text-lg text-foreground break-words">
                             {broadcast.subject || "No Subject"}
                           </h3>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-2">
+                        <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 sm:mt-2">
                           {new Date(broadcast.createdAt).toLocaleDateString()} at{" "}
                           {new Date(broadcast.createdAt).toLocaleTimeString([], {
                             hour: "2-digit",
@@ -140,7 +140,7 @@ export default function AffiliateUpdates() {
                             markAsRead(broadcast.id);
                           }}
                           disabled={isMarking}
-                          className="gap-2 flex-shrink-0"
+                          className="gap-2 flex-shrink-0 text-xs sm:text-sm w-full sm:w-auto"
                         >
                           <Eye className="w-4 h-4" />
                           {isMarking ? "Marking..." : "Mark Read"}

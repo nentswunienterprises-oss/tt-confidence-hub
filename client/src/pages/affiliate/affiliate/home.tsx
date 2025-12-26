@@ -35,39 +35,39 @@ export default function AffiliateDashboard() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="space-y-4 sm:space-y-8">
         {/* Personal Greeting */}
-        <div className="space-y-3">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-            Welcome back, {firstName}! <Flame className="inline w-8 h-8 text-primary" />
+        <div className="space-y-2 sm:space-y-3">
+          <h1 className="text-xl sm:text-3xl md:text-4xl font-bold tracking-tight">
+            Welcome back, {firstName}! <Flame className="inline w-5 h-5 sm:w-8 sm:h-8 text-primary" />
           </h1>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-sm sm:text-lg text-muted-foreground">
             Share your unique code with parents and track every step of their journey to tutoring success.
           </p>
         </div>
 
         {/* Key Metrics - Stats */}
-        <div className="grid md:grid-cols-3 gap-6">
-          <Card className="p-8 border shadow-sm hover-elevate">
-            <div className="space-y-2">
-              <p className="text-5xl font-bold text-foreground">{stats?.encounters || 0}</p>
-              <p className="text-sm text-muted-foreground uppercase tracking-wide font-medium">
+        <div className="grid grid-cols-3 gap-2 sm:gap-6">
+          <Card className="p-3 sm:p-8 border shadow-sm hover-elevate">
+            <div className="space-y-1 sm:space-y-2 text-center sm:text-left">
+              <p className="text-2xl sm:text-5xl font-bold text-foreground">{stats?.encounters || 0}</p>
+              <p className="text-[10px] sm:text-sm text-muted-foreground uppercase tracking-wide font-medium">
                 Encounters
               </p>
             </div>
           </Card>
-          <Card className="p-8 border shadow-sm hover-elevate">
-            <div className="space-y-2">
-              <p className="text-5xl font-bold text-foreground">{stats?.leads || 0}</p>
-              <p className="text-sm text-muted-foreground uppercase tracking-wide font-medium">
+          <Card className="p-3 sm:p-8 border shadow-sm hover-elevate">
+            <div className="space-y-1 sm:space-y-2 text-center sm:text-left">
+              <p className="text-2xl sm:text-5xl font-bold text-foreground">{stats?.leads || 0}</p>
+              <p className="text-[10px] sm:text-sm text-muted-foreground uppercase tracking-wide font-medium">
                 Leads
               </p>
             </div>
           </Card>
-          <Card className="p-8 border shadow-sm hover-elevate">
-            <div className="space-y-2">
-              <p className="text-5xl font-bold text-foreground">{stats?.closes || 0}</p>
-              <p className="text-sm text-muted-foreground uppercase tracking-wide font-medium">
+          <Card className="p-3 sm:p-8 border shadow-sm hover-elevate">
+            <div className="space-y-1 sm:space-y-2 text-center sm:text-left">
+              <p className="text-2xl sm:text-5xl font-bold text-foreground">{stats?.closes || 0}</p>
+              <p className="text-[10px] sm:text-sm text-muted-foreground uppercase tracking-wide font-medium">
                 Closes
               </p>
             </div>
@@ -75,21 +75,21 @@ export default function AffiliateDashboard() {
         </div>
 
         {/* Affiliate Code Section */}
-        <Card className="p-8 border shadow-sm">
-          <div className="space-y-4">
+        <Card className="p-4 sm:p-8 border shadow-sm">
+          <div className="space-y-3 sm:space-y-4">
             <div>
-              <h2 className="text-xl font-bold mb-2">Your Unique Affiliate Code</h2>
-              <p className="text-muted-foreground">
+              <h2 className="text-base sm:text-xl font-bold mb-1 sm:mb-2">Your Unique Affiliate Code</h2>
+              <p className="text-xs sm:text-base text-muted-foreground">
                 Share this code with parents so you get credited when they sign up.
               </p>
             </div>
             <div className="flex gap-2">
-              <div className="flex-1 bg-background border rounded-lg p-4 text-center font-mono font-bold text-lg">
+              <div className="flex-1 bg-background border rounded-lg p-3 sm:p-4 text-center font-mono font-bold text-base sm:text-lg">
                 {codeData?.code || "Loading..."}
               </div>
-              <Button onClick={handleCopyCode} variant="default" size="lg" className="gap-2">
+              <Button onClick={handleCopyCode} variant="default" size="default" className="gap-2 px-3 sm:px-4">
                 <Copy className="w-4 h-4" />
-                Copy
+                <span className="hidden sm:inline">Copy</span>
               </Button>
             </div>
           </div>

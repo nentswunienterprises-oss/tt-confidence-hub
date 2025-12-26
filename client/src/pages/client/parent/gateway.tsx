@@ -398,7 +398,7 @@ export default function ParentGateway() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs sm:text-xs sm:text-sm font-medium mb-1" style={{ color: "#1A1A1A" }}>Phone Number (+27) *</label>
+                    <label className="block text-xs sm:text-sm font-medium mb-1" style={{ color: "#1A1A1A" }}>Phone Number (+27) *</label>
                     <Input
                       className="text-sm sm:text-base"
                       placeholder="+27 71 234 5678"
@@ -637,9 +637,9 @@ export default function ParentGateway() {
         {/* Submitted Confirmation */}
         {step === "submitted" && enrollmentStatus && (
           <Card className="text-center border-0 shadow-lg" style={{ backgroundColor: "white" }}>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-center gap-2" style={{ color: "#1A1A1A" }}>
-                <CheckCircle2 className="w-5 h-5" style={{ color: "#E85A2C" }} />
+            <CardHeader className="p-3 sm:p-6">
+              <CardTitle className="flex items-center justify-center gap-2 text-sm sm:text-lg" style={{ color: "#1A1A1A" }}>
+                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: "#E85A2C" }} />
                 {enrollmentStatus.status === "awaiting_assignment" && "Application Under Review"}
                 {enrollmentStatus.status === "assigned" && "Tutor Assigned"}
                 {enrollmentStatus.status === "session_booked" && "Proposal Accepted"}
@@ -669,29 +669,29 @@ export default function ParentGateway() {
               )}
               {enrollmentStatus.status === "assigned" && (
                 <>
-                  <h3 className="text-xl font-semibold mb-4">
+                  <h3 className="text-base sm:text-xl font-semibold mb-4">
                     A tutor has been assigned to your child!
                   </h3>
                   
                   {assignedTutor && (
-                    <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                      <div className="flex items-start gap-4">
+                    <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4">
                         {assignedTutor.profile_image_url ? (
                           <img 
                             src={assignedTutor.profile_image_url} 
                             alt={assignedTutor.name}
-                            className="w-16 h-16 rounded-full object-cover flex-shrink-0"
+                            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover flex-shrink-0"
                             onError={(e) => {
                               e.currentTarget.style.display = 'none';
                             }}
                           />
                         ) : null}
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-lg">{assignedTutor.name}</h3>
+                        <div className="flex-1 text-center sm:text-left">
+                          <h3 className="font-semibold text-base sm:text-lg">{assignedTutor.name}</h3>
                           {assignedTutor.bio && (
-                            <p className="text-sm text-muted-foreground mt-1">{assignedTutor.bio}</p>
+                            <p className="text-xs sm:text-sm text-muted-foreground mt-1">{assignedTutor.bio}</p>
                           )}
-                          <div className="flex gap-4 mt-2 text-sm text-muted-foreground">
+                          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-2 text-xs sm:text-sm text-muted-foreground">
                             {assignedTutor.email && (
                               <div>📧 {assignedTutor.email}</div>
                             )}
@@ -766,17 +766,17 @@ export default function ParentGateway() {
               {(enrollmentStatus.status === "session_booked" || enrollmentStatus.status === "report_received" || enrollmentStatus.status === "confirmed") && (
                 <>
                   {parentCode ? (
-                    <Card className="border-2 border-primary mb-6">
-                      <CardHeader>
-                        <CardTitle className="text-xl">🎓 Student Access Code</CardTitle>
-                        <CardDescription>
+                    <Card className="border-2 border-primary mb-4 sm:mb-6">
+                      <CardHeader className="p-3 sm:p-6">
+                        <CardTitle className="text-base sm:text-xl">Student Access Code</CardTitle>
+                        <CardDescription className="text-xs sm:text-sm">
                           Share this code with your child so they can create their student account
                         </CardDescription>
                       </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-6 rounded-lg text-center">
-                          <p className="text-sm text-muted-foreground mb-2">Your Student Code</p>
-                          <div className="text-4xl font-bold tracking-wider text-primary mb-4">
+                      <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0 space-y-3 sm:space-y-4">
+                        <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-4 sm:p-6 rounded-lg text-center">
+                          <p className="text-xs sm:text-sm text-muted-foreground mb-2">Your Student Code</p>
+                          <div className="text-2xl sm:text-4xl font-bold tracking-wider text-primary mb-3 sm:mb-4">
                             {parentCode}
                           </div>
                           <Button
@@ -788,14 +788,14 @@ export default function ParentGateway() {
                                 description: "Student code copied to clipboard",
                               });
                             }}
-                            className="gap-2"
+                            className="gap-2 text-xs sm:text-sm"
                           >
-                            📋 Copy Code
+                            Copy Code
                           </Button>
                         </div>
-                        <div className="bg-muted/30 rounded-lg p-4">
-                          <h4 className="font-semibold text-sm mb-2">Next Steps:</h4>
-                          <ol className="text-sm text-muted-foreground space-y-2">
+                        <div className="bg-muted/30 rounded-lg p-3 sm:p-4">
+                          <h4 className="font-semibold text-xs sm:text-sm mb-2">Next Steps:</h4>
+                          <ol className="text-xs sm:text-sm text-muted-foreground space-y-1 sm:space-y-2">
                             <li>1. Share this code with your child</li>
                             <li>2. Have them visit the student portal and create an account</li>
                             <li>3. They'll enter this code during signup to link their account</li>
@@ -804,16 +804,16 @@ export default function ParentGateway() {
                       </CardContent>
                     </Card>
                   ) : (
-                    <Card className="border-2 border-primary mb-6">
-                      <CardHeader>
-                        <CardTitle className="text-xl">🎓 Get Your Student Access Code</CardTitle>
-                        <CardDescription>
+                    <Card className="border-2 border-primary mb-4 sm:mb-6">
+                      <CardHeader className="p-3 sm:p-6">
+                        <CardTitle className="text-base sm:text-xl">Get Your Student Access Code</CardTitle>
+                        <CardDescription className="text-xs sm:text-sm">
                           Generate a code for your child to create their student account
                         </CardDescription>
                       </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="bg-muted/30 rounded-lg p-4">
-                          <p className="text-sm text-muted-foreground mb-4">
+                      <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0 space-y-3 sm:space-y-4">
+                        <div className="bg-muted/30 rounded-lg p-3 sm:p-4">
+                          <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
                             Your proposal has been accepted! Click the button below to generate a unique code that your child will use to create their student account.
                           </p>
                           <Button

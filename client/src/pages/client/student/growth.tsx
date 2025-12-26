@@ -202,28 +202,28 @@ export default function StudentGrowth() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Growth</h1>
-        <p className="text-muted-foreground">Build habits and reflect on your journey</p>
+        <h1 className="text-xl sm:text-3xl font-bold">Growth</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">Build habits and reflect on your journey</p>
       </div>
 
-      <Tabs defaultValue="commitments" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="commitments">Commitments</TabsTrigger>
-            <TabsTrigger value="reflections">Reflections</TabsTrigger>
+      <Tabs defaultValue="commitments" className="space-y-4 sm:space-y-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2 h-auto">
+            <TabsTrigger value="commitments" className="text-xs sm:text-sm py-2 sm:py-2.5">Commitments</TabsTrigger>
+            <TabsTrigger value="reflections" className="text-xs sm:text-sm py-2 sm:py-2.5">Reflections</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="commitments" className="space-y-6">
+          <TabsContent value="commitments" className="space-y-4 sm:space-y-6">
             {/* Add New Commitment Button */}
             <Card className="bg-gradient-to-r from-primary/10 to-primary/5">
-              <CardContent className="pt-6">
+              <CardContent className="p-4 sm:pt-6">
                 <Button 
                   onClick={handleNewCommitment}
                   className="w-full gap-2"
-                  size="lg"
+                  size="default"
                 >
-                  <Plus className="w-5 h-5" />
+                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                   Add New Commitment
                 </Button>
               </CardContent>
@@ -232,26 +232,26 @@ export default function StudentGrowth() {
             {/* Active Commitments */}
             {commitments.length === 0 ? (
               <Card>
-                <CardContent className="pt-6 text-center text-muted-foreground">
-                  <Target className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>No commitments yet. Create your first goal to start building habits!</p>
+                <CardContent className="p-4 sm:pt-6 text-center text-muted-foreground">
+                  <Target className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 opacity-50" />
+                  <p className="text-sm sm:text-base">No commitments yet. Create your first goal to start building habits!</p>
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid gap-4">
+              <div className="grid gap-3 sm:gap-4">
                 {commitments.filter(c => c.isActive).map((commitment) => (
                   <Card key={commitment.id} className="border-l-4 border-l-primary">
-                    <CardHeader>
-                      <div className="flex justify-between items-start">
+                    <CardHeader className="p-3 sm:p-6">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0">
                         <div className="flex-1">
-                          <CardTitle className="flex items-center gap-2">
+                          <CardTitle className="flex flex-wrap items-center gap-2 text-base sm:text-lg">
                             {commitment.name}
-                            <Badge variant="secondary" className="flex items-center gap-1">
+                            <Badge variant="secondary" className="flex items-center gap-1 text-xs">
                               <Flame className="w-3 h-3" />
                               {commitment.streakCount} day streak
                             </Badge>
                           </CardTitle>
-                          <CardDescription>{commitment.description}</CardDescription>
+                          <CardDescription className="text-xs sm:text-sm mt-1">{commitment.description}</CardDescription>
                         </div>
                         <div className="flex gap-2">
                           <Button
@@ -271,16 +271,16 @@ export default function StudentGrowth() {
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0 space-y-3 sm:space-y-4">
                       {/* Why and Daily Action */}
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                          <h4 className="font-semibold text-sm text-blue-900 mb-1">Why This Matters</h4>
-                          <p className="text-sm text-blue-800">{commitment.whyCommitment}</p>
+                      <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 sm:p-3">
+                          <h4 className="font-semibold text-xs sm:text-sm text-blue-900 mb-1">Why This Matters</h4>
+                          <p className="text-xs sm:text-sm text-blue-800">{commitment.whyCommitment}</p>
                         </div>
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                          <h4 className="font-semibold text-sm text-green-900 mb-1">Daily Action</h4>
-                          <p className="text-sm text-green-800">{commitment.dailyAction}</p>
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-2 sm:p-3">
+                          <h4 className="font-semibold text-xs sm:text-sm text-green-900 mb-1">Daily Action</h4>
+                          <p className="text-xs sm:text-sm text-green-800">{commitment.dailyAction}</p>
                         </div>
                       </div>
 
@@ -310,16 +310,16 @@ export default function StudentGrowth() {
             )}
           </TabsContent>
 
-          <TabsContent value="reflections" className="space-y-6">
+          <TabsContent value="reflections" className="space-y-4 sm:space-y-6">
             {/* Add New Reflection Button */}
             <Card className="bg-gradient-to-r from-purple/10 to-purple/5">
-              <CardContent className="pt-6">
+              <CardContent className="p-4 sm:pt-6">
                 <Button 
                   onClick={() => setReflectionDialogOpen(true)}
                   className="w-full gap-2"
-                  size="lg"
+                  size="default"
                 >
-                  <Plus className="w-5 h-5" />
+                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                   Write a Reflection
                 </Button>
               </CardContent>
@@ -328,19 +328,19 @@ export default function StudentGrowth() {
             {/* Past Reflections */}
             {reflections.length === 0 ? (
               <Card>
-                <CardContent className="pt-6 text-center text-muted-foreground">
-                  <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>No reflections yet. Start journaling your thoughts and growth!</p>
+                <CardContent className="p-4 sm:pt-6 text-center text-muted-foreground">
+                  <Calendar className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 opacity-50" />
+                  <p className="text-sm sm:text-base">No reflections yet. Start journaling your thoughts and growth!</p>
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid gap-4">
+              <div className="grid gap-3 sm:gap-4">
                 {reflections.map((reflection) => (
                   <Card key={reflection.id}>
-                    <CardHeader>
-                      <div className="flex justify-between items-start">
+                    <CardHeader className="p-3 sm:p-6">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
                         <div>
-                          <CardTitle className="text-base">
+                          <CardTitle className="text-sm sm:text-base">
                             {new Date(reflection.date).toLocaleDateString('en-US', {
                               weekday: 'long',
                               year: 'numeric',
@@ -349,15 +349,15 @@ export default function StudentGrowth() {
                             })}
                           </CardTitle>
                           {reflection.mood && (
-                            <Badge variant="secondary" className="mt-2">
+                            <Badge variant="secondary" className="mt-2 text-xs">
                               Mood: {reflection.mood}
                             </Badge>
                           )}
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                    <CardContent className="p-3 sm:p-6 pt-0">
+                      <p className="text-xs sm:text-sm text-muted-foreground whitespace-pre-wrap">
                         {reflection.reflectionText}
                       </p>
                     </CardContent>
