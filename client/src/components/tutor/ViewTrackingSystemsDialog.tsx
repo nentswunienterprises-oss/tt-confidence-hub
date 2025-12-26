@@ -87,21 +87,15 @@ export default function ViewTrackingSystemsDialog({
           <TabsList className="grid w-full grid-cols-3 h-auto">
             <TabsTrigger value="sessions" className="text-xs sm:text-sm py-2 px-1 sm:px-3">
               <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Sessions</span>
-              <span className="sm:hidden">Sess</span>
-              <span className="ml-1">({trackingData?.sessions?.length || 0})</span>
+              Sessions ({trackingData?.sessions?.length || 0})
             </TabsTrigger>
             <TabsTrigger value="reports" className="text-xs sm:text-sm py-2 px-1 sm:px-3">
               <FileText className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Reports</span>
-              <span className="sm:hidden">Rep</span>
-              <span className="ml-1">({trackingData?.parentReports?.length || 0})</span>
+              Reports ({trackingData?.parentReports?.length || 0})
             </TabsTrigger>
             <TabsTrigger value="feedback" className="text-xs sm:text-sm py-2 px-1 sm:px-3">
               <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Feedback</span>
-              <span className="sm:hidden">Feed</span>
-              <span className="ml-1">({trackingData?.tdFeedback?.length || 0})</span>
+              Feedback ({trackingData?.tdFeedback?.length || 0})
             </TabsTrigger>
           </TabsList>
 
