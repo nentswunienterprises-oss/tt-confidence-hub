@@ -250,7 +250,7 @@ export function ExecutiveAuthForm({ role, mode, setMode }: ExecutiveAuthFormProp
           type="submit"
           className="w-full h-12 rounded-full font-semibold text-base"
           disabled={loading}
-          style={{ backgroundColor: "#E85A2C", color: "white" }}
+          style={{ backgroundColor: "#E63946", color: "white" }}
         >
           {loading ? "Please wait..." : mode === "signup" ? "Create Account" : "Sign In"}
         </Button>
@@ -264,7 +264,7 @@ export function ExecutiveAuthForm({ role, mode, setMode }: ExecutiveAuthFormProp
             type="button"
             onClick={() => setMode(mode === "signup" ? "login" : "signup")}
             className="font-semibold hover:opacity-80"
-            style={{ color: "#E85A2C" }}
+            style={{ color: "#E63946" }}
           >
             {mode === "signup" ? "Sign In" : "Sign Up"}
           </button>
