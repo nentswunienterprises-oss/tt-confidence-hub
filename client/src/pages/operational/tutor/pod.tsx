@@ -203,36 +203,36 @@ export default function TutorPod() {
         </div>
 
         {/* Key Metrics - Prominent Stats */}
-        <div className="grid md:grid-cols-3 gap-6">
-          <Card className="p-8 border shadow-sm hover-elevate">
-            <div className="space-y-2">
-              <p className="text-5xl font-bold text-foreground" data-testid="text-sessions-done">
+        <div className="grid grid-cols-3 gap-2 sm:gap-6">
+          <Card className="p-3 sm:p-8 border shadow-sm hover-elevate">
+            <div className="space-y-1 sm:space-y-2 text-center sm:text-left">
+              <p className="text-2xl sm:text-5xl font-bold text-foreground" data-testid="text-sessions-done">
                 {totalSessions}
               </p>
-              <p className="text-sm text-muted-foreground uppercase tracking-wide font-medium">
+              <p className="text-[10px] sm:text-sm text-muted-foreground uppercase tracking-wide font-medium">
                 Sessions Done
               </p>
             </div>
           </Card>
 
-          <Card className="p-8 border shadow-sm hover-elevate">
-            <div className="space-y-2">
-              <p className="text-5xl font-bold text-foreground" data-testid="text-remaining">
+          <Card className="p-3 sm:p-8 border shadow-sm hover-elevate">
+            <div className="space-y-1 sm:space-y-2 text-center sm:text-left">
+              <p className="text-2xl sm:text-5xl font-bold text-foreground" data-testid="text-remaining">
                 {remainingSessions}
               </p>
-              <p className="text-sm text-muted-foreground uppercase tracking-wide font-medium">
+              <p className="text-[10px] sm:text-sm text-muted-foreground uppercase tracking-wide font-medium">
                 Remaining
               </p>
             </div>
           </Card>
 
-          <Card className="p-8 border shadow-sm hover-elevate">
-            <div className="space-y-2">
-              <p className="text-5xl font-bold text-foreground" data-testid="text-students-impacted">
+          <Card className="p-3 sm:p-8 border shadow-sm hover-elevate">
+            <div className="space-y-1 sm:space-y-2 text-center sm:text-left">
+              <p className="text-2xl sm:text-5xl font-bold text-foreground" data-testid="text-students-impacted">
                 {studentsImpacted}
               </p>
-              <p className="text-sm text-muted-foreground uppercase tracking-wide font-medium">
-                Students Impacted
+              <p className="text-[10px] sm:text-sm text-muted-foreground uppercase tracking-wide font-medium">
+                Students
               </p>
             </div>
           </Card>
