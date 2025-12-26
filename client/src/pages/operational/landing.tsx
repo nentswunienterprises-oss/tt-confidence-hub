@@ -277,7 +277,7 @@ export default function OperationalLanding() {
             size="lg"
             className="text-lg font-semibold px-10 py-6 rounded-full border-0"
             style={{ backgroundColor: "white", color: "#E63946" }}
-            onClick={() => navigate("/operational/signup")}}
+            onClick={() => navigate("/operational/signup")}
           >
             Apply Now
             <ArrowRight className="w-5 h-5 ml-2" />
