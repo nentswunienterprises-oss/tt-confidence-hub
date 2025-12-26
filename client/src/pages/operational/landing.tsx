@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { GraduationCap, MapPin, Check, ArrowRight, ArrowLeft, Heart } from "lucide-react";
+import { GraduationCap, Crown, Check, ArrowRight, ArrowLeft, Heart } from "lucide-react";
 import { useEffect } from "react";
 
 export default function OperationalLanding() {
@@ -147,7 +147,7 @@ export default function OperationalLanding() {
                 className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
                 style={{ backgroundColor: "#FFF0F0" }}
               >
-                <MapPin className="w-8 h-8" style={{ color: "#E63946" }} />
+                <Crown className="w-8 h-8" style={{ color: "#E63946" }} />
               </div>
               <h3 className="text-2xl font-bold mb-3" style={{ color: "#1A1A1A" }}>
                 Territory Director
@@ -233,7 +233,7 @@ export default function OperationalLanding() {
                   className="w-12 h-12 rounded-xl flex items-center justify-center"
                   style={{ backgroundColor: "#FFF0F0" }}
                 >
-                  <MapPin className="w-6 h-6" style={{ color: "#E63946" }} />
+                  <Crown className="w-6 h-6" style={{ color: "#E63946" }} />
                 </div>
                 <h3 className="text-xl font-bold" style={{ color: "#1A1A1A" }}>Territory Directors</h3>
               </div>
