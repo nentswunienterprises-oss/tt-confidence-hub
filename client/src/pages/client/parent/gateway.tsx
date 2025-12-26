@@ -297,7 +297,7 @@ export default function ParentGateway() {
             <span className="text-sm sm:text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
               TERRITORIAL TUTORING
             </span>
-            <span className="text-sm sm:text-xl font-bold" style={{ color: "#E85A2C" }}>+</span>
+            <span className="text-sm sm:text-xl font-bold" style={{ color: "#E63946" }}>+</span>
           </div>
           
           <div className="hidden md:block">
@@ -322,7 +322,7 @@ export default function ParentGateway() {
       <div className="h-16 sm:h-20" />
 
       {/* Journey Status Bar */}
-      <div style={{ backgroundColor: "#FEF3EE" }}>
+      <div style={{ backgroundColor: "#FFF0F0" }}>
         <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 flex justify-center">
           <div className="flex items-center justify-between w-full max-w-2xl overflow-x-auto">
             {[
@@ -336,8 +336,8 @@ export default function ParentGateway() {
                   <div
                     className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 transition"
                     style={{
-                      backgroundColor: item.status ? "#E85A2C" : "transparent",
-                      borderColor: item.status ? "#E85A2C" : "#D1D5DB",
+                      backgroundColor: item.status ? "#E63946" : "transparent",
+                      borderColor: item.status ? "#E63946" : "#D1D5DB",
                       color: item.status ? "white" : "#9CA3AF"
                     }}
                   >
@@ -352,7 +352,7 @@ export default function ParentGateway() {
                 {idx < arr.length - 1 && (
                   <div
                     className="flex-1 h-0.5 mx-1 sm:mx-2 transition min-w-[12px]"
-                    style={{ backgroundColor: item.status ? "#E85A2C" : "#E5E5E5" }}
+                    style={{ backgroundColor: item.status ? "#E63946" : "#E5E5E5" }}
                   />
                 )}
               </div>
@@ -373,8 +373,8 @@ export default function ParentGateway() {
             </CardHeader>
             <CardContent className="space-y-6 sm:space-y-8 px-4 sm:px-6">
               {/* Introduction */}
-              <div className="rounded-xl p-4 sm:p-5 space-y-2 sm:space-y-3" style={{ backgroundColor: "#FEF3EE" }}>
-                <h3 className="font-semibold text-sm sm:text-base" style={{ color: "#E85A2C" }}>"Confidence isn't a luxury. It's a skill we teach."</h3>
+              <div className="rounded-xl p-4 sm:p-5 space-y-2 sm:space-y-3" style={{ backgroundColor: "#FFF0F0" }}>
+                <h3 className="font-semibold text-sm sm:text-base" style={{ color: "#E63946" }}>"Confidence isn't a luxury. It's a skill we teach."</h3>
                 <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
                   Welcome to Territorial Tutoring's Confidence Project, a national pilot program redefining how students rebuild confidence in mathematics.
                 </p>
@@ -385,7 +385,7 @@ export default function ParentGateway() {
 
               {/* Parent Information */}
               <div className="space-y-3 sm:space-y-4">
-                <h4 className="font-semibold text-xs sm:text-sm uppercase tracking-wide" style={{ color: "#E85A2C" }}>Parent / Guardian Information</h4>
+                <h4 className="font-semibold text-xs sm:text-sm uppercase tracking-wide" style={{ color: "#E63946" }}>Parent / Guardian Information</h4>
                 <div className="space-y-3">
                   <div>
                     <label className="block text-xs sm:text-sm font-medium mb-1" style={{ color: "#1A1A1A" }}>Full Name *</label>
@@ -432,7 +432,7 @@ export default function ParentGateway() {
 
               {/* Student Information */}
               <div className="space-y-3 sm:space-y-4">
-                <h4 className="font-semibold text-xs sm:text-sm uppercase tracking-wide" style={{ color: "#E85A2C" }}>Student Information</h4>
+                <h4 className="font-semibold text-xs sm:text-sm uppercase tracking-wide" style={{ color: "#E63946" }}>Student Information</h4>
                 <div className="space-y-3">
                   <div>
                     <label className="block text-xs sm:text-sm font-medium mb-1" style={{ color: "#1A1A1A" }}>Student's Full Name *</label>
@@ -453,9 +453,9 @@ export default function ParentGateway() {
                           onClick={() => handleInputChange("studentGrade", grade)}
                           className="px-3 sm:px-4 py-2 rounded-lg border text-xs sm:text-sm font-medium transition"
                           style={{
-                            backgroundColor: formData.studentGrade === grade ? "#E85A2C" : "transparent",
+                            backgroundColor: formData.studentGrade === grade ? "#E63946" : "transparent",
                             color: formData.studentGrade === grade ? "white" : "#1A1A1A",
-                            borderColor: formData.studentGrade === grade ? "#E85A2C" : "#E5E5E5"
+                            borderColor: formData.studentGrade === grade ? "#E63946" : "#E5E5E5"
                           }}
                         >
                           {grade}
@@ -488,7 +488,7 @@ export default function ParentGateway() {
 
               {/* Background Questions */}
               <div className="space-y-3 sm:space-y-4">
-                <h4 className="font-semibold text-xs sm:text-sm uppercase tracking-wide" style={{ color: "#E85A2C" }}>Background</h4>
+                <h4 className="font-semibold text-xs sm:text-sm uppercase tracking-wide" style={{ color: "#E63946" }}>Background</h4>
                 <div className="space-y-3">
                   <div>
                     <label className="block text-xs sm:text-sm font-medium mb-2">Has your child ever received tutoring before? *</label>
@@ -503,9 +503,9 @@ export default function ParentGateway() {
                           onClick={() => handleInputChange("previousTutoring", option.value)}
                           className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border-2 text-xs sm:text-sm text-left transition"
                           style={{
-                            backgroundColor: formData.previousTutoring === option.value ? "#E85A2C" : "#FEF3EE",
+                            backgroundColor: formData.previousTutoring === option.value ? "#E63946" : "#FFF0F0",
                             color: formData.previousTutoring === option.value ? "white" : "#1A1A1A",
-                            borderColor: formData.previousTutoring === option.value ? "#E85A2C" : "#FEF3EE"
+                            borderColor: formData.previousTutoring === option.value ? "#E63946" : "#FFF0F0"
                           }}
                         >
                           {option.label}
@@ -528,9 +528,9 @@ export default function ParentGateway() {
                           onClick={() => handleInputChange("confidenceLevel", option.value)}
                           className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border-2 text-xs sm:text-sm text-left transition"
                           style={{
-                            backgroundColor: formData.confidenceLevel === option.value ? "#E85A2C" : "#FEF3EE",
+                            backgroundColor: formData.confidenceLevel === option.value ? "#E63946" : "#FFF0F0",
                             color: formData.confidenceLevel === option.value ? "white" : "#1A1A1A",
-                            borderColor: formData.confidenceLevel === option.value ? "#E85A2C" : "#FEF3EE"
+                            borderColor: formData.confidenceLevel === option.value ? "#E63946" : "#FFF0F0"
                           }}
                         >
                           {option.label}
@@ -552,9 +552,9 @@ export default function ParentGateway() {
                           onClick={() => handleInputChange("internetAccess", option.value)}
                           className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border-2 text-xs sm:text-sm text-left transition"
                           style={{
-                            backgroundColor: formData.internetAccess === option.value ? "#E85A2C" : "#FEF3EE",
+                            backgroundColor: formData.internetAccess === option.value ? "#E63946" : "#FFF0F0",
                             color: formData.internetAccess === option.value ? "white" : "#1A1A1A",
-                            borderColor: formData.internetAccess === option.value ? "#E85A2C" : "#FEF3EE"
+                            borderColor: formData.internetAccess === option.value ? "#E63946" : "#FFF0F0"
                           }}
                         >
                           {option.label}
@@ -582,7 +582,7 @@ export default function ParentGateway() {
               </div>
 
               {/* Parent Agreement */}
-              <div className="space-y-3 rounded-xl p-4 sm:p-5" style={{ backgroundColor: "#FEF3EE" }}>
+              <div className="space-y-3 rounded-xl p-4 sm:p-5" style={{ backgroundColor: "#FFF0F0" }}>
                 <h4 className="font-semibold text-xs sm:text-sm" style={{ color: "#1A1A1A" }}>Parent Agreement *</h4>
                 <div className="space-y-2 text-xs sm:text-sm">
                   {[
@@ -593,7 +593,7 @@ export default function ParentGateway() {
                     "I understand there may be an option to continue tutoring beyond the free trial on a paid basis.",
                   ].map((agreement, idx) => (
                     <div key={idx} className="flex gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 mt-0.5" style={{ color: "#E85A2C" }} />
+                      <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 mt-0.5" style={{ color: "#E63946" }} />
                       <span style={{ color: "#5A5A5A" }}>{agreement}</span>
                     </div>
                   ))}
@@ -606,8 +606,8 @@ export default function ParentGateway() {
                   <div 
                     className="w-5 h-5 rounded-md border-2 flex items-center justify-center"
                     style={{ 
-                      borderColor: formData.agreedToTerms ? "#E85A2C" : "#E5E5E5",
-                      backgroundColor: formData.agreedToTerms ? "#E85A2C" : "white"
+                      borderColor: formData.agreedToTerms ? "#E63946" : "#E5E5E5",
+                      backgroundColor: formData.agreedToTerms ? "#E63946" : "white"
                     }}
                   >
                     {formData.agreedToTerms && <Check className="w-3 h-3 text-white" />}
@@ -622,7 +622,7 @@ export default function ParentGateway() {
                 disabled={!isFormValid() || isSubmitting}
                 className="w-full rounded-full font-semibold text-sm sm:text-base"
                 size="lg"
-                style={{ backgroundColor: "#E85A2C", color: "white" }}
+                style={{ backgroundColor: "#E63946", color: "white" }}
               >
                 {isSubmitting ? "Submitting..." : "Submit Enrollment"}
               </Button>
@@ -639,7 +639,7 @@ export default function ParentGateway() {
           <Card className="text-center border-0 shadow-lg" style={{ backgroundColor: "white" }}>
             <CardHeader className="p-3 sm:p-6">
               <CardTitle className="flex items-center justify-center gap-2 text-sm sm:text-lg" style={{ color: "#1A1A1A" }}>
-                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: "#E85A2C" }} />
+                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: "#E63946" }} />
                 {enrollmentStatus.status === "awaiting_assignment" && "Application Under Review"}
                 {enrollmentStatus.status === "assigned" && "Tutor Assigned"}
                 {enrollmentStatus.status === "session_booked" && "Proposal Accepted"}
