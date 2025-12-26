@@ -48,29 +48,23 @@ export default function AffiliateDashboard() {
 
         {/* Key Metrics - Stats */}
         <div className="grid grid-cols-3 gap-2 sm:gap-6">
-          <Card className="p-3 sm:p-8 border shadow-sm hover-elevate">
-            <div className="space-y-1 sm:space-y-2 text-center sm:text-left">
-              <p className="text-2xl sm:text-5xl font-bold text-foreground">{stats?.encounters || 0}</p>
-              <p className="text-[10px] sm:text-sm text-muted-foreground uppercase tracking-wide font-medium">
-                Encounters
-              </p>
-            </div>
+          <Card className="p-3 sm:p-8 border shadow-sm hover-elevate text-center">
+            <p className="text-2xl sm:text-5xl font-bold text-foreground">{stats?.encounters || 0}</p>
+            <p className="text-[10px] sm:text-sm text-muted-foreground uppercase tracking-wide font-medium mt-1">
+              Encounters
+            </p>
           </Card>
-          <Card className="p-3 sm:p-8 border shadow-sm hover-elevate">
-            <div className="space-y-1 sm:space-y-2 text-center sm:text-left">
-              <p className="text-2xl sm:text-5xl font-bold text-foreground">{stats?.leads || 0}</p>
-              <p className="text-[10px] sm:text-sm text-muted-foreground uppercase tracking-wide font-medium">
-                Leads
-              </p>
-            </div>
+          <Card className="p-3 sm:p-8 border shadow-sm hover-elevate text-center">
+            <p className="text-2xl sm:text-5xl font-bold text-foreground">{stats?.leads || 0}</p>
+            <p className="text-[10px] sm:text-sm text-muted-foreground uppercase tracking-wide font-medium mt-1">
+              Leads
+            </p>
           </Card>
-          <Card className="p-3 sm:p-8 border shadow-sm hover-elevate">
-            <div className="space-y-1 sm:space-y-2 text-center sm:text-left">
-              <p className="text-2xl sm:text-5xl font-bold text-foreground">{stats?.closes || 0}</p>
-              <p className="text-[10px] sm:text-sm text-muted-foreground uppercase tracking-wide font-medium">
-                Closes
-              </p>
-            </div>
+          <Card className="p-3 sm:p-8 border shadow-sm hover-elevate text-center">
+            <p className="text-2xl sm:text-5xl font-bold text-foreground">{stats?.closes || 0}</p>
+            <p className="text-[10px] sm:text-sm text-muted-foreground uppercase tracking-wide font-medium mt-1">
+              Closes
+            </p>
           </Card>
         </div>
 
