@@ -347,7 +347,7 @@ export default function TutorPod() {
 
                             if (parentApproved) {
                               return (
-                                <Badge variant="default" className="text-xs bg-green-600">
+                                <Badge variant="default" className="text-xs bg-primary">
                                   My Student
                                 </Badge>
                               );

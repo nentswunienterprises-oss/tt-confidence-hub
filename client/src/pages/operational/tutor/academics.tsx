@@ -250,7 +250,7 @@ export default function SchoolTracker() {
       <div className="space-y-8">
         {/* Header Section */}
         <div className="flex flex-col gap-2 border-b pb-6">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-4xl font-bold text-foreground">
             Academic Health Center
           </h1>
           <p className="text-muted-foreground text-lg">

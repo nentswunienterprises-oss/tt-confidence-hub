@@ -331,6 +331,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </Button>
 
             <Link to="/" className="flex items-center gap-3">
+              {/* Mobile: Show THE CONFIDENCE HUB */}
+              <div className="sm:hidden">
+                <div className="font-bold text-base tracking-tight">THE CONFIDENCE HUB</div>
+              </div>
+              {/* Desktop: Show TT Confidence Hub with role info */}
               <div className="hidden sm:block">
                 <div className="font-bold text-base tracking-tight">TT Confidence Hub</div>
                 {effectiveUser && (

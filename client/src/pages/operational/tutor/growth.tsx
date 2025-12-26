@@ -185,28 +185,28 @@ export default function TutorGrowth() {
         </div>
 
         {/* Stats */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <Card className="p-6 border">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-primary" />
+        <div className="grid grid-cols-2 gap-2 sm:gap-6">
+          <Card className="p-3 sm:p-6 border">
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
               </div>
             </div>
-            <div className="space-y-1">
-              <p className="text-2xl font-bold">{reflections?.length || 0}</p>
-              <p className="text-sm text-muted-foreground">Total Reflections</p>
+            <div className="space-y-1 text-center sm:text-left">
+              <p className="text-xl sm:text-2xl font-bold">{reflections?.length || 0}</p>
+              <p className="text-[10px] sm:text-sm text-muted-foreground">Total Reflections</p>
             </div>
           </Card>
 
-          <Card className="p-6 border">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-green-600" />
+          <Card className="p-3 sm:p-6 border">
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
               </div>
             </div>
-            <div className="space-y-1">
-              <p className="text-2xl font-bold">{avgHabitScore.toFixed(1)}</p>
-              <p className="text-sm text-muted-foreground">Average Habit Score</p>
+            <div className="space-y-1 text-center sm:text-left">
+              <p className="text-xl sm:text-2xl font-bold">{avgHabitScore.toFixed(1)}</p>
+              <p className="text-[10px] sm:text-sm text-muted-foreground">Avg Habit Score</p>
             </div>
           </Card>
         </div>
