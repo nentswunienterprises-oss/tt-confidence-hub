@@ -64,14 +64,14 @@ export default function ExecutiveLanding() {
     <div className="min-h-screen" style={{ backgroundColor: "#FFF5ED" }}>
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
-        <div className="max-w-7xl mx-auto px-6 md:px-12 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
           <Button
             variant="ghost"
-            className="text-base font-medium hover:bg-transparent flex items-center gap-2"
+            className="text-sm sm:text-base font-medium hover:bg-transparent flex items-center gap-1 sm:gap-2 px-2 sm:px-4"
             style={{ color: "#1A1A1A" }}
             onClick={() => navigate("/")}
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Back
           </Button>
           
@@ -82,8 +82,8 @@ export default function ExecutiveLanding() {
           </div>
           
           <Button
-            className="text-base font-semibold px-6 py-5 rounded-full"
-            style={{ backgroundColor: "#E85A2C", color: "white" }}
+            className="text-sm sm:text-base font-semibold px-4 sm:px-6 py-2 sm:py-5 rounded-full"
+            style={{ backgroundColor: "#E63946", color: "white" }}
             onClick={() => navigate("/executive/signup")}
           >
             Sign In
@@ -92,92 +92,99 @@ export default function ExecutiveLanding() {
       </header>
 
       {/* Spacer for fixed header */}
-      <div className="h-20" />
+      <div className="h-16 sm:h-20" />
 
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-6 md:px-12 pt-12 md:pt-20 pb-20">
-        <div className="text-center max-w-3xl mx-auto space-y-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full" style={{ backgroundColor: "#FEF3EE" }}>
-            <span className="text-sm font-medium" style={{ color: "#E85A2C" }}>
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-8 sm:pt-12 md:pt-20 pb-12 sm:pb-20">
+        {/* Mobile Title */}
+        <div className="md:hidden text-center mb-6">
+          <span className="text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
+            EXECUTIVE PORTAL
+          </span>
+        </div>
+        
+        <div className="text-center max-w-3xl mx-auto space-y-5 sm:space-y-8">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
+            <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
               Leadership & Operations
             </span>
           </div>
           
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight" style={{ color: "#1A1A1A" }}>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight" style={{ color: "#1A1A1A" }}>
             Lead with
             <br />
-            <span style={{ color: "#E85A2C" }}>Confidence.</span>
+            <span style={{ color: "#E63946" }}>Confidence.</span>
           </h1>
           
-          <p className="text-lg md:text-xl leading-relaxed" style={{ color: "#5A5A5A" }}>
+          <p className="text-base sm:text-lg md:text-xl leading-relaxed" style={{ color: "#5A5A5A" }}>
             Executive access to operations, analytics, and strategic insights. Manage the Confidence Pod system with role-based dashboards.
           </p>
 
           <Button
             size="lg"
-            className="text-lg font-semibold px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all"
-            style={{ backgroundColor: "#E85A2C", color: "white" }}
+            className="text-base sm:text-lg font-semibold px-6 sm:px-8 py-4 sm:py-6 rounded-full shadow-lg hover:shadow-xl transition-all"
+            style={{ backgroundColor: "#E63946", color: "white" }}
             onClick={() => navigate("/executive/signup")}
           >
             Access Leadership Portal
-            <ArrowRight className="w-5 h-5 ml-2" />
+            <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
           </Button>
         </div>
       </section>
 
       {/* Role Selection */}
-      <section className="py-20" style={{ backgroundColor: "#1A1A1A" }}>
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6" style={{ color: "white" }}>
+      <section className="py-12 sm:py-20" style={{ backgroundColor: "#1A1A1A" }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
+          <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6" style={{ color: "white" }}>
               Choose Your Role
             </h2>
-            <p className="text-lg" style={{ color: "#A0A0A0" }}>
+            <p className="text-sm sm:text-lg" style={{ color: "#A0A0A0" }}>
               Select your leadership position to access your dashboard
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-8 max-w-6xl mx-auto">
             {roles.map((role) => {
               const Icon = role.icon;
               return (
                 <Card 
                   key={role.id} 
-                  className="p-8 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group"
+                  className="p-4 sm:p-8 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group"
                   style={{ backgroundColor: "white" }}
                   onClick={() => handleRoleSelect(role.id)}
                 >
                   <div 
-                    className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
-                    style={{ backgroundColor: "#FEF3EE" }}
+                    className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform"
+                    style={{ backgroundColor: "#FFF0F0" }}
                   >
-                    <Icon className="w-8 h-8" style={{ color: "#E85A2C" }} />
+                    <Icon className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: "#E63946" }} />
                   </div>
-                  <h3 className="text-xl font-bold mb-2" style={{ color: "#1A1A1A" }}>
+                  <h3 className="text-base sm:text-xl font-bold mb-1 sm:mb-2" style={{ color: "#1A1A1A" }}>
                     {role.title}
                   </h3>
-                  <p className="text-sm mb-6" style={{ color: "#5A5A5A" }}>
+                  <p className="text-xs sm:text-sm mb-4 sm:mb-6" style={{ color: "#5A5A5A" }}>
                     {role.description}
                   </p>
                   
-                  <p className="text-xs font-semibold uppercase tracking-wide mb-4" style={{ color: "#E85A2C" }}>
+                  <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide mb-2 sm:mb-4" style={{ color: "#E63946" }}>
                     Your Dashboard Includes
                   </p>
-                  <ul className="space-y-2 mb-6">
+                  <ul className="space-y-1.5 sm:space-y-2 mb-4 sm:mb-6">
                     {role.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-center gap-2 text-sm" style={{ color: "#5A5A5A" }}>
-                        <Check className="w-4 h-4 flex-shrink-0" style={{ color: "#E85A2C" }} />
+                      <li key={idx} className="flex items-center gap-2 text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
+                        <Check className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" style={{ color: "#E63946" }} />
                         {feature}
                       </li>
                     ))}
                   </ul>
                   
                   <Button 
-                    className="w-full rounded-full py-6 font-semibold"
-                    style={{ backgroundColor: "#E85A2C", color: "white" }}
+                    className="w-full rounded-full py-4 sm:py-6 font-semibold text-sm sm:text-base"
+                    style={{ backgroundColor: "#E63946", color: "white" }}
                   >
                     Continue as {role.shortTitle}
-                    <ArrowRight className="w-4 h-4 ml-2" />
+                    <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-2" />
                   </Button>
                 </Card>
               );
@@ -187,18 +194,18 @@ export default function ExecutiveLanding() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12" style={{ backgroundColor: "#FFF5ED" }}>
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+      <footer className="py-8 sm:py-12" style={{ backgroundColor: "#FFF5ED" }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
+              <span className="text-base sm:text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
                 TERRITORIAL TUTORING
               </span>
-              <span className="text-xl font-bold" style={{ color: "#E85A2C" }}>+</span>
+              <span className="text-base sm:text-xl font-bold" style={{ color: "#E63946" }}>+</span>
             </div>
-            <div className="flex items-center gap-2" style={{ color: "#5A5A5A" }}>
-              <Shield className="w-4 h-4" />
-              <span className="text-sm">Executive Portal secured with role-based access control</span>
+            <div className="flex items-center gap-2 text-center md:text-right" style={{ color: "#5A5A5A" }}>
+              <Shield className="w-4 h-4 hidden sm:block" />
+              <span className="text-xs sm:text-sm">Executive Portal secured with role-based access control</span>
             </div>
           </div>
         </div>
