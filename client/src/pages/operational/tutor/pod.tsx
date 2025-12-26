@@ -232,7 +232,7 @@ export default function TutorPod() {
                 {studentsImpacted}
               </p>
               <p className="text-[10px] sm:text-sm text-muted-foreground uppercase tracking-wide font-medium">
-                Students
+                Students Impacted
               </p>
             </div>
           </Card>
