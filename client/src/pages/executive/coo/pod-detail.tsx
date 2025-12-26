@@ -281,82 +281,82 @@ export default function PodDetail() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate("/coo/pods")}
-            className="hover:bg-muted"
+            className="hover:bg-muted h-8 w-8 sm:h-10 sm:w-10"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           </Button>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{podName}</h1>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate">{podName}</h1>
         </div>
 
         {/* Statistics Section */}
-        <div className="grid md:grid-cols-2 gap-4">
-          <Card className="p-6 border">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          <Card className="p-4 sm:p-6 border">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground uppercase">Students Being Tutored</p>
-                <p className="text-3xl font-bold mt-2">{podStats?.totalStudents || 0}</p>
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground uppercase">Students</p>
+                <p className="text-2xl sm:text-3xl font-bold mt-1 sm:mt-2">{podStats?.totalStudents || 0}</p>
               </div>
-              <Users className="w-5 h-5 text-blue-600 opacity-50" />
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 opacity-50" />
             </div>
           </Card>
           
-          <Card className="p-6 border">
+          <Card className="p-4 sm:p-6 border">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground uppercase">Sessions Completed</p>
-                <p className="text-3xl font-bold mt-2">{podStats?.sessionsCompleted || 0}</p>
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground uppercase">Sessions</p>
+                <p className="text-2xl sm:text-3xl font-bold mt-1 sm:mt-2">{podStats?.sessionsCompleted || 0}</p>
               </div>
-              <Zap className="w-5 h-5 text-amber-600 opacity-50" />
+              <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 opacity-50" />
             </div>
           </Card>
         </div>
 
         {/* Pod Info Grid */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
           {/* Left Column */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {/* Status */}
-            <Card className="p-6 border">
-              <p className="text-sm font-medium text-muted-foreground uppercase">Status</p>
-              <div className="mt-3">
-                <Badge className={`${getStatusColor((currentPod as Pod).status)} border font-semibold`}>
+            <Card className="p-4 sm:p-6 border">
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground uppercase">Status</p>
+              <div className="mt-2 sm:mt-3">
+                <Badge className={`${getStatusColor((currentPod as Pod).status)} border font-semibold text-xs`}>
                   {(currentPod as Pod).status}
                 </Badge>
               </div>
             </Card>
 
             {/* Phase */}
-            <Card className="p-6 border">
-              <p className="text-sm font-medium text-muted-foreground uppercase">Phase</p>
-              <div className="mt-3">
-                <Badge className={`${getPhaseColor((currentPod as Pod).phase)} border`}>
+            <Card className="p-4 sm:p-6 border">
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground uppercase">Phase</p>
+              <div className="mt-2 sm:mt-3">
+                <Badge className={`${getPhaseColor((currentPod as Pod).phase)} border text-xs`}>
                   {(currentPod as Pod).phase === "foundation" ? "Foundation" : "Scale Test"}
                 </Badge>
               </div>
             </Card>
 
             {/* Territory Director */}
-            <Card className="p-6 border">
-              <div className="flex items-center gap-2 mb-3">
-                <Users className="w-4 h-4 text-primary" />
-                <p className="text-sm font-medium text-muted-foreground uppercase">Territory Director</p>
+            <Card className="p-4 sm:p-6 border">
+              <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                <Users className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground uppercase">Territory Director</p>
               </div>
-              <p className="font-medium">{tdName}</p>
+              <p className="font-medium text-sm sm:text-base">{tdName}</p>
             </Card>
 
             {/* Start Date */}
             {(currentPod as Pod).startDate && (
-              <Card className="p-6 border">
-                <div className="flex items-center gap-2 mb-3">
-                  <Calendar className="w-4 h-4 text-primary" />
-                  <p className="text-sm font-medium text-muted-foreground uppercase">Started</p>
+              <Card className="p-4 sm:p-6 border">
+                <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground uppercase">Started</p>
                 </div>
-                <p className="font-medium">
+                <p className="font-medium text-sm sm:text-base">
                   {new Date((currentPod as Pod).startDate).toLocaleDateString(
                     "en-US",
                     { year: "numeric", month: "long", day: "numeric" }
@@ -368,14 +368,14 @@ export default function PodDetail() {
 
           {/* Right Column - Tutors */}
           <div>
-            <Card className="p-6 border">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between border-b pb-4">
+            <Card className="p-4 sm:p-6 border">
+              <div className="space-y-3 sm:space-y-4">
+                <div className="flex items-center justify-between border-b pb-3 sm:pb-4">
                   <div className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-primary" />
-                    <h2 className="font-semibold">Assigned Tutors</h2>
+                    <Users className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                    <h2 className="font-semibold text-sm sm:text-base">Assigned Tutors</h2>
                   </div>
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-xs sm:text-sm text-muted-foreground">
                     {tutorCount}/{maxTutors}
                   </span>
                 </div>
@@ -399,26 +399,26 @@ export default function PodDetail() {
                           key={assignment.id}
                           className="border rounded-lg overflow-hidden hover:bg-muted/50 transition-colors"
                         >
-                          <div className="p-4">
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="flex items-start gap-3 flex-1">
-                                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
+                          <div className="p-3 sm:p-4">
+                            <div className="flex items-start justify-between gap-2 sm:gap-4">
+                              <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center text-xs sm:text-sm font-bold text-primary shrink-0">
                                   {assignment.tutorName.charAt(0).toUpperCase()}
                                 </div>
-                                <div className="flex-1">
-                                  <p className="font-semibold">{assignment.tutorName}</p>
-                                  <p className="text-sm text-muted-foreground">{assignment.tutorEmail}</p>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-semibold text-sm sm:text-base truncate">{assignment.tutorName}</p>
+                                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{assignment.tutorEmail}</p>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                                 <Button
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => toggleTutorExpand(assignment.id)}
-                                  className="h-8"
+                                  className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                                 >
                                   <ChevronDown
-                                    className={`w-4 h-4 transition-transform ${
+                                    className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform ${
                                       isExpanded ? "rotate-180" : ""
                                     }`}
                                   />
@@ -428,10 +428,10 @@ export default function PodDetail() {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      className="h-8 text-muted-foreground hover:text-red-600 hover:bg-red-50"
+                                      className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-muted-foreground hover:text-red-600 hover:bg-red-50"
                                       onClick={() => setTutorToRemove(assignment.id)}
                                     >
-                                      <Trash2 className="w-4 h-4" />
+                                      <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                     </Button>
                                   </AlertDialogTrigger>
                                   <AlertDialogContent>

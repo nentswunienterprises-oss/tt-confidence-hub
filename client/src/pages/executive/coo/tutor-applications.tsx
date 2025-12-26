@@ -125,23 +125,23 @@ export default function TutorApplicationsPage() {
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Tutor Applications</h1>
-          <p className="text-muted-foreground">Review and manage tutor applications</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Tutor Applications</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Review and manage tutor applications</p>
         </div>
 
         <Tabs defaultValue="pending" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="pending" className="gap-2" data-testid="tab-pending">
-              <Clock className="w-4 h-4" />
-              Pending ({pendingApplications.length})
+          <TabsList className="w-full flex overflow-x-auto">
+            <TabsTrigger value="pending" className="flex-1 min-w-0 gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4" data-testid="tab-pending">
+              <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="truncate">Pending ({pendingApplications.length})</span>
             </TabsTrigger>
-            <TabsTrigger value="approved" className="gap-2" data-testid="tab-approved">
-              <CheckCircle className="w-4 h-4" />
-              Approved ({approvedApplications.length})
+            <TabsTrigger value="approved" className="flex-1 min-w-0 gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4" data-testid="tab-approved">
+              <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="truncate">Approved ({approvedApplications.length})</span>
             </TabsTrigger>
-            <TabsTrigger value="rejected" className="gap-2" data-testid="tab-rejected">
-              <XCircle className="w-4 h-4" />
-              Rejected ({rejectedApplications.length})
+            <TabsTrigger value="rejected" className="flex-1 min-w-0 gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4" data-testid="tab-rejected">
+              <XCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="truncate">Rejected ({rejectedApplications.length})</span>
             </TabsTrigger>
           </TabsList>
 
@@ -313,50 +313,50 @@ function ApplicationCard({
 
   return (
     <Card data-testid={`application-card-${application.id}`}>
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <CardTitle className="text-xl">{fullNames}</CardTitle>
-            <CardDescription>
+      <CardHeader className="pb-3 sm:pb-6">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+          <div className="space-y-1 min-w-0">
+            <CardTitle className="text-lg sm:text-xl truncate">{fullNames}</CardTitle>
+            <CardDescription className="text-xs sm:text-sm break-all">
               {email} • {phoneNumber}
             </CardDescription>
           </div>
-          <Badge className={statusColors[application.status]}>{application.status.toUpperCase()}</Badge>
+          <Badge className={`${statusColors[application.status]} shrink-0 text-xs`}>{application.status.toUpperCase()}</Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-sm">
           <div>
-            <p className="text-muted-foreground">Age</p>
-            <p className="font-medium">{age}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">Age</p>
+            <p className="font-medium text-sm sm:text-base">{age}</p>
           </div>
           <div>
-            <p className="text-muted-foreground">Location</p>
-            <p className="font-medium">{city}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">Location</p>
+            <p className="font-medium text-sm sm:text-base truncate">{city}</p>
           </div>
           <div>
-            <p className="text-muted-foreground">Status</p>
-            <p className="font-medium">{currentStatus.replace(/_/g, " ")}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">Status</p>
+            <p className="font-medium text-sm sm:text-base">{currentStatus.replace(/_/g, " ")}</p>
           </div>
           <div>
-            <p className="text-muted-foreground">Grades</p>
-            <p className="font-medium">{gradesEquipped.join(", ")}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">Grades</p>
+            <p className="font-medium text-sm sm:text-base truncate">{gradesEquipped.join(", ")}</p>
           </div>
         </div>
 
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={onViewDetails} data-testid="button-view-details">
-            <User className="w-4 h-4 mr-2" />
-            View Full Application
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" onClick={onViewDetails} className="text-xs sm:text-sm" data-testid="button-view-details">
+            <User className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">View Full </span>Application
           </Button>
           {showActions && onApprove && onReject && (
             <>
-              <Button variant="outline" onClick={onReject} data-testid="button-reject">
-                <XCircle className="w-4 h-4 mr-2" />
+              <Button variant="outline" size="sm" onClick={onReject} className="text-xs sm:text-sm" data-testid="button-reject">
+                <XCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                 Reject
               </Button>
-              <Button onClick={onApprove} data-testid="button-approve">
-                <CheckCircle className="w-4 h-4 mr-2" />
+              <Button size="sm" onClick={onApprove} className="text-xs sm:text-sm" data-testid="button-approve">
+                <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                 Approve
               </Button>
             </>

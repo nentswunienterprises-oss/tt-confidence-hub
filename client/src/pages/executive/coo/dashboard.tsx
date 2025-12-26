@@ -185,9 +185,9 @@ export default function COODashboard() {
       <div className="space-y-8">
         {/* Pods Section - VIEW ONLY */}
         <section>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">Pods</h2>
-            <p className="text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold">Pods</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">
               View all active pods. Manage pods in Pod Management tab.
             </p>
           </div>
@@ -201,7 +201,7 @@ export default function COODashboard() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2">
               {pods.map((pod: any) => {
                 const podType = (pod as any).pod_type || pod.podType || 'training';
                 const vehicle = (pod as any).vehicle || '4_seater';
@@ -261,9 +261,9 @@ export default function COODashboard() {
 
         {/* Territory Directors Section - VIEW ONLY */}
         <section>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">Territory Directors</h2>
-            <p className="text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold">Territory Directors</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">
               View all TDs and their pod assignments. Manage in Pod Management tab.
             </p>
           </div>
@@ -284,18 +284,18 @@ export default function COODashboard() {
                 
                 return (
                   <Card key={td.id} data-testid={`card-td-${td.id}`}>
-                    <CardContent className="py-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">{td.name || td.email}</p>
-                          <p className="text-sm text-muted-foreground">
+                    <CardContent className="py-3 sm:py-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm sm:text-base truncate">{td.name || td.email}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground truncate">
                             {td.email}
                           </p>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 shrink-0">
                           {assignedPod ? (
-                            <div className="text-right">
-                              <Badge className="bg-green-600 hover:bg-green-700" data-testid={`badge-assigned-${td.id}`}>
+                            <div className="text-left sm:text-right">
+                              <Badge className="bg-green-600 hover:bg-green-700 text-xs" data-testid={`badge-assigned-${td.id}`}>
                                 Assigned
                               </Badge>
                               <p className="text-xs text-muted-foreground mt-1">
@@ -303,7 +303,7 @@ export default function COODashboard() {
                               </p>
                             </div>
                           ) : (
-                            <Badge variant="outline">Not Assigned</Badge>
+                            <Badge variant="outline" className="text-xs">Not Assigned</Badge>
                           )}
                         </div>
                       </div>

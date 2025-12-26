@@ -24,55 +24,55 @@ function EditorToolbar({ editor }: { editor: any }) {
   if (!editor) return null;
 
   return (
-    <div className="flex flex-wrap gap-1 mb-4 p-2 border rounded-lg bg-muted/50">
+    <div className="flex flex-wrap gap-1 mb-3 sm:mb-4 p-1.5 sm:p-2 border rounded-lg bg-muted/50">
       <Button
         size="sm"
         variant={editor.isActive("bold") ? "default" : "ghost"}
         onClick={() => editor.chain().focus().toggleBold().run()}
-        className="h-8 px-2"
+        className="h-7 sm:h-8 px-1.5 sm:px-2"
       >
-        <Bold className="w-4 h-4" />
+        <Bold className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
       </Button>
       <Button
         size="sm"
         variant={editor.isActive("italic") ? "default" : "ghost"}
         onClick={() => editor.chain().focus().toggleItalic().run()}
-        className="h-8 px-2"
+        className="h-7 sm:h-8 px-1.5 sm:px-2"
       >
-        <Italic className="w-4 h-4" />
+        <Italic className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
       </Button>
-      <div className="w-px bg-border mx-1" />
+      <div className="w-px bg-border mx-0.5 sm:mx-1" />
       <Button
         size="sm"
         variant={editor.isActive("bulletList") ? "default" : "ghost"}
         onClick={() => editor.chain().focus().toggleBulletList().run()}
-        className="h-8 px-2"
+        className="h-7 sm:h-8 px-1.5 sm:px-2"
       >
-        <List className="w-4 h-4" />
+        <List className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
       </Button>
       <Button
         size="sm"
         variant={editor.isActive("orderedList") ? "default" : "ghost"}
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        className="h-8 px-2"
+        className="h-7 sm:h-8 px-1.5 sm:px-2"
       >
-        <ListOrdered className="w-4 h-4" />
+        <ListOrdered className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
       </Button>
-      <div className="w-px bg-border mx-1" />
+      <div className="w-px bg-border mx-0.5 sm:mx-1" />
       <Button
         size="sm"
         variant={editor.isActive("blockquote") ? "default" : "ghost"}
         onClick={() => editor.chain().focus().toggleBlockquote().run()}
-        className="h-8 px-2"
+        className="h-7 sm:h-8 px-1.5 sm:px-2"
       >
-        <Quote className="w-4 h-4" />
+        <Quote className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
       </Button>
-      <div className="w-px bg-border mx-1" />
+      <div className="w-px bg-border mx-0.5 sm:mx-1" />
       <Button
         size="sm"
         variant="ghost"
         onClick={() => editor.chain().focus().clearNodes().run()}
-        className="h-8 px-2 text-xs"
+        className="h-7 sm:h-8 px-1.5 sm:px-2 text-xs"
       >
         Clear
       </Button>
@@ -176,16 +176,16 @@ export default function COOBroadcast() {
       <div className="space-y-6">
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Broadcast Message</h1>
 
-        <Card className="p-6 border">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                <MessageSquare className="w-6 h-6 text-primary" />
+        <Card className="p-4 sm:p-6 border">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+            <div className="flex items-center gap-3 mb-4 sm:mb-6">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
               </div>
               <div>
-                <h2 className="font-semibold text-lg">Send System-Wide Update</h2>
-                <p className="text-sm text-muted-foreground">
-                  Communicate important updates and announcements with rich formatting
+                <h2 className="font-semibold text-base sm:text-lg">Send System-Wide Update</h2>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Communicate important updates with rich formatting
                 </p>
               </div>
             </div>

@@ -349,9 +349,9 @@ export default function COOPods() {
         </div>
 
         {/* Pods Grid */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
           {!pods || pods.length === 0 ? (
-            <Card className="md:col-span-2 p-12 text-center border">
+            <Card className="sm:col-span-2 p-8 sm:p-12 text-center border">
               <FolderKanban className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
               <p className="text-muted-foreground mb-4">No pods created yet</p>
             </Card>
@@ -362,39 +362,39 @@ export default function COOPods() {
                 to={`/coo/pods/${pod.id}`}
               >
                 <Card
-                  className="p-6 border space-y-4 cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all hover:scale-105"
+                  className="p-4 sm:p-6 border space-y-3 sm:space-y-4 cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all hover:scale-[1.02] sm:hover:scale-105"
                   data-testid={`pod-card-${pod.id}`}
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-3 flex-1">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <FolderKanban className="w-5 h-5 text-primary" />
+                  <div className="flex items-start justify-between gap-2 sm:gap-4">
+                    <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <FolderKanban className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg">{(pod as any).pod_name || pod.podName}</h3>
-                        <p className="text-sm text-muted-foreground capitalize">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-base sm:text-lg truncate">{(pod as any).pod_name || pod.podName}</h3>
+                        <p className="text-xs sm:text-sm text-muted-foreground capitalize">
                           {pod.phase.replace("_", " ")} Phase
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                       <Badge
-                        className={`${getStatusColor(pod.status)} border font-semibold uppercase text-2xs`}
+                        className={`${getStatusColor(pod.status)} border font-semibold uppercase text-[10px] sm:text-2xs`}
                       >
                         {pod.status}
                       </Badge>
-                      <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                     </div>
                   </div>
 
-                  <div className="pt-3 border-t space-y-2">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Users className="w-4 h-4 text-muted-foreground" />
+                  <div className="pt-2 sm:pt-3 border-t space-y-1 sm:space-y-2">
+                    <div className="flex items-center gap-2 text-xs sm:text-sm">
+                      <Users className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
                       <span className="text-muted-foreground">TD:</span>
-                      <span className="font-medium">{getTDName((pod as any).td_id || pod.tdId)}</span>
+                      <span className="font-medium truncate">{getTDName((pod as any).td_id || pod.tdId)}</span>
                     </div>
                     {((pod as any).start_date || pod.startDate) && (
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-[10px] sm:text-xs text-muted-foreground">
                         Started: {new Date((pod as any).start_date || pod.startDate).toLocaleDateString()}
                       </p>
                     )}
