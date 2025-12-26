@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom"; // ✅ React Router hook
 import { getDefaultDashboardRoute } from "@shared/portals";
 import type { Role } from "@shared/portals";
 import { API_URL } from "@/lib/config";
+import { queryClient } from "@/lib/queryClient";
 
 interface AuthFormProps {
   mode: "signup" | "login";
@@ -36,6 +37,9 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
     setLoading(true);
 
     try {
+      // Clear any cached user data from previous sessions to prevent role mixing
+      queryClient.clear();
+      
       // Validate affiliate code for parents - required to track which affiliate recruited them
       // DEVELOPMENT: Allow "TEST" as bypass for testing
       if (mode === "signup" && role === "parent" && !code.trim() && code !== "TEST") {

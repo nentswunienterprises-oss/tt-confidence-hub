@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "@/lib/config";
+import { queryClient } from "@/lib/queryClient";
 
 type Role = "coo" | "hr" | "ceo";
 
@@ -41,6 +42,9 @@ export function ExecutiveAuthForm({ role, mode, setMode }: ExecutiveAuthFormProp
     setLoading(true);
 
     try {
+      // Clear any cached user data from previous sessions to prevent role mixing
+      queryClient.clear();
+      
       let redirectUrl = "/";
 
       if (mode === "signup") {
