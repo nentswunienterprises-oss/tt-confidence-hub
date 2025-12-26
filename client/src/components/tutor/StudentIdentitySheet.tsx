@@ -348,20 +348,20 @@ export default function StudentIdentitySheet({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle>Student Profile & Identity Sheet</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-lg sm:text-xl">Student Profile & Identity Sheet</DialogTitle>
+          <DialogDescription className="text-sm">
             Building a complete profile for {studentName}
           </DialogDescription>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="personal">Personal Profile</TabsTrigger>
-            <TabsTrigger value="emotional">Emotional Insights</TabsTrigger>
-            <TabsTrigger value="academic">Academic</TabsTrigger>
-            <TabsTrigger value="identity">Identity Sheet</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto gap-1">
+            <TabsTrigger value="personal" className="text-xs sm:text-sm py-2">Personal</TabsTrigger>
+            <TabsTrigger value="emotional" className="text-xs sm:text-sm py-2">Emotional</TabsTrigger>
+            <TabsTrigger value="academic" className="text-xs sm:text-sm py-2">Academic</TabsTrigger>
+            <TabsTrigger value="identity" className="text-xs sm:text-sm py-2">Identity</TabsTrigger>
           </TabsList>
 
           {/* TAB 1: PERSONAL PROFILE */}
@@ -371,7 +371,7 @@ export default function StudentIdentitySheet({
                 <CardTitle className="text-lg">🔹 Personal Profile</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="name">Name</Label>
                     <Input
@@ -403,7 +403,7 @@ export default function StudentIdentitySheet({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="school">School</Label>
                     <Input
