@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { QrCode, TrendingUp, DollarSign, Compass, Zap, Check, ArrowRight, ArrowLeft, Banknote } from "lucide-react";
+import { QrCode, TrendingUp, DollarSign, Compass, Users, Zap, Check, ArrowRight, ArrowLeft, Banknote } from "lucide-react";
 import { useEffect } from "react";
 
 export default function AffiliateLanding() {

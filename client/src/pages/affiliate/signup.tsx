@@ -179,7 +179,7 @@ export default function AffiliateSignup() {
               {selectedRole === "affiliate" ? (
                 <QrCode className="w-7 h-7 sm:w-8 sm:h-8" style={{ color: "#E63946" }} />
               ) : (
-                <Users className="w-7 h-7 sm:w-8 sm:h-8" style={{ color: "#E63946" }} />
+                <Compass className="w-7 h-7 sm:w-8 sm:h-8" style={{ color: "#E63946" }} />
               )}
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold" style={{ color: "#1A1A1A" }}>
