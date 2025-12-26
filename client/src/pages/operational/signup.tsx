@@ -3,7 +3,7 @@ import { AuthForm } from "@/components/auth/auth-form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { BookOpen, Users, ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { GraduationCap, MapPin, ArrowLeft, ArrowRight, Check } from "lucide-react";
 
 export default function OperationalSignup() {
   const [selectedRole, setSelectedRole] = useState<"tutor" | "td" | null>(null);
@@ -65,7 +65,7 @@ export default function OperationalSignup() {
                   className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
                   style={{ backgroundColor: "#FFF0F0" }}
                 >
-                  <BookOpen className="w-8 h-8" style={{ color: "#E63946" }} />
+                  <GraduationCap className="w-8 h-8" style={{ color: "#E63946" }} />
                 </div>
                 <h3 className="text-2xl font-bold mb-3" style={{ color: "#1A1A1A" }}>Tutor</h3>
                 <p className="mb-6" style={{ color: "#5A5A5A" }}>
@@ -98,7 +98,7 @@ export default function OperationalSignup() {
                   className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
                   style={{ backgroundColor: "#FFF0F0" }}
                 >
-                  <Users className="w-8 h-8" style={{ color: "#E63946" }} />
+                  <MapPin className="w-8 h-8" style={{ color: "#E63946" }} />
                 </div>
                 <h3 className="text-2xl font-bold mb-3" style={{ color: "#1A1A1A" }}>Territory Director</h3>
                 <p className="mb-6" style={{ color: "#5A5A5A" }}>
@@ -163,9 +163,9 @@ export default function OperationalSignup() {
               style={{ backgroundColor: "#FFF0F0" }}
             >
               {selectedRole === "tutor" ? (
-                <BookOpen className="w-8 h-8" style={{ color: "#E63946" }} />
+                <GraduationCap className="w-8 h-8" style={{ color: "#E63946" }} />
               ) : (
-                <Users className="w-8 h-8" style={{ color: "#E63946" }} />
+                <MapPin className="w-8 h-8" style={{ color: "#E63946" }} />
               )}
             </div>
             <h2 className="text-3xl font-bold" style={{ color: "#1A1A1A" }}>
