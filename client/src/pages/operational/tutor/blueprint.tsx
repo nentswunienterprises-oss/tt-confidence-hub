@@ -206,15 +206,15 @@ function SectionCard({
   return (
     <Card className="overflow-hidden">
       <CardHeader 
-        className={`cursor-pointer bg-gradient-to-r ${gradient} text-white`}
+        className={`cursor-pointer bg-gradient-to-r ${gradient} text-white p-3 sm:p-6`}
         onClick={onToggle}
       >
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-xl">{title}</CardTitle>
-          {expanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="text-base sm:text-xl leading-tight">{title}</CardTitle>
+          {expanded ? <ChevronUp className="w-5 h-5 flex-shrink-0" /> : <ChevronDown className="w-5 h-5 flex-shrink-0" />}
         </div>
       </CardHeader>
-      {expanded && <CardContent className="pt-6">{children}</CardContent>}
+      {expanded && <CardContent className="p-3 sm:p-6 pt-4 sm:pt-6">{children}</CardContent>}
     </Card>
   );
 }
@@ -223,47 +223,47 @@ function ModuleOne({ expandedSections, toggleSection, onComplete, isComplete }: 
   return (
     <div className="space-y-6">
       <Card className="border-2 border-primary/30">
-        <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-white">
-          <div className="flex items-center gap-3">
-            <Brain className="w-8 h-8" />
-            <div>
-              <CardTitle className="text-2xl">Module 1: The 3-Layer Lens Teaching Model</CardTitle>
-              <CardDescription className="text-white/95 text-lg mt-2">
+        <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-white p-4 sm:p-6">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <Brain className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0 mt-1" />
+            <div className="min-w-0">
+              <CardTitle className="text-lg sm:text-2xl leading-tight">Module 1: The 3-Layer Lens Teaching Model</CardTitle>
+              <CardDescription className="text-white/95 text-sm sm:text-lg mt-1 sm:mt-2">
                 "Model. Apply. Guide." - The student doesn't just learn the skill, they own it.
               </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-6 space-y-6">
-          <div className="bg-accent p-6 rounded-lg border border-primary/10">
-            <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+        <CardContent className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+          <div className="bg-accent p-4 sm:p-6 rounded-lg border border-primary/10">
+            <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 flex items-center gap-2">
               What Is the 3-Layer Lens?
             </h3>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
               It's the internal structure of every math concept. Every problem a student sees can be broken down into 3 key learning layers:
             </p>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-              <div className="bg-card p-4 rounded-lg border-2 border-primary/40">
-                <h4 className="font-bold text-lg mb-2">Vocabulary</h4>
-                <p className="text-sm text-muted-foreground mb-3">What is it called? What are the terms?</p>
-                <Badge variant="outline" className="text-xs">"Do I understand what I'm working with?"</Badge>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mt-4 sm:mt-6">
+              <div className="bg-card p-3 sm:p-4 rounded-lg border-2 border-primary/40">
+                <h4 className="font-bold text-base sm:text-lg mb-1 sm:mb-2">Vocabulary</h4>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">What is it called? What are the terms?</p>
+                <Badge variant="outline" className="text-[10px] sm:text-xs">"Do I understand what I'm working with?"</Badge>
               </div>
               
-              <div className="bg-card p-4 rounded-lg border-2 border-primary/40">
-                <h4 className="font-bold text-lg mb-2">Method</h4>
-                <p className="text-sm text-muted-foreground mb-3">What are the steps? How do I solve it?</p>
-                <Badge variant="outline" className="text-xs">"Am I following a reliable, structured path?"</Badge>
+              <div className="bg-card p-3 sm:p-4 rounded-lg border-2 border-primary/40">
+                <h4 className="font-bold text-base sm:text-lg mb-1 sm:mb-2">Method</h4>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">What are the steps? How do I solve it?</p>
+                <Badge variant="outline" className="text-[10px] sm:text-xs">"Am I following a reliable, structured path?"</Badge>
               </div>
               
-              <div className="bg-card p-4 rounded-lg border-2 border-primary/40">
-                <h4 className="font-bold text-lg mb-2">Reason</h4>
-                <p className="text-sm text-muted-foreground mb-3">Why do those steps work? What's the logic?</p>
-                <Badge variant="outline" className="text-xs">"Can I explain the why behind what I did?"</Badge>
+              <div className="bg-card p-3 sm:p-4 rounded-lg border-2 border-primary/40">
+                <h4 className="font-bold text-base sm:text-lg mb-1 sm:mb-2">Reason</h4>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">Why do those steps work? What's the logic?</p>
+                <Badge variant="outline" className="text-[10px] sm:text-xs">"Can I explain the why behind what I did?"</Badge>
               </div>
             </div>
             
-            <p className="mt-6 text-center font-semibold text-lg">
+            <p className="mt-4 sm:mt-6 text-center font-semibold text-sm sm:text-lg">
               The 3-Layer Lens is how TT tutors teach, test, and diagnose mastery.
             </p>
           </div>
@@ -275,12 +275,12 @@ function ModuleOne({ expandedSections, toggleSection, onComplete, isComplete }: 
             onToggle={() => toggleSection("module1-flow")}
             gradient="from-primary to-primary/80"
           >
-            <div className="space-y-6">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center font-bold flex-shrink-0">1</div>
-                <div>
-                  <h4 className="font-bold text-lg mb-2">Step 1: MODEL - "Get them READY."</h4>
-                  <ul className="space-y-2 text-muted-foreground list-disc pl-5">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="flex items-start gap-2 sm:gap-4">
+                <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-primary text-white flex items-center justify-center font-bold flex-shrink-0 text-sm sm:text-base">1</div>
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-bold text-sm sm:text-lg mb-1 sm:mb-2">Step 1: MODEL - "Get them READY."</h4>
+                  <ul className="space-y-1 sm:space-y-2 text-muted-foreground list-disc pl-4 sm:pl-5 text-xs sm:text-base">
                     <li>The tutor solves a full problem out loud</li>
                     <li>Uses all 3 layers - calls out terms, follows steps, explains logic</li>
                     <li>Student watches and listens</li>
@@ -289,11 +289,11 @@ function ModuleOne({ expandedSections, toggleSection, onComplete, isComplete }: 
                 </div>
               </div>
 
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-primary/80 text-white flex items-center justify-center font-bold flex-shrink-0">2</div>
-                <div>
-                  <h4 className="font-bold text-lg mb-2">Step 2: APPLY - "Let them FIRE."</h4>
-                  <ul className="space-y-2 text-muted-foreground list-disc pl-5">
+              <div className="flex items-start gap-2 sm:gap-4">
+                <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-primary/80 text-white flex items-center justify-center font-bold flex-shrink-0 text-sm sm:text-base">2</div>
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-bold text-sm sm:text-lg mb-1 sm:mb-2">Step 2: APPLY - "Let them FIRE."</h4>
+                  <ul className="space-y-1 sm:space-y-2 text-muted-foreground list-disc pl-4 sm:pl-5 text-xs sm:text-base">
                     <li>Student does a similar problem right after</li>
                     <li>Tutor supports - but doesn't lead</li>
                     <li>Let them struggle strategically</li>
@@ -302,11 +302,11 @@ function ModuleOne({ expandedSections, toggleSection, onComplete, isComplete }: 
                 </div>
               </div>
 
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-primary/60 text-white flex items-center justify-center font-bold flex-shrink-0">3</div>
-                <div>
-                  <h4 className="font-bold text-lg mb-2">Step 3: GUIDE - "Now we AIM."</h4>
-                  <ul className="space-y-2 text-muted-foreground list-disc pl-5">
+              <div className="flex items-start gap-2 sm:gap-4">
+                <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-primary/60 text-white flex items-center justify-center font-bold flex-shrink-0 text-sm sm:text-base">3</div>
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-bold text-sm sm:text-lg mb-1 sm:mb-2">Step 3: GUIDE - "Now we AIM."</h4>
+                  <ul className="space-y-1 sm:space-y-2 text-muted-foreground list-disc pl-4 sm:pl-5 text-xs sm:text-base">
                     <li>The tutor corrects, refines, and clarifies</li>
                     <li>Points out which layer needs reinforcement</li>
                     <li className="italic">"You knew the terms (Vocab), and you remembered the steps (Method), but you didn't explain why we flipped the fraction (Reason). Let's fix that."</li>
@@ -324,46 +324,48 @@ function ModuleOne({ expandedSections, toggleSection, onComplete, isComplete }: 
             onToggle={() => toggleSection("module1-boss")}
             gradient="from-primary/90 to-primary"
           >
-            <div className="space-y-4">
-              <p className="font-semibold">A Boss Battle challenges the student to use all 3 layers:</p>
-              <ul className="space-y-2 text-muted-foreground list-disc pl-5">
+            <div className="space-y-3 sm:space-y-4">
+              <p className="font-semibold text-sm sm:text-base">A Boss Battle challenges the student to use all 3 layers:</p>
+              <ul className="space-y-1 sm:space-y-2 text-muted-foreground list-disc pl-4 sm:pl-5 text-xs sm:text-base">
                 <li>Can they recognize and define the terms?</li>
                 <li>Can they follow a clear step-by-step method on their own?</li>
                 <li>Can they explain why each move was legit?</li>
               </ul>
               
-              <div className="bg-accent p-4 rounded-lg mt-4 border border-primary/10">
-                <p className="font-bold mb-2">The Boss Battle is the field. The 3-Layer Lens is the weapon.</p>
+              <div className="bg-accent p-3 sm:p-4 rounded-lg mt-3 sm:mt-4 border border-primary/10">
+                <p className="font-bold text-sm sm:text-base mb-2">The Boss Battle is the field. The 3-Layer Lens is the weapon.</p>
               </div>
 
-              <div className="mt-6">
-                <h4 className="font-bold mb-3">If They Struggle in a Boss Battle:</h4>
-                <div className="bg-card p-4 rounded-lg border border-primary/20">
-                  <p className="font-semibold mb-3">Use the Lens as a Diagnostic Tool:</p>
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left p-2">Question</th>
-                        <th className="text-left p-2">Which Layer is Broken?</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="border-b">
-                        <td className="p-2">"What does this word mean?"</td>
-                        <td className="p-2"><Badge className="bg-primary">Vocabulary</Badge></td>
-                      </tr>
-                      <tr className="border-b">
-                        <td className="p-2">"What's your first step?"</td>
-                        <td className="p-2"><Badge className="bg-primary">Method</Badge></td>
-                      </tr>
-                      <tr>
-                        <td className="p-2">"Why does that step work?"</td>
-                        <td className="p-2"><Badge className="bg-primary">Reason</Badge></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                  <p className="mt-4 font-semibold">Then:</p>
-                  <ul className="mt-2 space-y-1 text-muted-foreground">
+              <div className="mt-4 sm:mt-6">
+                <h4 className="font-bold text-sm sm:text-base mb-2 sm:mb-3">If They Struggle in a Boss Battle:</h4>
+                <div className="bg-card p-3 sm:p-4 rounded-lg border border-primary/20">
+                  <p className="font-semibold text-sm sm:text-base mb-2 sm:mb-3">Use the Lens as a Diagnostic Tool:</p>
+                  <div className="overflow-x-auto -mx-3 sm:mx-0">
+                    <table className="w-full min-w-[300px] text-xs sm:text-base">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left p-2">Question</th>
+                          <th className="text-left p-2">Which Layer is Broken?</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b">
+                          <td className="p-2">"What does this word mean?"</td>
+                          <td className="p-2"><Badge className="bg-primary text-[10px] sm:text-xs">Vocabulary</Badge></td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="p-2">"What's your first step?"</td>
+                          <td className="p-2"><Badge className="bg-primary text-[10px] sm:text-xs">Method</Badge></td>
+                        </tr>
+                        <tr>
+                          <td className="p-2">"Why does that step work?"</td>
+                          <td className="p-2"><Badge className="bg-primary text-[10px] sm:text-xs">Reason</Badge></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="mt-3 sm:mt-4 font-semibold text-sm sm:text-base">Then:</p>
+                  <ul className="mt-2 space-y-1 text-muted-foreground text-xs sm:text-base">
                     <li>Re-teach and reinforce that specific layer</li>
                     <li>Assign a rematch Boss Battle in the next session</li>
                   </ul>
@@ -372,9 +374,9 @@ function ModuleOne({ expandedSections, toggleSection, onComplete, isComplete }: 
             </div>
           </SectionCard>
 
-          <div className="bg-gradient-to-r from-primary to-primary/80 text-white p-6 rounded-lg shadow-md">
-            <h4 className="font-bold text-xl mb-4">Why This Is Bulletproof</h4>
-            <ul className="space-y-2 list-disc pl-5">
+          <div className="bg-gradient-to-r from-primary to-primary/80 text-white p-4 sm:p-6 rounded-lg shadow-md">
+            <h4 className="font-bold text-lg sm:text-xl mb-3 sm:mb-4">Why This Is Bulletproof</h4>
+            <ul className="space-y-1 sm:space-y-2 list-disc pl-4 sm:pl-5 text-sm sm:text-base">
               <li>Visual & model-based teaching = stronger memory retention</li>
               <li>Repetition of method + explanation = real confidence</li>
               <li>Failsafe system for catching errors and learning from them</li>
@@ -405,20 +407,20 @@ function ModuleOne({ expandedSections, toggleSection, onComplete, isComplete }: 
 
 function ModuleTwo({ expandedSections, toggleSection, onComplete, isComplete }: ModuleProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <Card className="border-2 border-primary/30">
-        <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-white">
-          <div className="flex items-center gap-3">
-            <Lightbulb className="w-8 h-8" />
-            <div>
-              <CardTitle className="text-2xl">Module 2: TT's Tutoring Psychology</CardTitle>
-              <CardDescription className="text-white/95 text-lg mt-2">
+        <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-white p-4 sm:p-6">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <Lightbulb className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0 mt-1" />
+            <div className="min-w-0">
+              <CardTitle className="text-lg sm:text-2xl leading-tight">Module 2: TT's Tutoring Psychology</CardTitle>
+              <CardDescription className="text-white/95 text-sm sm:text-lg mt-1 sm:mt-2">
                 "We're not homework helpers. We're healers, guides, and system-builders."
               </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-6 space-y-6">
+        <CardContent className="p-3 sm:p-6 space-y-4 sm:space-y-6">
           <SectionCard
             id="module2-doctor"
             title="1. The Tutor is a Doctor"
@@ -426,16 +428,16 @@ function ModuleTwo({ expandedSections, toggleSection, onComplete, isComplete }: 
             onToggle={() => toggleSection("module2-doctor")}
             gradient="from-primary to-primary/80"
           >
-            <div className="space-y-4">
-              <p className="font-semibold">A student isn't a project. They're a patient.</p>
-              <p>They walk in with:</p>
-              <ul className="space-y-2 text-muted-foreground ml-4">
+            <div className="space-y-3 sm:space-y-4">
+              <p className="font-semibold text-sm sm:text-base">A student isn't a project. They're a patient.</p>
+              <p className="text-sm sm:text-base">They walk in with:</p>
+              <ul className="space-y-1 sm:space-y-2 text-muted-foreground ml-4 text-xs sm:text-base">
                 <li>Hidden pains (topics that never made sense)</li>
                 <li>Emotional injuries (shame, fear, anxiety)</li>
                 <li>Symptoms (giving up, blanking out, rushing, avoiding questions)</li>
               </ul>
               
-              <div className="bg-accent p-4 rounded-lg mt-4 border border-primary/10">
+              <div className="bg-accent p-3 sm:p-4 rounded-lg mt-3 sm:mt-4 border border-primary/10">
                 <p className="font-bold mb-2">The TT Tutor's job:</p>
                 <ul className="space-y-1 list-disc pl-5">
                   <li>Diagnose the pain</li>
@@ -456,36 +458,38 @@ function ModuleTwo({ expandedSections, toggleSection, onComplete, isComplete }: 
             <div className="space-y-4">
               <p className="font-semibold">We don't throw answers. We give students the mental tools to understand, fix, and solve.</p>
               
-              <table className="w-full border mt-4">
-                <thead className="bg-muted">
-                  <tr>
-                    <th className="p-3 text-left">Layer</th>
-                    <th className="p-3 text-left">What We Train</th>
-                    <th className="p-3 text-left">Why It Heals</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-t">
-                    <td className="p-3"><Badge className="bg-primary">Vocabulary</Badge></td>
-                    <td className="p-3">The terms</td>
-                    <td className="p-3">Builds clarity, reduces confusion</td>
-                  </tr>
-                  <tr className="border-t">
-                    <td className="p-3"><Badge className="bg-primary">Method</Badge></td>
-                    <td className="p-3">The steps</td>
-                    <td className="p-3">Gives security, lowers panic</td>
-                  </tr>
-                  <tr className="border-t">
-                    <td className="p-3"><Badge className="bg-primary">Reason</Badge></td>
-                    <td className="p-3">The logic</td>
-                    <td className="p-3">Builds mastery, ends memorization struggles</td>
-                  </tr>
-                </tbody>
-              </table>
+              <div className="overflow-x-auto -mx-3 sm:mx-0 mt-3 sm:mt-4">
+                <table className="w-full border min-w-[400px] text-xs sm:text-base">
+                  <thead className="bg-muted">
+                    <tr>
+                      <th className="p-2 sm:p-3 text-left">Layer</th>
+                      <th className="p-2 sm:p-3 text-left">What We Train</th>
+                      <th className="p-2 sm:p-3 text-left">Why It Heals</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-t">
+                      <td className="p-2 sm:p-3"><Badge className="bg-primary text-[10px] sm:text-xs">Vocabulary</Badge></td>
+                      <td className="p-2 sm:p-3">The terms</td>
+                      <td className="p-2 sm:p-3">Builds clarity, reduces confusion</td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="p-2 sm:p-3"><Badge className="bg-primary text-[10px] sm:text-xs">Method</Badge></td>
+                      <td className="p-2 sm:p-3">The steps</td>
+                      <td className="p-2 sm:p-3">Gives security, lowers panic</td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="p-2 sm:p-3"><Badge className="bg-primary text-[10px] sm:text-xs">Reason</Badge></td>
+                      <td className="p-2 sm:p-3">The logic</td>
+                      <td className="p-2 sm:p-3">Builds mastery, ends memorization struggles</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
 
-              <div className="bg-accent p-4 rounded-lg mt-4 border border-primary/10">
-                <p className="font-bold text-center">This system works whether the tutor is a genius or not.</p>
-                <p className="text-center mt-2">The tutor doesn't need to feel confident - they need to trust the process.</p>
+              <div className="bg-accent p-3 sm:p-4 rounded-lg mt-3 sm:mt-4 border border-primary/10">
+                <p className="font-bold text-center text-sm sm:text-base">This system works whether the tutor is a genius or not.</p>
+                <p className="text-center mt-2 text-xs sm:text-base">The tutor doesn't need to feel confident - they need to trust the process.</p>
               </div>
             </div>
           </SectionCard>
@@ -497,19 +501,19 @@ function ModuleTwo({ expandedSections, toggleSection, onComplete, isComplete }: 
             onToggle={() => toggleSection("module2-vibe")}
             gradient="from-primary to-primary/70"
           >
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-accent p-4 rounded-lg border border-primary/10">
-                <h4 className="font-bold mb-3 text-primary">We are...</h4>
-                <ul className="space-y-2 list-disc pl-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
+              <div className="bg-accent p-3 sm:p-4 rounded-lg border border-primary/10">
+                <h4 className="font-bold text-sm sm:text-base mb-2 sm:mb-3 text-primary">We are...</h4>
+                <ul className="space-y-1 sm:space-y-2 list-disc pl-4 sm:pl-5 text-xs sm:text-base">
                   <li>A mentor</li>
                   <li>A strategist</li>
                   <li>A coach</li>
                   <li>A partner</li>
                 </ul>
               </div>
-              <div className="bg-muted p-4 rounded-lg border border-border">
-                <h4 className="font-bold mb-3 text-destructive">We are not...</h4>
-                <ul className="space-y-2 list-disc pl-5">
+              <div className="bg-muted p-3 sm:p-4 rounded-lg border border-border">
+                <h4 className="font-bold text-sm sm:text-base mb-2 sm:mb-3 text-destructive">We are not...</h4>
+                <ul className="space-y-1 sm:space-y-2 list-disc pl-4 sm:pl-5 text-xs sm:text-base">
                   <li>A lecturer</li>
                   <li>A solver</li>
                   <li>A performer</li>
@@ -553,33 +557,35 @@ function ModuleTwo({ expandedSections, toggleSection, onComplete, isComplete }: 
             onToggle={() => toggleSection("module2-process")}
             gradient="from-primary to-primary/80"
           >
-            <table className="w-full border">
-              <thead className="bg-muted">
-                <tr>
-                  <th className="p-3 text-left">Phase</th>
-                  <th className="p-3 text-left">Tutor Does</th>
-                  <th className="p-3 text-left">Student Does</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-t">
-                  <td className="p-3 font-bold">Ready</td>
-                  <td className="p-3">Model a problem using 3-Layer Lens</td>
-                  <td className="p-3">Watch, listen</td>
-                </tr>
-                <tr className="border-t">
-                  <td className="p-3 font-bold">Fire</td>
-                  <td className="p-3">Makes student attempt a similar problem</td>
-                  <td className="p-3">Engage, apply, make mistakes</td>
-                </tr>
-                <tr className="border-t">
-                  <td className="p-3 font-bold">Aim</td>
-                  <td className="p-3">Tutor gives feedback using the lens</td>
-                  <td className="p-3">Reflect, correct, grow</td>
-                </tr>
-              </tbody>
-            </table>
-            <p className="mt-4 text-center font-semibold">This loop builds understanding - not just accuracy.</p>
+            <div className="overflow-x-auto -mx-3 sm:mx-0">
+              <table className="w-full border min-w-[400px] text-xs sm:text-base">
+                <thead className="bg-muted">
+                  <tr>
+                    <th className="p-2 sm:p-3 text-left">Phase</th>
+                    <th className="p-2 sm:p-3 text-left">Tutor Does</th>
+                    <th className="p-2 sm:p-3 text-left">Student Does</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-t">
+                    <td className="p-2 sm:p-3 font-bold">Ready</td>
+                    <td className="p-2 sm:p-3">Model a problem using 3-Layer Lens</td>
+                    <td className="p-2 sm:p-3">Watch, listen</td>
+                  </tr>
+                  <tr className="border-t">
+                    <td className="p-2 sm:p-3 font-bold">Fire</td>
+                    <td className="p-2 sm:p-3">Makes student attempt a similar problem</td>
+                    <td className="p-2 sm:p-3">Engage, apply, make mistakes</td>
+                  </tr>
+                  <tr className="border-t">
+                    <td className="p-2 sm:p-3 font-bold">Aim</td>
+                    <td className="p-2 sm:p-3">Tutor gives feedback using the lens</td>
+                    <td className="p-2 sm:p-3">Reflect, correct, grow</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-3 sm:mt-4 text-center font-semibold text-sm sm:text-base">This loop builds understanding - not just accuracy.</p>
           </SectionCard>
 
           <SectionCard
@@ -645,23 +651,23 @@ function ModuleTwo({ expandedSections, toggleSection, onComplete, isComplete }: 
 // Placeholder components for remaining modules
 function ModuleThree({ expandedSections, toggleSection, onComplete, isComplete }: ModuleProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <Card className="border-2 border-primary/30">
-        <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-white">
-          <div className="flex items-center gap-3">
-            <Users className="w-8 h-8" />
-            <div>
-              <CardTitle className="text-2xl">Module 3: The Real TT Intro Session Blueprint</CardTitle>
-              <CardDescription className="text-white/95 text-lg mt-2">
+        <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-white p-4 sm:p-6">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <Users className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0 mt-1" />
+            <div className="min-w-0">
+              <CardTitle className="text-lg sm:text-2xl leading-tight">Module 3: The Real TT Intro Session Blueprint</CardTitle>
+              <CardDescription className="text-white/95 text-sm sm:text-lg mt-1 sm:mt-2">
                 4-part flow to connect, surface pains, diagnose, and anchor
               </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-6 space-y-6">
-          <div className="bg-accent p-6 rounded-lg border border-primary/10">
-            <h3 className="text-xl font-bold mb-4">4-Part Flow (Know the Person)</h3>
-            <p className="text-muted-foreground mb-4">
+        <CardContent className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+          <div className="bg-accent p-4 sm:p-6 rounded-lg border border-primary/10">
+            <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">4-Part Flow (Know the Person)</h3>
+            <p className="text-muted-foreground text-sm sm:text-base mb-3 sm:mb-4">
               Start with the heart. Let the student feel heard and human.
             </p>
           </div>
@@ -673,7 +679,7 @@ function ModuleThree({ expandedSections, toggleSection, onComplete, isComplete }
             onToggle={() => toggleSection("module3-connect")}
             gradient="from-primary to-primary/80"
           >
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <p className="font-bold">Key Prompts:</p>
               <ul className="space-y-2 ml-4">
                 <li>"What's something in life or school you're proud of this year?"</li>
@@ -842,30 +848,32 @@ function ModuleThree({ expandedSections, toggleSection, onComplete, isComplete }
                 </ul>
               </div>
 
-              <div className="mt-4">
-                <p className="font-bold mb-3">Then ask yourself: Which 3-Layer Lens layer is broken?</p>
-                <table className="w-full border">
-                  <thead className="bg-muted">
-                    <tr>
-                      <th className="p-3 text-left">Layer</th>
-                      <th className="p-3 text-left">What to Look For</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="border-t">
-                      <td className="p-3"><Badge className="bg-primary">Vocabulary</Badge></td>
-                      <td className="p-3">They don't understand the terms ("What's a numerator again?")</td>
-                    </tr>
-                    <tr className="border-t">
-                      <td className="p-3"><Badge className="bg-primary">Method</Badge></td>
-                      <td className="p-3">They try random steps or skip around</td>
-                    </tr>
-                    <tr className="border-t">
-                      <td className="p-3"><Badge className="bg-primary">Reason</Badge></td>
-                      <td className="p-3">They memorize but don't know why it works</td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div className="mt-3 sm:mt-4">
+                <p className="font-bold text-sm sm:text-base mb-2 sm:mb-3">Then ask yourself: Which 3-Layer Lens layer is broken?</p>
+                <div className="overflow-x-auto -mx-3 sm:mx-0">
+                  <table className="w-full border min-w-[350px] text-xs sm:text-base">
+                    <thead className="bg-muted">
+                      <tr>
+                        <th className="p-2 sm:p-3 text-left">Layer</th>
+                        <th className="p-2 sm:p-3 text-left">What to Look For</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-t">
+                        <td className="p-2 sm:p-3"><Badge className="bg-primary text-[10px] sm:text-xs">Vocabulary</Badge></td>
+                        <td className="p-2 sm:p-3">They don't understand the terms ("What's a numerator again?")</td>
+                      </tr>
+                      <tr className="border-t">
+                        <td className="p-2 sm:p-3"><Badge className="bg-primary text-[10px] sm:text-xs">Method</Badge></td>
+                        <td className="p-2 sm:p-3">They try random steps or skip around</td>
+                      </tr>
+                      <tr className="border-t">
+                        <td className="p-2 sm:p-3"><Badge className="bg-primary text-[10px] sm:text-xs">Reason</Badge></td>
+                        <td className="p-2 sm:p-3">They memorize but don't know why it works</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               <div className="bg-accent p-4 rounded-lg mt-4 border border-primary/10">
@@ -972,23 +980,23 @@ function ModuleThree({ expandedSections, toggleSection, onComplete, isComplete }
 
 function ModuleFour({ expandedSections, toggleSection, onComplete, isComplete }: ModuleProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <Card className="border-2 border-primary/30">
-        <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-white">
-          <div className="flex items-center gap-3">
-            <Target className="w-8 h-8" />
-            <div>
-              <CardTitle className="text-2xl">Module 4: The First Session Blueprint</CardTitle>
-              <CardDescription className="text-white/95 text-lg mt-2">
+        <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-white p-4 sm:p-6">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <Target className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0 mt-1" />
+            <div className="min-w-0">
+              <CardTitle className="text-lg sm:text-2xl leading-tight">Module 4: The First Session Blueprint</CardTitle>
+              <CardDescription className="text-white/95 text-sm sm:text-lg mt-1 sm:mt-2">
                 "The Launchpad" - Set the tone, system, and student up to win
               </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-6 space-y-6">
-          <div className="bg-accent p-6 rounded-lg border border-primary/10">
-            <h3 className="text-xl font-bold mb-4">Session Goal:</h3>
-            <ul className="space-y-2 list-disc pl-5">
+        <CardContent className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+          <div className="bg-accent p-4 sm:p-6 rounded-lg border border-primary/10">
+            <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Session Goal:</h3>
+            <ul className="space-y-1 sm:space-y-2 list-disc pl-4 sm:pl-5 text-xs sm:text-base">
               <li>Translate the intro session into a trackable action plan</li>
               <li>Set up the student's TT Identity (Lawyer or Problem-Solver)</li>
               <li>Make the student feel seen, smart, and safe</li>
@@ -1260,20 +1268,20 @@ function ModuleFour({ expandedSections, toggleSection, onComplete, isComplete }:
 
 function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }: ModuleProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <Card className="border-2 border-primary/30">
-        <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-white">
-          <div className="flex items-center gap-3">
-            <BookOpen className="w-8 h-8" />
-            <div>
-              <CardTitle className="text-2xl">Module 5: Ongoing Flow (Standardized Execution Process)</CardTitle>
-              <CardDescription className="text-white/95 text-lg mt-2">
+        <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-white p-4 sm:p-6">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0 mt-1" />
+            <div className="min-w-0">
+              <CardTitle className="text-lg sm:text-2xl leading-tight">Module 5: Ongoing Flow (Standardized Execution Process)</CardTitle>
+              <CardDescription className="text-white/95 text-sm sm:text-lg mt-1 sm:mt-2">
                 A structured, high-impact tutoring model that ensures every student continues receiving top-tier education
               </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-6 space-y-6">
+        <CardContent className="p-3 sm:p-6 space-y-4 sm:space-y-6">
           <SectionCard
             id="module5-prepare"
             title="1. Prepare  Know Before You Go"
@@ -1643,43 +1651,45 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
             </div>
           </SectionCard>
 
-          <div className="bg-gradient-to-r from-primary to-primary/80 text-white p-6 rounded-lg shadow-md">
-            <h4 className="font-bold text-xl mb-4">LEXICON SNAP-IN</h4>
-            <p className="mb-4 text-sm">Embed these phrases across tutor culture:</p>
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-white/20">
-                  <th className="p-2 text-left">Phrase</th>
-                  <th className="p-2 text-left">Meaning</th>
-                </tr>
-              </thead>
-              <tbody className="text-sm">
-                <tr className="border-b border-white/10">
-                  <td className="p-2">"Boss Battle"</td>
-                  <td className="p-2">A challenge task that tests full understanding</td>
-                </tr>
-                <tr className="border-b border-white/10">
-                  <td className="p-2">"Solutions Unlocked"</td>
-                  <td className="p-2">A concept or skill fully mastered</td>
-                </tr>
-                <tr className="border-b border-white/10">
-                  <td className="p-2">"3-Layer Lens"</td>
-                  <td className="p-2">The core diagnostic + teaching framework</td>
-                </tr>
-                <tr className="border-b border-white/10">
-                  <td className="p-2">"Model → Apply → Guide"</td>
-                  <td className="p-2">TT's tutoring loop system</td>
-                </tr>
-                <tr className="border-b border-white/10">
-                  <td className="p-2">"Growth over perfection"</td>
-                  <td className="p-2">Culture standard</td>
-                </tr>
-                <tr>
-                  <td className="p-2">"Progress is data"</td>
-                  <td className="p-2">Why we track everything</td>
-                </tr>
-              </tbody>
-            </table>
+          <div className="bg-gradient-to-r from-primary to-primary/80 text-white p-4 sm:p-6 rounded-lg shadow-md">
+            <h4 className="font-bold text-lg sm:text-xl mb-3 sm:mb-4">LEXICON SNAP-IN</h4>
+            <p className="mb-3 sm:mb-4 text-xs sm:text-sm">Embed these phrases across tutor culture:</p>
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <table className="w-full min-w-[300px] text-xs sm:text-base">
+                <thead>
+                  <tr className="border-b border-white/20">
+                    <th className="p-2 text-left">Phrase</th>
+                    <th className="p-2 text-left">Meaning</th>
+                  </tr>
+                </thead>
+                <tbody className="text-xs sm:text-sm">
+                  <tr className="border-b border-white/10">
+                    <td className="p-2">"Boss Battle"</td>
+                    <td className="p-2">A challenge task that tests full understanding</td>
+                  </tr>
+                  <tr className="border-b border-white/10">
+                    <td className="p-2">"Solutions Unlocked"</td>
+                    <td className="p-2">A concept or skill fully mastered</td>
+                  </tr>
+                  <tr className="border-b border-white/10">
+                    <td className="p-2">"3-Layer Lens"</td>
+                    <td className="p-2">The core diagnostic + teaching framework</td>
+                  </tr>
+                  <tr className="border-b border-white/10">
+                    <td className="p-2">"Model → Apply → Guide"</td>
+                    <td className="p-2">TT's tutoring loop system</td>
+                  </tr>
+                  <tr className="border-b border-white/10">
+                    <td className="p-2">"Growth over perfection"</td>
+                    <td className="p-2">Culture standard</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2">"Progress is data"</td>
+                    <td className="p-2">Why we track everything</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {!isComplete && (
@@ -1701,27 +1711,27 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
 
 function ModuleSix({ expandedSections, toggleSection, onComplete, isComplete }: ModuleProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <Card className="border-2 border-primary/30">
-        <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-white">
-          <div className="flex items-center gap-3">
-            <Clock className="w-8 h-8" />
-            <div>
-              <CardTitle className="text-2xl">Module 6: Balancing Tutoring & School</CardTitle>
-              <CardDescription className="text-white/95 text-lg mt-2">
+        <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-white p-4 sm:p-6">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <Clock className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0 mt-1" />
+            <div className="min-w-0">
+              <CardTitle className="text-lg sm:text-2xl leading-tight">Module 6: Balancing Tutoring & School</CardTitle>
+              <CardDescription className="text-white/95 text-sm sm:text-lg mt-1 sm:mt-2">
                 Systems beat moods. Structure beats chaos. Every time.
               </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-6 space-y-6">
-          <div className="bg-accent p-6 rounded-lg border border-primary/10">
-            <h3 className="text-xl font-bold mb-4">The Truth (No Glitter, No Hacks)</h3>
-            <p className="text-muted-foreground mb-4">
+        <CardContent className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+          <div className="bg-accent p-4 sm:p-6 rounded-lg border border-primary/10">
+            <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">The Truth (No Glitter, No Hacks)</h3>
+            <p className="text-muted-foreground text-sm sm:text-base mb-3 sm:mb-4">
               Balancing TT and school? Easy. Use systems.
             </p>
-            <p className="font-semibold">Systems turn chaos into order. Moods don't. They turn order into chaos.</p>
-            <p className="mt-3">Systems are like making tea: boil water, steep leaves, pour cup. It works every time, whether you're hyped or half-dead.</p>
+            <p className="font-semibold text-sm sm:text-base">Systems turn chaos into order. Moods don't. They turn order into chaos.</p>
+            <p className="mt-2 sm:mt-3 text-sm sm:text-base">Systems are like making tea: boil water, steep leaves, pour cup. It works every time, whether you're hyped or half-dead.</p>
           </div>
 
           <SectionCard
@@ -1731,28 +1741,28 @@ function ModuleSix({ expandedSections, toggleSection, onComplete, isComplete }: 
             onToggle={() => toggleSection("module6-systems")}
             gradient="from-primary to-primary/80"
           >
-            <div className="space-y-4">
-              <p className="font-semibold mb-3">They convert:</p>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="bg-card p-4 rounded-lg border border-primary/20">
-                  <p className="font-bold text-destructive">Confusion</p>
+            <div className="space-y-3 sm:space-y-4">
+              <p className="font-semibold text-sm sm:text-base mb-2 sm:mb-3">They convert:</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+                <div className="bg-card p-3 sm:p-4 rounded-lg border border-primary/20">
+                  <p className="font-bold text-destructive text-sm sm:text-base">Confusion</p>
                   <ArrowRight className="w-4 h-4 inline mx-2" />
-                  <p className="font-bold text-primary inline">Structure</p>
+                  <p className="font-bold text-primary inline text-sm sm:text-base">Structure</p>
                 </div>
-                <div className="bg-card p-4 rounded-lg border border-primary/20">
-                  <p className="font-bold text-destructive">Forgetfulness</p>
+                <div className="bg-card p-3 sm:p-4 rounded-lg border border-primary/20">
+                  <p className="font-bold text-destructive text-sm sm:text-base">Forgetfulness</p>
                   <ArrowRight className="w-4 h-4 inline mx-2" />
-                  <p className="font-bold text-primary inline">Flow</p>
+                  <p className="font-bold text-primary inline text-sm sm:text-base">Flow</p>
                 </div>
-                <div className="bg-card p-4 rounded-lg border border-primary/20">
-                  <p className="font-bold text-destructive">Burnout</p>
+                <div className="bg-card p-3 sm:p-4 rounded-lg border border-primary/20">
+                  <p className="font-bold text-destructive text-sm sm:text-base">Burnout</p>
                   <ArrowRight className="w-4 h-4 inline mx-2" />
-                  <p className="font-bold text-primary inline">Rhythm</p>
+                  <p className="font-bold text-primary inline text-sm sm:text-base">Rhythm</p>
                 </div>
-                <div className="bg-card p-4 rounded-lg border border-primary/20">
-                  <p className="font-bold text-destructive">"I'm overwhelmed"</p>
+                <div className="bg-card p-3 sm:p-4 rounded-lg border border-primary/20">
+                  <p className="font-bold text-destructive text-sm sm:text-base">"I'm overwhelmed"</p>
                   <ArrowRight className="w-4 h-4 inline mx-2" />
-                  <p className="font-bold text-primary inline">"I'm in control"</p>
+                  <p className="font-bold text-primary inline text-sm sm:text-base">"I'm in control"</p>
                 </div>
               </div>
             </div>
@@ -1895,27 +1905,27 @@ function ModuleSix({ expandedSections, toggleSection, onComplete, isComplete }: 
 
 function ModuleSeven({ expandedSections, toggleSection, onComplete, isComplete }: ModuleProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <Card className="border-2 border-primary/30">
-        <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-white">
-          <div className="flex items-center gap-3">
-            <Award className="w-8 h-8" />
-            <div>
-              <CardTitle className="text-2xl">Module 7: Time Mastery for Soul-Led Teachers</CardTitle>
-              <CardDescription className="text-white/95 text-lg mt-2">
+        <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-white p-4 sm:p-6">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <Award className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0 mt-1" />
+            <div className="min-w-0">
+              <CardTitle className="text-lg sm:text-2xl leading-tight">Module 7: Time Mastery for Soul-Led Teachers</CardTitle>
+              <CardDescription className="text-white/95 text-sm sm:text-lg mt-1 sm:mt-2">
                 "You're not just a tutor. You're a presence."
               </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-6 space-y-6">
-          <div className="bg-accent p-6 rounded-lg border border-primary/10">
-            <h3 className="text-xl font-bold mb-4">Main Problem</h3>
-            <p className="text-muted-foreground mb-4">
+        <CardContent className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+          <div className="bg-accent p-4 sm:p-6 rounded-lg border border-primary/10">
+            <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Main Problem</h3>
+            <p className="text-muted-foreground text-sm sm:text-base mb-3 sm:mb-4">
               Most student-tutors think teaching is about technique.
             </p>
-            <p className="font-semibold">But in reality? They're mastered by urgency, guilt, and grind.</p>
-            <p className="mt-3">They burn out. They resent their students. They dread sessions. They disappear before the semester ends.</p>
+            <p className="font-semibold text-sm sm:text-base">But in reality? They're mastered by urgency, guilt, and grind.</p>
+            <p className="mt-2 sm:mt-3 text-sm sm:text-base">They burn out. They resent their students. They dread sessions. They disappear before the semester ends.</p>
           </div>
 
           <SectionCard
@@ -1948,11 +1958,11 @@ function ModuleSeven({ expandedSections, toggleSection, onComplete, isComplete }
             onToggle={() => toggleSection("module7-why-matters")}
             gradient="from-primary/90 to-primary"
           >
-            <div className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="bg-muted p-4 rounded-lg border border-destructive/30">
-                  <p className="font-bold mb-2 text-destructive">The World's Way</p>
-                  <ul className="space-y-1 text-sm">
+            <div className="space-y-3 sm:space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+                <div className="bg-muted p-3 sm:p-4 rounded-lg border border-destructive/30">
+                  <p className="font-bold text-sm sm:text-base mb-1 sm:mb-2 text-destructive">The World's Way</p>
+                  <ul className="space-y-1 text-xs sm:text-sm">
                     <li>Hustle harder</li>
                     <li>Do more</li>
                     <li>Grind 24/7</li>
@@ -1960,9 +1970,9 @@ function ModuleSeven({ expandedSections, toggleSection, onComplete, isComplete }
                     <li>Burn out = badge of honor</li>
                   </ul>
                 </div>
-                <div className="bg-accent p-4 rounded-lg border border-primary/20">
-                  <p className="font-bold mb-2 text-primary">TT's Way</p>
-                  <ul className="space-y-1 text-sm">
+                <div className="bg-accent p-3 sm:p-4 rounded-lg border border-primary/20">
+                  <p className="font-bold text-sm sm:text-base mb-1 sm:mb-2 text-primary">TT's Way</p>
+                  <ul className="space-y-1 text-xs sm:text-sm">
                     <li>Slow down + focus deeper</li>
                     <li>Feel more, hold better energy</li>
                     <li>Work in sprints, then reset</li>
@@ -1972,9 +1982,9 @@ function ModuleSeven({ expandedSections, toggleSection, onComplete, isComplete }
                 </div>
               </div>
 
-              <div className="bg-card p-4 rounded-lg border-l-4 border-primary mt-4">
-                <p className="font-bold text-center">Calm mentors create confident students.</p>
-                <p className="text-muted-foreground text-center mt-2">Dysregulated tutors create anxious learners.</p>
+              <div className="bg-card p-3 sm:p-4 rounded-lg border-l-4 border-primary mt-3 sm:mt-4">
+                <p className="font-bold text-center text-sm sm:text-base">Calm mentors create confident students.</p>
+                <p className="text-muted-foreground text-center mt-1 sm:mt-2 text-xs sm:text-base">Dysregulated tutors create anxious learners.</p>
               </div>
             </div>
           </SectionCard>
