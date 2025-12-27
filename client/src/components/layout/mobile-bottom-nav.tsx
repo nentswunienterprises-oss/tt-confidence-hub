@@ -22,7 +22,7 @@ export function MobileBottomNav({ navItems, unreadCount = 0 }: MobileBottomNavPr
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-t shadow-lg safe-area-bottom">
-      <div className="flex items-center justify-around h-16 px-2">
+      <div className="flex items-stretch justify-around h-[68px] px-1">
         {displayItems.map((item) => {
           const isActive = location.pathname === item.path;
           const isUpdates = item.label.toLowerCase() === "updates";
@@ -32,42 +32,38 @@ export function MobileBottomNav({ navItems, unreadCount = 0 }: MobileBottomNavPr
               key={item.path}
               to={item.path}
               className={cn(
-                "relative flex flex-col items-center justify-center flex-1 h-full px-1 py-2 transition-all duration-200",
+                "relative flex flex-col items-center justify-center flex-1 min-w-0 py-2 gap-1",
                 "active:scale-95 touch-manipulation",
                 isActive 
                   ? "text-primary" 
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              {/* Icon container with badge */}
-              <div className="relative mb-0.5">
+              {/* Icon with badge */}
+              <div className="relative">
                 <div className={cn(
-                  "p-1.5 rounded-xl transition-all duration-200",
+                  "p-1 rounded-lg",
                   isActive && "bg-primary/10"
                 )}>
                   {item.icon}
                 </div>
-                {/* Notification badge for Updates - positioned on top right */}
+                {/* Notification badge for Updates */}
                 {isUpdates && unreadCount > 0 && (
                   <Badge 
                     variant="destructive" 
-                    className="absolute -top-2 -right-2 h-4 min-w-4 px-1 text-[10px] font-bold flex items-center justify-center pointer-events-none"
+                    className="absolute -top-1.5 -right-1.5 h-4 min-w-4 px-1 text-[10px] font-bold flex items-center justify-center"
                   >
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </Badge>
                 )}
               </div>
-              {/* Label - always visible below icon */}
+              {/* Label */}
               <span className={cn(
-                "text-[10px] font-medium truncate max-w-full leading-tight",
-                isActive && "font-semibold"
+                "text-[10px] leading-none truncate w-full text-center px-0.5",
+                isActive ? "font-semibold" : "font-medium"
               )}>
                 {item.label}
               </span>
-              {/* Active indicator dot - under the label */}
-              {isActive && (
-                <span className="w-1 h-1 rounded-full bg-primary mt-0.5" />
-              )}
             </Link>
           );
         })}
