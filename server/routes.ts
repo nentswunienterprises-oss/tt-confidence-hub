@@ -2235,16 +2235,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let totalEnrollments = 0;
         let studentEnrollments = 0;
         try {
-          // Get total enrollments
-          const { data: allEnrollments, error: allError } = await supabase
-            .from("parent_enrollments")
-            .select("id");
-          
-          if (!allError && allEnrollments) {
-            totalEnrollments = allEnrollments.length;
-          }
-
-          // Get this month's enrollments
+          // Get this month's enrollments first
           const currentMonth = new Date();
           const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
           
@@ -2253,8 +2244,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .select("id")
             .gte("created_at", firstDay.toISOString());
           
-          if (!enrollError && monthEnrollments) {
+          if (enrollError) {
+            console.warn("Error fetching month enrollments:", enrollError);
+          } else if (monthEnrollments) {
             studentEnrollments = monthEnrollments.length;
+          }
+
+          // Get total enrollments (use count for efficiency)
+          const { count, error: countError } = await supabase
+            .from("parent_enrollments")
+            .select("*", { count: "exact", head: true });
+          
+          if (countError) {
+            console.warn("Error fetching total enrollments count:", countError);
+            // Fallback: total should be at least this month's count
+            totalEnrollments = studentEnrollments;
+          } else {
+            totalEnrollments = count || studentEnrollments;
           }
         } catch (e) {
           console.warn("Could not fetch parent enrollments:", e);
