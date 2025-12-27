@@ -29,7 +29,7 @@ export function getRoleName(role: string): string {
     case "coo":
       return "Chief Operations Officer";
     case "hr":
-      return "Human Resources";
+      return "Head of HR";
     case "affiliate":
       return "Affiliate";
     case "parent":
@@ -50,7 +50,7 @@ export function getRoleNameShort(role: string): string {
     case "coo":
       return "COO";
     case "hr":
-      return "HR";
+      return "HoHR";
     case "affiliate":
       return "Affiliate";
     case "parent":
