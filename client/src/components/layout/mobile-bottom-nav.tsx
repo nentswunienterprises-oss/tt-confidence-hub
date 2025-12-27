@@ -39,33 +39,35 @@ export function MobileBottomNav({ navItems, unreadCount = 0 }: MobileBottomNavPr
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <div className="relative">
+              {/* Icon container with badge */}
+              <div className="relative mb-0.5">
                 <div className={cn(
                   "p-1.5 rounded-xl transition-all duration-200",
                   isActive && "bg-primary/10"
                 )}>
                   {item.icon}
                 </div>
-                {/* Notification badge for Updates */}
+                {/* Notification badge for Updates - positioned on top right */}
                 {isUpdates && unreadCount > 0 && (
                   <Badge 
                     variant="destructive" 
-                    className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px] font-bold flex items-center justify-center"
+                    className="absolute -top-2 -right-2 h-4 min-w-4 px-1 text-[10px] font-bold flex items-center justify-center pointer-events-none"
                   >
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </Badge>
                 )}
-                {/* Active indicator dot */}
-                {isActive && (
-                  <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
-                )}
               </div>
+              {/* Label - always visible below icon */}
               <span className={cn(
-                "text-[10px] font-medium mt-0.5 truncate max-w-full",
+                "text-[10px] font-medium truncate max-w-full leading-tight",
                 isActive && "font-semibold"
               )}>
                 {item.label}
               </span>
+              {/* Active indicator dot */}
+              {isActive && (
+                <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
+              )}
             </Link>
           );
         })}
