@@ -32,29 +32,26 @@ export function MobileBottomNav({ navItems, unreadCount = 0 }: MobileBottomNavPr
               key={item.path}
               to={item.path}
               className={cn(
-                "relative flex flex-col items-center justify-center flex-1 min-w-0 py-2 gap-1",
+                "relative flex flex-col items-center justify-center flex-1 min-w-0 py-2 gap-1 overflow-visible",
                 "active:scale-95 touch-manipulation",
                 isActive 
                   ? "text-primary" 
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              {/* Icon with badge */}
-              <div className="relative">
+              {/* Icon with badge - overflow-visible so badge can escape */}
+              <div className="relative overflow-visible">
                 <div className={cn(
                   "p-1 rounded-lg",
                   isActive && "bg-primary/10"
                 )}>
                   {item.icon}
                 </div>
-                {/* Notification badge for Updates */}
+                {/* Notification badge - absolutely positioned to overflow on top */}
                 {isUpdates && unreadCount > 0 && (
-                  <Badge 
-                    variant="destructive" 
-                    className="absolute -top-1.5 -right-1.5 h-4 min-w-4 px-1 text-[10px] font-bold flex items-center justify-center"
-                  >
+                  <span className="absolute -top-2 -right-2 h-4 min-w-4 px-1 text-[10px] font-bold flex items-center justify-center bg-destructive text-destructive-foreground rounded-full z-10">
                     {unreadCount > 9 ? "9+" : unreadCount}
-                  </Badge>
+                  </span>
                 )}
               </div>
               {/* Label */}
@@ -64,6 +61,10 @@ export function MobileBottomNav({ navItems, unreadCount = 0 }: MobileBottomNavPr
               )}>
                 {item.label}
               </span>
+              {/* Active indicator dot */}
+              {isActive && (
+                <span className="w-1 h-1 rounded-full bg-primary" />
+              )}
             </Link>
           );
         })}
