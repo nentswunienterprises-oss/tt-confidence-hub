@@ -1,6 +1,6 @@
 import type { User } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
-import { getQueryFn, queryClient } from "@/lib/queryClient";
+import { getQueryFn, clearAllCache } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { supabase } from "@/lib/supabaseClient";
 import { API_URL } from "@/lib/config";
@@ -47,15 +47,15 @@ export function useAuth() {
       // Also sign out from Supabase client
       await supabase.auth.signOut();
 
-      // Clear ALL React Query cache to prevent stale user data showing for next user
-      queryClient.clear();
+      // Clear ALL React Query cache (memory + localStorage) to prevent stale user data showing for next user
+      clearAllCache();
 
       // Redirect to landing page
       setLocation("/");
     } catch (error) {
       console.error("Logout error:", error);
       // Clear cache even on error
-      queryClient.clear();
+      clearAllCache();
     }
   };
 

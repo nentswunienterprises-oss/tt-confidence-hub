@@ -1,5 +1,5 @@
 import { supabase } from "./supabaseClient";
-import { apiRequest, queryClient } from "./queryClient";
+import { apiRequest, clearAllCache } from "./queryClient";
 
 export async function logout() {
   try {
@@ -9,15 +9,15 @@ export async function logout() {
     // Sign out from Supabase
     await supabase.auth.signOut();
     
-    // Clear ALL React Query cache to prevent stale user data
-    queryClient.clear();
+    // Clear ALL React Query cache (memory + localStorage) to prevent stale user data
+    clearAllCache();
     
     // Redirect to home
     window.location.href = "/";
   } catch (error) {
     console.error("Logout error:", error);
     // Clear cache even on error
-    queryClient.clear();
+    clearAllCache();
     // Force redirect even on error
     window.location.href = "/";
   }

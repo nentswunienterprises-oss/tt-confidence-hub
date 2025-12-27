@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "@/lib/config";
+import { clearAllCache } from "@/lib/queryClient";
 
 export default function StudentLanding() {
   const [mode, setMode] = useState<"signin" | "signup">("signup");
@@ -77,6 +78,9 @@ export default function StudentLanding() {
         description: "Welcome to TT Student Portal. Redirecting...",
       });
 
+      // Clear any cached data from previous user before navigating
+      clearAllCache();
+
       // Redirect to student dashboard
       setTimeout(() => {
         navigate("/client/student/dashboard");
@@ -120,6 +124,9 @@ export default function StudentLanding() {
         title: "Welcome Back!",
         description: "Signing you in...",
       });
+
+      // Clear any cached data from previous user before navigating
+      clearAllCache();
 
       // Redirect to student dashboard
       setTimeout(() => {

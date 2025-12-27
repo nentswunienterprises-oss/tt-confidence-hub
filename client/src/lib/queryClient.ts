@@ -6,10 +6,25 @@ import { API_URL } from "./config";
 // Check if we're online
 const isOnline = () => typeof navigator !== 'undefined' ? navigator.onLine : true;
 
+// Key used by the persister in localStorage
+const PERSISTER_KEY = 'REACT_QUERY_OFFLINE_CACHE';
+
 // Create a persister for offline caching
 export const persister = createSyncStoragePersister({
   storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+  key: PERSISTER_KEY,
 });
+
+// Function to clear both in-memory and persisted cache
+export function clearAllCache() {
+  // Clear in-memory cache
+  queryClient.clear();
+  // Clear localStorage persisted cache
+  if (typeof window !== 'undefined') {
+    window.localStorage.removeItem(PERSISTER_KEY);
+  }
+  console.log('🗑️ All query cache cleared (memory + localStorage)');
+}
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
