@@ -32,7 +32,7 @@ export function MobileBottomNav({ navItems, unreadCount = 0 }: MobileBottomNavPr
               key={item.path}
               to={item.path}
               className={cn(
-                "flex flex-col items-center justify-center flex-1 h-full px-1 py-2 transition-all duration-200",
+                "relative flex flex-col items-center justify-center flex-1 h-full px-1 py-2 transition-all duration-200",
                 "active:scale-95 touch-manipulation",
                 isActive 
                   ? "text-primary" 
@@ -64,9 +64,9 @@ export function MobileBottomNav({ navItems, unreadCount = 0 }: MobileBottomNavPr
               )}>
                 {item.label}
               </span>
-              {/* Active indicator dot */}
+              {/* Active indicator dot - under the label */}
               {isActive && (
-                <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
+                <span className="w-1 h-1 rounded-full bg-primary mt-0.5" />
               )}
             </Link>
           );
