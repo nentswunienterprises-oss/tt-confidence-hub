@@ -314,7 +314,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 getPodLabel() ? (
                   <div className="flex flex-col items-start">
                     <span>{getRoleLabel(effectiveUser)}</span>
-                    <div className="w-full h-px bg-muted-foreground/40 my-0.5" />
+                    <div className="w-8 h-px bg-muted-foreground/40 my-0.5" />
                     <span>{getPodLabel()}</span>
                   </div>
                 ) : (
