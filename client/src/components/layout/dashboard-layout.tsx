@@ -293,22 +293,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const getPodLabel = () => {
-    // Show pod name only when tutor has an actual pod assignment
-    // Note: TDs without pods are redirected to /td/no-pod, so they won't see this header
+    // Show pod name only for tutors with an actual pod assignment
+    // Students and parents just see their role, not pod info
     if (isTutor(effectiveUser) && tutorPodData?.assignment?.pod) {
       return tutorPodData.assignment.pod.podName;
     }
-    // Show pod name for parents based on their assigned tutor's pod
-    if (isParent(effectiveUser) && parentStudentInfo?.podName) {
-      console.log("🎯 Returning parent pod name:", parentStudentInfo.podName);
-      return parentStudentInfo.podName;
-    }
-    // Show pod name for students based on their tutor's pod
-    if (isStudentAuth && studentUser?.podName) {
-      console.log("🎓 Returning student pod name:", studentUser.podName);
-      return studentUser.podName;
-    }
-    console.log("❌ No pod label to show. effectiveUser.role:", effectiveUser?.role, "parentStudentInfo:", parentStudentInfo, "studentUser:", studentUser);
     return "";
   };
 
@@ -319,13 +308,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="h-16 px-4 flex items-center justify-between gap-4">
           {/* Mobile Layout: Role/Pod on left, Title center, Profile right */}
           <div className="sm:hidden flex items-center justify-between w-full">
-            {/* Left: Role & Pod */}
+            {/* Left: Role & Pod as fraction style */}
             <div className="text-xs text-muted-foreground font-medium min-w-[60px]">
               {effectiveUser && (
-                <>
-                  {getRoleLabel(effectiveUser)}
-                  {getPodLabel() && <span className="block">{getPodLabel()}</span>}
-                </>
+                getPodLabel() ? (
+                  <div className="flex flex-col items-start">
+                    <span>{getRoleLabel(effectiveUser)}</span>
+                    <div className="w-full h-px bg-muted-foreground/40 my-0.5" />
+                    <span>{getPodLabel()}</span>
+                  </div>
+                ) : (
+                  <span>{getRoleLabel(effectiveUser)}</span>
+                )
               )}
             </div>
             {/* Center: Title */}
