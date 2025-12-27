@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { MobileBottomNav } from "./mobile-bottom-nav";
 import { useAuth } from "@/hooks/useAuth";
-import { isTutor, isTD, isCOO, isAffiliate, isParent, getRoleName } from "@/lib/roles";
+import { isTutor, isTD, isCOO, isAffiliate, isParent, getRoleName, getRoleNameShort } from "@/lib/roles";
 import { logout } from "@/lib/auth";
 import { ROLE_NAVIGATION } from "@shared/portals";
 import { useState, useEffect } from "react";
@@ -292,6 +292,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     return getRoleName(u.role);
   };
 
+  const getRoleLabelShort = (u: User | undefined): string => {
+    if (!u?.role) return "";
+    return getRoleNameShort(u.role);
+  };
+
   const getPodLabel = () => {
     // Show pod name only for tutors with an actual pod assignment
     // Students and parents just see their role, not pod info
@@ -309,16 +314,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* Mobile Layout: Role/Pod on left, Title center, Profile right */}
           <div className="sm:hidden flex items-center justify-between w-full">
             {/* Left: Role & Pod as fraction style */}
-            <div className="text-xs text-muted-foreground font-medium min-w-[60px]">
+            <div className="text-xs text-muted-foreground font-medium min-w-[40px]">
               {effectiveUser && (
                 getPodLabel() ? (
                   <div className="flex flex-col items-start">
-                    <span>{getRoleLabel(effectiveUser)}</span>
+                    <span>{getRoleLabelShort(effectiveUser)}</span>
                     <div className="w-8 h-px bg-muted-foreground/40 my-0.5" />
                     <span>{getPodLabel()}</span>
                   </div>
                 ) : (
-                  <span>{getRoleLabel(effectiveUser)}</span>
+                  <span>{getRoleLabelShort(effectiveUser)}</span>
                 )
               )}
             </div>

@@ -39,6 +39,25 @@ export function getRoleName(role: string): string {
   }
 }
 
+export function getRoleNameShort(role: string): string {
+  switch (role) {
+    case "tutor":
+      return "Tutor";
+    case "td":
+      return "TD";
+    case "coo":
+      return "COO";
+    case "affiliate":
+      return "Affiliate";
+    case "parent":
+      return "Parent";
+    case "student":
+      return "Student";
+    default:
+      return "User";
+  }
+}
+
 export function getRoleColor(role: string): string {
   switch (role) {
     case "tutor":
