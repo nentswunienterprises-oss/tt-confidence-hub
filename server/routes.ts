@@ -2203,27 +2203,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["hr"]),
     async (req: Request, res: Response) => {
       try {
-        // Get all tutors with their verification status
-        const tutors = await storage.getUsersByRole("tutor");
+        // Get pending tutor applications from tutor_applications table
+        const pendingApplications = await storage.getTutorApplicationsByStatus("pending");
         
-        // Count pending and approved tutors
-        const stats = await Promise.all(
-          tutors.map(async (tutor) => {
-            const verificationDoc = await storage.getVerificationDocByTutor(tutor.id);
-            return {
-              status: verificationDoc?.status || "pending",
-              verified: tutor.verified,
-            };
-          })
-        );
-
-        const pendingApplications = stats.filter(
-          (s) => s.status === "pending" || !s.verified
-        ).length;
-        
-        const approvedTutors = stats.filter(
-          (s) => s.verified && s.status === "verified"
-        ).length;
+        // Get approved tutors (from tutor_applications table)
+        const approvedApplications = await storage.getTutorApplicationsByStatus("approved");
 
         // Get student enrollments - count all parent_enrollments this month
         let studentEnrollments = 0;
@@ -2245,8 +2229,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         res.json({
-          pendingApplications,
-          approvedTutors,
+          pendingApplications: pendingApplications.length,
+          approvedTutors: approvedApplications.length,
           studentEnrollments,
         });
       } catch (error) {
