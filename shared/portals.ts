@@ -96,7 +96,12 @@ export const ROLE_NAVIGATION: Record<
   ],
 
   // Affiliate Portal - Outreach Director
-  od: [{ label: "Dashboard", path: "/affiliate/od/dashboard" }],
+  od: [
+    { label: "Dashboard", path: "/affiliate/od/dashboard" },
+    { label: "Encounters", path: "/affiliate/od/encounters" },
+    { label: "Affiliates", path: "/affiliate/od/affiliates" },
+    { label: "Updates", path: "/affiliate/od/updates" },
+  ],
 
   // Operational Portal - Tutor
   tutor: [

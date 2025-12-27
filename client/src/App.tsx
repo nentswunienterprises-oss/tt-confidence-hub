@@ -66,6 +66,9 @@ import AffiliateDiscoverDeliver from "@/pages/affiliate/affiliate/discover-deliv
 import AffiliateTracking from "@/pages/affiliate/affiliate/tracking";
 import AffiliateUpdates from "@/pages/affiliate/affiliate/updates";
 import OutreachDirectorDashboard from "@/pages/affiliate/od/dashboard";
+import ODEncounters from "@/pages/affiliate/od/encounters";
+import ODAffiliates from "@/pages/affiliate/od/affiliates";
+import ODUpdates from "@/pages/affiliate/od/updates";
 
 // NEW: Executive Portal Pages
 import ExecutiveCOODashboard from "@/pages/executive/coo/dashboard";
@@ -152,7 +155,10 @@ function Router() {
       <Route path="/affiliate/affiliate/updates" element={<AffiliateUpdates />} />
 
       {/* Outreach Director Routes */}
-      <Route path="/affiliate/od/dashboard" element={<DashboardLayout><OutreachDirectorDashboard /></DashboardLayout>} />
+      <Route path="/affiliate/od/dashboard" element={<OutreachDirectorDashboard />} />
+      <Route path="/affiliate/od/encounters" element={<ODEncounters />} />
+      <Route path="/affiliate/od/affiliates" element={<ODAffiliates />} />
+      <Route path="/affiliate/od/updates" element={<ODUpdates />} />
 
       {/* ==================== EXECUTIVE PORTAL ==================== */}
       {/* Executive Landing */}

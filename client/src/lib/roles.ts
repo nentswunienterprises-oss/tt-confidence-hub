@@ -16,6 +16,10 @@ export function isAffiliate(user: User | undefined): boolean {
   return user?.role === "affiliate";
 }
 
+export function isOD(user: User | undefined): boolean {
+  return user?.role === "od";
+}
+
 export function isParent(user: User | undefined): boolean {
   return user?.role === "parent";
 }

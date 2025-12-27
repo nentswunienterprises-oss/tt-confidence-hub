@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { MobileBottomNav } from "./mobile-bottom-nav";
 import { useAuth } from "@/hooks/useAuth";
-import { isTutor, isTD, isCOO, isAffiliate, isParent, getRoleName, getRoleNameShort } from "@/lib/roles";
+import { isTutor, isTD, isCOO, isAffiliate, isOD, isParent, getRoleName, getRoleNameShort } from "@/lib/roles";
 import { logout } from "@/lib/auth";
 import { ROLE_NAVIGATION } from "@shared/portals";
 import { useState, useEffect } from "react";
@@ -200,6 +200,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     { label: "Updates", path: "/affiliate/affiliate/updates", icon: <Bell className="w-5 h-5" /> },
   ];
 
+  const odNav: NavItem[] = [
+    { label: "Dashboard", path: "/affiliate/od/dashboard", icon: <Home className="w-5 h-5" /> },
+    { label: "Encounters", path: "/affiliate/od/encounters", icon: <Users className="w-5 h-5" /> },
+    { label: "Affiliates", path: "/affiliate/od/affiliates", icon: <FolderKanban className="w-5 h-5" /> },
+    { label: "Updates", path: "/affiliate/od/updates", icon: <Bell className="w-5 h-5" /> },
+  ];
+
   const getRoleNavigation = (): NavItem[] => {
     if (!effectiveUser?.role) {
       console.log("❌ No user role available");
@@ -232,6 +239,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     if (isAffiliate(effectiveUser)) {
       console.log("  → Using affiliate hardcoded nav");
       return affiliateNav;
+    }
+    
+    // Check for OD role
+    if (isOD(effectiveUser)) {
+      console.log("  → Using OD hardcoded nav");
+      return odNav;
     }
     
     // For all other roles, use ROLE_NAVIGATION config
