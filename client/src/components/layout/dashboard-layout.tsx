@@ -317,20 +317,27 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Header */}
       <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
         <div className="h-16 px-4 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+          {/* Mobile Layout: Role/Pod on left, Title center, Profile right */}
+          <div className="sm:hidden flex items-center justify-between w-full">
+            {/* Left: Role & Pod */}
+            <div className="text-xs text-muted-foreground font-medium min-w-[60px]">
+              {effectiveUser && (
+                <>
+                  {getRoleLabel(effectiveUser)}
+                  {getPodLabel() && <span className="block">{getPodLabel()}</span>}
+                </>
+              )}
+            </div>
+            {/* Center: Title */}
+            <Link to="/" className="absolute left-1/2 -translate-x-1/2">
+              <div className="font-bold text-base tracking-tight whitespace-nowrap">THE CONFIDENCE HUB</div>
+            </Link>
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden sm:flex items-center gap-4">
             <Link to="/" className="flex items-center gap-3">
-              {/* Mobile: Show THE CONFIDENCE HUB with role info */}
-              <div className="sm:hidden">
-                <div className="font-bold text-base tracking-tight">THE CONFIDENCE HUB</div>
-                {effectiveUser && (
-                  <div className="text-xs text-muted-foreground">
-                    {getRoleLabel(effectiveUser)}
-                    {getPodLabel() && ` • ${getPodLabel()}`}
-                  </div>
-                )}
-              </div>
-              {/* Desktop: Show TT Confidence Hub with role info */}
-              <div className="hidden sm:block">
+              <div>
                 <div className="font-bold text-base tracking-tight">TT Confidence Hub</div>
                 {effectiveUser && (
                   <div className="text-xs text-muted-foreground">
