@@ -28,6 +28,8 @@ export function getRoleName(role: string): string {
       return "Territory Director";
     case "coo":
       return "Chief Operations Officer";
+    case "hr":
+      return "Human Resources";
     case "affiliate":
       return "Affiliate";
     case "parent":
@@ -47,6 +49,8 @@ export function getRoleNameShort(role: string): string {
       return "TD";
     case "coo":
       return "COO";
+    case "hr":
+      return "HR";
     case "affiliate":
       return "Affiliate";
     case "parent":
@@ -66,6 +70,8 @@ export function getRoleColor(role: string): string {
       return "bg-purple-100 text-purple-800 border-purple-200";
     case "coo":
       return "bg-amber-100 text-amber-800 border-amber-200";
+    case "hr":
+      return "bg-pink-100 text-pink-800 border-pink-200";
     case "affiliate":
       return "bg-green-100 text-green-800 border-green-200";
     case "parent":
