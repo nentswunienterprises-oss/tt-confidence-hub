@@ -1975,7 +1975,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     isAuthenticated,
     async (req: Request, res: Response) => {
       try {
-        const broadcasts = await storage.getBroadcasts();
+        const userCreatedAt = (req as any).dbUser?.createdAt;
+        const broadcasts = await storage.getBroadcasts(userCreatedAt);
         res.json(broadcasts);
       } catch (error) {
         console.error("Error fetching broadcasts:", error);
@@ -1991,7 +1992,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: Request, res: Response) => {
       try {
         const userId = (req as any).dbUser.id;
-        const unreadCount = await storage.getUnreadBroadcastCount(userId);
+        const userCreatedAt = (req as any).dbUser?.createdAt;
+        const unreadCount = await storage.getUnreadBroadcastCount(userId, userCreatedAt);
         res.json({ unreadCount });
       } catch (error) {
         console.error("Error fetching unread count:", error);
@@ -4329,11 +4331,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get parent broadcasts (filter for parents)
   app.get("/api/parent/broadcasts", isAuthenticated, requireRole(["parent"]), async (req: Request, res: Response) => {
     try {
-      const { data: broadcasts, error } = await supabase
+      const userCreatedAt = (req as any).dbUser?.createdAt;
+      let query = supabase
         .from("broadcasts")
         .select("*")
         .contains("target_roles", ["parent"])
         .order("created_at", { ascending: false });
+      
+      // Only show broadcasts created after user's account was created
+      if (userCreatedAt) {
+        query = query.gte("created_at", userCreatedAt);
+      }
+      
+      const { data: broadcasts, error } = await query;
 
       if (error) throw error;
       res.json(broadcasts || []);

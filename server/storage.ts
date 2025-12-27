@@ -110,10 +110,10 @@ export interface IStorage {
   updateVerificationStatus(tutorId: string, status: string): Promise<void>;
 
   createBroadcast(broadcast: InsertBroadcast): Promise<Broadcast>;
-  getBroadcasts(): Promise<Broadcast[]>;
+  getBroadcasts(userCreatedAt?: string): Promise<Broadcast[]>;
   
   markBroadcastAsRead(userId: string, broadcastId: string): Promise<void>;
-  getUnreadBroadcastCount(userId: string): Promise<number>;
+  getUnreadBroadcastCount(userId: string, userCreatedAt?: string): Promise<number>;
   getUserBroadcastReads(userId: string): Promise<string[]>; // Returns array of read broadcast IDs
 
   createTutorApplication(application: InsertTutorApplication): Promise<TutorApplication>;
@@ -951,11 +951,17 @@ export class SupabaseStorage implements IStorage {
     };
   }
 
-  async getBroadcasts(): Promise<Broadcast[]> {
-    const { data } = await supabase.from("broadcasts").select("*").order("created_at", { ascending: false });
+  async getBroadcasts(userCreatedAt?: string): Promise<Broadcast[]> {
+    let query = supabase.from("broadcasts").select("*").order("created_at", { ascending: false });
+    
+    // Filter broadcasts to only show those created after user's account was created
+    if (userCreatedAt) {
+      query = query.gte("created_at", userCreatedAt);
+    }
+    
+    const { data } = await query;
     if (!data) return [];
     
-    console.log("📡 Raw broadcast data from DB:", JSON.stringify(data, null, 2));
     console.log("📊 Total broadcasts fetched:", data.length);
     
     // Transform snake_case to camelCase
@@ -968,11 +974,9 @@ export class SupabaseStorage implements IStorage {
         visibility: broadcast.visibility,
         createdAt: broadcast.created_at,
       };
-      console.log(`📝 Transformed broadcast ${broadcast.id}: subject='${result.subject}', createdAt='${result.createdAt}'`);
       return result;
     });
     
-    console.log("✅ Transformed broadcast data:", JSON.stringify(transformed, null, 2));
     return transformed;
   }
 
@@ -1042,23 +1046,19 @@ export class SupabaseStorage implements IStorage {
     }
   }
 
-  async getUnreadBroadcastCount(userId: string): Promise<number> {
+  async getUnreadBroadcastCount(userId: string, userCreatedAt?: string): Promise<number> {
     try {
-      // Try to use efficient database-level query with function
-      const { data, error } = await supabase.rpc(
-        'get_unread_broadcast_count',
-        { p_user_id: userId }
-      );
+      // Use direct query to filter by user creation date
+      let broadcastQuery = supabase
+        .from("broadcasts")
+        .select("id, created_at");
       
-      if (!error && data) {
-        return (data as any)?.[0]?.count || 0;
+      // Only show broadcasts created after user's account was created
+      if (userCreatedAt) {
+        broadcastQuery = broadcastQuery.gte("created_at", userCreatedAt);
       }
       
-      // Fallback: If function doesn't exist, use direct query
-      console.warn("RPC function not available, using fallback query");
-      const { data: broadcasts } = await supabase
-        .from("broadcasts")
-        .select("id");
+      const { data: broadcasts } = await broadcastQuery;
       
       if (!broadcasts || broadcasts.length === 0) return 0;
 
