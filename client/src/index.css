@@ -363,3 +363,15 @@
     background: linear-gradient(90deg, hsl(27 81% 52%), hsl(38 92% 50%));
   }
 }
+
+/* Mobile Bottom Navigation - Safe Area for iPhone notch/home indicator */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Ensure smooth scrolling on iOS */
+@supports (-webkit-touch-callout: none) {
+  .min-h-screen {
+    min-height: -webkit-fill-available;
+  }
+}

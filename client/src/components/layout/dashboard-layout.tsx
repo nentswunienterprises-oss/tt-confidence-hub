@@ -18,14 +18,13 @@ import {
   FileCheck,
   Bell,
   LogOut,
-  Menu,
-  X,
   BookOpen,
   TrendingUp,
   Calendar,
   MessageSquare,
   GraduationCap,
 } from "lucide-react";
+import { MobileBottomNav } from "./mobile-bottom-nav";
 import { useAuth } from "@/hooks/useAuth";
 import { isTutor, isTD, isCOO, isAffiliate, isParent, getRoleName } from "@/lib/roles";
 import { logout } from "@/lib/auth";
@@ -54,7 +53,6 @@ interface PodData {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, isAuthenticated } = useAuth();
   const location = useLocation();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // Check for student authentication (separate system)
   const [studentUser, setStudentUser] = useState<any>(null);
@@ -320,16 +318,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
         <div className="h-16 px-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              data-testid="button-mobile-menu"
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </Button>
-
             <Link to="/" className="flex items-center gap-3">
               {/* Mobile: Show THE CONFIDENCE HUB */}
               <div className="sm:hidden">
@@ -424,29 +412,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </DropdownMenu>
           </div>
         </div>
-
-        {/* Mobile Navigation */}
-        {mobileMenuOpen && (
-          <nav className="md:hidden border-t bg-card px-4 py-4 space-y-1">
-            {navItems.map((item) => (
-              <Link key={item.path} to={item.path}>
-                <Button
-                  variant={location.pathname === item.path ? "default" : "ghost"}
-                  className="w-full justify-start gap-2 font-medium"
-                  onClick={() => setMobileMenuOpen(false)}
-                  data-testid={`mobile-link-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
-                >
-                  {item.icon}
-                  <span>{item.label}</span>
-                </Button>
-              </Link>
-            ))}
-          </nav>
-        )}
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-3 py-4 sm:px-4 md:px-6 md:py-8">{children}</main>
+      {/* Main Content - Add bottom padding on mobile for bottom nav */}
+      <main className="max-w-7xl mx-auto px-3 py-4 sm:px-4 md:px-6 md:py-8 pb-20 md:pb-8">{children}</main>
+      
+      {/* Mobile Bottom Tab Navigator */}
+      <MobileBottomNav navItems={navItems} unreadCount={unreadBroadcasts?.length || 0} />
     </div>
   );
 }
