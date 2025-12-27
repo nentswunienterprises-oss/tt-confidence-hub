@@ -10,6 +10,7 @@ interface HRStats {
   totalApplications: number;
   pendingApplications: number;
   approvedTutors: number;
+  availableForPods: number;
   studentEnrollments: number;
 }
 
@@ -41,26 +42,48 @@ export default function HRDashboard() {
         </div>
 
         {/* Traffic Metrics */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid md:grid-cols-3 gap-4 md:gap-6">
+          {/* Tutor Applications - Split Card */}
           <Card className="p-4 md:p-6">
-            <p className="text-sm text-muted-foreground mb-1">Tutor Applications</p>
-            <p className="text-3xl font-bold">{statsLoading ? "-" : stats?.totalApplications ?? 0}</p>
-            <p className="text-xs text-muted-foreground mt-2">Total</p>
+            <p className="text-sm text-muted-foreground mb-3">Tutor Applications</p>
+            <div className="flex items-center justify-between">
+              <div className="text-center flex-1">
+                <p className="text-3xl font-bold">{statsLoading ? "-" : stats?.totalApplications ?? 0}</p>
+                <p className="text-xs text-muted-foreground mt-1">Total</p>
+              </div>
+              <div className="w-px h-12 bg-border mx-3" />
+              <div className="text-center flex-1">
+                <p className="text-3xl font-bold">{statsLoading ? "-" : stats?.pendingApplications ?? 0}</p>
+                <p className="text-xs text-muted-foreground mt-1">Pending</p>
+              </div>
+            </div>
           </Card>
+
+          {/* Approved Tutors - Split Card */}
           <Card className="p-4 md:p-6">
-            <p className="text-sm text-muted-foreground mb-1">Pending Review</p>
-            <p className="text-3xl font-bold">{statsLoading ? "-" : stats?.pendingApplications ?? 0}</p>
-            <p className="text-xs text-muted-foreground mt-2">Awaiting Decision</p>
+            <p className="text-sm text-muted-foreground mb-3">Approved Tutors</p>
+            <div className="flex items-center justify-between">
+              <div className="text-center flex-1">
+                <p className="text-3xl font-bold">{statsLoading ? "-" : stats?.approvedTutors ?? 0}</p>
+                <p className="text-xs text-muted-foreground mt-1">Total</p>
+              </div>
+              <div className="w-px h-12 bg-border mx-3" />
+              <div className="text-center flex-1">
+                <p className="text-3xl font-bold">{statsLoading ? "-" : stats?.availableForPods ?? 0}</p>
+                <p className="text-xs text-muted-foreground mt-1">Available</p>
+              </div>
+            </div>
           </Card>
+
+          {/* Student Enrollments */}
           <Card className="p-4 md:p-6">
-            <p className="text-sm text-muted-foreground mb-1">Approved Tutors</p>
-            <p className="text-3xl font-bold">{statsLoading ? "-" : stats?.approvedTutors ?? 0}</p>
-            <p className="text-xs text-muted-foreground mt-2">Available for Pods</p>
-          </Card>
-          <Card className="p-4 md:p-6">
-            <p className="text-sm text-muted-foreground mb-1">Student Enrollments</p>
-            <p className="text-3xl font-bold">{statsLoading ? "-" : stats?.studentEnrollments ?? 0}</p>
-            <p className="text-xs text-muted-foreground mt-2">This Month</p>
+            <p className="text-sm text-muted-foreground mb-3">Student Enrollments</p>
+            <div className="flex items-center justify-center h-12">
+              <div className="text-center">
+                <p className="text-3xl font-bold">{statsLoading ? "-" : stats?.studentEnrollments ?? 0}</p>
+                <p className="text-xs text-muted-foreground mt-1">This Month</p>
+              </div>
+            </div>
           </Card>
         </div>
 

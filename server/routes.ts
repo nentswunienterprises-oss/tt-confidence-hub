@@ -2212,6 +2212,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Get approved tutors (from tutor_applications table)
         const approvedApplications = await storage.getTutorApplicationsByStatus("approved");
 
+        // Get tutors who are approved but not yet assigned to a pod
+        let availableForPods = 0;
+        try {
+          // Get all tutor assignments
+          const { data: assignments } = await supabase
+            .from("tutor_assignments")
+            .select("tutor_id");
+          
+          const assignedTutorIds = new Set(assignments?.map(a => a.tutor_id) || []);
+          
+          // Count approved tutors who are not in the assignments list
+          availableForPods = approvedApplications.filter(
+            app => !assignedTutorIds.has(app.userId)
+          ).length;
+        } catch (e) {
+          console.warn("Could not fetch tutor assignments:", e);
+          availableForPods = approvedApplications.length; // Fallback to all approved
+        }
+
         // Get student enrollments - count all parent_enrollments this month
         let studentEnrollments = 0;
         try {
@@ -2235,6 +2254,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           totalApplications: allApplications.length,
           pendingApplications: pendingApplications.length,
           approvedTutors: approvedApplications.length,
+          availableForPods,
           studentEnrollments,
         });
       } catch (error) {
@@ -2243,6 +2263,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           totalApplications: 0,
           pendingApplications: 0,
           approvedTutors: 0,
+          availableForPods: 0,
           studentEnrollments: 0,
           error: "Failed to fetch stats" 
         });
