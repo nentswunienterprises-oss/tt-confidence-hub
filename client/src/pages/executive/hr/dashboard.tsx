@@ -11,6 +11,7 @@ interface HRStats {
   pendingApplications: number;
   approvedTutors: number;
   availableForPods: number;
+  totalEnrollments: number;
   studentEnrollments: number;
 }
 
@@ -75,11 +76,16 @@ export default function HRDashboard() {
             </div>
           </Card>
 
-          {/* Student Enrollments */}
+          {/* Student Enrollments - Split Card */}
           <Card className="p-4 md:p-6">
             <p className="text-sm text-muted-foreground mb-3">Student Enrollments</p>
-            <div className="flex items-center justify-center h-12">
-              <div className="text-center">
+            <div className="flex items-center justify-between">
+              <div className="text-center flex-1">
+                <p className="text-3xl font-bold">{statsLoading ? "-" : stats?.totalEnrollments ?? 0}</p>
+                <p className="text-xs text-muted-foreground mt-1">Total</p>
+              </div>
+              <div className="w-px h-12 bg-border mx-3" />
+              <div className="text-center flex-1">
                 <p className="text-3xl font-bold">{statsLoading ? "-" : stats?.studentEnrollments ?? 0}</p>
                 <p className="text-xs text-muted-foreground mt-1">This Month</p>
               </div>

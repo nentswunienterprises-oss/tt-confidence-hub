@@ -2231,19 +2231,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
           availableForPods = approvedApplications.length; // Fallback to all approved
         }
 
-        // Get student enrollments - count all parent_enrollments this month
+        // Get student enrollments - total and this month
+        let totalEnrollments = 0;
         let studentEnrollments = 0;
         try {
+          // Get total enrollments
+          const { data: allEnrollments, error: allError } = await supabase
+            .from("parent_enrollments")
+            .select("id");
+          
+          if (!allError && allEnrollments) {
+            totalEnrollments = allEnrollments.length;
+          }
+
+          // Get this month's enrollments
           const currentMonth = new Date();
           const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
           
-          const { data: enrollments, error: enrollError } = await supabase
+          const { data: monthEnrollments, error: enrollError } = await supabase
             .from("parent_enrollments")
             .select("id")
             .gte("created_at", firstDay.toISOString());
           
-          if (!enrollError && enrollments) {
-            studentEnrollments = enrollments.length;
+          if (!enrollError && monthEnrollments) {
+            studentEnrollments = monthEnrollments.length;
           }
         } catch (e) {
           console.warn("Could not fetch parent enrollments:", e);
@@ -2255,6 +2266,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           pendingApplications: pendingApplications.length,
           approvedTutors: approvedApplications.length,
           availableForPods,
+          totalEnrollments,
           studentEnrollments,
         });
       } catch (error) {
@@ -2264,6 +2276,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           pendingApplications: 0,
           approvedTutors: 0,
           availableForPods: 0,
+          totalEnrollments: 0,
           studentEnrollments: 0,
           error: "Failed to fetch stats" 
         });
