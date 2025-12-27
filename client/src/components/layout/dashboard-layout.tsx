@@ -319,9 +319,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="h-16 px-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Link to="/" className="flex items-center gap-3">
-              {/* Mobile: Show THE CONFIDENCE HUB */}
+              {/* Mobile: Show THE CONFIDENCE HUB with role info */}
               <div className="sm:hidden">
                 <div className="font-bold text-base tracking-tight">THE CONFIDENCE HUB</div>
+                {effectiveUser && (
+                  <div className="text-xs text-muted-foreground">
+                    {getRoleLabel(effectiveUser)}
+                    {getPodLabel() && ` • ${getPodLabel()}`}
+                  </div>
+                )}
               </div>
               {/* Desktop: Show TT Confidence Hub with role info */}
               <div className="hidden sm:block">
