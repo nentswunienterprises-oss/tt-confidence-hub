@@ -7,6 +7,7 @@ import { getQueryFn } from "@/lib/queryClient";
 import { useNavigate } from "react-router-dom";
 
 interface HRStats {
+  totalApplications: number;
   pendingApplications: number;
   approvedTutors: number;
   studentEnrollments: number;
@@ -40,21 +41,26 @@ export default function HRDashboard() {
         </div>
 
         {/* Traffic Metrics */}
-        <div className="grid md:grid-cols-3 gap-6">
-          <Card className="p-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+          <Card className="p-4 md:p-6">
             <p className="text-sm text-muted-foreground mb-1">Tutor Applications</p>
+            <p className="text-3xl font-bold">{statsLoading ? "-" : stats?.totalApplications ?? 0}</p>
+            <p className="text-xs text-muted-foreground mt-2">Total</p>
+          </Card>
+          <Card className="p-4 md:p-6">
+            <p className="text-sm text-muted-foreground mb-1">Pending Review</p>
             <p className="text-3xl font-bold">{statsLoading ? "-" : stats?.pendingApplications ?? 0}</p>
-            <p className="text-xs text-muted-foreground mt-2">Pending Review</p>
+            <p className="text-xs text-muted-foreground mt-2">Awaiting Decision</p>
           </Card>
-          <Card className="p-6">
-            <p className="text-sm text-muted-foreground mb-1">Student Enrollments</p>
-            <p className="text-3xl font-bold">{statsLoading ? "-" : stats?.studentEnrollments ?? 0}</p>
-            <p className="text-xs text-muted-foreground mt-2">This Month</p>
-          </Card>
-          <Card className="p-6">
+          <Card className="p-4 md:p-6">
             <p className="text-sm text-muted-foreground mb-1">Approved Tutors</p>
             <p className="text-3xl font-bold">{statsLoading ? "-" : stats?.approvedTutors ?? 0}</p>
             <p className="text-xs text-muted-foreground mt-2">Available for Pods</p>
+          </Card>
+          <Card className="p-4 md:p-6">
+            <p className="text-sm text-muted-foreground mb-1">Student Enrollments</p>
+            <p className="text-3xl font-bold">{statsLoading ? "-" : stats?.studentEnrollments ?? 0}</p>
+            <p className="text-xs text-muted-foreground mt-2">This Month</p>
           </Card>
         </div>
 

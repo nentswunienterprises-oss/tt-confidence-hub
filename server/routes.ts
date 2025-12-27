@@ -2203,6 +2203,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["hr"]),
     async (req: Request, res: Response) => {
       try {
+        // Get all tutor applications
+        const allApplications = await storage.getTutorApplications();
+        
         // Get pending tutor applications from tutor_applications table
         const pendingApplications = await storage.getTutorApplicationsByStatus("pending");
         
@@ -2229,6 +2232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         res.json({
+          totalApplications: allApplications.length,
           pendingApplications: pendingApplications.length,
           approvedTutors: approvedApplications.length,
           studentEnrollments,
@@ -2236,6 +2240,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error("Error fetching HR stats:", error);
         res.status(500).json({ 
+          totalApplications: 0,
           pendingApplications: 0,
           approvedTutors: 0,
           studentEnrollments: 0,
