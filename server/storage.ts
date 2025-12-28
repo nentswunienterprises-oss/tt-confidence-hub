@@ -1147,19 +1147,27 @@ export class SupabaseStorage implements IStorage {
   }
 
   async getTutorApplications(): Promise<TutorApplication[]> {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("tutor_applications")
       .select("*")
       .order("created_at", { ascending: false });
+    if (error) {
+      console.error("Error fetching tutor applications:", error);
+      throw new Error(`Failed to fetch tutor applications: ${error.message}`);
+    }
     return (data ?? []).map(transformSnakeToCamel) as TutorApplication[];
   }
 
   async getTutorApplicationsByStatus(status: "pending" | "approved" | "rejected"): Promise<TutorApplication[]> {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("tutor_applications")
       .select("*")
       .eq("status", status)
       .order("created_at", { ascending: false });
+    if (error) {
+      console.error(`Error fetching tutor applications by status ${status}:`, error);
+      throw new Error(`Failed to fetch tutor applications: ${error.message}`);
+    }
     return (data ?? []).map(transformSnakeToCamel) as TutorApplication[];
   }
 

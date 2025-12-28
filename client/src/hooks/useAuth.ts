@@ -1,14 +1,16 @@
 import type { User } from "@shared/schema";
-import { useQuery } from "@tanstack/react-query";
-import { getQueryFn, clearAllCache } from "@/lib/queryClient";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getQueryFn, clearAllCache, setCurrentUserId, getCurrentUserId, setupMultiTabSync } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { supabase } from "@/lib/supabaseClient";
 import { API_URL } from "@/lib/config";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export function useAuth() {
   const [, setLocation] = useLocation();
   const [supabaseReady, setSupabaseReady] = useState(false);
+  const queryClient = useQueryClient();
+  const previousUserIdRef = useRef<string | null>(null);
   
   // Wait for Supabase to initialize and check for existing session
   useEffect(() => {
@@ -16,6 +18,17 @@ export function useAuth() {
       setSupabaseReady(true);
     });
   }, []);
+
+  // Setup multi-tab sync - clear cache and refetch when user changes in another tab
+  useEffect(() => {
+    const cleanup = setupMultiTabSync(() => {
+      // Invalidate all queries to force refetch with new user
+      queryClient.invalidateQueries();
+      // Force page reload to ensure clean state
+      window.location.reload();
+    });
+    return cleanup;
+  }, [queryClient]);
   
   // Fetch DB user data from backend - use returnNull for 401 so we don't throw errors on unauthorized
   // Only enable query once Supabase is ready (session restored from localStorage)
@@ -28,8 +41,27 @@ export function useAuth() {
     enabled: supabaseReady, // Only fetch once Supabase session is ready
   });
 
+  // Track user ID changes and clear cache when user switches
+  useEffect(() => {
+    if (user?.id) {
+      const storedUserId = getCurrentUserId();
+      
+      // If there's a different user stored, clear cache (user switched accounts)
+      if (storedUserId && storedUserId !== user.id) {
+        console.log('🔄 User switched from', storedUserId, 'to', user.id, '- clearing cache');
+        clearAllCache();
+        queryClient.invalidateQueries();
+      }
+      
+      // Update stored user ID
+      setCurrentUserId(user.id);
+      previousUserIdRef.current = user.id;
+    }
+  }, [user?.id, queryClient]);
+
   console.log("🔐 useAuth state:", { 
     user: user?.name || null, 
+    role: user?.role || null,
     isLoading: userLoading || !supabaseReady, 
     isAuthenticated: !!user,
     supabaseReady,
@@ -47,6 +79,9 @@ export function useAuth() {
       // Also sign out from Supabase client
       await supabase.auth.signOut();
 
+      // Clear stored user ID
+      setCurrentUserId(null);
+
       // Clear ALL React Query cache (memory + localStorage) to prevent stale user data showing for next user
       clearAllCache();
 
@@ -55,6 +90,7 @@ export function useAuth() {
     } catch (error) {
       console.error("Logout error:", error);
       // Clear cache even on error
+      setCurrentUserId(null);
       clearAllCache();
     }
   };

@@ -9,6 +9,9 @@ const isOnline = () => typeof navigator !== 'undefined' ? navigator.onLine : tru
 // Key used by the persister in localStorage
 const PERSISTER_KEY = 'REACT_QUERY_OFFLINE_CACHE';
 
+// Key used to track current user across tabs
+const CURRENT_USER_KEY = 'CURRENT_USER_ID';
+
 // Create a persister for offline caching
 export const persister = createSyncStoragePersister({
   storage: typeof window !== 'undefined' ? window.localStorage : undefined,
@@ -24,6 +27,41 @@ export function clearAllCache() {
     window.localStorage.removeItem(PERSISTER_KEY);
   }
   console.log('🗑️ All query cache cleared (memory + localStorage)');
+}
+
+// Track current user to detect multi-tab user switching
+export function setCurrentUserId(userId: string | null) {
+  if (typeof window !== 'undefined') {
+    if (userId) {
+      window.localStorage.setItem(CURRENT_USER_KEY, userId);
+    } else {
+      window.localStorage.removeItem(CURRENT_USER_KEY);
+    }
+  }
+}
+
+export function getCurrentUserId(): string | null {
+  if (typeof window !== 'undefined') {
+    return window.localStorage.getItem(CURRENT_USER_KEY);
+  }
+  return null;
+}
+
+// Listen for storage changes from other tabs
+export function setupMultiTabSync(onUserChange: () => void) {
+  if (typeof window === 'undefined') return () => {};
+  
+  const handleStorageChange = (event: StorageEvent) => {
+    // If the current user changed in another tab, clear cache and reload
+    if (event.key === CURRENT_USER_KEY) {
+      console.log('🔄 User changed in another tab, clearing cache...');
+      clearAllCache();
+      onUserChange();
+    }
+  };
+  
+  window.addEventListener('storage', handleStorageChange);
+  return () => window.removeEventListener('storage', handleStorageChange);
 }
 
 async function throwIfResNotOk(res: Response) {

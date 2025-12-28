@@ -667,7 +667,7 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="would_not_quit" id="not_quit" data-testid="radio-quit-adapt" />
-                    <Label htmlFor="not_quit">I wouldn't quit — I'd adapt</Label>
+                    <Label htmlFor="not_quit">I wouldn't quit - I'd adapt</Label>
                   </div>
                 </RadioGroup>
                 {form.formState.errors.quitReason && <p className="text-sm text-destructive">{form.formState.errors.quitReason.message}</p>}
@@ -854,7 +854,7 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
               <div className="bg-primary/10 border border-primary/20 p-4 rounded-lg space-y-2">
                 <h4 className="font-semibold">Final Statement</h4>
                 <p className="text-sm">
-                  This is a founding opportunity — not a casual job. We're looking for young people who want to prove that confidence can be taught, replicated, and scaled ethically.
+                  This is a founding opportunity - not a casual job. We're looking for young people who want to prove that confidence can be taught, replicated, and scaled ethically.
                 </p>
                 <p className="text-sm font-medium italic">
                   "If you can't believe in transformation, you can't lead transformation."
