@@ -9,6 +9,12 @@ import { DashboardLayoutSimple } from "@/components/layout/dashboard-layout-simp
 import { ProtectedParentRoute } from "@/lib/parentGuard";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 
+// Clean up old localStorage cache on startup (we now use sessionStorage which is tab-specific)
+if (typeof window !== 'undefined') {
+  window.localStorage.removeItem('REACT_QUERY_OFFLINE_CACHE');
+  window.localStorage.removeItem('CURRENT_USER_ID');
+}
+
 // General Pages
 import Landing from "@/pages/landing";
 import PortalLanding from "@/pages/portal-landing";

@@ -9,12 +9,20 @@ const isOnline = () => typeof navigator !== 'undefined' ? navigator.onLine : tru
 // Key used by the persister in localStorage
 const PERSISTER_KEY = 'REACT_QUERY_OFFLINE_CACHE';
 
-// Key used to track current user across tabs
-const CURRENT_USER_KEY = 'CURRENT_USER_ID';
+// Key used to track current user - use sessionStorage (tab-specific) to avoid cross-tab issues
+const SESSION_USER_KEY = 'SESSION_USER_ID';
 
-// Create a persister for offline caching
+// Create a custom storage adapter that uses sessionStorage (tab-specific, not shared)
+// This prevents cache mixing when logging in as different users in different tabs
+const sessionStorageAdapter = typeof window !== 'undefined' ? {
+  getItem: (key: string) => window.sessionStorage.getItem(key),
+  setItem: (key: string, value: string) => window.sessionStorage.setItem(key, value),
+  removeItem: (key: string) => window.sessionStorage.removeItem(key),
+} : undefined;
+
+// Create a persister using sessionStorage (tab-specific) instead of localStorage (shared)
 export const persister = createSyncStoragePersister({
-  storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+  storage: sessionStorageAdapter,
   key: PERSISTER_KEY,
 });
 
@@ -22,46 +30,35 @@ export const persister = createSyncStoragePersister({
 export function clearAllCache() {
   // Clear in-memory cache
   queryClient.clear();
-  // Clear localStorage persisted cache
+  // Clear sessionStorage persisted cache
   if (typeof window !== 'undefined') {
-    window.localStorage.removeItem(PERSISTER_KEY);
+    window.sessionStorage.removeItem(PERSISTER_KEY);
   }
-  console.log('🗑️ All query cache cleared (memory + localStorage)');
+  console.log('🗑️ All query cache cleared (memory + sessionStorage)');
 }
 
-// Track current user to detect multi-tab user switching
+// Track current user to detect user switching within the same tab
 export function setCurrentUserId(userId: string | null) {
   if (typeof window !== 'undefined') {
     if (userId) {
-      window.localStorage.setItem(CURRENT_USER_KEY, userId);
+      window.sessionStorage.setItem(SESSION_USER_KEY, userId);
     } else {
-      window.localStorage.removeItem(CURRENT_USER_KEY);
+      window.sessionStorage.removeItem(SESSION_USER_KEY);
     }
   }
 }
 
 export function getCurrentUserId(): string | null {
   if (typeof window !== 'undefined') {
-    return window.localStorage.getItem(CURRENT_USER_KEY);
+    return window.sessionStorage.getItem(SESSION_USER_KEY);
   }
   return null;
 }
 
-// Listen for storage changes from other tabs
+// No longer needed - sessionStorage is tab-specific so no cross-tab sync required
 export function setupMultiTabSync(onUserChange: () => void) {
-  if (typeof window === 'undefined') return () => {};
-  
-  const handleStorageChange = (event: StorageEvent) => {
-    // If the current user changed in another tab, clear cache and reload
-    if (event.key === CURRENT_USER_KEY) {
-      console.log('🔄 User changed in another tab, clearing cache...');
-      clearAllCache();
-      onUserChange();
-    }
-  };
-  
-  window.addEventListener('storage', handleStorageChange);
-  return () => window.removeEventListener('storage', handleStorageChange);
+  // Return no-op cleanup function
+  return () => {};
 }
 
 async function throwIfResNotOk(res: Response) {
