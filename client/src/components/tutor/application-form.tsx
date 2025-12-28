@@ -15,6 +15,8 @@ import { ChevronLeft, ChevronRight, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
+import { useQuery } from "@tanstack/react-query";
+import { getQueryFn } from "@/lib/queryClient";
 
 const STORAGE_KEY = "tutor_application_draft";
 const STEP_STORAGE_KEY = "tutor_application_step";
@@ -113,6 +115,12 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
   const [currentStep, setCurrentStep] = useState(loadSavedStep());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+
+  // Fetch current user to get email
+  const { data: user } = useQuery<any>({
+    queryKey: ["/api/auth/user"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+  });
   
   const form = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
@@ -132,6 +140,13 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
       ...savedDraft,
     },
   });
+
+  // Pre-fill email from user account if not already set
+  useEffect(() => {
+    if (user?.email && !form.getValues("email")) {
+      form.setValue("email", user.email);
+    }
+  }, [user, form]);
 
   // Auto-save form data to localStorage whenever it changes
   const watchedValues = form.watch();
@@ -327,7 +342,15 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
 
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm">Email Address</Label>
-                <Input id="email" type="email" {...form.register("email")} data-testid="input-email" className="text-base" />
+                <Input 
+                  id="email" 
+                  type="email" 
+                  {...form.register("email")} 
+                  data-testid="input-email" 
+                  className="text-base bg-muted/50" 
+                  readOnly 
+                />
+                <p className="text-xs text-muted-foreground">Using email from your account</p>
                 {form.formState.errors.email && <p className="text-xs sm:text-sm text-destructive">{form.formState.errors.email.message}</p>}
               </div>
 
