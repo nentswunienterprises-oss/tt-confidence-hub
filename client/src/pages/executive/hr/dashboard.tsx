@@ -100,7 +100,7 @@ export default function HRDashboard() {
             <p className="text-sm text-muted-foreground mb-4">
               Review pending tutor applications and make approval decisions
             </p>
-            <Button className="w-full">View Applications</Button>
+            <Button className="w-full" onClick={() => navigate("/executive/hr/applications")}>View Applications</Button>
           </Card>
 
           <Card className="p-6">
@@ -108,7 +108,7 @@ export default function HRDashboard() {
             <p className="text-sm text-muted-foreground mb-4">
               Assign approved tutors to pods and manage placements
             </p>
-            <Button className="w-full">Manage Assignments</Button>
+            <Button className="w-full" variant="outline">Manage Assignments</Button>
           </Card>
         </div>
 

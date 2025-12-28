@@ -2284,11 +2284,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
-  // Get all tutor applications (COO)
+  // Get all tutor applications (COO and HR)
   app.get(
     "/api/coo/tutor-applications",
     isAuthenticated,
-    requireRole(["coo"]),
+    requireRole(["coo", "hr"]),
     async (req: Request, res: Response) => {
       try {
         const { status } = req.query;
