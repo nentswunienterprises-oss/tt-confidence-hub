@@ -287,60 +287,60 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
   const progress = (currentStep / TOTAL_STEPS) * 100;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="w-full max-w-3xl mx-auto space-y-4 sm:space-y-6">
       <div className="space-y-2">
-        <div className="flex justify-between text-sm text-muted-foreground">
+        <div className="flex justify-between text-xs sm:text-sm text-muted-foreground">
           <span>Step {currentStep} of {TOTAL_STEPS}</span>
           <span>{Math.round(progress)}% complete</span>
         </div>
         <Progress value={progress} className="h-2" />
       </div>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
         {/* Step 1: Personal & Environmental */}
         {currentStep === 1 && (
           <Card data-testid="step-personal">
-            <CardHeader>
-              <CardTitle>Personal & Environmental Profile</CardTitle>
-              <CardDescription>Tell us about yourself and your environment</CardDescription>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg">Personal & Environmental Profile</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Tell us about yourself and your environment</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
               <div className="space-y-2">
-                <Label htmlFor="fullNames">Full Names</Label>
-                <Input id="fullNames" {...form.register("fullNames")} data-testid="input-full-names" />
-                {form.formState.errors.fullNames && <p className="text-sm text-destructive">{form.formState.errors.fullNames.message}</p>}
+                <Label htmlFor="fullNames" className="text-sm">Full Names</Label>
+                <Input id="fullNames" {...form.register("fullNames")} data-testid="input-full-names" className="text-base" />
+                {form.formState.errors.fullNames && <p className="text-xs sm:text-sm text-destructive">{form.formState.errors.fullNames.message}</p>}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="age">Age</Label>
-                  <Input id="age" type="number" {...form.register("age")} data-testid="input-age" />
-                  {form.formState.errors.age && <p className="text-sm text-destructive">{form.formState.errors.age.message}</p>}
+                  <Label htmlFor="age" className="text-sm">Age</Label>
+                  <Input id="age" type="number" {...form.register("age")} data-testid="input-age" className="text-base" />
+                  {form.formState.errors.age && <p className="text-xs sm:text-sm text-destructive">{form.formState.errors.age.message}</p>}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phoneNumber">Phone Number (+27)</Label>
-                  <Input id="phoneNumber" {...form.register("phoneNumber")} placeholder="+27..." data-testid="input-phone" />
-                  {form.formState.errors.phoneNumber && <p className="text-sm text-destructive">{form.formState.errors.phoneNumber.message}</p>}
+                  <Label htmlFor="phoneNumber" className="text-sm">Phone Number (+27)</Label>
+                  <Input id="phoneNumber" {...form.register("phoneNumber")} placeholder="+27..." data-testid="input-phone" className="text-base" />
+                  {form.formState.errors.phoneNumber && <p className="text-xs sm:text-sm text-destructive">{form.formState.errors.phoneNumber.message}</p>}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input id="email" type="email" {...form.register("email")} data-testid="input-email" />
-                {form.formState.errors.email && <p className="text-sm text-destructive">{form.formState.errors.email.message}</p>}
+                <Label htmlFor="email" className="text-sm">Email Address</Label>
+                <Input id="email" type="email" {...form.register("email")} data-testid="input-email" className="text-base" />
+                {form.formState.errors.email && <p className="text-xs sm:text-sm text-destructive">{form.formState.errors.email.message}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="city">City/Location</Label>
-                <Input id="city" {...form.register("city")} data-testid="input-city" />
-                {form.formState.errors.city && <p className="text-sm text-destructive">{form.formState.errors.city.message}</p>}
+                <Label htmlFor="city" className="text-sm">City/Location</Label>
+                <Input id="city" {...form.register("city")} data-testid="input-city" className="text-base" />
+                {form.formState.errors.city && <p className="text-xs sm:text-sm text-destructive">{form.formState.errors.city.message}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="currentStatus">Current Status</Label>
+                <Label htmlFor="currentStatus" className="text-sm">Current Status</Label>
                 <Select onValueChange={(value) => form.setValue("currentStatus", value)} value={form.watch("currentStatus")}>
-                  <SelectTrigger data-testid="select-current-status">
+                  <SelectTrigger data-testid="select-current-status" className="text-sm sm:text-base">
                     <SelectValue placeholder="Select your status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -355,13 +355,13 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="whoInfluences">Who currently influences you most?</Label>
-                <Textarea id="whoInfluences" {...form.register("whoInfluences")} placeholder="Parent, friend, teacher, mentor, no one?" data-testid="input-who-influences" />
+                <Label htmlFor="whoInfluences" className="text-sm">Who currently influences you most?</Label>
+                <Textarea id="whoInfluences" {...form.register("whoInfluences")} placeholder="Parent, friend, teacher, mentor, no one?" data-testid="input-who-influences" className="text-base min-h-[80px]" />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="environment">Describe your environment in one line</Label>
-                <Textarea id="environment" {...form.register("environment")} placeholder="Are you surrounded by pressure, support, or distractions?" data-testid="input-environment" />
+                <Label htmlFor="environment" className="text-sm">Describe your environment in one line</Label>
+                <Textarea id="environment" {...form.register("environment")} placeholder="Are you surrounded by pressure, support, or distractions?" data-testid="input-environment" className="text-base min-h-[80px]" />
               </div>
             </CardContent>
           </Card>
@@ -370,11 +370,11 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
         {/* Step 2: Mindset & Mission */}
         {currentStep === 2 && (
           <Card data-testid="step-mindset">
-            <CardHeader>
-              <CardTitle>Mindset & Mission</CardTitle>
-              <CardDescription>Help us understand your motivations and beliefs</CardDescription>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg">Mindset & Mission</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Help us understand your motivations and beliefs</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
               <div className="space-y-2">
                 <Label htmlFor="whyTutor">Why do you want to become a tutor at TT?</Label>
                 <Textarea id="whyTutor" {...form.register("whyTutor")} rows={3} data-testid="input-why-tutor" />
@@ -449,13 +449,13 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
         {/* Step 3: Academic Confidence */}
         {currentStep === 3 && (
           <Card data-testid="step-academic">
-            <CardHeader>
-              <CardTitle>Academic Confidence</CardTitle>
-              <CardDescription>Tell us about your academic readiness</CardDescription>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg">Academic Confidence</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Tell us about your academic readiness</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
               <div className="space-y-2">
-                <Label>Which grades do you feel best equipped to mentor?</Label>
+                <Label className="text-sm">Which grades do you feel best equipped to mentor?</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {["Grade 6", "Grade 7", "Grade 8", "Grade 9"].map((grade) => (
                     <div key={grade} className="flex items-center space-x-2">
@@ -576,11 +576,11 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
         {/* Step 4: Psychological Fit */}
         {currentStep === 4 && (
           <Card data-testid="step-psychological">
-            <CardHeader>
-              <CardTitle>Psychological Fit</CardTitle>
-              <CardDescription>Answer honestly - no right or wrong answers</CardDescription>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg">Psychological Fit</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Answer honestly - no right or wrong answers</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
               <div className="space-y-2">
                 <Label>Which statement hits you hardest?</Label>
                 <RadioGroup onValueChange={(value) => form.setValue("statementHits", value as any)} value={form.watch("statementHits")}>
@@ -685,11 +685,11 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
         {/* Step 5: Vision & Long-term */}
         {currentStep === 5 && (
           <Card data-testid="step-vision">
-            <CardHeader>
-              <CardTitle>Vision & Long-Term Thinking</CardTitle>
-              <CardDescription>Tell us about your aspirations</CardDescription>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg">Vision & Long-Term Thinking</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Tell us about your aspirations</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
               <div className="space-y-2">
                 <Label htmlFor="futurePersonality">What kind of person do you want to become by the end of your journey at TT?</Label>
                 <Textarea id="futurePersonality" {...form.register("futurePersonality")} rows={3} data-testid="input-future-personality" />
@@ -735,11 +735,11 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
         {/* Step 6: Video Introduction */}
         {currentStep === 6 && (
           <Card data-testid="step-video">
-            <CardHeader>
-              <CardTitle>Video Introduction</CardTitle>
-              <CardDescription>Share a video introducing yourself (optional but recommended)</CardDescription>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg">Video Introduction</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Share a video introducing yourself (optional but recommended)</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
               <div className="space-y-2">
                 <Label htmlFor="videoUrl">Video URL (Google Photos or Drive link)</Label>
                 <Input 
@@ -768,11 +768,11 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
         {/* Step 7: Availability & Commitment */}
         {currentStep === 7 && (
           <Card data-testid="step-availability">
-            <CardHeader>
-              <CardTitle>Availability & Commitment</CardTitle>
-              <CardDescription>Let us know about your availability</CardDescription>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg">Availability & Commitment</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Let us know about your availability</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
               <div className="space-y-2">
                 <Label>Are you available for TT's Founding Team Bootcamp (Prep Phase)?</Label>
                 <RadioGroup onValueChange={(value) => form.setValue("bootcampAvailable", value as any)} value={form.watch("bootcampAvailable")}>
@@ -842,27 +842,30 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
         )}
 
         {/* Navigation Buttons */}
-        <div className="flex justify-between gap-4">
+        <div className="flex justify-between gap-2 sm:gap-4 sticky bottom-0 bg-background py-3 sm:py-4 border-t sm:border-t-0 -mx-4 px-4 sm:mx-0 sm:px-0 sm:static">
           <Button
             type="button"
             variant="outline"
             onClick={currentStep === 1 ? onCancel : prevStep}
             disabled={isSubmitting}
             data-testid="button-previous"
+            className="flex-1 sm:flex-none h-11 sm:h-10 text-sm"
           >
-            <ChevronLeft className="w-4 h-4 mr-2" />
-            {currentStep === 1 ? "Cancel" : "Previous"}
+            <ChevronLeft className="w-4 h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">{currentStep === 1 ? "Cancel" : "Previous"}</span>
+            <span className="sm:hidden">{currentStep === 1 ? "Cancel" : "Back"}</span>
           </Button>
 
           {currentStep < TOTAL_STEPS ? (
-            <Button type="button" onClick={nextStep} data-testid="button-next">
+            <Button type="button" onClick={nextStep} data-testid="button-next" className="flex-1 sm:flex-none h-11 sm:h-10 text-sm">
               Next
-              <ChevronRight className="w-4 h-4 ml-2" />
+              <ChevronRight className="w-4 h-4 ml-1 sm:ml-2" />
             </Button>
           ) : (
-            <Button type="submit" disabled={isSubmitting} data-testid="button-submit">
-              <Send className="w-4 h-4 mr-2" />
-              {isSubmitting ? "Submitting..." : "Submit Application"}
+            <Button type="submit" disabled={isSubmitting} data-testid="button-submit" className="flex-1 sm:flex-none h-11 sm:h-10 text-sm">
+              <Send className="w-4 h-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">{isSubmitting ? "Submitting..." : "Submit Application"}</span>
+              <span className="sm:hidden">{isSubmitting ? "Sending..." : "Submit"}</span>
             </Button>
           )}
         </div>

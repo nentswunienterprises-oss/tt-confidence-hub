@@ -348,9 +348,9 @@ export default function TutorGateway() {
 
         {/* Application Dialog */}
         <Dialog open={showApplicationForm} onOpenChange={setShowApplicationForm}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="w-[95vw] max-w-4xl h-[95vh] sm:h-auto sm:max-h-[90vh] overflow-y-auto p-4 sm:p-6">
             <DialogHeader>
-              <DialogTitle>Territorial Tutoring - Founding Team Application</DialogTitle>
+              <DialogTitle className="text-base sm:text-lg">Founding Team Application</DialogTitle>
             </DialogHeader>
             <ApplicationForm
               onSuccess={() => {
@@ -371,28 +371,30 @@ export default function TutorGateway() {
         {/* Submitted / Status View */}
         {step === "submitted" && applicationStatus && (
           <Card className="text-center border-0 shadow-lg" style={{ backgroundColor: "white" }}>
-            <CardHeader className="p-3 sm:p-6">
+            <CardHeader className="p-4 sm:p-6">
               <CardTitle className="flex items-center justify-center gap-2 text-sm sm:text-lg" style={{ color: "#1A1A1A" }}>
-                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: "#E63946" }} />
-                {applicationStatus.status === "pending" && "Application Under Review"}
-                {applicationStatus.status === "approved" && "You've Been Accepted!"}
-                {applicationStatus.status === "verification" && "Documents Under Verification"}
-                {applicationStatus.status === "confirmed" && "Awaiting Pod Assignment"}
-                {applicationStatus.status === "rejected" && "Application Not Accepted"}
+                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" style={{ color: "#E63946" }} />
+                <span className="text-center">
+                  {applicationStatus.status === "pending" && "Application Under Review"}
+                  {applicationStatus.status === "approved" && "You've Been Accepted!"}
+                  {applicationStatus.status === "verification" && "Documents Under Verification"}
+                  {applicationStatus.status === "confirmed" && "Awaiting Pod Assignment"}
+                  {applicationStatus.status === "rejected" && "Application Not Accepted"}
+                </span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 px-4 sm:px-6">
               {applicationStatus.status === "pending" && (
                 <>
-                  <p className="text-muted-foreground">
+                  <p className="text-sm sm:text-base text-muted-foreground">
                     Thank you for applying to join our Founding Team. Your application is being reviewed.
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     We carefully evaluate each application. You'll hear from us within 2-3 business days.
                   </p>
-                  <div className="bg-muted/30 rounded-lg p-4 text-left">
-                    <p className="text-sm font-medium mb-2">What happens next:</p>
-                    <ul className="text-sm text-muted-foreground space-y-1 ml-4 list-disc">
+                  <div className="bg-muted/30 rounded-lg p-3 sm:p-4 text-left">
+                    <p className="text-xs sm:text-sm font-medium mb-2">What happens next:</p>
+                    <ul className="text-xs sm:text-sm text-muted-foreground space-y-1 ml-4 list-disc">
                       <li>Our team reviews your application</li>
                       <li>If accepted, you'll upload verification documents</li>
                       <li>Once verified, you'll be assigned to a pod</li>
@@ -404,12 +406,12 @@ export default function TutorGateway() {
 
               {(applicationStatus.status === "approved" || applicationStatus.status === "verification") && (
                 <>
-                  <h3 className="text-base sm:text-xl font-semibold mb-4">
+                  <h3 className="text-sm sm:text-xl font-semibold mb-3 sm:mb-4">
                     {applicationStatus.status === "approved" 
                       ? "Congratulations! You've been accepted into our Founding Team."
                       : "Documents Submitted - Under Verification"}
                   </h3>
-                  <p className="text-muted-foreground mb-6">
+                  <p className="text-xs sm:text-base text-muted-foreground mb-4 sm:mb-6">
                     {applicationStatus.status === "approved"
                       ? "Before you can start, we need you to upload a few verification documents."
                       : "We're verifying your documents. We'll contact you once everything is confirmed."}
@@ -558,10 +560,10 @@ export default function TutorGateway() {
                   </div>
 
                   {applicationStatus.status === "approved" && (
-                    <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
-                        <p className="text-sm text-amber-800">
+                    <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 flex-shrink-0" />
+                        <p className="text-xs sm:text-sm text-amber-800 text-left">
                           Complete all required documents to unlock your tutor dashboard.
                         </p>
                       </div>
@@ -569,10 +571,10 @@ export default function TutorGateway() {
                   )}
 
                   {applicationStatus.status === "verification" && (
-                    <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Clock className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                        <p className="text-sm text-blue-800">
+                    <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
+                        <p className="text-xs sm:text-sm text-blue-800 text-left">
                           We're verifying your documents. This typically takes 1-2 business days. 
                           {applicationStatus.isUnder18 && " We'll also contact your parent/guardian to confirm consent."}
                         </p>
@@ -585,33 +587,33 @@ export default function TutorGateway() {
               {/* Confirmed but waiting for pod assignment */}
               {applicationStatus.status === "confirmed" && !hasPodAssignment && (
                 <>
-                  <div className="flex items-center justify-center gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                      <CheckCircle2 className="w-6 h-6 text-green-600" />
+                  <div className="flex items-center justify-center gap-3 mb-3 sm:mb-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-green-100 flex items-center justify-center">
+                      <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
                     </div>
                   </div>
-                  <h3 className="text-base sm:text-xl font-semibold mb-4 text-center">
+                  <h3 className="text-sm sm:text-xl font-semibold mb-3 sm:mb-4 text-center">
                     Documents Verified! 🎉
                   </h3>
-                  <p className="text-muted-foreground text-center mb-6">
+                  <p className="text-xs sm:text-base text-muted-foreground text-center mb-4 sm:mb-6">
                     You're officially part of the Founding Team. Now we're matching you with a pod.
                   </p>
                   
-                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg mb-4">
-                    <div className="flex items-center gap-3">
-                      <Users className="w-5 h-5 text-green-600 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-green-800">Waiting for Pod Assignment</p>
-                        <p className="text-xs text-green-700 mt-1">
+                  <div className="p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg mb-4">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <Users className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" />
+                      <div className="text-left">
+                        <p className="text-xs sm:text-sm font-medium text-green-800">Waiting for Pod Assignment</p>
+                        <p className="text-[10px] sm:text-xs text-green-700 mt-1">
                           Our team is preparing your first pod. You'll be notified once you're assigned.
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-muted/30 rounded-lg p-4 text-left">
-                    <p className="text-sm font-medium mb-2">What to expect:</p>
-                    <ul className="text-sm text-muted-foreground space-y-1 ml-4 list-disc">
+                  <div className="bg-muted/30 rounded-lg p-3 sm:p-4 text-left">
+                    <p className="text-xs sm:text-sm font-medium mb-2">What to expect:</p>
+                    <ul className="text-xs sm:text-sm text-muted-foreground space-y-1 ml-4 list-disc">
                       <li>You'll be assigned 2-4 students in your first pod</li>
                       <li>Your Territory Director will introduce your students</li>
                       <li>You'll get access to student profiles and identity sheets</li>
@@ -623,10 +625,10 @@ export default function TutorGateway() {
 
               {applicationStatus.status === "rejected" && (
                 <>
-                  <p className="text-muted-foreground">
+                  <p className="text-xs sm:text-base text-muted-foreground">
                     Thank you for your interest in joining Territorial Tutoring. After careful review, we've decided not to move forward with your application at this time.
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-[10px] sm:text-sm text-muted-foreground">
                     This doesn't mean you can't apply again in the future. If you'd like feedback or have questions, please reach out to our team.
                   </p>
                 </>
