@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -15,6 +15,9 @@ import { ChevronLeft, ChevronRight, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
+
+const STORAGE_KEY = "tutor_application_draft";
+const STEP_STORAGE_KEY = "tutor_application_step";
 
 const applicationSchema = z.object({
   // Personal & Environmental
@@ -76,8 +79,38 @@ interface ApplicationFormProps {
 
 const TOTAL_STEPS = 7;
 
+// Load saved draft from localStorage
+function loadSavedDraft(): Partial<ApplicationFormData> | null {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (e) {
+    console.error("Error loading saved draft:", e);
+  }
+  return null;
+}
+
+// Load saved step from localStorage
+function loadSavedStep(): number {
+  try {
+    const saved = localStorage.getItem(STEP_STORAGE_KEY);
+    if (saved) {
+      const step = parseInt(saved, 10);
+      if (step >= 1 && step <= TOTAL_STEPS) {
+        return step;
+      }
+    }
+  } catch (e) {
+    console.error("Error loading saved step:", e);
+  }
+  return 1;
+}
+
 export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
-  const [currentStep, setCurrentStep] = useState(1);
+  const savedDraft = loadSavedDraft();
+  const [currentStep, setCurrentStep] = useState(loadSavedStep());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   
@@ -95,8 +128,55 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
       googleMeetConfidence: 3,
       onenoteConfidence: 3,
       screenShareConfidence: 3,
+      // Merge with saved draft if available
+      ...savedDraft,
     },
   });
+
+  // Auto-save form data to localStorage whenever it changes
+  const watchedValues = form.watch();
+  
+  useEffect(() => {
+    // Debounce save to avoid excessive writes
+    const timeoutId = setTimeout(() => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(watchedValues));
+      } catch (e) {
+        console.error("Error saving draft:", e);
+      }
+    }, 500);
+    
+    return () => clearTimeout(timeoutId);
+  }, [watchedValues]);
+
+  // Save current step whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(STEP_STORAGE_KEY, currentStep.toString());
+    } catch (e) {
+      console.error("Error saving step:", e);
+    }
+  }, [currentStep]);
+
+  // Clear saved data after successful submission
+  const clearSavedData = useCallback(() => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(STEP_STORAGE_KEY);
+    } catch (e) {
+      console.error("Error clearing saved data:", e);
+    }
+  }, []);
+
+  // Show toast if draft was restored
+  useEffect(() => {
+    if (savedDraft && Object.keys(savedDraft).length > 0) {
+      toast({
+        title: "Draft Restored",
+        description: "Your previous progress has been restored.",
+      });
+    }
+  }, []); // Only run once on mount
 
   const onSubmit = async (data: ApplicationFormData) => {
     setIsSubmitting(true);
@@ -150,6 +230,9 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
       };
 
       await apiRequest("POST", "/api/tutor/application", payload);
+      
+      // Clear saved draft after successful submission
+      clearSavedData();
       
       toast({
         title: "Application Submitted!",
