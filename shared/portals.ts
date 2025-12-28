@@ -183,7 +183,7 @@ export function getDefaultDashboardRoute(role: Role): string {
     student: "/client/student/dashboard",
     affiliate: "/affiliate/affiliate/home",
     od: "/affiliate/od/dashboard",
-    tutor: "/tutor/pod",
+    tutor: "/operational/tutor/gateway", // Tutors go to gateway first
     td: "/td/overview",
     coo: "/coo/dashboard",
     hr: "/executive/hr/dashboard",

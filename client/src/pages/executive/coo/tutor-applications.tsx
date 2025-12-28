@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckCircle, XCircle, FileText, Clock, User } from "lucide-react";
+import { CheckCircle, XCircle, FileText, Clock, User, Upload, ExternalLink, FileCheck, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -74,6 +74,25 @@ export default function TutorApplicationsPage() {
     },
   });
 
+  const verifyDocMutation = useMutation({
+    mutationFn: ({ applicationId, documentType }: { applicationId: string; documentType: "trial_agreement" | "parent_consent" }) =>
+      apiRequest("POST", `/api/coo/verify-tutor-document`, { applicationId, documentType }),
+    onSuccess: () => {
+      toast({
+        title: "Document Verified",
+        description: "The document has been verified successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/coo/tutor-applications"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to verify document",
+        variant: "destructive",
+      });
+    },
+  });
+
   const rejectMutation = useMutation({
     mutationFn: ({ id, reason }: { id: string; reason: string }) =>
       apiRequest("POST", `/api/coo/tutor-applications/${id}/reject`, { reason }),
@@ -108,6 +127,22 @@ export default function TutorApplicationsPage() {
 
   const pendingApplications = applications?.filter((app) => app.status === "pending") || [];
   const approvedApplications = applications?.filter((app) => app.status === "approved") || [];
+  // Verification tab: approved tutors who have uploaded docs but not fully verified yet
+  const verificationApplications = applications?.filter((app) => {
+    if (app.status !== "approved") return false;
+    const a = app as any;
+    const hasTrialAgreement = !!(a.trial_agreement_url || a.trialAgreementUrl);
+    const trialVerified = !!(a.trial_agreement_verified || a.trialAgreementVerified);
+    const isUnder18 = (a.age || 0) < 18;
+    const hasParentConsent = !!(a.parent_consent_url || a.parentConsentUrl);
+    const parentVerified = !!(a.parent_consent_verified || a.parentConsentVerified);
+    
+    // Show in verification if: has docs uploaded but not all verified
+    if (isUnder18) {
+      return (hasTrialAgreement || hasParentConsent) && (!trialVerified || !parentVerified);
+    }
+    return hasTrialAgreement && !trialVerified;
+  }) || [];
   const rejectedApplications = applications?.filter((app) => app.status === "rejected") || [];
 
   if (isLoading) {
@@ -134,6 +169,10 @@ export default function TutorApplicationsPage() {
             <TabsTrigger value="pending" className="flex-1 min-w-0 gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4" data-testid="tab-pending">
               <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
               <span className="truncate">Pending ({pendingApplications.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="verification" className="flex-1 min-w-0 gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4" data-testid="tab-verification">
+              <FileCheck className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="truncate">Verification ({verificationApplications.length})</span>
             </TabsTrigger>
             <TabsTrigger value="approved" className="flex-1 min-w-0 gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4" data-testid="tab-approved">
               <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
@@ -162,6 +201,24 @@ export default function TutorApplicationsPage() {
                     setShowRejectDialog(true);
                   }}
                   onViewDetails={() => setSelectedApplication(application)}
+                />
+              ))
+            )}
+          </TabsContent>
+
+          <TabsContent value="verification" className="space-y-4">
+            {verificationApplications.length === 0 ? (
+              <Card className="p-12 text-center">
+                <FileCheck className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                <p className="text-muted-foreground">No documents awaiting verification</p>
+              </Card>
+            ) : (
+              verificationApplications.map((application) => (
+                <VerificationCard
+                  key={application.id}
+                  application={application}
+                  onVerifyDocument={(documentType) => verifyDocMutation.mutate({ applicationId: application.id, documentType })}
+                  isVerifying={verifyDocMutation.isPending}
                 />
               ))
             )}
@@ -466,5 +523,154 @@ function InfoItem({ label, value, link }: { label: string; value?: string; link?
         <p className="text-sm">{value}</p>
       )}
     </div>
+  );
+}
+
+function VerificationCard({
+  application,
+  onVerifyDocument,
+  isVerifying,
+}: {
+  application: TutorApplication;
+  onVerifyDocument: (documentType: "trial_agreement" | "parent_consent") => void;
+  isVerifying: boolean;
+}) {
+  const app = application as any;
+  const fullNames = app.full_names || app.fullNames;
+  const email = app.email;
+  const age = app.age;
+  const isUnder18 = age < 18;
+  
+  // Document status
+  const trialAgreementUrl = app.trial_agreement_url || app.trialAgreementUrl;
+  const trialVerified = app.trial_agreement_verified || app.trialAgreementVerified;
+  const parentConsentUrl = app.parent_consent_url || app.parentConsentUrl;
+  const parentVerified = app.parent_consent_verified || app.parentConsentVerified;
+
+  return (
+    <Card data-testid={`verification-card-${application.id}`}>
+      <CardHeader className="pb-3 sm:pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+          <div className="space-y-1 min-w-0">
+            <CardTitle className="text-lg sm:text-xl truncate">{fullNames}</CardTitle>
+            <CardDescription className="text-xs sm:text-sm break-all">
+              {email} • Age: {age} {isUnder18 && "(Under 18)"}
+            </CardDescription>
+          </div>
+          <Badge className="bg-amber-100 text-amber-800 border-amber-200 shrink-0 text-xs">
+            AWAITING VERIFICATION
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Trial Agreement */}
+        <div className="p-4 rounded-lg border" style={{ 
+          backgroundColor: trialVerified ? "#F0FDF4" : trialAgreementUrl ? "#FEF3C7" : "#FFF0F0",
+          borderColor: trialVerified ? "#86EFAC" : trialAgreementUrl ? "#FCD34D" : "#FECACA"
+        }}>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3">
+              {trialVerified ? (
+                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+              ) : trialAgreementUrl ? (
+                <Clock className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+              ) : (
+                <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+              )}
+              <div>
+                <h4 className="font-semibold text-sm">Trial Tutor Agreement</h4>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {trialVerified ? "Verified ✓" : trialAgreementUrl ? "Uploaded - Review and verify" : "Not yet uploaded"}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              {trialAgreementUrl && (
+                <a
+                  href={trialAgreementUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex"
+                >
+                  <Button variant="outline" size="sm">
+                    <ExternalLink className="w-3 h-3 mr-1" />
+                    View
+                  </Button>
+                </a>
+              )}
+              {trialAgreementUrl && !trialVerified && (
+                <Button
+                  size="sm"
+                  onClick={() => onVerifyDocument("trial_agreement")}
+                  disabled={isVerifying}
+                >
+                  <CheckCircle className="w-3 h-3 mr-1" />
+                  Verify
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Parent Consent (if under 18) */}
+        {isUnder18 && (
+          <div className="p-4 rounded-lg border" style={{ 
+            backgroundColor: parentVerified ? "#F0FDF4" : parentConsentUrl ? "#FEF3C7" : "#FFF0F0",
+            borderColor: parentVerified ? "#86EFAC" : parentConsentUrl ? "#FCD34D" : "#FECACA"
+          }}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3">
+                {parentVerified ? (
+                  <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                ) : parentConsentUrl ? (
+                  <Clock className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                ) : (
+                  <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                )}
+                <div>
+                  <h4 className="font-semibold text-sm">Parent/Guardian Consent</h4>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {parentVerified ? "Verified - Parent contacted ✓" : parentConsentUrl ? "Uploaded - Contact parent to verify" : "Not yet uploaded"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                {parentConsentUrl && (
+                  <a
+                    href={parentConsentUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex"
+                  >
+                    <Button variant="outline" size="sm">
+                      <ExternalLink className="w-3 h-3 mr-1" />
+                      View
+                    </Button>
+                  </a>
+                )}
+                {parentConsentUrl && !parentVerified && (
+                  <Button
+                    size="sm"
+                    onClick={() => onVerifyDocument("parent_consent")}
+                    disabled={isVerifying}
+                  >
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    Verify
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isUnder18 && !parentConsentUrl && (
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-xs text-amber-800">
+              <strong>Note:</strong> This tutor is under 18 and hasn't uploaded parent consent yet.
+            </p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

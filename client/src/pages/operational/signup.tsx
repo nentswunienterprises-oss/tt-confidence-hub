@@ -72,7 +72,7 @@ export default function OperationalSignup() {
                   Lead 4-6 students in Confidence Pods and transform mathematical confidence
                 </p>
                 <ul className="space-y-2 mb-6">
-                  {["Flexible hours", "Training provided", "Make real impact"].map((item, i) => (
+                  {["Learn the Confidence Method", "Be part of proof", "Shape the future"].map((item, i) => (
                     <li key={i} className="flex items-center gap-2 text-sm" style={{ color: "#5A5A5A" }}>
                       <Check className="w-4 h-4" style={{ color: "#E63946" }} />
                       {item}
@@ -105,7 +105,7 @@ export default function OperationalSignup() {
                   Oversee multiple pods, tutors, and ensure quality consistency
                 </p>
                 <ul className="space-y-2 mb-6">
-                  {["Leadership role", "Build your team", "Territory ownership"].map((item, i) => (
+                  {["Lead the method rollout", "Build founding pods", "Own a territory"].map((item, i) => (
                     <li key={i} className="flex items-center gap-2 text-sm" style={{ color: "#5A5A5A" }}>
                       <Check className="w-4 h-4" style={{ color: "#E63946" }} />
                       {item}

@@ -92,28 +92,26 @@ export default function ClientLanding() {
               </Button>
             </div>
 
-            {/* Trust indicators */}
+            {/* Method Origin */}
             <div className="flex items-center gap-4 sm:gap-6 pt-2 sm:pt-4">
-              <div className="flex -space-x-2">
-                {[1, 2, 3, 4].map((i) => (
+              <div className="flex gap-2">
+                {["Connection", "Mastery", "Reflection"].map((pillar, i) => (
                   <div 
-                    key={i} 
-                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 flex items-center justify-center text-xs sm:text-sm font-medium"
+                    key={pillar} 
+                    className="px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium"
                     style={{ 
-                      backgroundColor: i % 2 === 0 ? "#FFF0F0" : "#E63946", 
-                      borderColor: "#FFF5ED",
-                      color: i % 2 === 0 ? "#E63946" : "white"
+                      backgroundColor: "#FFF0F0",
+                      color: "#E63946"
                     }}
                   >
-                    {i % 2 === 0 ? "★" : "✓"}
+                    {pillar}
                   </div>
                 ))}
               </div>
-              <div>
-                <p className="text-sm sm:text-base font-semibold" style={{ color: "#1A1A1A" }}>Trusted by 500+ families</p>
-                <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>across South Africa</p>
-              </div>
             </div>
+            <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
+              Our 3-pillar method - built on how confidence actually develops.
+            </p>
           </div>
 
           {/* Right - Hero Image */}
@@ -249,9 +247,9 @@ export default function ClientLanding() {
             >
               <div className="space-y-4 sm:space-y-6">
                 {[
-                  { title: "Limited Trial (First 6-8 Weeks)", desc: "Join an experimental phase at no cost - see if it's right for your family" },
+                  { title: "Founding Cohort Access", desc: "Limited spots available - selected families get direct access to our founding team" },
                   { title: "Accountability & Growth", desc: "Reflections, feedback loops, and celebration of wins" },
-                  { title: "Confidence Blueprint", desc: "Psychologically-designed system that proves confidence is teachable" }
+                  { title: "The Confidence Method", desc: "Connection, Mastery, Reflection - 3 pillars that prove confidence is teachable" }
                 ].map((item, i) => (
                   <div key={i} className="flex gap-3 sm:gap-4">
                     <div 
@@ -296,7 +294,7 @@ export default function ClientLanding() {
             Ready to Transform Your Child's Confidence?
           </h2>
           <p className="text-base sm:text-lg mb-8 sm:mb-10" style={{ color: "#A0A0A0" }}>
-            Join hundreds of families across South Africa who chose confidence first.
+            We're accepting a limited number of families into our Founding Cohort.
           </p>
           <Button
             size="lg"

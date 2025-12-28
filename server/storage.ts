@@ -123,6 +123,19 @@ export interface IStorage {
   approveTutorApplication(id: string, reviewedBy: string): Promise<TutorApplication | undefined>;
   rejectTutorApplication(id: string, reviewedBy: string, reason: string): Promise<TutorApplication | undefined>;
   getApprovedTutors(): Promise<User[]>;
+  
+  // Tutor onboarding document tracking
+  updateTutorOnboardingDocument(
+    applicationId: string,
+    documentType: "trial_agreement" | "parent_consent",
+    documentUrl: string
+  ): Promise<TutorApplication | undefined>;
+  verifyTutorOnboardingDocument(
+    applicationId: string,
+    documentType: "trial_agreement" | "parent_consent",
+    verifiedBy: string
+  ): Promise<TutorApplication | undefined>;
+  completeTutorOnboarding(applicationId: string): Promise<TutorApplication | undefined>;
 
   checkRoleAuthorization(email: string, role: "tutor" | "td" | "coo"): Promise<boolean>;
   addRolePermission(permission: RolePermission): Promise<void>;
@@ -1200,6 +1213,89 @@ export class SupabaseStorage implements IStorage {
       .eq("role", "tutor");
 
     return users ?? [];
+  }
+
+  // Tutor onboarding document methods
+  async updateTutorOnboardingDocument(
+    applicationId: string,
+    documentType: "trial_agreement" | "parent_consent",
+    documentUrl: string
+  ): Promise<TutorApplication | undefined> {
+    const updateData: Record<string, any> = {
+      updated_at: new Date(),
+    };
+    
+    if (documentType === "trial_agreement") {
+      updateData.trial_agreement_url = documentUrl;
+      updateData.trial_agreement_uploaded_at = new Date();
+    } else {
+      updateData.parent_consent_url = documentUrl;
+      updateData.parent_consent_uploaded_at = new Date();
+    }
+    
+    const { data, error } = await supabase
+      .from("tutor_applications")
+      .update(updateData)
+      .eq("id", applicationId)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error("Error updating onboarding document:", error);
+      return undefined;
+    }
+    return data ? (transformSnakeToCamel(data) as TutorApplication) : undefined;
+  }
+
+  async verifyTutorOnboardingDocument(
+    applicationId: string,
+    documentType: "trial_agreement" | "parent_consent",
+    verifiedBy: string
+  ): Promise<TutorApplication | undefined> {
+    const updateData: Record<string, any> = {
+      updated_at: new Date(),
+    };
+    
+    if (documentType === "trial_agreement") {
+      updateData.trial_agreement_verified = true;
+      updateData.trial_agreement_verified_by = verifiedBy;
+      updateData.trial_agreement_verified_at = new Date();
+    } else {
+      updateData.parent_consent_verified = true;
+      updateData.parent_consent_verified_by = verifiedBy;
+      updateData.parent_consent_verified_at = new Date();
+    }
+    
+    const { data, error } = await supabase
+      .from("tutor_applications")
+      .update(updateData)
+      .eq("id", applicationId)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error("Error verifying onboarding document:", error);
+      return undefined;
+    }
+    return data ? (transformSnakeToCamel(data) as TutorApplication) : undefined;
+  }
+
+  async completeTutorOnboarding(applicationId: string): Promise<TutorApplication | undefined> {
+    const { data, error } = await supabase
+      .from("tutor_applications")
+      .update({
+        onboarding_completed_at: new Date(),
+        updated_at: new Date(),
+      })
+      .eq("id", applicationId)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error("Error completing onboarding:", error);
+      return undefined;
+    }
+    return data ? (transformSnakeToCamel(data) as TutorApplication) : undefined;
   }
 
   // Roles

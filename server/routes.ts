@@ -2106,6 +2106,167 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  // Get tutor's application status (for gateway)
+  app.get(
+    "/api/tutor/application-status",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req.session as any).userId;
+        const applications = await storage.getTutorApplicationsByUser(userId);
+        
+        if (!applications || applications.length === 0) {
+          return res.json({ status: "not_applied" });
+        }
+        
+        // Get the most recent application
+        const latestApp = applications[0];
+        
+        // Check if under 18 based on age in application
+        const isUnder18 = latestApp.age < 18;
+        
+        // Check document upload status
+        const hasTrialAgreement = !!latestApp.trialAgreementUrl;
+        const hasParentConsent = !!latestApp.parentConsentUrl;
+        const trialAgreementVerified = !!latestApp.trialAgreementVerified;
+        const parentConsentVerified = !!latestApp.parentConsentVerified;
+        
+        // Determine if onboarding is complete
+        const requiredDocsComplete = hasTrialAgreement && (!isUnder18 || hasParentConsent);
+        const docsVerified = trialAgreementVerified && (!isUnder18 || parentConsentVerified);
+        
+        // Map application status to gateway status
+        let status: string;
+        switch (latestApp.status) {
+          case "pending":
+            status = "pending";
+            break;
+          case "approved":
+            if (docsVerified) {
+              status = "confirmed";
+            } else if (requiredDocsComplete) {
+              status = "verification"; // Docs uploaded, awaiting verification
+            } else {
+              status = "approved"; // Still needs to upload docs
+            }
+            break;
+          case "rejected":
+            status = "rejected";
+            break;
+          default:
+            status = "pending";
+        }
+        
+        res.json({
+          status,
+          applicationId: latestApp.id,
+          isUnder18,
+          hasTrialAgreement,
+          hasParentConsent,
+          trialAgreementVerified,
+          parentConsentVerified,
+          trialAgreementUrl: latestApp.trialAgreementUrl,
+          parentConsentUrl: latestApp.parentConsentUrl,
+        });
+      } catch (error) {
+        console.error("Error fetching tutor application status:", error);
+        res.status(500).json({ message: "Failed to fetch application status" });
+      }
+    }
+  );
+
+  // Upload tutor onboarding document
+  app.post(
+    "/api/tutor/onboarding-documents",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req.session as any).userId;
+        const { applicationId, documentType, documentUrl } = req.body;
+        
+        if (!applicationId || !documentType || !documentUrl) {
+          return res.status(400).json({ message: "Missing required fields" });
+        }
+        
+        if (!["trial_agreement", "parent_consent"].includes(documentType)) {
+          return res.status(400).json({ message: "Invalid document type" });
+        }
+        
+        // Verify the application belongs to this user
+        const applications = await storage.getTutorApplicationsByUser(userId);
+        const app = applications.find(a => a.id === applicationId);
+        
+        if (!app) {
+          return res.status(403).json({ message: "Application not found or access denied" });
+        }
+        
+        // Update the document URL
+        const updated = await storage.updateTutorOnboardingDocument(
+          applicationId,
+          documentType as "trial_agreement" | "parent_consent",
+          documentUrl
+        );
+        
+        if (!updated) {
+          return res.status(500).json({ message: "Failed to update document" });
+        }
+        
+        res.json({ success: true, application: updated });
+      } catch (error) {
+        console.error("Error uploading onboarding document:", error);
+        res.status(500).json({ message: "Failed to upload document" });
+      }
+    }
+  );
+
+  // COO: Verify tutor onboarding document
+  app.post(
+    "/api/coo/verify-tutor-document",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req.session as any).userId;
+        const { applicationId, documentType } = req.body;
+        
+        if (!applicationId || !documentType) {
+          return res.status(400).json({ message: "Missing required fields" });
+        }
+        
+        if (!["trial_agreement", "parent_consent"].includes(documentType)) {
+          return res.status(400).json({ message: "Invalid document type" });
+        }
+        
+        const updated = await storage.verifyTutorOnboardingDocument(
+          applicationId,
+          documentType as "trial_agreement" | "parent_consent",
+          userId
+        );
+        
+        if (!updated) {
+          return res.status(500).json({ message: "Failed to verify document" });
+        }
+        
+        // Check if all required docs are now verified
+        const isUnder18 = updated.age < 18;
+        const allVerified = updated.trialAgreementVerified && 
+          (!isUnder18 || updated.parentConsentVerified);
+        
+        // If all verified, mark onboarding as complete
+        if (allVerified) {
+          await storage.completeTutorOnboarding(applicationId);
+        }
+        
+        res.json({ success: true, application: updated, onboardingComplete: allVerified });
+      } catch (error) {
+        console.error("Error verifying onboarding document:", error);
+        res.status(500).json({ message: "Failed to verify document" });
+      }
+    }
+  );
+
   // Get tutor's own applications
   app.get(
     "/api/tutor/applications",

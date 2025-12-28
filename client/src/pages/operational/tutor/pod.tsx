@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { API_URL } from "@/lib/config";
@@ -33,6 +33,7 @@ export default function TutorPod() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   
   const [showApplicationForm, setShowApplicationForm] = useState(false);
   const [identitySheetOpen, setIdentitySheetOpen] = useState(false);
@@ -63,6 +64,17 @@ export default function TutorPod() {
 
   const hasSubmittedApplication = applications && applications.length > 0;
   const hasPendingApplication = applications && applications.some((app: any) => app.status === "pending");
+  const hasApprovedApplication = applications && applications.some((app: any) => app.status === "approved");
+
+  // Redirect to gateway if tutor hasn't completed onboarding (no approved application or no pod assignment)
+  useEffect(() => {
+    if (!authLoading && !isLoading && !applicationsLoading && isAuthenticated) {
+      // If no approved application or no pod assignment, redirect to gateway
+      if (!hasApprovedApplication || !podData?.assignment) {
+        setLocation("/operational/tutor/gateway");
+      }
+    }
+  }, [authLoading, isLoading, applicationsLoading, isAuthenticated, hasApprovedApplication, podData, setLocation]);
 
   // Fetch identity sheets for all students
   useEffect(() => {
@@ -153,7 +165,7 @@ export default function TutorPod() {
           <Dialog open={showApplicationForm} onOpenChange={setShowApplicationForm}>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Territorial Tutoring - Experimental Tutor Application</DialogTitle>
+                <DialogTitle>Territorial Tutoring - Founding Team Application</DialogTitle>
               </DialogHeader>
               <ApplicationForm
                 onSuccess={() => {

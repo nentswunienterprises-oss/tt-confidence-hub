@@ -329,7 +329,7 @@ export default function ParentGateway() {
               { label: "Enrollment", status: step === "enrollment" || step === "submitted" },
               { label: "Pending", status: enrollmentStatus?.status === "awaiting_assignment" || enrollmentStatus?.status === "assigned" || enrollmentStatus?.status === "proposal_sent" || enrollmentStatus?.status === "session_booked" || enrollmentStatus?.status === "report_received" || enrollmentStatus?.status === "confirmed" },
               { label: "Assigned", status: enrollmentStatus?.status === "assigned" || enrollmentStatus?.status === "proposal_sent" || enrollmentStatus?.status === "session_booked" || enrollmentStatus?.status === "report_received" || enrollmentStatus?.status === "confirmed" },
-              { label: "Dashboard", status: enrollmentStatus?.status === "confirmed" },
+              { label: "Confirmed", status: enrollmentStatus?.status === "confirmed" },
             ].map((item, idx, arr) => (
               <div key={item.label} className="flex items-center flex-1 min-w-0">
                 <div className="flex flex-col items-center">
@@ -366,9 +366,9 @@ export default function ParentGateway() {
         {step === "enrollment" && (
           <Card className="border-0 shadow-lg" style={{ backgroundColor: "white" }}>
             <CardHeader className="px-4 sm:px-6">
-              <CardTitle className="text-lg sm:text-xl" style={{ color: "#1A1A1A" }}>Enrollment Form</CardTitle>
+              <CardTitle className="text-lg sm:text-xl" style={{ color: "#1A1A1A" }}>Application Form</CardTitle>
               <CardDescription className="text-sm" style={{ color: "#5A5A5A" }}>
-                Territorial Tutoring – Confidence Pod Enrollment (Experimental Phase)
+                Territorial Tutoring – Founding Cohort Application
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 sm:space-y-8 px-4 sm:px-6">
@@ -376,10 +376,10 @@ export default function ParentGateway() {
               <div className="rounded-xl p-4 sm:p-5 space-y-2 sm:space-y-3" style={{ backgroundColor: "#FFF0F0" }}>
                 <h3 className="font-semibold text-sm sm:text-base" style={{ color: "#E63946" }}>"Confidence isn't a luxury. It's a skill we teach."</h3>
                 <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-                  Welcome to Territorial Tutoring's Confidence Project, a national pilot program redefining how students rebuild confidence in mathematics.
+                  Welcome to Territorial Tutoring's Founding Cohort — a carefully selected group of families joining our Confidence Pods before we scale.
                 </p>
                 <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-                  This is a limited experimental phase where selected students join our structured Confidence Pods - a mentorship-based tutoring model designed and monitored by TT Headquarters.
+                  We're accepting a limited number of students into our mentorship-based tutoring model. Every application is reviewed by our team to ensure the right fit.
                 </p>
               </div>
 
@@ -586,11 +586,11 @@ export default function ParentGateway() {
                 <h4 className="font-semibold text-xs sm:text-sm" style={{ color: "#1A1A1A" }}>Parent Agreement *</h4>
                 <div className="space-y-2 text-xs sm:text-sm">
                   {[
-                    "I understand this is an experimental pre-launch phase.",
-                    "I consent for my child to participate under TT's Confidence Project.",
+                    "I understand placement in the Founding Cohort is limited and not guaranteed.",
+                    "I consent for my child to participate under TT's Confidence Method.",
                     "I'll support my child's attendance, communication, and progress.",
                     "I understand TT may use anonymized results or testimonials for success case studies.",
-                    "I understand there may be an option to continue tutoring beyond the free trial on a paid basis.",
+                    "I understand the program structure and commitment expectations.",
                   ].map((agreement, idx) => (
                     <div key={idx} className="flex gap-2">
                       <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 mt-0.5" style={{ color: "#E63946" }} />
@@ -624,11 +624,11 @@ export default function ParentGateway() {
                 size="lg"
                 style={{ backgroundColor: "#E63946", color: "white" }}
               >
-                {isSubmitting ? "Submitting..." : "Submit Enrollment"}
+                {isSubmitting ? "Submitting..." : "Submit Application"}
               </Button>
 
               <p className="text-[10px] sm:text-xs text-center" style={{ color: "#5A5A5A" }}>
-                Due to high demand and limited tutor availability, placement is not guaranteed.
+                Limited spots available. All applications are reviewed individually.
               </p>
             </CardContent>
           </Card>
@@ -641,9 +641,10 @@ export default function ParentGateway() {
               <CardTitle className="flex items-center justify-center gap-2 text-sm sm:text-lg" style={{ color: "#1A1A1A" }}>
                 <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: "#E63946" }} />
                 {enrollmentStatus.status === "awaiting_assignment" && "Application Under Review"}
-                {enrollmentStatus.status === "assigned" && "Tutor Assigned"}
+                {enrollmentStatus.status === "assigned" && "You've Been Accepted"}
+                {enrollmentStatus.status === "proposal_sent" && "Proposal Ready"}
                 {enrollmentStatus.status === "session_booked" && "Proposal Accepted"}
-                {enrollmentStatus.status === "report_received" && "Waiting for Report"}
+                {enrollmentStatus.status === "report_received" && "Awaiting Report"}
                 {enrollmentStatus.status === "confirmed" && "Enrollment Confirmed"}
               </CardTitle>
             </CardHeader>
@@ -651,18 +652,18 @@ export default function ParentGateway() {
               {enrollmentStatus.status === "awaiting_assignment" && (
                 <>
                   <p className="text-muted-foreground">
-                    Thank you for submitting your enrollment! Our HR team is reviewing your application.
+                    Thank you for applying. Your application is now being reviewed by our team.
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    We'll notify you once a tutor is assigned to your child. This typically takes 2-3 business days.
+                    We carefully match each family with the right tutor. You'll hear from us within 2-3 business days.
                   </p>
                   <div className="bg-muted/30 rounded-lg p-4 text-left">
                     <p className="text-sm font-medium mb-2">What happens next:</p>
                     <ul className="text-sm text-muted-foreground space-y-1 ml-4 list-disc">
-                      <li>HR reviews your application</li>
-                      <li>A tutor is matched to your child's needs</li>
-                      <li>You'll see the tutor's profile and bio</li>
-                      <li>You'll book an intro session</li>
+                      <li>Our team reviews your application</li>
+                      <li>If accepted, we match your child with a qualified tutor</li>
+                      <li>You'll receive a personalized learning proposal</li>
+                      <li>You decide if it's the right fit</li>
                     </ul>
                   </div>
                 </>
@@ -670,7 +671,7 @@ export default function ParentGateway() {
               {enrollmentStatus.status === "assigned" && (
                 <>
                   <h3 className="text-base sm:text-xl font-semibold mb-4">
-                    A tutor has been assigned to your child!
+                    Congratulations! You've been accepted into our Founding Cohort.
                   </h3>
                   
                   {assignedTutor && (

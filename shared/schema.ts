@@ -454,6 +454,19 @@ export const tutorApplications = pgTable("tutor_applications", {
   reviewedAt: timestamp("reviewed_at"),
   rejectionReason: text("rejection_reason"),
   
+  // Onboarding Documents
+  trialAgreementUrl: varchar("trial_agreement_url"),
+  trialAgreementUploadedAt: timestamp("trial_agreement_uploaded_at"),
+  trialAgreementVerified: boolean("trial_agreement_verified").default(false),
+  trialAgreementVerifiedBy: varchar("trial_agreement_verified_by").references(() => users.id),
+  trialAgreementVerifiedAt: timestamp("trial_agreement_verified_at"),
+  parentConsentUrl: varchar("parent_consent_url"),
+  parentConsentUploadedAt: timestamp("parent_consent_uploaded_at"),
+  parentConsentVerified: boolean("parent_consent_verified").default(false),
+  parentConsentVerifiedBy: varchar("parent_consent_verified_by").references(() => users.id),
+  parentConsentVerifiedAt: timestamp("parent_consent_verified_at"),
+  onboardingCompletedAt: timestamp("onboarding_completed_at"),
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

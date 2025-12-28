@@ -18,6 +18,7 @@ import NotFound from "@/pages/not-found";
 
 // Legacy Tutor Pages (kept for backwards compatibility)
 import TutorPod from "@/pages/operational/tutor/pod";
+import TutorGateway from "@/pages/operational/tutor/gateway";
 import TutorGrowth from "@/pages/operational/tutor/growth";
 import TutorAcademics from "@/pages/operational/tutor/academics";
 import TutorSessions from "@/pages/operational/tutor/sessions";
@@ -127,6 +128,7 @@ function Router() {
       <Route path="/operational/signup" element={<OperationalSignup />} />
 
       {/* Tutor Routes */}
+      <Route path="/operational/tutor/gateway" element={<TutorGateway />} />
       <Route path="/operational/tutor/dashboard" element={<DashboardLayout><OperationalTutorDashboard /></DashboardLayout>} />
       <Route path="/operational/tutor/my-pod" element={<DashboardLayout><OperationalTutorDashboard /></DashboardLayout>} />
       <Route path="/tutor/blueprint" element={<DashboardLayout><TutorBlueprint /></DashboardLayout>} />

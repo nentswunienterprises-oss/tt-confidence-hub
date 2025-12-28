@@ -1,0 +1,650 @@
+import { useState, useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { CheckCircle2, Circle, ArrowLeft, FileText, Upload, AlertCircle, Loader2, Clock, ExternalLink, Users } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { getQueryFn } from "@/lib/queryClient";
+import { useNavigate } from "react-router-dom";
+import { API_URL } from "@/lib/config";
+import { ApplicationForm } from "@/components/tutor/application-form";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { supabase } from "@/lib/supabaseClient";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+interface ApplicationStatus {
+  status: "not_applied" | "pending" | "approved" | "rejected" | "verification" | "confirmed";
+  applicationId?: string;
+  hasTrialAgreement?: boolean;
+  hasParentConsent?: boolean;
+  trialAgreementVerified?: boolean;
+  parentConsentVerified?: boolean;
+  trialAgreementUrl?: string;
+  parentConsentUrl?: string;
+  isUnder18?: boolean;
+}
+
+interface PodData {
+  assignment?: any;
+  students?: any[];
+}
+
+export default function TutorGateway() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [step, setStep] = useState<"application" | "submitted" | "loading">("loading");
+  const [showApplicationForm, setShowApplicationForm] = useState(false);
+  const justSubmittedRef = useRef(false);
+  const [uploadingDoc, setUploadingDoc] = useState<"trial_agreement" | "parent_consent" | null>(null);
+  const trialAgreementInputRef = useRef<HTMLInputElement>(null);
+  const parentConsentInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch current user data
+  const { data: user } = useQuery<any>({
+    queryKey: ["/api/auth/user"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+  });
+
+  // Fetch application status
+  const { data: applicationStatus } = useQuery<ApplicationStatus>({
+    queryKey: ["/api/tutor/application-status"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    enabled: !!user,
+  });
+
+  // Fetch pod assignment
+  const { data: podData, isLoading: podLoading } = useQuery<PodData>({
+    queryKey: ["/api/tutor/pod"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    enabled: !!user && applicationStatus?.status === "confirmed",
+  });
+
+  // Check if tutor has pod assignment
+  const hasPodAssignment = !!podData?.assignment;
+
+  // Document upload mutation
+  const uploadDocumentMutation = useMutation({
+    mutationFn: async ({ documentType, file }: { documentType: "trial_agreement" | "parent_consent"; file: File }) => {
+      if (!applicationStatus?.applicationId || !user?.id) {
+        throw new Error("Missing application or user info");
+      }
+      
+      // Upload to Supabase Storage
+      const fileName = `${user.id}/${documentType}_${Date.now()}.${file.name.split('.').pop()}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("tutor-documents")
+        .upload(fileName, file, {
+          cacheControl: "3600",
+          upsert: true,
+        });
+      
+      if (uploadError) {
+        throw new Error(`Upload failed: ${uploadError.message}`);
+      }
+      
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from("tutor-documents")
+        .getPublicUrl(fileName);
+      
+      // Save to database
+      const response = await fetch(`${API_URL}/api/tutor/onboarding-documents`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          applicationId: applicationStatus.applicationId,
+          documentType,
+          documentUrl: urlData.publicUrl,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to save document");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tutor/application-status"] });
+      toast({
+        title: "Document Uploaded",
+        description: "Your document has been submitted for verification.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Upload Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      setUploadingDoc(null);
+    },
+  });
+
+  // Handle file selection
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    documentType: "trial_agreement" | "parent_consent"
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    // Validate file type
+    const allowedTypes = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Invalid File Type",
+        description: "Please upload a PDF or image file (JPEG, PNG)",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Validate file size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "Please upload a file smaller than 10MB",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setUploadingDoc(documentType);
+    uploadDocumentMutation.mutate({ documentType, file });
+    
+    // Reset input
+    event.target.value = "";
+  };
+
+  // Auto-set step based on application status
+  useEffect(() => {
+    if (justSubmittedRef.current) {
+      return;
+    }
+    
+    if (!applicationStatus) {
+      setStep("loading");
+    } else if (applicationStatus.status === "not_applied") {
+      setStep("application");
+    } else if (applicationStatus.status === "confirmed") {
+      // Check if they have pod assignment - if so, redirect to dashboard
+      if (hasPodAssignment) {
+        setStep("loading");
+        navigate("/tutor/pod", { replace: true });
+      } else {
+        // Verified but waiting for pod assignment
+        setStep("submitted");
+      }
+    } else {
+      // pending, approved, verification states
+      setStep("submitted");
+    }
+  }, [applicationStatus, navigate, hasPodAssignment]);
+
+  // Determine current journey stage for progress bar
+  const getStageStatus = (stage: string): boolean => {
+    if (!applicationStatus) return false;
+    
+    const statusOrder = ["not_applied", "pending", "approved", "verification", "confirmed"];
+    const currentIndex = statusOrder.indexOf(applicationStatus.status);
+    
+    switch (stage) {
+      case "Application":
+        return currentIndex >= 0;
+      case "Review":
+        return currentIndex >= 1;
+      case "Verification":
+        return currentIndex >= 2; // Approved means they can start verification
+      case "Assigned":
+        return currentIndex >= 4 && hasPodAssignment; // Confirmed + has pod
+      default:
+        return false;
+    }
+  };
+
+  return (
+    <div className="min-h-screen" style={{ backgroundColor: "#FFF5ED" }}>
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm sm:text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
+              TERRITORIAL TUTORING
+            </span>
+            <span className="text-sm sm:text-xl font-bold" style={{ color: "#E63946" }}>+</span>
+          </div>
+          
+          <div className="hidden md:block">
+            <span className="text-xl lg:text-3xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
+              Tutor Gateway
+            </span>
+          </div>
+          
+          <Button
+            variant="ghost"
+            className="text-sm sm:text-base font-medium hover:bg-transparent flex items-center gap-1 sm:gap-2 px-2 sm:px-4"
+            style={{ color: "#1A1A1A" }}
+            onClick={() => navigate("/")}
+          >
+            <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            Back
+          </Button>
+        </div>
+      </header>
+
+      {/* Spacer for fixed header */}
+      <div className="h-16 sm:h-20" />
+
+      {/* Journey Status Bar */}
+      <div style={{ backgroundColor: "#FFF0F0" }}>
+        <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 flex justify-center">
+          <div className="flex items-center justify-between w-full max-w-2xl overflow-x-auto">
+            {[
+              { label: "Application", status: getStageStatus("Application") },
+              { label: "Review", status: getStageStatus("Review") },
+              { label: "Verification", status: getStageStatus("Verification") },
+              { label: "Assigned", status: getStageStatus("Assigned") },
+            ].map((item, idx, arr) => (
+              <div key={item.label} className="flex items-center flex-1 min-w-0">
+                <div className="flex flex-col items-center">
+                  <div
+                    className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 transition"
+                    style={{
+                      backgroundColor: item.status ? "#E63946" : "transparent",
+                      borderColor: item.status ? "#E63946" : "#D1D5DB",
+                      color: item.status ? "white" : "#9CA3AF"
+                    }}
+                  >
+                    {item.status ? (
+                      <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                    ) : (
+                      <Circle className="w-3 h-3 sm:w-4 sm:h-4" />
+                    )}
+                  </div>
+                  <span className="text-[10px] sm:text-xs mt-1 sm:mt-2 font-medium text-center" style={{ color: "#1A1A1A" }}>{item.label}</span>
+                </div>
+                {idx < arr.length - 1 && (
+                  <div
+                    className="flex-1 h-0.5 mx-1 sm:mx-2 transition min-w-[12px]"
+                    style={{ backgroundColor: item.status ? "#E63946" : "#E5E5E5" }}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-2xl">
+        {/* Application Prompt */}
+        {step === "application" && (
+          <Card className="border-0 shadow-lg" style={{ backgroundColor: "white" }}>
+            <CardHeader className="px-4 sm:px-6">
+              <CardTitle className="text-lg sm:text-xl" style={{ color: "#1A1A1A" }}>Founding Team Application</CardTitle>
+              <CardDescription className="text-sm" style={{ color: "#5A5A5A" }}>
+                Territorial Tutoring – Join Our Founding Cohort
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 px-4 sm:px-6">
+              {/* Introduction */}
+              <div className="rounded-xl p-4 sm:p-5 space-y-2 sm:space-y-3" style={{ backgroundColor: "#FFF0F0" }}>
+                <h3 className="font-semibold text-sm sm:text-base" style={{ color: "#E63946" }}>"If you can't believe in transformation, you can't lead transformation."</h3>
+                <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
+                  Welcome to the Territorial Tutoring Founding Team application. We're building something different - a confidence-first tutoring model that proves transformation is teachable.
+                </p>
+                <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
+                  We're selective about who joins. This application helps us understand who you are, what drives you, and whether you're ready to be part of proof.
+                </p>
+              </div>
+
+              {/* What to Expect */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-sm" style={{ color: "#1A1A1A" }}>What to Expect:</h4>
+                <ul className="space-y-2 text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
+                  <li className="flex gap-2">
+                    <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#E63946" }} />
+                    <span>7-step application covering mindset, skills, and vision</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#E63946" }} />
+                    <span>Takes about 15-20 minutes to complete thoughtfully</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#E63946" }} />
+                    <span>Optional video introduction (highly recommended)</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#E63946" }} />
+                    <span>Review typically takes 2-3 business days</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Start Application Button */}
+              <Button
+                onClick={() => setShowApplicationForm(true)}
+                className="w-full rounded-full font-semibold text-sm sm:text-base"
+                size="lg"
+                style={{ backgroundColor: "#E63946", color: "white" }}
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Start Application
+              </Button>
+
+              <p className="text-[10px] sm:text-xs text-center" style={{ color: "#5A5A5A" }}>
+                Limited positions available. All applications are reviewed individually.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Application Dialog */}
+        <Dialog open={showApplicationForm} onOpenChange={setShowApplicationForm}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Territorial Tutoring - Founding Team Application</DialogTitle>
+            </DialogHeader>
+            <ApplicationForm
+              onSuccess={() => {
+                justSubmittedRef.current = true;
+                setShowApplicationForm(false);
+                setStep("submitted");
+                queryClient.invalidateQueries({ queryKey: ["/api/tutor/application-status"] });
+                toast({
+                  title: "Application Submitted!",
+                  description: "Your application is now under review. We'll be in touch soon.",
+                });
+              }}
+              onCancel={() => setShowApplicationForm(false)}
+            />
+          </DialogContent>
+        </Dialog>
+
+        {/* Submitted / Status View */}
+        {step === "submitted" && applicationStatus && (
+          <Card className="text-center border-0 shadow-lg" style={{ backgroundColor: "white" }}>
+            <CardHeader className="p-3 sm:p-6">
+              <CardTitle className="flex items-center justify-center gap-2 text-sm sm:text-lg" style={{ color: "#1A1A1A" }}>
+                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: "#E63946" }} />
+                {applicationStatus.status === "pending" && "Application Under Review"}
+                {applicationStatus.status === "approved" && "You've Been Accepted!"}
+                {applicationStatus.status === "verification" && "Documents Under Verification"}
+                {applicationStatus.status === "confirmed" && "Awaiting Pod Assignment"}
+                {applicationStatus.status === "rejected" && "Application Not Accepted"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {applicationStatus.status === "pending" && (
+                <>
+                  <p className="text-muted-foreground">
+                    Thank you for applying to join our Founding Team. Your application is being reviewed.
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    We carefully evaluate each application. You'll hear from us within 2-3 business days.
+                  </p>
+                  <div className="bg-muted/30 rounded-lg p-4 text-left">
+                    <p className="text-sm font-medium mb-2">What happens next:</p>
+                    <ul className="text-sm text-muted-foreground space-y-1 ml-4 list-disc">
+                      <li>Our team reviews your application</li>
+                      <li>If accepted, you'll upload verification documents</li>
+                      <li>Once verified, you'll be assigned to a pod</li>
+                      <li>Start transforming confidence in your first pod</li>
+                    </ul>
+                  </div>
+                </>
+              )}
+
+              {(applicationStatus.status === "approved" || applicationStatus.status === "verification") && (
+                <>
+                  <h3 className="text-base sm:text-xl font-semibold mb-4">
+                    {applicationStatus.status === "approved" 
+                      ? "Congratulations! You've been accepted into our Founding Team."
+                      : "Documents Submitted - Under Verification"}
+                  </h3>
+                  <p className="text-muted-foreground mb-6">
+                    {applicationStatus.status === "approved"
+                      ? "Before you can start, we need you to upload a few verification documents."
+                      : "We're verifying your documents. We'll contact you once everything is confirmed."}
+                  </p>
+                  
+                  {/* Hidden file inputs */}
+                  <input
+                    type="file"
+                    ref={trialAgreementInputRef}
+                    className="hidden"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => handleFileChange(e, "trial_agreement")}
+                  />
+                  <input
+                    type="file"
+                    ref={parentConsentInputRef}
+                    className="hidden"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => handleFileChange(e, "parent_consent")}
+                  />
+                  
+                  <div className="space-y-4 text-left">
+                    {/* Trial Tutor Agreement */}
+                    <div className="p-4 rounded-lg border" style={{ 
+                      backgroundColor: applicationStatus.trialAgreementVerified 
+                        ? "#F0FDF4" 
+                        : applicationStatus.hasTrialAgreement 
+                          ? "#FEF3C7" 
+                          : "#FFF0F0", 
+                      borderColor: applicationStatus.trialAgreementVerified 
+                        ? "#86EFAC" 
+                        : applicationStatus.hasTrialAgreement 
+                          ? "#FCD34D" 
+                          : "#FECACA" 
+                    }}>
+                      <div className="flex items-start gap-3">
+                        {applicationStatus.trialAgreementVerified ? (
+                          <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                        ) : applicationStatus.hasTrialAgreement ? (
+                          <Clock className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                        ) : (
+                          <Circle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                        )}
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-sm">Trial Tutor Agreement</h4>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {applicationStatus.trialAgreementVerified 
+                              ? "Verified ✓"
+                              : applicationStatus.hasTrialAgreement 
+                                ? "Uploaded - Awaiting verification"
+                                : "Review and sign the founding team tutor agreement"}
+                          </p>
+                          {!applicationStatus.hasTrialAgreement && (
+                            <Button 
+                              size="sm" 
+                              className="mt-2" 
+                              style={{ backgroundColor: "#E63946" }}
+                              onClick={() => trialAgreementInputRef.current?.click()}
+                              disabled={uploadingDoc !== null}
+                            >
+                              {uploadingDoc === "trial_agreement" ? (
+                                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                              ) : (
+                                <Upload className="w-3 h-3 mr-1" />
+                              )}
+                              {uploadingDoc === "trial_agreement" ? "Uploading..." : "Upload Signed Agreement"}
+                            </Button>
+                          )}
+                          {applicationStatus.hasTrialAgreement && applicationStatus.trialAgreementUrl && (
+                            <a 
+                              href={applicationStatus.trialAgreementUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-600 hover:underline flex items-center gap-1 mt-2"
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              View uploaded document
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Parent Consent (if under 18) */}
+                    {applicationStatus.isUnder18 && (
+                      <div className="p-4 rounded-lg border" style={{ 
+                        backgroundColor: applicationStatus.parentConsentVerified 
+                          ? "#F0FDF4" 
+                          : applicationStatus.hasParentConsent 
+                            ? "#FEF3C7" 
+                            : "#FFF0F0", 
+                        borderColor: applicationStatus.parentConsentVerified 
+                          ? "#86EFAC" 
+                          : applicationStatus.hasParentConsent 
+                            ? "#FCD34D" 
+                            : "#FECACA" 
+                      }}>
+                        <div className="flex items-start gap-3">
+                          {applicationStatus.parentConsentVerified ? (
+                            <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                          ) : applicationStatus.hasParentConsent ? (
+                            <Clock className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                          ) : (
+                            <Circle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                          )}
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-sm">Parent/Guardian Consent Form</h4>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {applicationStatus.parentConsentVerified 
+                                ? "Verified - Parent contacted ✓"
+                                : applicationStatus.hasParentConsent 
+                                  ? "Uploaded - We'll contact your parent to verify"
+                                  : "Required for tutors under 18 years old"}
+                            </p>
+                            {!applicationStatus.hasParentConsent && (
+                              <Button 
+                                size="sm" 
+                                className="mt-2" 
+                                style={{ backgroundColor: "#E63946" }}
+                                onClick={() => parentConsentInputRef.current?.click()}
+                                disabled={uploadingDoc !== null}
+                              >
+                                {uploadingDoc === "parent_consent" ? (
+                                  <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                ) : (
+                                  <Upload className="w-3 h-3 mr-1" />
+                                )}
+                                {uploadingDoc === "parent_consent" ? "Uploading..." : "Upload Consent Form"}
+                              </Button>
+                            )}
+                            {applicationStatus.hasParentConsent && applicationStatus.parentConsentUrl && (
+                              <a 
+                                href={applicationStatus.parentConsentUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-xs text-blue-600 hover:underline flex items-center gap-1 mt-2"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                                View uploaded document
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {applicationStatus.status === "approved" && (
+                    <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
+                        <p className="text-sm text-amber-800">
+                          Complete all required documents to unlock your tutor dashboard.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {applicationStatus.status === "verification" && (
+                    <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Clock className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                        <p className="text-sm text-blue-800">
+                          We're verifying your documents. This typically takes 1-2 business days. 
+                          {applicationStatus.isUnder18 && " We'll also contact your parent/guardian to confirm consent."}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Confirmed but waiting for pod assignment */}
+              {applicationStatus.status === "confirmed" && !hasPodAssignment && (
+                <>
+                  <div className="flex items-center justify-center gap-3 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                      <CheckCircle2 className="w-6 h-6 text-green-600" />
+                    </div>
+                  </div>
+                  <h3 className="text-base sm:text-xl font-semibold mb-4 text-center">
+                    Documents Verified! 🎉
+                  </h3>
+                  <p className="text-muted-foreground text-center mb-6">
+                    You're officially part of the Founding Team. Now we're matching you with a pod.
+                  </p>
+                  
+                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg mb-4">
+                    <div className="flex items-center gap-3">
+                      <Users className="w-5 h-5 text-green-600 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-green-800">Waiting for Pod Assignment</p>
+                        <p className="text-xs text-green-700 mt-1">
+                          Our team is preparing your first pod. You'll be notified once you're assigned.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-muted/30 rounded-lg p-4 text-left">
+                    <p className="text-sm font-medium mb-2">What to expect:</p>
+                    <ul className="text-sm text-muted-foreground space-y-1 ml-4 list-disc">
+                      <li>You'll be assigned 2-4 students in your first pod</li>
+                      <li>Your Territory Director will introduce your students</li>
+                      <li>You'll get access to student profiles and identity sheets</li>
+                      <li>Sessions will be scheduled based on availability</li>
+                    </ul>
+                  </div>
+                </>
+              )}
+
+              {applicationStatus.status === "rejected" && (
+                <>
+                  <p className="text-muted-foreground">
+                    Thank you for your interest in joining Territorial Tutoring. After careful review, we've decided not to move forward with your application at this time.
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    This doesn't mean you can't apply again in the future. If you'd like feedback or have questions, please reach out to our team.
+                  </p>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Loading State */}
+        {step === "loading" && (
+          <Card className="text-center">
+            <CardContent className="py-12">
+              <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-muted-foreground">Loading your application status...</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </div>
+  );
+}

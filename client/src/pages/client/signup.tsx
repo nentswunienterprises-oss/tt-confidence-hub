@@ -54,7 +54,7 @@ export default function ClientSignup() {
             </div>
             <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full mx-auto" style={{ backgroundColor: "#FFF0F0" }}>
               <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
-                Free Trial • First 6-8 Weeks
+                Founding Cohort • Limited Spots
               </span>
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: "#1A1A1A" }}>
@@ -99,17 +99,17 @@ export default function ClientSignup() {
             <AuthForm mode={mode} defaultRole="parent" />
           </div>
 
-          {/* Trust indicator */}
-          <div className="flex items-center justify-center gap-2 sm:gap-3 pt-2 sm:pt-4">
-            <div 
-              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: "#FFF0F0" }}
-            >
-              <Heart className="w-4 h-4 sm:w-5 sm:h-5 fill-current" style={{ color: "#E63946" }} />
-            </div>
-            <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-              Trusted by <span className="font-semibold" style={{ color: "#1A1A1A" }}>500+ families</span> across South Africa
-            </p>
+          {/* Method pillars */}
+          <div className="flex items-center justify-center gap-2 pt-2 sm:pt-4">
+            {["Connection", "Mastery", "Reflection"].map((pillar) => (
+              <div 
+                key={pillar}
+                className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-medium"
+                style={{ backgroundColor: "#FFF0F0", color: "#E63946" }}
+              >
+                {pillar}
+              </div>
+            ))}
           </div>
 
           {/* Footer Info */}

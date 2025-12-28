@@ -672,7 +672,7 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
                 <h4 className="font-medium">What to include in your video (3 min max):</h4>
                 <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
                   <li>Who you are</li>
-                  <li>Why you want to be part of TT's Experimental Tutor Pod</li>
+                  <li>Why you want to be part of TT's Founding Team</li>
                   <li>A challenge you overcame</li>
                   <li>What excites you about transforming confidence</li>
                   <li>A fun or unique personal trait</li>
@@ -691,7 +691,7 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Are you available for TT's Experimental Tutor Bootcamp (Prep Phase)?</Label>
+                <Label>Are you available for TT's Founding Team Bootcamp (Prep Phase)?</Label>
                 <RadioGroup onValueChange={(value) => form.setValue("bootcampAvailable", value as any)} value={form.watch("bootcampAvailable")}>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="yes" id="boot_yes" data-testid="radio-bootcamp-yes" />
@@ -719,10 +719,10 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
                   />
                   <div className="space-y-1">
                     <Label htmlFor="commitToTrial" className="font-medium">
-                      I commit to the 2-month unpaid transformation trial before earnings begin
+                      I commit to the 2-month transformation trial before earnings begin
                     </Label>
                     <p className="text-sm text-muted-foreground">
-                      This is part of TT's experimental phase to prove the confidence formula
+                      This is part of TT's Founding Phase to prove the Confidence Method works
                     </p>
                   </div>
                 </div>
@@ -748,7 +748,7 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
               <div className="bg-primary/10 border border-primary/20 p-4 rounded-lg space-y-2">
                 <h4 className="font-semibold">Final Statement</h4>
                 <p className="text-sm">
-                  This program is a confidence experiment — not a casual job. We're looking for young people who want to prove that confidence can be taught, replicated, and monetized ethically.
+                  This is a founding opportunity — not a casual job. We're looking for young people who want to prove that confidence can be taught, replicated, and scaled ethically.
                 </p>
                 <p className="text-sm font-medium italic">
                   "If you can't believe in transformation, you can't lead transformation."

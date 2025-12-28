@@ -57,7 +57,7 @@ export default function OperationalLanding() {
         <div className="text-center max-w-3xl mx-auto space-y-5 sm:space-y-8">
           <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
             <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
-              Tutors & Territory Directors
+              Founding Team • Limited Positions
             </span>
           </div>
           
@@ -68,8 +68,8 @@ export default function OperationalLanding() {
           </h1>
           
           <p className="text-base sm:text-lg md:text-xl leading-relaxed" style={{ color: "#5A5A5A" }}>
-            Everything tutors and Territory Directors need to run exceptional Confidence Pods:
-            Tracking, feedback, performance management, and student success metrics.
+            Join a founding team proving that confidence - not content - transforms students.
+            We're building something different, and we're selective about who joins.
           </p>
 
           <Button
@@ -78,7 +78,7 @@ export default function OperationalLanding() {
             style={{ backgroundColor: "#E63946", color: "white" }}
             onClick={() => navigate("/operational/signup")}
           >
-            Join Our Team
+            Apply to Join
             <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
           </Button>
         </div>
@@ -267,11 +267,14 @@ export default function OperationalLanding() {
               <Heart className="w-8 h-8 text-white fill-current" />
             </div>
           </div>
+          <p className="text-sm uppercase tracking-wide mb-4 text-white/60 font-medium">
+            We're Selective About Who Joins
+          </p>
           <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">
             Ready to Make a Difference?
           </h2>
           <p className="text-lg mb-10 text-white/80">
-            Join our team of confidence-builders and transform lives across South Africa.
+            Join our founding team of confidence-builders and help prove that transformation is teachable.
           </p>
           <Button
             size="lg"
@@ -279,7 +282,7 @@ export default function OperationalLanding() {
             style={{ backgroundColor: "white", color: "#E63946" }}
             onClick={() => navigate("/operational/signup")}
           >
-            Apply Now
+            Apply to Join
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
         </div>
