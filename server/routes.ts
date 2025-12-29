@@ -2430,6 +2430,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Continue with 0 enrollments if table doesn't exist
         }
 
+        // Get people count from registry
+        let peopleCount = 0;
+        try {
+          const { count: pCount } = await supabase
+            .from("people_registry")
+            .select("*", { count: "exact", head: true })
+            .eq("status", "active");
+          peopleCount = pCount || 0;
+        } catch (e) {
+          console.warn("Could not fetch people count:", e);
+        }
+
+        // Get open disputes count
+        let openDisputes = 0;
+        try {
+          const { count: dCount } = await supabase
+            .from("disputes")
+            .select("*", { count: "exact", head: true })
+            .in("status", ["open", "under_review", "escalated"]);
+          openDisputes = dCount || 0;
+        } catch (e) {
+          console.warn("Could not fetch disputes count:", e);
+        }
+
         res.json({
           totalApplications: allApplications.length,
           pendingApplications: pendingApplications.length,
@@ -2437,6 +2461,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           availableForPods,
           totalEnrollments,
           studentEnrollments,
+          peopleCount,
+          openDisputes,
         });
       } catch (error) {
         console.error("Error fetching HR stats:", error);
@@ -2447,6 +2473,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           availableForPods: 0,
           totalEnrollments: 0,
           studentEnrollments: 0,
+          peopleCount: 0,
+          openDisputes: 0,
           error: "Failed to fetch stats" 
         });
       }
@@ -2659,6 +2687,589 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error("Error fetching tutor profile:", error);
         res.status(500).json({ message: "Failed to fetch tutor profile" });
+      }
+    }
+  );
+
+  // ========================================
+  // BRAIN MODULE ROUTES (HR)
+  // ========================================
+
+  // Get all people in registry
+  app.get(
+    "/api/hr/brain/people",
+    isAuthenticated,
+    requireRole(["hr", "ceo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { data, error } = await supabase
+          .from("people_registry")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching people registry:", error);
+          return res.json([]);
+        }
+
+        res.json(data || []);
+      } catch (error) {
+        console.error("Error in people registry:", error);
+        res.json([]);
+      }
+    }
+  );
+
+  // Add person to registry
+  app.post(
+    "/api/hr/brain/people",
+    isAuthenticated,
+    requireRole(["hr", "ceo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { data, error } = await supabase
+          .from("people_registry")
+          .insert({
+            full_name: req.body.fullName,
+            role_title: req.body.roleTitle,
+            role_description: req.body.roleDescription,
+            short_bio: req.body.shortBio,
+            team_name: req.body.teamName,
+            email: req.body.email,
+            phone: req.body.phone,
+            status: req.body.status || "active",
+            start_date: req.body.startDate ? new Date(req.body.startDate) : new Date(),
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error("Error adding person:", error);
+          return res.status(500).json({ message: "Failed to add person" });
+        }
+
+        res.json(data);
+      } catch (error) {
+        console.error("Error in add person:", error);
+        res.status(500).json({ message: "Failed to add person" });
+      }
+    }
+  );
+
+  // Get all details (weekly deliverables)
+  app.get(
+    "/api/hr/brain/details",
+    isAuthenticated,
+    requireRole(["hr", "ceo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { data, error } = await supabase
+          .from("details")
+          .select(`
+            *,
+            person:people_registry(*)
+          `)
+          .order("due_date", { ascending: true });
+
+        if (error) {
+          console.error("Error fetching details:", error);
+          return res.json([]);
+        }
+
+        res.json(data || []);
+      } catch (error) {
+        console.error("Error in details:", error);
+        res.json([]);
+      }
+    }
+  );
+
+  // Create detail
+  app.post(
+    "/api/hr/brain/details",
+    isAuthenticated,
+    requireRole(["hr", "ceo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req.session as any).userId;
+        const { data, error } = await supabase
+          .from("details")
+          .insert({
+            person_id: req.body.personId,
+            description: req.body.description,
+            due_date: new Date(req.body.dueDate),
+            status: "pending",
+            created_by: userId,
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error("Error creating detail:", error);
+          return res.status(500).json({ message: "Failed to create detail" });
+        }
+
+        res.json(data);
+      } catch (error) {
+        console.error("Error in create detail:", error);
+        res.status(500).json({ message: "Failed to create detail" });
+      }
+    }
+  );
+
+  // Mark detail as done
+  app.patch(
+    "/api/hr/brain/details/:id/done",
+    isAuthenticated,
+    requireRole(["hr", "ceo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { id } = req.params;
+        const { data, error } = await supabase
+          .from("details")
+          .update({
+            status: "done",
+            fulfilled_at: new Date(),
+          })
+          .eq("id", id)
+          .select()
+          .single();
+
+        if (error) {
+          console.error("Error marking detail done:", error);
+          return res.status(500).json({ message: "Failed to mark detail done" });
+        }
+
+        res.json(data);
+      } catch (error) {
+        console.error("Error in mark detail done:", error);
+        res.status(500).json({ message: "Failed to mark detail done" });
+      }
+    }
+  );
+
+  // Get all projects
+  app.get(
+    "/api/hr/brain/projects",
+    isAuthenticated,
+    requireRole(["hr", "ceo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { data, error } = await supabase
+          .from("projects")
+          .select(`
+            *,
+            owner:people_registry(*)
+          `)
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching projects:", error);
+          return res.json([]);
+        }
+
+        res.json(data || []);
+      } catch (error) {
+        console.error("Error in projects:", error);
+        res.json([]);
+      }
+    }
+  );
+
+  // Create project
+  app.post(
+    "/api/hr/brain/projects",
+    isAuthenticated,
+    requireRole(["hr", "ceo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req.session as any).userId;
+        const { data, error } = await supabase
+          .from("projects")
+          .insert({
+            name: req.body.name,
+            owner_id: req.body.ownerId,
+            horizon: req.body.horizon,
+            objective: req.body.objective,
+            status: "active",
+            start_date: new Date(),
+            created_by: userId,
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error("Error creating project:", error);
+          return res.status(500).json({ message: "Failed to create project" });
+        }
+
+        res.json(data);
+      } catch (error) {
+        console.error("Error in create project:", error);
+        res.status(500).json({ message: "Failed to create project" });
+      }
+    }
+  );
+
+  // Get all ideas
+  app.get(
+    "/api/hr/brain/ideas",
+    isAuthenticated,
+    requireRole(["hr", "ceo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { data, error } = await supabase
+          .from("ideas")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching ideas:", error);
+          return res.json([]);
+        }
+
+        res.json(data || []);
+      } catch (error) {
+        console.error("Error in ideas:", error);
+        res.json([]);
+      }
+    }
+  );
+
+  // Update idea status
+  app.patch(
+    "/api/hr/brain/ideas/:id/status",
+    isAuthenticated,
+    requireRole(["hr", "ceo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { id } = req.params;
+        const userId = (req.session as any).userId;
+        const { data, error } = await supabase
+          .from("ideas")
+          .update({
+            status: req.body.status,
+            review_notes: req.body.notes,
+            reviewed_by: userId,
+            reviewed_at: new Date(),
+          })
+          .eq("id", id)
+          .select()
+          .single();
+
+        if (error) {
+          console.error("Error updating idea status:", error);
+          return res.status(500).json({ message: "Failed to update idea status" });
+        }
+
+        res.json(data);
+      } catch (error) {
+        console.error("Error in update idea status:", error);
+        res.status(500).json({ message: "Failed to update idea status" });
+      }
+    }
+  );
+
+  // Convert idea to project
+  app.post(
+    "/api/hr/brain/ideas/:id/convert",
+    isAuthenticated,
+    requireRole(["hr", "ceo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { id } = req.params;
+        const userId = (req.session as any).userId;
+
+        // Get the idea
+        const { data: idea, error: ideaError } = await supabase
+          .from("ideas")
+          .select("*")
+          .eq("id", id)
+          .single();
+
+        if (ideaError || !idea) {
+          return res.status(404).json({ message: "Idea not found" });
+        }
+
+        // Create project from idea (owner needs to be set manually after)
+        const { data: project, error: projectError } = await supabase
+          .from("projects")
+          .insert({
+            name: idea.title,
+            objective: idea.description,
+            horizon: "30",
+            status: "active",
+            start_date: new Date(),
+            created_by: userId,
+          })
+          .select()
+          .single();
+
+        if (projectError) {
+          console.error("Error creating project from idea:", projectError);
+          return res.status(500).json({ message: "Failed to create project" });
+        }
+
+        // Update idea with project reference
+        await supabase
+          .from("ideas")
+          .update({
+            status: "approved",
+            converted_to_project_id: project.id,
+          })
+          .eq("id", id);
+
+        res.json({ project, idea });
+      } catch (error) {
+        console.error("Error converting idea to project:", error);
+        res.status(500).json({ message: "Failed to convert idea" });
+      }
+    }
+  );
+
+  // Submit idea (public - any logged in user)
+  app.post(
+    "/api/ideas/submit",
+    isAuthenticated,
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req.session as any).userId;
+        const { data, error } = await supabase
+          .from("ideas")
+          .insert({
+            title: req.body.title,
+            description: req.body.description,
+            pillar: req.body.pillar,
+            problem_solved: req.body.problemSolved,
+            status: "new",
+            submitted_by: userId,
+            submitter_name: req.body.submitterName,
+            submitter_role: req.body.submitterRole,
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error("Error submitting idea:", error);
+          return res.status(500).json({ message: "Failed to submit idea" });
+        }
+
+        res.json(data);
+      } catch (error) {
+        console.error("Error in submit idea:", error);
+        res.status(500).json({ message: "Failed to submit idea" });
+      }
+    }
+  );
+
+  // Get people registry list (for any logged in user - for dispute logging)
+  app.get(
+    "/api/people-registry/list",
+    isAuthenticated,
+    async (req: Request, res: Response) => {
+      try {
+        const { data, error } = await supabase
+          .from("people_registry")
+          .select("id, full_name, role_title, status")
+          .eq("status", "active")
+          .order("full_name", { ascending: true });
+
+        if (error) {
+          console.error("Error fetching people list:", error);
+          return res.json([]);
+        }
+
+        // Transform to camelCase for frontend
+        const transformed = (data || []).map((p: any) => ({
+          id: p.id,
+          fullName: p.full_name,
+          roleTitle: p.role_title,
+          status: p.status,
+        }));
+
+        res.json(transformed);
+      } catch (error) {
+        console.error("Error in people list:", error);
+        res.json([]);
+      }
+    }
+  );
+
+  // ========================================
+  // DISPUTES MODULE ROUTES (HR)
+  // ========================================
+
+  // Get all disputes
+  app.get(
+    "/api/hr/disputes",
+    isAuthenticated,
+    requireRole(["hr", "ceo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { data: disputes, error } = await supabase
+          .from("disputes")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching disputes:", error);
+          return res.json([]);
+        }
+
+        // Fetch resolutions for each dispute
+        const disputesWithResolutions = await Promise.all(
+          (disputes || []).map(async (dispute: any) => {
+            const { data: resolutions } = await supabase
+              .from("dispute_resolutions")
+              .select("*")
+              .eq("dispute_id", dispute.id)
+              .order("created_at", { ascending: true });
+
+            return {
+              ...dispute,
+              resolutions: resolutions || [],
+            };
+          })
+        );
+
+        res.json(disputesWithResolutions);
+      } catch (error) {
+        console.error("Error in disputes:", error);
+        res.json([]);
+      }
+    }
+  );
+
+  // Log a dispute (any logged in user)
+  app.post(
+    "/api/disputes/log",
+    isAuthenticated,
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req.session as any).userId;
+        const { data, error } = await supabase
+          .from("disputes")
+          .insert({
+            logged_by: userId,
+            logged_by_name: req.body.loggedByName,
+            involved_parties: req.body.involvedParties,
+            involved_party_names: req.body.involvedPartyNames,
+            dispute_type: req.body.disputeType,
+            description: req.body.description,
+            desired_outcome: req.body.desiredOutcome,
+            status: "open",
+            visible_to: ["hr", "ceo"],
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error("Error logging dispute:", error);
+          return res.status(500).json({ message: "Failed to log dispute" });
+        }
+
+        res.json(data);
+      } catch (error) {
+        console.error("Error in log dispute:", error);
+        res.status(500).json({ message: "Failed to log dispute" });
+      }
+    }
+  );
+
+  // Update dispute status
+  app.patch(
+    "/api/hr/disputes/:id/status",
+    isAuthenticated,
+    requireRole(["hr", "ceo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { id } = req.params;
+        const { data, error } = await supabase
+          .from("disputes")
+          .update({
+            status: req.body.status,
+          })
+          .eq("id", id)
+          .select()
+          .single();
+
+        if (error) {
+          console.error("Error updating dispute status:", error);
+          return res.status(500).json({ message: "Failed to update dispute status" });
+        }
+
+        res.json(data);
+      } catch (error) {
+        console.error("Error in update dispute status:", error);
+        res.status(500).json({ message: "Failed to update dispute status" });
+      }
+    }
+  );
+
+  // Resolve dispute
+  app.post(
+    "/api/hr/disputes/:disputeId/resolve",
+    isAuthenticated,
+    requireRole(["hr", "ceo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { disputeId } = req.params;
+        const userId = (req.session as any).userId;
+
+        // Create resolution record
+        const { data: resolution, error: resError } = await supabase
+          .from("dispute_resolutions")
+          .insert({
+            dispute_id: disputeId,
+            action: req.body.action,
+            summary: req.body.summary,
+            decision: req.body.decision,
+            follow_up_date: req.body.followUpDate ? new Date(req.body.followUpDate) : null,
+            resolved_by: userId,
+          })
+          .select()
+          .single();
+
+        if (resError) {
+          console.error("Error creating resolution:", resError);
+          return res.status(500).json({ message: "Failed to create resolution" });
+        }
+
+        // Update dispute status to resolved
+        await supabase
+          .from("disputes")
+          .update({ status: "resolved" })
+          .eq("id", disputeId);
+
+        res.json(resolution);
+      } catch (error) {
+        console.error("Error in resolve dispute:", error);
+        res.status(500).json({ message: "Failed to resolve dispute" });
+      }
+    }
+  );
+
+  // Get dispute patterns
+  app.get(
+    "/api/hr/disputes/patterns",
+    isAuthenticated,
+    requireRole(["hr", "ceo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { data: disputes, error } = await supabase
+          .from("disputes")
+          .select("involved_party_names, dispute_type");
+
+        if (error) {
+          console.error("Error fetching disputes for patterns:", error);
+          return res.json([]);
+        }
+
+        // Return raw data, let frontend process patterns
+        res.json(disputes || []);
+      } catch (error) {
+        console.error("Error in disputes patterns:", error);
+        res.json([]);
       }
     }
   );

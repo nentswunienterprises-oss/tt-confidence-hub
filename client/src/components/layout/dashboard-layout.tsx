@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -23,13 +23,16 @@ import {
   Calendar,
   MessageSquare,
   GraduationCap,
+  Lightbulb,
+  Shield,
 } from "lucide-react";
 import { MobileBottomNav } from "./mobile-bottom-nav";
 import { useAuth } from "@/hooks/useAuth";
 import { isTutor, isTD, isCOO, isAffiliate, isOD, isParent, getRoleName, getRoleNameShort } from "@/lib/roles";
 import { logout } from "@/lib/auth";
+import { SubmitIdeaModal } from "@/components/SubmitIdeaModal";
+import { LogDisputeModal } from "@/components/LogDisputeModal";
 import { ROLE_NAVIGATION } from "@shared/portals";
-import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import type { Pod, TutorAssignment, User } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -53,6 +56,11 @@ interface PodData {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, isAuthenticated } = useAuth();
   const location = useLocation();
+  
+  // Submit Idea Modal state
+  const [showIdeaModal, setShowIdeaModal] = useState(false);
+  // Log Dispute Modal state
+  const [showDisputeModal, setShowDisputeModal] = useState(false);
   
   // Check for student authentication (separate system)
   const [studentUser, setStudentUser] = useState<any>(null);
@@ -160,6 +168,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     if (lowerLabel.includes("disc") || lowerLabel.includes("discover")) return <FolderKanban className="w-5 h-5" />;
     if (lowerLabel.includes("track")) return <TrendingUp className="w-5 h-5" />;
     if (lowerLabel.includes("pod")) return <FolderKanban className="w-5 h-5" />;
+    if (lowerLabel.includes("traffic")) return <Users className="w-5 h-5" />;
+    if (lowerLabel.includes("brain")) return <Lightbulb className="w-5 h-5" />;
+    if (lowerLabel.includes("dispute")) return <Shield className="w-5 h-5" />;
     return <Home className="w-5 h-5" />;
   };
 
@@ -426,6 +437,21 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
+                  onClick={() => setShowIdeaModal(true)}
+                  className="gap-2 font-medium"
+                >
+                  <Lightbulb className="w-4 h-4" />
+                  Submit Idea
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setShowDisputeModal(true)}
+                  className="gap-2 font-medium"
+                >
+                  <Shield className="w-4 h-4" />
+                  Log Issue
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
                   onClick={() => logout()}
                   className="text-destructive gap-2 font-medium"
                   data-testid="button-logout"
@@ -444,6 +470,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       
       {/* Mobile Bottom Tab Navigator */}
       <MobileBottomNav navItems={navItems} unreadCount={unreadBroadcasts?.length || 0} />
+      
+      {/* Submit Idea Modal */}
+      <SubmitIdeaModal open={showIdeaModal} onOpenChange={setShowIdeaModal} />
+      
+      {/* Log Dispute Modal */}
+      <LogDisputeModal open={showDisputeModal} onOpenChange={setShowDisputeModal} />
     </div>
   );
 }

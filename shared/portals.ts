@@ -132,6 +132,8 @@ export const ROLE_NAVIGATION: Record<
   hr: [
     { label: "Dashboard", path: "/executive/hr/dashboard" },
     { label: "Traffic", path: "/executive/hr/traffic" },
+    { label: "Brain", path: "/executive/hr/brain" },
+    { label: "Disputes", path: "/executive/hr/disputes" },
     { label: "Updates", path: "/executive/hr/updates" },
   ],
 

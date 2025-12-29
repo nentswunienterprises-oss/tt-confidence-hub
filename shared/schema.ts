@@ -999,3 +999,214 @@ export const insertParentReportSchema = createInsertSchema(parentReports).omit({
   createdAt: true,
   parentFeedbackAt: true,
 });
+
+// ============================================
+// BRAIN MODULE: PEOPLE REGISTRY
+// ============================================
+// Single Source of Truth for organizational identity
+
+export const personStatusEnum = pgEnum("person_status", ["active", "paused", "exiting"]);
+
+export const peopleRegistry = pgTable("people_registry", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id), // Optional link to users table
+  fullName: varchar("full_name").notNull(),
+  roleTitle: varchar("role_title").notNull(),
+  roleDescription: text("role_description"), // What winning looks like
+  shortBio: text("short_bio"), // How they see themselves
+  podId: varchar("pod_id").references(() => pods.id), // Pod/team association
+  teamName: varchar("team_name"), // Alternative team naming
+  startDate: timestamp("start_date"),
+  contractUrl: varchar("contract_url"), // Supabase storage URL
+  ndaUrl: varchar("nda_url"), // Supabase storage URL
+  status: personStatusEnum("status").notNull().default("active"),
+  email: varchar("email"),
+  phone: varchar("phone"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type PersonRegistry = typeof peopleRegistry.$inferSelect;
+export type InsertPersonRegistry = typeof peopleRegistry.$inferInsert;
+
+export const insertPersonRegistrySchema = createInsertSchema(peopleRegistry).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// ============================================
+// BRAIN MODULE: DETAILS (Weekly Execution Layer)
+// ============================================
+
+export const detailStatusEnum = pgEnum("detail_status", ["pending", "done", "missed"]);
+
+export const details = pgTable("details", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  personId: varchar("person_id").notNull().references(() => peopleRegistry.id),
+  description: text("description").notNull(),
+  dueDate: timestamp("due_date").notNull(),
+  status: detailStatusEnum("status").notNull().default("pending"),
+  weekNumber: integer("week_number"), // Optional: track by week
+  fulfilledAt: timestamp("fulfilled_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdBy: varchar("created_by").references(() => users.id),
+});
+
+export type Detail = typeof details.$inferSelect;
+export type InsertDetail = typeof details.$inferInsert;
+
+export const insertDetailSchema = createInsertSchema(details).omit({
+  id: true,
+  createdAt: true,
+  fulfilledAt: true,
+});
+
+// ============================================
+// BRAIN MODULE: CAMPAIGNS / PROJECTS
+// ============================================
+
+export const projectStatusEnum = pgEnum("project_status", ["active", "at_risk", "completed"]);
+export const projectHorizonEnum = pgEnum("project_horizon", ["30", "60", "90"]);
+
+export const projects = pgTable("projects", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  ownerId: varchar("owner_id").notNull().references(() => peopleRegistry.id), // Single throat to choke
+  horizon: projectHorizonEnum("horizon").notNull().default("30"),
+  objective: text("objective").notNull(), // 1 sentence max
+  status: projectStatusEnum("status").notNull().default("active"),
+  startDate: timestamp("start_date").defaultNow(),
+  endDate: timestamp("end_date"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdBy: varchar("created_by").references(() => users.id),
+});
+
+export type Project = typeof projects.$inferSelect;
+export type InsertProject = typeof projects.$inferInsert;
+
+export const insertProjectSchema = createInsertSchema(projects).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Link details to projects
+export const projectDetails = pgTable("project_details", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").notNull().references(() => projects.id),
+  detailId: varchar("detail_id").notNull().references(() => details.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ============================================
+// BRAIN MODULE: IDEAS / STRATEGIES
+// ============================================
+
+export const ideaStatusEnum = pgEnum("idea_status", ["new", "reviewed", "approved", "archived"]);
+export const pillarEnum = pgEnum("pillar", ["revenue", "reputation", "systems", "culture", "other"]);
+
+export const ideas = pgTable("ideas", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: varchar("title").notNull(),
+  description: text("description").notNull(), // 3-5 sentences
+  pillar: pillarEnum("pillar").notNull().default("other"),
+  problemSolved: text("problem_solved"), // Optional: What problem does this solve?
+  status: ideaStatusEnum("status").notNull().default("new"),
+  submittedBy: varchar("submitted_by").references(() => users.id),
+  submitterName: varchar("submitter_name"), // In case user doesn't exist
+  submitterRole: varchar("submitter_role"),
+  reviewedBy: varchar("reviewed_by").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewNotes: text("review_notes"),
+  convertedToProjectId: varchar("converted_to_project_id").references(() => projects.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type Idea = typeof ideas.$inferSelect;
+export type InsertIdea = typeof ideas.$inferInsert;
+
+export const insertIdeaSchema = createInsertSchema(ideas).omit({
+  id: true,
+  createdAt: true,
+  reviewedAt: true,
+  convertedToProjectId: true,
+});
+
+// ============================================
+// DISPUTES MODULE: ISSUE LOGGING
+// ============================================
+
+export const disputeTypeEnum = pgEnum("dispute_type", [
+  "miscommunication",
+  "missed_responsibility",
+  "disrespect",
+  "performance_concern",
+]);
+
+export const disputeOutcomeEnum = pgEnum("dispute_outcome", [
+  "clarity",
+  "apology",
+  "decision",
+  "separation",
+]);
+
+export const disputeStatusEnum = pgEnum("dispute_status", [
+  "open",
+  "under_review",
+  "resolved",
+  "escalated",
+]);
+
+export const disputes = pgTable("disputes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  loggedBy: varchar("logged_by").references(() => users.id),
+  loggedByName: varchar("logged_by_name"), // In case user doesn't exist
+  involvedParties: jsonb("involved_parties").$type<string[]>(), // Array of person IDs from registry
+  involvedPartyNames: jsonb("involved_party_names").$type<string[]>(), // Names for display
+  disputeType: disputeTypeEnum("dispute_type").notNull(),
+  description: text("description").notNull(), // Max 300 words enforced on frontend
+  desiredOutcome: disputeOutcomeEnum("desired_outcome").notNull(),
+  status: disputeStatusEnum("status").notNull().default("open"),
+  // Visibility - only HR + CEO by default
+  visibleTo: jsonb("visible_to").$type<string[]>().default(["hr", "ceo"]),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type Dispute = typeof disputes.$inferSelect;
+export type InsertDispute = typeof disputes.$inferInsert;
+
+export const insertDisputeSchema = createInsertSchema(disputes).omit({
+  id: true,
+  createdAt: true,
+});
+
+// ============================================
+// DISPUTES MODULE: RESOLUTIONS
+// ============================================
+
+export const resolutionActionEnum = pgEnum("resolution_action", [
+  "clarification_requested",
+  "mediated_discussion",
+  "warning_issued",
+  "role_change_recommended",
+  "exit_recommended",
+]);
+
+export const disputeResolutions = pgTable("dispute_resolutions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  disputeId: varchar("dispute_id").notNull().references(() => disputes.id),
+  action: resolutionActionEnum("action").notNull(),
+  summary: text("summary").notNull(),
+  decision: text("decision").notNull(),
+  followUpDate: timestamp("follow_up_date"),
+  resolvedBy: varchar("resolved_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type DisputeResolution = typeof disputeResolutions.$inferSelect;
+export type InsertDisputeResolution = typeof disputeResolutions.$inferInsert;
+
+export const insertDisputeResolutionSchema = createInsertSchema(disputeResolutions).omit({
+  id: true,
+  createdAt: true,
+});

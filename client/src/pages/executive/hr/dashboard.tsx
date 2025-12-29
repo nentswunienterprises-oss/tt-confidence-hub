@@ -5,6 +5,7 @@ import { ExecutivePortalGuard } from "@/lib/portalGuard";
 import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
 import { useNavigate } from "react-router-dom";
+import { Brain, Shield, Users, Target } from "lucide-react";
 
 interface HRStats {
   totalApplications: number;
@@ -13,6 +14,8 @@ interface HRStats {
   availableForPods: number;
   totalEnrollments: number;
   studentEnrollments: number;
+  peopleCount?: number;
+  openDisputes?: number;
 }
 
 export default function HRDashboard() {
@@ -96,11 +99,11 @@ export default function HRDashboard() {
         {/* Key Functions */}
         <div className="grid md:grid-cols-2 gap-6">
           <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Tutor Applications</h2>
+            <h2 className="text-lg font-semibold mb-4">Traffic</h2>
             <p className="text-sm text-muted-foreground mb-4">
-              Review pending tutor applications and make approval decisions
+              Manage tutor applications and parent enrollments
             </p>
-            <Button className="w-full" onClick={() => navigate("/executive/hr/applications")}>View Applications</Button>
+            <Button className="w-full" onClick={() => navigate("/executive/hr/traffic")}>View Traffic</Button>
           </Card>
 
           <Card className="p-6">
@@ -112,10 +115,56 @@ export default function HRDashboard() {
           </Card>
         </div>
 
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-4">Enrollment Pipeline</h2>
-          <p className="text-sm text-muted-foreground">Coming soon...</p>
-        </Card>
+        {/* Brain & Disputes Modules */}
+        <div className="grid md:grid-cols-2 gap-6">
+          <Card className="p-6 border-primary/20">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Brain className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold">Brain</h2>
+                <p className="text-xs text-muted-foreground">Institutional Memory</p>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              People Registry, Weekly Details, Projects, and Ideas. Nothing important lives only in people's heads.
+            </p>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+              <span className="flex items-center gap-1">
+                <Users className="w-4 h-4" />
+                {statsLoading ? "-" : stats?.peopleCount ?? 0} people
+              </span>
+            </div>
+            <Button className="w-full" onClick={() => navigate("/executive/hr/brain")}>
+              Open Brain
+            </Button>
+          </Card>
+
+          <Card className="p-6 border-orange-500/20">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-lg bg-orange-500/10">
+                <Shield className="w-5 h-5 text-orange-500" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold">Disputes</h2>
+                <p className="text-xs text-muted-foreground">Conflict Resolution</p>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              Issue logging, resolution tracking, and pattern detection. Keep culture clean without gossip.
+            </p>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+              <span className="flex items-center gap-1">
+                <Target className="w-4 h-4" />
+                {statsLoading ? "-" : stats?.openDisputes ?? 0} open issues
+              </span>
+            </div>
+            <Button className="w-full" variant="outline" onClick={() => navigate("/executive/hr/disputes")}>
+              View Disputes
+            </Button>
+          </Card>
+        </div>
       </div>
     </ExecutivePortalGuard>
   );

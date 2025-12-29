@@ -83,6 +83,8 @@ import ExecutiveHRDashboard from "@/pages/executive/hr/dashboard";
 import ExecutiveHRTraffic from "@/pages/executive/hr/traffic";
 import ExecutiveHRUpdates from "@/pages/executive/hr/updates";
 import ExecutiveHRApplications from "@/pages/executive/hr/applications";
+import ExecutiveHRBrain from "@/pages/executive/hr/brain";
+import ExecutiveHRDisputes from "@/pages/executive/hr/disputes";
 import ExecutiveCEODashboard from "@/pages/executive/ceo/dashboard";
 import ExecutiveDashboard from "@/pages/executive/dashboard";
 
@@ -188,6 +190,8 @@ function Router() {
       <Route path="/executive/hr/traffic" element={<DashboardLayout><ExecutiveHRTraffic /></DashboardLayout>} />
       <Route path="/executive/hr/updates" element={<DashboardLayout><ExecutiveHRUpdates /></DashboardLayout>} />
       <Route path="/executive/hr/applications" element={<DashboardLayout><ExecutiveHRApplications /></DashboardLayout>} />
+      <Route path="/executive/hr/brain" element={<DashboardLayout><ExecutiveHRBrain /></DashboardLayout>} />
+      <Route path="/executive/hr/disputes" element={<DashboardLayout><ExecutiveHRDisputes /></DashboardLayout>} />
 
       {/* CEO Routes */}
       <Route path="/executive/ceo/dashboard" element={<DashboardLayout><ExecutiveCEODashboard /></DashboardLayout>} />
