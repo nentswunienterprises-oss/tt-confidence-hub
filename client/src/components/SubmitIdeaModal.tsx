@@ -86,7 +86,7 @@ export function SubmitIdeaModal({ open, onOpenChange }: SubmitIdeaModalProps) {
             Submit an Idea
           </DialogTitle>
           <DialogDescription>
-            Share your idea with the team. Ideas don't move the company—approved ideas do.
+            Share your idea with the team. Ideas don't move the company - approved ideas do.
           </DialogDescription>
         </DialogHeader>
         
