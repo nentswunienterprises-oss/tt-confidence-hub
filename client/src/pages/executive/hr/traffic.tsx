@@ -81,8 +81,7 @@ export default function ExecutiveHRTraffic() {
     queryClient.invalidateQueries({ queryKey: ["/api/hr/enrollments"] });
   };
 
-  // Debug: toggle raw enrollments JSON (helps diagnose missing rows)
-  const [showRaw, setShowRaw] = useState(false);
+  
 
   const getStatusBadge = (status: ParentEnrollment["status"]) => {
     const statusConfig = {
@@ -195,20 +194,7 @@ export default function ExecutiveHRTraffic() {
       </div>
 
       <Tabs defaultValue="tutor-applications" className="w-full">
-        <div className="flex justify-end mb-2">
-          <Button size="sm" variant="ghost" onClick={() => setShowRaw(v => !v)}>
-            {showRaw ? 'Hide Raw' : 'Show Raw'}
-          </Button>
-        </div>
-        {showRaw && (
-          <Card className="mb-4">
-            <CardContent>
-              <pre style={{ maxHeight: 300, overflow: 'auto', fontSize: 12 }}>
-                {JSON.stringify(enrollments, null, 2)}
-              </pre>
-            </CardContent>
-          </Card>
-        )}
+        
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="tutor-applications" className="gap-2">
             <GraduationCap className="w-4 h-4" />
