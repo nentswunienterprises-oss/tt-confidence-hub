@@ -11,23 +11,20 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    persistSession: true,
+    // Disable persisting sessions to localStorage to avoid cross-tab session mixing
+    persistSession: false,
     detectSessionInUrl: true,
-    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-    autoRefreshToken: true,
-    // Don't throw on invalid/expired tokens during initialization
-    // This prevents the 400 error when refresh token is not found
+    storage: undefined,
+    autoRefreshToken: false,
   }
 });
 
-// Clear any invalid sessions on initialization
-supabase.auth.getSession().catch(() => {
-  // If getSession fails, clear any stored auth data to start fresh
-  if (typeof window !== 'undefined') {
-    try {
-      localStorage.removeItem(`sb-${supabaseUrl?.split('/').pop()}-auth-token`);
-    } catch (e) {
-      console.error("Error clearing auth token:", e);
-    }
+// Clear any legacy Supabase auth token that may exist in localStorage (fixes cross-tab mixing on upgrade)
+if (typeof window !== 'undefined') {
+  try {
+    const key = `sb-${supabaseUrl?.split('/').pop()}-auth-token`;
+    localStorage.removeItem(key);
+  } catch (e) {
+    console.error("Error clearing legacy auth token:", e);
   }
-});
+}
