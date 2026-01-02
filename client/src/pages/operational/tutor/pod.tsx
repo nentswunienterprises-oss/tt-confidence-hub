@@ -65,12 +65,13 @@ export default function TutorPod() {
   const hasSubmittedApplication = applications && applications.length > 0;
   const hasPendingApplication = applications && applications.some((app: any) => app.status === "pending");
   const hasApprovedApplication = applications && applications.some((app: any) => app.status === "approved");
+  const onboardingCompleted = applications && applications.some((app: any) => !!app.onboardingCompletedAt);
 
   // Redirect to gateway if tutor hasn't completed onboarding (no approved application or no pod assignment)
   useEffect(() => {
     if (!authLoading && !isLoading && !applicationsLoading && isAuthenticated) {
-      // If no approved application or no pod assignment, redirect to gateway
-      if (!hasApprovedApplication || !podData?.assignment) {
+      // If onboarding not completed and no approved application or no pod assignment, redirect to gateway
+      if (!onboardingCompleted && (!hasApprovedApplication || !podData?.assignment)) {
         setLocation("/operational/tutor/gateway");
       }
     }
