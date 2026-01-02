@@ -177,19 +177,36 @@ export default function TutorGateway() {
     } else if (applicationStatus.status === "not_applied") {
       setStep("application");
     } else if (applicationStatus.status === "confirmed") {
-      // Check if they have pod assignment - if so, redirect to dashboard
-      if (hasPodAssignment) {
-        setStep("loading");
-        navigate("/tutor/pod", { replace: true });
-      } else {
-        // Verified but waiting for pod assignment
-        setStep("submitted");
-      }
+      // If confirmed, show submitted view — if assigned, show Assigned stage with Continue button
+      setStep("submitted");
     } else {
       // pending, approved, verification states
       setStep("submitted");
     }
   }, [applicationStatus, navigate, hasPodAssignment]);
+
+  // Mark onboarding complete (tutor clicked Continue to Dashboard)
+  const completeOnboarding = async () => {
+    if (!applicationStatus?.applicationId) return;
+    try {
+      setUploadingDoc(null);
+      const res = await fetch(`${API_URL}/api/tutor/complete-onboarding`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ applicationId: applicationStatus.applicationId }),
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Failed to complete onboarding: ${res.status} ${text}`);
+      }
+      queryClient.invalidateQueries({ queryKey: ["/api/tutor/application-status"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tutor/pod"] });
+      navigate("/tutor/pod", { replace: true });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to continue", variant: "destructive" });
+    }
+  };
 
   // Determine current journey stage for progress bar
   const getStageStatus = (stage: string): boolean => {
@@ -621,6 +638,29 @@ export default function TutorGateway() {
                       <li>You'll get access to student profiles and identity sheets</li>
                       <li>Sessions will be scheduled based on availability</li>
                     </ul>
+                  </div>
+                </>
+              )}
+
+              {/* Confirmed and assigned -> show Assigned stage with Continue button */}
+              {applicationStatus.status === "confirmed" && hasPodAssignment && (
+                <>
+                  <div className="flex items-center justify-center gap-3 mb-3 sm:mb-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-green-100 flex items-center justify-center">
+                      <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
+                    </div>
+                  </div>
+                  <h3 className="text-sm sm:text-xl font-semibold mb-3 sm:mb-4 text-center">
+                    You're Assigned to a Pod 🎉
+                  </h3>
+                  <p className="text-xs sm:text-base text-muted-foreground text-center mb-4 sm:mb-6">
+                    Great — your documents are verified and you've been assigned to a pod. Click below to continue to your dashboard.
+                  </p>
+
+                  <div className="flex justify-center">
+                    <Button size="lg" className="rounded-full" style={{ backgroundColor: "#E63946" }} onClick={completeOnboarding}>
+                      Continue to Dashboard
+                    </Button>
                   </div>
                 </>
               )}
