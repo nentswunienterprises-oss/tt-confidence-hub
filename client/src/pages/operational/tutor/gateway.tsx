@@ -9,7 +9,6 @@ import { useNavigate } from "react-router-dom";
 import { API_URL } from "@/lib/config";
 import { ApplicationForm } from "@/components/tutor/application-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { supabase } from "@/lib/supabaseClient";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -70,27 +69,27 @@ export default function TutorGateway() {
       if (!applicationStatus?.applicationId || !user?.id) {
         throw new Error("Missing application or user info");
       }
-      
-      // Upload to Supabase Storage
-      const fileName = `${user.id}/${documentType}_${Date.now()}.${file.name.split('.').pop()}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("tutor-documents")
-        .upload(fileName, file, {
-          cacheControl: "3600",
-          upsert: true,
+
+      // Read file as base64
+      const readFileAsBase64 = (fileToRead: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result as string;
+            // result is like: data:<mime>;base64,XXXX
+            const parts = result.split(',', 2);
+            resolve(parts[1]);
+          };
+          reader.onerror = (err) => reject(err);
+          reader.readAsDataURL(fileToRead);
         });
-      
-      if (uploadError) {
-        throw new Error(`Upload failed: ${uploadError.message}`);
-      }
-      
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from("tutor-documents")
-        .getPublicUrl(fileName);
-      
-      // Save to database
-      const response = await fetch(`${API_URL}/api/tutor/onboarding-documents`, {
+      };
+
+      const base64 = await readFileAsBase64(file);
+      const ext = file.name.split('.').pop();
+      const fileName = `${user.id}/${documentType}_${Date.now()}.${ext}`;
+
+      const response = await fetch(`${API_URL}/api/tutor/onboarding-documents/upload`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -99,14 +98,17 @@ export default function TutorGateway() {
         body: JSON.stringify({
           applicationId: applicationStatus.applicationId,
           documentType,
-          documentUrl: urlData.publicUrl,
+          fileName,
+          fileData: base64,
+          fileType: file.type,
         }),
       });
-      
+
       if (!response.ok) {
-        throw new Error("Failed to save document");
+        const text = await response.text();
+        throw new Error(`Upload failed: ${response.status} ${text}`);
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
