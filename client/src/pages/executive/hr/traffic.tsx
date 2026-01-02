@@ -56,10 +56,11 @@ export default function ExecutiveHRTraffic() {
     refetchInterval: 5000,
   });
 
-  // Filter enrollments by status
-  const awaitingAssignment = enrollments.filter((e: ParentEnrollment) => e.status === "awaiting_assignment");
-  const assigned = enrollments.filter((e: ParentEnrollment) => e.status === "assigned");
-  const confirmed = enrollments.filter((e: ParentEnrollment) => e.status === "confirmed");
+  // Filter enrollments by status (normalize strings to avoid casing/whitespace issues)
+  const normalize = (s: any) => (s ? String(s).toLowerCase().trim() : "");
+  const awaitingAssignment = enrollments.filter((e: ParentEnrollment) => normalize(e.status) === "awaiting_assignment");
+  const assigned = enrollments.filter((e: ParentEnrollment) => normalize(e.status) === "assigned");
+  const confirmed = enrollments.filter((e: ParentEnrollment) => normalize(e.status) === "confirmed");
 
   // Filter tutor applications by status
   const pendingApplications = applications.filter((app: any) => app.status === "pending");
