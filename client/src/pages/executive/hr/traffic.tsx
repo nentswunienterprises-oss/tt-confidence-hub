@@ -59,7 +59,11 @@ export default function ExecutiveHRTraffic() {
   // Filter enrollments by status (normalize strings to avoid casing/whitespace issues)
   const normalize = (s: any) => (s ? String(s).toLowerCase().trim() : "");
   const awaitingAssignment = enrollments.filter((e: ParentEnrollment) => normalize(e.status) === "awaiting_assignment");
-  const assigned = enrollments.filter((e: ParentEnrollment) => normalize(e.status) === "assigned");
+  // Treat 'session_booked' as assigned for HR display so booked sessions are visible under Assigned
+  const assigned = enrollments.filter((e: ParentEnrollment) => {
+    const s = normalize(e.status);
+    return s === "assigned" || s === "session_booked";
+  });
   const confirmed = enrollments.filter((e: ParentEnrollment) => normalize(e.status) === "confirmed");
 
   // Filter tutor applications by status
