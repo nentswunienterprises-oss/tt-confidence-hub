@@ -2168,6 +2168,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           parentConsentVerified,
           trialAgreementUrl: latestApp.trialAgreementUrl,
           parentConsentUrl: latestApp.parentConsentUrl,
+          onboardingCompletedAt: latestApp.onboardingCompletedAt ?? null,
         });
       } catch (error) {
         console.error("Error fetching tutor application status:", error);
@@ -2238,6 +2239,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error('Error uploading onboarding document (server handler):', error);
         res.status(500).json({ message: 'Failed to upload document' });
+      }
+    }
+  );
+
+  // Tutor marks onboarding complete (after assignment) - allows leaving gateway permanently
+  app.post(
+    "/api/tutor/complete-onboarding",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req.session as any).userId;
+        const { applicationId } = req.body;
+
+        if (!applicationId) {
+          return res.status(400).json({ message: "Missing applicationId" });
+        }
+
+        // Verify ownership
+        const applications = await storage.getTutorApplicationsByUser(userId);
+        const app = applications.find(a => a.id === applicationId);
+        if (!app) {
+          return res.status(403).json({ message: "Application not found or access denied" });
+        }
+
+        const updated = await storage.completeTutorOnboarding(applicationId);
+        if (!updated) {
+          return res.status(500).json({ message: "Failed to complete onboarding" });
+        }
+
+        res.json({ success: true, application: updated });
+      } catch (error) {
+        console.error('Error completing onboarding:', error);
+        res.status(500).json({ message: 'Failed to complete onboarding' });
       }
     }
   );
@@ -2553,50 +2588,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["hr"]),
     async (req: Request, res: Response) => {
       try {
-        // Use raw SQL query to bypass RLS issues
-        const { data: enrollments, error } = await supabase.rpc('get_all_enrollments', {});
-        
-        // If RPC fails, try direct query
-        if (error || !enrollments) {
-          console.warn("RPC call failed, trying direct query:", error?.message);
-          
-          // Try direct select with all fields
-          const { data, error: selectError } = await supabase
-            .from("parent_enrollments")
-            .select("id, user_id, parent_full_name, parent_phone, parent_email, parent_city, student_full_name, student_grade, school_name, math_struggle_areas, previous_tutoring, confidence_level, internet_access, parent_motivation, status, created_at")
-            .order("created_at", { ascending: false });
+        // Direct select with all enrollment fields - prefer direct query to avoid RPC/RLS mismatches
+        const { data, error } = await supabase
+          .from("parent_enrollments")
+          .select("id, user_id, parent_full_name, parent_phone, parent_email, parent_city, student_full_name, student_grade, school_name, math_struggle_areas, previous_tutoring, confidence_level, internet_access, parent_motivation, status, created_at")
+          .order("created_at", { ascending: false });
 
-          if (selectError) {
-            console.warn("Direct select also failed:", selectError.message);
-            // If all else fails, return empty array with message
-            return res.json([]);
-          }
-
-          // Transform data
-          const transformed = (data || []).map((e: any) => ({
-            ...e,
-            statusLabel: e.status === "awaiting_assignment" ? "Awaiting Assignment" : 
-                        e.status === "assigned" ? "Assigned" :
-                        e.status === "confirmed" ? "Confirmed" :
-                        e.status
-          }));
-
-          return res.json(transformed);
+        if (error) {
+          console.error("Error selecting parent_enrollments:", error.message);
+          return res.status(500).json([]);
         }
 
-        // Transform enrollments
-        const transformed = (enrollments || []).map((enrollment: any) => ({
-          ...enrollment,
-          statusLabel: enrollment.status === "awaiting_assignment" ? "Awaiting Assignment" : 
-                      enrollment.status === "assigned" ? "Assigned" :
-                      enrollment.status === "confirmed" ? "Confirmed" :
-                      enrollment.status
+        // Normalize and return
+        const transformed = (data || []).map((e: any) => ({
+          ...e,
+          statusLabel: e.status === "awaiting_assignment" ? "Awaiting Assignment" : 
+                      e.status === "assigned" ? "Assigned" :
+                      e.status === "confirmed" ? "Confirmed" :
+                      e.status
         }));
 
+        console.log(`/api/hr/enrollments returned ${transformed.length} rows`);
         res.json(transformed);
       } catch (error) {
         console.error("Error in /api/hr/enrollments:", error);
-        res.json([]);
+        res.status(500).json([]);
       }
     }
   );
