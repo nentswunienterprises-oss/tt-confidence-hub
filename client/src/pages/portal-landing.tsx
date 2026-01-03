@@ -7,9 +7,32 @@ import { ArrowRight, BookOpen, Users, Zap, Check, Heart, Sparkles, Star } from "
 export default function ClientLanding() {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  // subtle math-symbol wallpaper SVG (repeated) to reinforce the math theme
+  const wallpaperSvg = `
+    <svg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'>
+      <text x='18' y='44' font-size='40' fill='#E63946' opacity='0.08' font-family='Inter, Arial, sans-serif'>+</text>
+      <text x='118' y='82' font-size='36' fill='#E63946' opacity='0.06' font-family='Inter, Arial, sans-serif'>-</text>
+      <text x='52' y='156' font-size='44' fill='#E63946' opacity='0.07' font-family='Inter, Arial, sans-serif'>×</text>
+      <text x='180' y='182' font-size='30' fill='#E63946' opacity='0.05' font-family='Inter, Arial, sans-serif'>÷</text>
+      <text x='160' y='46' font-size='26' fill='#E63946' opacity='0.05' font-family='Inter, Arial, sans-serif'>=</text>
+    </svg>
+  `;
+
+  const svgEncoded = encodeURIComponent(wallpaperSvg);
+  const wallpaperCss = `
+.math-wallpaper {
+  background-image: url("data:image/svg+xml;utf8,${svgEncoded}");
+  background-repeat: repeat;
+  background-size: 160px 160px;
+}
+@media (min-width: 768px) {
+  .math-wallpaper { background-size: 240px 240px; }
+}
+`;
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#FFF5ED" }}>
+      <style dangerouslySetInnerHTML={{ __html: wallpaperCss }} />
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
@@ -48,11 +71,11 @@ export default function ClientLanding() {
         </div>
       </header>
 
-      {/* Spacer for fixed header */}
+      {/* Spacer for fixed header (restored to original height) */}
       <div className="h-16 sm:h-20" />
 
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-4 sm:pt-8 md:pt-16 pb-12 sm:pb-20">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-4 sm:pt-8 md:pt-16 md:-mt-12 lg:-mt-14 xl:-mt-16 pb-12 sm:pb-20">
         {/* Mobile App Title */}
         <div className="md:hidden text-center mb-6">
           <span className="text-2xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
@@ -176,7 +199,7 @@ export default function ClientLanding() {
               {
                 number: "3",
                 title: "Real Results",
-                description: "Weekly progress tracking, honest feedback, and visible confidence growth you can see."
+                description: "Visible confidence growth you can see, weekly progress tracking and honest feedback."
               }
             ].map((item, index) => (
               <div 
@@ -202,8 +225,8 @@ export default function ClientLanding() {
         </div>
       </section>
 
-      {/* What You Get Section */}
-      <section className="py-12 sm:py-20" style={{ backgroundColor: "#FFF5ED" }}>
+      {/* What You Get Section (subtle math-symbol wallpaper applied here) */}
+      <section className="py-12 sm:py-20 math-wallpaper" style={{ backgroundColor: "#FFF5ED" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6" style={{ color: "#1A1A1A" }}>
@@ -221,7 +244,7 @@ export default function ClientLanding() {
             >
               <div className="space-y-4 sm:space-y-6">
                 {[
-                  { title: "Weekly Progress Updates", desc: "Real-time insights into your child's growth and next steps" },
+                  { title: "The Confidence Method", desc: "Connection, Mastery, Reflection - 3 pillars that prove confidence is teachable" },
                   { title: "Structured Sessions", desc: "Consistent, predictable tutoring schedule that fits your family" },
                   { title: "Expert Support", desc: "Territory Directors who ensure tutor quality and consistency" }
                 ].map((item, i) => (
@@ -249,7 +272,7 @@ export default function ClientLanding() {
                 {[
                   { title: "Founding Cohort Access", desc: "Limited spots available - selected families get direct access to our founding team" },
                   { title: "Accountability & Growth", desc: "Reflections, feedback loops, and celebration of wins" },
-                  { title: "The Confidence Method", desc: "Connection, Mastery, Reflection - 3 pillars that prove confidence is teachable" }
+                  { title: "Weekly Progress Updates", desc: "Real-time insights into your child's growth and next steps" }
                 ].map((item, i) => (
                   <div key={i} className="flex gap-3 sm:gap-4">
                     <div 
