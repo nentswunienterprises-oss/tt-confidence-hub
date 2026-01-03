@@ -30,9 +30,23 @@ export default function ClientLanding() {
 }
 `;
 
+  // explicit hero pull styles (avoid purge/production differences)
+  const heroCss = `
+  .hero-pull { margin-top: 0; }
+  @media (min-width: 768px) {
+    .hero-pull { margin-top: -3rem; } /* ~ -mt-12 */
+  }
+  @media (min-width: 1024px) {
+    .hero-pull { margin-top: -3.5rem; } /* ~ -mt-14 */
+  }
+  @media (min-width: 1280px) {
+    .hero-pull { margin-top: -4rem; } /* ~ -mt-16 */
+  }
+  `;
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#FFF5ED" }}>
-      <style dangerouslySetInnerHTML={{ __html: wallpaperCss }} />
+      <style dangerouslySetInnerHTML={{ __html: wallpaperCss + heroCss }} />
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
@@ -75,7 +89,7 @@ export default function ClientLanding() {
       <div className="h-16 sm:h-20" />
 
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-4 sm:pt-8 md:pt-16 md:-mt-12 lg:-mt-14 xl:-mt-16 pb-12 sm:pb-20">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-4 sm:pt-8 md:pt-16 pb-12 sm:pb-20 hero-pull">
         {/* Mobile App Title */}
         <div className="md:hidden text-center mb-6">
           <span className="text-2xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
