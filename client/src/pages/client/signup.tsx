@@ -54,10 +54,10 @@ export default function ClientSignup() {
               </span>
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: "#1A1A1A" }}>
-              Join The Confidence Hub
+              Join The Response Hub
             </h2>
             <p className="text-base sm:text-lg" style={{ color: "#5A5A5A" }}>
-              Give your child the gift of mathematical confidence.
+              Give your child the gift of calm execution under pressure.
             </p>
           </div>
 

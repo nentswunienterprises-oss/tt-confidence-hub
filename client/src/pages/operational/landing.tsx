@@ -68,7 +68,7 @@ export default function OperationalLanding() {
           </h1>
           
           <p className="text-base sm:text-lg md:text-xl leading-relaxed" style={{ color: "#5A5A5A" }}>
-            Join a founding team building response integrity into every student. Not motivation—discipline. Not hope—inevitability. We're selective about who audits our system.
+            Join a founding team building response integrity into every student. Not motivation - discipline. Not hope - inevitability. We're selective about who audits in our system.
           </p>
 
           <Button
