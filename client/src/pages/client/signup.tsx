@@ -42,10 +42,6 @@ export default function ClientSignup() {
         <div className="w-full max-w-md space-y-6 sm:space-y-8">
           {/* Hero Section */}
           <div className="text-center space-y-3 sm:space-y-4">
-            {/* Centered Logo above form */}
-            <div className="flex justify-center mb-2">
-              <TTLogo size="md" />
-            </div>
             {/* Mobile Portal Title */}
             <div className="md:hidden">
               <span className="text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
