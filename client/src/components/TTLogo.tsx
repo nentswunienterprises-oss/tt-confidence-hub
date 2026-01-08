@@ -2,7 +2,7 @@ export function TTLogo({ size = "xl" }: { size?: "sm" | "md" | "lg" | "xl" }) {
   // Responsive font sizes using clamp
   const sizeMap = {
     sm: "clamp(12px, 3vw, 16px)",
-    md: "clamp(16px, 4vw, 24px)",
+    md: "clamp(14px, 3.5vw, 19px)", // slightly smaller than before
     lg: "clamp(20px, 6vw, 32px)",
     xl: "clamp(28px, 8vw, 48px)",
   };
