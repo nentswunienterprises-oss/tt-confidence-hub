@@ -215,39 +215,6 @@ function PortalLanding() {
         </div>
       </section>
 
-      {/* What You Get */}
-      <section className="py-12 sm:py-20 math-wallpaper" style={{ backgroundColor: "#FFF5ED" }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
-          <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6" style={{ color: "#1A1A1A" }}>
-              What Your Child Gets
-            </h2>
-            <p className="text-base sm:text-lg" style={{ color: "#5A5A5A" }}>
-              Not motivation. Not hype. A system that holds.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 max-w-5xl mx-auto">
-            <Card className="p-5 sm:p-6 md:p-8 border-0 shadow-lg" style={{ backgroundColor: "white" }}>
-              <div className="space-y-4 sm:space-y-6">
-                {[
-                  { title: "Response-First Operating System", desc: "Connection, Mastery, Reflection—executed with precision and consistency." },
-                  { title: "Fixed Training Rhythm", desc: "Sessions run on schedule. No randomness. No guesswork." },
-                  { title: "Standards Enforcement", desc: "Territory Directors audit response integrity and consistency." }
-                ].map((item, i) => (
-                  <div key={i} className="flex gap-3 sm:gap-4">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "#FFF0F0" }}>
-                      <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: "#E63946" }} />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-sm sm:text-base mb-0.5 sm:mb-1" style={{ color: "#1A1A1A" }}>{item.title}</h4>
-                      <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-
             <Card className="p-5 sm:p-6 md:p-8 border-0 shadow-lg" style={{ backgroundColor: "white" }}>
               <div className="space-y-4 sm:space-y-6">
                 {[
