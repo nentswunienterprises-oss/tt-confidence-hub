@@ -106,23 +106,6 @@ function PortalLanding() {
             </div>
 
             {/* ...existing code... */}
-                  {/* Mobile-only: Pillars section after hero image */}
-                  <div className="md:hidden max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pb-6">
-                    <div className="flex items-center gap-4 justify-center mb-2">
-                      {["Connection", "Mastery", "Reflection"].map((pillar) => (
-                        <div
-                          key={pillar}
-                          className="px-3 py-1.5 rounded-full text-xs font-medium"
-                          style={{ backgroundColor: "#FFF0F0", color: "#E63946" }}
-                        >
-                          {pillar}
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-xs text-center" style={{ color: "#5A5A5A" }}>
-                      A system built around how confidence actually forms - through structure, repetition, and standards.
-                    </p>
-                  </div>
           </div>
 
           {/* Image */}
@@ -146,6 +129,24 @@ function PortalLanding() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Mobile-only: Pillars section after hero image */}
+          <div className="md:hidden max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pb-6">
+            <div className="flex items-center gap-4 justify-center mb-2">
+              {["Connection", "Mastery", "Reflection"].map((pillar) => (
+                <div
+                  key={pillar}
+                  className="px-3 py-1.5 rounded-full text-xs font-medium"
+                  style={{ backgroundColor: "#FFF0F0", color: "#E63946" }}
+                >
+                  {pillar}
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-center" style={{ color: "#5A5A5A" }}>
+              A system built around how confidence actually forms - through structure, repetition, and standards.
+            </p>
           </div>
         </div>
       </section>
