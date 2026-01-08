@@ -1,8 +1,10 @@
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { QrCode, TrendingUp, DollarSign, Compass, Users, Zap, Check, ArrowRight, ArrowLeft, Banknote } from "lucide-react";
 import { useEffect } from "react";
+import { TTLogo } from "@/components/TTLogo";
 
 export default function AffiliateLanding() {
   const navigate = useNavigate();
@@ -246,19 +248,7 @@ export default function AffiliateLanding() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
             <div className="flex items-center gap-2">
-              <img 
-                src="/logos/tt-monogram.png" 
-                alt="TT Monogram" 
-                className="h-8 sm:h-10 w-auto"
-              />
-              <div>
-                <span className="text-lg font-bold tracking-tight block" style={{ color: "#1A1A1A" }}>
-                  TERRITORIAL
-                </span>
-                <span className="text-lg font-bold" style={{ color: "#E63946" }}>
-                  TUTORING
-                </span>
-              </div>
+              <TTLogo size="md" />
             </div>
             <p className="text-center md:text-right text-xs sm:text-base" style={{ color: "#5A5A5A" }}>
               © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
