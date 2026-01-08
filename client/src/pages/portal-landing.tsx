@@ -105,21 +105,41 @@ function PortalLanding() {
               </Button>
             </div>
 
-            <div className="flex items-center gap-4 sm:gap-6 pt-2 sm:pt-4">
-              <div className="flex gap-2">
-                {["Connection", "Mastery", "Reflection"].map((pillar) => (
-                  <div
-                    key={pillar}
-                    className="px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium"
-                    style={{ backgroundColor: "#FFF0F0", color: "#E63946" }}
-                  >
-                    {pillar}
-                  </div>
-                ))}
+            {/* On desktop, show below hero text. On mobile, move below hero image. */}
+            <div className="hidden sm:block">
+              <div className="flex items-center gap-4 sm:gap-6 pt-2 sm:pt-4">
+                <div className="flex gap-2">
+                  {["Connection", "Mastery", "Reflection"].map((pillar) => (
+                    <div
+                      key={pillar}
+                      className="px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium"
+                      style={{ backgroundColor: "#FFF0F0", color: "#E63946" }}
+                    >
+                      {pillar}
+                    </div>
+                  ))}
+                </div>
               </div>
+              <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
+                A system built around how confidence actually forms—through structure, repetition, and standards.
+              </p>
             </div>
-            <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-              A system built around how confidence actually forms - through structure, repetition, and standards.
+          </div>
+          {/* Mobile: show pillars and supporting text after hero image */}
+          <div className="block sm:hidden mt-6">
+            <div className="flex gap-2 mb-2">
+              {["Connection", "Mastery", "Reflection"].map((pillar) => (
+                <div
+                  key={pillar}
+                  className="px-3 py-1.5 rounded-full text-xs font-medium"
+                  style={{ backgroundColor: "#FFF0F0", color: "#E63946" }}
+                >
+                  {pillar}
+                </div>
+              ))}
+            </div>
+            <p className="text-xs" style={{ color: "#5A5A5A" }}>
+              A system built around how confidence actually forms—through structure, repetition, and standards.
             </p>
           </div>
 
