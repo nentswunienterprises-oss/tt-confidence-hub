@@ -28,7 +28,7 @@ export default function OperationalLanding() {
           
           <div className="hidden md:block">
             <span className="text-2xl lg:text-3xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-              JOIN OUR TEAM
+              RESPONSE AUDITORS WANTED
             </span>
           </div>
           
@@ -50,26 +50,25 @@ export default function OperationalLanding() {
         {/* Mobile Title */}
         <div className="md:hidden text-center mb-6">
           <span className="text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-            JOIN OUR TEAM
+            RESPONSE AUDITORS WANTED
           </span>
         </div>
         
         <div className="text-center max-w-3xl mx-auto space-y-5 sm:space-y-8">
           <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
             <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
-              Founding Team • Limited Positions
+              Founding Team • Response Auditors Only
             </span>
           </div>
           
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight" style={{ color: "#1A1A1A" }}>
-            Transform Confidence.
+            Train How Students
             <br />
-            <span style={{ color: "#E63946" }}>Change Lives.</span>
+            <span style={{ color: "#E63946" }}>Respond Under Pressure.</span>
           </h1>
           
           <p className="text-base sm:text-lg md:text-xl leading-relaxed" style={{ color: "#5A5A5A" }}>
-            Join a founding team proving that confidence - not content - transforms students.
-            We're building something different, and we're selective about who joins.
+            Join a founding team building response integrity into every student. Not motivation—discipline. Not hope—inevitability. We're selective about who audits our system.
           </p>
 
           <Button
@@ -293,10 +292,19 @@ export default function OperationalLanding() {
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-                TERRITORIAL TUTORING
-              </span>
-              <span className="text-xl font-bold" style={{ color: "#E63946" }}>+</span>
+              <img 
+                src="/logos/tt-monogram.png" 
+                alt="TT Monogram" 
+                className="h-8 sm:h-10 w-auto"
+              />
+              <div>
+                <span className="text-lg font-bold tracking-tight block" style={{ color: "#1A1A1A" }}>
+                  TERRITORIAL
+                </span>
+                <span className="text-lg font-bold" style={{ color: "#E63946" }}>
+                  TUTORING
+                </span>
+              </div>
             </div>
             <p className="text-center md:text-right" style={{ color: "#5A5A5A" }}>
               © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd

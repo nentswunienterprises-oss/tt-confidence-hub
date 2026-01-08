@@ -28,7 +28,7 @@ export default function AffiliateLanding() {
           
           <div className="hidden md:block">
             <span className="text-2xl lg:text-3xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-              AFFILIATE PROGRAM
+              INEVITABILITY PARTNERS
             </span>
           </div>
           
@@ -42,34 +42,32 @@ export default function AffiliateLanding() {
         </div>
       </header>
 
-      {/* Spacer for fixed header */}
       <div className="h-16 sm:h-20" />
 
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-8 sm:pt-12 md:pt-20 pb-12 sm:pb-20">
-        {/* Mobile Title */}
         <div className="md:hidden text-center mb-6">
           <span className="text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-            AFFILIATE PROGRAM
+            INEVITABILITY PARTNERS
           </span>
         </div>
         
         <div className="text-center max-w-3xl mx-auto space-y-5 sm:space-y-8">
           <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
             <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
-              Earn While Growing Our Community
+              Discipline Creates Inevitability
             </span>
           </div>
           
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight" style={{ color: "#1A1A1A" }}>
-            Turn Your Network
+            Turn System Integrity
             <br />
             <span style={{ color: "#E63946" }}>Into Income.</span>
           </h1>
           
           <p className="text-base sm:text-lg md:text-xl leading-relaxed" style={{ color: "#5A5A5A" }}>
-            Join our Affiliate Program and earn competitive commissions by introducing families 
-            to Territorial Tutoring's Confidence Pod system.
+            This isn't influencer marketing or luck-based referrals.  
+            It's disciplined outreach aligned to a system that proves inevitable. You execute with integrity. We pay you for converting families into response.
           </p>
 
           <Button
@@ -78,7 +76,7 @@ export default function AffiliateLanding() {
             style={{ backgroundColor: "#E63946", color: "white" }}
             onClick={() => navigate("/affiliate/signup")}
           >
-            Start Earning Today
+            Enter the System
             <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
           </Button>
         </div>
@@ -89,19 +87,19 @@ export default function AffiliateLanding() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6" style={{ color: "#1A1A1A" }}>
-              How It Works
+              The Inevitability Loop
             </h2>
             <p className="text-sm sm:text-lg" style={{ color: "#5A5A5A" }}>
-              Simple steps to start earning commissions
+              Clarity. Systems. Repetition. Results.
             </p>
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
             {[
-              { num: "1", title: "Get Your QR Code", desc: "Log in and generate your unique referral QR code and tracking link." },
-              { num: "2", title: "Share With Parents", desc: "Share your QR code and link with schools, community groups, and networks." },
-              { num: "3", title: "Track Signups", desc: "See all referrals in real-time with a detailed analytics dashboard." },
-              { num: "4", title: "Earn Commission", desc: "Receive commission when referred families enroll in pods." }
+              { num: "1", title: "Get Assigned", desc: "Receive your unique QR code and referral links inside the system." },
+              { num: "2", title: "Execute Outreach", desc: "Share through schools, parents, WhatsApp groups, or communities." },
+              { num: "3", title: "Track Reality", desc: "Every scan, signup, and enrollment is logged in real time." },
+              { num: "4", title: "Get Paid", desc: "Commissions are triggered by actual enrollments. No fluff." }
             ].map((step) => (
               <Card key={step.num} className="p-3 sm:p-6 border-0 shadow-lg text-center" style={{ backgroundColor: "#FFF5ED" }}>
                 <div 
@@ -128,15 +126,15 @@ export default function AffiliateLanding() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6" style={{ color: "white" }}>
-              Choose Your Path
+              Choose Your Role
             </h2>
             <p className="text-sm sm:text-lg" style={{ color: "#A0A0A0" }}>
-              Pick the role that fits your business model
+              Same system. Different scale.
             </p>
           </div>
           
           <div className="grid md:grid-cols-2 gap-4 sm:gap-8 max-w-5xl mx-auto">
-            {/* Affiliate Path */}
+            {/* Affiliate */}
             <Card 
               className="p-4 sm:p-8 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group"
               style={{ backgroundColor: "white" }}
@@ -152,14 +150,11 @@ export default function AffiliateLanding() {
                 Affiliate
               </h3>
               <p className="text-xs sm:text-base mb-4 sm:mb-6" style={{ color: "#5A5A5A" }}>
-                Individual referrer using unique code to drive enrollments
+                Individual operator executing referrals inside a defined system
               </p>
-              
-              <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide mb-3 sm:mb-4" style={{ color: "#E63946" }}>
-                Dashboard Includes
-              </p>
+
               <ul className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
-                {["Personal QR Code & Tracking Link", "Real-Time Signup Tracking", "Commission Earnings Dashboard", "Performance Analytics", "Marketing Materials Library"].map((item, i) => (
+                {["Unique QR & Links", "Live Enrollment Tracking", "Transparent Commissions", "Performance Feedback", "Approved Messaging"].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 sm:gap-3">
                     <Check className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" style={{ color: "#E63946" }} />
                     <span className="text-xs sm:text-base" style={{ color: "#5A5A5A" }}>{item}</span>
@@ -168,32 +163,24 @@ export default function AffiliateLanding() {
               </ul>
 
               <div className="py-3 sm:py-4 mb-4 sm:mb-6 rounded-xl text-center" style={{ backgroundColor: "#FFF0F0" }}>
-                <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: "#5A5A5A" }}>Commission</p>
-                <p className="text-2xl sm:text-3xl font-bold" style={{ color: "#E63946" }}>R100-R150</p>
+                <p className="text-2xl sm:text-3xl font-bold" style={{ color: "#E63946" }}>R100–R150</p>
                 <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>per enrolled student</p>
               </div>
-              
+
               <Button 
                 className="w-full rounded-full py-4 sm:py-6 font-semibold border-0 text-sm sm:text-base"
                 style={{ backgroundColor: "#E63946", color: "white" }}
               >
-                Become an Affiliate
-                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-2" />
+                Join as Affiliate
               </Button>
             </Card>
 
-            {/* Outreach Director Path */}
+            {/* Outreach Director */}
             <Card 
-              className="p-4 sm:p-8 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group relative overflow-hidden"
+              className="p-4 sm:p-8 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group"
               style={{ backgroundColor: "white" }}
               onClick={() => navigate("/affiliate/signup")}
             >
-              <div 
-                className="absolute top-3 right-3 sm:top-4 sm:right-4 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold"
-                style={{ backgroundColor: "#E63946", color: "white" }}
-              >
-                Popular
-              </div>
               <div 
                 className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform"
                 style={{ backgroundColor: "#FFF0F0" }}
@@ -204,14 +191,11 @@ export default function AffiliateLanding() {
                 Outreach Director
               </h3>
               <p className="text-xs sm:text-base mb-4 sm:mb-6" style={{ color: "#5A5A5A" }}>
-                Strategic operator managing schools, institutions, and regional growth
+                Regional operator responsible for filling Pods through institutions and schools
               </p>
-              
-              <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide mb-3 sm:mb-4" style={{ color: "#E63946" }}>
-                Dashboard Includes
-              </p>
+
               <ul className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
-                {["Multiple QR Codes & Campaign Links", "School & Institution Partnerships", "Advanced Analytics & Segmentation", "Team Performance Tracking", "Bonus Tier Eligibility & Tracking"].map((item, i) => (
+                {["Multiple Campaign Links", "School Partnerships", "Pod-Level Tracking", "Bonus Eligibility", "Strategic Oversight"].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 sm:gap-3">
                     <Check className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" style={{ color: "#E63946" }} />
                     <span className="text-xs sm:text-base" style={{ color: "#5A5A5A" }}>{item}</span>
@@ -220,78 +204,31 @@ export default function AffiliateLanding() {
               </ul>
 
               <div className="py-3 sm:py-4 mb-4 sm:mb-6 rounded-xl text-center" style={{ backgroundColor: "#FFF0F0" }}>
-                <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: "#5A5A5A" }}>Commission</p>
-                <p className="text-2xl sm:text-3xl font-bold" style={{ color: "#E63946" }}>R5000+</p>
-                <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>per Pod filled + bonuses</p>
+                <p className="text-2xl sm:text-3xl font-bold" style={{ color: "#E63946" }}>R5,000+</p>
+                <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>per Pod filled</p>
               </div>
-              
+
               <Button 
                 className="w-full rounded-full py-4 sm:py-6 font-semibold border-0 text-sm sm:text-base"
                 style={{ backgroundColor: "#E63946", color: "white" }}
               >
-                Become an Outreach Director
-                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-2" />
+                Join as Director
               </Button>
             </Card>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-12 sm:py-20" style={{ backgroundColor: "#FFF5ED" }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
-          <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6" style={{ color: "#1A1A1A" }}>
-              Why Join Our Program?
-            </h2>
-            <p className="text-sm sm:text-lg" style={{ color: "#5A5A5A" }}>
-              Everything you need to succeed
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
-            {[
-              { icon: TrendingUp, title: "Real-Time Analytics", desc: "Track your referrals and earnings with live dashboards" },
-              { icon: DollarSign, title: "Competitive Commissions", desc: "Earn R100-R150 per enrollment or more with our scale model" },
-              { icon: Zap, title: "Easy Sharing", desc: "Share via QR code, link, or direct referral" },
-              { icon: Users, title: "Dedicated Support", desc: "Get guidance from our affiliate team" },
-              { icon: QrCode, title: "Multiple Marketing Tools", desc: "Access resources to promote effectively" },
-              { icon: Banknote, title: "Fast Payouts", desc: "Get paid on time, every time" }
-            ].map((feature) => {
-              const Icon = feature.icon;
-              return (
-                <Card key={feature.title} className="p-3 sm:p-6 border-0 shadow-lg text-center" style={{ backgroundColor: "white" }}>
-                  <div 
-                    className="w-10 h-10 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-5"
-                    style={{ backgroundColor: "#FFF0F0" }}
-                  >
-                    <Icon className="w-5 h-5 sm:w-7 sm:h-7" style={{ color: "#E63946" }} />
-                  </div>
-                  <h4 className="font-bold text-xs sm:text-lg mb-1 sm:mb-2" style={{ color: "#1A1A1A" }}>{feature.title}</h4>
-                  <p className="text-[10px] sm:text-sm" style={{ color: "#5A5A5A" }}>{feature.desc}</p>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
+      {/* CTA */}
       <section className="py-12 sm:py-20" style={{ backgroundColor: "#E63946" }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-12 text-center">
-          <div className="flex justify-center mb-4 sm:mb-6">
-            <div 
-              className="w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
-            >
-              <Banknote className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-            </div>
-          </div>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 text-white">
-            Ready to Start Earning?
+            This Is Not Motivation.
+            <br />
+            This Is a System.
           </h2>
           <p className="text-sm sm:text-lg mb-6 sm:mb-10 text-white/80">
-            Join hundreds of affiliates and outreach directors already earning with Territorial Tutoring.
+            If you execute, the outcome is inevitable.
           </p>
           <Button
             size="lg"
@@ -299,8 +236,7 @@ export default function AffiliateLanding() {
             style={{ backgroundColor: "white", color: "#E63946" }}
             onClick={() => navigate("/affiliate/signup")}
           >
-            Sign Up Now
-            <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
+            Enter the System
           </Button>
         </div>
       </section>
@@ -310,16 +246,25 @@ export default function AffiliateLanding() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
             <div className="flex items-center gap-2">
-              <span className="text-base sm:text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-                TERRITORIAL TUTORING
-              </span>
-              <span className="text-base sm:text-xl font-bold" style={{ color: "#E63946" }}>+</span>
+              <img 
+                src="/logos/tt-monogram.png" 
+                alt="TT Monogram" 
+                className="h-8 sm:h-10 w-auto"
+              />
+              <div>
+                <span className="text-lg font-bold tracking-tight block" style={{ color: "#1A1A1A" }}>
+                  TERRITORIAL
+                </span>
+                <span className="text-lg font-bold" style={{ color: "#E63946" }}>
+                  TUTORING
+                </span>
+              </div>
             </div>
             <p className="text-center md:text-right text-xs sm:text-base" style={{ color: "#5A5A5A" }}>
               © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
               <br />
               <span className="text-[10px] sm:text-sm">
-                Manufacturing Confidence & Financial Independence in South African Youth.
+                Clarity, discipline, inevitability.
               </span>
             </p>
           </div>
