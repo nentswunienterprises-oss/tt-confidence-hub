@@ -105,7 +105,23 @@ function PortalLanding() {
               </Button>
             </div>
 
-            {/* ...existing code... */}
+            {/* Desktop-only: Pillars section below hero text */}
+            <div className="hidden md:block pt-2">
+              <div className="flex items-center gap-4 mb-2">
+                {["Connection", "Mastery", "Reflection"].map((pillar) => (
+                  <div
+                    key={pillar}
+                    className="px-3 py-1.5 rounded-full text-sm font-medium"
+                    style={{ backgroundColor: "#FFF0F0", color: "#E63946" }}
+                  >
+                    {pillar}
+                  </div>
+                ))}
+              </div>
+              <p className="text-sm" style={{ color: "#5A5A5A" }}>
+                A system built around how confidence actually forms - through structure, repetition, and standards.
+              </p>
+            </div>
           </div>
 
           {/* Image */}
