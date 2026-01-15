@@ -69,10 +69,10 @@ export default function OperationalSignup() {
                 </div>
                 <h3 className="text-2xl font-bold mb-3" style={{ color: "#1A1A1A" }}>Tutor</h3>
                 <p className="mb-6" style={{ color: "#5A5A5A" }}>
-                  Lead 4-6 students in Confidence Pods and transform mathematical confidence
+                  Lead 4-6 students in Response Pods and transform mathematical confidence
                 </p>
                 <ul className="space-y-2 mb-6">
-                  {["Learn the Confidence Method", "Be part of proof", "Shape the future"].map((item, i) => (
+                  {["Learn the Operating System", "Be part of proof", "Shape the future"].map((item, i) => (
                     <li key={i} className="flex items-center gap-2 text-sm" style={{ color: "#5A5A5A" }}>
                       <Check className="w-4 h-4" style={{ color: "#E63946" }} />
                       {item}

@@ -1,4 +1,20 @@
 import { useState } from "react";
+  // Google OAuth login handler
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+      if (error) {
+        toast({
+          title: "Google Login Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -107,8 +123,8 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
         redirectUrl = data.redirectUrl || getDefaultDashboardRoute(role);
 
         toast({
-          title: "Welcome!",
-          description: "Your account has been created successfully.",
+          title: "Verify your email",
+          description: "Check your email and click the verification link before logging in.",
         });
         
         // Wait for session to fully propagate before redirecting
@@ -116,8 +132,9 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
         await new Promise(resolve => setTimeout(resolve, 500));
         
         // Force page reload to ensure fresh session is loaded
-        window.location.href = redirectUrl;
-        return; // Exit early since we're reloading
+        // Do not auto-login after signup; require email verification
+        setLoading(false);
+        return;
       }
 
       if (mode === "login") {
@@ -137,20 +154,28 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
 
         // Also sign in to Supabase on the client side
         // IMPORTANT: Wait for this to complete before redirecting
-        const { error: supabaseError } = await supabase.auth.signInWithPassword({
+        const { data: loginData, error: supabaseError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
-        
         if (supabaseError) {
           console.warn("Supabase client signin failed:", supabaseError.message);
           // Don't fail - server session should still work
         } else {
+          // Check if email is confirmed
+          const user = loginData?.user;
+          if (!user?.email_confirmed_at && !user?.confirmed_at) {
+            toast({
+              title: "Email not verified",
+              description: "Please verify your email before logging in.",
+              variant: "destructive",
+            });
+            setLoading(false);
+            return;
+          }
           console.log("✅ Supabase client session established");
         }
-
         redirectUrl = data.redirectUrl || getDefaultDashboardRoute(role);
-
         toast({
           title: "Welcome back!",
           description: "You have been logged in successfully.",
@@ -158,10 +183,7 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
       }
 
       // Wait for session to fully propagate before redirecting
-      // Increased from 100ms to 500ms to ensure cookies are properly set
       await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Force page reload to ensure fresh session is loaded
       window.location.href = redirectUrl;
     } catch (err: any) {
       toast({
@@ -186,6 +208,7 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+                {/* ...existing code... */}
         {mode === "signup" && (
           <>
             <div className="space-y-2">
@@ -269,6 +292,19 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
         >
           {loading ? "Please wait..." : mode === "signup" ? "Sign Up" : "Login"}
         </Button>
+
+        <div className="flex flex-col gap-2 mt-4">
+          <Button
+            type="button"
+            onClick={handleGoogleLogin}
+            className="w-full rounded-full font-semibold py-3 border-0 shadow hover:shadow-md transition-all flex items-center justify-center"
+            style={{ backgroundColor: '#fff', color: '#1A1A1A', border: '1px solid #ddd' }}
+            disabled={loading}
+          >
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style={{ width: 22, height: 22, marginRight: 12 }} />
+            {loading ? "Please wait..." : "Continue with Google"}
+          </Button>
+        </div>
       </form>
     </div>
   );

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useLocation } from "wouter";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { API_URL } from "@/lib/config";
@@ -33,7 +33,7 @@ export default function TutorPod() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   
   const [showApplicationForm, setShowApplicationForm] = useState(false);
   const [identitySheetOpen, setIdentitySheetOpen] = useState(false);
@@ -72,10 +72,10 @@ export default function TutorPod() {
     if (!authLoading && !isLoading && !applicationsLoading && isAuthenticated) {
       // If onboarding not completed and no approved application or no pod assignment, redirect to gateway
       if (!onboardingCompleted && (!hasApprovedApplication || !podData?.assignment)) {
-        setLocation("/operational/tutor/gateway");
+        navigate("/operational/tutor/gateway");
       }
     }
-  }, [authLoading, isLoading, applicationsLoading, isAuthenticated, hasApprovedApplication, podData, setLocation]);
+  }, [authLoading, isLoading, applicationsLoading, isAuthenticated, hasApprovedApplication, podData, navigate]);
 
   // Fetch identity sheets for all students
   useEffect(() => {

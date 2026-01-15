@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
+import { AffiliateCodeModal } from "@/components/auth/affiliate-code-modal";
+import { useUpdateAffiliateCode } from "@/hooks/useUpdateAffiliateCode";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -14,6 +16,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function OutreachDirectorDashboard() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
   const { toast } = useToast();
+  const [showAffiliateModal, setShowAffiliateModal] = useState(false);
+  const updateAffiliateCode = useUpdateAffiliateCode();
+  // Show affiliate code modal if user is parent and missing code
+  useEffect(() => {
+    if (
+      isAuthenticated &&
+      user?.role === "parent" &&
+      (!user.affiliateCode || user.affiliateCode === "")
+    ) {
+      setShowAffiliateModal(true);
+    } else {
+      setShowAffiliateModal(false);
+    }
+  }, [isAuthenticated, user]);
 
   // Fetch affiliate performance data
   const { data: affiliateData = {}, isLoading: dataLoading, error: dataError } = useQuery<any>({
@@ -88,6 +104,20 @@ export default function OutreachDirectorDashboard() {
 
   return (
     <DashboardLayout>
+      <AffiliateCodeModal
+        open={showAffiliateModal}
+        loading={updateAffiliateCode.isLoading}
+        onSubmit={async (code) => {
+          try {
+            await updateAffiliateCode.mutateAsync(code);
+            toast({ title: "Affiliate code saved!", description: "Thank you for providing your code." });
+            setShowAffiliateModal(false);
+          } catch (err: any) {
+            toast({ title: "Error", description: err.message, variant: "destructive" });
+          }
+        }}
+        onClose={() => {}}
+      />
       <div className="space-y-4 sm:space-y-8">
         {/* Personal Greeting */}
         <div className="space-y-2 sm:space-y-3">
