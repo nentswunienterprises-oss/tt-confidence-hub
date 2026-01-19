@@ -651,10 +651,10 @@ export default function TutorGateway() {
                     </div>
                   </div>
                   <h3 className="text-sm sm:text-xl font-semibold mb-3 sm:mb-4 text-center">
-                    You're Assigned to a Pod 🎉
+                    You're Assigned to a Pod
                   </h3>
                   <p className="text-xs sm:text-base text-muted-foreground text-center mb-4 sm:mb-6">
-                    Great — your documents are verified and you've been assigned to a pod. Click below to continue to your dashboard.
+                    Great. Your documents are verified and you've been assigned to a pod. Click below to continue to your dashboard.
                   </p>
 
                   <div className="flex justify-center">

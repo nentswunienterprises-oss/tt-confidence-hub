@@ -300,6 +300,14 @@ function PortalLanding() {
               <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
                 Territorial Tutoring is a performance-first math mentorship system built on clarity, repetition, and standards.
               </p>
+              <div className="space-y-2 pt-2">
+                <button onClick={() => navigate("/privacy-policy")} className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
+                  Privacy Policy
+                </button>
+                <button onClick={() => navigate("/terms-of-use")} className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
+                  Terms of Use
+                </button>
+              </div>
             </div>
             <div className="space-y-3 sm:space-y-4">
               <h4 className="font-semibold text-sm sm:text-base" style={{ color: "#1A1A1A" }}>Get Involved</h4>

@@ -110,7 +110,14 @@ export default function ClientSignup() {
 
           {/* Footer Info */}
           <p className="text-xs text-center" style={{ color: "#5A5A5A" }}>
-            By signing up, you agree to our Terms of Service and Privacy Policy.
+            By signing up, you agree to our{" "}
+            <a href="/terms-of-use" target="_blank" className="underline hover:text-[#E63946]" style={{ color: "#1A1A1A" }}>
+              Terms of Use
+            </a>{" "}
+            and{" "}
+            <a href="/privacy-policy" target="_blank" className="underline hover:text-[#E63946]" style={{ color: "#1A1A1A" }}>
+              Privacy Policy
+            </a>.
           </p>
         </div>
       </div>

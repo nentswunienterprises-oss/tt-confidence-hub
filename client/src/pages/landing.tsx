@@ -480,13 +480,23 @@ export default function Landing() {
               </span>
               <span className="text-base sm:text-xl font-bold" style={{ color: "#E63946" }}>+</span>
             </div>
-            <p className="text-center md:text-right text-sm sm:text-base" style={{ color: "#5A5A5A" }}>
-              © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
-              <br />
-              <span className="text-xs sm:text-sm">
-                Manufacturing Confidence & Financial Independence in South African Youth.
-              </span>
-            </p>
+            <div className="text-center md:text-right">
+              <p className="text-sm sm:text-base" style={{ color: "#5A5A5A" }}>
+                © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
+                <br />
+                <span className="text-xs sm:text-sm">
+                  Manufacturing Confidence & Financial Independence in South African Youth.
+                </span>
+              </p>
+              <div className="flex gap-4 justify-center md:justify-end mt-2">
+                <button onClick={() => window.location.href = "/privacy-policy"} className="text-xs hover:underline" style={{ color: "#5A5A5A" }}>
+                  Privacy Policy
+                </button>
+                <button onClick={() => window.location.href = "/terms-of-use"} className="text-xs hover:underline" style={{ color: "#5A5A5A" }}>
+                  Terms of Use
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </footer>

@@ -19,8 +19,11 @@ if (typeof window !== 'undefined') {
 import Landing from "@/pages/landing";
 import PortalLanding from "@/pages/portal-landing";
 import AuthPage from "@/pages/auth";
+import AuthCallback from "@/pages/auth-callback";
 import Home from "@/pages/home";
 import NotFound from "@/pages/not-found";
+import PrivacyPolicy from "@/pages/privacy-policy";
+import TermsOfUse from "@/pages/terms-of-use";
 
 // Legacy Tutor Pages (kept for backwards compatibility)
 import TutorPod from "@/pages/operational/tutor/pod";
@@ -99,6 +102,12 @@ import OperationalSignup from "@/pages/operational/signup";
 import AffiliateSignup from "@/pages/affiliate/signup";
 import ExecutiveSignup from "@/pages/executive/signup";
 
+// Media Portal Pages
+import MediaLanding from "@/pages/media/landing";
+import CarouselSelect from "@/pages/media/carousel/select";
+import CarouselCreate from "@/pages/media/carousel/create";
+import CarouselLibrary from "@/pages/media/carousel/library";
+
 function Router() {
   return (
     <Routes>
@@ -106,9 +115,12 @@ function Router() {
       <Route path="/" element={<PortalLanding />} />
       <Route path="/landing" element={<Landing />} />
       <Route path="/auth" element={<AuthPage />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/login" element={<AuthPage />} />
       <Route path="/signup" element={<AuthPage />} />
       <Route path="/home" element={<Home />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/terms-of-use" element={<TermsOfUse />} />
 
       {/* ==================== CLIENT PORTAL ==================== */}
       {/* Client Signup */}
@@ -195,6 +207,12 @@ function Router() {
 
       {/* CEO Routes */}
       <Route path="/executive/ceo/dashboard" element={<DashboardLayout><ExecutiveCEODashboard /></DashboardLayout>} />
+
+      {/* ==================== MEDIA PORTAL ==================== */}
+      <Route path="/media" element={<MediaLanding />} />
+      <Route path="/media/carousel/library" element={<CarouselLibrary />} />
+      <Route path="/media/carousel/select" element={<CarouselSelect />} />
+      <Route path="/media/carousel/create" element={<CarouselCreate />} />
 
       {/* ==================== LEGACY ROUTES (Backwards Compatibility) ==================== */}
       {/* Legacy Tutor Routes */}
