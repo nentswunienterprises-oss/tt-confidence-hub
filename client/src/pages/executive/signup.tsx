@@ -214,6 +214,20 @@ export default function ExecutiveSignup() {
           <Card className="p-4 sm:p-8 border-0 shadow-lg" style={{ backgroundColor: "white" }}>
             <ExecutiveAuthForm role={selectedRole as Role} mode={mode} setMode={setMode} />
           </Card>
+
+          {/* Footer Info */}
+          <p className="text-xs text-center mt-4" style={{ color: "#5A5A5A" }}>
+            By signing up, you agree to our{" "}
+            <a href="/terms-of-use" target="_blank" className="underline hover:text-[#E63946]" style={{ color: "#1A1A1A" }}>
+              Terms of Use
+            </a>,{" "}
+            <a href="/privacy-policy" target="_blank" className="underline hover:text-[#E63946]" style={{ color: "#1A1A1A" }}>
+              Privacy Policy
+            </a>, and{" "}
+            <a href="/executive/recruitment-privacy" target="_blank" className="underline hover:text-[#E63946]" style={{ color: "#1A1A1A" }}>
+              Recruitment & Employee Privacy Notice
+            </a>.
+          </p>
         </div>
       </div>
     </div>

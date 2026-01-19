@@ -90,6 +90,7 @@ import ExecutiveHRBrain from "@/pages/executive/hr/brain";
 import ExecutiveHRDisputes from "@/pages/executive/hr/disputes";
 import ExecutiveCEODashboard from "@/pages/executive/ceo/dashboard";
 import ExecutiveDashboard from "@/pages/executive/dashboard";
+import RecruitmentPrivacy from "@/pages/executive/recruitment-privacy";
 
 // NEW: Portal Landing Pages
 import OperationalLanding from "@/pages/operational/landing";
@@ -188,6 +189,8 @@ function Router() {
       <Route path="/executive/landing" element={<ExecutiveLanding />} />
       {/* Executive Signup */}
       <Route path="/executive/signup" element={<ExecutiveSignup />} />
+      {/* Executive Legal */}
+      <Route path="/executive/recruitment-privacy" element={<RecruitmentPrivacy />} />
       {/* Generic Executive Dashboard (used after signup) */}
       <Route path="/executive/dashboard" element={<DashboardLayout><ExecutiveDashboard /></DashboardLayout>} />
 
