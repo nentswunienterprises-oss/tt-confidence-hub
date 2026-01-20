@@ -1,30 +1,4 @@
 import { useState } from "react";
-  // Google OAuth login handler
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    try {
-      const redirectUrl = `${window.location.origin}/auth/callback`;
-      const { error } = await supabase.auth.signInWithOAuth({ 
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
-        }
-      });
-      if (error) {
-        toast({
-          title: "Google Login Error",
-          description: error.message,
-          variant: "destructive",
-        });
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,6 +30,66 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
   const redirectByRole = (role: Role) => {
     const dashboardRoute = getDefaultDashboardRoute(role);
     window.location.href = dashboardRoute;
+  };
+
+  // Google OAuth login handler
+  const handleGoogleLogin = async () => {
+    console.log("🔵 Google OAuth button clicked");
+    console.log("  Role:", role);
+    console.log("  Mode:", mode);
+    console.log("  Default Role:", defaultRole);
+    
+    setLoading(true);
+    try {
+      // Store the intended role and mode in sessionStorage so callback knows what to do
+      sessionStorage.setItem('oauth_role', role);
+      sessionStorage.setItem('oauth_mode', mode);
+      if (code && defaultRole === 'parent') {
+        sessionStorage.setItem('oauth_affiliate_code', code);
+      }
+      
+      console.log("  Stored in sessionStorage - role:", role, "mode:", mode);
+      
+      const redirectUrl = `${window.location.origin}/auth/callback`;
+      console.log("  Redirect URL:", redirectUrl);
+      console.log("  Calling supabase.auth.signInWithOAuth...");
+      
+      const { error } = await supabase.auth.signInWithOAuth({ 
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+          // Pass role in OAuth metadata for new signups
+          scopes: 'email profile'
+        }
+      });
+      
+      console.log("  OAuth response received, error:", error);
+      
+      if (error) {
+        console.error("❌ Google OAuth error:", error);
+        toast({
+          title: "Google Login Error",
+          description: error.message,
+          variant: "destructive",
+        });
+        setLoading(false);
+      } else {
+        console.log("✅ OAuth initiated successfully - should redirect to Google");
+      }
+      // Don't set loading to false here - user is being redirected
+    } catch (err: any) {
+      console.error("❌ Exception in handleGoogleLogin:", err);
+      toast({
+        title: "Error",
+        description: err.message || "Failed to start Google login",
+        variant: "destructive",
+      });
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -64,7 +64,7 @@ const applicationSchema = z.object({
   impactVsScaleReason: z.string().min(10, "Please explain your choice"),
   
   // Video
-  videoUrl: z.string().url("Please provide a valid video URL").optional().or(z.literal("")),
+  videoUrl: z.string().optional(),
   
   // Availability
   bootcampAvailable: z.enum(["yes", "maybe", "no"]),
@@ -194,6 +194,7 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
   }, []); // Only run once on mount
 
   const onSubmit = async (data: ApplicationFormData) => {
+    console.log("Form submitted with data:", data);
     setIsSubmitting(true);
     try {
       // Structure data to match backend schema
@@ -405,7 +406,7 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="whatIsConfidenceMentor">What do you think a "Confidence Mentor" really does?</Label>
+                <Label htmlFor="whatIsConfidenceMentor">TT trains response integrity, not confidence. What's the difference?</Label>
                 <Textarea id="whatIsConfidenceMentor" {...form.register("whatIsConfidenceMentor")} rows={3} data-testid="input-confidence-mentor" />
                 {form.formState.errors.whatIsConfidenceMentor && <p className="text-sm text-destructive">{form.formState.errors.whatIsConfidenceMentor.message}</p>}
               </div>
@@ -423,44 +424,44 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="beliefInConfidence">TT believes "confidence can be taught." Do you agree or disagree? Why?</Label>
+                <Label htmlFor="beliefInConfidence">TT makes confidence inevitable through system execution. True or False? Explain.</Label>
                 <Textarea id="beliefInConfidence" {...form.register("beliefInConfidence")} rows={3} data-testid="input-belief-confidence" />
                 {form.formState.errors.beliefInConfidence && <p className="text-sm text-destructive">{form.formState.errors.beliefInConfidence.message}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label>When you're under pressure, what usually cracks first?</Label>
+                <Label>As a tutor, would you rather:</Label>
                 <RadioGroup onValueChange={(value) => form.setValue("pressureWeak", value as any)} value={form.watch("pressureWeak")}>
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="focus" id="focus" data-testid="radio-pressure-focus" />
-                    <Label htmlFor="focus">My focus</Label>
+                    <RadioGroupItem value="focus" id="system_exec" data-testid="radio-system-execute" />
+                    <Label htmlFor="system_exec">Execute a proven system with precision</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="confidence" id="confidence" data-testid="radio-pressure-confidence" />
-                    <Label htmlFor="confidence">My confidence</Label>
+                    <RadioGroupItem value="confidence" id="creative_free" data-testid="radio-creative-freedom" />
+                    <Label htmlFor="creative_free">Have creative freedom to teach my way</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="discipline" id="discipline" data-testid="radio-pressure-discipline" />
-                    <Label htmlFor="discipline">My discipline</Label>
+                    <RadioGroupItem value="discipline" id="both" data-testid="radio-both" />
+                    <Label htmlFor="both">A mix of both</Label>
                   </div>
                 </RadioGroup>
                 {form.formState.errors.pressureWeak && <p className="text-sm text-destructive">{form.formState.errors.pressureWeak.message}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label>Which quote represents you best?</Label>
+                <Label>What produces better results?</Label>
                 <RadioGroup onValueChange={(value) => form.setValue("motivationQuote", value as any)} value={form.watch("motivationQuote")}>
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="prove" id="prove" data-testid="radio-quote-prove" />
-                    <Label htmlFor="prove">I want to prove I'm capable</Label>
+                    <RadioGroupItem value="prove" id="boring_rep" data-testid="radio-boring-repetition" />
+                    <Label htmlFor="boring_rep">Boring repetition over time</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="grow" id="grow" data-testid="radio-quote-grow" />
-                    <Label htmlFor="grow">I want to grow and learn</Label>
+                    <RadioGroupItem value="grow" id="exciting_var" data-testid="radio-exciting-variety" />
+                    <Label htmlFor="exciting_var">Exciting variety to stay engaged</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="impact" id="impact" data-testid="radio-quote-impact" />
-                    <Label htmlFor="impact">I want to make an impact</Label>
+                    <RadioGroupItem value="impact" id="both_matter" data-testid="radio-both-matter" />
+                    <Label htmlFor="both_matter">Both matter equally</Label>
                   </div>
                 </RadioGroup>
                 {form.formState.errors.motivationQuote && <p className="text-sm text-destructive">{form.formState.errors.motivationQuote.message}</p>}
@@ -825,10 +826,10 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
                   />
                   <div className="space-y-1">
                     <Label htmlFor="commitToTrial" className="font-medium">
-                      I commit to the 2-month transformation trial before earnings begin
+                      I commit to the 2-month trial before earnings begin
                     </Label>
                     <p className="text-sm text-muted-foreground">
-                      This is part of TT's Founding Phase to prove the Confidence Method works
+                      Founding phase. System training. Results before revenue.
                     </p>
                   </div>
                 </div>
@@ -854,10 +855,10 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
               <div className="bg-primary/10 border border-primary/20 p-4 rounded-lg space-y-2">
                 <h4 className="font-semibold">Final Statement</h4>
                 <p className="text-sm">
-                  This is a founding opportunity - not a casual job. We're looking for young people who want to prove that confidence can be taught, replicated, and scaled ethically.
+                  This is a founding opportunity - not a casual job. We're looking for people who execute systems, not improvise.
                 </p>
                 <p className="text-sm font-medium italic">
-                  "If you can't believe in transformation, you can't lead transformation."
+                  "Systems produce results. Everything else produces noise."
                 </p>
               </div>
             </CardContent>
@@ -885,7 +886,17 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
               <ChevronRight className="w-4 h-4 ml-1 sm:ml-2" />
             </Button>
           ) : (
-            <Button type="submit" disabled={isSubmitting} data-testid="button-submit" className="flex-1 sm:flex-none h-11 sm:h-10 text-sm">
+            <Button 
+              type="submit" 
+              disabled={isSubmitting} 
+              data-testid="button-submit" 
+              className="flex-1 sm:flex-none h-11 sm:h-10 text-sm"
+              onClick={(e) => {
+                console.log("Submit button clicked");
+                console.log("Form errors:", form.formState.errors);
+                console.log("Form values:", form.getValues());
+              }}
+            >
               <Send className="w-4 h-4 mr-1 sm:mr-2" />
               <span className="hidden sm:inline">{isSubmitting ? "Submitting..." : "Submit Application"}</span>
               <span className="sm:hidden">{isSubmitting ? "Sending..." : "Submit"}</span>

@@ -1777,7 +1777,7 @@ function ModuleSix({ expandedSections, toggleSection, onComplete, isComplete }: 
           >
             <div className="space-y-4">
               <p className="font-semibold">Before, TT gave you trackers, tips, and tools as one-off downloads.</p>
-              <p>Now? The Confidence Hub is the entire infrastructure.</p>
+              <p>Now? The Response Hub is the entire infrastructure.</p>
               
               <div className="bg-muted p-4 rounded-lg border border-primary/10 mt-4">
                 <p className="font-bold mb-2">What changed:</p>
@@ -1788,7 +1788,7 @@ function ModuleSix({ expandedSections, toggleSection, onComplete, isComplete }: 
 
           <SectionCard
             id="module6-hub"
-            title="The Confidence Hub = Your Operating System"
+            title="The Response Hub = Your Operating System"
             expanded={expandedSections["module6-hub"] || false}
             onToggle={() => toggleSection("module6-hub")}
             gradient="from-primary to-primary/70"

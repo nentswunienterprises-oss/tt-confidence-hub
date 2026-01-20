@@ -68,6 +68,7 @@ import StudentUpdates from "@/pages/client/student/updates";
 // NEW: Operational Portal Pages
 import OperationalTutorDashboard from "@/pages/operational/tutor/dashboard";
 import TutorBlueprint from "@/pages/operational/tutor/blueprint";
+import TTOS from "@/pages/operational/tutor/tt-os";
 import OperationalTDDashboard from "@/pages/operational/td/dashboard";
 
 // NEW: Affiliate Portal Pages
@@ -153,6 +154,7 @@ function Router() {
       <Route path="/operational/tutor/dashboard" element={<DashboardLayout><OperationalTutorDashboard /></DashboardLayout>} />
       <Route path="/operational/tutor/my-pod" element={<DashboardLayout><OperationalTutorDashboard /></DashboardLayout>} />
       <Route path="/tutor/blueprint" element={<DashboardLayout><TutorBlueprint /></DashboardLayout>} />
+      <Route path="/operational/tutor/tt-os" element={<TTOS />} />
       <Route path="/operational/tutor/growth" element={<DashboardLayout><TutorGrowth /></DashboardLayout>} />
       <Route path="/operational/tutor/academic-tracker" element={<DashboardLayout><TutorAcademics /></DashboardLayout>} />
       <Route path="/operational/tutor/sessions" element={<DashboardLayout><TutorSessions /></DashboardLayout>} />

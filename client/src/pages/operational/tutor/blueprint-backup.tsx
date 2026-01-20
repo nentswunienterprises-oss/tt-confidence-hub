@@ -1203,7 +1203,7 @@ function ModuleSix({ expandedSections, toggleSection, onComplete, isComplete }: 
 
           <SectionCard
             id="module6-hub"
-            title="The Confidence Hub = Your Operating System"
+            title="The Response Hub = Your Operating System"
             expanded={expandedSections["module6-hub"] || false}
             onToggle={() => toggleSection("module6-hub")}
             gradient="from-primary/90 to-primary"

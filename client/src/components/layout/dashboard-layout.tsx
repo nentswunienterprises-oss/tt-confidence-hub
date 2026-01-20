@@ -353,7 +353,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
             {/* Center: Title */}
             <Link to="/" className="absolute left-1/2 -translate-x-1/2">
-              <div className="font-bold text-base tracking-tight whitespace-nowrap">THE CONFIDENCE HUB</div>
+              <div className="font-bold text-base tracking-tight whitespace-nowrap">THE RESPONSE HUB</div>
             </Link>
           </div>
 
@@ -361,7 +361,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="hidden sm:flex items-center gap-4">
             <Link to="/" className="flex items-center gap-3">
               <div>
-                <div className="font-bold text-base tracking-tight">TT Confidence Hub</div>
+                <div className="font-bold text-base tracking-tight">TT Response Hub</div>
                 {effectiveUser && (
                   <div className="text-xs text-muted-foreground">
                     {getRoleLabel(effectiveUser)}

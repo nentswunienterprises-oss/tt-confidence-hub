@@ -16,7 +16,7 @@ export default function AuthPage() {
           
           <div className="hidden md:block">
             <span className="text-xl lg:text-3xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-              THE CONFIDENCE HUB
+              THE RESPONSE HUB
             </span>
           </div>
           
@@ -44,7 +44,7 @@ export default function AuthPage() {
             {/* Mobile App Title */}
             <div className="md:hidden">
               <span className="text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-                THE CONFIDENCE HUB
+                THE RESPONSE HUB
               </span>
             </div>
             <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full mx-auto" style={{ backgroundColor: "#FFF0F0" }}>

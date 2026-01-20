@@ -472,6 +472,89 @@ export async function setupAuth(app: Express) {
     }
   });
 
+  // OAuth profile creation endpoint - handles new users signing up via Google OAuth
+  app.post("/api/auth/oauth-profile", async (req: Request, res: Response) => {
+    try {
+      console.log("═══════════════════════════════════════");
+      console.log("🔐 OAUTH PROFILE CREATION REQUEST");
+      console.log("Request body:", JSON.stringify(req.body));
+      console.log("═══════════════════════════════════════");
+
+      const { user_id, email, role, first_name = "", last_name = "", affiliate_code = null } = req.body;
+
+      if (!user_id || !email || !role) {
+        return res.status(400).json({ message: "user_id, email, and role are required" });
+      }
+
+      // Validate role is a public signup role
+      const publicSignupRoles = ["parent", "tutor", "affiliate"];
+      if (!publicSignupRoles.includes(role)) {
+        return res.status(400).json({ message: "Invalid role for OAuth signup" });
+      }
+
+      // Check if user profile already exists
+      const existingUser = await storage.getUser(user_id);
+      if (existingUser) {
+        console.log("✅ User profile already exists, returning existing role:", existingUser.role);
+        return res.json({ role: existingUser.role, message: "User already exists" });
+      }
+
+      console.log("🆕 Creating new user profile for OAuth user:", email, "with role:", role);
+
+      // Update user metadata in Supabase Auth to include role
+      const { error: updateError } = await supabase.auth.admin.updateUserById(user_id, {
+        user_metadata: { role }
+      });
+
+      if (updateError) {
+        console.error("Failed to update user metadata:", updateError);
+        // Continue anyway - we'll still create the database record
+      }
+
+      // Create user in database
+      await storage.createUser({
+        id: user_id,
+        email,
+        role,
+        firstName: first_name,
+        lastName: last_name,
+        verificationStatus: "pending",
+      });
+
+      console.log("✅ User profile created successfully");
+
+      // Handle affiliate code for parents
+      if (role === "parent" && affiliate_code) {
+        try {
+          const { data: affiliate } = await supabase
+            .from("users")
+            .select("id")
+            .eq("affiliate_code", affiliate_code)
+            .eq("role", "affiliate")
+            .maybeSingle();
+
+          if (affiliate) {
+            console.log("🔗 Creating lead for parent with affiliate code:", affiliate_code);
+            await storage.createLead(affiliate.id, user_id, null);
+          } else {
+            console.warn("⚠️  Affiliate code not found:", affiliate_code);
+          }
+        } catch (error) {
+          console.error("Error creating lead for OAuth parent:", error);
+          // Don't fail the whole request
+        }
+      }
+
+      res.json({ 
+        role, 
+        message: "OAuth profile created successfully" 
+      });
+    } catch (error) {
+      console.error("OAuth profile creation error:", error);
+      res.status(500).json({ message: "Failed to create OAuth profile" });
+    }
+  });
+
   // Logout endpoint
   app.post("/api/auth/logout", async (req: Request, res: Response) => {
     try {

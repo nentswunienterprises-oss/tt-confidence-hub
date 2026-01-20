@@ -57,7 +57,7 @@ export default function ClientSignup() {
               Join The Response Hub
             </h2>
             <p className="text-base sm:text-lg" style={{ color: "#5A5A5A" }}>
-              Give your child the gift of calm execution under pressure.
+              Give your child the response of calm execution under pressure.
             </p>
           </div>
 

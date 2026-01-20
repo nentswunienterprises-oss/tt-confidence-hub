@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { CheckCircle2, Circle, ArrowLeft, Check } from "lucide-react";
+import { TTLogo } from "@/components/TTLogo";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
@@ -196,8 +197,8 @@ export default function ParentGateway() {
       await queryClient.invalidateQueries({ queryKey: ["/api/parent/enrollment-status"] });
 
       toast({
-        title: "Enrollment Submitted",
-        description: "Your application has been submitted. HR will review and assign a tutor shortly.",
+        title: "Application Received",
+        description: "We'll assess fit and respond within 48 hours.",
       });
       setStep("submitted");
     } catch (error) {
@@ -294,15 +295,12 @@ export default function ParentGateway() {
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-sm sm:text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-              TERRITORIAL TUTORING
-            </span>
-            <span className="text-sm sm:text-xl font-bold" style={{ color: "#E63946" }}>+</span>
+            <TTLogo size="md" />
           </div>
           
           <div className="hidden md:block">
             <span className="text-xl lg:text-3xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-              Parent Enrollment
+              Cohort Application
             </span>
           </div>
           
@@ -326,10 +324,10 @@ export default function ParentGateway() {
         <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 flex justify-center">
           <div className="flex items-center justify-between w-full max-w-2xl overflow-x-auto">
             {[
-              { label: "Enrollment", status: step === "enrollment" || step === "submitted" },
-              { label: "Pending", status: enrollmentStatus?.status === "awaiting_assignment" || enrollmentStatus?.status === "assigned" || enrollmentStatus?.status === "proposal_sent" || enrollmentStatus?.status === "session_booked" || enrollmentStatus?.status === "report_received" || enrollmentStatus?.status === "confirmed" },
+              { label: "Applied", status: step === "enrollment" || step === "submitted" },
+              { label: "Review", status: enrollmentStatus?.status === "awaiting_assignment" || enrollmentStatus?.status === "assigned" || enrollmentStatus?.status === "proposal_sent" || enrollmentStatus?.status === "session_booked" || enrollmentStatus?.status === "report_received" || enrollmentStatus?.status === "confirmed" },
               { label: "Assigned", status: enrollmentStatus?.status === "assigned" || enrollmentStatus?.status === "proposal_sent" || enrollmentStatus?.status === "session_booked" || enrollmentStatus?.status === "report_received" || enrollmentStatus?.status === "confirmed" },
-              { label: "Confirmed", status: enrollmentStatus?.status === "confirmed" },
+              { label: "Active", status: enrollmentStatus?.status === "confirmed" },
             ].map((item, idx, arr) => (
               <div key={item.label} className="flex items-center flex-1 min-w-0">
                 <div className="flex flex-col items-center">
@@ -374,12 +372,12 @@ export default function ParentGateway() {
             <CardContent className="space-y-6 sm:space-y-8 px-4 sm:px-6">
               {/* Introduction */}
               <div className="rounded-xl p-4 sm:p-5 space-y-2 sm:space-y-3" style={{ backgroundColor: "#FFF0F0" }}>
-                <h3 className="font-semibold text-sm sm:text-base" style={{ color: "#E63946" }}>"Confidence isn't a luxury. It's a skill we teach."</h3>
+                <h3 className="font-semibold text-sm sm:text-base" style={{ color: "#E63946" }}>"We train how students respond when certainty disappears."</h3>
                 <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-                  Welcome to Territorial Tutoring's Founding Cohort — a carefully selected group of families joining our Confidence Pods before we scale.
+                  This is the Founding Cohort. Limited families. Serious about response training.
                 </p>
                 <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-                  We're accepting a limited number of students into our mentorship-based tutoring model. Every application is reviewed by our team to ensure the right fit.
+                  TT is not tutoring. It's a performance-conditioning system. Every application is reviewed to ensure fit.
                 </p>
               </div>
 
@@ -515,13 +513,13 @@ export default function ParentGateway() {
                   </div>
 
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-2">How would you describe your child's current confidence level in math? *</label>
+                    <label className="block text-xs sm:text-sm font-medium mb-2">When your child hits uncertainty in math, what happens? *</label>
                     <div className="space-y-2">
                       {[
-                        { value: "very_low", label: "Very low – they feel anxious or shut down easily" },
-                        { value: "low", label: "Low – they try, but get discouraged quickly" },
-                        { value: "average", label: "Average – some confidence, but inconsistent" },
-                        { value: "high", label: "High – generally confident but still wants improvement" },
+                        { value: "very_low", label: "They freeze – can't proceed without help" },
+                        { value: "low", label: "They rush or guess – emotion hijacks thinking" },
+                        { value: "average", label: "They try but break under time pressure" },
+                        { value: "high", label: "They execute a trained response and stay calm" },
                       ].map((option) => (
                         <button
                           key={option.value}
@@ -567,9 +565,9 @@ export default function ParentGateway() {
 
               {/* Motivation */}
               <div className="space-y-3">
-                <label className="block text-xs sm:text-sm font-medium" style={{ color: "#1A1A1A" }}>Why join this pilot? (Optional but Encouraged)</label>
+                <label className="block text-xs sm:text-sm font-medium" style={{ color: "#1A1A1A" }}>What happens when pressure hits? (Optional but Encouraged)</label>
                 <textarea
-                  placeholder="In one or two sentences, tell us why you'd like your child to join this pilot..."
+                  placeholder="Tell us what breaks down when your child faces difficulty, time limits, or unexpected questions..."
                   className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-offset-0 text-sm sm:text-base"
                   style={{ 
                     borderColor: "#E5E5E5", 
@@ -587,7 +585,7 @@ export default function ParentGateway() {
                 <div className="space-y-2 text-xs sm:text-sm">
                   {[
                     "I understand placement in the Founding Cohort is limited and not guaranteed.",
-                    "I consent for my child to participate under TT's Confidence Method.",
+                    "I consent for my child to participate in TT's response-conditioning system.",
                     "I'll support my child's attendance, communication, and progress.",
                     "I understand TT may use anonymized results or testimonials for success case studies.",
                     "I understand the program structure and commitment expectations.",
@@ -640,30 +638,30 @@ export default function ParentGateway() {
             <CardHeader className="p-3 sm:p-6">
               <CardTitle className="flex items-center justify-center gap-2 text-sm sm:text-lg" style={{ color: "#1A1A1A" }}>
                 <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: "#E63946" }} />
-                {enrollmentStatus.status === "awaiting_assignment" && "Application Under Review"}
-                {enrollmentStatus.status === "assigned" && "You've Been Accepted"}
-                {enrollmentStatus.status === "proposal_sent" && "Proposal Ready"}
+                {enrollmentStatus.status === "awaiting_assignment" && "Application Being Assessed"}
+                {enrollmentStatus.status === "assigned" && "You're In"}
+                {enrollmentStatus.status === "proposal_sent" && "Training Proposal Ready"}
                 {enrollmentStatus.status === "session_booked" && "Proposal Accepted"}
                 {enrollmentStatus.status === "report_received" && "Awaiting Report"}
-                {enrollmentStatus.status === "confirmed" && "Enrollment Confirmed"}
+                {enrollmentStatus.status === "confirmed" && "Active"}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {enrollmentStatus.status === "awaiting_assignment" && (
                 <>
                   <p className="text-muted-foreground">
-                    Thank you for applying. Your application is now being reviewed by our team.
+                    Application received. We're assessing fit.
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    We carefully match each family with the right tutor. You'll hear from us within 2-3 business days.
+                    We match each student with the right tutor. Response within 48 hours.
                   </p>
                   <div className="bg-muted/30 rounded-lg p-4 text-left">
                     <p className="text-sm font-medium mb-2">What happens next:</p>
                     <ul className="text-sm text-muted-foreground space-y-1 ml-4 list-disc">
-                      <li>Our team reviews your application</li>
-                      <li>If accepted, we match your child with a qualified tutor</li>
-                      <li>You'll receive a personalized learning proposal</li>
-                      <li>You decide if it's the right fit</li>
+                      <li>We assess your application</li>
+                      <li>If accepted, we assign a tutor</li>
+                      <li>You receive a training proposal</li>
+                      <li>Review it. Accept or decline.</li>
                     </ul>
                   </div>
                 </>
@@ -671,7 +669,7 @@ export default function ParentGateway() {
               {enrollmentStatus.status === "assigned" && (
                 <>
                   <h3 className="text-base sm:text-xl font-semibold mb-4">
-                    Congratulations! You've been accepted into our Founding Cohort.
+                    You're in. Here's your tutor.
                   </h3>
                   
                   {assignedTutor && (
@@ -709,8 +707,8 @@ export default function ParentGateway() {
                     <div className="flex items-center gap-3">
                       <div className="w-6 h-6 border-3 border-blue-400/30 border-t-blue-600 rounded-full animate-spin flex-shrink-0" />
                       <div>
-                        <p className="font-medium text-blue-900">Your tutor is creating a personalized learning proposal...</p>
-                        <p className="text-sm text-blue-700 mt-1">Proposal being prepared, check back soon</p>
+                        <p className="font-medium text-blue-900">Your tutor is building your training proposal...</p>
+                        <p className="text-sm text-blue-700 mt-1">Check back soon</p>
                       </div>
                     </div>
                   </div>
@@ -719,7 +717,7 @@ export default function ParentGateway() {
               {enrollmentStatus.status === "proposal_sent" && (
                 <>
                   <p className="text-muted-foreground mb-4">
-                    Your tutor has created a personalized learning proposal for your child!
+                    Your training proposal is ready.
                   </p>
                   
                   {(() => {
@@ -771,12 +769,12 @@ export default function ParentGateway() {
                       <CardHeader className="p-3 sm:p-6">
                         <CardTitle className="text-base sm:text-xl">Student Access Code</CardTitle>
                         <CardDescription className="text-xs sm:text-sm">
-                          Share this code with your child so they can create their student account
+                          Give this to your child. They'll use it to create their account.
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0 space-y-3 sm:space-y-4">
                         <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-4 sm:p-6 rounded-lg text-center">
-                          <p className="text-xs sm:text-sm text-muted-foreground mb-2">Your Student Code</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground mb-2">Student Code</p>
                           <div className="text-2xl sm:text-4xl font-bold tracking-wider text-primary mb-3 sm:mb-4">
                             {parentCode}
                           </div>
@@ -785,8 +783,8 @@ export default function ParentGateway() {
                             onClick={() => {
                               navigator.clipboard.writeText(parentCode);
                               toast({
-                                title: "Copied!",
-                                description: "Student code copied to clipboard",
+                                title: "Copied",
+                                description: "Code copied",
                               });
                             }}
                             className="gap-2 text-xs sm:text-sm"
@@ -795,11 +793,11 @@ export default function ParentGateway() {
                           </Button>
                         </div>
                         <div className="bg-muted/30 rounded-lg p-3 sm:p-4">
-                          <h4 className="font-semibold text-xs sm:text-sm mb-2">Next Steps:</h4>
+                          <h4 className="font-semibold text-xs sm:text-sm mb-2">What happens next:</h4>
                           <ol className="text-xs sm:text-sm text-muted-foreground space-y-1 sm:space-y-2">
-                            <li>1. Share this code with your child</li>
-                            <li>2. Have them visit the student portal and create an account</li>
-                            <li>3. They'll enter this code during signup to link their account</li>
+                            <li>1. Give this code to your child</li>
+                            <li>2. They visit the student portal</li>
+                            <li>3. They enter this code during account creation</li>
                           </ol>
                         </div>
                       </CardContent>
@@ -807,15 +805,15 @@ export default function ParentGateway() {
                   ) : (
                     <Card className="border-2 border-primary mb-4 sm:mb-6">
                       <CardHeader className="p-3 sm:p-6">
-                        <CardTitle className="text-base sm:text-xl">Get Your Student Access Code</CardTitle>
+                        <CardTitle className="text-base sm:text-xl">Generate Student Code</CardTitle>
                         <CardDescription className="text-xs sm:text-sm">
-                          Generate a code for your child to create their student account
+                          Create your child's access code
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0 space-y-3 sm:space-y-4">
                         <div className="bg-muted/30 rounded-lg p-3 sm:p-4">
                           <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
-                            Your proposal has been accepted! Click the button below to generate a unique code that your child will use to create their student account.
+                            Proposal accepted. Generate a code for your child to create their account.
                           </p>
                           <Button
                             onClick={async () => {

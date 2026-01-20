@@ -40,7 +40,7 @@ export default function Landing() {
           {/* App Name - Center (hidden on mobile, shown in hero instead) */}
           <div className="hidden md:block">
             <span className="text-2xl lg:text-4xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-              THE CONFIDENCE HUB
+              THE RESPONSE HUB
             </span>
           </div>
           
@@ -73,7 +73,7 @@ export default function Landing() {
         {/* Mobile App Title - shown only on mobile */}
         <div className="md:hidden text-center mb-6">
           <span className="text-2xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-            THE CONFIDENCE HUB
+            THE RESPONSE HUB
           </span>
         </div>
         

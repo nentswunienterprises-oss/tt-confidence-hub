@@ -1,7 +1,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { TTLogo } from "@/components/TTLogo";
+import { TerritorialTutoringLogoSVG } from "@/components/TerritorialTutoringLogoSVG";
 
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, BookOpen, Users, Zap, Check, Heart, Sparkles, Star } from "lucide-react";
@@ -32,7 +32,7 @@ function PortalLanding() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
-          <TTLogo size="md" />
+          <TerritorialTutoringLogoSVG width={200} />
 
           <div className="hidden md:block">
             <span className="text-2xl lg:text-4xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
@@ -75,7 +75,7 @@ function PortalLanding() {
           <div className="space-y-5 sm:space-y-8">
             <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
               <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
-                For Parents of Grade 6–9 Students
+                For Parents of Grade 6-9 Students
               </span>
             </div>
 
@@ -136,9 +136,6 @@ function PortalLanding() {
 
             <div className="absolute -bottom-4 sm:-bottom-6 left-2 sm:-left-6 md:-left-12 p-3 sm:p-4 md:p-6 rounded-xl sm:rounded-2xl shadow-xl" style={{ backgroundColor: "white" }}>
               <div className="flex items-center gap-2 sm:gap-3">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: "#FFF0F0" }}>
-                  <Heart className="w-5 h-5 sm:w-6 sm:h-6 fill-current" style={{ color: "#E63946" }} />
-                </div>
                 <div>
                   <p className="font-bold text-sm sm:text-lg" style={{ color: "#1A1A1A" }}>Calm First</p>
                   <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>Confidence follows naturally</p>
@@ -175,7 +172,7 @@ function PortalLanding() {
               How It Works
             </h2>
             <p className="text-base sm:text-lg" style={{ color: "#A0A0A0" }}>
-              A repeatable system that turns understanding into reliable performance.
+              We train calm execution to be a normal response.
             </p>
           </div>
 
@@ -183,23 +180,23 @@ function PortalLanding() {
             {[
               {
                 number: "1",
-                title: "Structured Mentorship",
-                description: "Students are paired with trained tutors who follow a clear system - not improvisation."
+                title: "Response Gets Trained",
+                description: "When certainty disappears, your child stays oriented. They don't freeze. They execute."
               },
               {
                 number: "2",
-                title: "Pressure-Ready Training",
-                description: "We simulate controlled academic pressure so calm response becomes familiar and automatic."
+                title: "Calm Becomes Automatic",
+                description: "Through repetition and pressure exposure, emotional control becomes muscle memory."
               },
               {
                 number: "3",
-                title: "Measured Progress",
-                description: "Execution improves first. Confidence becomes inevitable. Results stay predictable."
+                title: "Identity Shifts",
+                description: "Your child stops being someone who panics. They become someone who performs."
               }
             ].map((item, index) => (
               <div key={index} className="p-5 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl" style={{ backgroundColor: "#2A2A2A" }}>
                 <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-full flex items-center justify-center mb-4 sm:mb-6"
-                  style={{ backgroundColor: "#E63946", color: "white", fontFamily: "Georgia, serif", fontStyle: "italic", fontSize: "2.5rem", fontWeight: 700 }}>
+                  style={{ backgroundColor: "#E63946", color: "white", fontSize: "1.75rem", fontWeight: 800, letterSpacing: "-0.02em" }}>
                   {item.number}
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3" style={{ color: "white" }}>
@@ -219,10 +216,10 @@ function PortalLanding() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6" style={{ color: "#1A1A1A" }}>
-              What Your Child Gets
+              What Your Child Becomes
             </h2>
             <p className="text-base sm:text-lg" style={{ color: "#5A5A5A" }}>
-              Not motivation. Not hype. A system that holds.
+              This is not about what they receive. It's about who they become.
             </p>
           </div>
 
@@ -230,9 +227,9 @@ function PortalLanding() {
             <Card className="p-5 sm:p-6 md:p-8 border-0 shadow-lg" style={{ backgroundColor: "white" }}>
               <div className="space-y-4 sm:space-y-6">
                 {[
-                  { title: "Response-First Operating System", desc: "Connection, Mastery, Reflection - executed with precision and consistency." },
-                  { title: "Fixed Training Rhythm", desc: "Sessions run on schedule. No randomness. No guesswork." },
-                  { title: "Standards Enforcement", desc: "Territory Directors audit response integrity and consistency." }
+                  { title: "Someone Who Doesn't Freeze", desc: "When the question breaks expectation, they stay calm and execute their trained response." },
+                  { title: "Someone Parents Trust", desc: "You stop micromanaging. Their ability to handle pressure becomes predictable." },
+                  { title: "Someone Who Belongs", desc: "Part of a system that values discipline over motivation. Structure over chaos." }
                 ].map((item, i) => (
                   <div key={i} className="flex gap-3 sm:gap-4">
                     <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "#FFF0F0" }}>
@@ -250,9 +247,9 @@ function PortalLanding() {
             <Card className="p-5 sm:p-6 md:p-8 border-0 shadow-lg" style={{ backgroundColor: "white" }}>
               <div className="space-y-4 sm:space-y-6">
                 {[
-                  { title: "Founding Cohort Access", desc: "Early families work closely with our core team." },
-                  { title: "Feedback Loops", desc: "Reflection turns mistakes into mastery." },
-                  { title: "Clear Progress Signals", desc: "You see improvement - not vague reassurance." }
+                  { title: "Someone Exams Don't Ambush", desc: "Pressure feels familiar. Performance stays stable across terms." },
+                  { title: "Someone Who Stops Self-Labeling", desc: "No more 'I'm bad at math.' Just 'I know how to respond when it gets hard.'" },
+                  { title: "Someone Ready For What's Next", desc: "Academic pressure becomes manageable, not traumatic. The future stops feeling uncertain." }
                 ].map((item, i) => (
                   <div key={i} className="flex gap-3 sm:gap-4">
                     <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "#FFF0F0" }}>
@@ -329,7 +326,7 @@ function PortalLanding() {
           </div>
 
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
-            <TTLogo size="sm" />
+            <TerritorialTutoringLogoSVG width={150} />
             <p className="text-center md:text-right text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
               © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
               <br />

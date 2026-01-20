@@ -296,6 +296,16 @@ export default function TutorPod() {
                   View Blueprint
                 </Link>
               </Button>
+              <Button 
+                className="w-full" 
+                variant="outline"
+                asChild
+              >
+                <Link to="/operational/tutor/tt-os">
+                  <Lock className="w-4 h-4 mr-2" />
+                  View TT-OS
+                </Link>
+              </Button>
             </div>
           </Card>
         </div>

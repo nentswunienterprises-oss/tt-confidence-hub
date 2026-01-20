@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CheckCircle2, Circle, ArrowLeft, FileText, Upload, AlertCircle, Loader2, Clock, ExternalLink, Users } from "lucide-react";
+import { TTLogo } from "@/components/TTLogo";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
@@ -235,15 +236,12 @@ export default function TutorGateway() {
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-sm sm:text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-              TERRITORIAL TUTORING
-            </span>
-            <span className="text-sm sm:text-xl font-bold" style={{ color: "#E63946" }}>+</span>
+            <TTLogo size="md" />
           </div>
           
           <div className="hidden md:block">
             <span className="text-xl lg:text-3xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-              Tutor Gateway
+              System Entry
             </span>
           </div>
           
@@ -309,40 +307,40 @@ export default function TutorGateway() {
             <CardHeader className="px-4 sm:px-6">
               <CardTitle className="text-lg sm:text-xl" style={{ color: "#1A1A1A" }}>Founding Team Application</CardTitle>
               <CardDescription className="text-sm" style={{ color: "#5A5A5A" }}>
-                Territorial Tutoring – Join Our Founding Cohort
+                Territorial Tutoring - Join Our Founding Cohort
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 px-4 sm:px-6">
               {/* Introduction */}
               <div className="rounded-xl p-4 sm:p-5 space-y-2 sm:space-y-3" style={{ backgroundColor: "#FFF0F0" }}>
-                <h3 className="font-semibold text-sm sm:text-base" style={{ color: "#E63946" }}>"If you can't believe in transformation, you can't lead transformation."</h3>
+                <h3 className="font-semibold text-sm sm:text-base" style={{ color: "#E63946" }}>"Systems produce results. Everything else produces noise."</h3>
                 <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-                  Welcome to the Territorial Tutoring Founding Team application. We're building something different - a confidence-first tutoring model that proves transformation is teachable.
+                  TT operates on structure. Tutors execute a system - not improvisation, not personality, not motivation.
                 </p>
                 <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-                  We're selective about who joins. This application helps us understand who you are, what drives you, and whether you're ready to be part of proof.
+                  This application determines if you're ready to execute with precision. If you need creative freedom, this isn't for you.
                 </p>
               </div>
 
               {/* What to Expect */}
               <div className="space-y-3">
-                <h4 className="font-semibold text-sm" style={{ color: "#1A1A1A" }}>What to Expect:</h4>
+                <h4 className="font-semibold text-sm" style={{ color: "#1A1A1A" }}>Application Process:</h4>
                 <ul className="space-y-2 text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
                   <li className="flex gap-2">
                     <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#E63946" }} />
-                    <span>7-step application covering mindset, skills, and vision</span>
+                    <span>7-step application - mindset, execution capacity, and fit</span>
                   </li>
                   <li className="flex gap-2">
                     <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#E63946" }} />
-                    <span>Takes about 15-20 minutes to complete thoughtfully</span>
+                    <span>15-20 minutes if answered directly</span>
                   </li>
                   <li className="flex gap-2">
                     <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#E63946" }} />
-                    <span>Optional video introduction (highly recommended)</span>
+                    <span>Video introduction optional but recommended</span>
                   </li>
                   <li className="flex gap-2">
                     <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#E63946" }} />
-                    <span>Review typically takes 2-3 business days</span>
+                    <span>Review within 48 hours</span>
                   </li>
                 </ul>
               </div>
@@ -406,18 +404,18 @@ export default function TutorGateway() {
               {applicationStatus.status === "pending" && (
                 <>
                   <p className="text-sm sm:text-base text-muted-foreground">
-                    Thank you for applying to join our Founding Team. Your application is being reviewed.
+                    Application received. Under review.
                   </p>
                   <p className="text-xs sm:text-sm text-muted-foreground">
-                    We carefully evaluate each application. You'll hear from us within 2-3 business days.
+                    Response within 48 hours.
                   </p>
                   <div className="bg-muted/30 rounded-lg p-3 sm:p-4 text-left">
                     <p className="text-xs sm:text-sm font-medium mb-2">What happens next:</p>
                     <ul className="text-xs sm:text-sm text-muted-foreground space-y-1 ml-4 list-disc">
-                      <li>Our team reviews your application</li>
-                      <li>If accepted, you'll upload verification documents</li>
-                      <li>Once verified, you'll be assigned to a pod</li>
-                      <li>Start transforming confidence in your first pod</li>
+                      <li>We assess fit</li>
+                      <li>If accepted, upload verification documents</li>
+                      <li>Once verified, you're assigned to a pod</li>
+                      <li>System training begins</li>
                     </ul>
                   </div>
                 </>
@@ -427,13 +425,13 @@ export default function TutorGateway() {
                 <>
                   <h3 className="text-sm sm:text-xl font-semibold mb-3 sm:mb-4">
                     {applicationStatus.status === "approved" 
-                      ? "Congratulations! You've been accepted into our Founding Team."
-                      : "Documents Submitted - Under Verification"}
+                      ? "You're in. Upload your documents."
+                      : "Documents Submitted—Under Verification"}
                   </h3>
                   <p className="text-xs sm:text-base text-muted-foreground mb-4 sm:mb-6">
                     {applicationStatus.status === "approved"
-                      ? "Before you can start, we need you to upload a few verification documents."
-                      : "We're verifying your documents. We'll contact you once everything is confirmed."}
+                      ? "Before you start, we need verification documents."
+                      : "Verification in progress. You'll be contacted once confirmed."}
                   </p>
                   
                   {/* Hidden file inputs */}
@@ -583,7 +581,7 @@ export default function TutorGateway() {
                       <div className="flex items-center gap-2 sm:gap-3">
                         <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 flex-shrink-0" />
                         <p className="text-xs sm:text-sm text-amber-800 text-left">
-                          Complete all required documents to unlock your tutor dashboard.
+                          Complete required documents to proceed.
                         </p>
                       </div>
                     </div>
@@ -594,8 +592,8 @@ export default function TutorGateway() {
                       <div className="flex items-center gap-2 sm:gap-3">
                         <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
                         <p className="text-xs sm:text-sm text-blue-800 text-left">
-                          We're verifying your documents. This typically takes 1-2 business days. 
-                          {applicationStatus.isUnder18 && " We'll also contact your parent/guardian to confirm consent."}
+                          Verification takes 1-2 business days.
+                          {applicationStatus.isUnder18 && " We'll contact your parent/guardian to confirm consent."}
                         </p>
                       </div>
                     </div>
@@ -612,10 +610,10 @@ export default function TutorGateway() {
                     </div>
                   </div>
                   <h3 className="text-sm sm:text-xl font-semibold mb-3 sm:mb-4 text-center">
-                    Documents Verified! 🎉
+                    Documents Verified
                   </h3>
                   <p className="text-xs sm:text-base text-muted-foreground text-center mb-4 sm:mb-6">
-                    You're officially part of the Founding Team. Now we're matching you with a pod.
+                    You're in. Matching you with a pod now.
                   </p>
                   
                   <div className="p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg mb-4">
@@ -651,10 +649,10 @@ export default function TutorGateway() {
                     </div>
                   </div>
                   <h3 className="text-sm sm:text-xl font-semibold mb-3 sm:mb-4 text-center">
-                    You're Assigned to a Pod
+                    Pod Assigned
                   </h3>
                   <p className="text-xs sm:text-base text-muted-foreground text-center mb-4 sm:mb-6">
-                    Great. Your documents are verified and you've been assigned to a pod. Click below to continue to your dashboard.
+                    Documents verified. Pod assigned. Continue to your dashboard.
                   </p>
 
                   <div className="flex justify-center">
@@ -668,10 +666,10 @@ export default function TutorGateway() {
               {applicationStatus.status === "rejected" && (
                 <>
                   <p className="text-xs sm:text-base text-muted-foreground">
-                    Thank you for your interest in joining Territorial Tutoring. After careful review, we've decided not to move forward with your application at this time.
+                    Application not accepted. This doesn't prevent future applications.
                   </p>
                   <p className="text-[10px] sm:text-sm text-muted-foreground">
-                    This doesn't mean you can't apply again in the future. If you'd like feedback or have questions, please reach out to our team.
+                    For feedback, contact the team.
                   </p>
                 </>
               )}

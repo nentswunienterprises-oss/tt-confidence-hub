@@ -64,7 +64,7 @@ export default function ParentUpdates() {
                 <Megaphone className="w-5 h-5 sm:w-8 sm:h-8" />
                 Updates
               </h1>
-              <p className="text-xs sm:text-base text-muted-foreground">Important announcements from the Confidence Hub team</p>
+              <p className="text-xs sm:text-base text-muted-foreground">Important announcements from the Response Hub team</p>
             </div>
             {unreadCount > 0 && (
               <Badge variant="default" className="text-sm sm:text-lg px-2 sm:px-4 py-1 sm:py-2">
