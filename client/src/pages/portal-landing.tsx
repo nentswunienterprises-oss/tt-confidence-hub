@@ -32,7 +32,7 @@ function PortalLanding() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
-          <TerritorialTutoringLogoSVG width={200} />
+          <TerritorialTutoringLogoSVG width={190} />
 
           <div className="hidden md:block">
             <span className="text-2xl lg:text-4xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
@@ -90,7 +90,7 @@ function PortalLanding() {
               <br />
               They struggle because pressure disrupts their response.
               <br /><br />
-              We train students to think clearly, execute accurately, and stay composed - so confidence becomes inevitable.
+              TT trains students to think clearly, execute accurately, and stay composed - so confidence becomes inevitable.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 sm:pt-4">
@@ -105,23 +105,7 @@ function PortalLanding() {
               </Button>
             </div>
 
-            {/* Desktop-only: Pillars section below hero text */}
-            <div className="hidden md:block pt-2">
-              <div className="flex items-center gap-4 mb-2">
-                {["Connection", "Mastery", "Reflection"].map((pillar) => (
-                  <div
-                    key={pillar}
-                    className="px-3 py-1.5 rounded-full text-sm font-medium"
-                    style={{ backgroundColor: "#FFF0F0", color: "#E63946" }}
-                  >
-                    {pillar}
-                  </div>
-                ))}
-              </div>
-              <p className="text-sm" style={{ color: "#5A5A5A" }}>
-                A system built around how confidence actually forms - through structure, repetition, and standards.
-              </p>
-            </div>
+
           </div>
 
           {/* Image */}
@@ -144,23 +128,7 @@ function PortalLanding() {
             </div>
           </div>
 
-          {/* Mobile-only: Pillars section after hero image */}
-          <div className="md:hidden max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pb-6">
-            <div className="flex items-center gap-4 justify-center mb-2">
-              {["Connection", "Mastery", "Reflection"].map((pillar) => (
-                <div
-                  key={pillar}
-                  className="px-3 py-1.5 rounded-full text-xs font-medium"
-                  style={{ backgroundColor: "#FFF0F0", color: "#E63946" }}
-                >
-                  {pillar}
-                </div>
-              ))}
-            </div>
-            <p className="text-xs text-center" style={{ color: "#5A5A5A" }}>
-              A system built around how confidence actually forms - through structure, repetition, and standards.
-            </p>
-          </div>
+
         </div>
       </section>
 
