@@ -259,61 +259,34 @@ export default function ParentOnboardingProposal({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 h-auto">
-            <TabsTrigger value="overview" className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-3 py-1.5 sm:py-2">Overview</TabsTrigger>
-            <TabsTrigger value="identity" className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-3 py-1.5 sm:py-2">Identity</TabsTrigger>
-            <TabsTrigger value="academics" className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-3 py-1.5 sm:py-2">Academics</TabsTrigger>
-            <TabsTrigger value="recommendation" className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-3 py-1.5 sm:py-2">Recommendation</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 h-auto">
+            <TabsTrigger value="overview" className="text-xs sm:text-sm px-2 sm:px-4 py-1.5 sm:py-2">Overview</TabsTrigger>
+            <TabsTrigger value="academics" className="text-xs sm:text-sm px-2 sm:px-4 py-1.5 sm:py-2">Academics</TabsTrigger>
+            <TabsTrigger value="recommendation" className="text-xs sm:text-sm px-2 sm:px-4 py-1.5 sm:py-2">Recommendation</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-3 sm:space-y-4">
             <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-3 sm:p-6 rounded-lg mb-3 sm:mb-6">
               <h3 className="text-sm sm:text-lg font-bold text-foreground mb-1 sm:mb-2">
-                Parent-Ready, Confidence-Engineered, Retention-Designed
+                Response Pattern Assessment
               </h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                A comprehensive proposal built around {studentName}'s unique identity, emotional patterns, and academic needs.
+                Observations of {studentName}'s response patterns and academic needs.
               </p>
             </div>
 
             <Card>
               <CardHeader className="p-3 sm:p-6">
-                <CardTitle className="text-sm sm:text-base">1. Identity Insight Report</CardTitle>
+                <CardTitle className="text-sm sm:text-base">1. Tutor Session Notes</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6 pt-0 sm:pt-0">
                 <div>
-                  <Label htmlFor="primaryIdentity" className="text-xs sm:text-sm font-medium">
-                    Primary Identity Detected
-                  </Label>
-                  <Select
-                    value={formData.primaryIdentity}
-                    onValueChange={(value) =>
-                      handleInputChange("primaryIdentity", value)
-                    }
-                  >
-                    <SelectTrigger id="primaryIdentity" className="mt-2">
-                      <SelectValue placeholder="Select identity type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {IDENTITIES.map((identity) => (
-                        <SelectItem key={identity} value={identity}>
-                          {identity}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Your child naturally thinks, reacts, and solves problems like a {formData.primaryIdentity || "[identity]"}.
-                  </p>
-                </div>
-
-                <div>
                   <Label htmlFor="tutorNotes" className="text-xs sm:text-sm font-medium">
-                    Tutor Observations
+                    Observed Response Patterns
                   </Label>
                   <Textarea
                     id="tutorNotes"
-                    placeholder="Enter tutor observations about core strengths, personality traits, blind spots, and how math aligns with their identity..."
+                    placeholder="Observable patterns during problem-solving: how they approach new topics, response to errors, work pace, etc..."
                     value={formData.tutorNotes}
                     onChange={(e) =>
                       handleInputChange("tutorNotes", e.target.value)
@@ -321,101 +294,17 @@ export default function ParentOnboardingProposal({
                     className="mt-2 min-h-20 sm:min-h-24 text-sm"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Include: Core strengths, personality traits, blind spots, and how math feels aligned with their identity
+                    Focus on procedural observations, not emotional interpretation
                   </p>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="identity" className="space-y-3 sm:space-y-4">
+          <TabsContent value="academics" className="space-y-3 sm:space-y-4">
             <Card>
               <CardHeader className="p-3 sm:p-6">
-                <CardTitle className="text-sm sm:text-base">2. Emotional Map & Confidence Blueprint</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6 pt-0 sm:pt-0">
-                <div>
-                  <Label htmlFor="mathRelationship" className="text-xs sm:text-sm font-medium">
-                    Relationship With Math
-                  </Label>
-                  <Textarea
-                    id="mathRelationship"
-                    placeholder="Describe their emotional patterns with math, not academics..."
-                    value={formData.mathRelationship}
-                    onChange={(e) =>
-                      handleInputChange("mathRelationship", e.target.value)
-                    }
-                    className="mt-2 min-h-16 sm:min-h-20 text-sm"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div>
-                    <Label htmlFor="confidenceTriggers" className="text-xs sm:text-sm font-medium">
-                      Confidence Triggers
-                    </Label>
-                    <Textarea
-                      id="confidenceTriggers"
-                      placeholder="What lifts them up?"
-                      value={formData.confidenceTriggers}
-                      onChange={(e) =>
-                        handleInputChange("confidenceTriggers", e.target.value)
-                      }
-                      className="mt-2 min-h-20"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="confidenceKillers" className="text-xs sm:text-sm font-medium">
-                      Confidence Killers
-                    </Label>
-                    <Textarea
-                      id="confidenceKillers"
-                      placeholder="What shuts them down instantly?"
-                      value={formData.confidenceKillers}
-                      onChange={(e) =>
-                        handleInputChange("confidenceKillers", e.target.value)
-                      }
-                      className="mt-2 min-h-16 sm:min-h-20 text-sm"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="pressureResponse" className="text-xs sm:text-sm font-medium">
-                    Pressure Response Pattern
-                  </Label>
-                  <Textarea
-                    id="pressureResponse"
-                    placeholder="How do they respond under pressure?"
-                    value={formData.pressureResponse}
-                    onChange={(e) =>
-                      handleInputChange("pressureResponse", e.target.value)
-                    }
-                    className="mt-2 min-h-16 sm:min-h-20 text-sm"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="growthDrivers" className="text-xs sm:text-sm font-medium">
-                    Growth Drivers
-                  </Label>
-                  <Textarea
-                    id="growthDrivers"
-                    placeholder="What gets them to try, improve, persist?"
-                    value={formData.growthDrivers}
-                    onChange={(e) =>
-                      handleInputChange("growthDrivers", e.target.value)
-                    }
-                    className="mt-2 min-h-16 sm:min-h-20 text-sm"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="p-3 sm:p-6">
-                <CardTitle className="text-sm sm:text-base">3. Academic Diagnosis</CardTitle>
+                <CardTitle className="text-sm sm:text-base">2. Academic Diagnosis</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6 pt-0 sm:pt-0">
                 <div>
@@ -469,109 +358,36 @@ export default function ParentOnboardingProposal({
 
             <Card>
               <CardHeader className="p-3 sm:p-6">
-                <CardTitle className="text-sm sm:text-base">4. Psychological Anchor: The Identity Sheet</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6 pt-0 sm:pt-0">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div>
-                    <Label htmlFor="futureIdentity" className="text-xs sm:text-sm font-medium">
-                      Who They Want To Be
-                    </Label>
-                    <Textarea
-                      id="futureIdentity"
-                      placeholder="Pulled from long-term answers..."
-                      value={formData.futureIdentity}
-                      onChange={(e) =>
-                        handleInputChange("futureIdentity", e.target.value)
-                      }
-                      className="mt-2 min-h-16 sm:min-h-20 text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="wantToRemembered" className="text-xs sm:text-sm font-medium">
-                      How They Want To Be Remembered
-                    </Label>
-                    <Textarea
-                      id="wantToRemembered"
-                      placeholder="Personality + values..."
-                      value={formData.wantToRemembered}
-                      onChange={(e) =>
-                        handleInputChange("wantToRemembered", e.target.value)
-                      }
-                      className="mt-2 min-h-16 sm:min-h-20 text-sm"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div>
-                    <Label htmlFor="hiddenMotivations" className="text-xs sm:text-sm font-medium">
-                      Hidden Motivations
-                    </Label>
-                    <Textarea
-                      id="hiddenMotivations"
-                      placeholder="Pulled from emotional questions..."
-                      value={formData.hiddenMotivations}
-                      onChange={(e) =>
-                        handleInputChange("hiddenMotivations", e.target.value)
-                      }
-                      className="mt-2 min-h-16 sm:min-h-20 text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="internalConflict" className="text-xs sm:text-sm font-medium">
-                      Internal Conflict
-                    </Label>
-                    <Textarea
-                      id="internalConflict"
-                      placeholder="Where they sabotage themselves..."
-                      value={formData.internalConflict}
-                      onChange={(e) =>
-                        handleInputChange("internalConflict", e.target.value)
-                      }
-                      className="mt-2 min-h-16 sm:min-h-20 text-sm"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="academics" className="space-y-4">
-            <Card>
-              <CardHeader className="p-3 sm:p-6">
-                <CardTitle className="text-sm sm:text-base">5. The Confidence Roadmap (90-Day Plan)</CardTitle>
+                <CardTitle className="text-sm sm:text-base">3. The Training Roadmap (90-Day Plan)</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6 pt-0 sm:pt-0">
                 <div className="bg-accent/50 p-3 sm:p-4 rounded-lg space-y-2 sm:space-y-3">
                   <div>
-                    <h4 className="font-semibold text-xs sm:text-sm mb-2">Phase 1: Reset & Confidence Stabilization (Weeks 1–3)</h4>
+                    <h4 className="font-semibold text-xs sm:text-sm mb-2">Phase 1: Foundation Assessment (Weeks 1–3)</h4>
                     <ul className="text-xs sm:text-sm text-muted-foreground space-y-1">
-                      <li>• Rebuilding their relationship with math</li>
-                      <li>• Identity-based motivation</li>
-                      <li>• Fixing pressure response</li>
-                      <li>• Teaching student their own strengths</li>
-                      <li>• Introducing TT's signature step-by-step mastery model</li>
+                      <li>• Identify response patterns under pressure</li>
+                      <li>• Map procedural gaps</li>
+                      <li>• Establish baseline problem-solving approach</li>
+                      <li>• Introduce step-by-step problem protocols</li>
                     </ul>
                   </div>
 
                   <div>
-                    <h4 className="font-semibold text-xs sm:text-sm mb-2">Phase 2: Foundation Reconstruction (Weeks 4–7)</h4>
+                    <h4 className="font-semibold text-xs sm:text-sm mb-2">Phase 2: Systematic Training (Weeks 4–7)</h4>
                     <ul className="text-xs sm:text-sm text-muted-foreground space-y-1">
-                      <li>• Closing the exact gaps identified</li>
-                      <li>• Real high-stakes-style practice with The Boss Battles</li>
+                      <li>• Address identified gaps systematically</li>
+                      <li>• Practice under timed conditions</li>
+                      <li>• Reinforce procedural consistency</li>
                     </ul>
                   </div>
 
                   <div>
-                    <h4 className="font-semibold text-xs sm:text-sm mb-2">Phase 3: Performance Expansion (Weeks 8–12)</h4>
+                    <h4 className="font-semibold text-xs sm:text-sm mb-2">Phase 3: Performance Testing (Weeks 8–12)</h4>
                     <ul className="text-xs sm:text-sm text-muted-foreground space-y-1">
-                      <li>• Stronger problem-solving</li>
-                      <li>• Faster pace</li>
-                      <li>• Test-readiness</li>
-                      <li>• Confidence-first exam approaching</li>
+                      <li>• Progressive difficulty increase</li>
+                      <li>• Pressure simulation sessions</li>
+                      <li>• Test-condition practice</li>
+                      <li>• Performance consistency measurement</li>
                     </ul>
                   </div>
                 </div>
@@ -579,32 +395,12 @@ export default function ParentOnboardingProposal({
                 <div className="bg-primary/10 p-3 sm:p-4 rounded-lg space-y-2 sm:space-y-3">
                   <h4 className="font-semibold text-xs sm:text-sm mb-2 text-foreground">Expected Outcomes by Day 90</h4>
                   <ul className="text-xs sm:text-sm text-muted-foreground space-y-1">
-                    <li>✓ Better attitude</li>
-                    <li>✓ Cleaner logic</li>
-                    <li>✓ Stronger confidence</li>
-                    <li>✓ More consistency</li>
-                    <li>✓ A child who doesn't fear math anymore</li>
+                    <li>✓ Consistent problem-solving procedure</li>
+                    <li>✓ Measurable gap closure</li>
+                    <li>✓ Improved test performance</li>
+                    <li>✓ Reduced error rate under time pressure</li>
                   </ul>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="p-3 sm:p-6">
-                <CardTitle className="text-sm sm:text-base">6. Why {studentName} Will Win</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6 pt-0 sm:pt-0">
-                <Textarea
-                  placeholder="Describe how this child's specific identity, confidence triggers, learning style, and pressure pattern will lead to success..."
-                  value={formData.childWillWin}
-                  onChange={(e) =>
-                    handleInputChange("childWillWin", e.target.value)
-                  }
-                  className="min-h-16 sm:min-h-24 text-sm"
-                />
-                <p className="text-xs text-muted-foreground">
-                  This is personalized to their unique psychology and academic profile.
-                </p>
               </CardContent>
             </Card>
           </TabsContent>
