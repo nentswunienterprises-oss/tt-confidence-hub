@@ -609,91 +609,54 @@ export default function ParentOnboardingProposal({
             </Card>
           </TabsContent>
 
-          <TabsContent value="recommendation" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">7. TT Recommendation</CardTitle>
+          <TabsContent value="recommendation" className="space-y-3 sm:space-y-4">
+            <Card className="bg-gradient-to-r from-primary/10 to-primary/5">
+              <CardHeader className="p-3 sm:p-6">
+                <CardTitle className="text-sm sm:text-base">Standard Program: Premium Response Training</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="recommendedPlan" className="text-sm font-medium">
-                    Recommended Plan
-                  </Label>
-                  <Select
-                    value={formData.recommendedPlan}
-                    onValueChange={(value) =>
-                      handleInputChange("recommendedPlan", value)
-                    }
-                  >
-                    <SelectTrigger id="recommendedPlan" className="mt-2">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PLANS.map((plan) => (
-                        <SelectItem key={plan} value={plan}>
-                          {plan}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6 pt-0 sm:pt-0">
+                <div className="space-y-2 sm:space-y-3">
+                  <p className="text-xs sm:text-sm font-medium">
+                    All students receive the same standardized program: <strong>Premium Response Training</strong>
+                  </p>
+                  
+                  <div className="bg-white dark:bg-gray-900 p-3 sm:p-4 rounded-lg space-y-2 sm:space-y-3">
+                    <h4 className="font-semibold text-xs sm:text-sm">What's Included</h4>
+                    <ul className="text-xs sm:text-sm text-muted-foreground space-y-1">
+                      <li>✓ Weekly 1-on-1 session</li>
+                      <li>✓ Response-first problem training</li>
+                      <li>✓ Monthly pressure simulation</li>
+                      <li>✓ Neutral progress reporting</li>
+                    </ul>
+                  </div>
 
-                <div>
-                  <Label htmlFor="justificationScript" className="text-sm font-medium">
-                    Choose Justification Script
-                  </Label>
-                  <Select
-                    value={selectedJustificationScript}
-                    onValueChange={handleJustificationScriptSelect}
-                  >
-                    <SelectTrigger id="justificationScript" className="mt-2">
-                      <SelectValue placeholder="Select a pre-written justification script..." />
-                    </SelectTrigger>
-
-                    <SelectContent className="max-w-3xl max-h-[400px]" side="bottom" align="start">
-                      {JUSTIFICATION_SCRIPTS[formData.recommendedPlan as keyof typeof JUSTIFICATION_SCRIPTS]?.map((script, index) => (
-                        <SelectItem key={index} value={script} className="whitespace-normal py-4 px-4 h-auto min-h-[60px] items-start cursor-pointer">
-                          <span className="block leading-relaxed">
-                            {script.replace(/{studentName}/g, studentName)}
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {formData.justification && (
-                    <div className="mt-3 p-3 bg-muted/50 rounded-md text-sm">
-                      {formData.justification}
-                    </div>
-                  )}
+                  <div className="bg-muted/30 p-2 sm:p-3 rounded-lg">
+                    <p className="text-[10px] sm:text-xs text-muted-foreground italic">
+                      No psychology theatre, no identity probing, no motivational leakage.
+                    </p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">8. Closing Statement</CardTitle>
+              <CardHeader className="p-3 sm:p-6">
+                <CardTitle className="text-sm sm:text-base">Ready to Send</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-4 rounded-lg">
-                  <p className="text-sm font-medium text-foreground">
-                    Your child doesn't need a tutor. They need the right environment - one built for who they are, and who they're becoming. That's what we're offering you.
+              <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
+                <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-3 sm:p-4 rounded-lg mb-3 sm:mb-4">
+                  <p className="text-xs sm:text-sm font-medium text-foreground">
+                    Click "Send to Parent" to deliver the standardized Premium Response Training program to {studentName}'s parent.
                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            <div className="flex gap-3 pt-4">
-              <Button
-                variant="outline"
-                onClick={handleDownloadProposal}
-                className="flex-1 gap-2"
-              >
-                <Download className="w-4 h-4" />
-                Download as PDF
-              </Button>
+            <div className="flex gap-2 sm:gap-3 pt-3 sm:pt-4 px-3 sm:px-0">
               <Button
                 onClick={handleSendProposal}
-                className="flex-1 gap-2"
+                className="w-full gap-2 text-sm sm:text-base"
+                size="lg"
               >
                 <Send className="w-4 h-4" />
                 Send to Parent
