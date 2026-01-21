@@ -32,7 +32,9 @@ function PortalLanding() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
-          <TerritorialTutoringLogoSVG width={190} />
+          <div className="ml-4 sm:ml-0">
+            <TerritorialTutoringLogoSVG width={190} />
+          </div>
 
           <div className="hidden md:block">
             <span className="text-2xl lg:text-4xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
@@ -187,7 +189,7 @@ function PortalLanding() {
               What Your Child Becomes
             </h2>
             <p className="text-base sm:text-lg" style={{ color: "#5A5A5A" }}>
-              This is not about what they receive. It's about who they become.
+              Not what they receive, who they become.
             </p>
           </div>
 
@@ -197,7 +199,7 @@ function PortalLanding() {
                 {[
                   { title: "Someone Who Doesn't Freeze", desc: "When the question breaks expectation, they stay calm and execute their trained response." },
                   { title: "Someone Parents Trust", desc: "You stop micromanaging. Their ability to handle pressure becomes predictable." },
-                  { title: "Someone Who Belongs", desc: "Part of a system that values discipline over motivation. Structure over chaos." }
+                  { title: "Someone Who Belongs", desc: "Part of a system that values discipline over motivation. Clarity over chaos." }
                 ].map((item, i) => (
                   <div key={i} className="flex gap-3 sm:gap-4">
                     <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "#FFF0F0" }}>
@@ -294,7 +296,9 @@ function PortalLanding() {
           </div>
 
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
-            <TerritorialTutoringLogoSVG width={150} />
+            <div className="mx-auto md:mx-0">
+              <TerritorialTutoringLogoSVG width={150} />
+            </div>
             <p className="text-center md:text-right text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
               © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
               <br />
