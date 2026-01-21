@@ -445,7 +445,7 @@ export default function ParentGateway() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-2" style={{ color: "#1A1A1A" }}>Grade in 2025 *</label>
+                    <label className="block text-xs sm:text-sm font-medium mb-2" style={{ color: "#1A1A1A" }}>Grade in 2026 *</label>
                     <div className="grid grid-cols-2 gap-2">
                       {["Grade 6", "Grade 7"].map((grade) => (
                         <button
