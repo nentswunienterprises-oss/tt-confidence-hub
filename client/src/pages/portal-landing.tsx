@@ -296,7 +296,7 @@ function PortalLanding() {
           </div>
 
           <div className="flex flex-col md:flex-row md:justify-between items-center gap-4 sm:gap-6">
-            <div className="ml-6 md:ml-0">
+            <div className="ml-16 md:ml-0">
               <TerritorialTutoringLogoSVG width={150} />
             </div>
             <p className="text-center md:text-right text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
