@@ -447,7 +447,7 @@ export default function ParentGateway() {
                   <div>
                     <label className="block text-xs sm:text-sm font-medium mb-2" style={{ color: "#1A1A1A" }}>Grade in 2025 *</label>
                     <div className="grid grid-cols-2 gap-2">
-                      {["Grade 6", "Grade 7", "Grade 8", "Grade 9"].map((grade) => (
+                      {["Grade 6", "Grade 7"].map((grade) => (
                         <button
                           key={grade}
                           onClick={() => handleInputChange("studentGrade", grade)}
@@ -606,22 +606,6 @@ export default function ParentGateway() {
                     </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Motivation */}
-              <div className="space-y-3">
-                <label className="block text-xs sm:text-sm font-medium" style={{ color: "#1A1A1A" }}>What happens when pressure hits? (Optional but Encouraged)</label>
-                <textarea
-                  placeholder="Tell us what breaks down when your child faces difficulty, time limits, or unexpected questions..."
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-offset-0 text-sm sm:text-base"
-                  style={{ 
-                    borderColor: "#E5E5E5", 
-                    backgroundColor: "#FAFAFA",
-                  }}
-                  rows={3}
-                  value={formData.parentMotivation}
-                  onChange={(e) => handleInputChange("parentMotivation", e.target.value)}
-                />
               </div>
 
               {/* Process Alignment */}
