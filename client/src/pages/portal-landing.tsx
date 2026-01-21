@@ -295,10 +295,8 @@ function PortalLanding() {
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
-            <div className="w-full md:w-auto flex justify-center md:justify-start">
-              <TerritorialTutoringLogoSVG width={150} />
-            </div>
+          <div className="flex flex-col md:flex-row md:justify-between items-center gap-4 sm:gap-6">
+            <TerritorialTutoringLogoSVG width={150} />
             <p className="text-center md:text-right text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
               © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
               <br />
