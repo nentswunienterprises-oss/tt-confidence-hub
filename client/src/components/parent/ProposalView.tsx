@@ -61,7 +61,7 @@ export default function ProposalView({
       {/* Header */}
       <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-6 rounded-lg">
         <h2 className="text-2xl font-bold text-foreground mb-2">
-          Personalized Learning Proposal
+          Response Development Plan
         </h2>
         <p className="text-muted-foreground">
           A comprehensive plan designed specifically for {studentName}'s success

@@ -122,11 +122,13 @@ export default function ParentGateway() {
     studentFullName: "",
     studentGrade: "",
     schoolName: "",
+    stuckAreas: [] as string[],
     mathStruggleAreas: "",
     previousTutoring: "",
     confidenceLevel: "",
     internetAccess: "",
     parentMotivation: "",
+    processAlignment: "",
     agreedToTerms: false,
   });
 
@@ -377,7 +379,7 @@ export default function ParentGateway() {
                   This is the Founding Cohort. Limited families. Serious about response training.
                 </p>
                 <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-                  TT is not tutoring. It's a performance-conditioning system. Every application is reviewed to ensure fit.
+                  TT is not tutoring. It's a performance-conditioning system. Every application is reviewed to ensure fit. This application helps us determine whether our training is appropriate for your child.
                 </p>
               </div>
 
@@ -470,6 +472,49 @@ export default function ParentGateway() {
                       onChange={(e) => handleInputChange("schoolName", e.target.value)}
                       autoComplete="off"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium mb-2" style={{ color: "#1A1A1A" }}>Where does your child most often get stuck in math?</label>
+                    <div className="space-y-2">
+                      {[
+                        { value: "word_problems", label: "Word problems" },
+                        { value: "tests", label: "Tests" },
+                        { value: "timed_work", label: "Timed work" },
+                        { value: "new_topics", label: "New topics" },
+                        { value: "careless_errors", label: "Careless errors" },
+                      ].map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => {
+                            const currentAreas = formData.stuckAreas || [];
+                            const newAreas = currentAreas.includes(option.value)
+                              ? currentAreas.filter(a => a !== option.value)
+                              : [...currentAreas, option.value];
+                            handleInputChange("stuckAreas", newAreas);
+                          }}
+                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border-2 text-xs sm:text-sm text-left transition flex items-center gap-2"
+                          style={{
+                            backgroundColor: (formData.stuckAreas || []).includes(option.value) ? "#E63946" : "#FFF0F0",
+                            color: (formData.stuckAreas || []).includes(option.value) ? "white" : "#1A1A1A",
+                            borderColor: (formData.stuckAreas || []).includes(option.value) ? "#E63946" : "#FFF0F0"
+                          }}
+                        >
+                          <div 
+                            className="w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0"
+                            style={{
+                              borderColor: (formData.stuckAreas || []).includes(option.value) ? "white" : "#E5E5E5",
+                              backgroundColor: (formData.stuckAreas || []).includes(option.value) ? "white" : "transparent"
+                            }}
+                          >
+                            {(formData.stuckAreas || []).includes(option.value) && (
+                              <Check className="w-3 h-3" style={{ color: "#E63946" }} />
+                            )}
+                          </div>
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                   <div>
                     <label className="block text-xs sm:text-sm font-medium mb-1">What specific math areas does your child struggle with most? *</label>
@@ -577,6 +622,34 @@ export default function ParentGateway() {
                   value={formData.parentMotivation}
                   onChange={(e) => handleInputChange("parentMotivation", e.target.value)}
                 />
+              </div>
+
+              {/* Process Alignment */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-xs sm:text-sm uppercase tracking-wide" style={{ color: "#E63946" }}>Process Alignment (Required)</h4>
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium mb-2" style={{ color: "#1A1A1A" }}>Are you willing to allow sessions without encouragement, reassurance, or emotional coaching? *</label>
+                  <div className="space-y-2">
+                    {[
+                      { value: "yes", label: "Yes" },
+                      { value: "no", label: "No" },
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => handleInputChange("processAlignment", option.value)}
+                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border-2 text-xs sm:text-sm text-left transition"
+                        style={{
+                          backgroundColor: formData.processAlignment === option.value ? "#E63946" : "#FFF0F0",
+                          color: formData.processAlignment === option.value ? "white" : "#1A1A1A",
+                          borderColor: formData.processAlignment === option.value ? "#E63946" : "#FFF0F0"
+                        }}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               {/* Parent Agreement */}
