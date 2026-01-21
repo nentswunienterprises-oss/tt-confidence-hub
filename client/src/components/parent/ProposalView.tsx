@@ -227,24 +227,47 @@ export default function ProposalView({
         <CardHeader>
           <CardTitle className="text-xl">TT Recommendation</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Badge className="text-base px-4 py-2">{proposal.recommendedPlan}</Badge>
-          </div>
-          
-          <div>
-            <h4 className="font-semibold mb-2">Why This Plan?</h4>
-            <p className="text-muted-foreground leading-relaxed">{proposal.justification}</p>
+        <CardContent className="space-y-6">
+          {/* Message */}
+          <div className="space-y-3">
+            <p className="text-base font-medium">
+              Based on the assessment, Territorial Tutoring recommends <strong>Premium Response Training</strong>.
+            </p>
+            <p className="text-muted-foreground">
+              This program focuses on building stable problem-solving responses under pressure through structured repetition.
+            </p>
           </div>
 
-          {proposal.childWillWin && (
-            <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-              <h4 className="font-semibold text-green-800 dark:text-green-200 mb-2">
-                How {studentName} Will Win
-              </h4>
-              <p className="text-sm text-green-700 dark:text-green-300">{proposal.childWillWin}</p>
+          {/* What's Included */}
+          <div>
+            <h4 className="font-semibold mb-3">What's Included</h4>
+            <div className="space-y-2">
+              {[
+                "Weekly 1-on-1 session",
+                "Response-first problem training",
+                "Monthly pressure simulation",
+                "Neutral progress reporting"
+              ].map((item, idx) => (
+                <div key={idx} className="flex items-start gap-2">
+                  <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <span className="text-sm">{item}</span>
+                </div>
+              ))}
             </div>
-          )}
+          </div>
+
+          {/* What's Not Included */}
+          <div className="bg-muted/30 rounded-lg p-4">
+            <h4 className="font-semibold mb-2">What is not included</h4>
+            <p className="text-sm text-muted-foreground">
+              Motivation, encouragement, or emotional coaching.
+            </p>
+          </div>
+
+          {/* Note */}
+          <div className="text-xs text-muted-foreground italic text-center border-t pt-4">
+            No psychology theatre, no identity probing, no motivational leakage.
+          </div>
         </CardContent>
       </Card>
 
@@ -259,7 +282,7 @@ export default function ProposalView({
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary font-bold">2.</span>
-              <span>Begin your child's confidence transformation journey</span>
+              <span>Begin your child's response training journey</span>
             </li>
           </ul>
         </CardContent>
@@ -271,7 +294,7 @@ export default function ProposalView({
           <CardContent className="pt-6">
             <h3 className="font-bold text-lg mb-3 text-center">Ready to Begin?</h3>
             <p className="text-sm text-muted-foreground text-center mb-6">
-              Accept this proposal to move forward with {studentName}'s tutoring journey
+              Accept this program to move forward with {studentName}'s training
             </p>
             <div className="flex gap-3">
               <Button
@@ -291,12 +314,9 @@ export default function ProposalView({
                 size="lg"
               >
                 <Check className="w-4 h-4" />
-                {isProcessing ? "Processing..." : "Accept Proposal"}
+                {isProcessing ? "Processing..." : "Accept Program"}
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground text-center mt-3">
-              You can ask questions before accepting - contact your tutor above
-            </p>
           </CardContent>
         </Card>
       )}
