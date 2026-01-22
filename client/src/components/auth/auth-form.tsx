@@ -336,19 +336,6 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
         >
           {loading ? "Please wait..." : mode === "signup" ? "Sign Up" : "Login"}
         </Button>
-
-        <div className="flex flex-col gap-2 mt-4">
-          <Button
-            type="button"
-            onClick={handleGoogleLogin}
-            className="w-full rounded-full font-semibold py-3 border-0 shadow hover:shadow-md transition-all flex items-center justify-center"
-            style={{ backgroundColor: '#fff', color: '#1A1A1A', border: '1px solid #ddd' }}
-            disabled={loading}
-          >
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style={{ width: 22, height: 22, marginRight: 12 }} />
-            {loading ? "Please wait..." : "Continue with Google"}
-          </Button>
-        </div>
       </form>
     </div>
   );
