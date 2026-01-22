@@ -122,7 +122,7 @@ function PortalLanding() {
               <div className="flex items-center gap-2 sm:gap-3">
                 <div>
                   <p className="font-bold text-sm sm:text-lg" style={{ color: "#1A1A1A" }}>Calm First</p>
-                  <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>Confidence follows only</p>
+                  <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>Confidence follows</p>
                 </div>
               </div>
             </div>
@@ -154,7 +154,7 @@ function PortalLanding() {
               {
                 number: "2",
                 title: "Calm Becomes Automatic",
-                description: "Through repetition and pressure exposure, emotional control becomes muscle memory."
+                description: "Through repetition and controlled pressure exposure, emotional control becomes muscle memory."
               },
               {
                 number: "3",
