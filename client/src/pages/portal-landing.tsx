@@ -90,7 +90,7 @@ function PortalLanding() {
               <br />
               They struggle because pressure disrupts their response.
               <br /><br />
-              TT trains students to think clearly, execute accurately, and stay composed - so confidence becomes inevitable.
+              TT trains students to think clearly, execute accurately, and stay composed - so confidence becomes unavoidable.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 sm:pt-4">
@@ -122,7 +122,7 @@ function PortalLanding() {
               <div className="flex items-center gap-2 sm:gap-3">
                 <div>
                   <p className="font-bold text-sm sm:text-lg" style={{ color: "#1A1A1A" }}>Calm First</p>
-                  <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>Confidence follows naturally</p>
+                  <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>Confidence follows only</p>
                 </div>
               </div>
             </div>
