@@ -1357,11 +1357,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Get all affiliates
         const affiliates = await storage.getUsersByRole("affiliate");
         
-        // Get all encounters, leads, and closes - query all records
-        const { data: encounters = [] } = await supabase
-          .from("encounters")
-          .select("*");
+        // Import supabase from storage
+        const supabase = (storage as any).supabase;
         
+        // Get all leads and closes - only count actual affiliate relationships
         const { data: leads = [] } = await supabase
           .from("leads")
           .select("*");
@@ -1370,22 +1369,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from("closes")
           .select("*");
         
-        // Break down by tracking source
-        const affiliateLeads = leads.filter((l: any) => l.tracking_source === "affiliate").length;
-        const organicLeads = leads.filter((l: any) => l.tracking_source === "organic").length;
-        const otherLeads = leads.length - affiliateLeads - organicLeads;
-        
-        const affiliateCloses = closes.filter((c: any) => {
-          const lead = leads.find((l: any) => l.user_id === c.parent_id);
-          return lead?.tracking_source === "affiliate";
-        }).length;
-        
-        const organicCloses = closes.filter((c: any) => {
-          const lead = leads.find((l: any) => l.user_id === c.parent_id);
-          return lead?.tracking_source === "organic";
-        }).length;
-        
-        // Affiliate details
+        // Affiliate details - only count their own leads/closes
         const affiliateDetails = affiliates.map(aff => {
           const affLeads = leads.filter((l: any) => l.affiliate_id === aff.id);
           const affCloses = closes.filter((c: any) => 
@@ -1404,29 +1388,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
         });
         
-        // Overall stats
+        // Only return affiliate data
         res.json({
-          totalAffiliates: affiliates.length,
-          totalEncounters: encounters.length,
-          totalLeads: leads.length,
-          totalCloses: closes.length,
-          leadBreakdown: {
-            affiliate: affiliateLeads,
-            organic: organicLeads,
-            other: otherLeads,
-          },
-          closeBreakdown: {
-            affiliate: affiliateCloses,
-            organic: organicCloses,
-          },
-          conversionRate: leads.length > 0 
-            ? Math.round((closes.length / leads.length) * 100)
-            : 0,
           affiliateDetails: affiliateDetails.sort((a, b) => b.totalLeads - a.totalLeads),
         });
       } catch (error) {
         console.error("Error fetching sales stats:", error);
         res.status(500).json({ message: "Failed to fetch sales stats" });
+      }
+    }
+  );
+
+  // Get affiliate encounters
+  app.get(
+    "/api/affiliate/:affiliateId/encounters",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { affiliateId } = req.params;
+        const supabase = (storage as any).supabase;
+        
+        const { data: encounters } = await supabase
+          .from("encounters")
+          .select("*")
+          .eq("affiliate_id", affiliateId)
+          .order("created_at", { ascending: false });
+        
+        res.json(encounters || []);
+      } catch (error) {
+        console.error("Error fetching encounters:", error);
+        res.status(500).json({ message: "Failed to fetch encounters" });
+      }
+    }
+  );
+
+  // Get affiliate leads
+  app.get(
+    "/api/affiliate/:affiliateId/leads",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { affiliateId } = req.params;
+        const supabase = (storage as any).supabase;
+        
+        const { data: leads } = await supabase
+          .from("leads")
+          .select("*")
+          .eq("affiliate_id", affiliateId)
+          .order("created_at", { ascending: false });
+        
+        res.json(leads || []);
+      } catch (error) {
+        console.error("Error fetching leads:", error);
+        res.status(500).json({ message: "Failed to fetch leads" });
+      }
+    }
+  );
+
+  // Get affiliate closes
+  app.get(
+    "/api/affiliate/:affiliateId/closes",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { affiliateId } = req.params;
+        const supabase = (storage as any).supabase;
+        
+        // Get leads for this affiliate first
+        const { data: affLeads = [] } = await supabase
+          .from("leads")
+          .select("*")
+          .eq("affiliate_id", affiliateId);
+        
+        // Get closes where parent_id matches any of this affiliate's leads
+        const parentIds = affLeads.map((l: any) => l.user_id);
+        let query = supabase.from("closes").select("*");
+        
+        if (parentIds.length > 0) {
+          query = query.in("parent_id", parentIds);
+        } else {
+          // Return empty array if no leads
+          return res.json([]);
+        }
+        
+        const { data: closes } = await query.order("created_at", { ascending: false });
+        
+        res.json(closes || []);
+      } catch (error) {
+        console.error("Error fetching closes:", error);
+        res.status(500).json({ message: "Failed to fetch closes" });
       }
     }
   );

@@ -186,151 +186,186 @@ export default function COODashboard() {
     },
   });
 
+  // Affiliate Card Component
+  const AffiliateCard = ({ affiliate }: { affiliate: any }) => {
+    const [expanded, setExpanded] = useState(false);
+    const [encounters, setEncounters] = useState<any[]>([]);
+    const [leads, setLeads] = useState<any[]>([]);
+    const [closes, setCloses] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
+
+    const loadAffiliateData = async () => {
+      if (expanded) {
+        setExpanded(false);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        // Fetch affiliate-specific data
+        const [encRes, leadRes, closeRes] = await Promise.all([
+          fetch(`/api/affiliate/${affiliate.id}/encounters`, { credentials: 'include' }),
+          fetch(`/api/affiliate/${affiliate.id}/leads`, { credentials: 'include' }),
+          fetch(`/api/affiliate/${affiliate.id}/closes`, { credentials: 'include' }),
+        ]);
+
+        const encData = await encRes.json();
+        const leadData = await leadRes.json();
+        const closeData = await closeRes.json();
+
+        setEncounters(encData || []);
+        setLeads(leadData || []);
+        setCloses(closeData || []);
+        setExpanded(true);
+      } catch (error) {
+        console.error("Error loading affiliate data:", error);
+        toast({ title: "Failed to load affiliate data", variant: "destructive" });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    return (
+      <Card className="border cursor-pointer hover:shadow-md transition-shadow">
+        <CardHeader 
+          onClick={loadAffiliateData}
+          className="hover:bg-gray-50"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <CardTitle className="text-lg">{affiliate.name}</CardTitle>
+              <p className="text-xs text-muted-foreground mt-1">{affiliate.email}</p>
+            </div>
+            <div className="flex items-center gap-4 text-right">
+              <div>
+                <p className="text-2xl font-bold">{affiliate.totalLeads}</p>
+                <p className="text-xs text-muted-foreground">Leads</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-green-600">{affiliate.totalCloses}</p>
+                <p className="text-xs text-muted-foreground">Closes</p>
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-bold">{affiliate.conversionRate}%</p>
+                <p className="text-xs text-muted-foreground">Conv.</p>
+              </div>
+              {expanded ? (
+                <ChevronUp className="w-5 h-5 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-muted-foreground" />
+              )}
+            </div>
+          </div>
+        </CardHeader>
+
+        {expanded && (
+          <CardContent className="space-y-6 pt-4 border-t">
+            {loading ? (
+              <p className="text-muted-foreground">Loading data...</p>
+            ) : (
+              <>
+                {/* Encounters Section */}
+                {encounters.length > 0 && (
+                  <div className="space-y-3">
+                    <h3 className="font-semibold text-sm">Encounters ({encounters.length})</h3>
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {encounters.map((enc: any) => (
+                        <div key={enc.id} className="p-3 bg-gray-50 rounded text-sm">
+                          <p className="font-medium">{enc.parent_name}</p>
+                          <p className="text-xs text-muted-foreground">{enc.parent_email || enc.parent_phone}</p>
+                          {enc.date_met && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {new Date(enc.date_met).toLocaleDateString()}
+                            </p>
+                          )}
+                          {enc.status && (
+                            <Badge variant="outline" className="mt-2 text-xs">
+                              {enc.status}
+                            </Badge>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Leads Section */}
+                {leads.length > 0 && (
+                  <div className="space-y-3 pt-4 border-t">
+                    <h3 className="font-semibold text-sm">Leads ({leads.length})</h3>
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {leads.map((lead: any) => (
+                        <div key={lead.id} className="p-3 bg-blue-50 rounded text-sm">
+                          <p className="font-medium">Lead #{lead.id?.slice(0, 8)}</p>
+                          {lead.tracking_source && (
+                            <Badge variant="secondary" className="text-xs">
+                              {lead.tracking_source}
+                            </Badge>
+                          )}
+                          <p className="text-xs text-muted-foreground mt-2">
+                            {new Date(lead.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Closes Section */}
+                {closes.length > 0 && (
+                  <div className="space-y-3 pt-4 border-t">
+                    <h3 className="font-semibold text-sm">Closes ({closes.length})</h3>
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {closes.map((close: any) => (
+                        <div key={close.id} className="p-3 bg-green-50 rounded text-sm">
+                          <p className="font-medium">Close #{close.id?.slice(0, 8)}</p>
+                          <Badge className="bg-green-600 text-xs">Converted</Badge>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            {new Date(close.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {encounters.length === 0 && leads.length === 0 && closes.length === 0 && (
+                  <p className="text-center text-muted-foreground py-4">No data recorded yet</p>
+                )}
+              </>
+            )}
+          </CardContent>
+        )}
+      </Card>
+    );
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        {/* Sales Overview Section */}
+        {/* Sales & Affiliates Section */}
         <section>
-          <Card className="border">
-            <CardHeader 
-              className="cursor-pointer hover:bg-gray-50"
-              onClick={() => setExpandedSalesStats(!expandedSalesStats)}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <TrendingUp className="w-5 h-5 text-green-600" />
-                  <div>
-                    <CardTitle>Sales & Affiliate Overview</CardTitle>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Track leads, conversions, and affiliate performance
-                    </p>
-                  </div>
-                </div>
-                {expandedSalesStats ? (
-                  <ChevronUp className="w-5 h-5" />
-                ) : (
-                  <ChevronDown className="w-5 h-5" />
-                )}
-              </div>
-            </CardHeader>
-            
-            {expandedSalesStats && (
-              <CardContent className="space-y-6 pt-6">
-                {salesStatsLoading ? (
-                  <p className="text-muted-foreground">Loading sales stats...</p>
-                ) : salesStats ? (
-                  <>
-                    {/* Overall Stats Grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                      <div className="space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground uppercase">Affiliates</p>
-                        <p className="text-2xl sm:text-3xl font-bold">{salesStats.totalAffiliates}</p>
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground uppercase">Encounters</p>
-                        <p className="text-2xl sm:text-3xl font-bold">{salesStats.totalEncounters}</p>
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground uppercase">Total Leads</p>
-                        <p className="text-2xl sm:text-3xl font-bold">{salesStats.totalLeads}</p>
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground uppercase">Total Closes</p>
-                        <p className="text-2xl sm:text-3xl font-bold">{salesStats.totalCloses}</p>
-                      </div>
-                    </div>
-
-                    {/* Lead Breakdown */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t">
-                      <div className="space-y-3">
-                        <h3 className="font-semibold text-sm">Lead Breakdown</h3>
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Affiliate Leads</span>
-                            <Badge variant="default">{salesStats.leadBreakdown.affiliate}</Badge>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Organic Leads</span>
-                            <Badge variant="secondary">{salesStats.leadBreakdown.organic}</Badge>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Other Leads</span>
-                            <Badge variant="outline">{salesStats.leadBreakdown.other}</Badge>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Close Breakdown */}
-                      <div className="space-y-3">
-                        <h3 className="font-semibold text-sm">Close Breakdown</h3>
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Affiliate Closes</span>
-                            <Badge className="bg-green-600">{salesStats.closeBreakdown.affiliate}</Badge>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Organic Closes</span>
-                            <Badge className="bg-blue-600">{salesStats.closeBreakdown.organic}</Badge>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Conversion Rate</span>
-                            <Badge variant="outline">{salesStats.conversionRate}%</Badge>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Conversion Metrics */}
-                      <div className="space-y-3">
-                        <h3 className="font-semibold text-sm">Efficiency</h3>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Avg per Affiliate</span>
-                            <span className="font-medium">
-                              {salesStats.totalAffiliates > 0 
-                                ? (salesStats.totalLeads / salesStats.totalAffiliates).toFixed(1)
-                                : 0} leads
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Lead to Close</span>
-                            <span className="font-medium">{salesStats.conversionRate}%</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Affiliate Rankings */}
-                    {salesStats.affiliateDetails && salesStats.affiliateDetails.length > 0 && (
-                      <div className="pt-4 border-t space-y-3">
-                        <h3 className="font-semibold text-sm">Top Affiliates</h3>
-                        <div className="space-y-2">
-                          {salesStats.affiliateDetails.slice(0, 5).map((aff: any, idx: number) => (
-                            <div key={aff.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
-                              <div>
-                                <p className="font-medium">{idx + 1}. {aff.name}</p>
-                                <p className="text-xs text-muted-foreground">{aff.email}</p>
-                              </div>
-                              <div className="text-right">
-                                <p className="font-semibold">{aff.totalLeads} leads</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {aff.totalCloses} closes ({aff.conversionRate}%)
-                                </p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        {salesStats.affiliateDetails.length > 5 && (
-                          <p className="text-xs text-muted-foreground text-center pt-2">
-                            +{salesStats.affiliateDetails.length - 5} more affiliates
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </>
-                ) : null}
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Affiliate Sales</h2>
+          
+          {salesStatsLoading ? (
+            <Card>
+              <CardContent className="py-8 text-center text-muted-foreground">
+                Loading affiliate data...
               </CardContent>
-            )}
-          </Card>
+            </Card>
+          ) : salesStats && salesStats.affiliateDetails && salesStats.affiliateDetails.length > 0 ? (
+            <div className="space-y-3">
+              {salesStats.affiliateDetails.map((aff: any) => (
+                <AffiliateCard key={aff.id} affiliate={aff} />
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="py-8 text-center text-muted-foreground">
+                No affiliates yet.
+              </CardContent>
+            </Card>
+          )}
         </section>
 
         {/* Pods Section - VIEW ONLY */}
