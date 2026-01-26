@@ -22,6 +22,7 @@ import AuthPage from "@/pages/auth";
 import AuthCallback from "@/pages/auth-callback";
 import Home from "@/pages/home";
 import NotFound from "@/pages/not-found";
+import FAQPage from "@/pages/faq";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import TermsOfUse from "@/pages/terms-of-use";
 
@@ -123,6 +124,7 @@ function Router() {
       <Route path="/home" element={<Home />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/terms-of-use" element={<TermsOfUse />} />
+      <Route path="/faq" element={<FAQPage />} />
 
       {/* ==================== CLIENT PORTAL ==================== */}
       {/* Client Signup */}

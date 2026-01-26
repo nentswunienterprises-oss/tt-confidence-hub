@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Brain, Crown, Check, ArrowRight, ArrowLeft, Heart } from "lucide-react";
+import { Check, ArrowRight, ArrowLeft } from "lucide-react";
 import { useEffect } from "react";
 import { TTLogo } from "@/components/TTLogo";
 
@@ -106,9 +106,9 @@ export default function OperationalLanding() {
             >
               <div 
                 className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
-                style={{ backgroundColor: "#FFF0F0" }}
+                style={{ backgroundColor: "#E63946" }}
               >
-                <Brain className="w-8 h-8" style={{ color: "#E63946" }} />
+                <div className="w-8 h-8 rounded-full" style={{ backgroundColor: "white" }} />
               </div>
               <h3 className="text-2xl font-bold mb-3" style={{ color: "#1A1A1A" }}>
                 Tutor
@@ -146,9 +146,9 @@ export default function OperationalLanding() {
             >
               <div 
                 className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
-                style={{ backgroundColor: "#FFF0F0" }}
+                style={{ backgroundColor: "#E63946" }}
               >
-                <Crown className="w-8 h-8" style={{ color: "#E63946" }} />
+                <div className="w-8 h-8 rounded-full" style={{ backgroundColor: "white" }} />
               </div>
               <h3 className="text-2xl font-bold mb-3" style={{ color: "#1A1A1A" }}>
                 Territory Director
