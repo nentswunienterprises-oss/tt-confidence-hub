@@ -1413,6 +1413,9 @@ export class SupabaseStorage implements IStorage {
         result: encounter.result || null,
         confidence_rating: encounter.confidenceRating || null,
         my_thoughts: encounter.myThoughts || null,
+        where_flinched: encounter.whereFlinched || null,
+        where_talked_too_much: encounter.whereTalkedTooMuch || null,
+        where_avoided_tension: encounter.whereAvoidedTension || null,
         notes: encounter.notes || null,
         status: encounter.finalOutcome === "enrolled" ? "prospect" : encounter.finalOutcome === "objected" ? "objected" : "prospect",
       })

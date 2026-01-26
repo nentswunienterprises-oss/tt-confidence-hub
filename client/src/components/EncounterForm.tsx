@@ -35,6 +35,9 @@ const getDefaultFormData = () => ({
   result: "",
   confidenceRating: 3,
   myThoughts: "",
+  whereFlinched: "",
+  whereTalkedTooMuch: "",
+  whereAvoidedTension: "",
 });
 
 export default function EncounterForm({ onSuccess }: EncounterFormProps) {
@@ -288,6 +291,45 @@ export default function EncounterForm({ onSuccess }: EncounterFormProps) {
                   value={formData.myThoughts}
                   onChange={(e) => setFormData({ ...formData, myThoughts: e.target.value })}
                   rows={3}
+                  className="w-full px-3 py-2 border border-card-border rounded-lg text-sm placeholder:text-muted-foreground/50 focus:border-primary focus:ring-0 resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-600 text-foreground uppercase tracking-wider mb-2">
+                  Where did they flinch?
+                </label>
+                <textarea
+                  placeholder="Where did they show resistance or hesitation?"
+                  value={formData.whereFlinched}
+                  onChange={(e) => setFormData({ ...formData, whereFlinched: e.target.value })}
+                  rows={2}
+                  className="w-full px-3 py-2 border border-card-border rounded-lg text-sm placeholder:text-muted-foreground/50 focus:border-primary focus:ring-0 resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-600 text-foreground uppercase tracking-wider mb-2">
+                  Where did you talk too much?
+                </label>
+                <textarea
+                  placeholder="Where did you dominate the conversation?"
+                  value={formData.whereTalkedTooMuch}
+                  onChange={(e) => setFormData({ ...formData, whereTalkedTooMuch: e.target.value })}
+                  rows={2}
+                  className="w-full px-3 py-2 border border-card-border rounded-lg text-sm placeholder:text-muted-foreground/50 focus:border-primary focus:ring-0 resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-600 text-foreground uppercase tracking-wider mb-2">
+                  Where did you avoid tension?
+                </label>
+                <textarea
+                  placeholder="Where did you sidestep difficult topics?"
+                  value={formData.whereAvoidedTension}
+                  onChange={(e) => setFormData({ ...formData, whereAvoidedTension: e.target.value })}
+                  rows={2}
                   className="w-full px-3 py-2 border border-card-border rounded-lg text-sm placeholder:text-muted-foreground/50 focus:border-primary focus:ring-0 resize-none"
                 />
               </div>

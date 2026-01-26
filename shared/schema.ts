@@ -591,6 +591,10 @@ export const encounters = pgTable("encounters", {
   result: text("result"), // What's next
   confidenceRating: integer("confidence_rating"), // 1-5
   myThoughts: text("my_thoughts"), // Self-review: what I did well, what to adjust
+  // Coaching Reflections
+  whereFlinched: text("where_flinched"), // Where did prospect show resistance?
+  whereTalkedTooMuch: text("where_talked_too_much"), // Where did affiliate dominate conversation?
+  whereAvoidedTension: text("where_avoided_tension"), // Where did affiliate sidestep difficult topics?
   // Legacy
   notes: text("notes"),
   status: encounterStatusEnum("status").notNull().default("prospect"),
@@ -620,6 +624,9 @@ export const insertEncounterSchema = createInsertSchema(encounters)
     result: z.string().optional(),
     confidenceRating: z.number().min(1).max(5).optional(),
     myThoughts: z.string().optional(),
+    whereFlinched: z.string().optional(),
+    whereTalkedTooMuch: z.string().optional(),
+    whereAvoidedTension: z.string().optional(),
   });
 
 // Leads - Parent created account with affiliate's code

@@ -27,6 +27,7 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [location, setLocation] = useState("");
   // Use URL param if available, otherwise use passed prop
   const [code, setCode] = useState(affiliateCode || urlAffiliateCode);
   const [role] = useState<Role>(defaultRole);
@@ -131,6 +132,7 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
           role,
           first_name: firstName,
           last_name: lastName,
+          location: location,
           affiliate_code: code || null,
           tracking_source: urlTrackingSource || 'organic',
           tracking_campaign: urlTrackingCampaign || null,
@@ -286,21 +288,18 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
               />
             </div>
 
-            {defaultRole === "parent" && !urlAffiliateCode && (
-              <div className="space-y-2">
-                <Label htmlFor="code" style={{ color: "#1A1A1A" }}>
-                  Enter Affiliate Code for Priority Placement
-                </Label>
-                <Input
-                  id="code"
-                  type="text"
-                  placeholder="e.g., AFIX123456"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.toUpperCase())}
-                  className="rounded-lg border-gray-200 focus:border-[#E63946] focus:ring-[#E63946]"
-                />
-              </div>
-            )}
+            <div className="space-y-2">
+              <Label htmlFor="location" style={{ color: "#1A1A1A" }}>Location / City *</Label>
+              <Input 
+                id="location" 
+                type="text" 
+                placeholder="e.g., San Francisco, CA" 
+                value={location} 
+                onChange={(e) => setLocation(e.target.value)} 
+                required 
+                className="rounded-lg border-gray-200 focus:border-[#E63946] focus:ring-[#E63946]"
+              />
+            </div>
           </>
         )}
 
