@@ -27,7 +27,6 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [location, setLocation] = useState("");
   // Use URL param if available, otherwise use passed prop
   const [code, setCode] = useState(affiliateCode || urlAffiliateCode);
   const [role] = useState<Role>(defaultRole);
@@ -38,6 +37,72 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
   const redirectByRole = (role: Role) => {
     const dashboardRoute = getDefaultDashboardRoute(role);
     window.location.href = dashboardRoute;
+  };
+
+  // Google OAuth login handler
+  const handleGoogleLogin = async () => {
+    console.log("🔵 Google OAuth button clicked");
+    console.log("  Role:", role);
+    console.log("  Mode:", mode);
+    console.log("  Default Role:", defaultRole);
+    
+    setLoading(true);
+    try {
+      // Store the intended role and mode in sessionStorage so callback knows what to do
+      sessionStorage.setItem('oauth_role', role);
+      sessionStorage.setItem('oauth_mode', mode);
+      if (code && defaultRole === 'parent') {
+        sessionStorage.setItem('oauth_affiliate_code', code);
+      }
+      if (urlTrackingSource) {
+        sessionStorage.setItem('oauth_tracking_source', urlTrackingSource);
+      }
+      if (urlTrackingCampaign) {
+        sessionStorage.setItem('oauth_tracking_campaign', urlTrackingCampaign);
+      }
+      
+      console.log("  Stored in sessionStorage - role:", role, "mode:", mode);
+      
+      const redirectUrl = `${window.location.origin}/auth/callback`;
+      console.log("  Redirect URL:", redirectUrl);
+      console.log("  Calling supabase.auth.signInWithOAuth...");
+      
+      const { error } = await supabase.auth.signInWithOAuth({ 
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+          // Pass role in OAuth metadata for new signups
+          scopes: 'email profile'
+        }
+      });
+      
+      console.log("  OAuth response received, error:", error);
+      
+      if (error) {
+        console.error("❌ Google OAuth error:", error);
+        toast({
+          title: "Google Login Error",
+          description: error.message,
+          variant: "destructive",
+        });
+        setLoading(false);
+      } else {
+        console.log("✅ OAuth initiated successfully - should redirect to Google");
+      }
+      // Don't set loading to false here - user is being redirected
+    } catch (err: any) {
+      console.error("❌ Exception in handleGoogleLogin:", err);
+      toast({
+        title: "Error",
+        description: err.message || "Failed to start Google login",
+        variant: "destructive",
+      });
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -66,7 +131,6 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
           role,
           first_name: firstName,
           last_name: lastName,
-          location: location,
           affiliate_code: code || null,
           tracking_source: urlTrackingSource || 'organic',
           tracking_campaign: urlTrackingCampaign || null,
@@ -223,22 +287,7 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="location" style={{ color: "#1A1A1A" }}>Location / City *</Label>
-              <Input 
-                id="location" 
-                type="text" 
-                placeholder="e.g., San Francisco, CA" 
-                value={location} 
-                onChange={(e) => setLocation(e.target.value)} 
-                required 
-                className="rounded-lg border-gray-200 focus:border-[#E63946] focus:ring-[#E63946]"
-              />
-            </div>
-          </>
-        )}
-
-        <div className="space-y-2">
-          <Label htmlFor="email" style={{ color: "#1A1A1A" }}>Email</Label>
+              <Label htmlFor="email" style={{ color: "#1A1A1A" }}>Email</Label>
           <Input 
             id="email" 
             type="email" 
