@@ -289,13 +289,12 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
             {defaultRole === "parent" && !urlAffiliateCode && (
               <div className="space-y-2">
                 <Label htmlFor="code" style={{ color: "#1A1A1A" }}>
-                  Affiliate Code
-                  <span className="ml-1" style={{ color: "#A0A0A0" }}>(optional)</span>
+                  Enter Affiliate Code for Priority Placement
                 </Label>
                 <Input
                   id="code"
                   type="text"
-                  placeholder="e.g., AFIX123456 (leave blank if you don't have one)"
+                  placeholder="e.g., AFIX123456"
                   value={code}
                   onChange={(e) => setCode(e.target.value.toUpperCase())}
                   className="rounded-lg border-gray-200 focus:border-[#E63946] focus:ring-[#E63946]"
