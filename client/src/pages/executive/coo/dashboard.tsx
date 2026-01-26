@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Users, Mail, Trash2, Archive } from "lucide-react";
+import { Plus, Users, Mail, Trash2, Archive, TrendingUp, ChevronDown, ChevronUp } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import {
   Dialog,
@@ -43,6 +43,7 @@ export default function COODashboard() {
   const [showPodForm, setShowPodForm] = useState(false);
   const [podName, setPodName] = useState("");
   const [showDeletedPods, setShowDeletedPods] = useState(false);
+  const [expandedSalesStats, setExpandedSalesStats] = useState(false);
 
   // Fetch all pods
   const { data: pods = [], isLoading: podsLoading, error: podsError } = useQuery<any[]>({
@@ -59,6 +60,12 @@ export default function COODashboard() {
   // Fetch all TDs
   const { data: tds = [], isLoading: tdsLoading, error: tdsError } = useQuery<any[]>({
     queryKey: ["/api/coo/tds"],
+    enabled: isAuthenticated && !authLoading,
+  });
+
+  // Fetch sales stats
+  const { data: salesStats = null, isLoading: salesStatsLoading } = useQuery<any>({
+    queryKey: ["/api/coo/sales-stats"],
     enabled: isAuthenticated && !authLoading,
   });
 
@@ -182,6 +189,150 @@ export default function COODashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-8">
+        {/* Sales Overview Section */}
+        <section>
+          <Card className="border">
+            <CardHeader 
+              className="cursor-pointer hover:bg-gray-50"
+              onClick={() => setExpandedSalesStats(!expandedSalesStats)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <TrendingUp className="w-5 h-5 text-green-600" />
+                  <div>
+                    <CardTitle>Sales & Affiliate Overview</CardTitle>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Track leads, conversions, and affiliate performance
+                    </p>
+                  </div>
+                </div>
+                {expandedSalesStats ? (
+                  <ChevronUp className="w-5 h-5" />
+                ) : (
+                  <ChevronDown className="w-5 h-5" />
+                )}
+              </div>
+            </CardHeader>
+            
+            {expandedSalesStats && (
+              <CardContent className="space-y-6 pt-6">
+                {salesStatsLoading ? (
+                  <p className="text-muted-foreground">Loading sales stats...</p>
+                ) : salesStats ? (
+                  <>
+                    {/* Overall Stats Grid */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground uppercase">Affiliates</p>
+                        <p className="text-2xl sm:text-3xl font-bold">{salesStats.totalAffiliates}</p>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground uppercase">Encounters</p>
+                        <p className="text-2xl sm:text-3xl font-bold">{salesStats.totalEncounters}</p>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground uppercase">Total Leads</p>
+                        <p className="text-2xl sm:text-3xl font-bold">{salesStats.totalLeads}</p>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground uppercase">Total Closes</p>
+                        <p className="text-2xl sm:text-3xl font-bold">{salesStats.totalCloses}</p>
+                      </div>
+                    </div>
+
+                    {/* Lead Breakdown */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t">
+                      <div className="space-y-3">
+                        <h3 className="font-semibold text-sm">Lead Breakdown</h3>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Affiliate Leads</span>
+                            <Badge variant="default">{salesStats.leadBreakdown.affiliate}</Badge>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Organic Leads</span>
+                            <Badge variant="secondary">{salesStats.leadBreakdown.organic}</Badge>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Other Leads</span>
+                            <Badge variant="outline">{salesStats.leadBreakdown.other}</Badge>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Close Breakdown */}
+                      <div className="space-y-3">
+                        <h3 className="font-semibold text-sm">Close Breakdown</h3>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Affiliate Closes</span>
+                            <Badge className="bg-green-600">{salesStats.closeBreakdown.affiliate}</Badge>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Organic Closes</span>
+                            <Badge className="bg-blue-600">{salesStats.closeBreakdown.organic}</Badge>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Conversion Rate</span>
+                            <Badge variant="outline">{salesStats.conversionRate}%</Badge>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Conversion Metrics */}
+                      <div className="space-y-3">
+                        <h3 className="font-semibold text-sm">Efficiency</h3>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Avg per Affiliate</span>
+                            <span className="font-medium">
+                              {salesStats.totalAffiliates > 0 
+                                ? (salesStats.totalLeads / salesStats.totalAffiliates).toFixed(1)
+                                : 0} leads
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Lead to Close</span>
+                            <span className="font-medium">{salesStats.conversionRate}%</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Affiliate Rankings */}
+                    {salesStats.affiliateDetails && salesStats.affiliateDetails.length > 0 && (
+                      <div className="pt-4 border-t space-y-3">
+                        <h3 className="font-semibold text-sm">Top Affiliates</h3>
+                        <div className="space-y-2">
+                          {salesStats.affiliateDetails.slice(0, 5).map((aff: any, idx: number) => (
+                            <div key={aff.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
+                              <div>
+                                <p className="font-medium">{idx + 1}. {aff.name}</p>
+                                <p className="text-xs text-muted-foreground">{aff.email}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-semibold">{aff.totalLeads} leads</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {aff.totalCloses} closes ({aff.conversionRate}%)
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        {salesStats.affiliateDetails.length > 5 && (
+                          <p className="text-xs text-muted-foreground text-center pt-2">
+                            +{salesStats.affiliateDetails.length - 5} more affiliates
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </>
+                ) : null}
+              </CardContent>
+            )}
+          </Card>
+        </section>
+
         {/* Pods Section - VIEW ONLY */}
         <section>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">

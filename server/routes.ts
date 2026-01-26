@@ -1347,6 +1347,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  // Get COO sales & affiliate overview stats
+  app.get(
+    "/api/coo/sales-stats",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        // Get all affiliates
+        const affiliates = await storage.getUsersByRole("affiliate");
+        
+        // Get all encounters, leads, and closes - query all records
+        const { data: encounters = [] } = await supabase
+          .from("encounters")
+          .select("*");
+        
+        const { data: leads = [] } = await supabase
+          .from("leads")
+          .select("*");
+        
+        const { data: closes = [] } = await supabase
+          .from("closes")
+          .select("*");
+        
+        // Break down by tracking source
+        const affiliateLeads = leads.filter((l: any) => l.tracking_source === "affiliate").length;
+        const organicLeads = leads.filter((l: any) => l.tracking_source === "organic").length;
+        const otherLeads = leads.length - affiliateLeads - organicLeads;
+        
+        const affiliateCloses = closes.filter((c: any) => {
+          const lead = leads.find((l: any) => l.user_id === c.parent_id);
+          return lead?.tracking_source === "affiliate";
+        }).length;
+        
+        const organicCloses = closes.filter((c: any) => {
+          const lead = leads.find((l: any) => l.user_id === c.parent_id);
+          return lead?.tracking_source === "organic";
+        }).length;
+        
+        // Affiliate details
+        const affiliateDetails = affiliates.map(aff => {
+          const affLeads = leads.filter((l: any) => l.affiliate_id === aff.id);
+          const affCloses = closes.filter((c: any) => 
+            affLeads.some((l: any) => l.user_id === c.parent_id)
+          );
+          
+          return {
+            id: aff.id,
+            name: aff.name || aff.email,
+            email: aff.email,
+            totalLeads: affLeads.length,
+            totalCloses: affCloses.length,
+            conversionRate: affLeads.length > 0 
+              ? Math.round((affCloses.length / affLeads.length) * 100) 
+              : 0,
+          };
+        });
+        
+        // Overall stats
+        res.json({
+          totalAffiliates: affiliates.length,
+          totalEncounters: encounters.length,
+          totalLeads: leads.length,
+          totalCloses: closes.length,
+          leadBreakdown: {
+            affiliate: affiliateLeads,
+            organic: organicLeads,
+            other: otherLeads,
+          },
+          closeBreakdown: {
+            affiliate: affiliateCloses,
+            organic: organicCloses,
+          },
+          conversionRate: leads.length > 0 
+            ? Math.round((closes.length / leads.length) * 100)
+            : 0,
+          affiliateDetails: affiliateDetails.sort((a, b) => b.totalLeads - a.totalLeads),
+        });
+      } catch (error) {
+        console.error("Error fetching sales stats:", error);
+        res.status(500).json({ message: "Failed to fetch sales stats" });
+      }
+    }
+  );
+
   // Get applications (verified and unverified tutors)
   app.get(
     "/api/coo/applications",
