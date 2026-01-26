@@ -1388,9 +1388,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
         });
         
-        // Only return affiliate data
+        // Organic leads (affiliate_id is null)
+        const organicLeads = leads.filter((l: any) => l.affiliate_id === null);
+        const organicCloses = closes.filter((c: any) => 
+          organicLeads.some((l: any) => l.user_id === c.parent_id)
+        );
+        
+        const organicStats = {
+          id: "organic",
+          name: "Organic Traffic",
+          email: "Direct signups",
+          totalLeads: organicLeads.length,
+          totalCloses: organicCloses.length,
+          conversionRate: organicLeads.length > 0 
+            ? Math.round((organicCloses.length / organicLeads.length) * 100) 
+            : 0,
+          isOrganic: true,
+        };
+        
+        // Combine affiliate and organic details, sort by leads
+        const allDetails = [
+          ...affiliateDetails,
+          ...(organicLeads.length > 0 ? [organicStats] : [])
+        ].sort((a, b) => b.totalLeads - a.totalLeads);
+        
+        // Only return affiliate data + organic
         res.json({
-          affiliateDetails: affiliateDetails.sort((a, b) => b.totalLeads - a.totalLeads),
+          affiliateDetails: allDetails,
         });
       } catch (error) {
         console.error("Error fetching sales stats:", error);
@@ -1480,6 +1504,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error("Error fetching closes:", error);
         res.status(500).json({ message: "Failed to fetch closes" });
+      }
+    }
+  );
+
+  // Get organic leads (affiliate_id = null)
+  app.get(
+    "/api/organic/leads",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const supabase = (storage as any).supabase;
+        
+        const { data: leads } = await supabase
+          .from("leads")
+          .select("*")
+          .is("affiliate_id", null)
+          .order("created_at", { ascending: false });
+        
+        res.json(leads || []);
+      } catch (error) {
+        console.error("Error fetching organic leads:", error);
+        res.status(500).json({ message: "Failed to fetch organic leads" });
+      }
+    }
+  );
+
+  // Get organic closes (from organic leads only)
+  app.get(
+    "/api/organic/closes",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const supabase = (storage as any).supabase;
+        
+        // Get organic leads (affiliate_id = null)
+        const { data: organicLeads = [] } = await supabase
+          .from("leads")
+          .select("*")
+          .is("affiliate_id", null);
+        
+        // Get closes where parent_id matches any organic lead
+        const parentIds = organicLeads.map((l: any) => l.user_id);
+        let query = supabase.from("closes").select("*");
+        
+        if (parentIds.length > 0) {
+          query = query.in("parent_id", parentIds);
+        } else {
+          return res.json([]);
+        }
+        
+        const { data: closes } = await query.order("created_at", { ascending: false });
+        
+        res.json(closes || []);
+      } catch (error) {
+        console.error("Error fetching organic closes:", error);
+        res.status(500).json({ message: "Failed to fetch organic closes" });
       }
     }
   );

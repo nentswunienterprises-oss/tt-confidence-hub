@@ -240,6 +240,27 @@ export async function setupAuth(app: Express) {
         }
       }
 
+      // If no affiliate code (organic signup), still create a lead to track them
+      if (!affiliate_code) {
+        try {
+          console.log("📊 Organic signup - creating organic lead");
+          // Create a lead with null affiliate_id to track organic signups
+          await supabase
+            .from("leads")
+            .insert({
+              affiliate_id: null, // null for organic leads
+              user_id: user.id,
+              encounter_id: null,
+              tracking_source: tracking_source || 'organic',
+              tracking_campaign: tracking_campaign || null,
+            });
+          console.log("✅ Organic lead created for user:", user.id);
+        } catch (error) {
+          console.error("❌ Error creating organic lead:", error);
+          // Don't fail signup if organic lead creation fails
+        }
+      }
+
       // Set session with user data and token
       console.log("💾 BEFORE setting session values:");
       console.log("  authData.user.id:", authData.user.id);

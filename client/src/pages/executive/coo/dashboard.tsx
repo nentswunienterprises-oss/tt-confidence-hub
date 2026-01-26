@@ -202,20 +202,35 @@ export default function COODashboard() {
 
       setLoading(true);
       try {
-        // Fetch affiliate-specific data
-        const [encRes, leadRes, closeRes] = await Promise.all([
-          fetch(`/api/affiliate/${affiliate.id}/encounters`, { credentials: 'include' }),
-          fetch(`/api/affiliate/${affiliate.id}/leads`, { credentials: 'include' }),
-          fetch(`/api/affiliate/${affiliate.id}/closes`, { credentials: 'include' }),
-        ]);
+        // Check if this is organic traffic
+        if (affiliate.isOrganic) {
+          const [leadRes, closeRes] = await Promise.all([
+            fetch(`/api/organic/leads`, { credentials: 'include' }),
+            fetch(`/api/organic/closes`, { credentials: 'include' }),
+          ]);
 
-        const encData = await encRes.json();
-        const leadData = await leadRes.json();
-        const closeData = await closeRes.json();
+          const leadData = await leadRes.json();
+          const closeData = await closeRes.json();
 
-        setEncounters(encData || []);
-        setLeads(leadData || []);
-        setCloses(closeData || []);
+          setEncounters([]);
+          setLeads(leadData || []);
+          setCloses(closeData || []);
+        } else {
+          // Fetch affiliate-specific data
+          const [encRes, leadRes, closeRes] = await Promise.all([
+            fetch(`/api/affiliate/${affiliate.id}/encounters`, { credentials: 'include' }),
+            fetch(`/api/affiliate/${affiliate.id}/leads`, { credentials: 'include' }),
+            fetch(`/api/affiliate/${affiliate.id}/closes`, { credentials: 'include' }),
+          ]);
+
+          const encData = await encRes.json();
+          const leadData = await leadRes.json();
+          const closeData = await closeRes.json();
+
+          setEncounters(encData || []);
+          setLeads(leadData || []);
+          setCloses(closeData || []);
+        }
         setExpanded(true);
       } catch (error) {
         console.error("Error loading affiliate data:", error);
@@ -233,7 +248,12 @@ export default function COODashboard() {
         >
           <div className="flex items-center justify-between">
             <div className="flex-1">
-              <CardTitle className="text-lg">{affiliate.name}</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-lg">{affiliate.name}</CardTitle>
+                {affiliate.isOrganic && (
+                  <Badge variant="secondary" className="text-xs">Organic</Badge>
+                )}
+              </div>
               <p className="text-xs text-muted-foreground mt-1">{affiliate.email}</p>
             </div>
             <div className="flex items-center gap-4 text-right">
