@@ -82,7 +82,7 @@ export async function setupAuth(app: Express) {
   // Sign up endpoint
   app.post("/api/auth/signup", async (req: Request, res: Response) => {
     try {
-      const { email, password, role = "tutor", first_name = "", last_name = "", affiliate_code = null } = req.body;
+      const { email, password, role = "tutor", first_name = "", last_name = "", affiliate_code = null, tracking_source = "organic", tracking_campaign = null } = req.body;
 
       console.log("═══════════════════════════════════════");
       console.log("📝 SIGNUP REQUEST RECEIVED");
@@ -93,6 +93,8 @@ export async function setupAuth(app: Express) {
       console.log("  First Name:", first_name);
       console.log("  Last Name:", last_name);
       console.log("  Affiliate Code:", affiliate_code);
+      console.log("  Tracking Source:", tracking_source);
+      console.log("  Tracking Campaign:", tracking_campaign);
       console.log("═══════════════════════════════════════");
 
       if (!email || !password) {
@@ -215,12 +217,18 @@ export async function setupAuth(app: Express) {
             if (encounter) {
               console.log("✅ Found encounter for parent email:", email, "encounter_id:", encounter.id);
               // Create a lead linked to this encounter
-              await storage.createLead(affiliateId, user.id, encounter.id);
+              await storage.createLead(affiliateId, user.id, encounter.id, {
+                trackingSource: tracking_source,
+                trackingCampaign: tracking_campaign,
+              });
               console.log("✅ Lead created (with encounter) for affiliate:", affiliateId, "encounter_id:", encounter.id);
             } else {
               console.log("ℹ️  No prior encounter found for parent email:", email);
               // Still create a lead - parent is now a lead even without prior encounter
-              await storage.createLead(affiliateId, user.id);
+              await storage.createLead(affiliateId, user.id, undefined, {
+                trackingSource: tracking_source,
+                trackingCampaign: tracking_campaign,
+              });
               console.log("✅ Lead created (new signup) for affiliate:", affiliateId, "user_id:", user.id);
             }
           } else {

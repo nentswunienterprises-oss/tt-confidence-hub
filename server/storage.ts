@@ -1442,13 +1442,17 @@ export class SupabaseStorage implements IStorage {
     if (error) throw error;
   }
 
-  async createLead(affiliateId: string, parentId: string, encounterId?: string): Promise<any> {
+  async createLead(affiliateId: string, parentId: string, encounterId?: string, trackingData?: { trackingSource?: string; trackingCampaign?: string }): Promise<any> {
     const { data, error} = await supabase
       .from("leads")
       .insert({
         affiliate_id: affiliateId,
         user_id: parentId,
         encounter_id: encounterId || null,
+        tracking_source: trackingData?.trackingSource || 'affiliate',
+        tracking_campaign: trackingData?.trackingCampaign || null,
+        tracking_source: trackingData?.trackingSource || 'affiliate',
+        tracking_campaign: trackingData?.trackingCampaign || null,
       })
       .select()
       .single();

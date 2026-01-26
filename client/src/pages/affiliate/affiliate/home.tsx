@@ -30,6 +30,18 @@ export default function AffiliateDashboard() {
       });
     }
   };
+  
+  const handleCopyLink = () => {
+    if (codeData?.code) {
+      // Build the affiliate link with the actual domain
+      const affiliateLink = `https://territorialtutoring.co.za?affiliate=${codeData.code}`;
+      navigator.clipboard.writeText(affiliateLink);
+      toast({
+        title: "Link Copied!",
+        description: "Share this link with parents to track referrals",
+      });
+    }
+  };
 
   const firstName = user?.firstName || user?.name?.split(' ')[0] || 'Affiliate';
 
@@ -68,23 +80,39 @@ export default function AffiliateDashboard() {
           </Card>
         </div>
 
-        {/* Affiliate Code Section */}
+        {/* Affiliate Link Section */}
         <Card className="p-4 sm:p-8 border shadow-sm">
           <div className="space-y-3 sm:space-y-4">
             <div>
-              <h2 className="text-base sm:text-xl font-bold mb-1 sm:mb-2">Your Unique Affiliate Code</h2>
+              <h2 className="text-base sm:text-xl font-bold mb-1 sm:mb-2">Your Affiliate Link</h2>
               <p className="text-xs sm:text-base text-muted-foreground">
-                Share this code with parents so you get credited when they sign up.
+                Share this link with parents. They'll see our full service before signing up.
               </p>
             </div>
-            <div className="flex gap-2">
-              <div className="flex-1 bg-background border rounded-lg p-3 sm:p-4 text-center font-mono font-bold text-base sm:text-lg">
-                {codeData?.code || "Loading..."}
+            <div className="flex gap-2 flex-col sm:flex-row">
+              <div className="flex-1 bg-background border rounded-lg p-3 sm:p-4 text-left font-mono text-xs sm:text-sm break-all">
+                {codeData?.code ? `territorialtutoring.co.za?affiliate=${codeData.code}` : "Loading..."}
               </div>
-              <Button onClick={handleCopyCode} variant="default" size="default" className="gap-2 px-3 sm:px-4">
+              <Button onClick={handleCopyLink} variant="default" size="default" className="gap-2 px-3 sm:px-4 whitespace-nowrap">
                 <Copy className="w-4 h-4" />
-                <span className="hidden sm:inline">Copy</span>
+                <span className="hidden sm:inline">Copy Link</span>
+                <span className="sm:hidden">Copy</span>
               </Button>
+            </div>
+            
+            {/* Show code for reference */}
+            <div className="pt-3 sm:pt-4 border-t">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-2">Your affiliate code (for reference):</p>
+              <div className="flex gap-2">
+                <div className="flex-1 bg-background border rounded-lg p-3 sm:p-4 text-center font-mono font-bold text-base sm:text-lg">
+                  {codeData?.code || "Loading..."}
+                </div>
+                <Button onClick={handleCopyCode} variant="outline" size="default" className="gap-2 px-3 sm:px-4">
+                  <Copy className="w-4 h-4" />
+                  <span className="hidden sm:inline">Copy Code</span>
+                  <span className="sm:hidden">Copy</span>
+                </Button>
+              </div>
             </div>
           </div>
         </Card>

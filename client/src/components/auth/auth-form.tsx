@@ -17,11 +17,18 @@ interface AuthFormProps {
 }
 
 export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: AuthFormProps) {
+  // Read all tracking parameters from URL (silent tracking)
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlAffiliateCode = urlParams.get('affiliate') || '';
+  const urlTrackingSource = urlParams.get('utm_source') || '';
+  const urlTrackingCampaign = urlParams.get('utm_campaign') || '';
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [code, setCode] = useState(affiliateCode);
+  // Use URL param if available, otherwise use passed prop
+  const [code, setCode] = useState(affiliateCode || urlAffiliateCode);
   const [role] = useState<Role>(defaultRole);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -46,6 +53,12 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
       sessionStorage.setItem('oauth_mode', mode);
       if (code && defaultRole === 'parent') {
         sessionStorage.setItem('oauth_affiliate_code', code);
+      }
+      if (urlTrackingSource) {
+        sessionStorage.setItem('oauth_tracking_source', urlTrackingSource);
+      }
+      if (urlTrackingCampaign) {
+        sessionStorage.setItem('oauth_tracking_campaign', urlTrackingCampaign);
       }
       
       console.log("  Stored in sessionStorage - role:", role, "mode:", mode);
@@ -102,7 +115,8 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
       
       // Validate affiliate code for parents - required to track which affiliate recruited them
       // DEVELOPMENT: Allow "TEST" as bypass for testing
-      if (mode === "signup" && role === "parent" && !code.trim() && code !== "TEST") {
+      // If code came from URL (not user-entered), it's already validated
+      if (mode === "signup" && role === "parent" && !code.trim() && code !== "TEST" && !urlAffiliateCode) {
         toast({
           title: "Error",
           description: "Affiliate code is required to complete your signup",
@@ -129,6 +143,8 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
           first_name: firstName,
           last_name: lastName,
           affiliate_code: code || null,
+          tracking_source: urlTrackingSource || 'organic',
+          tracking_campaign: urlTrackingCampaign || null,
         };
         console.log("📤 Sending signup body:", JSON.stringify(body, null, 2));
         
@@ -281,7 +297,7 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
               />
             </div>
 
-            {defaultRole === "parent" && (
+            {defaultRole === "parent" && !urlAffiliateCode && (
               <div className="space-y-2">
                 <Label htmlFor="code" style={{ color: "#1A1A1A" }}>
                   Affiliate Code

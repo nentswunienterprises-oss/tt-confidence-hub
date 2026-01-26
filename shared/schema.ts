@@ -633,6 +633,9 @@ export const leads = pgTable("leads", {
     .references(() => users.id)
     .unique(), // One lead per parent
   encounterId: varchar("encounter_id").references(() => encounters.id),
+  // Tracking fields - how lead was acquired
+  trackingSource: varchar("tracking_source"), // "affiliate", "blog", "school", "media", "organic"
+  trackingCampaign: varchar("tracking_campaign"), // Campaign identifier (for analytics)
   convertedAt: timestamp("converted_at").defaultNow().notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

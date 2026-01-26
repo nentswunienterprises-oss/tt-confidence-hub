@@ -8,6 +8,22 @@ import { ArrowRight, BookOpen, Users, Zap, Check, Heart, Sparkles, Star } from "
 
 function PortalLanding() {
   const navigate = useNavigate();
+  
+  // Read affiliate and tracking parameters from URL (silent tracking)
+  const urlParams = new URLSearchParams(window.location.search);
+  const affiliateCode = urlParams.get('affiliate') || '';
+  const trackingSource = urlParams.get('utm_source') || '';
+  const trackingCampaign = urlParams.get('utm_campaign') || '';
+  
+  // Build signup URL with all parameters preserved
+  const buildSignupUrl = () => {
+    const params = new URLSearchParams();
+    if (affiliateCode) params.append('affiliate', affiliateCode);
+    if (trackingSource) params.append('utm_source', trackingSource);
+    if (trackingCampaign) params.append('utm_campaign', trackingCampaign);
+    return `/client/signup${params.toString() ? `?${params.toString()}` : ''}`;
+  };
+  
   // If you use useAuth or other hooks, initialize them here
   // const { ... } = useAuth();
 
@@ -45,14 +61,14 @@ function PortalLanding() {
               variant="ghost"
               className="text-sm sm:text-base font-medium hover:bg-transparent px-2 sm:px-4"
               style={{ color: "#1A1A1A" }}
-              onClick={() => navigate("/client/signup")}
+              onClick={() => navigate("/client/signin")}
             >
               Log In
             </Button>
             <Button
               className="text-sm sm:text-base font-semibold px-4 sm:px-6 py-2 sm:py-5 rounded-full border-0 shadow-lg hover:shadow-xl transition-all"
               style={{ backgroundColor: "#E63946", color: "white" }}
-              onClick={() => navigate("/client/signup")}
+              onClick={() => navigate(buildSignupUrl())}
             >
               <span className="hidden sm:inline">Get Started</span>
               <span className="sm:hidden">Start</span>
@@ -98,7 +114,7 @@ function PortalLanding() {
                 size="lg"
                 className="text-base sm:text-lg font-semibold px-6 sm:px-8 py-4 sm:py-6 rounded-full shadow-lg hover:shadow-xl transition-all border-0"
                 style={{ backgroundColor: "#E63946", color: "white" }}
-                onClick={() => navigate("/client/signup")}
+                onClick={() => navigate(buildSignupUrl())}
               >
                 Start Your Child’s Journey
                 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
