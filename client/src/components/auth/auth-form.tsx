@@ -113,20 +113,9 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
       // Clear any cached user data from previous sessions to prevent role mixing
       clearAllCache();
       
-      // Validate affiliate code for parents - required to track which affiliate recruited them
-      // DEVELOPMENT: Allow "TEST" as bypass for testing
-      // If code came from URL (not user-entered), it's already validated
-      if (mode === "signup" && role === "parent" && !code.trim() && code !== "TEST" && !urlAffiliateCode) {
-        toast({
-          title: "Error",
-          description: "Affiliate code is required to complete your signup",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return;
-      }
-
-      let redirectUrl = "/";
+      // Affiliate code is now optional - organic signups allowed
+      // Code can come from URL (silent) or be entered manually
+      // No validation needed - empty code will be sent as null to backend
 
       if (mode === "signup") {
         // Call backend signup endpoint
