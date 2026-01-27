@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Check, ArrowRight, ArrowLeft } from "lucide-react";
+import { Check, ArrowRight, ArrowLeft, Brain, Crown, Heart } from "lucide-react";
 import { useEffect } from "react";
 import { TTLogo } from "@/components/TTLogo";
 
