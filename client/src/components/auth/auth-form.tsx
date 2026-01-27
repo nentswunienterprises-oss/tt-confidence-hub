@@ -321,6 +321,8 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
         >
           {loading ? "Please wait..." : mode === "signup" ? "Sign Up" : "Login"}
         </Button>
+          </>
+        )}
       </form>
     </div>
   );

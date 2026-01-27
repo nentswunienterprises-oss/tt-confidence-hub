@@ -6,7 +6,7 @@ const faqs = [
     answer: (
       <>
         <p>Territorial Tutoring is not a tutoring company.</p>
-        <p>It is a performance-conditioning system for students in Grades 6–9.<br />
+        <p>It is a performance-conditioning system for students in Grades 6–7.<br />
         Math is the arena.<br />
         Response under pressure is the skill.</p>
         <p>We train how students respond when:</p>
@@ -15,7 +15,7 @@ const faqs = [
           <li>time runs out</li>
           <li>certainty disappears</li>
         </ul>
-        <p>Marks improve as a consequence of that training — not the other way around.</p>
+        <p>Marks improve as a consequence of that training - not the other way around.</p>
       </>
     ),
   },
@@ -79,7 +79,7 @@ const faqs = [
     question: "Do you help with homework and school content?",
     answer: (
       <>
-        <p>Yes — but that’s not the focus.</p>
+        <p>Yes but that’s not the focus.</p>
         <p>Homework and school topics are used as training material, not the goal.</p>
         <p>We care less about finishing a worksheet and more about:</p>
         <ul>
@@ -88,7 +88,7 @@ const faqs = [
           <li>how they recover from mistakes</li>
         </ul>
         <p>The content changes.<br />
-        The response standard does not.</p>
+        The response standard and pressure-preparing environment does not.</p>
       </>
     ),
   },
@@ -99,7 +99,7 @@ const faqs = [
         <p>Math anxiety is not treated as a condition.</p>
         <p>It is treated as an untrained response to uncertainty.</p>
         <p>We do not avoid pressure.<br />
-        We introduce it gradually, deliberately, and safely — until it no longer controls behaviour.</p>
+        We introduce it gradually, deliberately, and safely - until it no longer controls behaviour.</p>
         <p>Students don’t become “less anxious” because we talk about feelings.<br />
         They become calm because they know what to do next, even when unsure.</p>
       </>
@@ -166,10 +166,10 @@ const faqs = [
     ),
   },
   {
-    question: "How do you measure progress if it’s not just marks?",
+    question: "How do you measure progress if it’s not just about marks?",
     answer: (
       <>
-        <p>Marks are tracked — but they’re lagging indicators.</p>
+        <p>Marks are tracked -0.02em but they’re lagging indicators.</p>
         <p>We track:</p>
         <ul>
           <li>response speed under uncertainty</li>
@@ -194,7 +194,7 @@ const faqs = [
         <p>There are no instant transformations.</p>
         <p>Typically:</p>
         <ul>
-          <li>behavioural shifts appear within 2–4 weeks</li>
+          <li>behavioural shifts appear within 2-4 weeks</li>
           <li>academic improvement follows after</li>
         </ul>
         <p>TT is not a quick fix.<br />
@@ -291,9 +291,6 @@ export default function FAQPage() {
             <div className="mt-2 text-gray-700 text-base">{faq.answer}</div>
           </details>
         ))}
-      </div>
-      <div className="mt-10 text-center">
-        <a href="/faq" className="inline-block text-blue-600 hover:underline text-lg font-medium">Questions? We're here to help</a>
       </div>
     </div>
   );
