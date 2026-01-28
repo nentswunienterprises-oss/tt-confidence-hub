@@ -44,8 +44,6 @@ export function ExecutiveAuthForm({ role, mode, setMode }: ExecutiveAuthFormProp
     try {
       // Clear any cached user data from previous sessions to prevent role mixing
       clearAllCache();
-      
-      let redirectUrl = "/";
 
       if (mode === "signup") {
         // Call backend signup endpoint with executive role
@@ -135,6 +133,11 @@ export function ExecutiveAuthForm({ role, mode, setMode }: ExecutiveAuthFormProp
 
       // Wait for session to be fully established
       await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Ensure redirectUrl is defined before redirecting
+      if (!redirectUrl) {
+        throw new Error("Could not determine redirect location");
+      }
 
       // Force page reload to ensure fresh session
       window.location.href = redirectUrl;

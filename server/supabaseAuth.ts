@@ -288,6 +288,14 @@ export async function setupAuth(app: Express) {
         redirectUrl = getDefaultDashboardRoute((user?.role as any) || "tutor");
       }
 
+      // Validate redirectUrl is set
+      if (!redirectUrl) {
+        console.error("❌ CRITICAL: redirectUrl is undefined!");
+        console.error("  User role:", user?.role);
+        console.error("  User:", user);
+        return res.status(500).json({ message: "Failed to determine redirect location" });
+      }
+
       console.log("✅ Final Redirect URL determined:", redirectUrl, "for role:", user?.role);
 
       // Save session before sending response
@@ -469,9 +477,17 @@ export async function setupAuth(app: Express) {
         redirectUrl = "/client/parent/gateway";
       } else if (user.role === "td") {
         const podId = await storage.checkTDPodAssignment(user.email!);
-        redirectUrl = podId ? getDefaultDashboardRoute("td") : "/td/no-pod";
+        redirectUrl = podId ? getDefaultDashboardRoute("td") : "/operational/td/no-pod";
       } else {
         redirectUrl = getDefaultDashboardRoute((user.role as any) || "tutor");
+      }
+
+      // Validate redirectUrl is set
+      if (!redirectUrl) {
+        console.error("❌ CRITICAL: redirectUrl is undefined!");
+        console.error("  User role:", user.role);
+        console.error("  User:", user);
+        return res.status(500).json({ message: "Failed to determine redirect location" });
       }
 
       console.log("📍 Final redirect URL:", redirectUrl, "for role:", user.role);

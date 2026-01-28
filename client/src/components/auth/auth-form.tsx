@@ -109,6 +109,8 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
     e.preventDefault();
     setLoading(true);
 
+    let redirectUrl: string | undefined;
+
     try {
       // Clear any cached user data from previous sessions to prevent role mixing
       clearAllCache();
@@ -233,6 +235,13 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
 
       // Wait for session to fully propagate before redirecting
       await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Ensure redirectUrl is defined before redirecting
+      if (!redirectUrl) {
+        console.error("❌ Redirect URL is undefined, role:", role);
+        throw new Error("Could not determine redirect location. Please contact support.");
+      }
+      
       window.location.href = redirectUrl;
     } catch (err: any) {
       toast({
@@ -257,7 +266,6 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-                {/* ...existing code... */}
         {mode === "signup" && (
           <>
             <div className="space-y-2">
@@ -288,30 +296,62 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
 
             <div className="space-y-2">
               <Label htmlFor="email" style={{ color: "#1A1A1A" }}>Email</Label>
-          <Input 
-            id="email" 
-            type="email" 
-            placeholder="your@email.com" 
-            value={email} 
-            onChange={(e) => setEmail(e.target.value)} 
-            required 
-            className="rounded-lg border-gray-200 focus:border-[#E63946] focus:ring-[#E63946]"
-          />
-        </div>
+              <Input 
+                id="email" 
+                type="email" 
+                placeholder="your@email.com" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+                required 
+                className="rounded-lg border-gray-200 focus:border-[#E63946] focus:ring-[#E63946]"
+              />
+            </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="password" style={{ color: "#1A1A1A" }}>Password</Label>
-          <Input 
-            id="password" 
-            type="password" 
-            placeholder="Enter your password" 
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)} 
-            required 
-            minLength={6} 
-            className="rounded-lg border-gray-200 focus:border-[#E63946] focus:ring-[#E63946]"
-          />
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="password" style={{ color: "#1A1A1A" }}>Password</Label>
+              <Input 
+                id="password" 
+                type="password" 
+                placeholder="Enter your password" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                required 
+                minLength={6} 
+                className="rounded-lg border-gray-200 focus:border-[#E63946] focus:ring-[#E63946]"
+              />
+            </div>
+          </>
+        )}
+
+        {mode === "login" && (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="login-email" style={{ color: "#1A1A1A" }}>Email</Label>
+              <Input 
+                id="login-email" 
+                type="email" 
+                placeholder="your@email.com" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+                required 
+                className="rounded-lg border-gray-200 focus:border-[#E63946] focus:ring-[#E63946]"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="login-password" style={{ color: "#1A1A1A" }}>Password</Label>
+              <Input 
+                id="login-password" 
+                type="password" 
+                placeholder="Enter your password" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                required 
+                className="rounded-lg border-gray-200 focus:border-[#E63946] focus:ring-[#E63946]"
+              />
+            </div>
+          </>
+        )}
 
         <Button 
           type="submit" 
@@ -321,8 +361,6 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
         >
           {loading ? "Please wait..." : mode === "signup" ? "Sign Up" : "Login"}
         </Button>
-          </>
-        )}
       </form>
     </div>
   );

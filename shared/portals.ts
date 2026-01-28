@@ -178,7 +178,12 @@ export function isPortalPublic(portal: Portal): boolean {
 /**
  * Get the default dashboard route for a role
  */
-export function getDefaultDashboardRoute(role: Role): string {
+export function getDefaultDashboardRoute(role: Role | undefined | null): string {
+  if (!role) {
+    console.warn("⚠️  No role provided to getDefaultDashboardRoute, defaulting to tutor");
+    return "/operational/tutor/gateway";
+  }
+
   // Role-specific routes
   const roleSpecificRoutes: Record<Role, string> = {
     parent: "/client/parent/gateway", // Parents go to gateway first, not dashboard
@@ -186,13 +191,19 @@ export function getDefaultDashboardRoute(role: Role): string {
     affiliate: "/affiliate/affiliate/home",
     od: "/affiliate/od/dashboard",
     tutor: "/operational/tutor/gateway", // Tutors go to gateway first
-    td: "/td/overview",
-    coo: "/coo/dashboard",
+    td: "/operational/td/dashboard",
+    coo: "/executive/coo/dashboard",
     hr: "/executive/hr/dashboard",
     ceo: "/executive/ceo/dashboard",
   };
   
-  return roleSpecificRoutes[role];
+  const route = roleSpecificRoutes[role];
+  if (!route) {
+    console.warn("⚠️  Unknown role:", role, "- defaulting to tutor");
+    return "/operational/tutor/gateway";
+  }
+  
+  return route;
 }
 
 /**
