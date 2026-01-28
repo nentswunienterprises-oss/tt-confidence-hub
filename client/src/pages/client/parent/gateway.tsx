@@ -368,7 +368,7 @@ export default function ParentGateway() {
             <CardHeader className="px-4 sm:px-6">
               <CardTitle className="text-lg sm:text-xl" style={{ color: "#1A1A1A" }}>Application Form</CardTitle>
               <CardDescription className="text-sm" style={{ color: "#5A5A5A" }}>
-                Territorial Tutoring – Founding Cohort Application
+                Territorial Tutoring - Founding Cohort Application
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 sm:space-y-8 px-4 sm:px-6">
