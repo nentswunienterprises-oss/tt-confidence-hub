@@ -95,19 +95,6 @@ export default function ClientSignup() {
             <AuthForm mode={mode} defaultRole="parent" />
           </div>
 
-          {/* Method pillars (hidden on mobile) */}
-          <div className="hidden md:flex items-center justify-center gap-2 pt-2 sm:pt-4">
-            {["Connection", "Mastery", "Reflection"].map((pillar) => (
-              <div 
-                key={pillar}
-                className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-medium"
-                style={{ backgroundColor: "#FFF0F0", color: "#E63946" }}
-              >
-                {pillar}
-              </div>
-            ))}
-          </div>
-
           {/* Footer Info */}
           <p className="text-xs text-center" style={{ color: "#5A5A5A" }}>
             By signing up, you agree to our{" "}

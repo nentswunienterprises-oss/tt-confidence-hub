@@ -18,6 +18,7 @@ if (typeof window !== 'undefined') {
 // General Pages
 import Landing from "@/pages/landing";
 import PortalLanding from "@/pages/portal-landing";
+import OnlineTutorsWanted from "@/pages/onlinetutors-wanted";
 import AuthPage from "@/pages/auth";
 import AuthCallback from "@/pages/auth-callback";
 import Home from "@/pages/home";
@@ -125,6 +126,7 @@ function Router() {
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/terms-of-use" element={<TermsOfUse />} />
       <Route path="/faq" element={<FAQPage />} />
+      <Route path="/onlinetutors-wanted" element={<OnlineTutorsWanted />} />
 
       {/* ==================== CLIENT PORTAL ==================== */}
       {/* Client Signup */}
