@@ -180,7 +180,7 @@ export default function OperationalSignup() {
             </h2>
             <p style={{ color: "#5A5A5A" }}>
               {selectedRole === "tutor"
-                ? "Help students build confidence and transform their relationship with math."
+                ? "Help transform students and condition reliable responses to math pressure."
                 : "Lead a territory and oversee multiple pods and tutors."}
             </p>
           </div>
