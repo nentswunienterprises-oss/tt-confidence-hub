@@ -113,7 +113,7 @@ export default function OnlineTutorsWanted() {
           </Card>
 
           <Card className="p-6 max-w-xl mx-auto" style={{ backgroundColor: "white" }}>
-            <h3 className="text-lg font-bold mb-3">NOT FOR THOSE WHO</h3>
+            <h3 className="text-lg font-bold mb-3">NOT FOR THOSE WHO:</h3>
             <ul className="space-y-3 text-sm" style={{ color: "#5A5A5A" }}>
               <li>• Prefer improvising or “teaching their own way”</li>
               <li>• Dislike structure or feedback</li>
