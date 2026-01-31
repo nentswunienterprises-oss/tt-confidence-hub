@@ -49,7 +49,7 @@ export default function OnlineTutorsWanted() {
           </h1>
 
           <p className="max-w-2xl mx-auto text-base sm:text-lg mt-6" style={{ color: "#5A5A5A" }}>
-            We run a structured online math mentorship operation and we’re selecting a small number of disciplined Grade 10 students to train as <strong>System Executors</strong> - not casual tutors - with real accountability and earning potential.
+            We run a structured online math mentorship operation and we’re selecting a small number of disciplined Grade 10 students to train as <strong>System Executors</strong>  not casual tutors - with real accountability and earning potential.
           </p>
 
 
@@ -113,7 +113,7 @@ export default function OnlineTutorsWanted() {
           </Card>
 
           <Card className="p-6 max-w-xl mx-auto" style={{ backgroundColor: "white" }}>
-            <h3 className="text-lg font-bold mb-3">WHO THIS IS NOT FOR</h3>
+            <h3 className="text-lg font-bold mb-3">NOT FOR THOSE WHO</h3>
             <ul className="space-y-3 text-sm" style={{ color: "#5A5A5A" }}>
               <li>• Prefer improvising or “teaching their own way”</li>
               <li>• Dislike structure or feedback</li>
