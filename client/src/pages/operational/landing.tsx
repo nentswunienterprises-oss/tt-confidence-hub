@@ -114,7 +114,7 @@ export default function OperationalLanding() {
                 Tutor
               </h3>
               <p className="mb-6" style={{ color: "#5A5A5A" }}>
-                Lead student Confidence Pods and transform mathematical confidence
+                Lead student Response Pods and train execution
               </p>
               
               <p className="text-xs font-semibold uppercase tracking-wide mb-4" style={{ color: "#E63946" }}>
