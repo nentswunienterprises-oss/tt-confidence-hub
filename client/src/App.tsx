@@ -19,6 +19,7 @@ if (typeof window !== 'undefined') {
 import Landing from "@/pages/landing";
 import PortalLanding from "@/pages/portal-landing";
 import OnlineTutorsWanted from "@/pages/onlinetutors-wanted";
+import OnlineTutorsWantedPlain from "@/pages/onlinetutorswanted";
 import AuthPage from "@/pages/auth";
 import AuthCallback from "@/pages/auth-callback";
 import Home from "@/pages/home";
@@ -127,6 +128,7 @@ function Router() {
       <Route path="/terms-of-use" element={<TermsOfUse />} />
       <Route path="/faq" element={<FAQPage />} />
       <Route path="/onlinetutors-wanted" element={<OnlineTutorsWanted />} />
+      <Route path="/onlinetutorswanted" element={<OnlineTutorsWantedPlain />} />
 
       {/* ==================== CLIENT PORTAL ==================== */}
       {/* Client Signup */}

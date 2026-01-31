@@ -37,7 +37,7 @@ export default function OnlineTutorsWanted() {
         <div className="text-center mb-6 sm:mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
             <span className="text-sm font-medium" style={{ color: "#E63946" }}>
-              Territorial Tutoring SA - Online Math Tutor
+              Territorial Tutoring SA (Pty) Ltd
             </span>
           </div>
 
