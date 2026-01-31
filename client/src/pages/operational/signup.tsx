@@ -6,7 +6,12 @@ import { useNavigate } from "react-router-dom";
 import { Brain, Crown, ArrowLeft, ArrowRight, Check } from "lucide-react";
 
 export default function OperationalSignup() {
-  const [selectedRole, setSelectedRole] = useState<"tutor" | "td" | null>(null);
+  // Allow deep-linking to a specific role using `?role=tutor` or `?role=td`
+  const urlParams = new URLSearchParams(window.location.search);
+  const roleParam = urlParams.get("role");
+  const initialRole = roleParam === "tutor" ? "tutor" : roleParam === "td" ? "td" : null;
+
+  const [selectedRole, setSelectedRole] = useState<"tutor" | "td" | null>(initialRole);
   const [mode, setMode] = useState<"signup" | "login">("signup");
   const navigate = useNavigate();
 
@@ -132,15 +137,17 @@ export default function OperationalSignup() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-6 md:px-12 h-20 flex items-center justify-between">
-          <Button
-            variant="ghost"
-            className="text-base font-medium hover:bg-transparent flex items-center gap-2"
-            style={{ color: "#1A1A1A" }}
-            onClick={() => setSelectedRole(null)}
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Roles
-          </Button>
+          {!initialRole && (
+            <Button
+              variant="ghost"
+              className="text-base font-medium hover:bg-transparent flex items-center gap-2"
+              style={{ color: "#1A1A1A" }}
+              onClick={() => setSelectedRole(null)}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Roles
+            </Button>
+          )}
           
           <span className="text-xl lg:text-2xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
             {selectedRole === "tutor" ? "TUTOR" : "TERRITORY DIRECTOR"}

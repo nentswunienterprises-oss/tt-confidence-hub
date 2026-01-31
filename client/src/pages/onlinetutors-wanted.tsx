@@ -8,6 +8,7 @@ export default function OnlineTutorsWanted() {
   const navigate = useNavigate();
 
   const applyPath = "/operational/signup";
+  const tutorApplyPath = `${applyPath}?role=tutor`; // deep-link directly to tutor signup
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#FFF5ED" }}>
@@ -20,7 +21,7 @@ export default function OnlineTutorsWanted() {
             <Button
               className="text-sm sm:text-base font-semibold px-4 sm:px-6 py-2 sm:py-3 rounded-full border-0 shadow-md"
               style={{ backgroundColor: "#E63946", color: "white" }}
-              onClick={() => navigate("/operational/signup")}
+              onClick={() => navigate(tutorApplyPath)}
               aria-label="Start application"
             >
               Start <ArrowRight className="w-4 h-4 ml-1" />
@@ -48,8 +49,7 @@ export default function OnlineTutorsWanted() {
           </h1>
 
           <p className="max-w-2xl mx-auto text-base sm:text-lg mt-6" style={{ color: "#5A5A5A" }}>
-            Territorial Tutoring is a premium online math mentorship company. We don’t do chaotic tutoring. We don’t improvise. We don’t babysit.
-            We build calm, confident, high-performing math students through a structured, system-driven approach.
+            We run a structured online math mentorship operation and we’re selecting a small number of disciplined Grade 10 students to train as <strong>System Executors</strong> - not casual tutors - with real accountability and earning potential.
           </p>
 
 
@@ -145,7 +145,7 @@ export default function OnlineTutorsWanted() {
           <Card className="p-6" style={{ backgroundColor: "white" }}>
             <h4 className="font-semibold mb-2">HOW TO APPLY</h4>
             <p className="text-sm mb-4 break-words whitespace-normal" style={{ color: "#5A5A5A" }}>
-              Apply <button type="button" aria-label="Apply at Territorial Tutoring operational signup" className="text-blue-600 hover:underline inline p-0 m-0" onClick={() => navigate(applyPath)}>here</button> (create an account and apply to get started)
+              Apply <button type="button" aria-label="Apply at Territorial Tutoring operational signup" className="text-blue-600 hover:underline inline p-0 m-0" onClick={() => navigate(tutorApplyPath)}>here</button> (create an account and apply to get started)
             </p>
             <p className="text-sm" style={{ color: "#5A5A5A" }}>
               Shortlisted applicants will be invited to a screening process and training cohort.
