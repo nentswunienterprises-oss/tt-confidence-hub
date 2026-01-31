@@ -95,8 +95,8 @@ export default function ClientSignup() {
             <AuthForm mode={mode} defaultRole="parent" />
           </div>
 
-          {/* Method pillars */}
-          <div className="flex items-center justify-center gap-2 pt-2 sm:pt-4">
+          {/* Method pillars (hidden on mobile) */}
+          <div className="hidden md:flex items-center justify-center gap-2 pt-2 sm:pt-4">
             {["Connection", "Mastery", "Reflection"].map((pillar) => (
               <div 
                 key={pillar}

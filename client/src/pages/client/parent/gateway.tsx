@@ -10,6 +10,21 @@ import { getQueryFn } from "@/lib/queryClient";
 import ProposalView from "@/components/parent/ProposalView";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "@/lib/config";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
 
 interface EnrollmentStatus {
   status: "not_enrolled" | "awaiting_assignment" | "assigned" | "proposal_sent" | "session_booked" | "report_received" | "confirmed";
@@ -24,6 +39,10 @@ export default function ParentGateway() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isProcessingProposal, setIsProcessingProposal] = useState(false);
   const [parentCode, setParentCode] = useState<string | null>(null);
+  const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
+  const [proposedDate, setProposedDate] = useState<Date | undefined>(undefined);
+  const [proposedTime, setProposedTime] = useState<string>("");
+  const [isSubmittingSession, setIsSubmittingSession] = useState(false);
   const justSubmittedRef = useRef(false);
 
   // Fetch current user data
@@ -44,6 +63,13 @@ export default function ParentGateway() {
     queryKey: ["/api/parent/assigned-tutor"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: !!user && (enrollmentStatus?.status === "assigned" || enrollmentStatus?.status === "proposal_sent"),
+  });
+
+  // Fetch intro session confirmation if status is assigned
+  const { data: introSessionConfirmation } = useQuery<any>({
+    queryKey: ["/api/parent/intro-session-confirmation"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    enabled: !!user && enrollmentStatus?.status === "assigned",
   });
 
   // Fetch proposal if available
@@ -274,10 +300,9 @@ export default function ParentGateway() {
 
       toast({
         title: "Proposal Declined",
-        description: "Your tutor has been notified and may send a revised proposal.",
+        description: "We'll look for another tutor match.",
       });
 
-      // Refresh enrollment status
       queryClient.invalidateQueries({ queryKey: ["/api/parent/enrollment-status"] });
     } catch (error) {
       console.error("Error declining proposal:", error);
@@ -288,6 +313,57 @@ export default function ParentGateway() {
       });
     } finally {
       setIsProcessingProposal(false);
+    }
+  };
+
+  const handleProposeIntroSession = async () => {
+    if (!proposedDate || !proposedTime) {
+      toast({
+        title: "Missing Information",
+        description: "Please select both a date and time.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmittingSession(true);
+    try {
+      const response = await fetch(`${API_URL}/api/parent/intro-session/propose`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          proposedDate: format(proposedDate, "yyyy-MM-dd"),
+          proposedTime,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to propose session");
+      }
+
+      toast({
+        title: "Session Proposed",
+        description: "Your tutor will confirm the time shortly.",
+      });
+
+      setIsBookingDialogOpen(false);
+      setProposedDate(undefined);
+      setProposedTime("");
+
+      // Refresh confirmation status
+      queryClient.invalidateQueries({ queryKey: ["/api/parent/intro-session-confirmation"] });
+    } catch (error) {
+      console.error("Error proposing session:", error);
+      toast({
+        title: "Error",
+        description: "Failed to propose session. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmittingSession(false);
     }
   };
 
@@ -725,50 +801,105 @@ export default function ParentGateway() {
               )}
               {enrollmentStatus.status === "assigned" && (
                 <>
-                  <h3 className="text-base sm:text-xl font-semibold mb-4">
-                    You're in. Here's your tutor.
-                  </h3>
-                  
-                  {assignedTutor && (
-                    <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4">
-                        {assignedTutor.profile_image_url ? (
-                          <img 
-                            src={assignedTutor.profile_image_url} 
-                            alt={assignedTutor.name}
-                            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover flex-shrink-0"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                        ) : null}
-                        <div className="flex-1 text-center sm:text-left">
-                          <h3 className="font-semibold text-base sm:text-lg">{assignedTutor.name}</h3>
-                          {assignedTutor.bio && (
-                            <p className="text-xs sm:text-sm text-muted-foreground mt-1">{assignedTutor.bio}</p>
-                          )}
-                          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-2 text-xs sm:text-sm text-muted-foreground">
-                            {assignedTutor.email && (
-                              <div>📧 {assignedTutor.email}</div>
-                            )}
-                            {assignedTutor.phone && (
-                              <div>📱 {assignedTutor.phone}</div>
-                            )}
+                  {introSessionConfirmation?.confirmed ? (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <p className="font-medium text-green-900">Your session has been confirmed</p>
+                      <p className="text-sm text-green-700 mt-2">You will receive an introductory report and proposal here after you've had your intro session</p>
+                    </div>
+                  ) : (
+                    <>
+                      {assignedTutor && (
+                        <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                          <p className="text-xs sm:text-sm font-medium text-amber-900 mb-3">Your Tutor</p>
+                          <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+                            {assignedTutor.profile_image_url ? (
+                              <img 
+                                src={assignedTutor.profile_image_url} 
+                                alt={assignedTutor.name}
+                                className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover flex-shrink-0"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                              />
+                            ) : null}
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-base sm:text-lg">{assignedTutor.name}</h3>
+                              {assignedTutor.email && (
+                                <p className="text-sm text-amber-900 mt-1">📧 {assignedTutor.email}</p>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
+                      )}
+
+                      {introSessionConfirmation?.proposed && !introSessionConfirmation?.confirmed ? (
+                        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <div className="w-6 h-6 border-3 border-blue-400/30 border-t-blue-600 rounded-full animate-spin flex-shrink-0" />
+                            <div>
+                              <p className="font-medium text-blue-900">Waiting for tutor confirmation</p>
+                              <p className="text-sm text-blue-700 mt-1">Your proposed time: {introSessionConfirmation?.proposedDate} at {introSessionConfirmation?.proposedTime}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p className="font-medium text-blue-900 mb-4">Schedule your introductory session</p>
+                            <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
+                              <DialogTrigger asChild>
+                                <Button variant="outline" className="w-full">Book Introductory Session</Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Propose Session Time</DialogTitle>
+                                  <DialogDescription>
+                                    Select a date and time for your introductory session with {assignedTutor?.name}
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                  <div>
+                                    <label className="text-sm font-medium mb-2 block">Date</label>
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <Button variant="outline" className="w-full justify-start text-left">
+                                          {proposedDate ? format(proposedDate, "PPP") : "Pick a date"}
+                                        </Button>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                          mode="single"
+                                          selected={proposedDate}
+                                          onSelect={setProposedDate}
+                                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                        />
+                                      </PopoverContent>
+                                    </Popover>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium">Time</label>
+                                    <Input
+                                      type="time"
+                                      value={proposedTime}
+                                      onChange={(e) => setProposedTime(e.target.value)}
+                                      className="mt-1"
+                                    />
+                                  </div>
+                                  <Button 
+                                    onClick={handleProposeIntroSession} 
+                                    disabled={isSubmittingSession}
+                                    className="w-full"
+                                  >
+                                    {isSubmittingSession ? "Proposing..." : "Propose Time"}
+                                  </Button>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          </div>
+                        </>
+                      )}
+                    </>
                   )}
-                  
-                  <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-6 h-6 border-3 border-blue-400/30 border-t-blue-600 rounded-full animate-spin flex-shrink-0" />
-                      <div>
-                        <p className="font-medium text-blue-900">Your tutor is building your training proposal...</p>
-                        <p className="text-sm text-blue-700 mt-1">Check back soon</p>
-                      </div>
-                    </div>
-                  </div>
                 </>
               )}
               {enrollmentStatus.status === "proposal_sent" && (

@@ -106,7 +106,7 @@ function PortalLanding() {
               <br />
               They struggle because pressure disrupts their response.
               <br /><br />
-              We train how students respond when math gets difficult, especially under pressure... until calm execution is normal.
+              TT focuses on how students respond when things gets hard, especially under pressure... until calm execution is normal for them.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 sm:pt-4">
@@ -200,10 +200,10 @@ function PortalLanding() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6" style={{ color: "#1A1A1A" }}>
-              What Your Child Becomes
+              Who Your Child Becomes
             </h2>
             <p className="text-base sm:text-lg" style={{ color: "#5A5A5A" }}>
-              Not what they receive, who they become.
+              
             </p>
           </div>
 
