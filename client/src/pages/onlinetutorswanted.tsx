@@ -185,7 +185,7 @@ export default function OnlineTutorsWantedPlain() {
           </p>
 
           <p className="mt-4 text-sm" style={{ color: "#5A5A5A" }}>
-            Apply <button type="button" aria-label="Apply at Territorial Tutoring operational signup" className="text-blue-600 hover:underline inline p-0 m-0" onClick={() => navigate(tutorApplyPath)}>here</button>
+            Apply <button type="button" aria-label="Apply at Territorial Tutoring operational signup" className="text-blue-600 hover:underline inline p-0 m-0" onClick={() => navigate(tutorApplyPath)}>Here</button>
           </p>
 
           <p className="mt-4 font-semibold" style={{ color: "#5A5A5A" }}>Selection is limited.
