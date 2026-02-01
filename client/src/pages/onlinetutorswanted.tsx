@@ -195,11 +195,13 @@ export default function OnlineTutorsWantedPlain() {
 
       </section>
 
-      {/* Mobile sticky CTA */}
-      <div className="fixed bottom-4 left-4 right-4 md:hidden z-50">
-        <Button className="w-full py-4 font-semibold rounded-full shadow-lg" style={{ backgroundColor: "#E63946", color: "white" }} onClick={() => navigate(tutorApplyPath)}>
-          Apply Now — Start Training
-        </Button>
+      {/* Mobile CTA at page end (non-sticky) */}
+      <div className="block md:hidden mt-6 mb-8 px-4 sm:px-0">
+        <div className="max-w-md mx-auto">
+          <Button className="w-full py-4 font-semibold rounded-full shadow-lg" style={{ backgroundColor: "#E63946", color: "white" }} onClick={() => navigate(tutorApplyPath)}>
+            Apply Now — Start Training
+          </Button>
+        </div>
       </div>
 
       {/* Footer (operational-landing style) */}
