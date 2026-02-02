@@ -290,17 +290,7 @@ function PortalLanding() {
                 </button>
               </div>
             </div>
-            <div className="space-y-3 sm:space-y-4">
-              <h4 className="font-semibold text-sm sm:text-base" style={{ color: "#1A1A1A" }}>Get Involved</h4>
-              <div className="space-y-2">
-                <button onClick={() => navigate("/operational/landing")} className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
-                  Become a Tutor
-                </button>
-                <button onClick={() => navigate("/affiliate/landing")} className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
-                  Affiliate Program
-                </button>
-              </div>
-            </div>
+
             <div className="space-y-3 sm:space-y-4 sm:col-span-2 md:col-span-1">
               <h4 className="font-semibold text-sm sm:text-base" style={{ color: "#1A1A1A" }}>Contact</h4>
               <a href="/faq" className="text-xs sm:text-sm block text-blue-600 hover:underline" style={{ color: "#2563eb" }}>

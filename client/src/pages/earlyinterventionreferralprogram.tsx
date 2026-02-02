@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { TerritorialTutoringLogoSVG } from "@/components/TerritorialTutoringLogoSVG";
 import { TTLogo } from "@/components/TTLogo";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 export default function EarlyInterventionReferralProgram() {
   useEffect(() => { window.scrollTo({ top: 0, behavior: 'instant' }); }, []);
@@ -11,6 +11,37 @@ export default function EarlyInterventionReferralProgram() {
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({ school: '', contact: '', email: '' });
   const [errors, setErrors] = useState<{[k:string]:string}>({});
+
+  const formRef = useRef<HTMLDivElement | null>(null);
+  const firstInputRef = useRef<HTMLInputElement | null>(null);
+  const submittedRef = useRef<HTMLDivElement | null>(null);
+
+  function handleOpenForm() {
+    setShowForm(true);
+    // If the form is already rendered, scroll and focus immediately
+    if (formRef.current) {
+      formRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      firstInputRef.current?.focus();
+    }
+  }
+
+  function handleHeaderClick() {
+    if (submitted) {
+      // Scroll to submitted confirmation
+      if (submittedRef.current) {
+        submittedRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    } else {
+      handleOpenForm();
+    }
+  }
+
+  useEffect(() => {
+    if (showForm && !submitted && formRef.current) {
+      formRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      firstInputRef.current?.focus();
+    }
+  }, [showForm, submitted]);
 
   // Responsive header logo width (larger on desktop, smaller on phones)
   const [logoWidth, setLogoWidth] = useState(() => {
@@ -70,18 +101,18 @@ export default function EarlyInterventionReferralProgram() {
             <Button
               className="hidden md:inline-flex text-sm sm:text-base font-semibold px-4 sm:px-6 py-2 sm:py-5 rounded-full border-0 shadow-lg hover:shadow-xl transition-all"
               style={{ backgroundColor: "#E63946", color: "white" }}
-              onClick={() => setShowForm(true)}
+              onClick={handleHeaderClick}
             >
-              Request Early-Intervention Pilot Access
+              Pilot Access
             </Button>
 
             <Button
               className="md:hidden text-sm font-semibold px-3 py-2 rounded-full border-0 shadow hover:shadow-sm transition-all"
               style={{ backgroundColor: "#E63946", color: "white" }}
-              onClick={() => setShowForm(true)}
-              aria-label="Request Pilot Access"
+              onClick={handleHeaderClick}
+              aria-label="Pilot Access"
             >
-              Request Pilot
+              Pilot Access
             </Button>
           </div>
         </div>
@@ -228,6 +259,10 @@ export default function EarlyInterventionReferralProgram() {
 
           <p className="mt-3"><strong>In simple terms:</strong></p>
           <p>We train how students respond when certainty disappears.</p>
+
+          <p className="mt-3">
+            <a href="/aboutTT" className="text-sm font-semibold text-[#E63946] hover:underline">Learn More</a>
+          </p>
         </Card>
 
         <Card className="p-4 sm:p-6 mb-6" style={{ backgroundColor: "white" }}>
@@ -316,21 +351,23 @@ export default function EarlyInterventionReferralProgram() {
           <p className="mt-3">That makes this responsible. That makes it institutional. That makes it necessary.</p>
         </Card>
 
-        <div className="text-center mt-6">
-          <Button size="lg" className="px-6 py-3 rounded-full font-semibold w-full sm:w-auto" style={{ backgroundColor: "#E63946", color: "white" }} onClick={() => setShowForm(true)}>
-            Request Early-Intervention Pilot Access
-          </Button>
-        </div>
+        {!submitted && (
+          <div className="text-center mt-6">
+            <Button size="lg" className="px-6 py-3 rounded-full font-semibold w-full sm:w-auto" style={{ backgroundColor: "#E63946", color: "white" }} onClick={handleOpenForm}>
+              Pilot Access
+            </Button>
+          </div>
+        )} 
 
         {/* Inline form (minimal fields) */}
         {showForm && !submitted && (
-          <div className="max-w-2xl mx-auto mt-8">
+          <div ref={formRef} className="max-w-2xl mx-auto mt-8">
             <Card className="p-4 sm:p-6" style={{ backgroundColor: "white" }}>
               <h3 className="text-lg font-bold mb-4">Request Early-Intervention Pilot Access</h3>
               <form onSubmit={handleSubmit}>
                 <div className="mb-4">
                   <label className="block text-sm font-medium mb-1">School name</label>
-                  <input value={form.school} onChange={e => setForm({...form, school: e.target.value})} className="w-full border rounded px-3 py-2" />
+                  <input ref={firstInputRef} value={form.school} onChange={e => setForm({...form, school: e.target.value})} className="w-full border rounded px-3 py-2" />
                   {errors.school && <div className="text-sm text-red-600 mt-1">{errors.school}</div>}
                 </div>
 
@@ -357,7 +394,7 @@ export default function EarlyInterventionReferralProgram() {
 
         {/* Submission confirmation */}
         {submitted && (
-          <div className="max-w-2xl mx-auto mt-8">
+          <div ref={submittedRef} className="max-w-2xl mx-auto mt-8">
             <Card className="p-4 sm:p-6" style={{ backgroundColor: "white" }}>
               <h3 className="text-lg font-bold mb-3">Submission Received</h3>
 
@@ -379,8 +416,8 @@ export default function EarlyInterventionReferralProgram() {
               <p className="mt-3">If approved, next steps will be outlined clearly before any activation.</p>
 
               <div className="mt-6 border-t pt-4 text-sm">
-                —<br />
-                Territorial Tutoring<br />
+                <br />
+                Territorial Tutoring SA<br />
                 Early Response-Conditioning Infrastructure for Schools
               </div>
             </Card>
