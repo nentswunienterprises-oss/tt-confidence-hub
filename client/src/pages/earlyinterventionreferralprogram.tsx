@@ -56,7 +56,9 @@ export default function EarlyInterventionReferralProgram() {
     <div className="min-h-screen" style={{ backgroundColor: "#FFF5ED" }}>
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 py-3 sm:py-4 flex items-center justify-between">
-          <TerritorialTutoringLogoSVG width={logoWidth} />
+          <div className="flex-shrink-0">
+            <TerritorialTutoringLogoSVG width={logoWidth} />
+          </div>
 
           <div className="hidden md:block">
             <span className="text-2xl lg:text-4xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
@@ -64,13 +66,22 @@ export default function EarlyInterventionReferralProgram() {
             </span>
           </div>
 
-          <div className="flex items-center">
+          <div className="flex items-center gap-3">
             <Button
-              className="text-sm sm:text-base font-semibold px-4 sm:px-6 py-2 sm:py-5 rounded-full border-0 shadow-lg hover:shadow-xl transition-all"
+              className="hidden md:inline-flex text-sm sm:text-base font-semibold px-4 sm:px-6 py-2 sm:py-5 rounded-full border-0 shadow-lg hover:shadow-xl transition-all"
               style={{ backgroundColor: "#E63946", color: "white" }}
               onClick={() => setShowForm(true)}
             >
               Request Early-Intervention Pilot Access
+            </Button>
+
+            <Button
+              className="md:hidden text-sm font-semibold px-3 py-2 rounded-full border-0 shadow hover:shadow-sm transition-all"
+              style={{ backgroundColor: "#E63946", color: "white" }}
+              onClick={() => setShowForm(true)}
+              aria-label="Request Pilot Access"
+            >
+              Request Pilot
             </Button>
           </div>
         </div>
