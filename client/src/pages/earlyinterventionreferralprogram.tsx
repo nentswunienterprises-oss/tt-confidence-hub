@@ -1,0 +1,376 @@
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { TerritorialTutoringLogoSVG } from "@/components/TerritorialTutoringLogoSVG";
+import { TTLogo } from "@/components/TTLogo";
+import { useEffect, useState } from "react";
+
+export default function EarlyInterventionReferralProgram() {
+  useEffect(() => { window.scrollTo({ top: 0, behavior: 'instant' }); }, []);
+
+  const [showForm, setShowForm] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [form, setForm] = useState({ school: '', contact: '', email: '' });
+  const [errors, setErrors] = useState<{[k:string]:string}>({});
+
+  function validate() {
+    const e: {[k:string]:string} = {};
+    if (!form.school.trim()) e.school = 'Required';
+    if (!form.contact.trim()) e.contact = 'Required';
+    if (!form.email.trim()) e.email = 'Required';
+    else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) e.email = 'Invalid email';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  }
+
+  function handleSubmit(e?: React.FormEvent) {
+    e?.preventDefault();
+    if (!validate()) return;
+    // Client-only: record submission state and show confirmation
+    setSubmitted(true);
+    setShowForm(false);
+  }
+
+  return (
+    <div className="min-h-screen" style={{ backgroundColor: "#FFF5ED" }}>
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
+          <TerritorialTutoringLogoSVG width={190} />
+
+          <div className="hidden md:block">
+            <span className="text-2xl lg:text-4xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
+              RESPONSE-FIRST TRAINING
+            </span>
+          </div>
+
+          <div className="flex items-center">
+            <Button
+              className="text-sm sm:text-base font-semibold px-4 sm:px-6 py-2 sm:py-5 rounded-full border-0 shadow-lg hover:shadow-xl transition-all"
+              style={{ backgroundColor: "#E63946", color: "white" }}
+              onClick={() => setShowForm(true)}
+            >
+              Request Early-Intervention Pilot Access
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <div className="h-16 sm:h-20" />
+
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 md:px-12 pt-8 sm:pt-12 md:pt-20 pb-20">
+        <div className="text-center mb-6 sm:mb-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
+            <span className="text-sm font-medium" style={{ color: "#E63946" }}>
+              Territorial Tutoring SA (Pty) Ltd
+            </span>
+          </div>
+
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight mt-6" style={{ color: "#1A1A1A" }}>
+            The Real Problem Primary Schools Are Facing
+            <div className="text-base sm:text-lg font-semibold mt-2" style={{ color: "#5A5A5A" }}>
+              (And Why It Shows Up Too Late)
+            </div>
+          </h1>
+        </div>
+
+        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
+          <p>
+            Primary schools do not primarily struggle with poor teaching, weak curriculum, or lack of resources.
+          </p>
+          <p className="mt-3">
+            They struggle with something quieter - and more dangerous.
+          </p>
+          <p className="mt-3">
+            Capable students who understand the work, but stop executing when pressure appears.
+          </p>
+          <p className="mt-3">
+            This is not a content problem.
+            It is a response problem.
+          </p>
+        </Card>
+
+        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
+          <h2 className="text-lg font-bold mb-3">What Schools Observe (But Can’t Systematically Fix)</h2>
+          <p>
+            By Grades 6–7, a familiar pattern emerges:
+          </p>
+          <ul className="list-disc pl-5 mt-2 space-y-2">
+            <li>Students answer confidently in class</li>
+            <li>Performance collapses in tests</li>
+            <li>Learners rush, freeze, or blank</li>
+            <li>Emotional responses spike after assessments</li>
+            <li>Parents report: “They knew it at home.”</li>
+          </ul>
+
+          <p className="mt-3">
+            This is often labelled as:
+          </p>
+          <ul className="list-disc pl-5 mt-2 space-y-2">
+            <li>Test anxiety</li>
+            <li>Careless mistakes</li>
+            <li>Need for more practice</li>
+          </ul>
+
+          <p className="mt-3">But these are symptoms, not causes.</p>
+        </Card>
+
+        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
+          <h2 className="text-lg font-bold mb-3">The Actual Failure Mode</h2>
+          <p>
+            The student’s response system is untrained.
+          </p>
+          <p className="mt-3">
+            When:
+          </p>
+          <ul className="list-disc pl-5 mt-2 space-y-2">
+            <li>Time pressure appears</li>
+            <li>Questions are worded differently</li>
+            <li>A step doesn’t look immediately familiar</li>
+          </ul>
+
+          <p className="mt-3">
+            The nervous system overrides cognition.
+          </p>
+
+          <p className="mt-3">At that moment:</p>
+          <ul className="list-disc pl-5 mt-2 space-y-2">
+            <li>Recall fragments</li>
+            <li>Reasoning slows or disappears</li>
+            <li>Execution breaks down</li>
+          </ul>
+
+          <p className="mt-3">
+            Not because the learner is weak -
+            but because they were never trained to operate under uncertainty.
+          </p>
+        </Card>
+
+        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
+          <h2 className="text-lg font-bold mb-3">Why Primary Schools Cannot Solve This Alone</h2>
+          <ul className="list-disc pl-5 mt-2 space-y-2">
+            <li><strong>Classroom scale</strong>
+              <div className="text-sm text-gray-600">One teacher cannot condition 30 individual response patterns.</div>
+            </li>
+            <li><strong>Curriculum pressure</strong>
+              <div className="text-sm text-gray-600">Schools must move forward, not sit inside discomfort.</div>
+            </li>
+            <li><strong>Assessment design</strong>
+              <div className="text-sm text-gray-600">Tests reveal breakdown - they do not train response to breakdown.</div>
+            </li>
+            <li><strong>Emotional constraints</strong>
+              <div className="text-sm text-gray-600">Schools are incentivised to soothe, not deliberately stress.</div>
+            </li>
+          </ul>
+
+          <p className="mt-3">So the issue is deferred. Quietly.</p>
+        </Card>
+
+        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
+          <h2 className="text-lg font-bold mb-3">What Happens If This Isn’t Addressed Early</h2>
+          <p>
+            Untrained response systems don’t disappear.
+            They compound.
+          </p>
+          <ul className="list-disc pl-5 mt-2 space-y-2">
+            <li>Avoidance patterns harden</li>
+            <li>Confidence erosion becomes identity</li>
+            <li>“I’m not a math person” replaces curiosity</li>
+          </ul>
+
+          <p className="mt-3">At that point, intervention is reactive - and expensive.</p>
+
+          <p className="mt-3">Primary schools feel this intuitively.</p>
+
+          <p className="mt-3"><em>“If only we could catch this earlier.”</em></p>
+        </Card>
+
+        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
+          <h2 className="text-lg font-bold mb-3">What Territorial Tutoring Actually Provides</h2>
+          <p>
+            Territorial Tutoring is not extra lessons.
+            It is not curriculum replacement.
+            It is not remedial tutoring.
+          </p>
+
+          <p className="mt-3">We provide a controlled response-conditioning program for capable students who underperform under pressure.</p>
+
+          <p className="mt-3"><strong>In simple terms:</strong></p>
+          <p>We train how students respond when certainty disappears.</p>
+        </Card>
+
+        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
+          <h2 className="text-lg font-bold mb-3">What That Looks Like in Practice</h2>
+          <ul className="list-disc pl-5 mt-2 space-y-2">
+            <li>Structured exposure to uncertainty</li>
+            <li>Timed problem environments</li>
+            <li>Controlled cognitive stress</li>
+            <li>Execution under pressure</li>
+            <li>Calm decision-making habits</li>
+          </ul>
+
+          <p className="mt-3">Always age-appropriate. Always psychologically safe. Never punitive.</p>
+
+          <p className="mt-3">This is training - not testing.</p>
+        </Card>
+
+        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
+          <h2 className="text-lg font-bold mb-3">Why This Is Appropriate to Outsource</h2>
+          <p>
+            Primary schools already outsource:
+          </p>
+          <ul className="list-disc pl-5 mt-2 space-y-2">
+            <li>Sports coaching</li>
+            <li>Speech and occupational therapy</li>
+            <li>Emotional support services</li>
+          </ul>
+
+          <p className="mt-3">Response-conditioning is similar in nature:</p>
+          <ul className="list-disc pl-5 mt-2 space-y-2">
+            <li>It does not interfere with curriculum</li>
+            <li>It does not alter teaching methods</li>
+            <li>It does not challenge assessment authority</li>
+            <li>It provides psychological infrastructure schools cannot build at scale.</li>
+          </ul>
+        </Card>
+
+        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
+          <h2 className="text-lg font-bold mb-3">What Schools Gain</h2>
+          <ol className="list-decimal pl-5 mt-2 space-y-2">
+            <li><strong>Early Intervention Without Stigma</strong>
+              <div className="text-sm text-gray-600">Students are not labelled as weak or behind. The focus is execution - not intelligence.</div>
+            </li>
+            <li><strong>Behavioural Change Teachers Notice</strong>
+              <div className="text-sm text-gray-600">Less panic. Slower, more deliberate work. Clearer written reasoning. Improved exam posture. These changes are visible quickly.</div>
+            </li>
+            <li><strong>Parent Pressure Relief</strong>
+              <div className="text-sm text-gray-600">Schools can confidently say: “We referred your child to a structured support program.” This reframes the conversation without defensiveness.</div>
+            </li>
+            <li><strong>Long-Term Outcome Protection</strong>
+              <div className="text-sm text-gray-600">Students transition to high school without panic-based habits. That reflects positively on the primary school - years later.</div>
+            </li>
+          </ol>
+        </Card>
+
+        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
+          <h3 className="text-lg font-bold mb-3">The Core Problem Statement</h3>
+          <p>
+            “Many capable students fail not because they don’t understand the work, but because they haven’t been trained to respond calmly when certainty disappears.”
+          </p>
+          <p className="mt-3">Everything we do ladders up to this.</p>
+        </Card>
+
+        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
+          <h3 className="text-lg font-bold mb-3">Pilot Structure (Low Risk, High Signal)</h3>
+          <ul className="list-disc pl-5 mt-2 space-y-2">
+            <li>Small cohort referral (10–20 students)</li>
+            <li>No administrative burden</li>
+            <li>No curriculum disruption</li>
+            <li>Observational feedback returned to the school</li>
+          </ul>
+
+          <p className="mt-3">This is not a commitment. It is a diagnostic collaboration.</p>
+        </Card>
+
+        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
+          <h3 className="text-lg font-bold mb-3">Our Position</h3>
+          <p>
+            We are not competing with schools.
+            We are not correcting schools.
+            We are not replacing schools.
+          </p>
+
+          <p className="mt-3">We exist to catch a failure mode early - before it becomes academic identity damage.</p>
+
+          <p className="mt-3">That makes this responsible. That makes it institutional. That makes it necessary.</p>
+        </Card>
+
+        <div className="text-center mt-6">
+          <Button size="lg" className="px-6 py-3 rounded-full font-semibold" style={{ backgroundColor: "#E63946", color: "white" }} onClick={() => setShowForm(true)}>
+            Request Early-Intervention Pilot Access
+          </Button>
+        </div>
+
+        {/* Inline form (minimal fields) */}
+        {showForm && !submitted && (
+          <div className="max-w-2xl mx-auto mt-8">
+            <Card className="p-6" style={{ backgroundColor: "white" }}>
+              <h3 className="text-lg font-bold mb-4">Request Early-Intervention Pilot Access</h3>
+              <form onSubmit={handleSubmit}>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-1">School name</label>
+                  <input value={form.school} onChange={e => setForm({...form, school: e.target.value})} className="w-full border rounded px-3 py-2" />
+                  {errors.school && <div className="text-sm text-red-600 mt-1">{errors.school}</div>}
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-1">Contact person + role</label>
+                  <input value={form.contact} onChange={e => setForm({...form, contact: e.target.value})} className="w-full border rounded px-3 py-2" />
+                  {errors.contact && <div className="text-sm text-red-600 mt-1">{errors.contact}</div>}
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-1">Email</label>
+                  <input value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="w-full border rounded px-3 py-2" />
+                  {errors.email && <div className="text-sm text-red-600 mt-1">{errors.email}</div>}
+                </div>
+
+                <div className="flex gap-3">
+                  <Button type="submit" className="px-4 py-2 rounded-full" style={{ backgroundColor: "#E63946", color: "white" }}>Submit</Button>
+                  <Button type="button" className="px-4 py-2 rounded-full border" onClick={() => setShowForm(false)}>Cancel</Button>
+                </div>
+              </form>
+            </Card>
+          </div>
+        )}
+
+        {/* Submission confirmation */}
+        {submitted && (
+          <div className="max-w-2xl mx-auto mt-8">
+            <Card className="p-6" style={{ backgroundColor: "white" }}>
+              <h3 className="text-lg font-bold mb-3">Submission Received</h3>
+
+              <p>Thank you for submitting your school’s interest in the TT Early Intervention Pilot.</p>
+
+              <p className="mt-3">Your request has been logged for internal review.</p>
+
+              <p className="mt-3">A member of the Territorial Tutoring team will contact the designated staff representative to:</p>
+              <ul className="list-disc pl-5 mt-2 space-y-2">
+                <li>Confirm suitability for the pilot</li>
+                <li>Clarify the referral framework</li>
+                <li>Align on term-based timing and scope</li>
+              </ul>
+
+              <p className="mt-3">This submission does not commit your school to participation.</p>
+
+              <p className="mt-3">It initiates a consideration process.</p>
+
+              <p className="mt-3">If approved, next steps will be outlined clearly before any activation.</p>
+
+              <div className="mt-6 border-t pt-4 text-sm">
+                —<br />
+                Territorial Tutoring<br />
+                Early Response-Conditioning Infrastructure for Schools
+              </div>
+            </Card>
+          </div>
+        )}
+
+      </section>
+
+      <footer className="py-12" style={{ backgroundColor: "#FFF5ED" }}>
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="flex items-center gap-2">
+              <TTLogo size="md" />
+            </div>
+            <p className="text-center md:text-right" style={{ color: "#5A5A5A" }}>
+              © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
+              <br />
+              <span className="text-sm">Early Response-Conditioning Infrastructure for Schools.</span>
+            </p>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+  );
+}
