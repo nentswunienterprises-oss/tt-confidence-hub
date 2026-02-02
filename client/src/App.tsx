@@ -27,6 +27,7 @@ import NotFound from "@/pages/not-found";
 import FAQPage from "@/pages/faq";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import TermsOfUse from "@/pages/terms-of-use";
+import EarlyInterventionReferralProgram from "@/pages/earlyinterventionreferralprogram";
 
 // Legacy Tutor Pages (kept for backwards compatibility)
 import TutorPod from "@/pages/operational/tutor/pod";
@@ -129,6 +130,7 @@ function Router() {
       <Route path="/faq" element={<FAQPage />} />
       <Route path="/onlinetutors-wanted" element={<OnlineTutorsWanted />} />
       <Route path="/onlinetutorswanted" element={<OnlineTutorsWantedPlain />} />
+      <Route path="/earlyinterventionreferralprogram" element={<EarlyInterventionReferralProgram />} />
 
       {/* ==================== CLIENT PORTAL ==================== */}
       {/* Client Signup */}
