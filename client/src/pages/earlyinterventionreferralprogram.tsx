@@ -12,6 +12,28 @@ export default function EarlyInterventionReferralProgram() {
   const [form, setForm] = useState({ school: '', contact: '', email: '' });
   const [errors, setErrors] = useState<{[k:string]:string}>({});
 
+  // Responsive header logo width (larger on desktop, smaller on phones)
+  const [logoWidth, setLogoWidth] = useState(() => {
+    if (typeof window === 'undefined') return 190;
+    const w = window.innerWidth;
+    if (w < 640) return 140;
+    if (w < 768) return 170;
+    if (w < 1024) return 190;
+    return 240;
+  });
+
+  useEffect(() => {
+    function update() {
+      const w = window.innerWidth;
+      if (w < 640) setLogoWidth(140);
+      else if (w < 768) setLogoWidth(170);
+      else if (w < 1024) setLogoWidth(190);
+      else setLogoWidth(240);
+    }
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
   function validate() {
     const e: {[k:string]:string} = {};
     if (!form.school.trim()) e.school = 'Required';
@@ -33,12 +55,12 @@ export default function EarlyInterventionReferralProgram() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#FFF5ED" }}>
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
-          <TerritorialTutoringLogoSVG width={190} />
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 py-3 sm:py-4 flex items-center justify-between">
+          <TerritorialTutoringLogoSVG width={logoWidth} />
 
           <div className="hidden md:block">
             <span className="text-2xl lg:text-4xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-              RESPONSE-FIRST TRAINING
+              RESPONSE-CONDITIONING
             </span>
           </div>
 
@@ -54,7 +76,7 @@ export default function EarlyInterventionReferralProgram() {
         </div>
       </header>
 
-      <div className="h-16 sm:h-20" />
+      <div className="h-20 sm:h-28" />
 
       <section className="max-w-5xl mx-auto px-4 sm:px-6 md:px-12 pt-8 sm:pt-12 md:pt-20 pb-20">
         <div className="text-center mb-6 sm:mb-10">
@@ -72,7 +94,7 @@ export default function EarlyInterventionReferralProgram() {
           </h1>
         </div>
 
-        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
+        <Card className="p-4 sm:p-6 mb-6" style={{ backgroundColor: "white" }}>
           <p>
             Primary schools do not primarily struggle with poor teaching, weak curriculum, or lack of resources.
           </p>
@@ -88,7 +110,7 @@ export default function EarlyInterventionReferralProgram() {
           </p>
         </Card>
 
-        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
+        <Card className="p-4 sm:p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h2 className="text-lg font-bold mb-3">What Schools Observe (But Can’t Systematically Fix)</h2>
           <p>
             By Grades 6–7, a familiar pattern emerges:
@@ -113,7 +135,7 @@ export default function EarlyInterventionReferralProgram() {
           <p className="mt-3">But these are symptoms, not causes.</p>
         </Card>
 
-        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
+        <Card className="p-4 sm:p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h2 className="text-lg font-bold mb-3">The Actual Failure Mode</h2>
           <p>
             The student’s response system is untrained.
@@ -144,7 +166,7 @@ export default function EarlyInterventionReferralProgram() {
           </p>
         </Card>
 
-        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
+        <Card className="p-4 sm:p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h2 className="text-lg font-bold mb-3">Why Primary Schools Cannot Solve This Alone</h2>
           <ul className="list-disc pl-5 mt-2 space-y-2">
             <li><strong>Classroom scale</strong>
@@ -164,7 +186,7 @@ export default function EarlyInterventionReferralProgram() {
           <p className="mt-3">So the issue is deferred. Quietly.</p>
         </Card>
 
-        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
+        <Card className="p-4 sm:p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h2 className="text-lg font-bold mb-3">What Happens If This Isn’t Addressed Early</h2>
           <p>
             Untrained response systems don’t disappear.
@@ -183,7 +205,7 @@ export default function EarlyInterventionReferralProgram() {
           <p className="mt-3"><em>“If only we could catch this earlier.”</em></p>
         </Card>
 
-        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
+        <Card className="p-4 sm:p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h2 className="text-lg font-bold mb-3">What Territorial Tutoring Actually Provides</h2>
           <p>
             Territorial Tutoring is not extra lessons.
@@ -197,7 +219,7 @@ export default function EarlyInterventionReferralProgram() {
           <p>We train how students respond when certainty disappears.</p>
         </Card>
 
-        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
+        <Card className="p-4 sm:p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h2 className="text-lg font-bold mb-3">What That Looks Like in Practice</h2>
           <ul className="list-disc pl-5 mt-2 space-y-2">
             <li>Structured exposure to uncertainty</li>
@@ -212,7 +234,7 @@ export default function EarlyInterventionReferralProgram() {
           <p className="mt-3">This is training - not testing.</p>
         </Card>
 
-        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
+        <Card className="p-4 sm:p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h2 className="text-lg font-bold mb-3">Why This Is Appropriate to Outsource</h2>
           <p>
             Primary schools already outsource:
@@ -232,7 +254,7 @@ export default function EarlyInterventionReferralProgram() {
           </ul>
         </Card>
 
-        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
+        <Card className="p-4 sm:p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h2 className="text-lg font-bold mb-3">What Schools Gain</h2>
           <ol className="list-decimal pl-5 mt-2 space-y-2">
             <li><strong>Early Intervention Without Stigma</strong>
@@ -250,7 +272,7 @@ export default function EarlyInterventionReferralProgram() {
           </ol>
         </Card>
 
-        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
+        <Card className="p-4 sm:p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h3 className="text-lg font-bold mb-3">The Core Problem Statement</h3>
           <p>
             “Many capable students fail not because they don’t understand the work, but because they haven’t been trained to respond calmly when certainty disappears.”
@@ -258,7 +280,7 @@ export default function EarlyInterventionReferralProgram() {
           <p className="mt-3">Everything we do ladders up to this.</p>
         </Card>
 
-        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
+        <Card className="p-4 sm:p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h3 className="text-lg font-bold mb-3">Pilot Structure (Low Risk, High Signal)</h3>
           <ul className="list-disc pl-5 mt-2 space-y-2">
             <li>Small cohort referral (10–20 students)</li>
@@ -270,7 +292,7 @@ export default function EarlyInterventionReferralProgram() {
           <p className="mt-3">This is not a commitment. It is a diagnostic collaboration.</p>
         </Card>
 
-        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
+        <Card className="p-4 sm:p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h3 className="text-lg font-bold mb-3">Our Position</h3>
           <p>
             We are not competing with schools.
@@ -284,7 +306,7 @@ export default function EarlyInterventionReferralProgram() {
         </Card>
 
         <div className="text-center mt-6">
-          <Button size="lg" className="px-6 py-3 rounded-full font-semibold" style={{ backgroundColor: "#E63946", color: "white" }} onClick={() => setShowForm(true)}>
+          <Button size="lg" className="px-6 py-3 rounded-full font-semibold w-full sm:w-auto" style={{ backgroundColor: "#E63946", color: "white" }} onClick={() => setShowForm(true)}>
             Request Early-Intervention Pilot Access
           </Button>
         </div>
@@ -292,7 +314,7 @@ export default function EarlyInterventionReferralProgram() {
         {/* Inline form (minimal fields) */}
         {showForm && !submitted && (
           <div className="max-w-2xl mx-auto mt-8">
-            <Card className="p-6" style={{ backgroundColor: "white" }}>
+            <Card className="p-4 sm:p-6" style={{ backgroundColor: "white" }}>
               <h3 className="text-lg font-bold mb-4">Request Early-Intervention Pilot Access</h3>
               <form onSubmit={handleSubmit}>
                 <div className="mb-4">
@@ -313,9 +335,9 @@ export default function EarlyInterventionReferralProgram() {
                   {errors.email && <div className="text-sm text-red-600 mt-1">{errors.email}</div>}
                 </div>
 
-                <div className="flex gap-3">
-                  <Button type="submit" className="px-4 py-2 rounded-full" style={{ backgroundColor: "#E63946", color: "white" }}>Submit</Button>
-                  <Button type="button" className="px-4 py-2 rounded-full border" onClick={() => setShowForm(false)}>Cancel</Button>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button type="submit" className="w-full sm:w-auto px-4 py-2 rounded-full" style={{ backgroundColor: "#E63946", color: "white" }}>Submit</Button>
+                  <Button type="button" className="w-full sm:w-auto px-4 py-2 rounded-full border" onClick={() => setShowForm(false)}>Cancel</Button>
                 </div>
               </form>
             </Card>
@@ -325,7 +347,7 @@ export default function EarlyInterventionReferralProgram() {
         {/* Submission confirmation */}
         {submitted && (
           <div className="max-w-2xl mx-auto mt-8">
-            <Card className="p-6" style={{ backgroundColor: "white" }}>
+            <Card className="p-4 sm:p-6" style={{ backgroundColor: "white" }}>
               <h3 className="text-lg font-bold mb-3">Submission Received</h3>
 
               <p>Thank you for submitting your school’s interest in the TT Early Intervention Pilot.</p>
