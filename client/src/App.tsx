@@ -29,6 +29,7 @@ import PrivacyPolicy from "@/pages/privacy-policy";
 import TermsOfUse from "@/pages/terms-of-use";
 import EarlyInterventionReferralProgram from "@/pages/earlyinterventionreferralprogram";
 import AboutTT from "@/pages/aboutTT";
+import LeadershipDevelopmentPilot from "@/pages/leadershipdevelopmentpilot";
 
 // Legacy Tutor Pages (kept for backwards compatibility)
 import TutorPod from "@/pages/operational/tutor/pod";
@@ -133,6 +134,7 @@ function Router() {
       <Route path="/onlinetutorswanted" element={<OnlineTutorsWantedPlain />} />
       <Route path="/earlyinterventionreferralprogram" element={<EarlyInterventionReferralProgram />} />
       <Route path="/aboutTT" element={<AboutTT />} />
+      <Route path="/leadershipdevelopmentpilot" element={<LeadershipDevelopmentPilot />} />
 
       {/* ==================== CLIENT PORTAL ==================== */}
       {/* Client Signup */}

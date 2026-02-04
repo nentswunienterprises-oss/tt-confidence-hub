@@ -61,7 +61,7 @@ function PortalLanding() {
               variant="ghost"
               className="text-sm sm:text-base font-medium hover:bg-transparent px-2 sm:px-4"
               style={{ color: "#1A1A1A" }}
-              onClick={() => navigate("/client/signin")}
+              onClick={() => navigate("/client/signup?mode=login")}
             >
               Log In
             </Button>
@@ -106,7 +106,7 @@ function PortalLanding() {
               <br />
               They struggle because pressure disrupts their response.
               <br /><br />
-              TT focuses on how students respond when things gets hard, especially under pressure... until calm execution is normal for them.
+              TT focuses on how students respond when things gets hard, especially under pressure... until calm execution is normal.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 sm:pt-4">
@@ -288,8 +288,13 @@ function PortalLanding() {
                 <button onClick={() => navigate("/terms-of-use")} className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
                   Terms of Use
                 </button>
+                <button onClick={() => navigate("/aboutTT")} className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
+                  More About TT
+                </button>
               </div>
             </div>
+
+
 
             <div className="space-y-3 sm:space-y-4 sm:col-span-2 md:col-span-1">
               <h4 className="font-semibold text-sm sm:text-base" style={{ color: "#1A1A1A" }}>Contact</h4>

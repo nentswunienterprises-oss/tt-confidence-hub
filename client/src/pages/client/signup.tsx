@@ -1,13 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AuthForm } from "@/components/auth/auth-form";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Heart, Sparkles } from "lucide-react";
 import { TTLogo } from "@/components/TTLogo";
 
 export default function ClientSignup() {
   const [mode, setMode] = useState<"signup" | "login">("signup");
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const m = params.get('mode');
+    if (m === 'login') setMode('login');
+  }, [location.search]);
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#FFF5ED" }}>

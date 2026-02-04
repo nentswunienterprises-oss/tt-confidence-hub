@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { TerritorialTutoringLogoSVG } from "@/components/TerritorialTutoringLogoSVG";
 import { TTLogo } from "@/components/TTLogo";
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function EarlyInterventionReferralProgram() {
   useEffect(() => { window.scrollTo({ top: 0, behavior: 'instant' }); }, []);
@@ -15,6 +16,7 @@ export default function EarlyInterventionReferralProgram() {
   const formRef = useRef<HTMLDivElement | null>(null);
   const firstInputRef = useRef<HTMLInputElement | null>(null);
   const submittedRef = useRef<HTMLDivElement | null>(null);
+  const navigate = useNavigate();
 
   function handleOpenForm() {
     setShowForm(true);
@@ -155,7 +157,7 @@ export default function EarlyInterventionReferralProgram() {
         <Card className="p-4 sm:p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h2 className="text-lg font-bold mb-3">What Schools Observe (But Can’t Systematically Fix)</h2>
           <p>
-            By Grades 6–7, a familiar pattern emerges:
+            By Grades 6-7, a familiar pattern emerges:
           </p>
           <ul className="list-disc pl-5 mt-2 space-y-2">
             <li>Students answer confidently in class</li>
@@ -432,6 +434,13 @@ export default function EarlyInterventionReferralProgram() {
             <div className="flex items-center gap-2">
               <TTLogo size="md" />
             </div>
+
+            <div className="mt-4 md:mt-0">
+              <button onClick={() => navigate("/leadershipdevelopmentpilot")} className="text-sm font-semibold text-[#E63946] hover:underline">
+                The Problem High Schools Are Inheriting
+              </button>
+            </div>
+
             <p className="text-center md:text-right" style={{ color: "#5A5A5A" }}>
               © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
               <br />

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { AuthForm } from "@/components/auth/auth-form";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Heart } from "lucide-react";
@@ -6,6 +7,15 @@ import { TTLogo } from "@/components/TTLogo";
 
 export default function AuthPage() {
   const [mode, setMode] = useState<"signup" | "login">("signup");
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const m = params.get('mode');
+    if (m === 'login') setMode('login');
+    else setMode('signup');
+  }, [location.search]);
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#FFF5ED" }}>
@@ -69,7 +79,7 @@ export default function AuthPage() {
                 color: mode === "signup" ? "white" : "#1A1A1A",
                 border: mode === "signup" ? "none" : "2px solid #1A1A1A"
               }}
-              onClick={() => setMode("signup")}
+              onClick={() => navigate('/client/signup')}
               data-testid="button-switch-signup"
             >
               Sign Up
