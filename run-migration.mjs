@@ -2,7 +2,11 @@ import { Client } from 'pg';
 import fs from 'fs';
 import path from 'path';
 
-const connectionString = 'postgresql://postgres.yzcnavucvwgmulcxgxvw:Rapismylife19@aws-1-eu-west-1.pooler.supabase.com:6543/postgres';
+const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_CONNECTION;
+if (!connectionString) {
+  console.error('❌ Missing DATABASE_URL / POSTGRES_CONNECTION environment variable.');
+  process.exit(1);
+}
 
 async function runMigration() {
   const client = new Client({ connectionString });
