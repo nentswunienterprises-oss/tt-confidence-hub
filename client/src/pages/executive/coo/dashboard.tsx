@@ -418,6 +418,12 @@ export default function COODashboard() {
             <Card>
               <CardContent className="py-6 text-center text-muted-foreground">Loading pods...</CardContent>
             </Card>
+          ) : pods.length === 0 ? (
+            <Card>
+              <CardContent className="py-8 text-center text-muted-foreground">
+                No pods created yet. Create your first pod to get started!
+              </CardContent>
+            </Card>
           ) : (
             <>
               {leadershipRequests && leadershipRequests.length > 0 && (
@@ -447,47 +453,49 @@ export default function COODashboard() {
                     </div>
                   </CardContent>
                 </Card>
+              )}
 
-                {/* Early Intervention Pilot Requests */}
-                {earlyInterventionRequests && earlyInterventionRequests.length > 0 && (
-                  <Card className="mb-4">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold">Early Intervention pilot Considerations</h3>
-                        <div className="text-sm text-muted-foreground">{earlyInterventionLoading ? 'Loading...' : `${earlyInterventionRequests.length} requests`}</div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="max-h-40 overflow-y-auto">
-                        {earlyInterventionRequests.slice(0,6).map((r: any) => (
-                          <div key={r.id} className="p-3 rounded bg-gray-50">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <div className="font-medium">{r.school_name}</div>
-                                <div className="text-xs text-muted-foreground">{r.contact_person_role} • {r.email}</div>
-                              </div>
-                              <div className="text-xs text-muted-foreground">{new Date(r.submitted_at).toLocaleDateString()}</div>
+              {!leadershipLoading && (!leadershipRequests || leadershipRequests.length === 0) && (
+                <Card className="mb-4">
+                  <CardContent className="py-8 text-center text-muted-foreground">
+                    No pilot requests yet.
+                  </CardContent>
+                </Card>
+              )}
+
+              {earlyInterventionRequests && earlyInterventionRequests.length > 0 && (
+                <Card className="mb-4">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">Early Intervention pilot Considerations</h3>
+                      <div className="text-sm text-muted-foreground">{earlyInterventionLoading ? 'Loading...' : `${earlyInterventionRequests.length} requests`}</div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="max-h-40 overflow-y-auto">
+                      {earlyInterventionRequests.slice(0,6).map((r: any) => (
+                        <div key={r.id} className="p-3 rounded bg-gray-50">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-medium">{r.school_name}</div>
+                              <div className="text-xs text-muted-foreground">{r.contact_person_role} • {r.email}</div>
                             </div>
+                            <div className="text-xs text-muted-foreground">{new Date(r.submitted_at).toLocaleDateString()}</div>
                           </div>
-                        ))}
-                      </div>
-                      <div className="text-right">
-                        <Button size="sm" variant="outline" onClick={() => window.location.href = '/executive/coo/earlyintervention-requests'}>View all</Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-            </>
-          )}
-            <p className="text-muted-foreground">Loading pods...</p>
-          ) : pods.length === 0 ? (
-            <Card>
-              <CardContent className="py-8 text-center text-muted-foreground">
-                No pods created yet. Create your first pod to get started!
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
+                        </div>
+                      ))}
+                    </div>
+                    {!earlyInterventionLoading && (!earlyInterventionRequests || earlyInterventionRequests.length === 0) && (
+                      <CardContent className="py-4 text-center text-muted-foreground">No pilot requests yet.</CardContent>
+                    )}
+                    <div className="text-right">
+                      <Button size="sm" variant="outline" onClick={() => window.location.href = '/executive/coo/earlyintervention-requests'}>View all</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              <div className="grid gap-4 sm:grid-cols-2">
               {pods.map((pod: any) => {
                 const podType = (pod as any).pod_type || pod.podType || 'training';
                 const vehicle = (pod as any).vehicle || '4_seater';
@@ -536,6 +544,7 @@ export default function COODashboard() {
                 );
               })}
             </div>
+            </>
           )}
         </section>
 
