@@ -3,9 +3,33 @@ import { Button } from "@/components/ui/button";
 import { TerritorialTutoringLogoSVG } from "@/components/TerritorialTutoringLogoSVG";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 export default function LeadershipDevelopmentPilot() {
   const navigate = useNavigate();
+
+  // Form state for leadership pilot interest
+  const [showForm, setShowForm] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [form, setForm] = useState({ school: '', contact: '', email: '' });
+  const [errors, setErrors] = useState<{[k:string]:string}>({});
+
+  function validate() {
+    const e: {[k:string]:string} = {};
+    if (!form.school.trim()) e.school = 'Required';
+    if (!form.contact.trim()) e.contact = 'Required';
+    if (!form.email.trim()) e.email = 'Required';
+    else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) e.email = 'Invalid email';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  }
+
+  function handleSubmit(e?: React.FormEvent) {
+    e?.preventDefault();
+    if (!validate()) return;
+    setSubmitted(true);
+    setShowForm(false);
+  }
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#FFF5ED" }}>
@@ -163,11 +187,71 @@ export default function LeadershipDevelopmentPilot() {
             <p className="font-semibold">Territorial Tutoring enables high schools to develop academic leaders who prevent failure upstream - before panic becomes identity.</p>
 
             <div className="text-center mt-6">
-              <Button size="lg" className="px-6 py-3 rounded-full font-semibold" style={{ backgroundColor: "#E63946", color: "white" }} onClick={() => window.location.href = "mailto:info@territorialtutoring.co.za?subject=Leadership Pilot Interest"}>
+              <Button size="lg" className="px-6 py-3 rounded-full font-semibold w-full sm:w-auto" style={{ backgroundColor: "#E63946", color: "white" }} onClick={() => setShowForm(true)}>
                 Initiate High School Leadership Pilot Consideration
               </Button>
               <p className="text-xs text-gray-600 mt-2">This submission registers interest only. No obligation. No activation without alignment.</p>
             </div>
+
+            {/* Inline form for Leadership Pilot */}
+            {showForm && !submitted && (
+              <div className="max-w-2xl mx-auto mt-6">
+                <Card className="p-4 sm:p-6" style={{ backgroundColor: "white" }}>
+                  <h3 className="text-lg font-bold mb-4">Request Leadership Pilot Access</h3>
+                  <form onSubmit={handleSubmit}>
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium mb-1">School name</label>
+                      <input value={form.school} onChange={e => setForm({...form, school: e.target.value})} className="w-full border rounded px-3 py-2" />
+                      {errors.school && <div className="text-sm text-red-600 mt-1">{errors.school}</div>}
+                    </div>
+
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium mb-1">Contact person + role</label>
+                      <input value={form.contact} onChange={e => setForm({...form, contact: e.target.value})} className="w-full border rounded px-3 py-2" />
+                      {errors.contact && <div className="text-sm text-red-600 mt-1">{errors.contact}</div>}
+                    </div>
+
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium mb-1">Email</label>
+                      <input value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="w-full border rounded px-3 py-2" />
+                      {errors.email && <div className="text-sm text-red-600 mt-1">{errors.email}</div>}
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <Button type="submit" className="w-full sm:w-auto px-4 py-2 rounded-full" style={{ backgroundColor: "#E63946", color: "white" }}>Submit</Button>
+                      <Button type="button" className="w-full sm:w-auto px-4 py-2 rounded-full border" onClick={() => setShowForm(false)}>Cancel</Button>
+                    </div>
+                  </form>
+                </Card>
+              </div>
+            )}
+
+            {submitted && (
+              <div className="max-w-2xl mx-auto mt-6">
+                <Card className="p-4 sm:p-6" style={{ backgroundColor: "white" }}>
+                  <h3 className="text-lg font-bold mb-3">Submission Received</h3>
+
+                  <p>Thank you for submitting your school's interest in the TT Leadership Development Pilot.</p>
+
+                  <p className="mt-3">Your request has been logged for internal review.</p>
+
+                  <p className="mt-3">A member of the Territorial Tutoring team will contact the designated staff representative to:</p>
+                  <ul className="list-disc pl-5 mt-2 space-y-2">
+                    <li>Confirm suitability for the pilot</li>
+                    <li>Clarify selection and training framework</li>
+                    <li>Align on term-based timing and scope</li>
+                  </ul>
+
+                  <p className="mt-3">This submission does not commit your school to participation. It initiates a consideration process.</p>
+
+                  <div className="mt-6 border-t pt-4 text-sm">
+                    —<br />
+                    Territorial Tutoring<br />
+                    Academic Leadership &amp; Response-Conditioning for Schools
+                  </div>
+                </Card>
+              </div>
+            )}
 
           </CardContent>
         </Card>
