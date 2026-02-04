@@ -78,6 +78,14 @@ export default function COODashboard() {
     refetchInterval: 10000,
   });
 
+  // Fetch early intervention pilot requests for COO
+  const { data: earlyInterventionRequests = [], isLoading: earlyInterventionLoading } = useQuery<any[]>({
+    queryKey: ["/api/coo/earlyintervention-requests"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    enabled: isAuthenticated && !authLoading,
+    refetchInterval: 10000,
+  });
+
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       toast({
@@ -439,7 +447,36 @@ export default function COODashboard() {
                     </div>
                   </CardContent>
                 </Card>
-              )}
+
+                {/* Early Intervention Pilot Requests */}
+                {earlyInterventionRequests && earlyInterventionRequests.length > 0 && (
+                  <Card className="mb-4">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold">Early Intervention pilot Considerations</h3>
+                        <div className="text-sm text-muted-foreground">{earlyInterventionLoading ? 'Loading...' : `${earlyInterventionRequests.length} requests`}</div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="max-h-40 overflow-y-auto">
+                        {earlyInterventionRequests.slice(0,6).map((r: any) => (
+                          <div key={r.id} className="p-3 rounded bg-gray-50">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="font-medium">{r.school_name}</div>
+                                <div className="text-xs text-muted-foreground">{r.contact_person_role} • {r.email}</div>
+                              </div>
+                              <div className="text-xs text-muted-foreground">{new Date(r.submitted_at).toLocaleDateString()}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="text-right">
+                        <Button size="sm" variant="outline" onClick={() => window.location.href = '/executive/coo/earlyintervention-requests'}>View all</Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
             </>
           )}
             <p className="text-muted-foreground">Loading pods...</p>

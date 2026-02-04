@@ -3396,6 +3396,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  // Submit Early Intervention Pilot request (allow public submissions)
+  app.post(
+    "/api/pilots/earlyintervention/submit",
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req.session as any)?.userId || null;
+        const insertObj: any = {
+          school_name: req.body.schoolName,
+          contact_person_role: req.body.contactPersonRole,
+          email: req.body.email,
+          submitter_name: req.body.submitterName || null,
+          submitter_role: req.body.submitterRole || null,
+        };
+        if (userId) insertObj.submitted_by = userId;
+
+        const { data, error } = await supabase
+          .from("early_intervention_requests")
+          .insert(insertObj)
+          .select()
+          .single();
+
+        if (error) {
+          console.error("Error submitting early intervention pilot request:", error);
+          return res.status(500).json({ message: "Failed to submit request" });
+        }
+
+        res.json(data);
+      } catch (error) {
+        console.error("Error in submit early intervention pilot request:", error);
+        res.status(500).json({ message: "Failed to submit request" });
+      }
+    }
+  );
+
   // COO: fetch leadership pilot requests
   app.get(
     "/api/coo/leadership-pilot-requests",
@@ -3441,6 +3475,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json(data || []);
       } catch (error) {
         console.error("Error in fetching leadership pilot requests:", error);
+        res.status(500).json({ message: "Failed to fetch requests" });
+      }
+    }
+  );
+
+  // COO: fetch early intervention pilot requests
+  app.get(
+    "/api/coo/earlyintervention-requests",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { data, error } = await supabase
+          .from("early_intervention_requests")
+          .select("*")
+          .order("submitted_at", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching early intervention requests:", error);
+          return res.status(500).json({ message: "Failed to fetch requests" });
+        }
+
+        res.json(data || []);
+      } catch (error) {
+        console.error("Error in fetching early intervention requests:", error);
+        res.status(500).json({ message: "Failed to fetch requests" });
+      }
+    }
+  );
+
+  // HR: fetch early intervention pilot requests
+  app.get(
+    "/api/hr/earlyintervention-requests",
+    isAuthenticated,
+    requireRole(["hr"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { data, error } = await supabase
+          .from("early_intervention_requests")
+          .select("*")
+          .order("submitted_at", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching early intervention requests:", error);
+          return res.status(500).json({ message: "Failed to fetch requests" });
+        }
+
+        res.json(data || []);
+      } catch (error) {
+        console.error("Error in fetching early intervention requests:", error);
         res.status(500).json({ message: "Failed to fetch requests" });
       }
     }

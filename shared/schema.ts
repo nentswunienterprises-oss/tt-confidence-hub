@@ -740,6 +740,31 @@ export const insertLeadershipPilotRequestSchema = createInsertSchema(leadershipP
   status: true,
 });
 
+// Early Intervention Pilot Requests
+export const earlyInterventionRequests = pgTable("early_intervention_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  schoolName: varchar("school_name").notNull(),
+  contactPersonRole: varchar("contact_person_role").notNull(),
+  email: varchar("email").notNull(),
+  submittedBy: varchar("submitted_by").references(() => users.id),
+  submitterName: varchar("submitter_name"),
+  submitterRole: varchar("submitter_role"),
+  status: varchar("status").notNull().default("new"),
+  submittedAt: timestamp("submitted_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type EarlyInterventionRequest = typeof earlyInterventionRequests.$inferSelect;
+export type InsertEarlyInterventionRequest = typeof earlyInterventionRequests.$inferInsert;
+
+export const insertEarlyInterventionRequestSchema = createInsertSchema(earlyInterventionRequests).omit({
+  id: true,
+  createdAt: true,
+  submittedAt: true,
+  submittedBy: true,
+  status: true,
+});
+
 // ============================================
 // PARENT ENROLLMENTS TABLE
 // ============================================
