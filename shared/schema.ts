@@ -713,6 +713,34 @@ export const futureExpansionFields = pgTable("future_expansion", {
 });
 
 // ============================================
+// High School Leadership Pilot Requests
+// ============================================
+// Stores submissions from schools expressing interest in the Leadership Development Pilot
+export const leadershipPilotRequests = pgTable("leadership_pilot_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  schoolName: varchar("school_name").notNull(),
+  contactPersonRole: varchar("contact_person_role").notNull(),
+  email: varchar("email").notNull(),
+  submittedBy: varchar("submitted_by").references(() => users.id),
+  submitterName: varchar("submitter_name"),
+  submitterRole: varchar("submitter_role"),
+  status: varchar("status").notNull().default("new"),
+  submittedAt: timestamp("submitted_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type LeadershipPilotRequest = typeof leadershipPilotRequests.$inferSelect;
+export type InsertLeadershipPilotRequest = typeof leadershipPilotRequests.$inferInsert;
+
+export const insertLeadershipPilotRequestSchema = createInsertSchema(leadershipPilotRequests).omit({
+  id: true,
+  createdAt: true,
+  submittedAt: true,
+  submittedBy: true,
+  status: true,
+});
+
+// ============================================
 // PARENT ENROLLMENTS TABLE
 // ============================================
 // Stores parent enrollment applications from gateway

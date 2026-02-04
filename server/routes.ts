@@ -3362,6 +3362,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  // Submit High School Leadership Pilot request (allow public submissions)
+  app.post(
+    "/api/pilots/highschool/submit",
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req.session as any)?.userId || null;
+        const insertObj: any = {
+          school_name: req.body.schoolName,
+          contact_person_role: req.body.contactPersonRole,
+          email: req.body.email,
+          submitter_name: req.body.submitterName || null,
+          submitter_role: req.body.submitterRole || null,
+        };
+        if (userId) insertObj.submitted_by = userId;
+
+        const { data, error } = await supabase
+          .from("leadership_pilot_requests")
+          .insert(insertObj)
+          .select()
+          .single();
+
+        if (error) {
+          console.error("Error submitting leadership pilot request:", error);
+          return res.status(500).json({ message: "Failed to submit request" });
+        }
+
+        res.json(data);
+      } catch (error) {
+        console.error("Error in submit leadership pilot request:", error);
+        res.status(500).json({ message: "Failed to submit request" });
+      }
+    }
+  );
+
+  // COO: fetch leadership pilot requests
+  app.get(
+    "/api/coo/leadership-pilot-requests",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { data, error } = await supabase
+          .from("leadership_pilot_requests")
+          .select("*")
+          .order("submitted_at", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching leadership pilot requests:", error);
+          return res.status(500).json({ message: "Failed to fetch requests" });
+        }
+
+        res.json(data || []);
+      } catch (error) {
+        console.error("Error in fetching leadership pilot requests:", error);
+        res.status(500).json({ message: "Failed to fetch requests" });
+      }
+    }
+  );
+
+  // HR: fetch leadership pilot requests
+  app.get(
+    "/api/hr/leadership-pilot-requests",
+    isAuthenticated,
+    requireRole(["hr"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { data, error } = await supabase
+          .from("leadership_pilot_requests")
+          .select("*")
+          .order("submitted_at", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching leadership pilot requests:", error);
+          return res.status(500).json({ message: "Failed to fetch requests" });
+        }
+
+        res.json(data || []);
+      } catch (error) {
+        console.error("Error in fetching leadership pilot requests:", error);
+        res.status(500).json({ message: "Failed to fetch requests" });
+      }
+    }
+  );
+
   // Get people registry list (for any logged in user - for dispute logging)
   app.get(
     "/api/people-registry/list",

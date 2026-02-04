@@ -4,6 +4,7 @@ import { TerritorialTutoringLogoSVG } from "@/components/TerritorialTutoringLogo
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function LeadershipDevelopmentPilot() {
   const navigate = useNavigate();
@@ -24,11 +25,40 @@ export default function LeadershipDevelopmentPilot() {
     return Object.keys(e).length === 0;
   }
 
-  function handleSubmit(e?: React.FormEvent) {
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleSubmit(e?: React.FormEvent) {
     e?.preventDefault();
     if (!validate()) return;
-    setSubmitted(true);
-    setShowForm(false);
+    setIsSubmitting(true);
+
+    try {
+      const res = await fetch('/api/pilots/highschool/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          schoolName: form.school,
+          contactPersonRole: form.contact,
+          email: form.email,
+          submitterName: null,
+          submitterRole: null,
+        }),
+      });
+
+      if (!res.ok) throw new Error('Failed to submit');
+
+      setSubmitted(true);
+      setShowForm(false);
+      setForm({ school: '', contact: '', email: '' });
+      toast({ title: 'Submission received', description: 'Your leadership pilot request has been recorded.' });
+    } catch (err) {
+      console.error('Error submitting leadership pilot request:', err);
+      toast({ title: 'Submission failed', description: 'Please try again later', variant: 'destructive' });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -183,8 +213,8 @@ export default function LeadershipDevelopmentPilot() {
               <li>Zero admin for highschools</li>
             </ul>
 
-            <h2>THE ONE-SENTENCE POSITIONING</h2>
-            <p className="font-semibold">Territorial Tutoring enables high schools to develop academic leaders who prevent failure upstream - before panic becomes identity.</p>
+            <h2>POSITIONING</h2>
+            <p className="font-semibold">Territorial Tutoring enables high schools to develop academic leaders who execute under pressure and apply those skills to real educational challenges.</p>
 
             <div className="text-center mt-6">
               <Button size="lg" className="px-6 py-3 rounded-full font-semibold w-full sm:w-auto" style={{ backgroundColor: "#E63946", color: "white" }} onClick={() => setShowForm(true)}>
@@ -218,7 +248,7 @@ export default function LeadershipDevelopmentPilot() {
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-3">
-                      <Button type="submit" className="w-full sm:w-auto px-4 py-2 rounded-full" style={{ backgroundColor: "#E63946", color: "white" }}>Submit</Button>
+                      <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto px-4 py-2 rounded-full" style={{ backgroundColor: "#E63946", color: "white" }}>{isSubmitting ? 'Sending...' : 'Submit'}</Button>
                       <Button type="button" className="w-full sm:w-auto px-4 py-2 rounded-full border" onClick={() => setShowForm(false)}>Cancel</Button>
                     </div>
                   </form>
@@ -240,13 +270,14 @@ export default function LeadershipDevelopmentPilot() {
                     <li>Confirm suitability for the pilot</li>
                     <li>Clarify selection and training framework</li>
                     <li>Align on term-based timing and scope</li>
+                    <li>Discuss how this could align with your school’s leadership and academic objectives</li>
                   </ul>
 
                   <p className="mt-3">This submission does not commit your school to participation. It initiates a consideration process.</p>
 
                   <div className="mt-6 border-t pt-4 text-sm">
-                    —<br />
-                    Territorial Tutoring<br />
+                    <br />
+                    Territorial Tutoring SA<br />
                     Academic Leadership &amp; Response-Conditioning for Schools
                   </div>
                 </Card>

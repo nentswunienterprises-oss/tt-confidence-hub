@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ExecutivePortalGuard } from "@/lib/portalGuard";
 import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
+import { CardContent, CardHeader } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { Brain, Shield, Users, Target } from "lucide-react";
 
@@ -29,6 +30,14 @@ export default function HRDashboard() {
     enabled: isAuthenticated && !!user,
     refetchInterval: 10000, // Refetch every 10 seconds
     refetchIntervalInBackground: true, // Keep refetching even if tab is not focused
+  });
+
+  // Fetch leadership pilot requests for HR
+  const { data: leadershipRequests = [], isLoading: leadershipLoading } = useQuery<any[]>({
+    queryKey: ["/api/hr/leadership-pilot-requests"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    enabled: isAuthenticated && !!user,
+    refetchInterval: 10000,
   });
 
   if (authLoading) {
@@ -163,6 +172,33 @@ export default function HRDashboard() {
             <Button className="w-full" variant="outline" onClick={() => navigate("/executive/hr/disputes")}>
               View Disputes
             </Button>
+          </Card>
+
+          {/* Leadership Pilot Requests */}
+          <Card className="p-6 border-amber-200/40">
+            <CardHeader>
+              <h3 className="text-lg font-semibold">High School leadership Pilot Considerations</h3>
+              <div className="text-sm text-muted-foreground">{leadershipLoading ? 'Loading...' : `${leadershipRequests.length} requests`}</div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="max-h-40 overflow-y-auto">
+                {leadershipRequests.slice(0,6).map((r: any) => (
+                  <div key={r.id} className="p-3 rounded bg-gray-50">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium">{r.school_name}</div>
+                        <div className="text-xs text-muted-foreground">{r.contact_person_role} • {r.email}</div>
+                      </div>
+                      <div className="text-xs text-muted-foreground">{new Date(r.submitted_at).toLocaleDateString()}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="text-right">
+                <Button size="sm" variant="outline" onClick={() => window.location.href = '/executive/hr/leadership-pilot-requests'}>View all</Button>
+              </div>
+            </CardContent>
           </Card>
         </div>
       </div>
