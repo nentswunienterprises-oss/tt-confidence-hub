@@ -35,7 +35,7 @@ Preferred Language (examples)
 - Use: **train responses**, **stabilize execution**, **condition calm under pressure**, **response integrity**, **make execution inevitable**.
 - Use measurable behaviour words: **error recovery**, **time discipline**, **verbal clarity**.
 
-Hero & CTA examples (ready-to-use)
+Hero & CTA examples 
 
 - Headline: **Train calm execution. Prevent panic.**
   Subhead: *We turn high‑school leaders into System Executors who condition Grade 6–7 students to execute under pressure.*
@@ -47,7 +47,7 @@ Hero & CTA examples (ready-to-use)
 
 Tutor ad microcopy (50–75 words)
 
-- *Selected high‑school students are trained as System Executors. Earn R3,500–R5,000/mo while learning elite cognitive and leadership skills. Not casual tutoring — you execute a precise system. Apply now.*
+- *Selected high‑school students are trained as System Executors. Earn R3,500–R5,000/mo while learning elite cognitive and leadership skills. Not casual tutoring — you execute a precise system..*
 
 School pilot microcopy (short)
 
@@ -73,7 +73,43 @@ Enforcement rule
 Where to use this guide
 
 - Landing pages, emails to schools, tutor ads, pilot briefs, PR, internal comms that represent core positioning.
+example email to high school principal:
 
-Notes
+Dear Principal [Surname],
 
-- This is intentionally short. For everything else, default to the language in `vision/WHO_WE_ARE.md` and `vision/our_mission.md`.
+My name is Thendo Nentswuni, Founder of Territorial Tutoring.
+
+Territorial Tutoring is a private academic institution that specialises in one thing schools consistently struggle to solve at scale: **student performance under pressure**. We do not replace teachers or curricula. We focus exclusively on execution - how students respond when work becomes difficult in timed, high-stakes academic environments. We train students to execute known response patterns, remain composed, and move forward without emotional negotiation.
+
+Our work sits between primary and high school systems.
+
+At primary level, we support learners who understand the content but panic, rush, freeze, or second-guess themselves during assessments. This is a response problem, not a knowledge or intelligence problem - and it cannot be corrected in a 30-student classroom because one teacher can't condition the individual responses of 30+ students and the curriculum has to move on in class. 
+We address it through structured one-on-one response conditioning.
+
+At high school level, we run an **Academic Leadership Programme**. Selected top-performing, disciplined students are trained in our system and held to strict academic and behavioural standards. Participation is conditional on maintaining their own academic performance.
+
+These students gain real skills and leadership responsibility by applying their training to support Grade 6-7 learners online under supervision - developing execution, discipline, and accountability.
+
+**The outcome is mutual:**
+
+* **High schools strengthen leadership development while improving feeder readiness**, reducing the need to carry forward (progress) learners who are academically present but executionally unprepared.
+* **Primary learners enter high school response-conditioned for pressure**, lowering panic-driven underperformance and long-term academic warehousing.
+
+Territorial Tutoring operates independently as a private institution and partners with schools at zero cost.
+
+**What we are requesting** is a brief 20-minute discussion to:
+
+* Introduce the Academic Leadership Programme in detail
+* Explore nominating a small group of top students for a Term 2 pilot
+* Discuss how this could align with your school’s leadership and academic objectives
+
+No commitments are required at this stage.
+
+If aligned, we would value the opportunity to speak.
+
+Kind regards,
+**Thendo Nentswuni**
+Founder, Territorial Tutoring SA
+or Chuma Skye Siyongwana
+Co-Founder & Head of HR, Territorial Tutoring SA
+

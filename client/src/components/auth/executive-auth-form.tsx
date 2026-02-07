@@ -41,6 +41,9 @@ export function ExecutiveAuthForm({ role, mode, setMode }: ExecutiveAuthFormProp
     e.preventDefault();
     setLoading(true);
 
+    // local redirectUrl variable (was missing causing ReferenceError)
+    let redirectUrl: string | undefined;
+
     try {
       // Clear any cached user data from previous sessions to prevent role mixing
       clearAllCache();
@@ -89,8 +92,11 @@ export function ExecutiveAuthForm({ role, mode, setMode }: ExecutiveAuthFormProp
         });
 
         // Navigate using React Router instead of full page reload
+        if (!redirectUrl) {
+          console.error("🚨 Signup: redirectUrl is undefined, role:", role, "response:", data);
+          throw new Error("Could not determine redirect location");
+        }
         navigate(redirectUrl);
-        return;
         return;
       }
 
@@ -136,6 +142,7 @@ export function ExecutiveAuthForm({ role, mode, setMode }: ExecutiveAuthFormProp
 
       // Ensure redirectUrl is defined before redirecting
       if (!redirectUrl) {
+        console.error("🚨 Login: redirectUrl is undefined, role:", role);
         throw new Error("Could not determine redirect location");
       }
 

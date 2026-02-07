@@ -115,7 +115,7 @@ This is youth leadership with consequences.
 
 2. Stronger Incoming Learners (Upstream Effect)
 
-Grade 6–7 learners who pass through response-conditioning enter high school:
+Grade 6-7 learners who pass through response-conditioning enter high school:
 
 - With fewer panic habits
 - Better exam posture

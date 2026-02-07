@@ -290,10 +290,11 @@ export async function setupAuth(app: Express) {
 
       // Validate redirectUrl is set
       if (!redirectUrl) {
-        console.error("❌ CRITICAL: redirectUrl is undefined!");
+        console.error("❌ CRITICAL: redirectUrl is undefined! Falling back to getDefaultDashboardRoute");
         console.error("  User role:", user?.role);
         console.error("  User:", user);
-        return res.status(500).json({ message: "Failed to determine redirect location" });
+        redirectUrl = getDefaultDashboardRoute((user?.role as any) || "tutor");
+        console.warn("⚠️  Fallback redirect URL:", redirectUrl);
       }
 
       console.log("✅ Final Redirect URL determined:", redirectUrl, "for role:", user?.role);
@@ -484,10 +485,12 @@ export async function setupAuth(app: Express) {
 
       // Validate redirectUrl is set
       if (!redirectUrl) {
-        console.error("❌ CRITICAL: redirectUrl is undefined!");
+        console.error("❌ CRITICAL: redirectUrl is undefined! Falling back to getDefaultDashboardRoute");
         console.error("  User role:", user.role);
         console.error("  User:", user);
-        return res.status(500).json({ message: "Failed to determine redirect location" });
+        // Fallback to role-based default route to avoid breaking signin flow
+        redirectUrl = getDefaultDashboardRoute((user?.role as any) || (expectedRole as any) || "tutor");
+        console.warn("⚠️  Fallback redirect URL:", redirectUrl);
       }
 
       console.log("📍 Final redirect URL:", redirectUrl, "for role:", user.role);

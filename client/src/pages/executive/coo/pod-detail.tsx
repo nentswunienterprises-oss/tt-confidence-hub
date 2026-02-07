@@ -188,6 +188,22 @@ export default function PodDetail() {
     },
   });
 
+  // Delete Pod mutation (soft delete) ✅
+  const deletePodMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("DELETE", `/api/coo/pods/${podId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/coo/pods"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/coo/tds"] });
+      toast({ title: "Pod deleted", description: "Pod deleted successfully." });
+      navigate("/coo/pods");
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to delete pod.", variant: "destructive" });
+    },
+  });
+
   const getTDName = (tdId: string | null) => {
     if (!tdId) return "Unassigned";
     return tds?.find((td) => td.id === tdId)?.name || "Unknown";
@@ -296,7 +312,36 @@ export default function PodDetail() {
           >
             <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           </Button>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate">{podName}</h1>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate flex-1">{podName}</h1>
+
+          {/* Delete Pod (soft delete) */}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 sm:h-10 sm:w-10 p-0 text-muted-foreground hover:text-red-600 hover:bg-red-50"
+              >
+                <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Pod?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will soft-delete the pod and clear its Territory Director assignment. The pod can be viewed in Deleted Pods but this action cannot be undone from the app.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => deletePodMutation.mutate()}
+                className="bg-red-600 hover:bg-red-700"
+                disabled={deletePodMutation.isPending}
+              >
+                {deletePodMutation.isPending ? "Deleting..." : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
 
         {/* Statistics Section */}

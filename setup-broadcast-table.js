@@ -1,10 +1,9 @@
 import pg from 'pg';
 const { Client } = pg;
 
-// Use environment variable for connection string. Do NOT commit secrets to the repo.
-const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_CONNECTION;
-if (!connectionString) throw new Error('Missing DATABASE_URL / POSTGRES_CONNECTION environment variable');
-const client = new Client({ connectionString });
+const client = new Client({
+  connectionString: 'postgresql://postgres.yzcnavucvwgmulcxgxvw:Rapismylife19@aws-1-eu-west-1.pooler.supabase.com:6543/postgres'
+});
 
 async function createTable() {
   try {

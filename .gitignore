@@ -31,9 +31,3 @@ repo.bundle
 *.bundle
 .vercel
 .env*.local
-
-# Local/IDE state and build artifacts
-.local/
-.next/
-next-landing/.next/
-.cache/

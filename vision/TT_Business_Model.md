@@ -177,7 +177,7 @@ This collaboration is intended for:
 
 ## The pilot model
 
-- Limited intake (e.g. 10 selected students)
+- Limited intake (10 selected students)
 - Term-based pilot
 - Clear governance and scope
 - No curriculum interference
@@ -188,7 +188,7 @@ It is deliberate institution-building.
 
 ---
 
-## The one-sentence positioning (place under the logo)
+## The one-sentence positioning 
 
 **Territorial Tutoring enables high schools to develop academic leaders who prevent failure upstream — before panic becomes identity.**
 
@@ -716,7 +716,244 @@ We do not cram before exams, inflate confidence artificially, chase motivation, 
 ## TT-OS (sacred system)
 
 This system is not optional. Execute it with precision. Apply the 3-Layer Lens (Vocabulary → Method → Reason), use Boss Battles for pressure exposure, and follow Model → Apply → Guide for every concept.
+What TT-OS Is
+TT-OS is a response-conditioning system. Not a curriculum. Not a teaching method. A system for training how students respond when certainty disappears.
 
+Most tutors teach content. You train response patterns. When a student sees a problem they don't immediately recognize, we want them to stay calm, identify what they know, and execute. That response doesn't happen naturally. It gets trained.
+
+The system has three tools: 3-Layer Lens, Boss Battles, and Model → Apply → Guide. Use them correctly, students transform. Skip them, you're just another tutor explaining fractions.
+
+Tool 1
+The 3-Layer Lens
+Every concept is taught through three layers. Every error is diagnosed through the same three layers. This is how you model problems and how you correct mistakes.
+
+1
+Vocabulary Layer
+Know the names of terms.
+
+Vocabulary is about knowing what things are called. Coefficient. Variable. Exponent. Quadratic. Factor. Solution. Product. Quotient.
+
+When you model a problem, you name every component. When a student makes an error, you check: do they know the terms? If they call the exponent "the little number" or the coefficient "that thing in front," the vocabulary layer cracked.
+
+WHEN MODELING
+
+"This is a quadratic equation. Notice the x² - that's the quadratic term. The coefficient is 3. The constant is 5. To solve, we need to factor."
+
+WHEN CORRECTING
+
+Student says: "I don't know what to do with that number."
+
+Diagnosis: Vocabulary layer failure. They don't know the term "coefficient."
+
+Fix: "That's called the coefficient. Say it. 'Coefficient.' Now use it in a sentence."
+
+Vocabulary is the foundation. If they don't know what things are called, method and reason collapse.
+
+2
+Method Layer
+Step-by-step approach. Reliable response.
+
+Method is the procedure. The sequence of steps. The algorithm. When you see x², what do you do? When you see a word problem, what's step one?
+
+When you model, you show the method. Step by step. Predictable. Repeatable. When a student makes an error, you check: did they know the steps? Did they skip a step? Did they execute the steps in the wrong order? If yes, the method layer cracked.
+
+WHEN MODELING
+
+"Step 1: Identify the problem type. It's quadratic - I see x². Step 2: Check if it factors. Step 3: Set each factor equal to zero. Step 4: Solve for x. This is the method. Every time."
+
+WHEN CORRECTING
+
+Student error: They factor correctly but forget to set each factor equal to zero.
+
+Diagnosis: Method layer failure. They skipped step 3.
+
+Fix: "You factored. Good. What's the next step in the method? ... Set each factor equal to zero. Execute it."
+
+Method is about having a reliable response. Same problem type, same steps, every time.
+
+3
+Reason Layer
+Why the move is valid. Adherence to laws and logic.
+
+Reason is the why behind the method. Why can we factor? Why do we set it equal to zero? Why does this step work? It's about mathematical laws, logic, and validity.
+
+When you model, you explain why each step is valid. When a student makes an error, you check: do they understand why the method works? If they're just following steps robotically without understanding the logic, the reason layer cracked.
+
+WHEN MODELING
+
+"Why do we set each factor equal to zero? Because of the zero product property - if a × b = 0, then either a = 0 or b = 0. That's the law. That's why this step works."
+
+WHEN CORRECTING
+
+Student error: They apply a method but can't explain why it works.
+
+You ask: "Why did you set that equal to zero?"
+
+Student: "Because that's what you do?"
+
+Diagnosis: Reason layer failure. They know the method but not the logic.
+
+Fix: "Zero product property. If a × b = 0, one of them must be zero. That's the law. That's why we set each factor to zero. Say it back."
+
+Reason prevents robotic execution. Students need to know why their moves are valid, not just what moves to make.
+
+The 3-Layer Lens Has Two Uses:
+
+1.
+When Teaching (Modeling)
+
+Break down every concept through all three layers: name the terms (vocabulary), show the steps (method), explain why it works (reason).
+
+2.
+When Correcting (Guiding)
+
+Diagnose which layer cracked: Terms unknown? Method missing? Reason unclear? Fix the layer that failed.
+
+Tool 2
+Boss Battles
+Strategic pressure exposure. Students get stronger by facing controlled difficulty.
+
+What It Is
+A Boss Battle is a deliberately challenging problem introduced after a student thinks they've mastered a concept. It's not a trick. It's not impossible. It's just hard enough to trigger their uncertainty response in a controlled environment.
+
+Why It Exists
+Exams ambush students with unexpected difficulty. Boss Battles remove the ambush. Students learn that hard problems don't mean panic - they mean execute the system.
+
+Facing difficulty in session, with you present, trains emotional regulation. The next time they hit a hard problem alone, the response is already conditioned: stay calm, identify what you know, execute.
+
+How to Use It
+Step 1: Timing
+
+Introduce a Boss Battle when the student feels confident. They've done 3-4 problems correctly. They think they've got it. Now introduce difficulty.
+
+Step 2: Observe
+
+Watch their reaction. Do they freeze? Rush? Give up? Complain? That's the response pattern you're conditioning against.
+
+Step 3: Don't Rescue
+
+Let them sit in uncertainty for 10-15 seconds. Don't jump in. Don't give hints. Let the discomfort exist. This is where emotional regulation training happens.
+
+Step 4: Guide to First Step
+
+After they've sat with it, ask: "What do you know?" or "What type of problem is this?" Guide them to their first step. Not the solution. The first step.
+
+Step 5: Debrief
+
+After they complete it (or attempt it), name what happened: "You paused. You identified it as quadratic. You started with what you knew. That's the response we're training."
+
+Critical Rule:
+
+Boss Battles are not punishment for getting problems wrong. They're training tools for building pressure tolerance. Use them strategically, not punitively.
+
+Tool 3
+Model → Apply → Guide
+Your session rhythm. Every concept follows this exact sequence. The 3-Layer Lens is used in all three stages.
+
+M
+Model
+You demonstrate a problem through the 3-Layer Lens. Name the terms. Show the steps. Explain why each step is valid.
+
+Example - Modeling a Quadratic:
+
+[Vocabulary] "This is a quadratic equation. See the x²? That's the quadratic term. The 5x is the linear term. The 6 is the constant."
+
+[Method] "Step 1: Factor. Step 2: Set each factor to zero. Step 3: Solve for x. Watch me execute."
+
+[Reason] "Why do we set factors to zero? Zero product property. If a × b = 0, then a = 0 or b = 0. That's the law that makes this work."
+
+Critical: Model through all three layers. Don't just show steps. Name terms. Explain logic.
+
+A
+Apply
+They execute. Immediately. No waiting. Give them 2-3 similar problems. Watch them apply what you just modeled.
+
+What to say:
+
+"Now you do this one: x² - 7x + 12 = 0. Name the terms. Show me the method. Tell me why each step works."
+
+Key: Immediate application while the model is fresh. Pattern recognition requires repetition.
+
+G
+Guide
+Correct errors and mistakes through the 3-Layer Lens. Diagnose which layer cracked. Fix that layer.
+
+When They Make an Error:
+
+Check Vocabulary: Do they know the term names? If not, teach the vocabulary.
+
+Check Method: Did they skip a step? Execute steps out of order? If yes, correct the method.
+
+Check Reason: Do they understand why the move is valid? If not, explain the logic/law.
+
+Example - Student makes error:
+
+Student factors (x-2)(x-3) but writes "x = -2, x = -3"
+
+You: "What did you set equal to zero?"
+Student: "Um... the factors?"
+You: "Show me. Write it."
+Student writes: (x-2) = 0
+You: "Solve that."
+Student: "Oh. x = 2."
+
+Diagnosis: Method layer cracked. They knew vocabulary (factors). They understood reason (zero product property). But they skipped showing the step: setting each factor to zero.
+
+Key: Don't just say "that's wrong." Diagnose which layer failed. Correct that specific layer.
+
+The 3-Layer Lens Runs Through the Entire Sequence:
+
+→
+Model - Teach concept through Vocabulary + Method + Reason
+→
+Apply - Student executes immediately
+→
+Guide - Diagnose errors through Vocabulary + Method + Reason, fix the layer that cracked
+This is not Model → Apply → Introduce Boss Battle. Guide means correcting through the lens. That's the system.
+
+The Law of Inevitability
+This is the philosophy behind everything. Confidence is not taught. It's inevitable when the conditions are right.
+
+Clarity
+
+Students know exactly what to do. No guessing. No ambiguity. Clear process, clear language, clear standards.
+
+Systems
+
+Repeatable processes replace guesswork. When they see x², they know the system. When they see a word problem, they know the system. Systems eliminate uncertainty.
+
+Repetition
+
+Response patterns get trained through repetition. One exposure doesn't create a habit. Ten exposures start to. Fifty exposures make it automatic.
+
+Consistency
+
+Standards stay constant. You don't lower expectations. You don't accept imprecise language. You don't skip the 3-Layer Lens. Consistency trains reliability.
+
+Inevitability
+
+Confidence emerges. Not because you taught it. Because you built the conditions. When a student executes clearly, systematically, repeatedly, and consistently - confidence becomes inevitable.
+
+You don't motivate confidence. You don't inspire confidence. You create the conditions where confidence has no choice but to emerge.
+
+Your Role as System Executor
+You are not a teacher. You are a system executor.
+
+Your job is not to be creative, warm, motivational, or inspiring. Your job is to run TT-OS with precision and consistency.
+
+What this means:
+
+• Apply the 3-Layer Lens to every error
+• Introduce Boss Battles when students feel comfortable
+• Follow Model → Apply → Guide for every concept
+• Correct vocabulary immediately, every time
+• Train response patterns, not just content knowledge
+• Hold standards constant - never lower expectations
+• Trust the system, even when students resist
+When you execute the system, students transform.
+
+Not because you're inspiring. Not because you're warm. Not because you're motivational. Because the system works.
+
+Execute TT-OS. That's your job. Everything else is noise.
 ---
 
-*Document created from founder-provided strategy content and formatted for clarity and operational use.*
