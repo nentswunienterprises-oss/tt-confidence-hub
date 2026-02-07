@@ -6,6 +6,7 @@ import { TTLogo } from "@/components/TTLogo";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "@/lib/config";
 import { ApplicationForm } from "@/components/tutor/application-form";
@@ -42,23 +43,21 @@ export default function TutorGateway() {
   const parentConsentInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch current user data
-  const { data: user } = useQuery<any>({
-    queryKey: ["/api/auth/user"],
-    queryFn: getQueryFn({ on401: "returnNull" }),
-  });
+  // Use shared auth hook which waits for Supabase session restore
+  const { user, isLoading: userLoading, isAuthenticated } = useAuth();
 
   // Fetch application status
   const { data: applicationStatus } = useQuery<ApplicationStatus>({
     queryKey: ["/api/tutor/application-status"],
     queryFn: getQueryFn({ on401: "returnNull" }),
-    enabled: !!user,
+    enabled: isAuthenticated,
   });
 
   // Fetch pod assignment
   const { data: podData, isLoading: podLoading } = useQuery<PodData>({
     queryKey: ["/api/tutor/pod"],
     queryFn: getQueryFn({ on401: "returnNull" }),
-    enabled: !!user && applicationStatus?.status === "confirmed",
+    enabled: isAuthenticated && applicationStatus?.status === "confirmed",
   });
 
   // Check if tutor has pod assignment
