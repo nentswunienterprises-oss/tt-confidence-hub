@@ -118,22 +118,7 @@ export default function OnlineTutorsWantedPlain() {
           </ul>
         </Card>
 
-        <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
-          <h3 className="text-lg font-bold mb-3">Who This Is Not For</h3>
-          <p className="mb-3" style={{ color: "#5A5A5A" }}>This is not for people who:</p>
-          <ul className="list-disc pl-5 space-y-2 text-sm sm:text-base" style={{ color: "#5A5A5A" }}>
-            <li>Want freedom to teach “their own way”</li>
-            <li>Avoid feedback or accountability</li>
-            <li>Get uncomfortable when corrected</li>
-            <li>Want easy money without structure</li>
-            <li>Treat this like a casual side hustle</li>
-          </ul>
-
-          <p className="mt-4" style={{ color: "#5A5A5A" }}>
-            Most applicants won’t make it past training.
-            That’s intentional.
-          </p>
-        </Card>
+        {/* 'Who This Is Not For' section removed as requested */}
 
         <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h3 className="text-lg font-bold mb-3">Training & Selection</h3>
