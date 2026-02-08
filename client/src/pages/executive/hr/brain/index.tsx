@@ -794,7 +794,7 @@ function AddDetailModal({
         <DialogHeader>
           <DialogTitle>Assign Weekly Detail</DialogTitle>
           <DialogDescription>
-            Assign a deliverable to a team member. No essays—just execution signals.
+            Assign a deliverable to a team member. No essays - just execution signals.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">

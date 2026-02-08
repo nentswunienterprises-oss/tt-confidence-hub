@@ -2333,14 +2333,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: Request, res: Response) => {
       try {
         const userId = (req.session as any).userId;
-        const applications = await storage.getTutorApplicationsByUser(userId);
+        console.log("📋 Fetching tutor application status for user:", userId);
+        
+        // Add a timeout so this doesn't hang forever
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Database query timeout")), 5000)
+        );
+        
+        const applicationsPromise = storage.getTutorApplicationsByUser(userId);
+        const applications = await Promise.race([applicationsPromise, timeoutPromise]) as any[];
+        
+        console.log("✅ Got applications:", applications?.length || 0, "for user:", userId);
         
         if (!applications || applications.length === 0) {
+          console.log("📝 User has no applications, returning not_applied");
           return res.json({ status: "not_applied" });
         }
         
         // Get the most recent application
         const latestApp = applications[0];
+        console.log("📝 Latest app status:", latestApp.status, "for user:", userId);
         
         // Check if under 18 based on age in application
         const isUnder18 = latestApp.age < 18;
@@ -2377,6 +2389,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             status = "pending";
         }
         
+        console.log("✅ Returning status:", status, "for user:", userId);
         res.json({
           status,
           applicationId: latestApp.id,
@@ -2390,7 +2403,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           onboardingCompletedAt: latestApp.onboardingCompletedAt ?? null,
         });
       } catch (error) {
-        console.error("Error fetching tutor application status:", error);
+        console.error("❌ Error fetching tutor application status:", error);
         res.status(500).json({ message: "Failed to fetch application status" });
       }
     }

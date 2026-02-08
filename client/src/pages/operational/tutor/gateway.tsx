@@ -47,10 +47,11 @@ export default function TutorGateway() {
   const { user, isLoading: userLoading, isAuthenticated } = useAuth();
 
   // Fetch application status
-  const { data: applicationStatus } = useQuery<ApplicationStatus>({
+  const { data: applicationStatus, isLoading: appStatusLoading, error: appStatusError } = useQuery<ApplicationStatus>({
     queryKey: ["/api/tutor/application-status"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: isAuthenticated,
+    retry: 1,
   });
 
   // Fetch pod assignment
@@ -172,8 +173,35 @@ export default function TutorGateway() {
       return;
     }
     
-    if (!applicationStatus) {
+    // While user auth is loading, show loading
+    if (userLoading || !isAuthenticated) {
+      console.log("🔄 gateway: waiting for auth", { userLoading, isAuthenticated });
       setStep("loading");
+      return;
+    }
+    
+    // If application-status query is still loading, show loading
+    if (appStatusLoading) {
+      console.log("🔄 gateway: fetching application status...");
+      setStep("loading");
+      return;
+    }
+    
+    // If there was an error fetching application status, try to proceed or show error
+    if (appStatusError) {
+      console.error("❌ gateway: error fetching application status:", appStatusError);
+      // Still show loading UI but don't get stuck forever
+      setStep("loading");
+      return;
+    }
+    
+    // Now we have the application status data (or it's null/undefined)
+    console.log("✅ gateway: application status resolved:", applicationStatus);
+    if (!applicationStatus) {
+      // Either the user has no application record (not_applied) or error occurred
+      // Default to application form
+      console.log("📋 gateway: no application status, showing form");
+      setStep("application");
     } else if (applicationStatus.status === "not_applied") {
       setStep("application");
     } else if (applicationStatus.status === "confirmed") {
@@ -183,7 +211,7 @@ export default function TutorGateway() {
       // pending, approved, verification states
       setStep("submitted");
     }
-  }, [applicationStatus, navigate, hasPodAssignment]);
+  }, [applicationStatus, appStatusLoading, appStatusError, userLoading, isAuthenticated, navigate, hasPodAssignment]);
 
   // Mark onboarding complete (tutor clicked Continue to Dashboard)
   const completeOnboarding = async () => {
