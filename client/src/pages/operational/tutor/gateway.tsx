@@ -731,6 +731,7 @@ export default function TutorGateway() {
                   <p className="text-muted-foreground">Loading your application status...</p>
                   <p className="text-xs text-gray-400 mt-4">If this takes more than 15 seconds, please refresh the page.</p>
                 </>
+              )}
             </CardContent>
           </Card>
         )}
