@@ -46,12 +46,13 @@ export default function TutorGateway() {
   // Use shared auth hook which waits for Supabase session restore
   const { user, isLoading: userLoading, isAuthenticated } = useAuth();
 
-  // Fetch application status
+  // Fetch application status (with retry logic for high-latency networks)
   const { data: applicationStatus, isLoading: appStatusLoading, error: appStatusError } = useQuery<ApplicationStatus>({
     queryKey: ["/api/tutor/application-status"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: isAuthenticated,
-    retry: 1,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * Math.pow(2, attemptIndex), 5000),
   });
 
   // Fetch pod assignment
@@ -708,8 +709,28 @@ export default function TutorGateway() {
         {step === "loading" && (
           <Card className="text-center">
             <CardContent className="py-12">
-              <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-3" />
-              <p className="text-muted-foreground">Loading your application status...</p>
+              {appStatusError ? (
+                <>
+                  <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-3" />
+                  <p className="text-red-600 font-semibold mb-2">Unable to load application status</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-6">
+                    {appStatusError.message || "An error occurred while loading. Please try again."}
+                  </p>
+                  <Button 
+                    onClick={() => window.location.reload()}
+                    className="rounded-full"
+                    style={{ backgroundColor: "#E63946" }}
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Retry
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-3" />
+                  <p className="text-muted-foreground">Loading your application status...</p>
+                  <p className="text-xs text-gray-400 mt-4">If this takes more than 15 seconds, please refresh the page.</p>
+                </>
             </CardContent>
           </Card>
         )}

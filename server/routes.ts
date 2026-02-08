@@ -2335,9 +2335,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userId = (req.session as any).userId;
         console.log("📋 Fetching tutor application status for user:", userId);
         
-        // Add a timeout so this doesn't hang forever
+        // Add a timeout so this doesn't hang forever (increased to 15s for high-latency networks)
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Database query timeout")), 5000)
+          setTimeout(() => reject(new Error("Database query timeout after 15s")), 15000)
         );
         
         const applicationsPromise = storage.getTutorApplicationsByUser(userId);
