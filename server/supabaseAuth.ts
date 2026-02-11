@@ -714,15 +714,31 @@ export const isAuthenticated: RequestHandler = async (
   next: NextFunction,
 ) => {
   try {
+    console.time("⏱️ isAuthenticated total time");
     // First, try session-based auth (for same-origin requests)
     const sessionUserId = (req.session as any).userId;
+    console.log("🔐 [isAuthenticated] sessionUserId:", sessionUserId);
 
     if (sessionUserId) {
       // Session auth found - use it
-      const user = await storage.getUser(sessionUserId);
-      if (user) {
-        (req as any).dbUser = user;
-        return next();
+      console.time("⏱️ storage.getUser");
+      try {
+        // Add timeout to prevent hanging on database queries
+        const userPromise = storage.getUser(sessionUserId);
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("getUser timeout after 5s")), 5000)
+        );
+        const user = await Promise.race([userPromise, timeoutPromise]);
+        console.timeEnd("⏱️ storage.getUser");
+        console.log("✅ [isAuthenticated] user found:", user?.email);
+        if (user) {
+          (req as any).dbUser = user;
+          console.timeEnd("⏱️ isAuthenticated total time");
+          return next();
+        }
+      } catch (userError) {
+        console.error("❌ [isAuthenticated] error fetching user:", userError);
+        return res.status(500).json({ message: "Error retrieving user" });
       }
     }
 
@@ -741,13 +757,24 @@ export const isAuthenticated: RequestHandler = async (
       
       if (supabaseUser) {
         // Get user from our database
-        const user = await storage.getUser(supabaseUser.id);
-        if (user) {
-          (req as any).dbUser = user;
-          return next();
-        } else {
-          console.error("User not found in database for Supabase user:", supabaseUser.id);
-          return res.status(401).json({ message: "User not found" });
+        console.time("⏱️ storage.getUser (Bearer)");
+        try {
+          const userPromise = storage.getUser(supabaseUser.id);
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("getUser timeout after 5s")), 5000)
+          );
+          const user = await Promise.race([userPromise, timeoutPromise]);
+          console.timeEnd("⏱️ storage.getUser (Bearer)");
+          if (user) {
+            (req as any).dbUser = user;
+            return next();
+          } else {
+            console.error("User not found in database for Supabase user:", supabaseUser.id);
+            return res.status(401).json({ message: "User not found" });
+          }
+        } catch (userError) {
+          console.error("❌ Error fetching user (Bearer):", userError);
+          return res.status(500).json({ message: "Error retrieving user" });
         }
       }
     }
