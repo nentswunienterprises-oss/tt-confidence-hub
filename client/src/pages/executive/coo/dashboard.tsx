@@ -380,6 +380,22 @@ export default function COODashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-8">
+        {/* Grade Monitoring System Link */}
+        <section>
+          <Card className="mb-4">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Academic Compliance & Grade Monitoring</h3>
+                <Button size="sm" variant="default" onClick={() => window.location.href = '/executive/coo/grade-monitoring'}>
+                  Go to Grade Monitoring System
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground text-sm">Protect institutional credibility, enforce tutor discipline, automate consequences, and maintain trust with schools. Full compliance engine for academic review.</p>
+            </CardContent>
+          </Card>
+        </section>
         {/* Sales & Affiliates Section */}
         <section>
           <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Affiliate Sales</h2>

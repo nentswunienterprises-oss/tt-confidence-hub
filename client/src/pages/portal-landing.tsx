@@ -52,7 +52,7 @@ function PortalLanding() {
 
           <div className="hidden md:block">
             <span className="text-2xl lg:text-4xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-              RESPONSE-FIRST TRAINING
+              RESPONSE-CONDITIONING
             </span>
           </div>
 
@@ -106,7 +106,7 @@ function PortalLanding() {
               <br />
               They struggle because pressure disrupts their response.
               <br /><br />
-              TT focuses on how students respond when things gets hard, especially under pressure... until calm execution is normal.
+              TT focuses on training how students respond when math gets hard... to make calm execution normal even under pressure.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 sm:pt-4">
@@ -164,7 +164,7 @@ function PortalLanding() {
             {[
               {
                 number: "1",
-                title: "Response Gets Trained",
+                title: "Pattern Gets Trained",
                 description: "When certainty disappears, your child stays oriented. They don't freeze. They execute."
               },
               {
