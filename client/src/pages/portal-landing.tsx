@@ -106,7 +106,7 @@ function PortalLanding() {
               <br />
               They struggle because pressure disrupts their response.
               <br /><br />
-              TT focuses on training how students respond when math gets hard... to make calm execution normal even under pressure.
+              TT focuses on training how students respond when math gets hard... to make calm execution normal, even under pressure.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 sm:pt-4">
