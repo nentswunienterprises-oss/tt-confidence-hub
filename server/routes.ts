@@ -106,6 +106,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ========================================
   // TUTOR ROUTES
   // ========================================
+    // Aggregated gateway session endpoint
+    app.get(
+      "/api/tutor/gateway-session",
+      isAuthenticated,
+      requireRole(["tutor"]),
+      async (req: Request, res: Response) => {
+        try {
+          const tutorId = (req as any).dbUser.id;
+          const dbUser = (req as any).dbUser;
+          // Fetch assignment
+          const assignment = await storage.getTutorAssignment(tutorId);
+          // Fetch students
+          const students = await storage.getStudentsByTutor(tutorId);
+          // Fetch sessions
+          const sessions = await storage.getSessionsByTutor(tutorId);
+          // Fetch academic profile (verification status)
+          const profile = await storage.getAcademicProfile(tutorId);
+          // Fetch province (assuming it's in dbUser or profile)
+          const province = dbUser?.province || profile?.province || null;
+          // Role
+          const role = dbUser?.role || "tutor";
+          // Enrollment status (from parent_enrollments)
+          const { data: enrollments } = await supabase
+            .from("parent_enrollments")
+            .select("status")
+            .eq("assigned_tutor_id", tutorId);
+          const enrollmentStatus = enrollments && enrollments.length > 0 ? enrollments[0].status : null;
+          // Verification status (from profile)
+          const verificationStatus = profile?.verified || false;
+
+          // Fetch tutor application status and onboarding progress
+          const tutorApplications = await storage.getTutorApplicationsByUser(tutorId);
+          const latestApp = tutorApplications && tutorApplications.length > 0 ? tutorApplications[0] : null;
+          let applicationStatus = null;
+          if (latestApp) {
+            // Set status to 'confirmed' as soon as required docs are verified
+            let status = latestApp.status;
+            const isUnder18 = latestApp.age < 18;
+            let docsVerified = false;
+            if (!isUnder18) {
+              docsVerified = !!latestApp.trialAgreementVerified;
+            } else {
+              docsVerified = !!latestApp.trialAgreementVerified && !!latestApp.parentConsentVerified;
+            }
+            if (docsVerified) {
+              status = "confirmed";
+            }
+            applicationStatus = {
+              status,
+              applicationId: latestApp.id,
+              hasTrialAgreement: !!latestApp.trialAgreementUrl,
+              hasParentConsent: !!latestApp.parentConsentUrl,
+              trialAgreementVerified: !!latestApp.trialAgreementVerified,
+              parentConsentVerified: !!latestApp.parentConsentVerified,
+              trialAgreementUrl: latestApp.trialAgreementUrl,
+              parentConsentUrl: latestApp.parentConsentUrl,
+              isUnder18,
+              onboardingCompletedAt: latestApp.onboardingCompletedAt ?? null,
+            };
+          }
+
+          // Compose unified session object
+          const gatewaySession = {
+            assignment,
+            students,
+            sessions,
+            profile,
+            province,
+            role,
+            enrollmentStatus,
+            verificationStatus,
+            applicationStatus,
+          };
+          res.json(gatewaySession);
+        } catch (error) {
+          console.error("Error fetching gateway session:", error);
+          res.status(500).json({ message: "Failed to fetch gateway session" });
+        }
+      }
+    );
 
   // Get tutor's pod assignment and students
   app.get(

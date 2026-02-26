@@ -32,6 +32,8 @@ interface PodData {
 }
 
 export default function TutorGateway() {
+  // ...existing code...
+  // ...existing code...
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -46,24 +48,38 @@ export default function TutorGateway() {
   // Use shared auth hook which waits for Supabase session restore
   const { user, isLoading: userLoading, isAuthenticated } = useAuth();
 
-  // Fetch application status (with retry logic for high-latency networks)
-  const { data: applicationStatus, isLoading: appStatusLoading, error: appStatusError } = useQuery<ApplicationStatus>({
-    queryKey: ["/api/tutor/application-status"],
+  // Fetch aggregated gateway session
+  const { data: gatewaySession, isLoading: gatewayLoading, error: gatewayError } = useQuery<any>({
+    queryKey: ["/api/tutor/gateway-session"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: isAuthenticated,
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * Math.pow(2, attemptIndex), 5000),
   });
 
-  // Fetch pod assignment
-  const { data: podData, isLoading: podLoading } = useQuery<PodData>({
-    queryKey: ["/api/tutor/pod"],
-    queryFn: getQueryFn({ on401: "returnNull" }),
-    enabled: isAuthenticated && applicationStatus?.status === "confirmed",
-  });
+  // Debug: log the gateway session response
+  useEffect(() => {
+    if (gatewaySession) {
+      console.log("🔍 gatewaySession response:", gatewaySession);
+    }
+  }, [gatewaySession]);
 
-  // Check if tutor has pod assignment
-  const hasPodAssignment = !!podData?.assignment;
+  // Extract application status, pod assignment, etc. from gatewaySession
+  const applicationStatus = gatewaySession?.applicationStatus || null;
+  const podData = {
+    assignment: gatewaySession?.assignment,
+    students: gatewaySession?.students,
+  };
+  const hasPodAssignment = !!podData.assignment;
+  // Province, role, enrollmentStatus, verificationStatus available as needed
+  // const province = gatewaySession?.province;
+  // const role = gatewaySession?.role;
+  // const enrollmentStatus = gatewaySession?.enrollmentStatus;
+  // const verificationStatus = gatewaySession?.verificationStatus;
+
+  // Loading and error states
+  const appStatusLoading = gatewayLoading;
+  const appStatusError = gatewayError;
 
   // Document upload mutation
   const uploadDocumentMutation = useMutation({
@@ -277,7 +293,7 @@ export default function TutorGateway() {
             variant="ghost"
             className="text-sm sm:text-base font-medium hover:bg-transparent flex items-center gap-1 sm:gap-2 px-2 sm:px-4"
             style={{ color: "#1A1A1A" }}
-            onClick={() => navigate("/")}
+            onClick={() => window.history.back()}
           >
             <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Back

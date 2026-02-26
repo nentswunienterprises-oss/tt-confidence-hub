@@ -96,17 +96,17 @@ function PortalLanding() {
             </div>
 
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight" style={{ color: "#1A1A1A" }}>
-              Calm Execution
+              Clarity
               <br />
               <span style={{ color: "#E63946" }}>Under Pressure.</span>
             </h1>
 
             <p className="text-base sm:text-lg md:text-xl leading-relaxed" style={{ color: "#5A5A5A" }}>
-              Most students don’t struggle because they don’t understand math.
+              Most students don’t struggle because they're bad at math or not intelligent.
               <br />
               They struggle because pressure disrupts their response.
               <br /><br />
-              TT focuses on training how students respond when math gets hard... to make calm execution normal, even under pressure.
+              TT focuses on training how students respond when math gets hard, by eliminating surprises through preparedness and calm execution.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 sm:pt-4">
