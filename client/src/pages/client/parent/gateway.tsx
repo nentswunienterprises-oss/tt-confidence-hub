@@ -613,9 +613,9 @@ export default function ParentGateway() {
                     <label className="block text-xs sm:text-sm font-medium mb-2">Has your child ever received tutoring before? *</label>
                     <div className="space-y-2">
                       {[
-                        { value: "formal", label: "Yes – formal paid tutoring" },
-                        { value: "informal", label: "Yes – informal help from friends/family" },
-                        { value: "no", label: "No – this will be their first time" },
+                        { value: "formal", label: "Yes - formal paid tutoring" },
+                        { value: "informal", label: "Yes - informal help from friends/family" },
+                        { value: "no", label: "No - this will be their first time" },
                       ].map((option) => (
                         <button
                           key={option.value}
@@ -637,8 +637,8 @@ export default function ParentGateway() {
                     <label className="block text-xs sm:text-sm font-medium mb-2">When your child hits uncertainty in math, what happens? *</label>
                     <div className="space-y-2">
                       {[
-                        { value: "very_low", label: "They freeze – can't proceed without help" },
-                        { value: "low", label: "They rush or guess – emotion hijacks thinking" },
+                        { value: "very_low", label: "They freeze - can't proceed without help" },
+                        { value: "low", label: "They rush or guess - emotion hijacks thinking" },
                         { value: "average", label: "They try but break under time pressure" },
                         { value: "high", label: "They execute a trained response and stay calm" },
                       ].map((option) => (
