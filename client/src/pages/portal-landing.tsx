@@ -106,7 +106,7 @@ function PortalLanding() {
               <br />
               They struggle because pressure disrupts their response.
               <br /><br />
-              TT focuses on training how students respond when math gets hard... eliminating surprises through preparedness and calm execution.
+              TT focuses on training how students respond when math gets hard... eliminating surprises through pattern and calm execution.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 sm:pt-4">
@@ -170,7 +170,7 @@ function PortalLanding() {
               {
                 number: "2",
                 title: "Calm Becomes Automatic",
-                description: "Through repetition and controlled pressure exposure, emotional control becomes muscle memory."
+                description: "Through repetition under controlled pressure exposure, emotional control becomes muscle memory."
               },
               {
                 number: "3",

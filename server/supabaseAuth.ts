@@ -68,8 +68,8 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: false, // Always false for local dev
-      sameSite: "lax", // Use 'lax' for local dev
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: sessionTtl,
     },
     // Add logging for session events
