@@ -57,7 +57,7 @@ export default function OnlineTutorsWantedPlain() {
           </h1>
 
           <p className="max-w-2xl mx-auto text-base sm:text-lg mt-6 leading-relaxed" style={{ color: "#5A5A5A" }}>
-            Earn R3 500 - R5 000 per month (tax-free) while building real teaching, leadership, and execution skills.
+            Earn R2 200 - R4 200 per month (tax-free) while building real teaching, leadership, and execution skills.
           </p>
 
           <div className="mt-6">
@@ -136,7 +136,7 @@ export default function OnlineTutorsWantedPlain() {
 
         <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h3 className="text-lg font-bold mb-3">Earnings</h3>
-          <p style={{ color: "#5A5A5A" }}>R3 500 - R5 000 per month, tax-free (performance-based)</p>
+          <p style={{ color: "#5A5A5A" }}>R2 200 - R4 200 per month, tax-free (performance-based)</p>
           <p style={{ color: "#5A5A5A" }}>Earnings increase with consistency and student load</p>
           <p style={{ color: "#5A5A5A" }}>Top performers grow into leadership roles</p>
           <p style={{ color: "#5A5A5A" }}>You earn more by executing better - not by talking more.</p>

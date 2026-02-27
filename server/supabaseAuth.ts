@@ -68,10 +68,12 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: false, // Always false for local dev
+      sameSite: "lax", // Use 'lax' for local dev
       maxAge: sessionTtl,
     },
+    // Add logging for session events
+    logErrors: true,
   });
 }
 
@@ -81,6 +83,8 @@ export async function setupAuth(app: Express) {
 
   // Sign up endpoint
   app.post("/api/auth/signup", async (req: Request, res: Response) => {
+      console.log("[SESSION] Before signup: req.sessionID:", req.sessionID);
+      console.log("[SESSION] Before signup: req.session:", req.session);
     try {
       const { email, password, role = "tutor", first_name = "", last_name = "", affiliate_code = null, tracking_source = "organic", tracking_campaign = null } = req.body;
 
@@ -301,6 +305,8 @@ export async function setupAuth(app: Express) {
 
       // Save session before sending response
       req.session.save((err) => {
+          console.log("[SESSION] After signup: req.sessionID:", req.sessionID);
+          console.log("[SESSION] After signup: req.session:", req.session);
         if (err) {
           console.error("❌ Session save error:", err);
           return res.status(500).json({ message: "Session error" });
@@ -334,6 +340,10 @@ export async function setupAuth(app: Express) {
 
   // Sign in endpoint
   app.post("/api/auth/signin", async (req: Request, res: Response) => {
+      console.log("[SESSION] Before signin: req.sessionID:", req.sessionID);
+      console.log("[SESSION] Before signin: req.session:", req.session);
+      console.log("[SESSION] After signin: req.sessionID:", req.sessionID);
+      console.log("[SESSION] After signin: req.session:", req.session);
     try {
       console.log("═══════════════════════════════════════");
       console.log("🔐 SIGNIN REQUEST RECEIVED");
@@ -605,6 +615,8 @@ export async function setupAuth(app: Express) {
 
   // Logout endpoint
   app.post("/api/auth/logout", async (req: Request, res: Response) => {
+      console.log("[SESSION] Before logout: req.sessionID:", req.sessionID);
+      console.log("[SESSION] Before logout: req.session:", req.session);
     try {
       const accessToken = (req.session as any).accessToken;
 
@@ -613,6 +625,8 @@ export async function setupAuth(app: Express) {
       }
 
       req.session.destroy((err) => {
+          console.log("[SESSION] After logout: req.sessionID:", req.sessionID);
+          console.log("[SESSION] After logout: req.session:", req.session);
         if (err) {
           console.error("Session destruction error:", err);
         }
@@ -626,6 +640,8 @@ export async function setupAuth(app: Express) {
 
   // Get current user endpoint
   app.get("/api/auth/user", async (req: Request, res: Response) => {
+      console.log("[SESSION] Before /api/auth/user: req.sessionID:", req.sessionID);
+      console.log("[SESSION] Before /api/auth/user: req.session:", req.session);
     try {
       console.log("🔍 GET /api/auth/user - Checking authentication...");
       console.log("🔍 Session check - Session ID:", req.sessionID);
@@ -716,10 +732,9 @@ export const isAuthenticated: RequestHandler = async (
   try {
     console.time("⏱️ isAuthenticated total time");
     // First, try session-based auth (for same-origin requests)
-    const sessionUserId = (req.session as any).userId;
-    console.log("🔐 [isAuthenticated] sessionUserId:", sessionUserId);
-
-    if (sessionUserId) {
+    if (req.session && (req.session as any).userId) {
+      const sessionUserId = (req.session as any).userId;
+      console.log("🔐 [isAuthenticated] sessionUserId:", sessionUserId);
       // Session auth found - use it
       console.time("⏱️ storage.getUser");
       try {

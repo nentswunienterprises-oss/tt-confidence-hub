@@ -70,6 +70,7 @@ export default function ParentGateway() {
     queryKey: ["/api/parent/intro-session-confirmation"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: !!user && enrollmentStatus?.status === "assigned",
+    refetchInterval: 10000, // Poll every 10s for status updates
   });
 
   // Fetch proposal if available
@@ -169,7 +170,7 @@ export default function ParentGateway() {
     }
   }, [user]);
 
-  const handleInputChange = (field: string, value: string | boolean) => {
+  const handleInputChange = (field: string, value: string | boolean | string[]) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -772,7 +773,7 @@ export default function ParentGateway() {
               <CardTitle className="flex items-center justify-center gap-2 text-sm sm:text-lg" style={{ color: "#1A1A1A" }}>
                 <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: "#E63946" }} />
                 {enrollmentStatus.status === "awaiting_assignment" && "Application Being Assessed"}
-                {enrollmentStatus.status === "assigned" && "You're In"}
+                {enrollmentStatus.status === "assigned" && "Your tutor has been assigned"}
                 {enrollmentStatus.status === "proposal_sent" && "Training Proposal Ready"}
                 {enrollmentStatus.status === "session_booked" && "Proposal Accepted"}
                 {enrollmentStatus.status === "report_received" && "Awaiting Report"}
@@ -801,104 +802,123 @@ export default function ParentGateway() {
               )}
               {enrollmentStatus.status === "assigned" && (
                 <>
-                  {introSessionConfirmation?.confirmed ? (
+                  {/* Show assigned tutor info */}
+                  {assignedTutor && (
+                    <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+                        {assignedTutor.profile_image_url ? (
+                          <img 
+                            src={assignedTutor.profile_image_url} 
+                            alt={assignedTutor.name}
+                            className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover flex-shrink-0"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        ) : null}
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-base sm:text-lg">{assignedTutor.name}</h3>
+                          {assignedTutor.bio && (
+                            <p className="text-sm text-red-900 mt-1">{assignedTutor.bio}</p>
+                          )}
+                          {assignedTutor.email && (
+                            <p className="text-sm text-red-900 mt-1">📧 {assignedTutor.email}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Show session status */}
+                  {introSessionConfirmation?.status === "pending_tutor_confirmation" && (
+                    <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 border-3 border-red-400/30 border-t-red-600 rounded-full animate-spin flex-shrink-0" />
+                        <div>
+                          <p className="font-medium text-red-900">Waiting for tutor confirmation</p>
+                          {introSessionConfirmation.scheduled_time && (
+                            <p className="text-xs text-red-700 mt-1">Proposed time: {new Date(introSessionConfirmation.scheduled_time).toLocaleString()}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {introSessionConfirmation?.status === "pending_parent_confirmation" && (
+                    <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 border-3 border-yellow-400/30 border-t-yellow-600 rounded-full animate-spin flex-shrink-0" />
+                        <div>
+                          <p className="font-medium text-yellow-900">Tutor proposed a new time. Please confirm.</p>
+                          {introSessionConfirmation.scheduled_time && (
+                            <p className="text-xs text-yellow-700 mt-1">Proposed time: {new Date(introSessionConfirmation.scheduled_time).toLocaleString()}</p>
+                          )}
+                        </div>
+                      </div>
+                      {/* TODO: Add confirm/decline buttons for parent to respond to new time */}
+                    </div>
+                  )}
+                  {introSessionConfirmation?.status === "confirmed" && (
                     <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                       <p className="font-medium text-green-900">Your session has been confirmed</p>
+                      {introSessionConfirmation.scheduled_time && (
+                        <p className="text-sm text-green-700 mt-2">Scheduled for: {new Date(introSessionConfirmation.scheduled_time).toLocaleString()}</p>
+                      )}
                       <p className="text-sm text-green-700 mt-2">You will receive an introductory report and proposal here after you've had your intro session</p>
                     </div>
-                  ) : (
-                    <>
-                      {assignedTutor && (
-                        <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                          <p className="text-xs sm:text-sm font-medium text-amber-900 mb-3">Your Tutor</p>
-                          <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
-                            {assignedTutor.profile_image_url ? (
-                              <img 
-                                src={assignedTutor.profile_image_url} 
-                                alt={assignedTutor.name}
-                                className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover flex-shrink-0"
-                                onError={(e) => {
-                                  e.currentTarget.style.display = 'none';
-                                }}
-                              />
-                            ) : null}
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-base sm:text-lg">{assignedTutor.name}</h3>
-                              {assignedTutor.email && (
-                                <p className="text-sm text-amber-900 mt-1">📧 {assignedTutor.email}</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {introSessionConfirmation?.proposed && !introSessionConfirmation?.confirmed ? (
-                        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <div className="w-6 h-6 border-3 border-blue-400/30 border-t-blue-600 rounded-full animate-spin flex-shrink-0" />
+                  )}
+                  {introSessionConfirmation?.status === "not_scheduled" && (
+                    <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <p className="font-medium text-red-900 mb-4">Schedule your introductory session</p>
+                      <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button style={{backgroundColor: '#E63946', color: 'white'}} className="w-full">Book Introductory Session</Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Propose Session Time</DialogTitle>
+                            <DialogDescription>
+                              Select a date and time for your introductory session with {assignedTutor?.name}
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-4">
                             <div>
-                              <p className="font-medium text-blue-900">Waiting for tutor confirmation</p>
-                              <p className="text-sm text-blue-700 mt-1">Your proposed time: {introSessionConfirmation?.proposedDate} at {introSessionConfirmation?.proposedTime}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                            <p className="font-medium text-blue-900 mb-4">Schedule your introductory session</p>
-                            <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
-                              <DialogTrigger asChild>
-                                <Button variant="outline" className="w-full">Book Introductory Session</Button>
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Propose Session Time</DialogTitle>
-                                  <DialogDescription>
-                                    Select a date and time for your introductory session with {assignedTutor?.name}
-                                  </DialogDescription>
-                                </DialogHeader>
-                                <div className="space-y-4">
-                                  <div>
-                                    <label className="text-sm font-medium mb-2 block">Date</label>
-                                    <Popover>
-                                      <PopoverTrigger asChild>
-                                        <Button variant="outline" className="w-full justify-start text-left">
-                                          {proposedDate ? format(proposedDate, "PPP") : "Pick a date"}
-                                        </Button>
-                                      </PopoverTrigger>
-                                      <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                          mode="single"
-                                          selected={proposedDate}
-                                          onSelect={setProposedDate}
-                                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                                        />
-                                      </PopoverContent>
-                                    </Popover>
-                                  </div>
-                                  <div>
-                                    <label className="text-sm font-medium">Time</label>
-                                    <Input
-                                      type="time"
-                                      value={proposedTime}
-                                      onChange={(e) => setProposedTime(e.target.value)}
-                                      className="mt-1"
-                                    />
-                                  </div>
-                                  <Button 
-                                    onClick={handleProposeIntroSession} 
-                                    disabled={isSubmittingSession}
-                                    className="w-full"
-                                  >
-                                    {isSubmittingSession ? "Proposing..." : "Propose Time"}
+                              <label className="text-sm font-medium mb-2 block">Date</label>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button variant="outline" className="w-full justify-start text-left">
+                                    {proposedDate ? format(proposedDate, "PPP") : "Pick a date"}
                                   </Button>
-                                </div>
-                              </DialogContent>
-                            </Dialog>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                  <Calendar
+                                    mode="single"
+                                    selected={proposedDate}
+                                    onSelect={setProposedDate}
+                                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium">Time</label>
+                              <Input
+                                type="time"
+                                value={proposedTime}
+                                onChange={(e) => setProposedTime(e.target.value)}
+                                className="mt-1"
+                              />
+                            </div>
+                            <Button 
+                              onClick={handleProposeIntroSession} 
+                              disabled={isSubmittingSession}
+                              className="w-full"
+                            >
+                              {isSubmittingSession ? "Proposing..." : "Propose Time"}
+                            </Button>
                           </div>
-                        </>
-                      )}
-                    </>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                   )}
                 </>
               )}

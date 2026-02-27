@@ -149,7 +149,16 @@ export class SupabaseStorage implements IStorage {
   weeklyCheckIns = weeklyCheckIns;
 
   // Users
+  // In-memory cache for the duration of a request (keyed by userId)
+  __userCache: Record<string, User | undefined> = {};
+
   async getUser(id: string): Promise<User | undefined> {
+    // Check in-memory cache first
+    if (this.__userCache[id]) {
+      console.log(`[getUser] Returning cached user for id: ${id}`);
+      return this.__userCache[id];
+    }
+    const start = Date.now();
     try {
       // Explicitly select only user columns to avoid any relationship pollution
       const { data, error } = await supabase
@@ -157,16 +166,15 @@ export class SupabaseStorage implements IStorage {
         .select("id,email,first_name,last_name,phone,bio,profile_image_url,password,role,name,grade,school,verified,created_at,updated_at")
         .eq("id", id)
         .maybeSingle();
-      
+      const elapsed = Date.now() - start;
+      console.log(`[getUser] DB query for id: ${id} took ${elapsed}ms`);
       if (error) {
         console.error("❌ Error fetching user:", error);
         return undefined;
       }
-      
       if (!data) {
         return undefined;
       }
-      
       // Transform snake_case to camelCase
       const user = {
         id: data.id,
@@ -185,14 +193,14 @@ export class SupabaseStorage implements IStorage {
         createdAt: data.created_at,
         updatedAt: data.updated_at,
       };
-      
       // Validate role is one of the expected values
       const validRoles = ["parent", "student", "tutor", "td", "affiliate", "od", "coo", "hr", "ceo"];
       if (!validRoles.includes(data.role as string)) {
         console.error("❌ INVALID ROLE DETECTED:", data.role, "for user", id);
         console.error("   Full user data:", JSON.stringify(data));
       }
-      
+      // Store in cache for this request
+      this.__userCache[id] = user as User;
       return user as User;
     } catch (err) {
       console.error("Exception in getUser:", err);

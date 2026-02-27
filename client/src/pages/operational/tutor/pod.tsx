@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useIntroSessionStatus } from "@/hooks/useIntroSessionStatus";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,6 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { StudentCard } from "@/components/tutor/StudentCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -337,216 +339,18 @@ export default function TutorPod() {
             </Card>
           ) : (
             <div className="grid md:grid-cols-2 gap-6">
-              {students.map((student: any) => {
-                const sessionProgress = student.sessionProgress || 0;
-                const confidenceLevel = student.confidenceScore || 0;
-                const initials = student.name
-                  .split(" ")
-                  .map((n: string) => n[0])
-                  .join("")
-                  .toUpperCase()
-                  .slice(0, 2);
-
-                return (
-                  <Card
-                    key={student.id}
-                    className="p-6 border shadow-sm hover-elevate"
-                    data-testid={`student-card-${student.id}`}
-                  >
-                    <div className="flex items-start gap-4 mb-6">
-                      <Avatar className="w-16 h-16 border-2 border-primary/20">
-                        <AvatarFallback className="bg-accent text-foreground font-bold text-lg">
-                          {initials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-bold text-lg">{student.name}</h3>
-                          {(() => {
-                            // Check proposal and approval status
-                            const hasIdentitySheet = studentIdentitySheets[student.id];
-                            const proposalSent = (student as any).proposalSentAt;
-                            const parentApproved = (student as any).parentApprovedAt;
-
-                            if (parentApproved) {
-                              return (
-                                <Badge variant="default" className="text-xs bg-primary">
-                                  My Student
-                                </Badge>
-                              );
-                            } else if (proposalSent) {
-                              return (
-                                <Badge variant="default" className="text-xs bg-yellow-600">
-                                  Pending Approval
-                                </Badge>
-                              );
-                            } else if (hasIdentitySheet) {
-                              return (
-                                <Badge variant="default" className="text-xs bg-blue-600">
-                                  Pending Proposal
-                                </Badge>
-                              );
-                            } else {
-                              return (
-                                <Badge variant="secondary" className="text-xs">
-                                  Pending Identity Sheet
-                                </Badge>
-                              );
-                            }
-                          })()}
-                        </div>
-                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                          <span>{student.grade}</span>
-                        </div>
-                        {(student as any).parentInfo && (
-                          <div className="mt-2 text-sm">
-                            <p className="text-muted-foreground">Parent: <span className="font-medium text-foreground">{(student as any).parentInfo.parent_full_name}</span></p>
-                            <p className="text-muted-foreground text-xs">{(student as any).parentInfo.parent_email}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Dual Progress Bars */}
-                    {(() => {
-                      // Extract these values for use in the entire card
-                      const hasIdentitySheet = studentIdentitySheets[student.id];
-                      const proposalSent = (student as any).proposalSentAt;
-                      const parentApproved = (student as any).parentApprovedAt;
-
-                      return (
-                    <div className="space-y-4">
-                      {/* Sessions Progress */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="font-medium text-foreground">Session Progress</span>
-                          <span className="font-semibold text-primary">
-                            {sessionProgress} of 16 completed
-                          </span>
-                        </div>
-                        <div className="h-2 bg-muted rounded-full overflow-hidden">
-                          <div
-                            className="h-full progress-gradient transition-all duration-300"
-                            style={{ width: `${(sessionProgress / 16) * 100}%` }}
-                          />
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {16 - sessionProgress} sessions remaining
-                        </p>
-                      </div>
-
-                      {/* Confidence Level */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="font-medium text-foreground">Confidence Level</span>
-                          <span className="font-semibold text-primary">
-                            {confidenceLevel.toFixed(0)}/10
-                          </span>
-                        </div>
-                        <div className="h-2 bg-muted rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-foreground transition-all duration-300"
-                            style={{ width: `${(confidenceLevel / 10) * 100}%` }}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Log Identity Sheet Button */}
-                      <div className="pt-4 border-t space-y-2">
-                        <Button 
-                          className="w-full" 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            setSelectedStudentId(student.id);
-                            setSelectedStudentName(student.name);
-                            setIdentitySheetOpen(true);
-                          }}
-                        >
-                          <FileText className="w-4 h-4 mr-2" />
-                          {studentIdentitySheets[student.id] ? "View Identity Sheet" : "Log Identity Sheet"}
-                        </Button>
-
-                        {/* Show these buttons only after proposal is approved */}
-                        {parentApproved ? (
-                          <>
-                            <Button 
-                              className="w-full" 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => {
-                                setSelectedStudentId(student.id);
-                                setSelectedStudentName(student.name);
-                                setTrackingDialogOpen(true);
-                              }}
-                            >
-                              <Calendar className="w-4 h-4 mr-2" />
-                              View Tracking Systems
-                            </Button>
-                            <Button 
-                              className="w-full" 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => {
-                                setSelectedStudentId(student.id);
-                                setSelectedStudentName(student.name);
-                                setAssignmentsDialogOpen(true);
-                              }}
-                            >
-                              <FileText className="w-4 h-4 mr-2" />
-                              View Assignments
-                            </Button>
-                          </>
-                        ) : (
-                          <div>
-                            <Button 
-                              className="w-full" 
-                              variant={proposalSent ? "default" : "outline"}
-                              size="sm"
-                              disabled={!studentIdentitySheets[student.id] || proposalSent}
-                              onClick={() => {
-                                setSelectedStudentId(student.id);
-                                setSelectedStudentName(student.name);
-                                setProposalOpen(true);
-                              }}
-                              title={!studentIdentitySheets[student.id] ? "Complete the identity sheet first" : proposalSent ? "Proposal already sent" : ""}
-                            >
-                              {proposalSent ? (
-                                <>
-                                  <Check className="w-4 h-4 mr-2" />
-                                  Proposal Sent
-                                </>
-                              ) : !studentIdentitySheets[student.id] ? (
-                                <>
-                                  <Lock className="w-4 h-4 mr-2" />
-                                  Send Proposal
-                                </>
-                              ) : (
-                                <>
-                                  <Send className="w-4 h-4 mr-2" />
-                                  Send Proposal
-                                </>
-                              )}
-                            </Button>
-                            {!studentIdentitySheets[student.id] && !proposalSent && (
-                              <p className="text-xs text-muted-foreground mt-1 text-center">
-                                Complete identity sheet first
-                              </p>
-                            )}
-                            {proposalSent && (
-                              <p className="text-xs text-green-600 mt-1 text-center">
-                                Waiting for parent response
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                      );
-                    })()}
-                  </Card>
-                );
-              })}
+              {students.map((student: any) => (
+                <StudentCard
+                  key={student.id}
+                  student={student}
+                  studentIdentitySheets={studentIdentitySheets}
+                  setSelectedStudentId={setSelectedStudentId}
+                  setSelectedStudentName={setSelectedStudentName}
+                  setIdentitySheetOpen={setIdentitySheetOpen}
+                  setTrackingDialogOpen={setTrackingDialogOpen}
+                  setAssignmentsDialogOpen={setAssignmentsDialogOpen}
+                />
+              ))}
             </div>
           )}
         </div>
