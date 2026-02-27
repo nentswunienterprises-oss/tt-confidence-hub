@@ -71,6 +71,10 @@ export function getSession() {
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: sessionTtl,
+      // Set domain for cross-origin if needed
+      domain: process.env.COOKIE_DOMAIN || undefined,
+      // Add path if needed
+      path: "/",
     },
     // Add logging for session events
     logErrors: true,
