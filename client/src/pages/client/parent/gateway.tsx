@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
+import { supabase } from "@/lib/supabaseClient";
 
 interface EnrollmentStatus {
   status: "not_enrolled" | "awaiting_assignment" | "assigned" | "proposal_sent" | "session_booked" | "report_received" | "confirmed";
@@ -44,6 +45,9 @@ export default function ParentGateway() {
   const [proposedTime, setProposedTime] = useState<string>("");
   const [isSubmittingSession, setIsSubmittingSession] = useState(false);
   const justSubmittedRef = useRef(false);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [loadingDebug, setLoadingDebug] = useState(false);
+  const [debugError, setDebugError] = useState<string | null>(null);
 
   // Fetch current user data
   const { data: user } = useQuery<any>({
@@ -365,6 +369,30 @@ export default function ParentGateway() {
       });
     } finally {
       setIsSubmittingSession(false);
+    }
+  };
+
+  const handleDebugAuthInfo = async () => {
+    setLoadingDebug(true);
+    setDebugError(null);
+    setDebugInfo(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: HeadersInit = {};
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`;
+      }
+      const res = await fetch("https://tt-confidence-hub-api.onrender.com/api/debug/auth-info", {
+        method: "GET",
+        headers,
+        credentials: "include"
+      });
+      const json = await res.json();
+      setDebugInfo(json);
+    } catch (e: any) {
+      setDebugError(e.message || "Unknown error");
+    } finally {
+      setLoadingDebug(false);
     }
   };
 
