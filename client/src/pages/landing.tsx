@@ -83,7 +83,7 @@ export default function Landing() {
             <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
               <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: "#E63946" }} />
               <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
-                Confidence-First Tutoring for Grades 6–9
+                Confidence-First Tutoring for Grades 6-9
               </span>
             </div>
             
