@@ -41,6 +41,29 @@ const requireRole = (roles: string[]) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
+      // Debug endpoint for remote header/session inspection
+      app.get("/api/debug/auth-info", (req: Request, res: Response) => {
+        const authHeader = req.headers.authorization || null;
+        const sessionId = req.sessionID || null;
+        const session = req.session || null;
+        console.log("[DEBUG] /api/debug/auth-info");
+        console.log("  Authorization header:", authHeader);
+        console.log("  Session ID:", sessionId);
+        console.log("  Session:", session);
+        console.log("  Cookies:", req.headers.cookie || null);
+        console.log("  User-Agent:", req.headers["user-agent"] || null);
+        console.log("  Origin:", req.headers.origin || null);
+        console.log("  Referer:", req.headers.referer || null);
+        res.json({
+          authorization: authHeader,
+          sessionId,
+          session,
+          cookies: req.headers.cookie || null,
+          userAgent: req.headers["user-agent"] || null,
+          origin: req.headers.origin || null,
+          referer: req.headers.referer || null
+        });
+      });
     // Get intro session details for a student (for tutors)
     app.get(
       "/api/tutor/students/:studentId/intro-session-details",
