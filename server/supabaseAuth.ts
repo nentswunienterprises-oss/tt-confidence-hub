@@ -72,7 +72,7 @@ export function getSession() {
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: sessionTtl,
       // Set domain for cross-origin if needed
-      domain: process.env.COOKIE_DOMAIN || undefined,
+      domain: '.territorialtutoring.co.za',
       // Add path if needed
       path: "/",
     },
