@@ -1,6 +1,6 @@
 // Runtime configuration for API URL
 
-const RENDER_URL = 'https://tt-confidence-hub-api.onrender.com';
+const RENDER_URL = 'https://api.territorialtutoring.co.za';
 
 export function getApiUrl(): string {
   if (typeof window !== 'undefined') {

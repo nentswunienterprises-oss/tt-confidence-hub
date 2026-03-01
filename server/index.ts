@@ -12,9 +12,19 @@ const app = express();
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
+    const allowedOrigins = [
+      'https://app.territorialtutoring.co.za',
+      'https://api.territorialtutoring.co.za',
+    ];
     const isLocal = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
     const isHttps = /^https:\/\//.test(origin);
-    if (isLocal || isHttps || (origin?.endsWith?.('.vercel.app'))) return callback(null, true);
+    if (
+      isLocal ||
+      allowedOrigins.includes(origin) ||
+      (origin?.endsWith?.('.vercel.app'))
+    ) {
+      return callback(null, true);
+    }
     callback(new Error(`Not allowed by CORS: ${origin}`));
   },
   credentials: true,
