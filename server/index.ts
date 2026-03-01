@@ -15,6 +15,7 @@ app.use(cors({
     const allowedOrigins = [
       'https://app.territorialtutoring.co.za',
       'https://api.territorialtutoring.co.za',
+      'https://www.territorialtutoring.co.za',
     ];
     const isLocal = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
     const isHttps = /^https:\/\//.test(origin);
