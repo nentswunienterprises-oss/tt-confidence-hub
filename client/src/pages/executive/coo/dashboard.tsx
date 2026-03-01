@@ -39,6 +39,23 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function COODashboard() {
+    // Delete pilot request mutation
+    const deletePilotRequestMutation = useMutation({
+      mutationFn: async ({ id, type }: { id: string, type: 'leadership' | 'early' }) => {
+        const endpoint = type === 'leadership'
+          ? `/api/coo/leadership-pilot-requests/${id}`
+          : `/api/coo/earlyintervention-requests/${id}`;
+        return await apiRequest("DELETE", endpoint);
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/coo/leadership-pilot-requests"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/coo/earlyintervention-requests"] });
+        toast({ title: "Pilot request deleted!" });
+      },
+      onError: () => {
+        toast({ title: "Failed to delete pilot request", variant: "destructive" });
+      },
+    });
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const [showPodForm, setShowPodForm] = useState(false);
@@ -422,6 +439,71 @@ export default function COODashboard() {
         </section>
 
         {/* Pods Section - VIEW ONLY */}
+        {/* Pilot Considerations Section - ALL PILOT SUBMISSIONS */}
+        <section>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold">Pilot Considerations</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              All pilot program submissions are shown below.
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {[...(leadershipRequests || []), ...(earlyInterventionRequests || [])].map((r: any) => {
+              const type = leadershipRequests.some((req: any) => req.id === r.id) ? 'leadership' : 'early';
+              return (
+                <Card key={r.id} className="relative">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5 text-primary" />
+                      {r.school_name || r.schoolName || 'School name missing'}
+                    </CardTitle>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="absolute top-2 right-2"
+                      onClick={() => deletePilotRequestMutation.mutate({ id: r.id, type })}
+                      aria-label="Delete pilot request"
+                      disabled={deletePilotRequestMutation.isLoading}
+                    >
+                      <Trash2 className="w-5 h-5 text-destructive" />
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="font-medium">Contact Full Name:</span>
+                        <span className="text-muted-foreground">{r.contact_person_name || r.contactName || r.submitter_name || r.submitterName || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium">Role:</span>
+                        <span className="text-muted-foreground">{r.contact_person_role || r.contactRole || r.submitter_role || r.submitterRole || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium">Phone:</span>
+                        <span className="text-muted-foreground">{r.contact_person_phone || r.phone || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium">Email:</span>
+                        <span className="text-muted-foreground">{r.email || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium">Submitted:</span>
+                        <span className="text-muted-foreground">{r.submitted_at ? new Date(r.submitted_at).toLocaleDateString() : 'N/A'}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+          {(leadershipLoading || earlyInterventionLoading) && (
+            <CardContent className="py-4 text-center text-muted-foreground">Loading pilot requests...</CardContent>
+          )}
+          {!leadershipLoading && !earlyInterventionLoading && ([...(leadershipRequests || []), ...(earlyInterventionRequests || [])].length === 0) && (
+            <CardContent className="py-4 text-center text-muted-foreground">No pilot requests yet.</CardContent>
+          )}
+        </section>
+        {/* Pods Section - VIEW ONLY */}
         <section>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
             <h2 className="text-xl sm:text-2xl font-bold">Pods</h2>
@@ -429,7 +511,6 @@ export default function COODashboard() {
               View all active pods. Manage pods in Pod Management tab.
             </p>
           </div>
-
           {podsLoading ? (
             <Card>
               <CardContent className="py-6 text-center text-muted-foreground">Loading pods...</CardContent>
@@ -441,89 +522,16 @@ export default function COODashboard() {
               </CardContent>
             </Card>
           ) : (
-            <>
-              {leadershipRequests && leadershipRequests.length > 0 && (
-                <Card className="mb-4">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold">High School leadership Pilot Considerations</h3>
-                      <div className="text-sm text-muted-foreground">{leadershipLoading ? 'Loading...' : `${leadershipRequests.length} requests`}</div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="max-h-40 overflow-y-auto">
-                      {leadershipRequests.slice(0,6).map((r: any) => (
-                        <div key={r.id} className="p-3 rounded bg-gray-50">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="font-medium">{r.school_name}</div>
-                              <div className="text-xs text-muted-foreground">{r.contact_person_role} • {r.email}</div>
-                            </div>
-                            <div className="text-xs text-muted-foreground">{new Date(r.submitted_at).toLocaleDateString()}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="text-right">
-                      <Button size="sm" variant="outline" onClick={() => window.location.href = '/executive/coo/leadership-pilot-requests'}>View all</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {!leadershipLoading && (!leadershipRequests || leadershipRequests.length === 0) && (
-                <Card className="mb-4">
-                  <CardContent className="py-8 text-center text-muted-foreground">
-                    No pilot requests yet.
-                  </CardContent>
-                </Card>
-              )}
-
-              {earlyInterventionRequests && earlyInterventionRequests.length > 0 && (
-                <Card className="mb-4">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold">Early Intervention pilot Considerations</h3>
-                      <div className="text-sm text-muted-foreground">{earlyInterventionLoading ? 'Loading...' : `${earlyInterventionRequests.length} requests`}</div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="max-h-40 overflow-y-auto">
-                      {earlyInterventionRequests.slice(0,6).map((r: any) => (
-                        <div key={r.id} className="p-3 rounded bg-gray-50">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="font-medium">{r.school_name}</div>
-                              <div className="text-xs text-muted-foreground">{r.contact_person_role} • {r.email}</div>
-                            </div>
-                            <div className="text-xs text-muted-foreground">{new Date(r.submitted_at).toLocaleDateString()}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    {!earlyInterventionLoading && (!earlyInterventionRequests || earlyInterventionRequests.length === 0) && (
-                      <CardContent className="py-4 text-center text-muted-foreground">No pilot requests yet.</CardContent>
-                    )}
-                    <div className="text-right">
-                      <Button size="sm" variant="outline" onClick={() => window.location.href = '/executive/coo/earlyintervention-requests'}>View all</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2">
               {pods.map((pod: any) => {
                 const podType = (pod as any).pod_type || pod.podType || 'training';
                 const vehicle = (pod as any).vehicle || '4_seater';
                 const tdId = (pod as any).td_id || pod.tdId;
-                
                 // Format display values
                 const typeDisplay = podType === 'training' ? 'Training' : 'Paid';
                 const vehicleDisplay = vehicle.replace('_', '-').replace('seater', 'Seater');
-                
                 // Find TD name if assigned
                 const assignedTD = tdId ? tds.find((td: any) => td.id === tdId) : null;
-                
                 return (
                   <Card key={pod.id} data-testid={`card-pod-${pod.id}`}>
                     <CardHeader>
@@ -560,7 +568,6 @@ export default function COODashboard() {
                 );
               })}
             </div>
-            </>
           )}
         </section>
 

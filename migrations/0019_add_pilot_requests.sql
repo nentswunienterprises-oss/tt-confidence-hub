@@ -4,6 +4,8 @@
 CREATE TABLE IF NOT EXISTS leadership_pilot_requests (
   id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
   school_name VARCHAR NOT NULL,
+  contact_person_name VARCHAR,
+  contact_person_phone VARCHAR,
   contact_person_role VARCHAR NOT NULL,
   email VARCHAR NOT NULL,
   submitted_by VARCHAR REFERENCES users(id),
@@ -25,6 +27,8 @@ CREATE POLICY "Allow all for authenticated" ON leadership_pilot_requests FOR ALL
 CREATE TABLE IF NOT EXISTS early_intervention_requests (
   id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
   school_name VARCHAR NOT NULL,
+  contact_person_name VARCHAR,
+  contact_person_phone VARCHAR,
   contact_person_role VARCHAR NOT NULL,
   email VARCHAR NOT NULL,
   submitted_by VARCHAR REFERENCES users(id),

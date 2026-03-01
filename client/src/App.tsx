@@ -56,6 +56,7 @@ import COOPods from "@/pages/executive/coo/pods";
 import COOPodDetail from "@/pages/executive/coo/pod-detail";
 import COOVerification from "@/pages/executive/coo/verification";
 import COOBroadcast from "@/pages/executive/coo/broadcast";
+import LeadershipPilotRequests from "@/pages/executive/coo/leadership-pilot-requests";
 
 // NEW: Client Portal Pages
 import ParentDashboard from "@/pages/client/parent/dashboard";
@@ -256,6 +257,7 @@ function Router() {
       <Route path="/coo/pods/:podId" element={<COOPodDetail />} />
       <Route path="/coo/verification" element={<COOVerification />} />
       <Route path="/coo/broadcast" element={<COOBroadcast />} />
+      <Route path="/coo/leadership-pilot-requests" element={<LeadershipPilotRequests />} />
 
       {/* 404 Route */}
       <Route path="*" element={<NotFound />} />

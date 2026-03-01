@@ -10,7 +10,7 @@ export default function EarlyInterventionReferralProgram() {
 
   const [showForm, setShowForm] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [form, setForm] = useState({ school: '', contact: '', email: '' });
+  const [form, setForm] = useState({ school: '', contactName: '', contactRole: '', phone: '', email: '' });
   const [errors, setErrors] = useState<{[k:string]:string}>({});
 
   const { toast } = useToast();
@@ -72,7 +72,10 @@ export default function EarlyInterventionReferralProgram() {
   function validate() {
     const e: {[k:string]:string} = {};
     if (!form.school.trim()) e.school = 'Required';
-    if (!form.contact.trim()) e.contact = 'Required';
+    if (!form.contactName.trim()) e.contactName = 'Required';
+    if (!form.contactRole.trim()) e.contactRole = 'Required';
+    if (!form.phone.trim()) e.phone = 'Required';
+    else if (!/^\+?[0-9\s()-]{7,}$/.test(form.phone)) e.phone = 'Invalid phone number';
     if (!form.email.trim()) e.email = 'Required';
     else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) e.email = 'Invalid email';
     setErrors(e);
@@ -91,7 +94,9 @@ export default function EarlyInterventionReferralProgram() {
         credentials: 'include',
         body: JSON.stringify({
           schoolName: form.school,
-          contactPersonRole: form.contact,
+          contactPersonName: form.contactName,
+          contactPersonRole: form.contactRole,
+          phone: form.phone,
           email: form.email,
           submitterName: null,
           submitterRole: null,
@@ -102,7 +107,7 @@ export default function EarlyInterventionReferralProgram() {
 
       setSubmitted(true);
       setShowForm(false);
-      setForm({ school: '', contact: '', email: '' });
+      setForm({ school: '', contactName: '', contactRole: '', phone: '', email: '' });
       toast({ title: 'Submission received', description: 'Your request has been recorded.' });
     } catch (err) {
       console.error('Error submitting early intervention request:', err);
@@ -401,9 +406,21 @@ export default function EarlyInterventionReferralProgram() {
                 </div>
 
                 <div className="mb-4">
-                  <label className="block text-sm font-medium mb-1">Contact person + role</label>
-                  <input value={form.contact} onChange={e => setForm({...form, contact: e.target.value})} className="w-full border rounded px-3 py-2" />
-                  {errors.contact && <div className="text-sm text-red-600 mt-1">{errors.contact}</div>}
+                  <label className="block text-sm font-medium mb-1">Name & Surname of contact person</label>
+                  <input value={form.contactName} onChange={e => setForm({...form, contactName: e.target.value})} className="w-full border rounded px-3 py-2" />
+                  {errors.contactName && <div className="text-sm text-red-600 mt-1">{errors.contactName}</div>}
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-1">Role of contact person</label>
+                  <input value={form.contactRole} onChange={e => setForm({...form, contactRole: e.target.value})} className="w-full border rounded px-3 py-2" />
+                  {errors.contactRole && <div className="text-sm text-red-600 mt-1">{errors.contactRole}</div>}
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-1">Phone number</label>
+                  <input value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="w-full border rounded px-3 py-2" />
+                  {errors.phone && <div className="text-sm text-red-600 mt-1">{errors.phone}</div>}
                 </div>
 
                 <div className="mb-4">

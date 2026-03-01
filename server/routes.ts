@@ -3680,6 +3680,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userId = (req.session as any)?.userId || null;
         const insertObj: any = {
           school_name: req.body.schoolName,
+          contact_person_name: req.body.contactPersonName || null,
+          contact_person_phone: req.body.phone || null,
           contact_person_role: req.body.contactPersonRole,
           email: req.body.email,
           submitter_name: req.body.submitterName || null,
@@ -3714,6 +3716,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userId = (req.session as any)?.userId || null;
         const insertObj: any = {
           school_name: req.body.schoolName,
+          contact_person_name: req.body.contactPersonName || null,
+          contact_person_phone: req.body.phone || null,
           contact_person_role: req.body.contactPersonRole,
           email: req.body.email,
           submitter_name: req.body.submitterName || null,
@@ -3741,6 +3745,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // COO: fetch leadership pilot requests
+    // COO: delete leadership pilot request
+    app.delete(
+      "/api/coo/leadership-pilot-requests/:id",
+      isAuthenticated,
+      requireRole(["coo"]),
+      async (req: Request, res: Response) => {
+        try {
+          const { id } = req.params;
+          const { error } = await supabase
+            .from("leadership_pilot_requests")
+            .delete()
+            .eq("id", id);
+          if (error) {
+            console.error("Error deleting leadership pilot request:", error);
+            return res.status(500).json({ message: "Failed to delete pilot request" });
+          }
+          res.json({ message: "Pilot request deleted" });
+        } catch (error) {
+          console.error("Error in deleting leadership pilot request:", error);
+          res.status(500).json({ message: "Failed to delete pilot request" });
+        }
+      }
+    );
   app.get(
     "/api/coo/leadership-pilot-requests",
     isAuthenticated,
@@ -3791,6 +3818,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // COO: fetch early intervention pilot requests
+    // COO: delete early intervention pilot request
+    app.delete(
+      "/api/coo/earlyintervention-requests/:id",
+      isAuthenticated,
+      requireRole(["coo"]),
+      async (req: Request, res: Response) => {
+        try {
+          const { id } = req.params;
+          const { error } = await supabase
+            .from("early_intervention_requests")
+            .delete()
+            .eq("id", id);
+          if (error) {
+            console.error("Error deleting early intervention pilot request:", error);
+            return res.status(500).json({ message: "Failed to delete pilot request" });
+          }
+          res.json({ message: "Pilot request deleted" });
+        } catch (error) {
+          console.error("Error in deleting early intervention pilot request:", error);
+          res.status(500).json({ message: "Failed to delete pilot request" });
+        }
+      }
+    );
   app.get(
     "/api/coo/earlyintervention-requests",
     isAuthenticated,

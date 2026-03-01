@@ -719,6 +719,8 @@ export const futureExpansionFields = pgTable("future_expansion", {
 export const leadershipPilotRequests = pgTable("leadership_pilot_requests", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   schoolName: varchar("school_name").notNull(),
+  contactPersonName: varchar("contact_person_name"),
+  contactPersonPhone: varchar("contact_person_phone"),
   contactPersonRole: varchar("contact_person_role").notNull(),
   email: varchar("email").notNull(),
   submittedBy: varchar("submitted_by").references(() => users.id),
@@ -744,6 +746,8 @@ export const insertLeadershipPilotRequestSchema = createInsertSchema(leadershipP
 export const earlyInterventionRequests = pgTable("early_intervention_requests", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   schoolName: varchar("school_name").notNull(),
+  contactPersonName: varchar("contact_person_name"),
+  contactPersonPhone: varchar("contact_person_phone"),
   contactPersonRole: varchar("contact_person_role").notNull(),
   email: varchar("email").notNull(),
   submittedBy: varchar("submitted_by").references(() => users.id),
