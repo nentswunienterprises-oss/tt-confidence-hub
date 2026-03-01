@@ -81,30 +81,29 @@ export default function ParentGateway() {
   const { data: proposal, isLoading: proposalLoading, error: proposalError } = useQuery<any>({
     queryKey: ["/api/parent/proposal"],
     queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: HeadersInit = {};
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`;
+      }
       const response = await fetch(`${API_URL}/api/parent/proposal`, {
         credentials: "include",
+        headers,
       });
-      
       if (response.status === 404) {
-        // No proposal yet - this is expected
         console.log("📋 No proposal found (404)");
         return null;
       }
-      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.error("Failed to fetch proposal:", response.status, errorData);
         throw new Error(errorData.message || "Failed to fetch proposal");
       }
-      
       const data = await response.json();
       console.log("📋 Proposal received:", data);
-      
-      // Set parent code if it exists in the proposal
       if (data.parentCode) {
         setParentCode(data.parentCode);
       }
-      
       return data;
     },
     enabled: !!user && !!enrollmentStatus,
@@ -210,15 +209,17 @@ export default function ParentGateway() {
 
     setIsSubmitting(true);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: HeadersInit = { "Content-Type": "application/json" };
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`;
+      }
       const response = await fetch(`${API_URL}/api/parent/enroll`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
         credentials: "include",
         body: JSON.stringify(formData),
       });
-
       if (!response.ok) {
         throw new Error("Failed to submit enrollment");
       }
@@ -249,13 +250,15 @@ export default function ParentGateway() {
   const handleAcceptProposal = async () => {
     setIsProcessingProposal(true);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: HeadersInit = { "Content-Type": "application/json" };
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`;
+      }
       const response = await fetch(`${API_URL}/api/parent/proposal/accept`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
       });
-
       if (!response.ok) {
         throw new Error("Failed to accept proposal");
       }
@@ -289,16 +292,18 @@ export default function ParentGateway() {
   const handleDeclineProposal = async () => {
     setIsProcessingProposal(true);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: HeadersInit = { "Content-Type": "application/json" };
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`;
+      }
       const response = await fetch(`${API_URL}/api/parent/proposal/decline`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
         body: JSON.stringify({
           reason: "Parent declined proposal", // Could add a dialog to collect reason
         }),
       });
-
       if (!response.ok) {
         throw new Error("Failed to decline proposal");
       }
@@ -333,18 +338,20 @@ export default function ParentGateway() {
 
     setIsSubmittingSession(true);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: HeadersInit = { "Content-Type": "application/json" };
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`;
+      }
       const response = await fetch(`${API_URL}/api/parent/intro-session/propose`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
         credentials: "include",
         body: JSON.stringify({
           proposedDate: format(proposedDate, "yyyy-MM-dd"),
           proposedTime,
         }),
       });
-
       if (!response.ok) {
         throw new Error("Failed to propose session");
       }
@@ -1076,16 +1083,17 @@ export default function ParentGateway() {
                           <Button
                             onClick={async () => {
                               try {
-                                console.log("🎓 Generating student code...");
+                                const { data: { session } } = await supabase.auth.getSession();
+                                const headers: HeadersInit = { "Content-Type": "application/json" };
+                                if (session?.access_token) {
+                                  headers["Authorization"] = `Bearer ${session.access_token}`;
+                                }
                                 const response = await fetch(`${API_URL}/api/parent/generate-student-code`, {
                                   method: "POST",
-                                  headers: { "Content-Type": "application/json" },
+                                  headers,
                                   credentials: "include",
                                 });
-                                console.log("📡 Response status:", response.status);
                                 const data = await response.json();
-                                console.log("📋 Response data:", data);
-                                
                                 if (response.ok && data.parentCode) {
                                   setParentCode(data.parentCode);
                                   toast({
