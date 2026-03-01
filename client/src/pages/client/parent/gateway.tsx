@@ -420,6 +420,27 @@ export default function ParentGateway() {
             <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Back
           </Button>
+            {/* Debug Auth Info Button (for local testing) */}
+            <Button
+              variant="outline"
+              className="ml-2 text-xs sm:text-sm"
+              style={{ color: "#E63946", borderColor: "#E63946" }}
+              onClick={handleDebugAuthInfo}
+              disabled={loadingDebug}
+            >
+              {loadingDebug ? "Debugging..." : "Debug Auth Info"}
+            </Button>
+          {/* Show debug info or error below the button */}
+          {(debugInfo || debugError) && (
+            <div style={{ maxWidth: 400, background: '#FFF0F0', color: '#E63946', border: '1px solid #E63946', borderRadius: 8, padding: 8, marginTop: 8 }}>
+              {debugError && (
+                <div><strong>Error:</strong> {debugError}</div>
+              )}
+              {debugInfo && (
+                <pre style={{ fontSize: 12, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{JSON.stringify(debugInfo, null, 2)}</pre>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
