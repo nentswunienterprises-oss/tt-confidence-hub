@@ -1,0 +1,172 @@
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { ToastProvider, Toast, ToastTitle, ToastDescription, ToastViewport } from "@/components/ui/toast";
+import { useAuth } from "@/hooks/useAuth";
+
+export default function TrackLeadsPage() {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const queryClient = useQueryClient();
+  const [toast, setToast] = React.useState<{ title: string; description?: string } | null>(null);
+
+  // Saved affiliate codes/links
+  const { data: codes = [], isLoading: codesLoading } = useQuery<any[]>({
+    queryKey: ["/api/coo/affiliate-codes"],
+    enabled: isAuthenticated && !authLoading,
+  });
+
+  // Mutation for revoking a code
+  const revokeMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/coo/affiliate-codes/${id}`, { method: "DELETE", credentials: "include" });
+      if (!res.ok) throw new Error("Failed to revoke code");
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/coo/affiliate-codes"] });
+      setToast({ title: "Code revoked" });
+    },
+    onError: () => setToast({ title: "Failed to revoke code" }),
+  });
+
+  // Copy to clipboard helper
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setToast({ title: "Copied!", description: text });
+  };
+  // Example queries for leads, closes, subscriptions
+  const { data: leads = [], isLoading: leadsLoading } = useQuery<any[]>({
+    queryKey: ["/api/coo/leads"],
+    enabled: isAuthenticated && !authLoading,
+  });
+  const { data: closes = [], isLoading: closesLoading } = useQuery<any[]>({
+    queryKey: ["/api/coo/closes"],
+    enabled: isAuthenticated && !authLoading,
+  });
+  const { data: subscriptions = [], isLoading: subsLoading } = useQuery<any[]>({
+    queryKey: ["/api/coo/subscriptions"],
+    enabled: isAuthenticated && !authLoading,
+  });
+
+  return (
+    <div className="max-w-3xl mx-auto py-8 space-y-8">
+      <Button variant="outline" className="mb-6" onClick={() => window.location.href = '/executive/coo/dashboard'}>
+        ← Back to Dashboard
+      </Button>
+      <Card>
+        <CardHeader>
+          <CardTitle>Saved Links / Codes</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {codesLoading ? (
+            <p className="text-muted-foreground">Loading codes...</p>
+          ) : codes.length === 0 ? (
+            <p className="text-muted-foreground">No codes found.</p>
+          ) : (
+            <div className="space-y-2">
+              {codes.map((code: any) => {
+                const link = `${window.location.origin}/client/signup?affiliate=${code.code}`;
+                console.log('Rendering code row:', code);
+                return (
+                  <div key={code.id} className="p-2 border rounded flex flex-col md:flex-row md:justify-between md:items-center gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-mono break-all select-all">
+                        <b>{code.code}</b>
+                        <span className="text-xs text-muted-foreground ml-2">[{code.type}]</span>
+                        {code.personName && <span className="ml-2">Name: <b>{code.personName}</b></span>}
+                        {code.entityName && <span className="ml-2">Entity: <b>{code.entityName}</b></span>}
+                        {code.schoolType && <span className="ml-2">School: <b>{code.schoolType}</b></span>}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1 select-all">
+                        Link: <span className="break-all">{link}</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col md:flex-row gap-2 mt-2 md:mt-0">
+                      <Button size="sm" variant="outline" onClick={() => handleCopy(code.code)}>Copy Code</Button>
+                      <Button size="sm" variant="outline" onClick={() => handleCopy(link)}>Copy Link</Button>
+                      <Button size="sm" variant="destructive" onClick={() => revokeMutation.mutate(code.id)} disabled={revokeMutation.isPending}>Revoke</Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Leads</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {leadsLoading ? (
+            <p className="text-muted-foreground">Loading leads...</p>
+          ) : leads.length === 0 ? (
+            <p className="text-muted-foreground">No leads found.</p>
+          ) : (
+            <div className="space-y-2">
+              {leads.map((lead: any) => (
+                <div key={lead.id} className="p-2 border rounded flex justify-between items-center">
+                  <span>{lead.parentName || lead.userEmail}</span>
+                  <Badge>{lead.status}</Badge>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Closes</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {closesLoading ? (
+            <p className="text-muted-foreground">Loading closes...</p>
+          ) : closes.length === 0 ? (
+            <p className="text-muted-foreground">No closes found.</p>
+          ) : (
+            <div className="space-y-2">
+              {closes.map((close: any) => (
+                <div key={close.id} className="p-2 border rounded flex justify-between items-center">
+                  <span>{close.parentName || close.userEmail}</span>
+                  <Badge variant="secondary">Closed</Badge>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Subscriptions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {subsLoading ? (
+            <p className="text-muted-foreground">Loading subscriptions...</p>
+          ) : subscriptions.length === 0 ? (
+            <p className="text-muted-foreground">No subscriptions found.</p>
+          ) : (
+            <div className="space-y-2">
+              {subscriptions.map((sub: any) => (
+                <div key={sub.id} className="p-2 border rounded flex justify-between items-center">
+                  <span>{sub.parentName || sub.userEmail}</span>
+                  <Badge variant="secondary">Active</Badge>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      <ToastProvider>
+        <ToastViewport />
+        {toast && (
+          <Toast open onOpenChange={() => setToast(null)}>
+            <ToastTitle>{toast.title}</ToastTitle>
+            {toast.description && <ToastDescription>{toast.description}</ToastDescription>}
+          </Toast>
+        )}
+      </ToastProvider>
+    </div>
+  );
+}

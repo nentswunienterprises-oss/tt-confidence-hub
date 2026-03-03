@@ -23,7 +23,9 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:5000',
         changeOrigin: true,
-        secure: false
+        secure: false,
+        cookieDomainRewrite: 'localhost', // Ensure cookies are set for localhost
+        ws: false, // Disable websockets for API proxy
       }
     },
     fs: {

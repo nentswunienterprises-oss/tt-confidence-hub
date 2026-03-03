@@ -558,6 +558,10 @@ export const affiliateCodes = pgTable("affiliate_codes", {
     .notNull()
     .references(() => users.id),
   code: varchar("code").notNull().unique(), // e.g., "AFIX001"
+  type: varchar("type", { length: 16 }), // 'person' or 'entity'
+  personName: varchar("person_name", { length: 128 }),
+  entityName: varchar("entity_name", { length: 128 }),
+  schoolType: varchar("school_type", { length: 16 }), // 'primary' or 'high'
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

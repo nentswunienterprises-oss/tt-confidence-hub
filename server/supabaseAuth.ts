@@ -68,11 +68,10 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: false, // Always false for local dev
+      sameSite: "lax", // Always lax for local dev
       maxAge: sessionTtl,
-      // Set domain for cross-origin if needed
-      domain: '.territorialtutoring.co.za',
+      // domain: '.territorialtutoring.co.za', // REMOVE for local dev
       // Add path if needed
       path: "/",
     },
@@ -735,6 +734,11 @@ export const isAuthenticated: RequestHandler = async (
 ) => {
   try {
     console.time("⏱️ isAuthenticated total time");
+    // Debug: print cookies and session object for all requests
+    console.log("[DEBUG] isAuthenticated method:", req.method);
+    console.log("[DEBUG] isAuthenticated url:", req.originalUrl);
+    console.log("[DEBUG] isAuthenticated headers.cookie:", req.headers.cookie);
+    console.log("[DEBUG] isAuthenticated session:", req.session);
     // First, try session-based auth (for same-origin requests)
     if (req.session && (req.session as any).userId) {
       const sessionUserId = (req.session as any).userId;

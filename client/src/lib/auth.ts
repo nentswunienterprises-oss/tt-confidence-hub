@@ -12,13 +12,13 @@ export async function logout() {
     // Clear ALL React Query cache (memory + localStorage) to prevent stale user data
     clearAllCache();
     
-    // Redirect to home
-    window.location.href = "/";
+    // Redirect to executive landing page for COO
+    window.location.href = "/executive";
   } catch (error) {
     console.error("Logout error:", error);
     // Clear cache even on error
     clearAllCache();
     // Force redirect even on error
-    window.location.href = "/";
+    window.location.href = "/executive";
   }
 }

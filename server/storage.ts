@@ -1,43 +1,19 @@
+// ...existing imports...
+import { affiliateCodes } from "../dist/shared/schema.js";
+// Create affiliate code
+export async function createAffiliateCode({ affiliateId, code, type, personName, entityName, schoolType }) {
+  // Use pg pool directly for inserts
+  const text = `
+    INSERT INTO affiliate_codes
+      (affiliate_id, code, type, person_name, entity_name, school_type, created_at)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    RETURNING *;
+  `;
+  const values = [affiliateId, code, type, personName, entityName, schoolType, new Date()];
+  const result = await (await import('./db')).pool.query(text, values);
+  return result.rows[0];
+}
 import { createClient } from "@supabase/supabase-js";
-import type {
-  User,
-  UpsertUser,
-  Pod,
-  InsertPod,
-  TutorAssignment,
-  InsertTutorAssignment,
-  Student,
-  InsertStudent,
-  Session,
-  InsertSession,
-  Reflection,
-  InsertReflection,
-  AcademicProfile,
-  InsertAcademicProfile,
-  StruggleTarget,
-  InsertStruggleTarget,
-  VerificationDoc,
-  InsertVerificationDoc,
-  Broadcast,
-  InsertBroadcast,
-  BroadcastRead,
-  InsertBroadcastRead,
-  TutorApplication,
-  InsertTutorApplication,
-  RolePermission,
-  WeeklyCheckIn,
-  InsertWeeklyCheckIn,
-  AffiliateCode,
-  InsertAffiliateCode,
-  Encounter,
-  InsertEncounter,
-  Lead,
-  InsertLead,
-  Close,
-  InsertClose,
-  AffiliateReflection,
-  InsertAffiliateReflection,
-} from "@shared/schema";
 import { db } from "./db";
 import { weeklyCheckIns } from "@shared/schema";
 
@@ -48,7 +24,7 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABAS
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Helper function to transform snake_case to camelCase
-function transformSnakeToCamel(obj: any): any {
+export function transformSnakeToCamel(obj: any): any {
   if (!obj || typeof obj !== 'object') return obj;
   if (Array.isArray(obj)) return obj.map(transformSnakeToCamel);
   

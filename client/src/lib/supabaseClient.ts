@@ -11,8 +11,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    // Disable persisting sessions to localStorage to avoid cross-tab session mixing
-    persistSession: false,
+    // Enable persisting sessions to localStorage for persistent login
+    persistSession: true,
     detectSessionInUrl: true,
     storage: undefined,
     autoRefreshToken: false,

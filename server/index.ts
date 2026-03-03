@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
+import { setupAuth } from "./supabaseAuth";
 import cors from 'cors';
 
 // Only import Vite-related stuff in development
@@ -16,9 +17,9 @@ app.use(cors({
       'https://app.territorialtutoring.co.za',
       'https://api.territorialtutoring.co.za',
       'https://www.territorialtutoring.co.za',
+      'http://localhost:5173',
     ];
     const isLocal = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
-    const isHttps = /^https:\/\//.test(origin);
     if (
       isLocal ||
       allowedOrigins.includes(origin) ||
@@ -85,7 +86,9 @@ app.use((req, res, next) => {
   next();
 });
 
+
 (async () => {
+  await setupAuth(app); // Ensure session/auth middleware is active before routes
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

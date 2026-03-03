@@ -1,11 +1,10 @@
+  // Debug: Test DB connectivity
 // ...existing imports...
-
 // ...existing imports...
-
 // Remove duplicate registerRoutes definition above. Only keep the one below.
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
-import { storage, supabase } from "./storage";
+import { storage, supabase, createAffiliateCode } from "./storage";
 import { setupAuth, isAuthenticated } from "./supabaseAuth";
 import {
   insertPodSchema,
@@ -22,6 +21,7 @@ import {
   insertAffiliateReflectionSchema,
 } from "@shared/schema";
 import { z } from "zod";
+
 
 // Helper middleware to check user role
 const requireRole = (roles: string[]) => {
@@ -41,20 +41,93 @@ const requireRole = (roles: string[]) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
-      // Debug endpoint for remote header/session inspection
-      app.get("/api/debug/auth-info", (req: Request, res: Response) => {
-        const authHeader = req.headers.authorization || null;
-        const sessionId = req.sessionID || null;
-        const session = req.session || null;
-        console.log("[DEBUG] /api/debug/auth-info");
-        console.log("  Authorization header:", authHeader);
-        console.log("  Session ID:", sessionId);
-        console.log("  Session:", session);
-        console.log("  Cookies:", req.headers.cookie || null);
-        console.log("  User-Agent:", req.headers["user-agent"] || null);
-        console.log("  Origin:", req.headers.origin || null);
-        console.log("  Referer:", req.headers.referer || null);
-        res.json({
+      // Revoke (delete) an affiliate code by ID
+      app.delete("/api/coo/affiliate-codes/:id", isAuthenticated, requireRole(["coo"]), async (req: Request, res: Response) => {
+        try {
+          const { pool } = await import('./db.js');
+          const dbUser = (req as any).dbUser;
+          const { id } = req.params;
+          // Only allow deleting codes created by this COO
+          const result = await pool.query(
+            `DELETE FROM affiliate_codes WHERE id = $1 AND affiliate_id = $2 RETURNING *`,
+            [id, dbUser.id]
+          );
+          if (result.rowCount === 0) {
+            return res.status(404).json({ message: "Code not found or not authorized" });
+          }
+          res.json({ success: true });
+        } catch (err) {
+          console.error("[affiliate-codes:delete] Error:", err);
+          res.status(500).json({ message: err.message || "Failed to revoke code" });
+        }
+      });
+    // List all affiliate codes for the current COO
+    app.get("/api/coo/affiliate-codes", isAuthenticated, requireRole(["coo"]), async (req: Request, res: Response) => {
+      try {
+        const { pool } = await import('./db.js');
+        const { transformSnakeToCamel } = await import('./storage');
+        const dbUser = (req as any).dbUser;
+        // Only show codes created by this COO
+        const result = await pool.query(
+          `SELECT * FROM affiliate_codes WHERE affiliate_id = $1 ORDER BY created_at DESC`,
+          [dbUser.id]
+        );
+        const camelRows = transformSnakeToCamel(result.rows);
+        res.json(camelRows);
+      } catch (err) {
+        console.error("[affiliate-codes] Error:", err);
+        res.status(500).json({ message: err.message || "Failed to fetch codes" });
+      }
+    });
+  // Debug: Test DB connectivity (single endpoint, uses pool)
+  app.get("/api/debug/db-test", async (req: Request, res: Response) => {
+    try {
+      // Log the DATABASE_URL being used
+      console.log("[DEBUG] DATABASE_URL:", process.env.DATABASE_URL);
+      const { pool } = await import('./db.js');
+      const result = await pool.query("SELECT 1 AS test");
+      res.json({ success: true, result: result.rows });
+    } catch (err) {
+      console.error("[DEBUG] REAL ERROR:", err);
+      res.status(500).json({ success: false, error: err.message || String(err), details: err });
+    }
+  });
+  // COO: Create affiliate code/link
+  app.post("/api/coo/create-affiliate-code", isAuthenticated, requireRole(["coo"]), async (req: Request, res: Response) => {
+    console.log("[DEBUG] Session on POST /api/coo/create-affiliate-code:", req.session);
+    try {
+      const { type, personName, entityName, schoolType } = req.body;
+      // Generate unique code (simple example)
+      const code = "AFIX" + Math.random().toString(36).substring(2, 8).toUpperCase();
+      // Insert into DB
+      const affiliateCode = await createAffiliateCode({
+        affiliateId: (req as any).dbUser?.id,
+        code,
+        type,
+        personName,
+        entityName,
+        schoolType,
+      });
+      res.json({ code });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message || "Failed to create affiliate code" });
+    }
+  });
+
+  // Debug endpoint for remote header/session inspection
+  app.get("/api/debug/auth-info", (req: Request, res: Response) => {
+    const authHeader = req.headers.authorization || null;
+    const sessionId = req.sessionID || null;
+    const session = req.session || null;
+    console.log("[DEBUG] /api/debug/auth-info");
+    console.log("  Authorization header:", authHeader);
+    console.log("  Session ID:", sessionId);
+    console.log("  Session:", session);
+    console.log("  Cookies:", req.headers.cookie || null);
+    console.log("  User-Agent:", req.headers["user-agent"] || null);
+    console.log("  Origin:", req.headers.origin || null);
+    console.log("  Referer:", req.headers.referer || null);
+    res.json({
           authorization: authHeader,
           sessionId,
           session,

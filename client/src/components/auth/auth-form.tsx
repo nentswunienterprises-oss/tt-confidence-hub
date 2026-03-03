@@ -320,6 +320,19 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
                 className="rounded-lg border-gray-200 focus:border-[#E63946] focus:ring-[#E63946]"
               />
             </div>
+
+            {/* Affiliate Code Field */}
+            <div className="space-y-2">
+              <Label htmlFor="affiliateCode" style={{ color: "#1A1A1A" }}>Cohort Access (code required)</Label>
+              <Input
+                id="affiliateCode"
+                type="text"
+                placeholder="Enter access code if you have one"
+                value={code}
+                onChange={e => setCode(e.target.value)}
+                className="rounded-lg border-gray-200 focus:border-[#E63946] focus:ring-[#E63946]"
+              />
+            </div>
           </>
         )}
 

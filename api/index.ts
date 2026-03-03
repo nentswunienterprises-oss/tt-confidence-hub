@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { registerRoutes } from '../server/routes';
+import { getSession } from '../server/supabaseAuth';
 import cors from 'cors';
 
 const app = express();
@@ -28,6 +29,9 @@ app.options('*', (req, res) => {
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
+
+// Attach session middleware BEFORE routes
+app.use(getSession());
 
 // Debug middleware to log incoming requests
 app.use((req, res, next) => {

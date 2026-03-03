@@ -7,6 +7,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/lib/supabaseClient";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import {
@@ -39,6 +40,52 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function COODashboard() {
+        // Helper functions for Select type compatibility
+        const handleAffiliateTypeChange = (value: string) => setAffiliateType(value as 'person' | 'entity');
+        const handleSchoolTypeChange = (value: string) => setSchoolType(value as '' | 'primary' | 'high');
+      // Affiliate code/link generation UI state
+      const [affiliateType, setAffiliateType] = useState<'person' | 'entity'>('person');
+      const [personName, setPersonName] = useState("");
+      const [entityName, setEntityName] = useState("");
+      const [schoolType, setSchoolType] = useState<'primary' | 'high' | "">("");
+      const [generatedCode, setGeneratedCode] = useState("");
+      const [generatedLink, setGeneratedLink] = useState("");
+      const [creatingAffiliate, setCreatingAffiliate] = useState(false);
+      const [affiliateError, setAffiliateError] = useState("");
+
+      // Affiliate code/link creation handler
+      const handleCreateAffiliate = async () => {
+        setCreatingAffiliate(true);
+        setAffiliateError("");
+        try {
+          // Get JWT access token from Supabase
+          const { data: sessionData } = await supabase.auth.getSession();
+          const accessToken = sessionData?.session?.access_token;
+          if (!accessToken) throw new Error("No access token found. Please log in again.");
+          // Call backend API to create affiliate code
+          const body = {
+            type: affiliateType,
+            personName: affiliateType === 'person' ? personName : undefined,
+            entityName: affiliateType === 'entity' ? entityName : undefined,
+            schoolType: affiliateType === 'entity' ? schoolType : undefined,
+          };
+          const res = await fetch("/api/coo/create-affiliate-code", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${accessToken}`
+            },
+            body: JSON.stringify(body)
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.message || "Failed to create affiliate");
+          setGeneratedCode(data.code);
+          setGeneratedLink(`${window.location.origin}/client/signup?affiliate=${data.code}`);
+        } catch (err: any) {
+          setAffiliateError(err.message || "Unknown error");
+        }
+        setCreatingAffiliate(false);
+      };
     // Delete pilot request mutation
     const deletePilotRequestMutation = useMutation({
       mutationFn: async ({ id, type }: { id: string, type: 'leadership' | 'early' }) => {
@@ -463,7 +510,7 @@ export default function COODashboard() {
                       className="absolute top-2 right-2"
                       onClick={() => deletePilotRequestMutation.mutate({ id: r.id, type })}
                       aria-label="Delete pilot request"
-                      disabled={deletePilotRequestMutation.isLoading}
+                      disabled={deletePilotRequestMutation.status === 'pending'}
                     >
                       <Trash2 className="w-5 h-5 text-destructive" />
                     </Button>
@@ -625,6 +672,76 @@ export default function COODashboard() {
               })}
             </div>
           )}
+        </section>
+
+        {/* COO Affiliate Code/Link Generation UI */}
+        <section>
+          <Card className="mb-4">
+            <CardHeader>
+              <CardTitle>Generate Affiliate Code/Link</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-4">
+                <div>
+                  <Label>Affiliate Type</Label>
+                  <Select value={affiliateType} onValueChange={handleAffiliateTypeChange}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="person">Person</SelectItem>
+                      <SelectItem value="entity">Entity</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {affiliateType === "person" ? (
+                  <div>
+                    <Label>Person Name</Label>
+                    <Input value={personName} onChange={e => setPersonName(e.target.value)} placeholder="Enter person name" className="mt-1" />
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <Label>Entity Name</Label>
+                      <Input value={entityName} onChange={e => setEntityName(e.target.value)} placeholder="Enter entity name" className="mt-1" />
+                    </div>
+                    <div>
+                      <Label>School Type</Label>
+                      <Select value={schoolType} onValueChange={handleSchoolTypeChange}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select school type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="primary">Primary</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                )}
+                <Button onClick={handleCreateAffiliate} disabled={creatingAffiliate} className="w-full">
+                  {creatingAffiliate ? "Generating..." : "Generate Code & Link"}
+                </Button>
+                {affiliateError && <p className="text-destructive text-sm mt-2">{affiliateError}</p>}
+                {generatedCode && (
+                  <div className="mt-4">
+                    <Label>Affiliate Code</Label>
+                    <Input value={generatedCode} readOnly className="mt-1" />
+                  </div>
+                )}
+                {generatedLink && (
+                  <div className="mt-2">
+                    <Label>Signup Link</Label>
+                    <Input value={generatedLink} readOnly className="mt-1" />
+                  </div>
+                )}
+                {/* Track Leads Button */}
+                <Button variant="outline" className="w-full mt-6" onClick={() => window.location.href = '/executive/coo/track-leads'}>
+                  Track Leads
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </section>
       </div>
     </DashboardLayout>

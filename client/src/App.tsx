@@ -1,3 +1,4 @@
+import ExecutiveCOOTrackLeads from "@/pages/executive/coo/track-leads";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
@@ -210,10 +211,11 @@ function Router() {
       <Route path="/executive/dashboard" element={<DashboardLayout><ExecutiveDashboard /></DashboardLayout>} />
 
       {/* COO Routes */}
-      <Route path="/executive/coo/dashboard" element={<DashboardLayout><ExecutiveCOODashboard /></DashboardLayout>} />
+      <Route path="/executive/coo/dashboard" element={<ExecutiveCOODashboard />} />
       <Route path="/executive/coo/applications" element={<DashboardLayout><ExecutiveCOODashboard /></DashboardLayout>} />
       <Route path="/executive/coo/pods" element={<DashboardLayout><ExecutiveCOODashboard /></DashboardLayout>} />
       <Route path="/executive/coo/broadcast" element={<DashboardLayout><ExecutiveCOODashboard /></DashboardLayout>} />
+      <Route path="/executive/coo/track-leads" element={<ExecutiveCOOTrackLeads />} />
 
       {/* HR Routes */}
       <Route path="/executive/hr/dashboard" element={<DashboardLayout><ExecutiveHRDashboard /></DashboardLayout>} />
