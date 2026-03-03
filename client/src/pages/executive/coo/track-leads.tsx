@@ -12,15 +12,22 @@ export default function TrackLeadsPage() {
   const [toast, setToast] = React.useState<{ title: string; description?: string } | null>(null);
 
   // Saved affiliate codes/links
+
+  // Use apiRequest for consistent API base URL
   const { data: codes = [], isLoading: codesLoading } = useQuery<any[]>({
     queryKey: ["/api/coo/affiliate-codes"],
     enabled: isAuthenticated && !authLoading,
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/coo/affiliate-codes");
+      return res.json();
+    },
   });
 
   // Mutation for revoking a code
+  const { apiRequest } = require("@/lib/queryClient");
   const revokeMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/coo/affiliate-codes/${id}`, { method: "DELETE", credentials: "include" });
+      const res = await apiRequest("DELETE", `/api/coo/affiliate-codes/${id}`);
       if (!res.ok) throw new Error("Failed to revoke code");
       return true;
     },
