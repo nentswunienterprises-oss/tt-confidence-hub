@@ -1,4 +1,5 @@
 import React from "react";
+import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +25,6 @@ export default function TrackLeadsPage() {
   });
 
   // Mutation for revoking a code
-  const { apiRequest } = require("@/lib/queryClient");
   const revokeMutation = useMutation({
     mutationFn: async (id: string) => {
       const res = await apiRequest("DELETE", `/api/coo/affiliate-codes/${id}`);
@@ -47,14 +47,26 @@ export default function TrackLeadsPage() {
   const { data: leads = [], isLoading: leadsLoading } = useQuery<any[]>({
     queryKey: ["/api/coo/leads"],
     enabled: isAuthenticated && !authLoading,
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/coo/leads");
+      return res.json();
+    },
   });
   const { data: closes = [], isLoading: closesLoading } = useQuery<any[]>({
     queryKey: ["/api/coo/closes"],
     enabled: isAuthenticated && !authLoading,
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/coo/closes");
+      return res.json();
+    },
   });
   const { data: subscriptions = [], isLoading: subsLoading } = useQuery<any[]>({
     queryKey: ["/api/coo/subscriptions"],
     enabled: isAuthenticated && !authLoading,
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/coo/subscriptions");
+      return res.json();
+    },
   });
 
   return (
