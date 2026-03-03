@@ -69,7 +69,8 @@ export default function COODashboard() {
             entityName: affiliateType === 'entity' ? entityName : undefined,
             schoolType: affiliateType === 'entity' ? schoolType : undefined,
           };
-          const res = await fetch("/api/coo/create-affiliate-code", {
+          const { API_URL } = await import("@/lib/config");
+          const res = await fetch(`${API_URL}/api/coo/create-affiliate-code`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
