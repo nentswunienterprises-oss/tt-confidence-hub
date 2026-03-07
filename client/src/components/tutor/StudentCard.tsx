@@ -16,7 +16,14 @@ export function StudentCard({
   setAssignmentsDialogOpen,
 }) {
   const sessionProgress = student.sessionProgress || 0;
-  const confidenceLevel = student.confidenceScore || 0;
+  // Determine onboarding type (pilot or commercial) from parentInfo if available
+  const onboardingType = student.parentInfo?.onboarding_type || 'commercial';
+  let progressLabel = 'Session Progress';
+  let progressTotal = 8;
+  if (onboardingType === 'pilot') {
+    progressLabel = 'Trial Session Progress';
+    progressTotal = 9;
+  }
   const initials = student.name
     .split(" ")
     .map((n) => n[0])
@@ -25,7 +32,16 @@ export function StudentCard({
     .slice(0, 2);
 
   const { data: introSessionStatus } = useIntroSessionStatus(student.id);
-  const showResources = introSessionStatus?.status === "confirmed";
+  // Local UI state for progressive unlocks
+  const [introCompleted, setIntroCompleted] = React.useState(false);
+  const [identitySheetLogged, setIdentitySheetLogged] = React.useState(false);
+  const [proposalSent, setProposalSent] = React.useState(false);
+  const [proposalAccepted, setProposalAccepted] = React.useState(false);
+
+  // Simulate unlocks for demo: in real app, these would be set by backend events
+  // Identity sheet unlocks after introCompleted
+  // Proposal unlocks after identitySheetLogged
+  // Tracking/Assignments unlock after proposalAccepted
 
   return (
     <div className="p-6 border shadow-sm hover-elevate card">
@@ -53,40 +69,37 @@ export function StudentCard({
       <div className="space-y-4">
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="font-medium text-foreground">Session Progress</span>
+            <span className="font-medium text-foreground">{progressLabel}</span>
             <span className="font-semibold text-primary">
-              {sessionProgress} of 16 completed
+              {sessionProgress} of {progressTotal} completed
             </span>
           </div>
           <div className="h-2 bg-muted rounded-full overflow-hidden">
             <div
               className="h-full progress-gradient transition-all duration-300"
-              style={{ width: `${(sessionProgress / 16) * 100}%` }}
+              style={{ width: `${(sessionProgress / progressTotal) * 100}%` }}
             />
           </div>
           <p className="text-xs text-muted-foreground">
-            {16 - sessionProgress} sessions remaining
+            {progressTotal - sessionProgress} sessions remaining
           </p>
         </div>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="font-medium text-foreground">Confidence Level</span>
-            <span className="font-semibold text-primary">
-              {confidenceLevel.toFixed(0)}/10
-            </span>
-          </div>
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full bg-foreground transition-all duration-300"
-              style={{ width: `${(confidenceLevel / 10) * 100}%` }}
-            />
-          </div>
-        </div>
-        {/* Show session proposal and actions if not confirmed */}
-        {!showResources && (
+        {/* Confidence Level bars removed as requested */}
+        {/* Step 1: Show session proposal and actions if not confirmed */}
+        {introSessionStatus?.status !== "confirmed" && (
           <TutorIntroSessionActions studentId={student.id} />
         )}
-        {showResources ? (
+        {/* Step 2: Mark Intro Session As Completed */}
+        {introSessionStatus?.status === "confirmed" && !introCompleted && (
+          <div className="pt-4 border-t space-y-2">
+            <Button className="w-full" variant="primary" size="sm" onClick={() => setIntroCompleted(true)}>
+              Mark Intro Session As Completed
+            </Button>
+            <p className="text-xs text-muted-foreground text-center">Complete the intro session before logging the identity sheet.</p>
+          </div>
+        )}
+        {/* Step 3: Log/Unlock Identity Sheet */}
+        {introSessionStatus?.status === "confirmed" && introCompleted && !identitySheetLogged && (
           <div className="pt-4 border-t space-y-2">
             <Button
               className="w-full"
@@ -96,11 +109,38 @@ export function StudentCard({
                 setSelectedStudentId(student.id);
                 setSelectedStudentName(student.name);
                 setIdentitySheetOpen(true);
+                setIdentitySheetLogged(true);
               }}
             >
               <FileText className="w-4 h-4 mr-2" />
-              {studentIdentitySheets[student.id] ? "View Identity Sheet" : "Log Identity Sheet"}
+              Log Identity Sheet
             </Button>
+            <p className="text-xs text-muted-foreground text-center">Identity sheet unlocks after intro session completion.</p>
+          </div>
+        )}
+        {/* Step 4: Send Proposal */}
+        {introSessionStatus?.status === "confirmed" && introCompleted && identitySheetLogged && !proposalSent && (
+          <div className="pt-4 border-t space-y-2">
+            <Button className="w-full" variant="outline" size="sm" onClick={() => setProposalSent(true)}>
+              <FileText className="w-4 h-4 mr-2" />
+              Send Proposal
+            </Button>
+            <p className="text-xs text-muted-foreground text-center">Send proposal after identity sheet is saved.</p>
+          </div>
+        )}
+        {/* Step 5: Unlock Tracking/Assignments after proposal accepted */}
+        {introSessionStatus?.status === "confirmed" && introCompleted && identitySheetLogged && proposalSent && !proposalAccepted && (
+          <div className="pt-4 border-t space-y-2">
+            <Button className="w-full" variant="outline" size="sm" onClick={() => setProposalAccepted(true)}>
+              <FileText className="w-4 h-4 mr-2" />
+              Accept Proposal (Demo)
+            </Button>
+            <p className="text-xs text-muted-foreground text-center">Proposal must be accepted to unlock resources.</p>
+          </div>
+        )}
+        {/* Final: Show Tracking Systems and Assignments */}
+        {introSessionStatus?.status === "confirmed" && introCompleted && identitySheetLogged && proposalSent && proposalAccepted && (
+          <div className="pt-4 border-t space-y-2">
             <Button
               className="w-full"
               variant="outline"
@@ -127,12 +167,6 @@ export function StudentCard({
               <FileText className="w-4 h-4 mr-2" />
               View Assignments
             </Button>
-          </div>
-        ) : (
-          <div className="pt-4 border-t space-y-2">
-            <p className="text-xs text-muted-foreground text-center">
-              Resources will unlock after the student's intro session is confirmed.
-            </p>
           </div>
         )}
       </div>

@@ -126,7 +126,13 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
         console.log("  Role (state value):", role);
         console.log("  Role type:", typeof role);
         console.log("  Affiliate Code:", code);
-        
+
+        // Determine tracking_source: 'affiliate' if code present, else 'organic'
+        let trackingSource = urlTrackingSource;
+        if (!trackingSource) {
+          trackingSource = code ? 'affiliate' : 'organic';
+        }
+
         const body = {
           email,
           password,
@@ -134,11 +140,11 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
           first_name: firstName,
           last_name: lastName,
           affiliate_code: code || null,
-          tracking_source: urlTrackingSource || 'organic',
+          tracking_source: trackingSource,
           tracking_campaign: urlTrackingCampaign || null,
         };
         console.log("📤 Sending signup body:", JSON.stringify(body, null, 2));
-        
+
         const response = await fetch(`${API_URL}/api/auth/signup`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },

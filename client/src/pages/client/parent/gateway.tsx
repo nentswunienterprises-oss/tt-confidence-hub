@@ -343,6 +343,17 @@ export default function ParentGateway() {
       if (session?.access_token) {
         headers["Authorization"] = `Bearer ${session.access_token}`;
       }
+      // Get studentId from formData
+      const studentId = formData.studentId || formData.student_id || formData.studentCode || null;
+      if (!studentId) {
+        toast({
+          title: "Missing Student",
+          description: "Student ID is required to propose a session.",
+          variant: "destructive",
+        });
+        setIsSubmittingSession(false);
+        return;
+      }
       const response = await fetch(`${API_URL}/api/parent/intro-session/propose`, {
         method: "POST",
         headers,
@@ -350,6 +361,7 @@ export default function ParentGateway() {
         body: JSON.stringify({
           proposedDate: format(proposedDate, "yyyy-MM-dd"),
           proposedTime,
+          studentId,
         }),
       });
       if (!response.ok) {

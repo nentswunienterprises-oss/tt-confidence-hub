@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Get leads for codes created by this COO
     const result = await db.select({
       id: leads.id,
-      parentName: users.name,
+      parentName: db.raw(`CONCAT(${users.firstName}, ' ', ${users.lastName})`),
       userEmail: users.email,
       status: leads.trackingSource,
     })

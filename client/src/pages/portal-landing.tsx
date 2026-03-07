@@ -297,9 +297,9 @@ function PortalLanding() {
 
 
             <div className="space-y-3 sm:space-y-4 sm:col-span-2 md:col-span-1">
-              <h4 className="font-semibold text-sm sm:text-base" style={{ color: "#1A1A1A" }}>Contact</h4>
+              <h4 className="font-semibold text-sm sm:text-base" style={{ color: "#1A1A1A" }}>FAQ</h4>
               <a href="/faq" className="text-xs sm:text-sm block text-blue-600 hover:underline" style={{ color: "#2563eb" }}>
-                Questions? We’re here to help.
+                Have a question?
               </a>
             </div>
           </div>

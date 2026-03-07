@@ -566,6 +566,18 @@ export class SupabaseStorage implements IStorage {
 
   // Students
   async createStudent(student: InsertStudent): Promise<Student> {
+    // Try to find parent_id from parent_enrollments using parent_contact (email)
+    let parentId: string | null = null;
+    if (student.parentContact) {
+      const { data: parentRow } = await supabase
+        .from("parent_enrollments")
+        .select("user_id")
+        .eq("parent_email", student.parentContact)
+        .maybeSingle();
+      if (parentRow && parentRow.user_id) {
+        parentId = parentRow.user_id;
+      }
+    }
     const dbStudent = {
       name: student.name,
       grade: student.grade,
@@ -574,6 +586,7 @@ export class SupabaseStorage implements IStorage {
       concept_mastery: student.conceptMastery,
       confidence_score: student.confidenceScore,
       parent_contact: student.parentContact,
+      parent_id: parentId,
     };
     const { data } = await supabase.from("students").insert(dbStudent).select().single();
     if (!data) throw new Error("Failed to create student");
@@ -1426,22 +1439,61 @@ export class SupabaseStorage implements IStorage {
     if (error) throw error;
   }
 
-  async createLead(affiliateId: string, parentId: string, encounterId?: string, trackingData?: { trackingSource?: string; trackingCampaign?: string }): Promise<any> {
-    const { data, error} = await supabase
+  /**
+   * Create a lead for a user/affiliate/encounter, but prevent duplicates.
+   * If a lead already exists for the user (and encounter, if provided), return it instead of inserting.
+   * Optionally supports leadType for future extensibility.
+   */
+  async createLead(
+    affiliateId: string,
+    parentId: string,
+    encounterId?: string,
+    trackingData?: { trackingSource?: string; trackingCampaign?: string; leadType?: string }
+  ): Promise<any> {
+    // Check for existing lead for this user (and encounter if provided)
+    let query = supabase
       .from("leads")
-      .insert({
-        affiliate_id: affiliateId,
-        user_id: parentId,
-        encounter_id: encounterId || null,
-        tracking_source: trackingData?.trackingSource || 'affiliate',
-        tracking_campaign: trackingData?.trackingCampaign || null,
-        tracking_source: trackingData?.trackingSource || 'affiliate',
-        tracking_campaign: trackingData?.trackingCampaign || null,
-      })
+      .select("*")
+      .eq("user_id", parentId)
+      .eq("affiliate_id", affiliateId);
+    if (encounterId) {
+      query = query.eq("encounter_id", encounterId);
+    }
+    const { data: existingLead, error: findError } = await query.maybeSingle();
+    if (findError) {
+      console.error("[createLead] Error finding existing lead:", findError);
+      throw findError;
+    }
+    if (existingLead) {
+      console.log("[createLead] Lead already exists:", existingLead);
+      return existingLead;
+    }
+
+    // Insert new lead
+    const insertObj: any = {
+      affiliate_id: affiliateId,
+      user_id: parentId,
+      encounter_id: encounterId || null,
+      tracking_source: trackingData?.trackingSource || 'affiliate',
+      tracking_campaign: trackingData?.trackingCampaign || null,
+      onboarding_type: trackingData?.onboardingType || 'pilot',
+      full_name: trackingData?.fullName || '',
+    };
+    if (trackingData?.leadType) {
+      insertObj.lead_type = trackingData.leadType;
+    }
+
+    console.log("[createLead] Inserting new lead:", insertObj);
+    const { data, error } = await supabase
+      .from("leads")
+      .insert(insertObj)
       .select()
       .single();
-    
-    if (error) throw error;
+    if (error) {
+      console.error("[createLead] Error inserting lead:", error, "Insert object:", insertObj);
+      throw error;
+    }
+    console.log("[createLead] Lead inserted successfully:", data);
     return data;
   }
 

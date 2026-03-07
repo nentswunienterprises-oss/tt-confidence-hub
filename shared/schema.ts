@@ -640,6 +640,7 @@ export const leads = pgTable("leads", {
   // Tracking fields - how lead was acquired
   trackingSource: varchar("tracking_source"), // "affiliate", "blog", "school", "media", "organic"
   trackingCampaign: varchar("tracking_campaign"), // Campaign identifier (for analytics)
+  leadType: varchar("lead_type"), // "parent", "tutor", etc. (for extensibility)
   convertedAt: timestamp("converted_at").defaultNow().notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

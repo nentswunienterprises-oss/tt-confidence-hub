@@ -1,3 +1,10 @@
+// Extend Express session type to include affiliateCode
+declare module 'express-session' {
+  interface SessionData {
+    affiliateCode?: string;
+  }
+}
+// ...existing imports...
   // Debug: Test DB connectivity
 // ...existing imports...
 // ...existing imports...
@@ -41,6 +48,153 @@ const requireRole = (roles: string[]) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
+                // Parent signup (store affiliate code in session)
+                app.post("/api/auth/signup", async (req: Request, res: Response) => {
+                  console.log("[SIGNUP] Received signup body:", req.body);
+                  if (req.body.affiliate_code) {
+                    req.session.affiliateCode = req.body.affiliate_code;
+                    console.log("[SIGNUP] Affiliate code stored in session:", req.session.affiliateCode);
+                  } else {
+                    console.log("[SIGNUP] No affiliate_code in signup body.");
+                  }
+                  // ...existing signup logic...
+                  res.json({ message: "Signup route hit (demo logging only)" });
+                });
+              // Parent signup (store affiliate code in session)
+              app.post("/api/auth/signup", async (req: Request, res: Response) => {
+                // ...existing signup logic...
+                if (req.body.affiliate_code) {
+                  req.session.affiliateCode = req.body.affiliate_code;
+                  console.log("[SIGNUP] Affiliate code stored in session:", req.body.affiliate_code);
+                }
+                // ...existing signup logic...
+              });
+            // Parent confirms intro session
+            app.post("/api/parent/intro-session-confirm", isAuthenticated, async (req: Request, res: Response) => {
+              try {
+                const userId = (req as any).dbUser.id;
+                const { sessionId } = req.body;
+                if (!sessionId) return res.status(400).json({ message: "Missing sessionId" });
+                // Only allow parent to confirm their own session
+                const { error: updateError } = await supabase
+                  .from("scheduled_sessions")
+                  .update({ parent_confirmed: true, status: "confirmed", updated_at: new Date().toISOString() })
+                  .eq("id", sessionId)
+                  .eq("parent_id", userId);
+                if (updateError) return res.status(500).json({ message: "Failed to confirm session", details: updateError });
+                res.json({ success: true });
+              } catch (error) {
+                console.error("Error in parent intro session confirm:", error);
+                res.status(500).json({ message: "Failed to confirm session" });
+              }
+            });
+
+            // Parent proposes adjustment to intro session
+            app.post("/api/parent/intro-session-adjust", isAuthenticated, async (req: Request, res: Response) => {
+              try {
+                const userId = (req as any).dbUser.id;
+                const { sessionId, newDate, newTime } = req.body;
+                if (!sessionId || !newDate || !newTime) return res.status(400).json({ message: "Missing sessionId, date, or time" });
+                // Only allow parent to adjust their own session
+                const { error: updateError } = await supabase
+                  .from("scheduled_sessions")
+                  .update({
+                    scheduled_time: `${newDate}T${newTime}`,
+                    parent_confirmed: true,
+                    tutor_confirmed: false,
+                    status: "pending_tutor_confirmation",
+                    updated_at: new Date().toISOString(),
+                  })
+                  .eq("id", sessionId)
+                  .eq("parent_id", userId);
+                if (updateError) return res.status(500).json({ message: "Failed to propose adjustment", details: updateError });
+                res.json({ success: true });
+              } catch (error) {
+                console.error("Error in parent intro session adjust:", error);
+                res.status(500).json({ message: "Failed to propose adjustment" });
+              }
+            });
+          // Tutor responds to intro session (accept/adjust)
+          app.post("/api/tutor/student/:studentId/intro-session-response", isAuthenticated, requireRole(["tutor"]), async (req: Request, res: Response) => {
+            try {
+              const { studentId } = req.params;
+              const dbUser = (req as any).dbUser;
+              const { action, newDate, newTime } = req.body;
+              // Try to find the intro session for this tutor/student
+              let { data: session, error: sessionError } = await supabase
+                .from("scheduled_sessions")
+                .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, created_at, updated_at, tutor_id, student_id, parent_id, type")
+                .eq("tutor_id", dbUser.id)
+                .eq("student_id", studentId)
+                .eq("type", "intro")
+                .order("created_at", { ascending: false })
+                .maybeSingle();
+              // If not found, try fallback: find by parent_id where student_id is null
+              if (!session) {
+                // Get parentId for this student
+                const { data: studentRow } = await supabase
+                  .from("students")
+                  .select("parent_id")
+                  .eq("id", studentId)
+                  .maybeSingle();
+                const parentId = studentRow?.parent_id;
+                if (parentId) {
+                  const { data: fallbackSession } = await supabase
+                    .from("scheduled_sessions")
+                    .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, created_at, updated_at, tutor_id, student_id, parent_id, type")
+                    .eq("tutor_id", dbUser.id)
+                    .eq("parent_id", parentId)
+                    .is("student_id", null)
+                    .eq("type", "intro")
+                    .order("created_at", { ascending: false })
+                    .maybeSingle();
+                  if (fallbackSession) {
+                    session = fallbackSession;
+                  }
+                }
+              }
+              if (!session) {
+                return res.status(404).json({ message: "Intro session not found" });
+              }
+              let updateFields = {};
+              if (action === "accept") {
+                updateFields = {
+                  tutor_confirmed: true,
+                  parent_confirmed: true,
+                  status: "confirmed",
+                  updated_at: new Date().toISOString(),
+                };
+              } else if (action === "propose_adjustment") {
+                if (!newDate || !newTime) {
+                  return res.status(400).json({ message: "Missing new date or time" });
+                }
+                updateFields = {
+                  scheduled_time: `${newDate}T${newTime}`,
+                  tutor_confirmed: false,
+                  parent_confirmed: false,
+                  status: "pending_parent_confirmation",
+                  updated_at: new Date().toISOString(),
+                };
+              } else {
+                return res.status(400).json({ message: "Invalid action" });
+              }
+              console.log('[DEBUG] Updating scheduled_sessions', { sessionId: session.id, updateFields });
+              const { error: updateError, data: updateData } = await supabase
+                .from("scheduled_sessions")
+                .update(updateFields)
+                .eq("id", session.id)
+                .select();
+              console.log('[DEBUG] Update result', { updateError, updateData });
+              if (updateError) {
+                return res.status(500).json({ message: "Failed to update session", details: updateError });
+              }
+              res.json({ success: true });
+            } catch (error) {
+              console.error("Error in tutor intro session response:", error);
+              res.status(500).json({ message: "Failed to process tutor response" });
+            }
+          });
+        // ...existing code...
       // Revoke (delete) an affiliate code by ID
       app.delete("/api/coo/affiliate-codes/:id", isAuthenticated, requireRole(["coo"]), async (req: Request, res: Response) => {
         try {
@@ -144,6 +298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       requireRole(["tutor"]),
       async (req: Request, res: Response) => {
         try {
+          console.log('TEST LOG: intro-session-details route hit');
           const { studentId } = req.params;
           const dbUser = (req as any).dbUser;
           // Verify student exists and belongs to this tutor
@@ -154,17 +309,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (student.tutorId !== dbUser.id) {
             return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
           }
+          // DEBUG: Print all scheduled_sessions for this tutor and student
+          const { data: debugSessions, error: debugSessionsError } = await supabase
+            .from("scheduled_sessions")
+            .select("id, tutor_id, student_id, type, status, scheduled_time, parent_confirmed, tutor_confirmed, created_at, updated_at")
+            .eq("tutor_id", dbUser.id)
+            .eq("student_id", studentId);
+          console.log("[DEBUG] All scheduled_sessions for tutor and student:", { debugSessions, debugSessionsError, tutorId: dbUser.id, studentId });
           // Find latest intro session for this student/tutor
           const { data: session, error: sessionError } = await supabase
             .from("scheduled_sessions")
-            .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, created_at, updated_at")
+            .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, created_at, updated_at, tutor_id, student_id, type")
             .eq("tutor_id", dbUser.id)
             .eq("student_id", studentId)
             .eq("type", "intro")
             .order("created_at", { ascending: false })
             .maybeSingle();
+          console.log("[DEBUG] intro-session-details query result:", { session, sessionError, tutorId: dbUser.id, studentId });
           if (sessionError) {
-            return res.status(500).json({ message: "Failed to fetch intro session details" });
+            console.error("[DEBUG] intro-session-details sessionError:", sessionError);
+            return res.status(500).json({ message: "Failed to fetch intro session details", details: sessionError });
           }
           if (!session) {
             return res.json({ status: "not_scheduled" });
@@ -177,10 +341,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             tutor_confirmed: session.tutor_confirmed,
             created_at: session.created_at,
             updated_at: session.updated_at,
+            debug: {
+              tutor_id: session.tutor_id,
+              student_id: session.student_id,
+              type: session.type
+            }
           });
         } catch (error) {
-          console.error("Error fetching intro session details:", error);
-          res.status(500).json({ message: "Failed to fetch intro session details" });
+          console.error("[DEBUG] Error fetching intro session details:", error);
+          res.status(500).json({ message: "Failed to fetch intro session details", details: error });
         }
       }
     );
@@ -191,9 +360,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/parent/intro-session/propose", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const userId = (req as any).dbUser.id;
-      const { proposedDate, proposedTime } = req.body;
-      if (!proposedDate || !proposedTime) {
-        return res.status(400).json({ message: "Missing date or time" });
+      const { proposedDate, proposedTime, studentId } = req.body;
+      if (!proposedDate || !proposedTime || !studentId) {
+        return res.status(400).json({ message: "Missing date, time, or studentId" });
       }
 
       // Get parent's enrollment to find assigned tutor
@@ -214,6 +383,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           {
             parent_id: userId,
             tutor_id: enrollmentData.assigned_tutor_id,
+            student_id: studentId,
             scheduled_time: `${proposedDate}T${proposedTime}`,
             type: "intro",
             status: "pending_tutor_confirmation",
@@ -266,15 +436,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json({ status: "not_scheduled" });
         }
 
-        // Determine status
+        // Always include id in response
         if (!session.tutor_confirmed) {
-          return res.json({ status: "pending_tutor_confirmation" });
+          return res.json({
+            id: session.id,
+            status: "pending_tutor_confirmation",
+            scheduled_time: session.scheduled_time
+          });
         }
         if (!session.parent_confirmed) {
-          return res.json({ status: "pending_parent_confirmation" });
+          return res.json({
+            id: session.id,
+            status: "pending_parent_confirmation",
+            scheduled_time: session.scheduled_time
+          });
         }
         // No completed field in new table, so just check confirmations
-        return res.json({ status: "confirmed" });
+        return res.json({
+          id: session.id,
+          status: "confirmed",
+          scheduled_time: session.scheduled_time
+        });
       } catch (error) {
         console.error("Error in intro-session-confirmation:", error);
         res.status(500).json({ status: "error", message: "Failed to fetch intro session confirmation status" });
@@ -419,25 +601,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           const { studentId } = req.params;
           const dbUser = (req as any).dbUser;
-          // Verify student exists and belongs to this tutor
-          const student = await storage.getStudent(studentId);
-          if (!student) {
-            return res.status(404).json({ message: "Student not found" });
+          // Try to find student by ID
+          let student = null;
+          try {
+            student = await storage.getStudent(studentId);
+          } catch {}
+          console.log('[DEBUG] student object:', student);
+          if (student) {
+            console.log('[DEBUG] student.parentId:', student.parentId);
           }
-          if (student.tutorId !== dbUser.id) {
+          // If student exists, check tutor ownership
+          if (student && student.tutorId !== dbUser.id) {
             return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
           }
-          // Find latest intro session for this student/tutor
-          const { data: session, error: sessionError } = await supabase
-            .from("scheduled_sessions")
-            .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, created_at, updated_at")
-            .eq("tutor_id", dbUser.id)
-            .eq("student_id", studentId)
-            .eq("type", "intro")
-            .order("created_at", { ascending: false })
-            .maybeSingle();
+          // Try to find intro session by student_id first
+          let session = null;
+          let sessionError = null;
+          let parentId = null;
+          if (student) {
+            parentId = student.parentId;
+            // Fallback: If parentId is missing, fetch from DB
+            if (!parentId) {
+              const studentRow = await supabase
+                .from("students")
+                .select("parent_id")
+                .eq("id", studentId)
+                .maybeSingle();
+              parentId = studentRow.data?.parent_id;
+              console.log('[DEBUG] Fetched parentId from DB fallback:', parentId);
+            }
+            const result = await supabase
+              .from("scheduled_sessions")
+              .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, created_at, updated_at, tutor_id, student_id, parent_id, type")
+              .eq("tutor_id", dbUser.id)
+              .eq("student_id", studentId)
+              .eq("type", "intro")
+              .order("created_at", { ascending: false })
+              .maybeSingle();
+            session = result.data;
+            sessionError = result.error;
+          }
+          // If not found, only return intro session with student_id=null if the student's parentId matches
+          if (!session && parentId) {
+            const { data: introSession, error: introSessionError } = await supabase
+              .from("scheduled_sessions")
+              .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, created_at, updated_at, tutor_id, student_id, parent_id, type")
+              .eq("tutor_id", dbUser.id)
+              .eq("parent_id", parentId)
+              .eq("type", "intro")
+              .is("student_id", null)
+              .order("created_at", { ascending: false })
+              .maybeSingle();
+            if (introSession) {
+              session = introSession;
+            }
+          }
+          console.log("[DEBUG] intro-session-details query result (with fallback):", { session, sessionError, tutorId: dbUser.id, studentId, parentId });
           if (sessionError) {
-            return res.status(500).json({ message: "Failed to fetch intro session details" });
+            console.error("[DEBUG] intro-session-details sessionError:", sessionError);
+            return res.status(500).json({ message: "Failed to fetch intro session details", details: sessionError });
           }
           if (!session) {
             return res.json({ status: "not_scheduled" });
@@ -450,10 +672,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             tutor_confirmed: session.tutor_confirmed,
             created_at: session.created_at,
             updated_at: session.updated_at,
+            debug: {
+              tutor_id: session.tutor_id,
+              student_id: session.student_id,
+              parent_id: session.parent_id,
+              type: session.type
+            }
           });
         } catch (error) {
-          console.error("Error fetching intro session details:", error);
-          res.status(500).json({ message: "Failed to fetch intro session details" });
+          console.error("[DEBUG] Error fetching intro session details:", error);
+          res.status(500).json({ message: "Failed to fetch intro session details", details: error });
         }
       }
     );
@@ -1672,6 +1900,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ========================================
   // COO ROUTES
+    // Get COO leads for UI
+    app.get(
+      "/api/coo/leads",
+      isAuthenticated,
+      requireRole(["coo"]),
+      async (req: Request, res: Response) => {
+        try {
+          // Fetch all leads
+          const { data: leads, error } = await supabase
+            .from("leads")
+            .select("id, user_id, affiliate_id, tracking_source, created_at")
+            .order("created_at", { ascending: false });
+          if (error) {
+            console.error("[COO LEADS] Supabase error:", error);
+            return res.status(500).json({ message: "Failed to fetch leads", details: error });
+          }
+          // Gather all user_ids and affiliate_ids
+          const userIds = Array.from(new Set((leads || []).map((l: any) => l.user_id).filter(Boolean)));
+          const affiliateIds = Array.from(new Set((leads || []).map((l: any) => l.affiliate_id).filter(Boolean)));
+
+          // Fetch all parent users
+          const { data: users, error: usersError } = await supabase
+            .from("users")
+            .select("id, first_name, last_name, email").in("id", userIds);
+          if (usersError) {
+            console.error("[COO LEADS] Supabase error (users):", usersError);
+            return res.status(500).json({ message: "Failed to fetch parent users", details: usersError });
+          }
+
+          // Fetch all affiliate_codes by affiliate_id
+          const { data: codes, error: codesError } = await supabase
+            .from("affiliate_codes")
+            .select("affiliate_id, code, type, person_name, entity_name, school_type")
+            .in("affiliate_id", affiliateIds);
+          if (codesError) {
+            console.error("[COO LEADS] Supabase error (affiliate_codes):", codesError);
+            return res.status(500).json({ message: "Failed to fetch affiliate codes", details: codesError });
+          }
+
+          // Fetch all affiliate code owners (affiliate_id is a user id)
+          const ownerIds = affiliateIds;
+          const { data: owners, error: ownersError } = await supabase
+            .from("users")
+            .select("id, first_name, last_name, email").in("id", ownerIds);
+          if (ownersError) {
+            console.error("[COO LEADS] Supabase error (owners):", ownersError);
+            return res.status(500).json({ message: "Failed to fetch affiliate code owners", details: ownersError });
+          }
+
+          // Build lookup maps
+          const userMap = Object.fromEntries((users || []).map((u: any) => [u.id, u]));
+          // There may be multiple codes per affiliate_id, so just pick the first for display
+          const codeMap = {};
+          (codes || []).forEach((c: any) => { if (!codeMap[c.affiliate_id]) codeMap[c.affiliate_id] = c; });
+          const ownerMap = Object.fromEntries((owners || []).map((o: any) => [o.id, o]));
+
+          // Transform for UI
+          const result = (leads || []).map((lead: any) => {
+            const parent = userMap[lead.user_id] || {};
+            const code = codeMap[lead.affiliate_id] || {};
+            const owner = ownerMap[lead.affiliate_id] || {};
+            return {
+              id: lead.id,
+              parentName: `${parent.first_name || ''} ${parent.last_name || ''}`.trim(),
+              userEmail: parent.email || '',
+              status: lead.tracking_source || '',
+              affiliateCode: code.code || '',
+              createdAt: lead.created_at,
+              affiliateType: code.type || '',
+              personName: code.person_name || '',
+              entityName: code.entity_name || '',
+              schoolType: code.school_type || '',
+              ownerName: `${owner.first_name || ''} ${owner.last_name || ''}`.trim(),
+              ownerEmail: owner.email || '',
+            };
+          });
+          res.json(result);
+        } catch (err) {
+          console.error("[COO LEADS] Exception:", err);
+          res.status(500).json({ message: "Failed to fetch leads", error: String(err) });
+        }
+      }
+    );
   // ========================================
 
   // Get COO dashboard stats
@@ -4509,7 +4820,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         internetAccess,
         parentMotivation,
         agreedToTerms,
+        onboardingType,
+        cohortCode,
+        affiliateCode: bodyAffiliateCode
       } = req.body;
+
+      // Use affiliate code from session if not present in body
+      let affiliateCode = bodyAffiliateCode || req.session.affiliateCode || null;
+      if (affiliateCode) {
+        // Remove from session after use
+        req.session.affiliateCode = undefined;
+      }
 
       // Validate required fields
       if (
@@ -4527,6 +4848,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
+
       // Check if enrollment already exists
       const { data: existing } = await supabase
         .from("parent_enrollments")
@@ -4537,6 +4859,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (existing) {
         return res.status(400).json({ message: "Enrollment already submitted" });
       }
+
+
+
+      // Determine onboarding_type from affiliate code if present
+      // Determine onboarding_type and affiliate_type from affiliate code if present
+      // Only allow 'pilot' or 'commercial' as onboarding_type
+      let resolvedOnboardingType = (onboardingType === 'pilot' || onboardingType === 'commercial') ? onboardingType : 'commercial';
+      let resolvedAffiliateType = null;
+      if (affiliateCode) {
+        // Always set onboarding_type to 'pilot' if code is provided
+        resolvedOnboardingType = 'pilot';
+        const { data: codeData, error: codeError } = await supabase
+          .from("affiliate_codes")
+          .select("type, affiliate_type")
+          .eq("code", affiliateCode)
+          .maybeSingle();
+        if (codeError) {
+          console.error('Error looking up affiliate code for onboarding_type/affiliate_type:', codeError);
+        }
+        if (codeData) {
+          // Prefer affiliate_type if present, else fallback to type for legacy codes
+          resolvedAffiliateType = codeData.affiliate_type || codeData.type || null;
+        }
+      }
+      // Insert or update onboarding type, affiliate type, and affiliate code in parents table
+      // Fetch full_name from public.users
+      let fullName = null;
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("first_name, last_name")
+        .eq("id", userId)
+        .maybeSingle();
+      if (userError) {
+        console.error("Error fetching first_name/last_name from users:", userError);
+      }
+      if (userData) {
+        const first = userData.first_name || '';
+        const last = userData.last_name || '';
+        fullName = (first + ' ' + last).trim();
+      }
+      console.log("[ENROLL] Upserting parent:", {
+        user_id: userId,
+        onboarding_type: resolvedOnboardingType,
+        affiliate_type: resolvedAffiliateType,
+        affiliate_code: affiliateCode,
+        cohort_code: cohortCode,
+        full_name: fullName,
+      });
+      const { data: parentUpserted, error: parentUpsertError } = await supabase
+        .from("parents")
+        .upsert({
+          user_id: userId,
+          onboarding_type: resolvedOnboardingType,
+          affiliate_type: resolvedAffiliateType,
+          affiliate_code: affiliateCode || cohortCode || null,
+          full_name: fullName,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' })
+        .select()
+        .single();
+      if (parentUpsertError) {
+        console.error("Error upserting parent onboarding/affiliate type:", parentUpsertError);
+      } else {
+        console.log("[ENROLL] Parent upsert successful. Upserted row:", parentUpserted);
+      }
+
+      // Lead creation is now handled after signup, not enrollment.
 
       // Create enrollment record
       const { data: enrollmentData, error } = await supabase

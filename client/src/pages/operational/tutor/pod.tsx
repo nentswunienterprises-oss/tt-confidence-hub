@@ -138,7 +138,7 @@ export default function TutorPod() {
               Welcome back, {user?.name?.split(" ")[0] || "Tutor"}! <Flame className="inline w-8 h-8 text-primary" />
             </h1>
             <p className="text-lg text-muted-foreground">
-              Ready to start your journey? Let's build confidence together.
+              Ready to start your journey? Let's condition responses together.
             </p>
           </div>
           

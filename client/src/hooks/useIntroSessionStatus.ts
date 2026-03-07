@@ -4,13 +4,14 @@ import { API_URL } from "@/lib/config";
 
 export function useIntroSessionStatus(studentId: string) {
   return useQuery({
-    queryKey: ["/api/tutor/student/intro-session-status", studentId],
+    queryKey: ["/api/tutor/student/intro-session-details", studentId],
     queryFn: async () => {
       if (!studentId) return null;
-      const res = await fetch(`${API_URL}/api/tutor/student/${studentId}/intro-session-status`, {
+      // Correct endpoint: intro-session-details
+      const res = await fetch(`${API_URL}/api/tutor/student/${studentId}/intro-session-details`, {
         credentials: "include",
       });
-      if (!res.ok) throw new Error("Failed to fetch intro session status");
+      if (!res.ok) throw new Error("Failed to fetch intro session details");
       return await res.json();
     },
     enabled: !!studentId,

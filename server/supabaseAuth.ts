@@ -88,6 +88,13 @@ export async function setupAuth(app: Express) {
   app.post("/api/auth/signup", async (req: Request, res: Response) => {
       console.log("[SESSION] Before signup: req.sessionID:", req.sessionID);
       console.log("[SESSION] Before signup: req.session:", req.session);
+      // Store affiliate_code in session for later use (e.g., enrollment)
+      if (req.body.affiliate_code) {
+        req.session.affiliateCode = req.body.affiliate_code;
+        console.log("[SIGNUP] affiliate_code stored in session as affiliateCode:", req.session.affiliateCode);
+      } else {
+        console.log("[SIGNUP] No affiliate_code in signup body; session.affiliateCode not set.");
+      }
     try {
       const { email, password, role = "tutor", first_name = "", last_name = "", affiliate_code = null, tracking_source = "organic", tracking_campaign = null } = req.body;
 
@@ -205,13 +212,12 @@ export async function setupAuth(app: Express) {
         try {
           console.log("📝 Processing affiliate code:", affiliate_code);
           console.log("📧 Parent signup email:", email);
-          
+          const onboardingType = 'pilot';
+          const fullName = `${first_name} ${last_name}`.trim() || email.split("@")[0];
           // Get affiliate ID from code
           const affiliateId = await storage.getAffiliateByCode(affiliate_code.toUpperCase());
-          
           if (affiliateId) {
             console.log("✅ Found affiliate for code:", affiliateId);
-            
             // Find the encounter by email (since parent_email matches the signup email)
             const { data: encounter } = await supabase
               .from("encounters")
@@ -220,22 +226,22 @@ export async function setupAuth(app: Express) {
               .eq("parent_email", email)
               .order("created_at", { ascending: false })
               .maybeSingle();
-            
+            const leadData = {
+              trackingSource: tracking_source,
+              trackingCampaign: tracking_campaign,
+              leadType: 'parent',
+              onboardingType,
+              fullName,
+            };
             if (encounter) {
               console.log("✅ Found encounter for parent email:", email, "encounter_id:", encounter.id);
               // Create a lead linked to this encounter
-              await storage.createLead(affiliateId, user.id, encounter.id, {
-                trackingSource: tracking_source,
-                trackingCampaign: tracking_campaign,
-              });
+              await storage.createLead(affiliateId, user.id, encounter.id, leadData);
               console.log("✅ Lead created (with encounter) for affiliate:", affiliateId, "encounter_id:", encounter.id);
             } else {
               console.log("ℹ️  No prior encounter found for parent email:", email);
               // Still create a lead - parent is now a lead even without prior encounter
-              await storage.createLead(affiliateId, user.id, undefined, {
-                trackingSource: tracking_source,
-                trackingCampaign: tracking_campaign,
-              });
+              await storage.createLead(affiliateId, user.id, undefined, leadData);
               console.log("✅ Lead created (new signup) for affiliate:", affiliateId, "user_id:", user.id);
             }
           } else {
@@ -251,7 +257,8 @@ export async function setupAuth(app: Express) {
       if (!affiliate_code) {
         try {
           console.log("📊 Organic signup - creating organic lead");
-          // Create a lead with null affiliate_id to track organic signups
+          const onboardingType = 'commercial';
+          const fullName = `${first_name} ${last_name}`.trim() || email.split("@")[0];
           await supabase
             .from("leads")
             .insert({
@@ -260,6 +267,9 @@ export async function setupAuth(app: Express) {
               encounter_id: null,
               tracking_source: tracking_source || 'organic',
               tracking_campaign: tracking_campaign || null,
+              onboarding_type: onboardingType,
+              full_name: fullName,
+              lead_type: 'parent',
             });
           console.log("✅ Organic lead created for user:", user.id);
         } catch (error) {
@@ -464,7 +474,7 @@ export async function setupAuth(app: Express) {
               // If no lead exists for this encounter+user combo, create one
               if (!existingLead) {
                 console.log("⚠️  No lead found for encounter", encounter.id, "- creating retroactively");
-                await storage.createLead(encounter.affiliate_id, user.id, encounter.id);
+                await storage.createLead(encounter.affiliate_id, user.id, encounter.id, { leadType: 'parent' });
                 console.log("✅ Retroactive lead created for encounter:", encounter.id);
               }
             }
@@ -596,7 +606,7 @@ export async function setupAuth(app: Express) {
 
           if (affiliate) {
             console.log("🔗 Creating lead for parent with affiliate code:", affiliate_code);
-            await storage.createLead(affiliate.id, user_id, null);
+            await storage.createLead(affiliate.id, user_id, null, { leadType: 'parent' });
           } else {
             console.warn("⚠️  Affiliate code not found:", affiliate_code);
           }

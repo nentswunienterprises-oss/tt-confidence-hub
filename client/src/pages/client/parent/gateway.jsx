@@ -73,6 +73,22 @@ import { format } from "date-fns";
 import { supabase } from "@/lib/supabaseClient";
 export default function ParentGateway() {
     var _this = this;
+    // Capture affiliate code from URL or localStorage (set by signup)
+    const [affiliateCode, setAffiliateCode] = useState("");
+    useEffect(() => {
+      const params = new URLSearchParams(window.location.search);
+      let code = params.get("affiliate");
+      if (!code) {
+        code = localStorage.getItem("affiliate_code");
+      }
+      if (code) {
+        setAffiliateCode(code);
+        // Always set localStorage for consistency
+        localStorage.setItem("affiliate_code", code);
+      }
+    }, []);
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [showTimePicker, setShowTimePicker] = useState(false);
     var toast = useToast().toast;
     var queryClient = useQueryClient();
     var navigate = useNavigate();
@@ -207,7 +223,8 @@ export default function ParentGateway() {
         parentMotivation: "",
         processAlignment: "",
         agreedToTerms: false,
-    }), formData = _o[0], setFormData = _o[1];
+        affiliateCode: affiliateCode,
+      }), formData = _o[0], setFormData = _o[1];
     // Auto-fill parent name and email from user data
     useEffect(function () {
         if (user) {
@@ -235,20 +252,37 @@ export default function ParentGateway() {
             formData.agreedToTerms);
     };
     var handleSubmit = function () { return __awaiter(_this, void 0, void 0, function () {
-        var session, headers, response, error_1;
+        var session, headers, response, error_1, onboardingType, payload;
         return __generator(this, function (_a) {
-            switch (_a.label) {
+          switch (_a.label) {
                 case 0:
-                    if (!isFormValid()) {
-                        toast({
-                            title: "Incomplete Form",
-                            description: "Please fill in all required fields.",
-                            variant: "destructive",
-                        });
-                        return [2 /*return*/];
-                    }
-                    setIsSubmitting(true);
-                    _a.label = 1;
+                  if (!isFormValid()) {
+                    toast({
+                      title: "Incomplete Form",
+                      description: "Please fill in all required fields.",
+                      variant: "destructive",
+                    });
+                    return [2 /*return*/];
+                  }
+                  // Determine onboarding type
+                  // Determine onboarding type
+                  onboardingType = 'commercial';
+                  // If affiliateCode is present and matches a pilot code, set pilot
+                  // Always use affiliateCode from localStorage if present
+                  const affCode = localStorage.getItem("affiliate_code") || affiliateCode || formData.affiliateCode;
+                  if (affCode && typeof affCode === 'string' && affCode.toUpperCase().startsWith('PILOT')) {
+                    onboardingType = 'pilot';
+                  } else if (formData.cohortCode && formData.cohortCode.trim().toUpperCase() === 'PILOT2026') {
+                    onboardingType = 'pilot';
+                  }
+                  // Ensure affiliate_code and cohortCode are included if present (snake_case for backend)
+                  payload = Object.assign({}, formData, {
+                    onboardingType: onboardingType,
+                    affiliate_code: affCode || undefined,
+                    cohortCode: formData.cohortCode || undefined
+                  });
+                  setIsSubmitting(true);
+                  _a.label = 1;
                 case 1:
                     _a.trys.push([1, 5, 6, 7]);
                     return [4 /*yield*/, supabase.auth.getSession()];
@@ -259,11 +293,11 @@ export default function ParentGateway() {
                         headers["Authorization"] = "Bearer ".concat(session.access_token);
                     }
                     return [4 /*yield*/, fetch("".concat(API_URL, "/api/parent/enroll"), {
-                            method: "POST",
-                            headers: headers,
-                            credentials: "include",
-                            body: JSON.stringify(formData),
-                        })];
+                        method: "POST",
+                        headers: headers,
+                        credentials: "include",
+                        body: JSON.stringify(payload),
+                      })];
                 case 3:
                     response = _a.sent();
                     if (!response.ok) {
@@ -508,6 +542,59 @@ export default function ParentGateway() {
             }
         });
     }); };
+    const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false);
+    const [adjustDate, setAdjustDate] = useState(undefined);
+    const [adjustTime, setAdjustTime] = useState("");
+    function handleParentConfirmSession() {
+      if (!introSessionConfirmation || !introSessionConfirmation.id) {
+        toast({ title: "No session to confirm", variant: "destructive" });
+        return;
+      }
+      setIsSubmitting(true);
+      fetch(`${API_URL}/api/parent/intro-session-confirm`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: introSessionConfirmation.id }),
+      }).then(res => {
+        setIsSubmitting(false);
+        if (res.ok) {
+          queryClient.invalidateQueries({ queryKey: ["/api/parent/intro-session-confirmation"] });
+          toast({ title: "Session confirmed!" });
+        } else {
+          toast({ title: "Failed to confirm session", variant: "destructive" });
+        }
+      });
+    }
+    function handleParentAdjustSession() {
+      console.log('DEBUG handleParentAdjustSession', { introSessionConfirmation, id: introSessionConfirmation?.id, typeofId: typeof introSessionConfirmation?.id, adjustDate, adjustTime });
+      console.log('FULL introSessionConfirmation:', introSessionConfirmation);
+      if (!introSessionConfirmation || !introSessionConfirmation.id) {
+        toast({ title: "No session to adjust", variant: "destructive" });
+        return;
+      }
+      if (!adjustDate || !adjustTime) {
+        toast({ title: "Select date and time", variant: "destructive" });
+        return;
+      }
+      setIsSubmitting(true);
+      const formattedDate = typeof adjustDate === 'string' ? adjustDate : format(adjustDate, 'yyyy-MM-dd');
+      fetch(`${API_URL}/api/parent/intro-session-adjust`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: introSessionConfirmation.id, newDate: formattedDate, newTime: adjustTime }),
+      }).then(res => {
+        setIsSubmitting(false);
+        if (res.ok) {
+          queryClient.invalidateQueries({ queryKey: ["/api/parent/intro-session-confirmation"] });
+          toast({ title: "Adjustment proposed!" });
+          setIsAdjustDialogOpen(false);
+        } else {
+          toast({ title: "Failed to propose adjustment", variant: "destructive" });
+        }
+      });
+    }
     return (<div className="min-h-screen" style={{ backgroundColor: "#FFF5ED" }}>
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
@@ -834,16 +921,87 @@ export default function ParentGateway() {
                         </div>
                       </div>
                     </div>)}
-                  {(introSessionConfirmation === null || introSessionConfirmation === void 0 ? void 0 : introSessionConfirmation.status) === "pending_parent_confirmation" && (<div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  {(introSessionConfirmation === null || introSessionConfirmation === void 0 ? void 0 : introSessionConfirmation.status) === "pending_parent_confirmation" && (
+                    <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                       <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 border-3 border-yellow-400/30 border-t-yellow-600 rounded-full animate-spin flex-shrink-0"/>
+                        <div className="w-6 h-6 border-3 border-yellow-400/30 border-t-yellow-600 rounded-full animate-spin flex-shrink-0" />
                         <div>
-                          <p className="font-medium text-yellow-900">Tutor proposed a new time. Please confirm.</p>
-                          {introSessionConfirmation.scheduled_time && (<p className="text-xs text-yellow-700 mt-1">Proposed time: {new Date(introSessionConfirmation.scheduled_time).toLocaleString()}</p>)}
+                          <p className="font-medium text-yellow-900">Tutor proposed a different time. Please confirm or adjust.</p>
+                          {introSessionConfirmation.scheduled_time && (
+                            <p className="text-xs text-yellow-700 mt-1">Proposed time: {new Date(introSessionConfirmation.scheduled_time).toLocaleString()}</p>
+                          )}
+                          <div className="mt-3 flex gap-1 items-center">
+                            <Button
+                              size="sm"
+                              onClick={handleParentConfirmSession}
+                              disabled={isSubmitting}
+                              className="bg-green-600 text-white hover:bg-green-700"
+                            >
+                              {isSubmitting ? "Confirming..." : "Confirm"}
+                            </Button>
+                            <span className="mx-1 text-muted-foreground">or</span>
+                            <div className="relative">
+                              <button
+                                type="button"
+                                className="border rounded px-1 py-0.5 text-xs w-[110px] bg-white"
+                                onClick={() => setShowDatePicker(true)}
+                              >
+                                {adjustDate ? format(adjustDate, "PPP") : "Pick date"}
+                              </button>
+                              {showDatePicker && (
+                                <div className="absolute z-10 bg-white border rounded p-2 flex gap-2 items-center" style={{ top: '110%', left: 0 }}>
+                                  <input
+                                    type="date"
+                                    value={adjustDate ? format(adjustDate, "yyyy-MM-dd") : ""}
+                                    onChange={e => {
+                                      setAdjustDate(new Date(e.target.value));
+                                      setShowDatePicker(false);
+                                    }}
+                                    autoFocus
+                                  />
+                                  <button type="button" className="text-xs px-2 py-1" onClick={() => setShowDatePicker(false)}>✕</button>
+                                </div>
+                              )}
+                            </div>
+                            <div className="relative">
+                              <button
+                                type="button"
+                                className="border rounded px-1 py-0.5 text-xs w-[90px] bg-white"
+                                onClick={() => setShowTimePicker(true)}
+                              >
+                                {adjustTime ? adjustTime : "Pick time"}
+                              </button>
+                              {showTimePicker && (
+                                <div className="absolute z-10 bg-white border rounded p-2 flex gap-2 items-center" style={{ top: '110%', left: 0 }}>
+                                  <input
+                                    type="time"
+                                    value={adjustTime}
+                                    onChange={e => {
+                                      setAdjustTime(e.target.value);
+                                      setShowTimePicker(false);
+                                    }}
+                                    autoFocus
+                                  />
+                                  <button type="button" className="text-xs px-2 py-1" onClick={() => setShowTimePicker(false)}>✕</button>
+                                </div>
+                              )}
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={handleParentAdjustSession}
+                              disabled={isSubmitting || !adjustDate || !adjustTime}
+                            >
+                              {isSubmitting ? "Adjusting..." : "Adjust"}
+                            </Button>
+                          </div>
+                          {(adjustDate && adjustTime) && (
+                            <div className="text-[11px] text-muted-foreground mt-2">New: {format(adjustDate, "PPP")} {adjustTime}</div>
+                          )}
                         </div>
                       </div>
-                      {/* TODO: Add confirm/decline buttons for parent to respond to new time */}
-                    </div>)}
+                    </div>
+                  )}
                   {(introSessionConfirmation === null || introSessionConfirmation === void 0 ? void 0 : introSessionConfirmation.status) === "confirmed" && (<div className="bg-green-50 border border-green-200 rounded-lg p-4">
                       <p className="font-medium text-green-900">Your session has been confirmed</p>
                       {introSessionConfirmation.scheduled_time && (<p className="text-sm text-green-700 mt-2">Scheduled for: {new Date(introSessionConfirmation.scheduled_time).toLocaleString()}</p>)}
@@ -1027,3 +1185,7 @@ export default function ParentGateway() {
       </div>
     </div>);
 }
+
+// ...existing code...
+// Move these inside ParentGateway:
+// ...existing code...
