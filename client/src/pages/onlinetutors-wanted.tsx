@@ -60,7 +60,7 @@ export default function OnlineTutorsWanted() {
           <Card className="p-6 max-w-xl mx-auto" style={{ backgroundColor: "white" }}>
             <h2 className="text-xl font-bold mb-4" style={{ color: "#1A1A1A" }}>WHO WE ARE</h2>
             <p className="text-sm sm:text-base" style={{ color: "#5A5A5A" }}>
-              Territorial Tutoring is a premium online math mentorship company. We don’t do chaotic tutoring. We don’t improvise. We don’t babysit.
+              Territorial Tutoring is a premium online math mentorship company. We don’t do chaotic tutoring. We don’t improvise. We don't babysit.
               We build calm, confident, high-performing math students through a structured, system-driven approach.
               If you believe great results come from clear processes, high standards, and consistency, you’ll fit in here.
             </p>
