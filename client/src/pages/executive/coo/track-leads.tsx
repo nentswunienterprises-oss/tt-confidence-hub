@@ -135,9 +135,16 @@ export default function TrackLeadsPage() {
               ) : leads.length === 0 ? (
                 <p className="text-muted-foreground">No leads found.</p>
               ) : (
-                <div className="space-y-2">
+                <div
+                  className="space-y-2 border-2 border-red-500 overflow-x-auto p-2"
+                  style={{ minHeight: 100 }}
+                >
                   {leads.map((lead: any) => (
-                    <div key={lead.id} className="p-2 border rounded flex flex-col md:flex-row md:justify-between md:items-center gap-2">
+                    <div
+                      key={lead.id}
+                      className="p-2 border rounded flex flex-col md:flex-row md:justify-between md:items-center gap-2 bg-yellow-100"
+                      style={{ border: '2px dashed orange' }}
+                    >
                       <div className="flex-1 min-w-0">
                         <div><b>{lead.parentName || lead.userEmail}</b></div>
                         <div className="text-xs text-muted-foreground">
