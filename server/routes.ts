@@ -1907,10 +1907,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       requireRole(["coo"]),
       async (req: Request, res: Response) => {
         try {
-          // Fetch all leads
+          // Fetch all leads (include affiliate_type, affiliate_name, lead_type, onboarding_type, full_name)
           const { data: leads, error } = await supabase
             .from("leads")
-            .select("id, user_id, affiliate_id, tracking_source, created_at")
+            .select("id, user_id, affiliate_id, tracking_source, created_at, affiliate_type, affiliate_name, lead_type, onboarding_type, full_name")
             .order("created_at", { ascending: false });
           if (error) {
             console.error("[COO LEADS] Supabase error:", error);
@@ -1918,7 +1918,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           // Gather all user_ids and affiliate_ids
           const userIds = Array.from(new Set((leads || []).map((l: any) => l.user_id).filter(Boolean)));
-          const affiliateIds = Array.from(new Set((leads || []).map((l: any) => l.affiliate_id).filter(Boolean)));
+          const affiliateIds = Array.from(new Set((leads || []).map((l: any) => l.affiliate_id).filter((id: string | null) => id && id !== null)));
 
           // Fetch all parent users
           const { data: users, error: usersError } = await supabase
@@ -1929,51 +1929,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return res.status(500).json({ message: "Failed to fetch parent users", details: usersError });
           }
 
-          // Fetch all affiliate_codes by affiliate_id
-          const { data: codes, error: codesError } = await supabase
-            .from("affiliate_codes")
-            .select("affiliate_id, code, type, person_name, entity_name, school_type")
-            .in("affiliate_id", affiliateIds);
-          if (codesError) {
-            console.error("[COO LEADS] Supabase error (affiliate_codes):", codesError);
-            return res.status(500).json({ message: "Failed to fetch affiliate codes", details: codesError });
-          }
-
-          // Fetch all affiliate code owners (affiliate_id is a user id)
-          const ownerIds = affiliateIds;
-          const { data: owners, error: ownersError } = await supabase
-            .from("users")
-            .select("id, first_name, last_name, email").in("id", ownerIds);
-          if (ownersError) {
-            console.error("[COO LEADS] Supabase error (owners):", ownersError);
-            return res.status(500).json({ message: "Failed to fetch affiliate code owners", details: ownersError });
-          }
-
-          // Build lookup maps
+          // Build lookup map
           const userMap = Object.fromEntries((users || []).map((u: any) => [u.id, u]));
-          // There may be multiple codes per affiliate_id, so just pick the first for display
-          const codeMap = {};
-          (codes || []).forEach((c: any) => { if (!codeMap[c.affiliate_id]) codeMap[c.affiliate_id] = c; });
-          const ownerMap = Object.fromEntries((owners || []).map((o: any) => [o.id, o]));
+
+          // Fetch affiliate_codes for real affiliates only
+          let codeMap: Record<string, any> = {};
+          if (affiliateIds.length > 0) {
+            const { data: codes } = await supabase
+              .from("affiliate_codes")
+              .select("affiliate_id, code, type, person_name, entity_name, school_type")
+              .in("affiliate_id", affiliateIds);
+            if (codes) {
+              codes.forEach((c: any) => { if (!codeMap[c.affiliate_id]) codeMap[c.affiliate_id] = c; });
+            }
+          }
 
           // Transform for UI
           const result = (leads || []).map((lead: any) => {
             const parent = userMap[lead.user_id] || {};
-            const code = codeMap[lead.affiliate_id] || {};
-            const owner = ownerMap[lead.affiliate_id] || {};
+            // If organic (affiliate_id is null), show as organic
+            const isOrganic = lead.affiliate_id === null;
+            let affiliateType = lead.affiliate_type || '';
+            let affiliateName = lead.affiliate_name || '';
+            if (!isOrganic && codeMap[lead.affiliate_id]) {
+              affiliateType = codeMap[lead.affiliate_id].type || affiliateType;
+              affiliateName = codeMap[lead.affiliate_id].person_name || codeMap[lead.affiliate_id].entity_name || affiliateName;
+            }
             return {
               id: lead.id,
               parentName: `${parent.first_name || ''} ${parent.last_name || ''}`.trim(),
               userEmail: parent.email || '',
-              status: lead.tracking_source || '',
-              affiliateCode: code.code || '',
+              status: lead.tracking_source || (isOrganic ? 'organic' : ''),
               createdAt: lead.created_at,
-              affiliateType: code.type || '',
-              personName: code.person_name || '',
-              entityName: code.entity_name || '',
-              schoolType: code.school_type || '',
-              ownerName: `${owner.first_name || ''} ${owner.last_name || ''}`.trim(),
-              ownerEmail: owner.email || '',
+              affiliateType: isOrganic ? 'organic' : (affiliateType || ''),
+              affiliateName: isOrganic ? '' : (affiliateName || ''),
+              leadType: lead.lead_type || '',
+              onboardingType: lead.onboarding_type || '',
+              fullName: lead.full_name || '',
             };
           });
           res.json(result);

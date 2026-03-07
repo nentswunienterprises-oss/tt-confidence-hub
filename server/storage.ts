@@ -1385,11 +1385,17 @@ export class SupabaseStorage implements IStorage {
   async getAffiliateByCode(code: string): Promise<any | null> {
     const { data } = await supabase
       .from("affiliate_codes")
-      .select("affiliate_id")
+      .select("affiliate_id, type, person_name, entity_name")
       .eq("code", code)
       .maybeSingle();
-    
-    return data ? data.affiliate_id : null;
+    if (!data) return null;
+    // Compose affiliate_name: prefer person_name, fallback to entity_name, fallback to null
+    let affiliate_name = data.person_name || data.entity_name || null;
+    return {
+      affiliate_id: data.affiliate_id,
+      affiliate_type: data.type || null,
+      affiliate_name,
+    };
   }
 
   async logEncounter(affiliateId: string, encounter: any): Promise<any> {
@@ -1448,14 +1454,18 @@ export class SupabaseStorage implements IStorage {
     affiliateId: string,
     parentId: string,
     encounterId?: string,
-    trackingData?: { trackingSource?: string; trackingCampaign?: string; leadType?: string }
+    trackingData?: { trackingSource?: string; trackingCampaign?: string; leadType?: string; affiliateType?: string; affiliateName?: string }
   ): Promise<any> {
-    // Check for existing lead for this user (and encounter if provided)
+    // Use null for organic leads (no affiliate)
     let query = supabase
       .from("leads")
       .select("*")
-      .eq("user_id", parentId)
-      .eq("affiliate_id", affiliateId);
+      .eq("user_id", parentId);
+    if (affiliateId) {
+      query = query.eq("affiliate_id", affiliateId);
+    } else {
+      query = query.is("affiliate_id", null);
+    }
     if (encounterId) {
       query = query.eq("encounter_id", encounterId);
     }
@@ -1471,7 +1481,7 @@ export class SupabaseStorage implements IStorage {
 
     // Insert new lead
     const insertObj: any = {
-      affiliate_id: affiliateId,
+      affiliate_id: affiliateId || null,
       user_id: parentId,
       encounter_id: encounterId || null,
       tracking_source: trackingData?.trackingSource || 'affiliate',
@@ -1481,6 +1491,12 @@ export class SupabaseStorage implements IStorage {
     };
     if (trackingData?.leadType) {
       insertObj.lead_type = trackingData.leadType;
+    }
+    if (trackingData?.affiliateType) {
+      insertObj.affiliate_type = trackingData.affiliateType;
+    }
+    if (trackingData?.affiliateName) {
+      insertObj.affiliate_name = trackingData.affiliateName;
     }
 
     console.log("[createLead] Inserting new lead:", insertObj);

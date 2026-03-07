@@ -75,8 +75,6 @@ export function getSession() {
       // Add path if needed
       path: "/",
     },
-    // Add logging for session events
-    logErrors: true,
   });
 }
 
@@ -214,15 +212,15 @@ export async function setupAuth(app: Express) {
           console.log("📧 Parent signup email:", email);
           const onboardingType = 'pilot';
           const fullName = `${first_name} ${last_name}`.trim() || email.split("@")[0];
-          // Get affiliate ID from code
-          const affiliateId = await storage.getAffiliateByCode(affiliate_code.toUpperCase());
-          if (affiliateId) {
-            console.log("✅ Found affiliate for code:", affiliateId);
+          // Get affiliate info from code
+          const affiliateInfo = await storage.getAffiliateByCode(affiliate_code.toUpperCase());
+          if (affiliateInfo && affiliateInfo.affiliate_id) {
+            console.log("✅ Found affiliate for code:", affiliateInfo.affiliate_id);
             // Find the encounter by email (since parent_email matches the signup email)
             const { data: encounter } = await supabase
               .from("encounters")
               .select("id")
-              .eq("affiliate_id", affiliateId)
+              .eq("affiliate_id", affiliateInfo.affiliate_id)
               .eq("parent_email", email)
               .order("created_at", { ascending: false })
               .maybeSingle();
@@ -232,17 +230,19 @@ export async function setupAuth(app: Express) {
               leadType: 'parent',
               onboardingType,
               fullName,
+              affiliateType: affiliateInfo.affiliate_type,
+              affiliateName: affiliateInfo.affiliate_name,
             };
             if (encounter) {
               console.log("✅ Found encounter for parent email:", email, "encounter_id:", encounter.id);
               // Create a lead linked to this encounter
-              await storage.createLead(affiliateId, user.id, encounter.id, leadData);
-              console.log("✅ Lead created (with encounter) for affiliate:", affiliateId, "encounter_id:", encounter.id);
+              await storage.createLead(affiliateInfo.affiliate_id, user.id, encounter.id, leadData);
+              console.log("✅ Lead created (with encounter) for affiliate:", affiliateInfo.affiliate_id, "encounter_id:", encounter.id);
             } else {
               console.log("ℹ️  No prior encounter found for parent email:", email);
               // Still create a lead - parent is now a lead even without prior encounter
-              await storage.createLead(affiliateId, user.id, undefined, leadData);
-              console.log("✅ Lead created (new signup) for affiliate:", affiliateId, "user_id:", user.id);
+              await storage.createLead(affiliateInfo.affiliate_id, user.id, undefined, leadData);
+              console.log("✅ Lead created (new signup) for affiliate:", affiliateInfo.affiliate_id, "user_id:", user.id);
             }
           } else {
             console.warn("⚠️  Affiliate code not found:", affiliate_code);
@@ -259,18 +259,14 @@ export async function setupAuth(app: Express) {
           console.log("📊 Organic signup - creating organic lead");
           const onboardingType = 'commercial';
           const fullName = `${first_name} ${last_name}`.trim() || email.split("@")[0];
-          await supabase
-            .from("leads")
-            .insert({
-              affiliate_id: null, // null for organic leads
-              user_id: user.id,
-              encounter_id: null,
-              tracking_source: tracking_source || 'organic',
-              tracking_campaign: tracking_campaign || null,
-              onboarding_type: onboardingType,
-              full_name: fullName,
-              lead_type: 'parent',
-            });
+          const leadData = {
+            trackingSource: tracking_source || 'organic',
+            trackingCampaign: tracking_campaign || null,
+            leadType: 'parent',
+            onboardingType,
+            fullName,
+          };
+          await storage.createLead(null, user.id, null, leadData);
           console.log("✅ Organic lead created for user:", user.id);
         } catch (error) {
           console.error("❌ Error creating organic lead:", error);
