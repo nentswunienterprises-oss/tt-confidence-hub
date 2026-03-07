@@ -936,25 +936,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: Request, res: Response) => {
       try {
         const tutorId = (req as any).dbUser.id;
+        // Parse and type the data
         const data = insertSessionSchema.parse({
           ...req.body,
           tutorId,
           date: new Date(req.body.date),
         });
-        
+        // Defensive: ensure studentId and confidenceScoreDelta exist
+        const studentId = (data as any).studentId || (data as any).student_id;
+        const confidenceScoreDelta = (data as any).confidenceScoreDelta || (data as any).confidence_score_delta || 0;
         const session = await storage.createSession(data);
-        
         // Update student progress
-        const student = await storage.getStudent(data.studentId);
-        if (student) {
-          const sessions = await storage.getSessionsByStudent(data.studentId);
-          await storage.updateStudentProgress(
-            data.studentId,
-            sessions.length,
-            data.confidenceScoreDelta || 0
-          );
+        if (studentId) {
+          const student = await storage.getStudent(studentId);
+          if (student) {
+            const sessions = await storage.getSessionsByStudent(studentId);
+            await storage.updateStudentProgress(
+              studentId,
+              sessions.length,
+              confidenceScoreDelta
+            );
+          }
         }
-        
         res.json(session);
       } catch (error) {
         console.error("Error creating session:", error);
@@ -1420,14 +1423,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Get tutoring sessions
-        const { data: session, error: sessionError } = await supabase
+        const tutorId = dbUser.id;
+        const { data: sessions, error: sessionError } = await supabase
           .from("scheduled_sessions")
           .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, created_at, updated_at")
           .eq("tutor_id", tutorId)
           .eq("parent_id", student.parentId)
           .eq("type", "intro")
-          .order("created_at", { ascending: false })
-          .maybeSingle();
+          .order("created_at", { ascending: false });
 
         // Get parent reports
         const { data: parentReports, error: reportsError } = await supabase
@@ -1582,7 +1585,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const data = schema.parse(req.body);
         const weekStartDate = new Date(data.weekStartDate);
 
-        const result = await storage.db.insert(storage.weeklyCheckIns).values({
+        // Use Drizzle ORM insert for weeklyCheckIns
+        await storage.db.insert(storage.weeklyCheckIns).values({
           tutorId,
           podId: data.podId,
           weekStartDate,
@@ -1594,7 +1598,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           helpNeeded: data.helpNeeded || null,
           nextWeekGoals: data.nextWeekGoals,
         });
-
         res.json({ success: true, message: "Weekly check-in submitted" });
       } catch (error) {
         console.error("Error submitting weekly check-in:", error);
@@ -1616,12 +1619,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "Pod ID required" });
         }
 
-        const checkIns = await storage.db.query.weeklyCheckIns.findMany({
-          where: (wci, { eq, and }) =>
-            and(eq(wci.tutorId, tutorId), eq(wci.podId, podId)),
-          orderBy: (wci, { desc }) => desc(wci.weekStartDate),
-        });
-
+        // Use Drizzle ORM select for weeklyCheckIns
+        const checkIns = await storage.db
+          .select()
+          .from(storage.weeklyCheckIns)
+          .where((wci) => wci.tutorId === tutorId && wci.podId === podId)
+          .orderBy((wci) => wci.weekStartDate, "desc");
         res.json(checkIns);
       } catch (error) {
         console.error("Error fetching weekly check-ins:", error);
@@ -4640,7 +4643,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: Request, res: Response) => {
       try {
         const affiliateId = (req.session as any).userId;
-        const { reflectionText } = insertAffiliateReflectionSchema.parse(req.body);
+        const parsed = insertAffiliateReflectionSchema.parse(req.body);
+        const reflectionText = parsed.reflectionText || parsed.reflection_text;
         const result = await storage.saveAffiliateReflection(affiliateId, reflectionText);
         res.json(result);
       } catch (error) {

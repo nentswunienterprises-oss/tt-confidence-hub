@@ -579,7 +579,7 @@ export async function setupAuth(app: Express) {
       }
 
       // Create user in database
-      await storage.createUser({
+      await storage.upsertUser({
         id: user_id,
         email,
         role,
