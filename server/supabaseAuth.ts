@@ -68,11 +68,10 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: false, // Always false for local dev
-      sameSite: "lax", // Always lax for local dev
+      secure: process.env.NODE_ENV === "production", // true in prod, false in dev
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' for cross-site in prod
       maxAge: sessionTtl,
-      // domain: '.territorialtutoring.co.za', // REMOVE for local dev
-      // Add path if needed
+      domain: process.env.NODE_ENV === "production" ? ".territorialtutoring.co.za" : undefined,
       path: "/",
     },
   });
