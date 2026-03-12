@@ -265,7 +265,7 @@ function PortalLanding() {
             <p className="text-center md:text-right text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
               © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
               <br />
-              <span className="text-xs sm:text-sm">Confidence, made inevitable.</span>
+              <span className="text-xs sm:text-sm">Confiden, made inevitable.</span>
             </p>
           </div>
         </div>

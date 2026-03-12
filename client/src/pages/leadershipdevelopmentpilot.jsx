@@ -189,7 +189,6 @@ export default function LeadershipDevelopmentPilot() {
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl sm:text-3xl font-bold text-center">THE PROBLEM HIGH SCHOOLS MIGHT BE INHERITING</CardTitle>
-            <CardDescription className="text-center">(Whether they notice or not.)</CardDescription>
           </CardHeader>
 
             <CardContent className="prose prose-slate max-w-none">
