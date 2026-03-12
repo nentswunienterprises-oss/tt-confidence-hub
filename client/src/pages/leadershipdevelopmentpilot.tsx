@@ -269,11 +269,17 @@ export default function LeadershipDevelopmentPilot() {
             <p className="font-semibold">Territorial Tutoring enables high schools to develop academic leaders who execute under pressure and apply those skills to real educational challenges.</p>
 
             <div className="text-center mt-6">
-              <Button size="lg" className="px-6 py-3 rounded-full font-semibold w-full sm:w-auto" style={{ backgroundColor: "#E63946", color: "white" }} onClick={() => setShowForm(true)}>
-                Initiate High School Leadership Pilot Consideration
-              </Button>
-              <p className="text-xs text-gray-600 mt-2">This submission registers interest only. No obligation. No activation without alignment.</p>
-            </div>
+              <div className="flex flex-col items-center mt-8 mb-4 px-2">
+                <Button
+                  size="lg"
+                  className="w-full sm:w-auto px-6 py-4 rounded-full font-semibold mb-2"
+                  style={{ backgroundColor: "#E63946", color: "white" }}
+                  onClick={() => setShowForm(true)}
+                >
+                  Initiate High School Leadership Pilot Consideration
+                </Button>
+                <p className="text-xs text-gray-600 mt-2 text-center">This submission registers interest only. No obligation. No activation without alignment.</p>
+              </div>
 
             {/* Inline form for Leadership Pilot */}
             {showForm && !submitted && (
