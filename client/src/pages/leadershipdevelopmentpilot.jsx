@@ -347,7 +347,12 @@ export default function LeadershipDevelopmentPilot() {
               <p>Schools may then choose to continue nominating students annually, expand participation, or conclude the partnership.</p>
               <p>The pilot ensures the programme remains disciplined, structured, and beneficial to all participants.</p>
               <div className="text-center mt-6">
-                <Button size="lg" className="px-6 py-3 rounded-full font-semibold w-full sm:w-auto" style={{ backgroundColor: "#E63946", color: "white" }} onClick={function () { return setShowForm(true); }}>
+                <Button
+                  size="lg"
+                  className="w-full sm:w-auto px-4 sm:px-6 py-3 rounded-full font-semibold"
+                  style={{ backgroundColor: "#E63946", color: "white" }}
+                  onClick={function () { return setShowForm(true); }}
+                >
                   Initiate High School Leadership Pilot Consideration
                 </Button>
                 <p className="text-xs text-gray-600 mt-2">This submission registers interest only. No obligation. No activation without alignment.</p>
