@@ -149,7 +149,7 @@ var faqs = [
     {
         question: "How do you measure progress if it’s not just about marks?",
         answer: (<>
-        <p>Marks are tracked -0.02em but they’re lagging indicators.</p>
+        <p>Marks are tracked but they’re basic indicators.</p>
         <p>We track:</p>
         <ul>
           <li>response speed under uncertainty</li>

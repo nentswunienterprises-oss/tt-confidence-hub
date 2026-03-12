@@ -188,212 +188,229 @@ export default function LeadershipDevelopmentPilot() {
       <section className="max-w-4xl mx-auto px-4 sm:px-6 md:px-12 pt-8 sm:pt-12 pb-20">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl sm:text-3xl font-bold text-center">THE PROBLEM HIGH SCHOOLS ARE INHERITING</CardTitle>
-            <CardDescription className="text-center">(Whether they acknowledge it or not.)</CardDescription>
+            <CardTitle className="text-2xl sm:text-3xl font-bold text-center">THE PROBLEM HIGH SCHOOLS MIGHT BE INHERITING</CardTitle>
+            <CardDescription className="text-center">(Whether they notice or not.)</CardDescription>
           </CardHeader>
 
-          <CardContent className="prose prose-slate max-w-none">
-            <p>
-              High schools are not failing because of poor teaching.
-            </p>
+            <CardContent className="prose prose-slate max-w-none">
+              <p>High schools are receiving some learners whose academic response systems were never trained early enough.</p>
+              <p>By Grade 8-10, many learners already carry:</p>
+              <ul>
+                <li>Panic habits during tests and assessments</li>
+                <li>Freezing when problems become difficult</li>
+                <li>Avoidance patterns disguised as “discipline issues”</li>
+                <li>A quiet belief that school is something to survive, not master</li>
+              </ul>
 
-            <p>
-              They are failing because they are receiving learners whose academic response systems were never trained early enough.
-            </p>
+              <p>In many cases, the issue is not intelligence or lack of exposure to the content.</p>
+              <p>The learner may have seen and understood the concept before.</p>
+              <p>But when pressure appears: a timer, an unfamiliar question, a difficult step ... the response system collapses.</p>
+              <p>Working memory narrows.<br/>Their confidence drops.<br/>Execution breaks down.</p>
+              <p>The student is no longer accessing what they know.<br/>They are reacting to the pressure.</p>
+              <p>Most academic systems focus on teaching the material.</p>
+              <p>Very few systems train how students respond when the work becomes difficult.</p>
 
-            <p>
-              By Grade 8-10, many learners already carry:
-            </p>
-
-            <ul>
-              <li>Panic habits under assessment</li>
-              <li>Fragile execution under pressure</li>
-              <li>Avoidance patterns disguised as “discipline issues”</li>
-              <li>A quiet belief that school is something to survive, not master</li>
-            </ul>
-
-            <p>
-              At this stage, high schools are forced into damage control.
-            </p>
-
-            <p>
-              The system moves learners forward.
-              The gaps move with them.
-            </p>
-
-            <h2>THE HARD TRUTH</h2>
-
-            <ul>
-              <li>The failure mode is already active</li>
-              <li>The cost of correction has multiplied</li>
-              <li>Identity has begun to harden</li>
-            </ul>
-
-            <p>
-              High schools are expected to fix what should have been trained earlier.
-              That expectation is structurally unfair - and nationally unsustainable.
-            </p>
-
-            <h2>THE INSTITUTIONAL SHIFT WE ARE BUILDING</h2>
-
-            <p>
-              Territorial Tutoring is not a tutoring company.
-              We are an external academic leadership institution that enables high schools to solve a primary-school problem - upstream.
-            </p>
-
-            <p>
-              Instead of treating symptoms in Grade 9-12, we help high schools:
-            </p>
-
-            <p>
-              Deploy their top students as trained response-conditioning leaders for primary learners - before panic habits form.
-            </p>
-
-            <p>
-              This is not charity. This is infrastructure.
-            </p>
-
-            <h2>HOW THE COLLABORATION WORKS</h2>
-
-            <ol>
-              <li>
-                <strong>High Schools Nominate Their Top Students</strong>
-                <p>High-performing, high-potential learners are selected - not recruited. Selection itself becomes a mark of distinction.</p>
-              </li>
-              <li>
-                <strong>TT Trains Them as Response-Conditioning Executives</strong>
-                <p>Selected students undergo structured training in execution under pressure, response-control during uncertainty, teaching clarity, and psychological leadership.</p>
-              </li>
-              <li>
-                <strong>These Students Serve Primary Learners</strong>
-                <p>High school leaders work with referred Grade 6-7 learners, train calm execution, intercept panic habits early, and model composure.</p>
-              </li>
-            </ol>
-
-            <h2>WHY THIS BENEFITS HIGH SCHOOLS DIRECTLY</h2>
-
-            <ol>
-              <li>
-                <strong>Leadership Development That Actually Matters</strong>
-                <p>Your students lead real interventions, carry responsibility, and develop rare psychological maturity.</p>
-              </li>
-              <li>
-                <strong>Stronger Incoming Learners (Upstream Effect)</strong>
-                <p>Grade 6-7 learners enter high school with fewer panic habits and higher execution confidence.</p>
-              </li>
-              <li>
-                <strong>Institutional Reputation (Earned, Not Marketed)</strong>
-                <p>High schools can truthfully say: “Our students are selected and trained to serve as academic leaders in early intervention.”</p>
-              </li>
-              <li>
-                <strong>Reducing Warehousing</strong>
-                <p>This model slows identity collapse and reduces the number of learners being pushed forward unprepared.</p>
-              </li>
-            </ol>
-
-            <h2>WHY THIS MATTERS FOR SOUTH AFRICA</h2>
-
-            <p>
-              South Africa does not only need more degrees. It needs skills with execution, confidence without entitlement, and leadership without ego.
-            </p>
-
-            <h2>WHO THIS IS FOR</h2>
-
-            <p>
-              Principals and Deputy Principals, Academic Heads, Heads of Mathematics, Learner Leadership Coordinators, and schools that take long-term outcomes seriously.
-            </p>
-
-            <h2>THE PILOT MODEL</h2>
-
-            <ul>
-              <li>Limited intake (10 selected students)</li>
-              <li>Term-based pilot</li>
-              <li>Clear governance and scope</li>
-              <li>No curriculum interference</li>
-              <li>Full operational oversight by TT</li>
-              <li>Zero admin for highschools</li>
-            </ul>
-
-            <h2>POSITIONING</h2>
-            <p className="font-semibold">Territorial Tutoring enables high schools to develop academic leaders who execute under pressure and apply those skills to real educational challenges.</p>
-
-            <div className="text-center mt-6">
-              <Button size="lg" className="px-6 py-3 rounded-full font-semibold w-full sm:w-auto" style={{ backgroundColor: "#E63946", color: "white" }} onClick={function () { return setShowForm(true); }}>
-                Initiate High School Leadership Pilot Consideration
-              </Button>
-              <p className="text-xs text-gray-600 mt-2">This submission registers interest only. No obligation. No activation without alignment.</p>
-            </div>
-
-            {/* Inline form for Leadership Pilot */}
-            {showForm && !submitted && (<div ref={formRef} className="max-w-2xl mx-auto mt-6">
-                <Card className="p-4 sm:p-6" style={{ backgroundColor: "white" }}>
-                  <h3 className="text-lg font-bold mb-4">Request Leadership Pilot Access</h3>
-                  <form onSubmit={handleSubmit}>
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium mb-1">School name</label>
-                      <input ref={firstInputRef} value={form.school} onChange={function (e) { return setForm(__assign(__assign({}, form), { school: e.target.value })); }} className="w-full border rounded px-3 py-2"/>
-                      {errors.school && <div className="text-sm text-red-600 mt-1">{errors.school}</div>}
+              <p>At this stage, high schools are often forced into damage control.</p>
+              <p>The system moves learners forward.</p>
+              <p>The response patterns move with them.</p>
+              <h2>THE HARD TRUTH</h2>
+              <p>By the time learners reach high school:</p>
+              <ul>
+                <li>The failure pattern is already active</li>
+                <li>The cost of correction has multiplied</li>
+                <li>Academic identity has begun to harden</li>
+              </ul>
+              <p>High schools are still expected to produce results within this reality.</p>
+              <p>But the underlying response system was never trained.</p>
+              <p>Most schools teach content.</p>
+              <p>Very few systems train how students respond when the work becomes difficult.</p>
+              <h2>WHAT TERRITORIAL TUTORING DOES</h2>
+              <p>Territorial Tutoring focuses on the missing layer: academic response training.</p>
+              <p>When a learner encounters a difficult math problem, one of two things usually happens.</p>
+              <p>They panic, freeze, and guess.</p>
+              <p>Or they stay calm, think clearly, execute and continue without emotional negotiation.</p>
+              <p>That difference is not intelligence.</p>
+              <p>It is training.</p>
+              <p>Territorial Tutoring trains learners to:</p>
+              <ul>
+                <li>remain composed under pressure</li>
+                <li>think clearly during difficulty</li>
+                <li>execute step-by-step instead of guessing.</li>
+              </ul>
+              <h2>WHY OUR MODEL WORKS</h2>
+              <p>This training works because of three structural advantages.</p>
+              <h3>1-on-1 Online Mentorship</h3>
+              <p>Traditional classrooms must divide attention across 25-30 learners.</p>
+              <p>Our model allows focused one-on-one sessions where a student's response patterns can actually be observed and corrected.</p>
+              <h3>Understanding + Execution</h3>
+              <p>Many systems focus only on explaining concepts.</p>
+              <p>We train both:</p>
+              <ul>
+                <li>Understanding the math</li>
+                <li>Executing the math under pressure</li>
+              </ul>
+              <p>Students learn the work, and how to perform it when it matters.</p>
+              <h3>Structured Response Conditioning</h3>
+              <p>Sessions are designed to train calm, disciplined execution when problems become difficult.</p>
+              <p>Over time, panic responses are replaced with controlled problem-solving behaviour.</p>
+              <p>This is the foundation of our system.</p>
+              <h2>FROM RESPONSE TRAINING TO LEADERSHIP DEVELOPMENT</h2>
+              <p>Because Territorial Tutoring operates at this level of academic training, we are able to run a structured external academic leadership programme with high schools.</p>
+              <p>The programme allows selected students to develop rare leadership capability through:</p>
+              <ul>
+                <li>response-control training</li>
+                <li>teaching clarity</li>
+                <li>composure under pressure</li>
+                <li>mentorship responsibility</li>
+              </ul>
+              <p>This is not theoretical leadership.</p>
+              <p>Students practice leadership through real academic mentorship.</p>
+              <h2>SELECTION, NOT RECRUITMENT</h2>
+              <p>This programme does not recruit students.</p>
+              <p>Schools nominate learners who already demonstrate discipline, composure, and academic potential.</p>
+              <p>Selection is limited.</p>
+              <p>Participation is voluntary and merit-based.</p>
+              <p>Students are not selected because they need help.</p>
+              <p>They are selected because they are trusted to carry responsibility.</p>
+              <p>The programme exists to refine leadership capability that is already visible.</p>
+              <h2>HOW THE COLLABORATION WORKS</h2>
+              <h3>High Schools Nominate Their Students</h3>
+              <p>Schools identify a small number of learners who demonstrate maturity, discipline, and strong academic potential.</p>
+              <p>Selection itself becomes a mark of distinction.</p>
+              <h3>Territorial Tutoring Trains Them</h3>
+              <p>Selected students undergo structured training in:</p>
+              <ul>
+                <li>calm execution under pressure</li>
+                <li>teaching clarity and communication</li>
+                <li>response control during uncertainty</li>
+                <li>psychological composure in academic settings</li>
+              </ul>
+              <p>These are rare academic leadership skills.</p>
+              <h3>Students Apply These Skills Through Mentorship</h3>
+              <p>Under TT supervision, trained students guide younger learners through structured math sessions focused on disciplined problem-solving and calm execution.</p>
+              <p>The process strengthens both the mentor and the learner.</p>
+              <h2>WHY THIS BENEFITS HIGH SCHOOLS DIRECTLY</h2>
+              <h3>Real Leadership Development</h3>
+              <p>Students do not simulate leadership.</p>
+              <p>They practice it through structured responsibility and mentorship.</p>
+              <h3>Stronger Academic Identity</h3>
+              <p>Students selected into the programme develop composure, clarity, and execution discipline that strengthens their own academic performance.</p>
+              <h3>Institutional Distinction</h3>
+              <p>Schools can truthfully say:</p>
+              <p>“Our students are selected and trained to serve as academic leadership mentors.”</p>
+              <h3>Positive Academic Culture</h3>
+              <p>High-performing students are given a meaningful channel for contribution, responsibility, and structured leadership.</p>
+              <p>Some students naturally enjoy teaching and mentoring.</p>
+              <p>This programme provides a structured environment for that ability to develop responsibly.</p>
+              <h2>WHY THIS MATTERS FOR SOUTH AFRICA</h2>
+              <p>South Africa does not only need more graduates.</p>
+              <p>It needs graduates who can:</p>
+              <ul>
+                <li>think clearly under pressure</li>
+                <li>execute without panic</li>
+                <li>carry responsibility early</li>
+                <li>lead without ego</li>
+              </ul>
+              <p>Academic leadership is one place that training can begin.</p>
+              <h2>WHO THIS IS FOR</h2>
+              <ul>
+                <li>Principals</li>
+                <li>Deputy Principals</li>
+                <li>Academic Heads</li>
+                <li>Heads of Mathematics</li>
+                <li>Learner Leadership Coordinators</li>
+              </ul>
+              <p>Schools that take long-term academic development seriously.</p>
+              <h2>THE STRUCTURE OF THE PROGRAMME</h2>
+              <p>The programme is intentionally designed to operate in partnership with multiple high schools while remaining centrally governed by Territorial Tutoring.</p>
+              <p>Each participating school nominates a small group of selected students.</p>
+              <p>Those students are trained through TT's structured response-conditioning system and operate under clear mentorship guidelines.</p>
+              <p>This allows leadership development to happen within schools, while the training system, standards, and operational oversight remain consistent and externally managed.</p>
+              <p>The result is a leadership programme that is:</p>
+              <ul>
+                <li>structured</li>
+                <li>selective</li>
+                <li>scalable</li>
+                <li>and academically responsible.</li>
+              </ul>
+              <h2>THE PILOT MODEL</h2>
+              <ul>
+                <li>Limited intake<br/>(12 selected students)</li>
+                <li>Term-based pilot</li>
+                <li>Clear governance and scope</li>
+                <li>No curriculum interference</li>
+                <li>Full operational oversight by Territorial Tutoring</li>
+                <li>Zero administrative burden for the school</li>
+              </ul>
+              <h3>Evaluation Period</h3>
+              <p>The pilot allows both Territorial Tutoring and the school to observe how the programme operates in practice.</p>
+              <p>At the end of the term, outcomes and operational experiences are reviewed.</p>
+              <p>Schools may then choose to continue nominating students annually, expand participation, or conclude the partnership.</p>
+              <p>The pilot ensures the programme remains disciplined, structured, and beneficial to all participants.</p>
+              <div className="text-center mt-6">
+                <Button size="lg" className="px-6 py-3 rounded-full font-semibold w-full sm:w-auto" style={{ backgroundColor: "#E63946", color: "white" }} onClick={function () { return setShowForm(true); }}>
+                  Initiate High School Leadership Pilot Consideration
+                </Button>
+                <p className="text-xs text-gray-600 mt-2">This submission registers interest only. No obligation. No activation without alignment.</p>
+              </div>
+              {/* Inline form for Leadership Pilot */}
+              {showForm && !submitted && (<div ref={formRef} className="max-w-2xl mx-auto mt-6">
+                  <Card className="p-4 sm:p-6" style={{ backgroundColor: "white" }}>
+                    <h3 className="text-lg font-bold mb-4">Request Leadership Pilot Access</h3>
+                    <form onSubmit={handleSubmit}>
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">School name</label>
+                        <input ref={firstInputRef} value={form.school} onChange={function (e) { return setForm(__assign(__assign({}, form), { school: e.target.value })); }} className="w-full border rounded px-3 py-2"/>
+                        {errors.school && <div className="text-sm text-red-600 mt-1">{errors.school}</div>}
+                      </div>
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">Name & Surname of contact person</label>
+                        <input value={form.contactName} onChange={function (e) { return setForm(__assign(__assign({}, form), { contactName: e.target.value })); }} className="w-full border rounded px-3 py-2"/>
+                        {errors.contactName && <div className="text-sm text-red-600 mt-1">{errors.contactName}</div>}
+                      </div>
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">Role of contact person</label>
+                        <input value={form.contactRole} onChange={function (e) { return setForm(__assign(__assign({}, form), { contactRole: e.target.value })); }} className="w-full border rounded px-3 py-2"/>
+                        {errors.contactRole && <div className="text-sm text-red-600 mt-1">{errors.contactRole}</div>}
+                      </div>
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">Phone number</label>
+                        <input value={form.phone} onChange={function (e) { return setForm(__assign(__assign({}, form), { phone: e.target.value })); }} className="w-full border rounded px-3 py-2"/>
+                        {errors.phone && <div className="text-sm text-red-600 mt-1">{errors.phone}</div>}
+                      </div>
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">Email</label>
+                        <input value={form.email} onChange={function (e) { return setForm(__assign(__assign({}, form), { email: e.target.value })); }} className="w-full border rounded px-3 py-2"/>
+                        {errors.email && <div className="text-sm text-red-600 mt-1">{errors.email}</div>}
+                      </div>
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto px-4 py-2 rounded-full" style={{ backgroundColor: "#E63946", color: "white" }}>{isSubmitting ? 'Sending...' : 'Submit'}</Button>
+                        <Button type="button" className="w-full sm:w-auto px-4 py-2 rounded-full border" onClick={function () { return setShowForm(false); }}>Cancel</Button>
+                      </div>
+                    </form>
+                  </Card>
+                </div>)}
+              {submitted && (<div className="max-w-2xl mx-auto mt-6">
+                  <Card className="p-4 sm:p-6" style={{ backgroundColor: "white" }}>
+                    <h3 className="text-lg font-bold mb-3">Submission Received</h3>
+                    <p>Thank you for submitting your school's interest in the TT Leadership Development Pilot.</p>
+                    <p className="mt-3">Your request has been logged for internal review.</p>
+                    <p className="mt-3">A member of the Territorial Tutoring team will contact the designated staff representative to:</p>
+                    <ul className="list-disc pl-5 mt-2 space-y-2">
+                      <li>Confirm suitability for the pilot</li>
+                      <li>Clarify selection and training framework</li>
+                      <li>Align on term-based timing and scope</li>
+                      <li>Discuss how this could align with your school's leadership and academic objectives</li>
+                    </ul>
+                    <p className="mt-3">This submission does not commit your school to participation. It initiates a consideration process.</p>
+                    <div className="mt-6 border-t pt-4 text-sm">
+                      <br />
+                      Territorial Tutoring SA<br />
+                      Academic Leadership &amp; Response-Conditioning for Schools
                     </div>
-
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium mb-1">Name & Surname of contact person</label>
-                      <input value={form.contactName} onChange={function (e) { return setForm(__assign(__assign({}, form), { contactName: e.target.value })); }} className="w-full border rounded px-3 py-2"/>
-                      {errors.contactName && <div className="text-sm text-red-600 mt-1">{errors.contactName}</div>}
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium mb-1">Role of contact person</label>
-                      <input value={form.contactRole} onChange={function (e) { return setForm(__assign(__assign({}, form), { contactRole: e.target.value })); }} className="w-full border rounded px-3 py-2"/>
-                      {errors.contactRole && <div className="text-sm text-red-600 mt-1">{errors.contactRole}</div>}
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium mb-1">Phone number</label>
-                      <input value={form.phone} onChange={function (e) { return setForm(__assign(__assign({}, form), { phone: e.target.value })); }} className="w-full border rounded px-3 py-2"/>
-                      {errors.phone && <div className="text-sm text-red-600 mt-1">{errors.phone}</div>}
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium mb-1">Email</label>
-                      <input value={form.email} onChange={function (e) { return setForm(__assign(__assign({}, form), { email: e.target.value })); }} className="w-full border rounded px-3 py-2"/>
-                      {errors.email && <div className="text-sm text-red-600 mt-1">{errors.email}</div>}
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto px-4 py-2 rounded-full" style={{ backgroundColor: "#E63946", color: "white" }}>{isSubmitting ? 'Sending...' : 'Submit'}</Button>
-                      <Button type="button" className="w-full sm:w-auto px-4 py-2 rounded-full border" onClick={function () { return setShowForm(false); }}>Cancel</Button>
-                    </div>
-                  </form>
-                </Card>
-              </div>)}
-
-            {submitted && (<div className="max-w-2xl mx-auto mt-6">
-                <Card className="p-4 sm:p-6" style={{ backgroundColor: "white" }}>
-                  <h3 className="text-lg font-bold mb-3">Submission Received</h3>
-
-                  <p>Thank you for submitting your school's interest in the TT Leadership Development Pilot.</p>
-
-                  <p className="mt-3">Your request has been logged for internal review.</p>
-
-                  <p className="mt-3">A member of the Territorial Tutoring team will contact the designated staff representative to:</p>
-                  <ul className="list-disc pl-5 mt-2 space-y-2">
-                    <li>Confirm suitability for the pilot</li>
-                    <li>Clarify selection and training framework</li>
-                    <li>Align on term-based timing and scope</li>
-                    <li>Discuss how this could align with your school’s leadership and academic objectives</li>
-                  </ul>
-
-                  <p className="mt-3">This submission does not commit your school to participation. It initiates a consideration process.</p>
-
-                  <div className="mt-6 border-t pt-4 text-sm">
-                    <br />
-                    Territorial Tutoring SA<br />
-                    Academic Leadership &amp; Response-Conditioning for Schools
-                  </div>
-                </Card>
-              </div>)}
-
-          </CardContent>
+                  </Card>
+                </div>)}
+            </CardContent>
         </Card>
       </section>
     </div>);
