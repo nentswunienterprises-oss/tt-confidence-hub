@@ -73,21 +73,21 @@ Selection itself becomes a mark of distinction.
 
 2. TT Trains Them as Response‑Conditioning Executives
 
-Selected students undergo structured training in:
+Selected students undergo structured training as Academic Response Mentors:
 
-- Cognitive execution under pressure
-- Response-control during uncertainty
-- Teaching clarity and composure
-- Psychological leadership, not content dumping
+- Calm execution under academic pressure
+- Response control during uncertainty
+- Teaching clarity and communication
+- Leadership through mentorship, not content dumping
 
-They are not “helpers”.
-They are system executors.
+They are not "helpers".
+They are academic response mentors, trained to condition reliable performance in others.
 
 3. These Students Serve Primary Learners
 
 Under TT’s operating system, high school leaders:
 
-- Work with referred Grade 6–7 learners
+- Work with referred Grade 6-7 learners
 - Train calm execution under pressure
 - Intercept panic habits early
 - Model composure, discipline, and leadership
@@ -110,6 +110,7 @@ Your students:
 - Carry responsibility
 - Learn execution, not theory
 - Develop rare psychological maturity
+- 
 
 This is youth leadership with consequences.
 
@@ -123,7 +124,7 @@ Grade 6-7 learners who pass through response-conditioning enter high school:
 
 High schools feel this years later, quietly, in results and culture.
 
-3. Institutional Reputation (Earned, Not Marketed)
+3. Institutional Reputation
 
 High schools can truthfully say:
 
@@ -159,7 +160,7 @@ This institution creates:
 - Early intervention without stigma
 - Education that restores dignity through competence
 
-This is how systems heal — not through speeches, but through structure.
+This is how systems heal - not through speeches, but through structure.
 
 ---
 
@@ -177,7 +178,7 @@ This collaboration is intended for:
 
 ## The pilot model
 
-- Limited intake (e.g. 10 selected students)
+- Limited intake (12 selected students)
 - Term-based pilot
 - Clear governance and scope
 - No curriculum interference
@@ -196,14 +197,15 @@ It is deliberate institution-building.
 
 ## Become a TT System Executor (short recruitment pitch)
 
-Not everyone qualifies. That’s the point.
-Earn R3,500–R5,000 per month (tax-free) while building real teaching, leadership, and execution skills.
+## Become a TT Academic Response Mentor (short recruitment pitch)
 
-Territorial Tutoring is selecting a small number of high-performing, disciplined students to train as System Executors inside our structured math mentorship operation.
+Not everyone qualifies. That’s the point.
+Earn R2,200–R4,800 per month (tax-free) while building real teaching, leadership, and response-conditioning skills.
+
+Territorial Tutoring is selecting a small number of high-performing, disciplined students to train as Academic Response Mentors inside our structured math mentorship system.
 
 This is not casual tutoring.
-This is not “teach your own way.”
-This is a system.
+This is not "teach your own way." This is a system.
 
 ### What you’re stepping into
 
@@ -212,11 +214,11 @@ Territorial Tutoring runs a structured online math mentorship programme for Grad
 We don’t rely on personality, motivation, or talent alone.
 We rely on clear systems, repetition, and standards.
 
-As a System Executor, your job is to run that system precisely — every session, every student.
+As an Academic Response Mentor, your job is to operate the TT protocol precisely — every session, every student.
 
 ### What you’ll actually do
 
-- Tutor students online in 1-on-1 math sessions
+- Mentor students online in 1-on-1 math sessions
 - Follow a clear session structure and standards
 - Help students stay calm when problems get difficult
 - Correct mistakes using precise language and steps
@@ -234,6 +236,137 @@ You’ll be trained.
 - Want real skill development, not quick cash
 - Can be consistent week after week
 
-### Who this is not for
+Territorial Tutoring – High School Positioning Pillars
+1. Response Conditioning Expertise
 
-... (file continues)
+Our core intellectual territory.
+
+Most schools teach academic content.
+
+TT trains how students respond when academic difficulty appears.
+
+This includes:
+
+• staying calm under pressure
+• structured thinking during difficult problems
+• step-by-step execution instead of guessing
+• disciplined problem-solving behaviour
+
+This expertise is built through TT’s 1-on-1 online mentorship model, where response patterns can actually be observed and corrected.
+
+This is the foundation of everything we do.
+
+Without this expertise, the leadership programme would not exist.
+
+2. Understanding + Execution Training
+
+Many academic systems focus heavily on understanding concepts.
+
+But academic success requires two abilities:
+
+Understanding the work
+
+Executing the work under pressure
+
+TT deliberately trains both.
+
+Students learn the mathematics and develop the ability to perform when the work becomes difficult.
+
+This dual focus creates students who are not just knowledgeable, but reliable under pressure.
+
+3. Structured Academic Leadership Development
+
+Because TT operates at the level of academic response training, we can extend this into leadership development.
+
+Selected high school students are trained in:
+
+• response control
+• teaching clarity
+• composure under academic pressure
+• mentorship responsibility
+
+This creates a leadership experience that is:
+
+• practical
+• structured
+• psychologically demanding
+• academically grounded
+
+Students do not simulate leadership.
+
+They practice leadership through real mentorship.
+
+4. Institutional Partnership Model
+
+TT operates as an external academic leadership institution, not a tutoring service embedded inside the school.
+
+The structure is designed to protect schools from administrative burden.
+
+High schools provide:
+
+• student nominations
+• institutional endorsement
+• parent consent credibility
+
+TT provides:
+
+• training systems
+• operational governance
+• mentorship structure
+• programme management
+
+This keeps the partnership clean, disciplined, and scalable.
+
+5. Prestige Through Selection
+
+The programme is selective, not open participation.
+
+Students are nominated by their schools based on:
+
+• discipline
+• maturity
+• academic potential
+• leadership readiness
+
+Selection itself becomes a mark of distinction.
+
+This protects the programme’s credibility and ensures participating students represent their schools well.
+
+6. Positive Academic Culture
+
+The programme creates a structured outlet for students who:
+
+• naturally enjoy teaching
+• want to develop leadership ability
+• want responsibility beyond the classroom
+
+Instead of leadership being limited to sports or debate, this creates academic leadership infrastructure.
+
+Schools that participate signal a commitment to:
+
+• responsibility
+• composure
+• disciplined academic culture
+
+The Strategic Position in One Sentence
+
+Territorial Tutoring partners with high schools to develop selected students into academically disciplined mentors through structured response-conditioning training.
+
+The Deeper Strategic Stack (Internal)
+
+This is the real hierarchy behind the pillars.
+
+Response Conditioning Expertise → our intellectual territory
+
+1-on-1 Mentorship Model → our training advantage
+
+Understanding + Execution → our academic edge
+
+Leadership Development → our expansion layer
+
+Institutional Partnerships → our distribution model
+
+Everything must always point back to response conditioning.
+
+That is the center of gravity.
+
