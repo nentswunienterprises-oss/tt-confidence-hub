@@ -106,9 +106,9 @@ export default function HRDashboard() {
           </Card>
 
           <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Pod Assignments</h2>
+            <h2 className="text-lg font-semibold mb-4">Mentorship Assignments</h2>
             <p className="text-sm text-muted-foreground mb-4">
-              Assign approved tutors to pods and manage placements
+              Assign approved mentors to learners and manage placements
             </p>
             <Button className="w-full" variant="outline">Manage Assignments</Button>
           </Card>

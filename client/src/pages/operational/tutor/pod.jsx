@@ -288,7 +288,7 @@ export default function TutorPod() {
               </div>
               <div className="p-4 bg-accent/30 rounded-lg">
                 <p className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">Pod Members (0/12)</span>
+                  <span className="font-medium text-foreground">Mentorship Group Members (0/12)</span>
                   <br />
                   
                 </p>
@@ -320,7 +320,7 @@ export default function TutorPod() {
               <Button className="w-full" variant="outline" asChild>
                 <Link to="/operational/tutor/tt-os">
                   <Lock className="w-4 h-4 mr-2"/>
-                  View TT-OS
+                  View TT-OS Protocol
                 </Link>
               </Button>
             </div>

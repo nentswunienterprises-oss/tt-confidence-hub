@@ -202,7 +202,7 @@ export default function COOPods() {
     return (<DashboardLayout>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Pod Management</h1>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Mentorship Group Management</h1>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2" data-testid="button-create-pod">
@@ -213,7 +213,7 @@ export default function COOPods() {
             <DialogContent>
               <form onSubmit={handleSubmit}>
                 <DialogHeader>
-                  <DialogTitle>Create New Pod</DialogTitle>
+                  <DialogTitle>Create New Mentorship Group</DialogTitle>
                   <DialogDescription>
                     Create a new 4-Seater training pod for tutors.
                   </DialogDescription>
