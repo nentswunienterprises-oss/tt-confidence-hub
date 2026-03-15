@@ -255,7 +255,7 @@ function PortalLanding() {
               <a href="/faq" className="text-xs sm:text-sm block text-blue-600 hover:underline" style={{ color: "#2563eb" }}>
                 Have a question?
               </a>
-              <div className="flex justify-center mt-2">
+              <div className="flex justify-center mt-2 sm:hidden">
                 <a 
                   href="https://www.instagram.com/territorialtutoring/" 
                   target="_blank" 
@@ -272,6 +272,15 @@ function PortalLanding() {
           <div className="flex flex-col md:flex-row md:justify-between items-center gap-4 sm:gap-6">
             <div className="flex items-center gap-4 ml-16 md:ml-0">
               <TerritorialTutoringLogoSVG width={150}/>
+              <a 
+                href="https://www.instagram.com/territorialtutoring/" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                aria-label="Instagram" 
+                className="hover:opacity-80 transition-opacity hidden sm:inline-flex"
+              >
+                <Instagram size={24} color="#E63946" style={{ verticalAlign: "middle" }} />
+              </a>
             </div>
             <p className="text-center md:text-right text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
               © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
