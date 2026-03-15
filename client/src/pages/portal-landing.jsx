@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { TerritorialTutoringLogoSVG } from "@/components/TerritorialTutoringLogoSVG";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check, Instagram } from "lucide-react";
 function PortalLanding() {
     var navigate = useNavigate();
     // Read affiliate and tracking parameters from URL (silent tracking)
@@ -259,8 +259,11 @@ function PortalLanding() {
           </div>
 
           <div className="flex flex-col md:flex-row md:justify-between items-center gap-4 sm:gap-6">
-            <div className="ml-16 md:ml-0">
+            <div className="ml-16 md:ml-0 flex items-center gap-4">
               <TerritorialTutoringLogoSVG width={150}/>
+              <a href="https://www.instagram.com/territorialtutoring/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="hover:opacity-80 transition-opacity">
+                <Instagram size={24} color="#E63946" style={{ verticalAlign: "middle" }} />
+              </a>
             </div>
             <p className="text-center md:text-right text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
               © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd

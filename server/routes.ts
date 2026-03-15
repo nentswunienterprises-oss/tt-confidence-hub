@@ -4967,24 +4967,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Determine onboarding_type from affiliate code if present
       // Determine onboarding_type and affiliate_type from affiliate code if present
       // Only allow 'pilot' or 'commercial' as onboarding_type
-      let resolvedOnboardingType = (onboardingType === 'pilot' || onboardingType === 'commercial') ? onboardingType : 'commercial';
-      let resolvedAffiliateType = null;
-      if (affiliateCode) {
-        // Always set onboarding_type to 'pilot' if code is provided
-        resolvedOnboardingType = 'pilot';
-        const { data: codeData, error: codeError } = await supabase
-          .from("affiliate_codes")
-          .select("type, affiliate_type")
-          .eq("code", affiliateCode)
-          .maybeSingle();
-        if (codeError) {
-          console.error('Error looking up affiliate code for onboarding_type/affiliate_type:', codeError);
+        // --- ONBOARDING LOGIC ---
+        // onboarding_type: 'pilot' or 'commercial' ONLY
+        // affiliate_type: 'person' or 'entity' ONLY
+        let resolvedOnboardingType = (onboardingType === 'pilot' || onboardingType === 'commercial') ? onboardingType : 'commercial';
+        let resolvedAffiliateType = null;
+        if (affiliateCode) {
+          // Always set onboarding_type to 'pilot' if code is provided
+          resolvedOnboardingType = 'pilot';
+          const { data: codeData, error: codeError } = await supabase
+            .from("affiliate_codes")
+            .select("type, affiliate_type")
+            .eq("code", affiliateCode)
+            .maybeSingle();
+          if (codeError) {
+            console.error('Error looking up affiliate code for onboarding_type/affiliate_type:', codeError);
+          }
+          if (codeData) {
+            // affiliate_type is for analytics/tracking, not onboarding flow
+            resolvedAffiliateType = codeData.affiliate_type || codeData.type || null;
+          }
         }
-        if (codeData) {
-          // Prefer affiliate_type if present, else fallback to type for legacy codes
-          resolvedAffiliateType = codeData.affiliate_type || codeData.type || null;
+        // Ensure onboarding_type is never set to affiliate_type
+        if (resolvedOnboardingType !== 'pilot' && resolvedOnboardingType !== 'commercial') {
+          resolvedOnboardingType = 'commercial';
         }
-      }
+        // --- END ONBOARDING LOGIC ---
       // Insert or update onboarding type, affiliate type, and affiliate code in parents table
       // Fetch full_name from public.users
       let fullName = null;
@@ -5001,7 +5009,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const last = userData.last_name || '';
         fullName = (first + ' ' + last).trim();
       }
-      console.log("[ENROLL] Upserting parent:", {
+      // --- DEBUG LOGGING ---
+      console.log("[ENROLL] Preparing to upsert parent record:", {
         user_id: userId,
         onboarding_type: resolvedOnboardingType,
         affiliate_type: resolvedAffiliateType,
@@ -5009,23 +5018,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cohort_code: cohortCode,
         full_name: fullName,
       });
-      const { data: parentUpserted, error: parentUpsertError } = await supabase
-        .from("parents")
-        .upsert({
-          user_id: userId,
-          onboarding_type: resolvedOnboardingType,
-          affiliate_type: resolvedAffiliateType,
-          affiliate_code: affiliateCode || cohortCode || null,
-          full_name: fullName,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'user_id' })
-        .select()
-        .single();
-      if (parentUpsertError) {
-        console.error("Error upserting parent onboarding/affiliate type:", parentUpsertError);
-      } else {
-        console.log("[ENROLL] Parent upsert successful. Upserted row:", parentUpserted);
+      try {
+        const { data: parentUpserted, error: parentUpsertError } = await supabase
+          .from("parents")
+          .upsert({
+            user_id: userId,
+            onboarding_type: resolvedOnboardingType,
+            affiliate_type: resolvedAffiliateType,
+            affiliate_code: affiliateCode || cohortCode || null,
+            full_name: fullName,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'user_id' })
+          .select()
+          .single();
+        if (parentUpsertError) {
+          console.error("[ENROLL] Error upserting parent onboarding/affiliate type:", parentUpsertError);
+        } else {
+          console.log("[ENROLL] Parent upsert successful. Upserted row:", parentUpserted);
+        }
+      } catch (err) {
+        console.error("[ENROLL] Exception during parent upsert:", err);
       }
+      // --- END DEBUG LOGGING ---
 
       // Lead creation is now handled after signup, not enrollment.
 

@@ -204,6 +204,73 @@ export async function setupAuth(app: Express) {
         }
       }
 
+      // --- PARENT RECORD UPSERT ON SIGNUP ---
+      if (user && user.role === "parent") {
+        // --- Robust onboarding_type and affiliate_type logic ---
+        // Use affiliate code from body or session
+        const effectiveAffiliateCode = affiliate_code || req.session.affiliateCode || null;
+        let resolvedOnboardingType = 'commercial';
+        let resolvedAffiliateType = null;
+        if (effectiveAffiliateCode) {
+          // Always set onboarding_type to 'pilot' if affiliate code is present
+          resolvedOnboardingType = 'pilot';
+          // Only set affiliate_type if code lookup succeeds
+          const { data: codeData, error: codeError } = await supabase
+            .from("affiliate_codes")
+            .select("type, affiliate_type")
+            .eq("code", effectiveAffiliateCode)
+            .maybeSingle();
+          if (codeError) {
+            console.error('[SIGNUP] Error looking up affiliate code for onboarding_type/affiliate_type:', codeError);
+          }
+          // Always set affiliate_type, even if null, for analytics/tracking
+          resolvedAffiliateType = (codeData && (codeData.affiliate_type || codeData.type)) || null;
+        }
+        // Debug log to confirm values before upsert
+        console.log("[SIGNUP][DEBUG] About to upsert parent record:", {
+          user_id: user.id,
+          onboarding_type: resolvedOnboardingType,
+          affiliate_type: resolvedAffiliateType,
+          affiliate_code: effectiveAffiliateCode,
+          first_name,
+          last_name,
+          email
+        });
+        const parentFullName = `${first_name} ${last_name}`.trim() || email.split("@")[0];
+        try {
+          // Upsert parent record with both onboarding_type and affiliate_type always present
+          const { data: parentUpserted, error: parentUpsertError } = await supabase
+            .from("parents")
+            .upsert({
+              user_id: user.id,
+              onboarding_type: resolvedOnboardingType,
+              affiliate_type: resolvedAffiliateType, // always included, even if null
+              affiliate_code: effectiveAffiliateCode,
+              full_name: parentFullName,
+              updated_at: new Date().toISOString(),
+            }, {
+              onConflict: 'user_id',
+              ignoreDuplicates: false,
+              update: [
+                'onboarding_type',
+                'affiliate_type',
+                'affiliate_code',
+                'full_name',
+                'updated_at'
+              ]
+            })
+            .select()
+            .single();
+          if (parentUpsertError) {
+            console.error("[SIGNUP] Error upserting parent onboarding/affiliate type:", parentUpsertError);
+          } else {
+            console.log("[SIGNUP] Parent upsert successful. Upserted row:", parentUpserted);
+          }
+        } catch (err) {
+          console.error("[SIGNUP] Exception during parent upsert:", err);
+        }
+      }
+
       // If parent signed up with affiliate code, create a lead
       if (user && user.role === "parent" && affiliate_code) {
         try {

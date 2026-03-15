@@ -559,9 +559,9 @@ export default function COODashboard() {
         {/* Pods Section - VIEW ONLY */}
         <section>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold">Mentorship Groups</h2>
+            <h2 className="text-xl sm:text-2xl font-bold">Pods</h2>
             <p className="text-xs sm:text-sm text-muted-foreground">
-              View all active mentorship groups. Manage groups in Mentorship Group Management tab.
+              View all active pods. Manage pods in Pod Management tab.
             </p>
           </div>
           {podsLoading ? (<Card>

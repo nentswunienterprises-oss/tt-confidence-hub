@@ -229,7 +229,7 @@ export default function TutorPod() {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-              Welcome back, {firstName}! <Flame className="inline w-8 h-8 text-primary"/>
+              Welcome back, {firstName} <Flame className="inline w-8 h-8 text-primary"/>
             </h1>
             <Badge className="bg-primary text-primary-foreground border-primary font-semibold uppercase tracking-wide text-xs px-4 py-1.5 rounded-full" data-testid="badge-pod-name">
               {assignment.pod.podName}
@@ -288,7 +288,7 @@ export default function TutorPod() {
               </div>
               <div className="p-4 bg-accent/30 rounded-lg">
                 <p className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">Mentorship Group Members (0/12)</span>
+                  <span className="font-medium text-foreground">Pod Members (0/12)</span>
                   <br />
                   
                 </p>
