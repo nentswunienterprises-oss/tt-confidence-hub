@@ -260,7 +260,7 @@ function PortalLanding() {
 
           <div className="flex flex-col md:flex-row md:justify-between items-center gap-4 sm:gap-6">
             <div className="flex flex-col items-center md:flex-row md:items-center gap-2 md:gap-4 w-full md:w-auto">
-              <div className="flex flex-col items-center w-full">
+              <div className="flex flex-col items-center">
                 <TerritorialTutoringLogoSVG width={150}/>
                 <a 
                   href="https://www.instagram.com/territorialtutoring/" 
@@ -268,7 +268,7 @@ function PortalLanding() {
                   rel="noopener noreferrer" 
                   aria-label="Instagram" 
                   className="hover:opacity-80 transition-opacity mt-2 md:mt-0"
-                  style={{ display: 'flex', justifyContent: 'center', width: '100%' }}
+                  style={{ display: 'flex', justifyContent: 'center' }}
                 >
                   <Instagram size={24} color="#E63946" style={{ verticalAlign: "middle" }} />
                 </a>
