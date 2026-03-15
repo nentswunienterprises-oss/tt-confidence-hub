@@ -9,6 +9,17 @@ import { ToastProvider, Toast, ToastTitle, ToastDescription, ToastViewport } fro
 import { useAuth } from "@/hooks/useAuth";
 
 export default function TrackLeadsPage() {
+    // Mobile debug: show data in alert
+    React.useEffect(() => {
+      if (typeof window !== 'undefined' && window.innerWidth < 800) {
+        alert(
+          'codes: ' + JSON.stringify(codes) +
+          '\nleads: ' + JSON.stringify(leads) +
+          '\nisAuthenticated: ' + isAuthenticated +
+          '\nauthLoading: ' + authLoading
+        );
+      }
+    }, [codes, leads, isAuthenticated, authLoading]);
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   const [toast, setToast] = React.useState<{ title: string; description?: string } | null>(null);
