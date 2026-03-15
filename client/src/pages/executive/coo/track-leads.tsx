@@ -71,6 +71,15 @@ export default function TrackLeadsPage() {
     },
   });
 
+  React.useEffect(() => {
+    alert(
+      'codes: ' + JSON.stringify(codes) +
+      '\nleads: ' + JSON.stringify(leads) +
+      '\nisAuthenticated: ' + isAuthenticated +
+      '\nauthLoading: ' + authLoading
+    );
+  }, [codes, leads, isAuthenticated, authLoading]);
+
   return (
     <div className="max-w-3xl mx-auto py-8 overflow-auto">
       <Button variant="outline" className="mb-6" onClick={() => window.location.href = '/executive/coo/dashboard'}>

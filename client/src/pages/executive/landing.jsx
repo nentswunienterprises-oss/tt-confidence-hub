@@ -78,13 +78,6 @@ export default function ExecutiveLanding() {
 
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-8 sm:pt-12 md:pt-20 pb-12 sm:pb-20">
-        {/* Mobile Title */}
-        <div className="md:hidden text-center mb-6">
-          <TTLogo size="md" />
-          <span className="block text-xl font-bold tracking-tight mt-2" style={{ color: "#1A1A1A" }}>
-            Territorial Tutoring Executive
-          </span>
-        </div>
         <div className="text-center max-w-3xl mx-auto space-y-5 sm:space-y-8">
           <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
             <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
