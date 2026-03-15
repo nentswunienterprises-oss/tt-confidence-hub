@@ -255,6 +255,17 @@ function PortalLanding() {
               <a href="/faq" className="text-xs sm:text-sm block text-blue-600 hover:underline" style={{ color: "#2563eb" }}>
                 Have a question?
               </a>
+              <div className="flex justify-center mt-2">
+                <a 
+                  href="https://www.instagram.com/territorialtutoring/" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  aria-label="Instagram" 
+                  className="hover:opacity-80 transition-opacity"
+                >
+                  <Instagram size={24} color="#E63946" style={{ verticalAlign: "middle" }} />
+                </a>
+              </div>
             </div>
           </div>
 
@@ -262,16 +273,6 @@ function PortalLanding() {
             <div className="flex flex-col items-center md:flex-row md:items-center gap-2 md:gap-4 w-full md:w-auto">
               <div className="flex flex-col items-center">
                 <TerritorialTutoringLogoSVG width={150}/>
-                <a 
-                  href="https://www.instagram.com/territorialtutoring/" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  aria-label="Instagram" 
-                  className="hover:opacity-80 transition-opacity mt-2 md:mt-0"
-                  style={{ display: 'flex', justifyContent: 'center' }}
-                >
-                  <Instagram size={24} color="#E63946" style={{ verticalAlign: "middle" }} />
-                </a>
               </div>
             </div>
             <p className="text-center md:text-right text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
