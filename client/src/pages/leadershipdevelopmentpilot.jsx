@@ -353,7 +353,7 @@ export default function LeadershipDevelopmentPilot() {
                   style={{ backgroundColor: "#E63946", color: "white", minWidth: 0, wordBreak: 'break-word' }}
                   onClick={function () { return setShowForm(true); }}
                 >
-                  Initiate High School Leadership<br className="block sm:hidden" />Pilot Consideration
+                  Initiate High School Leadership<br className="block sm:hidden" /> Pilot Consideration
                 </Button>
                 <p className="text-xs text-gray-600 mt-2">This submission registers interest only. No obligation. No activation without alignment.</p>
               </div>
