@@ -250,10 +250,17 @@ export default function FAQPage() {
       <h1 className="text-3xl font-bold mb-2 text-center">TT removes chaos until confidence has no choice but to appear.</h1>
       <h2 className="text-2xl font-semibold mb-8 text-center">Frequently Asked Questions</h2>
       <div className="space-y-6">
-        {faqs.map(function (faq, idx) { return (<details key={idx} className="bg-white rounded shadow p-4">
-            <summary className="font-semibold cursor-pointer text-lg mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500">{faq.question}</summary>
+        {faqs.map(function (faq, idx) { return (
+          <details key={idx} className="bg-white rounded shadow p-4">
+            <summary 
+              className="font-semibold cursor-pointer text-lg mb-2 focus:outline-none focus:ring-0 focus:border-none"
+              style={{ outline: 'none', boxShadow: 'none', border: 'none' }}
+            >
+              {faq.question}
+            </summary>
             <div className="mt-2 text-gray-700 text-base">{faq.answer}</div>
-          </details>); })}
+          </details>
+        ); })}
       </div>
     </div>);
 }

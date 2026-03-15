@@ -9,25 +9,6 @@ import { ToastProvider, Toast, ToastTitle, ToastDescription, ToastViewport } fro
 import { useAuth } from "@/hooks/useAuth";
 
 export default function TrackLeadsPage() {
-    // Mobile debug: show data in alert only once after data loads
-    const [alertShown, setAlertShown] = React.useState(false);
-    React.useEffect(() => {
-      if (
-        typeof window !== 'undefined' &&
-        window.innerWidth < 800 &&
-        !alertShown &&
-        !codesLoading &&
-        !leadsLoading
-      ) {
-        alert(
-          'codes: ' + JSON.stringify(codes) +
-          '\nleads: ' + JSON.stringify(leads) +
-          '\nisAuthenticated: ' + isAuthenticated +
-          '\nauthLoading: ' + authLoading
-        );
-        setAlertShown(true);
-      }
-    }, [codes, leads, isAuthenticated, authLoading, codesLoading, leadsLoading, alertShown]);
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   const [toast, setToast] = React.useState<{ title: string; description?: string } | null>(null);
