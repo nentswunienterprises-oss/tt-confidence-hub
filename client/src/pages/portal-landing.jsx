@@ -257,7 +257,7 @@ function PortalLanding() {
               </a>
               <div className="flex justify-center mt-2 sm:hidden">
                 <a 
-                  href="https://www.instagram.com/territorialtutoring/" 
+                  href="https://www.instagram.com/territorialtutoring?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   aria-label="Instagram" 
@@ -273,7 +273,7 @@ function PortalLanding() {
             <div className="flex items-center gap-4 ml-16 md:ml-0">
               <TerritorialTutoringLogoSVG width={150}/>
               <a 
-                href="https://www.instagram.com/territorialtutoring/" 
+                href="https://www.instagram.com/territorialtutoring?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 aria-label="Instagram" 
