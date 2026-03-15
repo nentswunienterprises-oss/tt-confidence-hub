@@ -74,6 +74,7 @@ export async function apiRequest(
   data?: unknown | undefined,
 ): Promise<Response> {
   const fullUrl = API_URL + url;
+  console.log("[apiRequest] method:", method, "url:", fullUrl, "credentials: include");
   const res = await fetch(fullUrl, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
