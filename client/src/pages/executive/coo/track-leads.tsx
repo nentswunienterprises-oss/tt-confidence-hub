@@ -72,7 +72,7 @@ export default function TrackLeadsPage() {
   });
 
   return (
-    <div className="max-w-3xl mx-auto py-8">
+    <div className="max-w-3xl mx-auto py-8 overflow-auto">
       <Button variant="outline" className="mb-6" onClick={() => window.location.href = '/executive/coo/dashboard'}>
         ← Back to Dashboard
       </Button>
@@ -94,7 +94,7 @@ export default function TrackLeadsPage() {
               ) : codes.length === 0 ? (
                 <p className="text-muted-foreground">No codes found.</p>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-2 overflow-auto max-h-[60vh]">
                   {codes.map((code: any) => {
                     const link = `${window.location.origin}/client/signup?affiliate=${code.code}`;
                     return (
@@ -135,7 +135,7 @@ export default function TrackLeadsPage() {
               ) : leads.length === 0 ? (
                 <p className="text-muted-foreground">No leads found.</p>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-2 overflow-auto max-h-[60vh]">
                   {leads.map((lead: any) => (
                     <div
                       key={lead.id}
@@ -171,7 +171,7 @@ export default function TrackLeadsPage() {
               ) : closes.length === 0 ? (
                 <p className="text-muted-foreground">No closes found.</p>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-2 overflow-auto max-h-[60vh]">
                   {closes.map((close: any) => (
                     <div key={close.id} className="p-2 border rounded flex justify-between items-center">
                       <span>{close.parentName || close.userEmail}</span>
@@ -194,7 +194,7 @@ export default function TrackLeadsPage() {
               ) : subscriptions.length === 0 ? (
                 <p className="text-muted-foreground">No subscriptions found.</p>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-2 overflow-auto max-h-[60vh]">
                   {subscriptions.map((sub: any) => (
                     <div key={sub.id} className="p-2 border rounded flex justify-between items-center">
                       <span>{sub.parentName || sub.userEmail}</span>
