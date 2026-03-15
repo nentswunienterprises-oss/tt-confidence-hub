@@ -450,10 +450,17 @@ export default function COODashboard() {
           <Card className="mb-4">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Academic Compliance & Grade Monitoring</h3>
-                <Button size="sm" variant="default" onClick={() => window.location.href = '/executive/coo/grade-monitoring'}>
-                  Go to Grade Monitoring System
-                </Button>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-2">
+                  <h3 className="text-lg font-semibold flex-1">Academic Compliance & Grade Monitoring</h3>
+                  <Button 
+                    size="sm" 
+                    variant="default" 
+                    onClick={() => window.location.href = '/executive/coo/grade-monitoring'}
+                    className="w-full sm:w-auto"
+                  >
+                    Go to Grade Monitoring System
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
