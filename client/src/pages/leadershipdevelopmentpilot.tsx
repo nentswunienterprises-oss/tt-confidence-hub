@@ -109,7 +109,7 @@ export default function LeadershipDevelopmentPilot() {
 
           <div className="hidden md:block">
             <span className="text-2xl lg:text-4xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-              RESPONSE-CONDITIONING
+              RESPONSE  TRAINING
             </span>
           </div>
 
