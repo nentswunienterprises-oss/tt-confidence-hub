@@ -22,6 +22,8 @@ function FoundingTutorsWanted() {
                 <span className="block leading-tight mb-1">Founding</span>
                 <span className="block leading-tight">Tutor Cohort</span>
               </span>
+              {/* Increase margin-left for mobile to lock group closer to logo */}
+              </span>
               <span className="hidden md:block text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A06]">FOUNDING TUTOR COHORT</span>
               <Button
                 className="text-xs sm:text-sm md:text-base font-semibold px-3 sm:px-6 py-2 sm:py-3 rounded-full border-0 shadow-lg hover:shadow-xl transition-all whitespace-nowrap md:ml-4 ml-2 mt-1"
