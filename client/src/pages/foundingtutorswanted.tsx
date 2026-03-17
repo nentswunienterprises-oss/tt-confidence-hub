@@ -53,7 +53,6 @@ function FoundingTutorsWanted() {
                 >
                   Apply for the Founding Tutor Cohort
                 </Button>
-                <p className="text-xs text-gray-600 mt-2 text-center">This submission registers interest only. No obligation. No activation without alignment.</p>
               </div>
             </div>
           </section>
