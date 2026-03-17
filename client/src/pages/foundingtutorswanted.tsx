@@ -8,45 +8,44 @@ function FoundingTutorsWanted() {
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-[#FFF5ED] to-[#F9E3D8]">
-        <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#F3D2C1]" style={{ background: 'linear-gradient(135deg, #FFF5ED 0%, #F9E3D8 100%)', boxShadow: '0 2px 8px 0 rgba(233, 57, 70, 0.04)' }}>
+      <div className="min-h-screen bg-gradient-to-br from-[#FFF5ED] to-[#F9E3D8] flex flex-col">
+        <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#F3D2C1] w-full backdrop-blur-md" style={{ background: 'linear-gradient(135deg, #FFF5ED 0%, #F9E3D8 100%)', boxShadow: '0 2px 8px 0 rgba(233, 57, 70, 0.04)', backgroundColor: 'rgba(255,245,237,0.95)' }}>
           <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
-            <div className="flex-shrink-0" style={{ maxWidth: 190 }}>
-              <TerritorialTutoringLogoSVG width={190} />
+            <div className="flex-shrink-0 ml-2 md:ml-0">
+              <TerritorialTutoringLogoSVG width={120} className="w-24 sm:w-40" />
             </div>
-            <div className="hidden md:block">
-              <span className="text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A06]">FOUNDING TUTOR COHORT</span>
-            </div>
-            <div className="flex items-center gap-2 sm:gap-4">
-              <Button
-                className="text-sm sm:text-base font-semibold px-4 sm:px-6 py-2 sm:py-5 rounded-full border-0 shadow-lg hover:shadow-xl transition-all"
-                style={{ backgroundColor: "#E63946", color: "white" }}
-                onClick={() => navigate("/operational/signup?role=tutor")}
-              >
-                Apply for the Founding Tutor Cohort
-              </Button>
-            </div>
+            <span className="text-lg sm:text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A06] block md:hidden">FOUNDING TUTOR COHORT</span>
+            <span className="hidden md:block text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A06]">FOUNDING TUTOR COHORT</span>
+            <Button
+              className="text-xs sm:text-sm md:text-base font-semibold px-3 sm:px-6 py-2 sm:py-3 rounded-full border-0 shadow-lg hover:shadow-xl transition-all whitespace-nowrap"
+              style={{ backgroundColor: "#E63946", color: "white" }}
+              onClick={() => navigate("/operational/signup?role=tutor")}
+            >
+              <span className="hidden sm:inline">Start</span>
+              <span className="sm:hidden">Start</span>
+            </Button>
           </div>
         </header>
         <div className="h-16 sm:h-20" />
-        <main className="max-w-3xl mx-auto px-4 sm:px-6 md:px-12 py-12">
-            <section className="mb-8 sm:mb-10">
-            {/* Removed intro section heading as requested */}
-              <div className="rounded-xl shadow-lg p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 border border-[#F3D2C1] bg-white/90">
+        <main className="w-full max-w-3xl mx-auto px-2 sm:px-6 md:px-12 py-8 sm:py-12 flex-1">
+          <section className="mb-8 sm:mb-10">
+            <div className="rounded-xl shadow-lg p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 border border-[#F3D2C1] bg-white/90">
               <p className="text-lg md:text-xl text-[#1A1A1A] mb-2 font-semibold">Most students do not fail because they are unintelligent.<br />They fail because their response to difficulty was never trained.<br />We are building the first cohort of tutors who know how to train that response.</p>
               <p className="text-lg md:text-xl text-[#E63946] font-bold mb-2">Territorial Tutoring is not looking for ordinary tutors.</p>
               <p className="text-lg md:text-xl text-[#1A1A1A] mb-2">We are building a small group of disciplined academic mentors who can train students to stay calm, think clearly, and execute when math becomes difficult.</p>
               <p className="text-lg md:text-xl text-[#1A1A1A] mb-2">This is the Founding Tutor Cohort.</p>
               <p className="text-lg md:text-xl text-[#1A1A1A] mb-2">If selected, you will not just teach math.</p>
               <p className="text-lg md:text-xl text-[#1A1A1A] mb-2">You will be trained in the doctrine, methods, and response conditioning standards that Territorial Tutoring is built on.</p>
-              <div className="flex justify-center my-6">
+              <div className="flex flex-col items-center mt-8 mb-4 px-2">
                 <Button
-                  className="text-lg font-bold px-8 py-4 rounded-full shadow-xl border-0 bg-[#E63946] hover:bg-[#C92B2B] transition-all"
+                  size="lg"
+                  className="w-full sm:w-auto px-6 py-4 rounded-full font-semibold mb-2 bg-[#E63946] hover:bg-[#C92B2B] transition-all border-0 shadow-xl"
                   style={{ color: "white" }}
                   onClick={() => navigate("/operational/signup?role=tutor")}
                 >
                   Apply for the Founding Tutor Cohort
                 </Button>
+                <p className="text-xs text-gray-600 mt-2 text-center">This submission registers interest only. No obligation. No activation without alignment.</p>
               </div>
             </div>
           </section>
