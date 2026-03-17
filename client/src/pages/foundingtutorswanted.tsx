@@ -12,17 +12,25 @@ function FoundingTutorsWanted() {
         <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#F3D2C1] w-full backdrop-blur-md" style={{ background: 'linear-gradient(135deg, #FFF5ED 0%, #F9E3D8 100%)', boxShadow: '0 2px 8px 0 rgba(233, 57, 70, 0.04)', backgroundColor: 'rgba(255,245,237,0.95)' }}>
           <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
             <div className="flex-shrink-0 ml-2 md:ml-0">
-              <TerritorialTutoringLogoSVG width={120} className="w-24 sm:w-40" />
+              <span className="block md:hidden">
+                <TerritorialTutoringLogoSVG width={150} className="w-32" />
+              </span>
+              <span className="hidden md:block">
+                <TerritorialTutoringLogoSVG width={200} className="w-48" />
+              </span>
             </div>
-            <span className="text-lg sm:text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A06] block md:hidden">FOUNDING TUTOR COHORT</span>
+            <span className="block md:hidden text-lg sm:text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A06]">
+              <span className="block leading-tight">Founding</span>
+              <span className="block leading-tight">Tutor Cohort</span>
+            </span>
             <span className="hidden md:block text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A06]">FOUNDING TUTOR COHORT</span>
             <Button
               className="text-xs sm:text-sm md:text-base font-semibold px-3 sm:px-6 py-2 sm:py-3 rounded-full border-0 shadow-lg hover:shadow-xl transition-all whitespace-nowrap"
               style={{ backgroundColor: "#E63946", color: "white" }}
               onClick={() => navigate("/operational/signup?role=tutor")}
             >
-              <span className="hidden sm:inline">Start</span>
-              <span className="sm:hidden">Start</span>
+              <span className="hidden md:inline">Apply for the Founding Cohort</span>
+              <span className="md:hidden">Start</span>
             </Button>
           </div>
         </header>
