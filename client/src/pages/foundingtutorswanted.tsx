@@ -10,34 +10,32 @@ function FoundingTutorsWanted() {
     <>
       <div className="min-h-screen bg-gradient-to-br from-[#FFF5ED] to-[#F9E3D8] flex flex-col">
         <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#F3D2C1] w-full backdrop-blur-md" style={{ background: 'linear-gradient(135deg, #FFF5ED 0%, #F9E3D8 100%)', boxShadow: '0 2px 8px 0 rgba(233, 57, 70, 0.04)', backgroundColor: 'rgba(255,245,237,0.95)' }}>
-          <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
-            <div className="flex items-center justify-between w-full">
-              <span className="block md:hidden">
-                <TerritorialTutoringLogoSVG width={150} className="w-32" />
-              </span>
-              <span className="hidden md:block">
-                <TerritorialTutoringLogoSVG width={200} className="w-48" />
-              </span>
-              <span className="block md:hidden text-lg sm:text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A06] text-center mx-auto" style={{marginTop: '2px', marginBottom: '2px', maxWidth: '140px'}}>
-                <span className="block leading-tight mb-1">Founding</span>
-                <span className="block leading-tight">Tutor Cohort</span>
-              </span>
-              <span className="hidden md:block text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A06]">FOUNDING TUTOR COHORT</span>
-              <Button
-                className="text-xs sm:text-sm md:text-base font-semibold px-3 sm:px-6 py-2 sm:py-3 rounded-full border-0 shadow-lg hover:shadow-xl transition-all whitespace-nowrap md:ml-4 ml-2 mt-1"
-                style={{ backgroundColor: "#E63946", color: "white" }}
-                onClick={() => navigate("/operational/signup?role=tutor")}
-              >
-                <span className="hidden md:inline">Apply for the Founding Cohort</span>
-                <span className="md:hidden">Start</span>
-              </Button>
-            </div>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
+            <span className="block md:hidden">
+              <TerritorialTutoringLogoSVG width={150} className="w-32" />
+            </span>
+            <span className="hidden md:block">
+              <TerritorialTutoringLogoSVG width={200} className="w-48" />
+            </span>
+            <span className="block md:hidden text-lg sm:text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A06] text-center mx-auto" style={{marginTop: '2px', marginBottom: '2px', maxWidth: '160px'}}>
+              <span className="block leading-tight mb-1">Founding</span>
+              <span className="block leading-tight">Tutor Cohort</span>
+            </span>
+            <span className="hidden md:block text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A1A]">FOUNDING TUTOR COHORT</span>
+            <Button
+              className="text-xs sm:text-sm md:text-base font-semibold px-4 sm:px-6 py-2 sm:py-3 rounded-full border-0 shadow-lg hover:shadow-xl transition-all whitespace-nowrap md:ml-4 ml-2 mt-1"
+              style={{ backgroundColor: "#E63946", color: "white" }}
+              onClick={() => navigate("/operational/signup?role=tutor")}
+            >
+              <span className="hidden md:inline">Apply for the Founding Cohort</span>
+              <span className="md:hidden">Start</span>
+            </Button>
           </div>
         </header>
         <div className="h-16 sm:h-20" />
-        <main className="w-full max-w-3xl mx-auto px-4 sm:px-6 md:px-12 py-8 sm:py-12 flex-1">
+        <main className="w-full max-w-3xl mx-auto px-4 sm:px-8 md:px-12 py-8 sm:py-12 flex-1">
           <section className="mb-8 sm:mb-10">
-            <div className="rounded-xl shadow-lg p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 border border-[#F3D2C1] bg-white/90">
+            <div className="rounded-xl shadow-lg p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 border border-[#F3D2C1] bg-white/90 max-w-md mx-auto">
               <p className="text-lg md:text-xl text-[#1A1A1A] mb-2 font-semibold">Most students do not fail because they are unintelligent.<br />They fail because their response to difficulty was never trained.<br />We are building the first cohort of tutors who know how to train that response.</p>
               <p className="text-lg md:text-xl text-[#E63946] font-bold mb-2">Territorial Tutoring is not looking for ordinary tutors.</p>
               <p className="text-lg md:text-xl text-[#1A1A1A] mb-2">We are building a small group of disciplined academic mentors who can train students to stay calm, think clearly, and execute when math becomes difficult.</p>
@@ -47,7 +45,7 @@ function FoundingTutorsWanted() {
               <div className="flex flex-col items-center mt-8 mb-4 px-2">
                 <Button
                   size="lg"
-                  className="w-full max-w-xs sm:w-auto px-6 py-4 sm:px-8 sm:py-4 rounded-full font-semibold mb-2 bg-[#E63946] hover:bg-[#C92B2B] transition-all border-0 shadow-xl text-base sm:text-lg mt-2"
+                  className="w-full max-w-xs mx-auto px-6 py-4 rounded-full font-semibold mb-2 bg-[#E63946] hover:bg-[#C92B2B] transition-all border-0 shadow-xl text-base sm:text-lg mt-4"
                   style={{ color: "white" }}
                   onClick={() => navigate("/operational/signup?role=tutor")}
                 >
