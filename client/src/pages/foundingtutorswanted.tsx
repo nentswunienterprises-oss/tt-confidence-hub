@@ -18,11 +18,9 @@ function FoundingTutorsWanted() {
               <span className="hidden md:block">
                 <TerritorialTutoringLogoSVG width={200} className="w-48" />
               </span>
-              <span className="block md:hidden text-lg sm:text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A06] text-left ml-4" style={{marginTop: '2px', marginBottom: '2px', maxWidth: '140px'}}>
+              <span className="block md:hidden text-lg sm:text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A06] text-center mx-auto" style={{marginTop: '2px', marginBottom: '2px', maxWidth: '140px'}}>
                 <span className="block leading-tight mb-1">Founding</span>
                 <span className="block leading-tight">Tutor Cohort</span>
-              </span>
-              {/* Increase margin-left for mobile to lock group closer to logo */}
               </span>
               <span className="hidden md:block text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A06]">FOUNDING TUTOR COHORT</span>
               <Button
