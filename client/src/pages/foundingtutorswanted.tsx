@@ -10,8 +10,8 @@ function FoundingTutorsWanted() {
     <>
       <div className="min-h-screen bg-gradient-to-br from-[#FFF5ED] to-[#F9E3D8] flex flex-col">
         <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#F3D2C1] w-full backdrop-blur-md" style={{ background: 'linear-gradient(135deg, #FFF5ED 0%, #F9E3D8 100%)', boxShadow: '0 2px 8px 0 rgba(233, 57, 70, 0.04)', backgroundColor: 'rgba(255,245,237,0.95)' }}>
-          <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
-            <div className="flex items-center justify-between w-full">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
+            <div className="flex items-center w-full gap-2">
               <span className="block md:hidden">
                 <TerritorialTutoringLogoSVG width={150} className="w-32" />
               </span>
@@ -24,7 +24,7 @@ function FoundingTutorsWanted() {
               </span>
               <span className="hidden md:block text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A06]">FOUNDING TUTOR COHORT</span>
               <Button
-                className="text-xs sm:text-sm md:text-base font-semibold px-3 sm:px-6 py-2 sm:py-3 rounded-full border-0 shadow-lg hover:shadow-xl transition-all whitespace-nowrap md:ml-4 ml-2 mt-1"
+                className="text-xs sm:text-sm md:text-base font-semibold px-4 sm:px-6 py-2 sm:py-3 rounded-full border-0 shadow-lg hover:shadow-xl transition-all whitespace-nowrap md:ml-4 ml-2 mt-1"
                 style={{ backgroundColor: "#E63946", color: "white" }}
                 onClick={() => navigate("/operational/signup?role=tutor")}
               >
@@ -35,16 +35,16 @@ function FoundingTutorsWanted() {
           </div>
         </header>
         <div className="h-16 sm:h-20" />
-        <main className="w-full max-w-3xl mx-auto px-4 sm:px-6 md:px-12 py-8 sm:py-12 flex-1">
+        <main className="w-full max-w-3xl mx-auto px-4 sm:px-8 md:px-12 py-8 sm:py-12 flex-1">
           <section className="mb-8 sm:mb-10">
-            <div className="rounded-xl shadow-lg p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 border border-[#F3D2C1] bg-white/90">
-              <p className="text-lg md:text-xl text-[#1A1A1A] mb-2 font-semibold">Most students do not fail because they are unintelligent.<br />They fail because their response to difficulty was never trained.<br />We are building the first cohort of tutors who know how to train that response.</p>
-              <p className="text-lg md:text-xl text-[#E63946] font-bold mb-2">Territorial Tutoring is not looking for ordinary tutors.</p>
-              <p className="text-lg md:text-xl text-[#1A1A1A] mb-2">We are building a small group of disciplined academic mentors who can train students to stay calm, think clearly, and execute when math becomes difficult.</p>
-              <p className="text-lg md:text-xl text-[#1A1A1A] mb-2">This is the Founding Tutor Cohort.</p>
-              <p className="text-lg md:text-xl text-[#1A1A1A] mb-2">If selected, you will not just teach math.</p>
-              <p className="text-lg md:text-xl text-[#1A1A1A] mb-2">You will be trained in the doctrine, methods, and response conditioning standards that Territorial Tutoring is built on.</p>
-              <div className="flex flex-col items-center mt-8 mb-4 px-2">
+            <div className="rounded-xl shadow-lg p-4 sm:p-6 md:p-8 mb-8 sm:mb-10 border border-[#F3D2C1] bg-white/90">
+              <p className="text-base sm:text-lg md:text-xl text-[#1A1A1A] mb-4 font-semibold">Most students do not fail because they are unintelligent.<br />They fail because their response to difficulty was never trained.<br />We are building the first cohort of tutors who know how to train that response.</p>
+              <p className="text-base sm:text-lg md:text-xl text-[#E63946] font-bold mb-4">Territorial Tutoring is not looking for ordinary tutors.</p>
+              <p className="text-base sm:text-lg md:text-xl text-[#1A1A1A] mb-4">We are building a small group of disciplined academic mentors who can train students to stay calm, think clearly, and execute when math becomes difficult.</p>
+              <p className="text-base sm:text-lg md:text-xl text-[#1A1A1A] mb-4">This is the Founding Tutor Cohort.</p>
+              <p className="text-base sm:text-lg md:text-xl text-[#1A1A1A] mb-4">If selected, you will not just teach math.</p>
+              <p className="text-base sm:text-lg md:text-xl text-[#1A1A1A] mb-4">You will be trained in the doctrine, methods, and response conditioning standards that Territorial Tutoring is built on.</p>
+              <div className="flex flex-col items-center mt-8 mb-6 px-2">
                 <Button
                   size="lg"
                   className="w-full max-w-xs sm:w-auto px-6 py-4 sm:px-8 sm:py-4 rounded-full font-semibold mb-2 bg-[#E63946] hover:bg-[#C92B2B] transition-all border-0 shadow-xl text-base sm:text-lg mt-2"
@@ -108,13 +108,11 @@ function FoundingTutorsWanted() {
 
           <section className="mb-10">
             <h2 className="text-2xl font-bold mb-4 text-[#1A1A1A]">What Makes TT Different</h2>
-            <ol className="list-decimal ml-4 mb-2 text-sm">
+            <ol className="list-decimal ml-6 mb-2">
               <li className="mb-2"><span className="font-semibold">This is not ordinary tutoring</span><br />You will not just explain methods.<br />You will be trained to observe and correct how students respond when math becomes difficult.<br />That is a different skill.</li>
               <li className="mb-2"><span className="font-semibold">This is doctrine-driven</span><br />Territorial Tutoring operates through clear standards.<br />Every tutor is trained in:<ul className="list-disc ml-6 mt-2"><li>calm communication</li><li>structured problem-solving</li><li>response-conditioning protocols</li><li>session discipline</li><li>student composure under pressure</li></ul>We do not improvise the core system.</li>
-                            <ul className="list-disc ml-4 mt-2 text-sm"><li>calm communication</li><li>structured problem-solving</li><li>response-conditioning protocols</li><li>session discipline</li><li>student composure under pressure</li></ul>We do not improvise the core system.</li>
               <li className="mb-2"><span className="font-semibold">This is selective</span><br />We are not building a large random tutor pool.<br />We are building a small founding group that sets the standard for everyone who enters later.<br />Selection matters.</li>
               <li className="mb-2"><span className="font-semibold">This builds real skill</span><br />If selected, you will develop:<ul className="list-disc ml-6 mt-2"><li>teaching clarity</li><li>mentorship discipline</li><li>leadership maturity</li><li>structured thinking</li><li>communication under pressure</li><li>income-generating tutoring skills</li></ul>This is not just work.<br />It is capability development.</li>
-                          <ul className="list-disc ml-4 mt-2 text-sm"><li>teaching clarity</li><li>mentorship discipline</li><li>leadership maturity</li><li>structured thinking</li><li>communication under pressure</li><li>income-generating tutoring skills</li></ul>This is not just work.<br />It is capability development.</li>
             </ol>
           </section>
 
