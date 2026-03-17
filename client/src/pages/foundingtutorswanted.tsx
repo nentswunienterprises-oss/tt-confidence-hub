@@ -108,11 +108,13 @@ function FoundingTutorsWanted() {
 
           <section className="mb-10">
             <h2 className="text-2xl font-bold mb-4 text-[#1A1A1A]">What Makes TT Different</h2>
-            <ol className="list-decimal ml-6 mb-2">
+            <ol className="list-decimal ml-4 mb-2 text-sm">
               <li className="mb-2"><span className="font-semibold">This is not ordinary tutoring</span><br />You will not just explain methods.<br />You will be trained to observe and correct how students respond when math becomes difficult.<br />That is a different skill.</li>
               <li className="mb-2"><span className="font-semibold">This is doctrine-driven</span><br />Territorial Tutoring operates through clear standards.<br />Every tutor is trained in:<ul className="list-disc ml-6 mt-2"><li>calm communication</li><li>structured problem-solving</li><li>response-conditioning protocols</li><li>session discipline</li><li>student composure under pressure</li></ul>We do not improvise the core system.</li>
+                            <ul className="list-disc ml-4 mt-2 text-sm"><li>calm communication</li><li>structured problem-solving</li><li>response-conditioning protocols</li><li>session discipline</li><li>student composure under pressure</li></ul>We do not improvise the core system.</li>
               <li className="mb-2"><span className="font-semibold">This is selective</span><br />We are not building a large random tutor pool.<br />We are building a small founding group that sets the standard for everyone who enters later.<br />Selection matters.</li>
               <li className="mb-2"><span className="font-semibold">This builds real skill</span><br />If selected, you will develop:<ul className="list-disc ml-6 mt-2"><li>teaching clarity</li><li>mentorship discipline</li><li>leadership maturity</li><li>structured thinking</li><li>communication under pressure</li><li>income-generating tutoring skills</li></ul>This is not just work.<br />It is capability development.</li>
+                          <ul className="list-disc ml-4 mt-2 text-sm"><li>teaching clarity</li><li>mentorship discipline</li><li>leadership maturity</li><li>structured thinking</li><li>communication under pressure</li><li>income-generating tutoring skills</li></ul>This is not just work.<br />It is capability development.</li>
             </ol>
           </section>
 

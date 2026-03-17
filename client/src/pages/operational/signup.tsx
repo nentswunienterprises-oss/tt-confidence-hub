@@ -70,7 +70,7 @@ export default function OperationalSignup() {
                   className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
                   style={{ backgroundColor: "#FFF0F0" }}
                 >
-                  <Brain className="w-8 h-8" style={{ color: "#E63946" }} />
+                  {/* Icon removed for tutor */}
                 </div>
                 <h3 className="text-2xl font-bold mb-3" style={{ color: "#1A1A1A" }}>Tutor</h3>
                 <p className="mb-6" style={{ color: "#5A5A5A" }}>
@@ -170,7 +170,7 @@ export default function OperationalSignup() {
               style={{ backgroundColor: "#FFF0F0" }}
             >
               {selectedRole === "tutor" ? (
-                <Brain className="w-8 h-8" style={{ color: "#E63946" }} />
+                null
               ) : (
                 <Crown className="w-8 h-8" style={{ color: "#E63946" }} />
               )}
