@@ -47,7 +47,7 @@ function FoundingTutorsWanted() {
               <div className="flex flex-col items-center mt-8 mb-4 px-2">
                 <Button
                   size="lg"
-                  className="w-full sm:w-auto px-6 py-4 rounded-full font-semibold mb-2 bg-[#E63946] hover:bg-[#C92B2B] transition-all border-0 shadow-xl"
+                  className="w-full max-w-xs sm:w-auto px-6 py-4 sm:px-8 sm:py-4 rounded-full font-semibold mb-2 bg-[#E63946] hover:bg-[#C92B2B] transition-all border-0 shadow-xl text-base sm:text-lg mt-2"
                   style={{ color: "white" }}
                   onClick={() => navigate("/operational/signup?role=tutor")}
                 >
