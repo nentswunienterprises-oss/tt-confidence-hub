@@ -11,7 +11,9 @@ function FoundingTutorsWanted() {
       <div className="min-h-screen bg-gradient-to-br from-[#FFF5ED] to-[#F9E3D8]">
         <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#F3D2C1]" style={{ background: 'linear-gradient(135deg, #FFF5ED 0%, #F9E3D8 100%)', boxShadow: '0 2px 8px 0 rgba(233, 57, 70, 0.04)' }}>
           <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
-            <TerritorialTutoringLogoSVG width={190} />
+            <div className="flex-shrink-0" style={{ maxWidth: 190 }}>
+              <TerritorialTutoringLogoSVG width={190} />
+            </div>
             <div className="hidden md:block">
               <span className="text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A06]">FOUNDING TUTOR COHORT</span>
             </div>
