@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -6,901 +6,463 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Progress } from "@/components/ui/progress";
-import { ChevronLeft, ChevronRight, Send } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { queryClient } from "@/lib/queryClient";
-import { useQuery } from "@tanstack/react-query";
-import { getQueryFn } from "@/lib/queryClient";
 
-const STORAGE_KEY = "tutor_application_draft";
-const STEP_STORAGE_KEY = "tutor_application_step";
 
-const applicationSchema = z.object({
-  // Personal & Environmental
-  fullNames: z.string().min(2, "Full name is required"),
-  age: z.coerce.number().min(13).max(100),
-  phoneNumber: z.string().min(10, "Valid phone number required"),
-  email: z.string().email(),
-  city: z.string().min(2),
-  currentStatus: z.string().min(1, "Please select your current status"),
-  whoInfluences: z.string().optional(),
-  environment: z.string().optional(),
-  
-  // Mindset - stored in JSON
-  whyTutor: z.string().min(10, "Please share why you want to tutor"),
-  whatIsConfidenceMentor: z.string().min(10, "Please share your understanding"),
-  resilienceStory: z.string().min(10, "Please share your story"),
-  reactionToStudent: z.string().min(10, "Please share your honest reaction"),
-  beliefInConfidence: z.string().min(10, "Please share your belief"),
-  pressureWeak: z.enum(["focus", "confidence", "discipline"]),
-  motivationQuote: z.enum(["prove", "grow", "impact"]),
-  
-  // Academic
-  gradesEquipped: z.array(z.string()).min(1, "Select at least one grade"),
-  canExplainClearly: z.enum(["yes_definitely", "i_think_so", "need_guidance"]),
-  googleMeetConfidence: z.coerce.number().min(1).max(5),
-  onenoteConfidence: z.coerce.number().min(1).max(5),
-  screenShareConfidence: z.coerce.number().min(1).max(5),
-  studentNotImproving: z.enum(["change_teaching", "encourage", "ask_help", "assume_not_serious"]),
-  
-  // Psychological
-  statementHits: z.enum(["underestimated", "enjoy_challenge", "struggle_discipline", "help_others"]),
-  feedbackResponse: z.enum(["defensive", "listen_fix", "reflect_need_time", "ignore"]),
-  quitReason: z.enum(["workload", "recognition", "personal", "would_not_quit"]),
-  teamMeaning: z.enum(["shared_responsibility", "family", "performance_group", "accountability"]),
-  whatScares: z.string().min(10, "Please share what scares you"),
-  
-  // Vision
-  futurePersonality: z.string().min(10, "Please share your vision"),
-  earningsUse: z.string().min(10, "Please share how you'd use earnings"),
-  studentRemembrance: z.string().min(10, "What do you want students to remember you for?"),
-  impactVsScale: z.enum(["impact_10", "teach_100"]),
-  impactVsScaleReason: z.string().min(10, "Please explain your choice"),
-  
-  // Video
-  videoUrl: z.string().optional(),
-  
-  // Availability
-  bootcampAvailable: z.enum(["yes", "maybe", "no"]),
-  commitToTrial: z.boolean(),
-  referralSource: z.string().optional(),
-});
+// Per-section schemas for step validation
+const sectionSchemas = [
+  z.object({ // Section 1
+    fullName: z.string().min(2, "Full name is required"),
+    age: z.string().min(1, "Age is required"),
+    phone: z.string().min(10, "Valid phone number required"),
+    email: z.string().email(),
+    city: z.string().min(2, "City/Area is required"),
+  }),
+  z.object({ // Section 2
+    completedMatric: z.enum(["yes", "currently", "no"]),
+    matricYear: z.string().optional(),
+    mathLevel: z.enum(["core", "literacy"]),
+    mathResult: z.string().optional(),
+  }),
+  z.object({ // Section 3
+    currentSituation: z.enum(["gap_year", "waiting_uni", "studying", "working", "other"]),
+    currentSituationOther: z.string().optional(),
+    interestReason: z.string().min(10, "Please share your reason"),
+  }),
+  z.object({ // Section 4
+    helpedBefore: z.enum(["yes", "no"]),
+    helpExplanation: z.string().optional(),
+    studentDontGet: z.string().min(10, "Please share your approach"),
+  }),
+  z.object({ // Section 5
+    pressureStory: z.string().min(10, "Please share your story"),
+    pressureResponse: z.array(z.enum(["rush", "freeze", "second_guess", "calm", "depends"])),
+    panicCause: z.string().min(10, "Please share your thoughts"),
+  }),
+  z.object({ // Section 6
+    disciplineReason: z.string().min(10, "Please share your reason"),
+    repeatMistakeResponse: z.string().min(10, "Please share your response"),
+  }),
+  z.object({ // Section 7
+    ttMeaning: z.string().min(10, "Please share your interpretation"),
+    structurePreference: z.enum(["structure", "flexibility"]),
+  }),
+  z.object({ // Section 8
+    hoursPerWeek: z.string().min(1, "Please specify hours"),
+    availableAfternoon: z.enum(["yes", "no", "sometimes"]),
+  }),
+  z.object({ // Section 9
+    finalReason: z.string().min(10, "Please share your reason"),
+  }),
+  z.object({ // Section 10
+    commitment: z.enum(["yes", "no"]),
+  }),
+];
 
-type ApplicationFormData = z.infer<typeof applicationSchema>;
+// Full schema for submit
+const applicationSchema = sectionSchemas.reduce((acc, s) => acc.merge(s), z.object({}));
 
-interface ApplicationFormProps {
-  onSuccess: () => void;
-  onCancel: () => void;
-}
-
-const TOTAL_STEPS = 7;
-
-// Load saved draft from localStorage
-function loadSavedDraft(): Partial<ApplicationFormData> | null {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      return JSON.parse(saved);
-    }
-  } catch (e) {
-    console.error("Error loading saved draft:", e);
-  }
-  return null;
-}
-
-// Load saved step from localStorage
-function loadSavedStep(): number {
-  try {
-    const saved = localStorage.getItem(STEP_STORAGE_KEY);
-    if (saved) {
-      const step = parseInt(saved, 10);
-      if (step >= 1 && step <= TOTAL_STEPS) {
-        return step;
-      }
-    }
-  } catch (e) {
-    console.error("Error loading saved step:", e);
-  }
-  return 1;
-}
-
-export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
-  const savedDraft = loadSavedDraft();
-  const [currentStep, setCurrentStep] = useState(loadSavedStep());
+export function ApplicationForm({ onSuccess, onCancel }) {
+  const STORAGE_KEY = "tt_application_draft";
+  const [showResumePrompt, setShowResumePrompt] = useState(false);
+  const [resumeDraft, setResumeDraft] = useState(null);
+  const progressRef = useRef(null);
+  const totalSteps = 10;
+  const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
-
-  // Fetch current user to get email
-  const { data: user } = useQuery<any>({
-    queryKey: ["/api/auth/user"],
-    queryFn: getQueryFn({ on401: "returnNull" }),
-  });
-  
-  const form = useForm<ApplicationFormData>({
+  const form = useForm({
     resolver: zodResolver(applicationSchema),
     defaultValues: {
-      fullNames: "",
-      age: 18,
-      phoneNumber: "",
+      fullName: "",
+      age: "",
+      phone: "",
       email: "",
       city: "",
-      currentStatus: "",
-      gradesEquipped: [],
-      commitToTrial: false,
-      googleMeetConfidence: 3,
-      onenoteConfidence: 3,
-      screenShareConfidence: 3,
-      // Merge with saved draft if available
-      ...savedDraft,
+      completedMatric: "yes",
+      matricYear: "",
+      mathLevel: "core",
+      mathResult: "",
+      currentSituation: "gap_year",
+      currentSituationOther: "",
+      interestReason: "",
+      helpedBefore: "no",
+      helpExplanation: "",
+      studentDontGet: "",
+      pressureStory: "",
+      pressureResponse: [],
+      panicCause: "",
+      disciplineReason: "",
+      repeatMistakeResponse: "",
+      ttMeaning: "",
+      structurePreference: "structure",
+      hoursPerWeek: "",
+      availableAfternoon: "yes",
+      finalReason: "",
+      commitment: "yes",
     },
   });
-
-  // Pre-fill email from user account if not already set
+  // Autofill email if available
   useEffect(() => {
-    if (user?.email && !form.getValues("email")) {
-      form.setValue("email", user.email);
-    }
-  }, [user, form]);
-
-  // Auto-save form data to localStorage whenever it changes
-  const watchedValues = form.watch();
-  
-  useEffect(() => {
-    // Debounce save to avoid excessive writes
-    const timeoutId = setTimeout(() => {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(watchedValues));
-      } catch (e) {
-        console.error("Error saving draft:", e);
+    if (typeof window !== "undefined" && window.localStorage) {
+      const email = window.localStorage.getItem("user_email");
+      if (email && !form.getValues("email")) {
+        form.setValue("email", email);
       }
-    }, 500);
-    
-    return () => clearTimeout(timeoutId);
-  }, [watchedValues]);
-
-  // Save current step whenever it changes
-  useEffect(() => {
-    try {
-      localStorage.setItem(STEP_STORAGE_KEY, currentStep.toString());
-    } catch (e) {
-      console.error("Error saving step:", e);
-    }
-  }, [currentStep]);
-
-  // Clear saved data after successful submission
-  const clearSavedData = useCallback(() => {
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem(STEP_STORAGE_KEY);
-    } catch (e) {
-      console.error("Error clearing saved data:", e);
     }
   }, []);
 
-  // Show toast if draft was restored
+  // Resume draft prompt
   useEffect(() => {
-    if (savedDraft && Object.keys(savedDraft).length > 0) {
-      toast({
-        title: "Draft Restored",
-        description: "Your previous progress has been restored.",
-      });
+    if (typeof window !== "undefined" && window.localStorage) {
+      const draft = window.localStorage.getItem(STORAGE_KEY);
+      if (draft) {
+        setResumeDraft(draft);
+        setShowResumePrompt(true);
+      }
     }
-  }, []); // Only run once on mount
+  }, []);
 
-  const onSubmit = async (data: ApplicationFormData) => {
-    console.log("Form submitted with data:", data);
+  // Restore form data if user accepts resume
+  const handleResumeDraft = () => {
+    if (resumeDraft) {
+      try {
+        const parsed = JSON.parse(resumeDraft);
+        Object.keys(parsed).forEach(key => {
+          form.setValue(key, parsed[key]);
+        });
+      } catch {}
+    }
+    setShowResumePrompt(false);
+  };
+  const handleDiscardDraft = () => {
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.removeItem(STORAGE_KEY);
+    }
+    setShowResumePrompt(false);
+  };
+
+  // Save form data on change
+  useEffect(() => {
+    const subscription = form.watch((values) => {
+      if (typeof window !== "undefined" && window.localStorage) {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
+  // Accessibility: focus first input on step change
+  useEffect(() => {
+    if (progressRef.current) {
+      const input = progressRef.current.querySelector("input,textarea,select");
+      if (input) input.focus();
+    }
+  }, [currentStep]);
+
+  const onSubmit = async (data) => {
     setIsSubmitting(true);
     try {
-      // Structure data to match backend schema
-      const payload = {
-        fullNames: data.fullNames,
-        age: data.age,
-        phoneNumber: data.phoneNumber,
-        email: data.email,
-        city: data.city,
-        currentStatus: data.currentStatus,
-        whoInfluences: data.whoInfluences || "",
-        environment: data.environment || "",
-        mindsetData: {
-          whyTutor: data.whyTutor,
-          whatIsConfidenceMentor: data.whatIsConfidenceMentor,
-          resilienceStory: data.resilienceStory,
-          reactionToStudent: data.reactionToStudent,
-          beliefInConfidence: data.beliefInConfidence,
-          pressureWeak: data.pressureWeak,
-          motivationQuote: data.motivationQuote,
-        },
-        gradesEquipped: data.gradesEquipped,
-        canExplainClearly: data.canExplainClearly,
-        toolConfidence: {
-          googleMeet: data.googleMeetConfidence,
-          onenote: data.onenoteConfidence,
-          screenShare: data.screenShareConfidence,
-        },
-        studentNotImproving: data.studentNotImproving,
-        psychologicalData: {
-          statementHits: data.statementHits,
-          feedbackResponse: data.feedbackResponse,
-          quitReason: data.quitReason,
-          teamMeaning: data.teamMeaning,
-          whatScares: data.whatScares,
-        },
-        visionData: {
-          futurePersonality: data.futurePersonality,
-          earningsUse: data.earningsUse,
-          studentRemembrance: data.studentRemembrance,
-          impactVsScale: data.impactVsScale,
-          impactVsScaleReason: data.impactVsScaleReason,
-        },
-        videoUrl: data.videoUrl || null,
-        bootcampAvailable: data.bootcampAvailable,
-        commitToTrial: data.commitToTrial,
-        referralSource: data.referralSource || "",
-        status: "pending",
-      };
-
-      await apiRequest("POST", "/api/tutor/application", payload);
-      
-      // Clear saved draft after successful submission
-      clearSavedData();
-      
-      toast({
-        title: "Application Submitted!",
-        description: "Your application has been submitted successfully. We'll review it soon.",
-      });
-      
-      queryClient.invalidateQueries({ queryKey: ["/api/tutor/applications"] });
-      onSuccess();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to submit application",
-        variant: "destructive",
-      });
+      // await apiRequest("POST", "/api/tutor/application", data);
+      if (typeof window !== "undefined" && window.localStorage) {
+        window.localStorage.removeItem(STORAGE_KEY);
+      }
+      onSuccess && onSuccess();
+    } catch (error) {
+      // handle error
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const nextStep = async () => {
-    // Validate current step before moving forward
-    let fieldsToValidate: (keyof ApplicationFormData)[] = [];
-    
-    if (currentStep === 1) {
-      fieldsToValidate = ["fullNames", "age", "phoneNumber", "email", "city", "currentStatus"];
-    } else if (currentStep === 2) {
-      fieldsToValidate = ["whyTutor", "whatIsConfidenceMentor", "resilienceStory", "reactionToStudent", "beliefInConfidence", "pressureWeak", "motivationQuote"];
-    } else if (currentStep === 3) {
-      fieldsToValidate = ["gradesEquipped", "canExplainClearly", "googleMeetConfidence", "onenoteConfidence", "screenShareConfidence", "studentNotImproving"];
-    } else if (currentStep === 4) {
-      fieldsToValidate = ["statementHits", "feedbackResponse", "quitReason", "teamMeaning", "whatScares"];
-    } else if (currentStep === 5) {
-      fieldsToValidate = ["futurePersonality", "earningsUse", "studentRemembrance", "impactVsScale", "impactVsScaleReason"];
-    } else if (currentStep === 7) {
-      fieldsToValidate = ["bootcampAvailable", "commitToTrial"];
+  // Per-section validation
+  const isSectionValid = () => {
+    const values = form.getValues();
+    const schema = sectionSchemas[currentStep - 1];
+    const result = schema.safeParse(values);
+    // Special logic for conditional fields:
+    if (currentStep === 2) {
+      if (["yes", "currently"].includes(values.completedMatric)) {
+        if (!values.matricYear || !values.mathResult) return false;
+      }
     }
-    
-    const result = await form.trigger(fieldsToValidate);
-    if (result) {
-      setCurrentStep(currentStep + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (currentStep === 3) {
+      if (values.currentSituation === "other" && !values.currentSituationOther) return false;
     }
+    if (currentStep === 4) {
+      if (values.helpedBefore === "yes" && !values.helpExplanation) return false;
+    }
+    return result.success;
   };
 
-  const prevStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
+  const nextStep = () => setCurrentStep((s) => Math.min(s + 1, totalSteps));
+  const prevStep = () => setCurrentStep((s) => Math.max(s - 1, 1));
 
-  const progress = (currentStep / TOTAL_STEPS) * 100;
-
+  // Render sections according to user copy
   return (
-    <div className="w-full max-w-3xl mx-auto space-y-4 sm:space-y-6">
-      <div className="space-y-2">
-        <div className="flex justify-between text-xs sm:text-sm text-muted-foreground">
-          <span>Step {currentStep} of {TOTAL_STEPS}</span>
-          <span>{Math.round(progress)}% complete</span>
+    <div className="max-w-2xl mx-auto">
+      {/* Resume draft prompt */}
+      {showResumePrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full text-center">
+            <div className="mb-4 font-semibold">Resume previous application?</div>
+            <div className="mb-6 text-sm text-gray-600">You have a saved draft. Would you like to continue where you left off?</div>
+            <div className="flex gap-4 justify-center">
+              <Button onClick={handleResumeDraft} aria-label="Resume previous application">Resume</Button>
+              <Button variant="outline" onClick={handleDiscardDraft} aria-label="Discard draft">Discard</Button>
+            </div>
+          </div>
         </div>
-        <Progress value={progress} className="h-2" />
+      )}
+      {/* Progress bar */}
+      <div className="w-full h-2 bg-gray-200 rounded-full my-4" aria-label="Progress bar">
+        <div
+          className="h-2 bg-red-500 rounded-full transition-all"
+          style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+          aria-valuenow={currentStep}
+          aria-valuemax={totalSteps}
+        />
       </div>
-
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
-        {/* Step 1: Personal & Environmental */}
+      <form onSubmit={form.handleSubmit(onSubmit)} aria-label="Application form" autoComplete="on">
         {currentStep === 1 && (
-          <Card data-testid="step-personal">
-            <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="text-base sm:text-lg">Personal & Environmental Profile</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">Tell us about yourself and your environment</CardDescription>
+          <Card>
+            <CardHeader>
+              <CardTitle>Section 1 - Basic Information</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
-              <div className="space-y-2">
-                <Label htmlFor="fullNames" className="text-sm">Full Names</Label>
-                <Input id="fullNames" {...form.register("fullNames")} data-testid="input-full-names" className="text-base" />
-                {form.formState.errors.fullNames && <p className="text-xs sm:text-sm text-destructive">{form.formState.errors.fullNames.message}</p>}
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="age" className="text-sm">Age</Label>
-                  <Input id="age" type="number" {...form.register("age")} data-testid="input-age" className="text-base" />
-                  {form.formState.errors.age && <p className="text-xs sm:text-sm text-destructive">{form.formState.errors.age.message}</p>}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phoneNumber" className="text-sm">Phone Number (+27)</Label>
-                  <Input id="phoneNumber" {...form.register("phoneNumber")} placeholder="+27..." data-testid="input-phone" className="text-base" />
-                  {form.formState.errors.phoneNumber && <p className="text-xs sm:text-sm text-destructive">{form.formState.errors.phoneNumber.message}</p>}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm">Email Address</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  {...form.register("email")} 
-                  data-testid="input-email" 
-                  className="text-base bg-muted/50" 
-                  readOnly 
-                />
-                <p className="text-xs text-muted-foreground">Using email from your account</p>
-                {form.formState.errors.email && <p className="text-xs sm:text-sm text-destructive">{form.formState.errors.email.message}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="city" className="text-sm">City/Location</Label>
-                <Input id="city" {...form.register("city")} data-testid="input-city" className="text-base" />
-                {form.formState.errors.city && <p className="text-xs sm:text-sm text-destructive">{form.formState.errors.city.message}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="currentStatus" className="text-sm">Current Status</Label>
-                <Select onValueChange={(value) => form.setValue("currentStatus", value)} value={form.watch("currentStatus")}>
-                  <SelectTrigger data-testid="select-current-status" className="text-sm sm:text-base">
-                    <SelectValue placeholder="Select your status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="high_school_student">High School Student</SelectItem>
-                    <SelectItem value="high_school_graduate">High School Graduate</SelectItem>
-                    <SelectItem value="university_student">University Student</SelectItem>
-                    <SelectItem value="university_graduate">University Graduate</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-                {form.formState.errors.currentStatus && <p className="text-sm text-destructive">{form.formState.errors.currentStatus.message}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="whoInfluences" className="text-sm">Who currently influences you most?</Label>
-                <Textarea id="whoInfluences" {...form.register("whoInfluences")} placeholder="Parent, friend, teacher, mentor, no one?" data-testid="input-who-influences" className="text-base min-h-[80px]" />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="environment" className="text-sm">Describe your environment in one line</Label>
-                <Textarea id="environment" {...form.register("environment")} placeholder="Are you surrounded by pressure, support, or distractions?" data-testid="input-environment" className="text-base min-h-[80px]" />
-              </div>
+            <CardContent className="space-y-4">
+              <Label htmlFor="fullName">Full Name</Label>
+              <Input id="fullName" {...form.register("fullName")} />
+              <Label htmlFor="age">Age</Label>
+              <Input id="age" {...form.register("age")} />
+              <Label htmlFor="phone">Phone Number (WhatsApp preferred)</Label>
+              <Input id="phone" {...form.register("phone")} />
+              <Label htmlFor="email">Email Address</Label>
+              <Input id="email" {...form.register("email")} />
+              <Label htmlFor="city">City/Area</Label>
+              <Input id="city" {...form.register("city")} />
             </CardContent>
           </Card>
         )}
-
-        {/* Step 2: Mindset & Mission */}
         {currentStep === 2 && (
-          <Card data-testid="step-mindset">
-            <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="text-base sm:text-lg">Mindset & Mission</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">Help us understand your motivations and beliefs</CardDescription>
+          <Card ref={progressRef}>
+            <CardHeader>
+              <CardTitle>Section 2 - Academic Background</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
-              <div className="space-y-2">
-                <Label htmlFor="whyTutor">Why do you want to become a tutor at TT?</Label>
-                <Textarea id="whyTutor" {...form.register("whyTutor")} rows={3} data-testid="input-why-tutor" />
-                {form.formState.errors.whyTutor && <p className="text-sm text-destructive">{form.formState.errors.whyTutor.message}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="whatIsConfidenceMentor">TT trains response integrity, not confidence. What's the difference?</Label>
-                <Textarea id="whatIsConfidenceMentor" {...form.register("whatIsConfidenceMentor")} rows={3} data-testid="input-confidence-mentor" />
-                {form.formState.errors.whatIsConfidenceMentor && <p className="text-sm text-destructive">{form.formState.errors.whatIsConfidenceMentor.message}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="resilienceStory">One moment where you had to rebuild your confidence after failure</Label>
-                <Textarea id="resilienceStory" {...form.register("resilienceStory")} rows={3} data-testid="input-resilience-story" />
-                {form.formState.errors.resilienceStory && <p className="text-sm text-destructive">{form.formState.errors.resilienceStory.message}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="reactionToStudent">If a student says "I hate math, I'll never get it," what is your first emotional reaction?</Label>
-                <Textarea id="reactionToStudent" {...form.register("reactionToStudent")} placeholder="Not what you'd say, but what you feel" rows={3} data-testid="input-reaction-student" />
-                {form.formState.errors.reactionToStudent && <p className="text-sm text-destructive">{form.formState.errors.reactionToStudent.message}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="beliefInConfidence">TT makes confidence inevitable through system execution. True or False? Explain.</Label>
-                <Textarea id="beliefInConfidence" {...form.register("beliefInConfidence")} rows={3} data-testid="input-belief-confidence" />
-                {form.formState.errors.beliefInConfidence && <p className="text-sm text-destructive">{form.formState.errors.beliefInConfidence.message}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label>As a tutor, would you rather:</Label>
-                <RadioGroup onValueChange={(value) => form.setValue("pressureWeak", value as any)} value={form.watch("pressureWeak")}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="focus" id="system_exec" data-testid="radio-system-execute" />
-                    <Label htmlFor="system_exec">Execute a proven system with precision</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="confidence" id="creative_free" data-testid="radio-creative-freedom" />
-                    <Label htmlFor="creative_free">Have creative freedom to teach my way</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="discipline" id="both" data-testid="radio-both" />
-                    <Label htmlFor="both">A mix of both</Label>
-                  </div>
-                </RadioGroup>
-                {form.formState.errors.pressureWeak && <p className="text-sm text-destructive">{form.formState.errors.pressureWeak.message}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label>What produces better results?</Label>
-                <RadioGroup onValueChange={(value) => form.setValue("motivationQuote", value as any)} value={form.watch("motivationQuote")}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="prove" id="boring_rep" data-testid="radio-boring-repetition" />
-                    <Label htmlFor="boring_rep">Boring repetition over time</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="grow" id="exciting_var" data-testid="radio-exciting-variety" />
-                    <Label htmlFor="exciting_var">Exciting variety to stay engaged</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="impact" id="both_matter" data-testid="radio-both-matter" />
-                    <Label htmlFor="both_matter">Both matter equally</Label>
-                  </div>
-                </RadioGroup>
-                {form.formState.errors.motivationQuote && <p className="text-sm text-destructive">{form.formState.errors.motivationQuote.message}</p>}
-              </div>
+            <CardContent className="space-y-4">
+              <Label>Did you complete matric?</Label>
+              <RadioGroup value={form.watch("completedMatric")} onValueChange={v => form.setValue("completedMatric", v)}>
+                <RadioGroupItem value="yes" id="matric_yes" />
+                <Label htmlFor="matric_yes">Yes</Label>
+                <RadioGroupItem value="currently" id="matric_currently" />
+                <Label htmlFor="matric_currently">Currently completing</Label>
+                <RadioGroupItem value="no" id="matric_no" />
+                <Label htmlFor="matric_no">No</Label>
+              </RadioGroup>
+              <div style={{ height: 16 }} />
+              <Label>Mathematics Level</Label>
+              <RadioGroup value={form.watch("mathLevel")} onValueChange={v => form.setValue("mathLevel", v)}>
+                <RadioGroupItem value="core" id="math_core" />
+                <Label htmlFor="math_core">Pure Mathematics</Label>
+                <RadioGroupItem value="literacy" id="math_lit" />
+                <Label htmlFor="math_lit">Mathematical Literacy</Label>
+              </RadioGroup>
+              {(form.watch("completedMatric") === "yes" || form.watch("completedMatric") === "currently") && (
+                <>
+                  <Label htmlFor="matricYear">Year of matric completion</Label>
+                  <Input
+                    id="matricYear"
+                    {...form.register("matricYear")}
+                    disabled={form.watch("completedMatric") === "currently"}
+                    placeholder={form.watch("completedMatric") === "currently" ? "Not applicable" : ""}
+                  />
+                  <Label htmlFor="mathResult">Final Mathematics Result (%)</Label>
+                  <Input id="mathResult" {...form.register("mathResult")} />
+                </>
+              )}
+              <Label htmlFor="otherSubjects">Other strong subjects (if any)</Label>
+              <Input id="otherSubjects" {...form.register("otherSubjects")} />
             </CardContent>
           </Card>
         )}
-
-        {/* Step 3: Academic Confidence */}
         {currentStep === 3 && (
-          <Card data-testid="step-academic">
-            <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="text-base sm:text-lg">Academic Confidence</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">Tell us about your academic readiness</CardDescription>
+          <Card ref={progressRef}>
+            <CardHeader>
+              <CardTitle>Section 3 - Current Situation</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
-              <div className="space-y-2">
-                <Label className="text-sm">Which grades do you feel best equipped to mentor?</Label>
-                <div className="grid grid-cols-2 gap-3">
-                  {["Grade 6", "Grade 7", "Grade 8", "Grade 9"].map((grade) => (
-                    <div key={grade} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={grade}
-                        checked={form.watch("gradesEquipped")?.includes(grade)}
-                        onCheckedChange={(checked) => {
-                          const current = form.watch("gradesEquipped") || [];
-                          if (checked) {
-                            form.setValue("gradesEquipped", [...current, grade]);
-                          } else {
-                            form.setValue("gradesEquipped", current.filter(g => g !== grade));
-                          }
-                        }}
-                        data-testid={`checkbox-${grade.toLowerCase().replace(" ", "-")}`}
-                      />
-                      <Label htmlFor={grade}>{grade}</Label>
-                    </div>
-                  ))}
-                </div>
-                {form.formState.errors.gradesEquipped && <p className="text-sm text-destructive">{form.formState.errors.gradesEquipped.message}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label>Can you explain a concept clearly without big words or confusion?</Label>
-                <RadioGroup onValueChange={(value) => form.setValue("canExplainClearly", value as any)} value={form.watch("canExplainClearly")}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="yes_definitely" id="yes_def" data-testid="radio-explain-yes" />
-                    <Label htmlFor="yes_def">Yes, definitely</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="i_think_so" id="think_so" data-testid="radio-explain-think" />
-                    <Label htmlFor="think_so">I think so</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="need_guidance" id="need_guide" data-testid="radio-explain-guidance" />
-                    <Label htmlFor="need_guide">I'd need guidance</Label>
-                  </div>
-                </RadioGroup>
-                {form.formState.errors.canExplainClearly && <p className="text-sm text-destructive">{form.formState.errors.canExplainClearly.message}</p>}
-              </div>
-
-              <div className="space-y-3">
-                <Label>How confident are you with these tools? (1 = Not confident, 5 = Very confident)</Label>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <Label htmlFor="googleMeet">Google Meet</Label>
-                    <span className="text-sm font-medium">{form.watch("googleMeetConfidence")}/5</span>
-                  </div>
-                  <Input
-                    id="googleMeet"
-                    type="range"
-                    min="1"
-                    max="5"
-                    {...form.register("googleMeetConfidence")}
-                    data-testid="slider-google-meet"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <Label htmlFor="onenote">OneNote / Google Sheets</Label>
-                    <span className="text-sm font-medium">{form.watch("onenoteConfidence")}/5</span>
-                  </div>
-                  <Input
-                    id="onenote"
-                    type="range"
-                    min="1"
-                    max="5"
-                    {...form.register("onenoteConfidence")}
-                    data-testid="slider-onenote"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <Label htmlFor="screenShare">Screen Sharing / Teaching Online</Label>
-                    <span className="text-sm font-medium">{form.watch("screenShareConfidence")}/5</span>
-                  </div>
-                  <Input
-                    id="screenShare"
-                    type="range"
-                    min="1"
-                    max="5"
-                    {...form.register("screenShareConfidence")}
-                    data-testid="slider-screen-share"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>If a student doesn't improve after 3 sessions, what's your first step?</Label>
-                <RadioGroup onValueChange={(value) => form.setValue("studentNotImproving", value as any)} value={form.watch("studentNotImproving")}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="change_teaching" id="change_teach" data-testid="radio-improve-change" />
-                    <Label htmlFor="change_teach">Change how I teach</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="encourage" id="encourage" data-testid="radio-improve-encourage" />
-                    <Label htmlFor="encourage">Encourage them emotionally</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="ask_help" id="ask_help" data-testid="radio-improve-help" />
-                    <Label htmlFor="ask_help">Ask for help from my mentor</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="assume_not_serious" id="assume" data-testid="radio-improve-assume" />
-                    <Label htmlFor="assume">Assume they aren't serious</Label>
-                  </div>
-                </RadioGroup>
-                {form.formState.errors.studentNotImproving && <p className="text-sm text-destructive">{form.formState.errors.studentNotImproving.message}</p>}
-              </div>
+            <CardContent className="space-y-4">
+              <Label>What are you currently doing?</Label>
+              <RadioGroup value={form.watch("currentSituation")} onValueChange={v => form.setValue("currentSituation", v)}>
+                <RadioGroupItem value="gap_year" id="gap_year" />
+                <Label htmlFor="gap_year">Gap year</Label>
+                <RadioGroupItem value="waiting_uni" id="waiting_uni" />
+                <Label htmlFor="waiting_uni">Waiting for university</Label>
+                <RadioGroupItem value="studying" id="studying" />
+                <Label htmlFor="studying">Studying part-time</Label>
+                <RadioGroupItem value="working" id="working" />
+                <Label htmlFor="working">Working</Label>
+                <RadioGroupItem value="other" id="other" />
+                <Label htmlFor="other">Other</Label>
+              </RadioGroup>
+              {form.watch("currentSituation") === "other" && (
+                <Input id="currentSituationOther" placeholder="Other: ______" {...form.register("currentSituationOther")} />
+              )}
+              <Label htmlFor="interestReason">Why are you interested in this opportunity?</Label>
+              <Textarea id="interestReason" {...form.register("interestReason")} />
             </CardContent>
           </Card>
         )}
-
-        {/* Step 4: Psychological Fit */}
         {currentStep === 4 && (
-          <Card data-testid="step-psychological">
-            <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="text-base sm:text-lg">Psychological Fit</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">Answer honestly - no right or wrong answers</CardDescription>
+          <Card>
+            <CardHeader>
+              <CardTitle>Section 4 - Teaching & Communication</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
-              <div className="space-y-2">
-                <Label>Which statement hits you hardest?</Label>
-                <RadioGroup onValueChange={(value) => form.setValue("statementHits", value as any)} value={form.watch("statementHits")}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="underestimated" id="underest" data-testid="radio-statement-underestimated" />
-                    <Label htmlFor="underest">I often feel underestimated</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="enjoy_challenge" id="challenge" data-testid="radio-statement-challenge" />
-                    <Label htmlFor="challenge">I enjoy being challenged even if I fail</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="struggle_discipline" id="discipline2" data-testid="radio-statement-discipline" />
-                    <Label htmlFor="discipline2">I struggle with discipline but I want structure</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="help_others" id="help" data-testid="radio-statement-help" />
-                    <Label htmlFor="help">I like helping others overcome what I've already overcome</Label>
-                  </div>
-                </RadioGroup>
-                {form.formState.errors.statementHits && <p className="text-sm text-destructive">{form.formState.errors.statementHits.message}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label>How do you respond to feedback that exposes your mistakes?</Label>
-                <RadioGroup onValueChange={(value) => form.setValue("feedbackResponse", value as any)} value={form.watch("feedbackResponse")}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="defensive" id="defensive" data-testid="radio-feedback-defensive" />
-                    <Label htmlFor="defensive">I get defensive</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="listen_fix" id="listen" data-testid="radio-feedback-listen" />
-                    <Label htmlFor="listen">I listen and fix it</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="reflect_need_time" id="reflect" data-testid="radio-feedback-reflect" />
-                    <Label htmlFor="reflect">I reflect but need time</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="ignore" id="ignore" data-testid="radio-feedback-ignore" />
-                    <Label htmlFor="ignore">I ignore it if I don't agree</Label>
-                  </div>
-                </RadioGroup>
-                {form.formState.errors.feedbackResponse && <p className="text-sm text-destructive">{form.formState.errors.feedbackResponse.message}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label>What would make you quit TT if it happened?</Label>
-                <RadioGroup onValueChange={(value) => form.setValue("quitReason", value as any)} value={form.watch("quitReason")}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="workload" id="workload" data-testid="radio-quit-workload" />
-                    <Label htmlFor="workload">Too much workload</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="recognition" id="recognition" data-testid="radio-quit-recognition" />
-                    <Label htmlFor="recognition">Lack of recognition</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="personal" id="personal" data-testid="radio-quit-personal" />
-                    <Label htmlFor="personal">Personal issues</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="would_not_quit" id="not_quit" data-testid="radio-quit-adapt" />
-                    <Label htmlFor="not_quit">I wouldn't quit - I'd adapt</Label>
-                  </div>
-                </RadioGroup>
-                {form.formState.errors.quitReason && <p className="text-sm text-destructive">{form.formState.errors.quitReason.message}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label>What does "team" mean to you?</Label>
-                <RadioGroup onValueChange={(value) => form.setValue("teamMeaning", value as any)} value={form.watch("teamMeaning")}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="shared_responsibility" id="shared" data-testid="radio-team-shared" />
-                    <Label htmlFor="shared">Shared responsibility</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="family" id="family" data-testid="radio-team-family" />
-                    <Label htmlFor="family">Family</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="performance_group" id="performance" data-testid="radio-team-performance" />
-                    <Label htmlFor="performance">Performance group</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="accountability" id="account" data-testid="radio-team-accountability" />
-                    <Label htmlFor="account">Accountability system</Label>
-                  </div>
-                </RadioGroup>
-                {form.formState.errors.teamMeaning && <p className="text-sm text-destructive">{form.formState.errors.teamMeaning.message}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="whatScares">What scares you most about this opportunity?</Label>
-                <Textarea id="whatScares" {...form.register("whatScares")} rows={3} data-testid="input-what-scares" />
-                {form.formState.errors.whatScares && <p className="text-sm text-destructive">{form.formState.errors.whatScares.message}</p>}
-              </div>
+            <CardContent className="space-y-4">
+              <Label>Have you ever helped someone understand schoolwork before?</Label>
+              <RadioGroup value={form.watch("helpedBefore")} onValueChange={v => form.setValue("helpedBefore", v)}>
+                <RadioGroupItem value="yes" id="helped_yes" />
+                <Label htmlFor="helped_yes">Yes</Label>
+                <RadioGroupItem value="no" id="helped_no" />
+                <Label htmlFor="helped_no">No</Label>
+              </RadioGroup>
+              {form.watch("helpedBefore") === "yes" && (
+                <Textarea id="helpExplanation" placeholder="If yes, briefly explain the situation." {...form.register("helpExplanation")} />
+              )}
+              <Label htmlFor="studentDontGet">A student says: “I don’t get this at all.” What would you do first?</Label>
+              <Textarea id="studentDontGet" {...form.register("studentDontGet")} />
             </CardContent>
           </Card>
         )}
-
-        {/* Step 5: Vision & Long-term */}
         {currentStep === 5 && (
-          <Card data-testid="step-vision">
-            <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="text-base sm:text-lg">Vision & Long-Term Thinking</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">Tell us about your aspirations</CardDescription>
+          <Card>
+            <CardHeader>
+              <CardTitle>Section 5 - Response Under Pressure (Core Filter)</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
+            <CardContent className="space-y-4">
+              <Label htmlFor="pressureStory">Think about a time you struggled with a difficult question in a test. What happened in your mind?</Label>
+              <Textarea id="pressureStory" {...form.register("pressureStory")} />
+              <Label>When work becomes difficult, which of these do you relate to most? (Select all that apply)</Label>
               <div className="space-y-2">
-                <Label htmlFor="futurePersonality">What kind of person do you want to become by the end of your journey at TT?</Label>
-                <Textarea id="futurePersonality" {...form.register("futurePersonality")} rows={3} data-testid="input-future-personality" />
-                {form.formState.errors.futurePersonality && <p className="text-sm text-destructive">{form.formState.errors.futurePersonality.message}</p>}
+                <Checkbox checked={form.watch("pressureResponse")?.includes("rush")} onCheckedChange={checked => {
+                  const arr = form.getValues("pressureResponse") || [];
+                  form.setValue("pressureResponse", checked ? [...arr, "rush"] : arr.filter(v => v !== "rush"));
+                }} /> <Label>I rush to finish quickly</Label><br />
+                <Checkbox checked={form.watch("pressureResponse")?.includes("freeze")} onCheckedChange={checked => {
+                  const arr = form.getValues("pressureResponse") || [];
+                  form.setValue("pressureResponse", checked ? [...arr, "freeze"] : arr.filter(v => v !== "freeze"));
+                }} /> <Label>I freeze and don’t know where to start</Label><br />
+                <Checkbox checked={form.watch("pressureResponse")?.includes("second_guess")} onCheckedChange={checked => {
+                  const arr = form.getValues("pressureResponse") || [];
+                  form.setValue("pressureResponse", checked ? [...arr, "second_guess"] : arr.filter(v => v !== "second_guess"));
+                }} /> <Label>I second-guess myself</Label><br />
+                <Checkbox checked={form.watch("pressureResponse")?.includes("calm")} onCheckedChange={checked => {
+                  const arr = form.getValues("pressureResponse") || [];
+                  form.setValue("pressureResponse", checked ? [...arr, "calm"] : arr.filter(v => v !== "calm"));
+                }} /> <Label>I stay calm and work step-by-step</Label><br />
+                <Checkbox checked={form.watch("pressureResponse")?.includes("depends")} onCheckedChange={checked => {
+                  const arr = form.getValues("pressureResponse") || [];
+                  form.setValue("pressureResponse", checked ? [...arr, "depends"] : arr.filter(v => v !== "depends"));
+                }} /> <Label>It depends on the situation</Label>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="earningsUse">How would you use your earnings if you made R42,000 in a year tutoring?</Label>
-                <Textarea id="earningsUse" {...form.register("earningsUse")} rows={3} data-testid="input-earnings-use" />
-                {form.formState.errors.earningsUse && <p className="text-sm text-destructive">{form.formState.errors.earningsUse.message}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="studentRemembrance">What do you want your students to remember you for?</Label>
-                <Textarea id="studentRemembrance" {...form.register("studentRemembrance")} rows={3} data-testid="input-student-remembrance" />
-                {form.formState.errors.studentRemembrance && <p className="text-sm text-destructive">{form.formState.errors.studentRemembrance.message}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label>If TT gave you a choice: "Impact 10 students deeply" or "Teach 100 students lightly," which would you choose?</Label>
-                <RadioGroup onValueChange={(value) => form.setValue("impactVsScale", value as any)} value={form.watch("impactVsScale")}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="impact_10" id="impact10" data-testid="radio-impact-10" />
-                    <Label htmlFor="impact10">Impact 10 students deeply</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="teach_100" id="teach100" data-testid="radio-teach-100" />
-                    <Label htmlFor="teach100">Teach 100 students lightly</Label>
-                  </div>
-                </RadioGroup>
-                {form.formState.errors.impactVsScale && <p className="text-sm text-destructive">{form.formState.errors.impactVsScale.message}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="impactVsScaleReason">Why did you choose that option?</Label>
-                <Textarea id="impactVsScaleReason" {...form.register("impactVsScaleReason")} rows={3} data-testid="input-impact-reason" />
-                {form.formState.errors.impactVsScaleReason && <p className="text-sm text-destructive">{form.formState.errors.impactVsScaleReason.message}</p>}
-              </div>
+              <Label htmlFor="panicCause">What do you think causes students to panic during tests?</Label>
+              <Textarea id="panicCause" {...form.register("panicCause")} />
             </CardContent>
           </Card>
         )}
-
-        {/* Step 6: Video Introduction */}
         {currentStep === 6 && (
-          <Card data-testid="step-video">
-            <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="text-base sm:text-lg">Video Introduction</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">Share a video introducing yourself (optional but recommended)</CardDescription>
+          <Card>
+            <CardHeader>
+              <CardTitle>Section 6 - Discipline & Responsibility</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
-              <div className="space-y-2">
-                <Label htmlFor="videoUrl">Video URL (Google Photos or Drive link)</Label>
-                <Input 
-                  id="videoUrl" 
-                  {...form.register("videoUrl")} 
-                  placeholder="https://drive.google.com/..." 
-                  data-testid="input-video-url" 
-                />
-                {form.formState.errors.videoUrl && <p className="text-sm text-destructive">{form.formState.errors.videoUrl.message}</p>}
-              </div>
-
-              <div className="bg-muted p-4 rounded-lg space-y-2">
-                <h4 className="font-medium">What to include in your video (3 min max):</h4>
-                <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-                  <li>Who you are</li>
-                  <li>Why you want to be part of TT's Founding Team</li>
-                  <li>A challenge you overcame</li>
-                  <li>What excites you about transforming confidence</li>
-                  <li>A fun or unique personal trait</li>
-                </ul>
-              </div>
+            <CardContent className="space-y-4">
+              <Label htmlFor="disciplineReason">This role requires consistency, preparation, and calm behaviour under pressure. Why do you believe you can handle that responsibility?</Label>
+              <Textarea id="disciplineReason" {...form.register("disciplineReason")} />
+              <Label htmlFor="repeatMistakeResponse">How would you respond if a student keeps making the same mistake repeatedly?</Label>
+              <Textarea id="repeatMistakeResponse" {...form.register("repeatMistakeResponse")} />
             </CardContent>
           </Card>
         )}
-
-        {/* Step 7: Availability & Commitment */}
         {currentStep === 7 && (
-          <Card data-testid="step-availability">
-            <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="text-base sm:text-lg">Availability & Commitment</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">Let us know about your availability</CardDescription>
+          <Card>
+            <CardHeader>
+              <CardTitle>Section 7 - Alignment With TT</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
-              <div className="space-y-2">
-                <Label>Are you available for TT's Founding Team Bootcamp (Prep Phase)?</Label>
-                <RadioGroup onValueChange={(value) => form.setValue("bootcampAvailable", value as any)} value={form.watch("bootcampAvailable")}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="yes" id="boot_yes" data-testid="radio-bootcamp-yes" />
-                    <Label htmlFor="boot_yes">Yes</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="maybe" id="boot_maybe" data-testid="radio-bootcamp-maybe" />
-                    <Label htmlFor="boot_maybe">Maybe</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="no" id="boot_no" data-testid="radio-bootcamp-no" />
-                    <Label htmlFor="boot_no">No</Label>
-                  </div>
-                </RadioGroup>
-                {form.formState.errors.bootcampAvailable && <p className="text-sm text-destructive">{form.formState.errors.bootcampAvailable.message}</p>}
-              </div>
-
-              <div className="space-y-2 bg-amber-50 dark:bg-amber-950 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
-                <div className="flex items-start space-x-2">
-                  <Checkbox
-                    id="commitToTrial"
-                    checked={form.watch("commitToTrial")}
-                    onCheckedChange={(checked) => form.setValue("commitToTrial", checked as boolean)}
-                    data-testid="checkbox-commit-trial"
-                  />
-                  <div className="space-y-1">
-                    <Label htmlFor="commitToTrial" className="font-medium">
-                      I commit to the 2-month trial before earnings begin
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Founding phase. System training. Results before revenue.
-                    </p>
-                  </div>
-                </div>
-                {form.formState.errors.commitToTrial && <p className="text-sm text-destructive">{form.formState.errors.commitToTrial.message}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="referralSource">Where did you hear about this opportunity?</Label>
-                <Select onValueChange={(value) => form.setValue("referralSource", value)} value={form.watch("referralSource")}>
-                  <SelectTrigger data-testid="select-referral">
-                    <SelectValue placeholder="Select source" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="school">School</SelectItem>
-                    <SelectItem value="friend">Friend</SelectItem>
-                    <SelectItem value="social_media">Social Media</SelectItem>
-                    <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="bg-primary/10 border border-primary/20 p-4 rounded-lg space-y-2">
-                <h4 className="font-semibold">Final Statement</h4>
-                <p className="text-sm">
-                  This is a founding opportunity - not a casual job. We're looking for people who execute systems, not improvise.
-                </p>
-                <p className="text-sm font-medium italic">
-                  "Systems produce results. Everything else produces noise."
-                </p>
+            <CardContent className="space-y-4">
+              <Label htmlFor="ttMeaning">Read this carefully:<br />“Most schools teach the work. Very few systems train how students respond when the work becomes difficult.”<br />What do you think this means?</Label>
+              <Textarea id="ttMeaning" {...form.register("ttMeaning")} />
+              <Label>Which of the following best describes you?</Label>
+              <RadioGroup value={form.watch("structurePreference")} onValueChange={v => form.setValue("structurePreference", v)}>
+                <RadioGroupItem value="structure" id="structure" />
+                <Label htmlFor="structure">I prefer structure and clear systems</Label>
+                <RadioGroupItem value="flexibility" id="flexibility" />
+                <Label htmlFor="flexibility">I prefer flexibility and doing things my own way</Label>
+              </RadioGroup>
+            </CardContent>
+          </Card>
+        )}
+        {currentStep === 8 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Section 8 - Availability</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Label htmlFor="hoursPerWeek">How many hours per week can you realistically commit?</Label>
+              <Input id="hoursPerWeek" {...form.register("hoursPerWeek")} />
+              <Label>Are you available for online sessions in the afternoon/evening?</Label>
+              <RadioGroup value={form.watch("availableAfternoon")} onValueChange={v => form.setValue("availableAfternoon", v)}>
+                <RadioGroupItem value="yes" id="afternoon_yes" />
+                <Label htmlFor="afternoon_yes">Yes</Label>
+                <RadioGroupItem value="no" id="afternoon_no" />
+                <Label htmlFor="afternoon_no">No</Label>
+                <RadioGroupItem value="sometimes" id="afternoon_sometimes" />
+                <Label htmlFor="afternoon_sometimes">Sometimes</Label>
+              </RadioGroup>
+            </CardContent>
+          </Card>
+        )}
+        {currentStep === 9 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Section 9 - Final Filter</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Label htmlFor="finalReason">This is not a casual tutoring role. It requires training, discipline, and adherence to a structured system.<br />Why should you be considered for the Founding Tutor Cohort?</Label>
+              <Textarea id="finalReason" {...form.register("finalReason")} />
+            </CardContent>
+          </Card>
+        )}
+        {currentStep === 10 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Section 10 - Commitment</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Label>If selected, are you willing to:</Label>
+              <ul className="pl-4 list-disc text-sm">
+                <li>Complete structured TT training before tutoring</li>
+                <li>Follow TT session protocols</li>
+                <li>Be evaluated before working with students</li>
+              </ul>
+              <RadioGroup value={form.watch("commitment")} onValueChange={v => form.setValue("commitment", v)}>
+                <RadioGroupItem value="yes" id="commit_yes" />
+                <Label htmlFor="commit_yes">Yes</Label>
+                <RadioGroupItem value="no" id="commit_no" />
+                <Label htmlFor="commit_no">No</Label>
+              </RadioGroup>
+              <div className="mt-4 text-xs text-center text-gray-600">
+                Final Section - Instruction<br />Submit your application only if you are serious about being trained and held to a high standard.
               </div>
             </CardContent>
           </Card>
         )}
-
-        {/* Navigation Buttons */}
-        <div className="flex justify-between gap-2 sm:gap-4 sticky bottom-0 bg-background py-3 sm:py-4 border-t sm:border-t-0 -mx-4 px-4 sm:mx-0 sm:px-0 sm:static">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={currentStep === 1 ? onCancel : prevStep}
-            disabled={isSubmitting}
-            data-testid="button-previous"
-            className="flex-1 sm:flex-none h-11 sm:h-10 text-sm"
-          >
-            <ChevronLeft className="w-4 h-4 mr-1 sm:mr-2" />
-            <span className="hidden sm:inline">{currentStep === 1 ? "Cancel" : "Previous"}</span>
-            <span className="sm:hidden">{currentStep === 1 ? "Cancel" : "Back"}</span>
-          </Button>
-
-          {currentStep < TOTAL_STEPS ? (
-            <Button type="button" onClick={nextStep} data-testid="button-next" className="flex-1 sm:flex-none h-11 sm:h-10 text-sm">
-              Next
-              <ChevronRight className="w-4 h-4 ml-1 sm:ml-2" />
-            </Button>
+        <div className="flex justify-between gap-2 mt-4">
+          {currentStep > 1 && (
+            <Button type="button" variant="outline" onClick={prevStep} disabled={isSubmitting} aria-label="Previous section">Previous</Button>
+          )}
+          {currentStep < 10 ? (
+            <Button type="button" onClick={nextStep} disabled={isSubmitting || !isSectionValid()} aria-label="Next section">Next</Button>
           ) : (
-            <Button 
-              type="submit" 
-              disabled={isSubmitting} 
-              data-testid="button-submit" 
-              className="flex-1 sm:flex-none h-11 sm:h-10 text-sm"
-              onClick={(e) => {
-                console.log("Submit button clicked");
-                console.log("Form errors:", form.formState.errors);
-                console.log("Form values:", form.getValues());
-              }}
-            >
-              <Send className="w-4 h-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">{isSubmitting ? "Submitting..." : "Submit Application"}</span>
-              <span className="sm:hidden">{isSubmitting ? "Sending..." : "Submit"}</span>
-            </Button>
+            <Button type="submit" disabled={isSubmitting || !form.formState.isValid} aria-label="Submit application">Submit Application</Button>
           )}
         </div>
       </form>

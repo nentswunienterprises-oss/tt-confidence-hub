@@ -28,9 +28,9 @@ function FoundingTutorsWanted() {
         </header>
         <div className="h-16 sm:h-20" />
         <main className="max-w-3xl mx-auto px-4 sm:px-6 md:px-12 py-12">
-          <section className="mb-10">
+            <section className="mb-8 sm:mb-10">
             {/* Removed intro section heading as requested */}
-            <div className="rounded-xl shadow-lg p-6 md:p-8 mb-8 border border-[#F3D2C1]" style={{ background: 'rgba(255,245,237,0.92)' }}>
+              <div className="rounded-xl shadow-lg p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 border border-[#F3D2C1] bg-white/90">
               <p className="text-lg md:text-xl text-[#1A1A1A] mb-2 font-semibold">Most students do not fail because they are unintelligent.<br />They fail because their response to difficulty was never trained.<br />We are building the first cohort of tutors who know how to train that response.</p>
               <p className="text-lg md:text-xl text-[#E63946] font-bold mb-2">Territorial Tutoring is not looking for ordinary tutors.</p>
               <p className="text-lg md:text-xl text-[#1A1A1A] mb-2">We are building a small group of disciplined academic mentors who can train students to stay calm, think clearly, and execute when math becomes difficult.</p>
