@@ -13,19 +13,19 @@ function FoundingTutorsWanted() {
           <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
             <div className="flex-shrink-0 ml-2 md:ml-0">
               <span className="block md:hidden">
-                <TerritorialTutoringLogoSVG width={150} className="w-32" />
+                <TerritorialTutoringLogoSVG width={150} className="w-32 mx-auto" />
               </span>
               <span className="hidden md:block">
                 <TerritorialTutoringLogoSVG width={200} className="w-48" />
               </span>
             </div>
-            <span className="block md:hidden text-lg sm:text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A06]">
-              <span className="block leading-tight">Founding</span>
+            <span className="block md:hidden text-lg sm:text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A06] text-center mx-auto" style={{marginTop: '2px', marginBottom: '2px', maxWidth: '140px'}}>
+              <span className="block leading-tight mb-1">Founding</span>
               <span className="block leading-tight">Tutor Cohort</span>
             </span>
             <span className="hidden md:block text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A06]">FOUNDING TUTOR COHORT</span>
             <Button
-              className="text-xs sm:text-sm md:text-base font-semibold px-3 sm:px-6 py-2 sm:py-3 rounded-full border-0 shadow-lg hover:shadow-xl transition-all whitespace-nowrap"
+              className="text-xs sm:text-sm md:text-base font-semibold px-3 sm:px-6 py-2 sm:py-3 rounded-full border-0 shadow-lg hover:shadow-xl transition-all whitespace-nowrap md:ml-4 ml-2 mt-1"
               style={{ backgroundColor: "#E63946", color: "white" }}
               onClick={() => navigate("/operational/signup?role=tutor")}
             >
@@ -35,7 +35,7 @@ function FoundingTutorsWanted() {
           </div>
         </header>
         <div className="h-16 sm:h-20" />
-        <main className="w-full max-w-3xl mx-auto px-2 sm:px-6 md:px-12 py-8 sm:py-12 flex-1">
+        <main className="w-full max-w-3xl mx-auto px-4 sm:px-6 md:px-12 py-8 sm:py-12 flex-1">
           <section className="mb-8 sm:mb-10">
             <div className="rounded-xl shadow-lg p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 border border-[#F3D2C1] bg-white/90">
               <p className="text-lg md:text-xl text-[#1A1A1A] mb-2 font-semibold">Most students do not fail because they are unintelligent.<br />They fail because their response to difficulty was never trained.<br />We are building the first cohort of tutors who know how to train that response.</p>
