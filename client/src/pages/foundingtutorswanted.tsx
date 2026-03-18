@@ -4,7 +4,7 @@ import { TerritorialTutoringLogoSVG } from "@/components/TerritorialTutoringLogo
 
 function FoundingTutorsWanted() {
   const navigate = useNavigate();
-  const signupUrl = "/operational/tutorsignup";
+  const signupUrl = "/operational/signup?role=tutor";
 
   return (
     <>
@@ -25,7 +25,7 @@ function FoundingTutorsWanted() {
             <Button
               className="flex-shrink-0 ml-auto text-sm sm:text-base font-semibold px-4 sm:px-6 py-2.5 sm:py-3 rounded-full border-0 shadow-lg hover:shadow-xl transition-all"
               style={{ backgroundColor: "#E63946", color: "white" }}
-              onClick={() => navigate("/operational/signup?role=tutor")}
+              onClick={() => navigate(signupUrl)}
             >
               <span className="hidden sm:inline">Apply for the Founding Cohort</span>
               <span className="sm:hidden">Apply</span>
@@ -47,7 +47,7 @@ function FoundingTutorsWanted() {
                   size="lg"
                   className="w-full px-6 sm:px-8 py-5 sm:py-6 rounded-full font-semibold mb-2 bg-[#E63946] hover:bg-[#C92B2B] transition-all border-0 shadow-xl text-base sm:text-lg"
                   style={{ color: "white" }}
-                  onClick={() => navigate("/operational/signup?role=tutor")}
+                  onClick={() => navigate(signupUrl)}
                 >
                   Apply for the Founding Tutor Cohort
                 </Button>
@@ -202,7 +202,7 @@ function FoundingTutorsWanted() {
               <Button
                 className="w-full sm:max-w-md text-base sm:text-lg font-bold px-8 sm:px-10 py-5 sm:py-6 rounded-full shadow-xl border-0 bg-[#E63946] hover:bg-[#C92B2B] transition-all"
                 style={{ color: "white" }}
-                onClick={() => navigate("/operational/tutor/signup")}
+                onClick={() => navigate(signupUrl)}
               >
                 Apply for the Founding Tutor Cohort
               </Button>
