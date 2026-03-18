@@ -12,12 +12,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
+const ageSchema = z
+  .string()
+  .trim()
+  .min(1, "Age is required")
+  .regex(/^\d+$/, "Age must be a number")
+  .refine((value) => {
+    const age = Number(value);
+    return Number.isInteger(age) && age >= 16 && age <= 100;
+  }, "Age must be between 16 and 100");
 
 // Per-section schemas for step validation
 const sectionSchemas = [
   z.object({ // Section 1
     fullName: z.string().min(2, "Full name is required"),
-    age: z.string().min(1, "Age is required"),
+    age: ageSchema,
     phone: z.string().min(10, "Valid phone number required"),
     email: z.string().email(),
     city: z.string().min(2, "City/Area is required"),
@@ -67,7 +76,7 @@ const sectionSchemas = [
 // Full schema for submit
 const applicationSchema = z.object({
   fullName: z.string().min(2, "Full name is required"),
-  age: z.string().min(1, "Age is required"),
+  age: ageSchema,
   phone: z.string().min(10, "Valid phone number required"),
   email: z.string().email(),
   city: z.string().min(2, "City/Area is required"),
@@ -297,10 +306,15 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
     submitAbortRef.current = controller;
 
     try {
+      const parsedAge = Number(data.age);
+      if (!Number.isInteger(parsedAge)) {
+        throw new Error("Age must be a valid whole number.");
+      }
+
       // Map form fields to DB schema (insertTutorApplicationSchema)
       const payload = {
         fullNames: data.fullName,
-        age: parseInt(data.age, 10),
+        age: parsedAge,
         phoneNumber: data.phone,
         email: data.email,
         city: data.city,
@@ -448,7 +462,7 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
               <Label htmlFor="fullName">Full Name</Label>
               <Input id="fullName" {...form.register("fullName")} />
               <Label htmlFor="age">Age</Label>
-              <Input id="age" {...form.register("age")} />
+              <Input id="age" type="number" min={16} max={100} inputMode="numeric" {...form.register("age")} />
               <Label htmlFor="phone">Phone Number (WhatsApp preferred)</Label>
               <Input id="phone" {...form.register("phone")} />
               <Label htmlFor="email">Email Address</Label>
