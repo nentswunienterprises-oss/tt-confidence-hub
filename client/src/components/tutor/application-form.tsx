@@ -25,6 +25,7 @@ const sectionSchemas = [
     matricYear: z.string().optional(),
     mathLevel: z.enum(["core", "literacy"]),
     mathResult: z.string().optional(),
+    otherSubjects: z.string().optional(),
   }),
   z.object({ // Section 3
     currentSituation: z.enum(["gap_year", "waiting_uni", "studying", "working", "other"]),
@@ -62,17 +63,80 @@ const sectionSchemas = [
 ];
 
 // Full schema for submit
-const applicationSchema = sectionSchemas.reduce((acc, s) => acc.merge(s), z.object({}));
+const applicationSchema = z.object({
+  fullName: z.string().min(2, "Full name is required"),
+  age: z.string().min(1, "Age is required"),
+  phone: z.string().min(10, "Valid phone number required"),
+  email: z.string().email(),
+  city: z.string().min(2, "City/Area is required"),
+  completedMatric: z.enum(["yes", "currently", "no"]),
+  matricYear: z.string().optional(),
+  mathLevel: z.enum(["core", "literacy"]),
+  mathResult: z.string().optional(),
+  otherSubjects: z.string().optional(),
+  currentSituation: z.enum(["gap_year", "waiting_uni", "studying", "working", "other"]),
+  currentSituationOther: z.string().optional(),
+  interestReason: z.string().min(10, "Please share your reason"),
+  helpedBefore: z.enum(["yes", "no"]),
+  helpExplanation: z.string().optional(),
+  studentDontGet: z.string().min(10, "Please share your approach"),
+  pressureStory: z.string().min(10, "Please share your story"),
+  pressureResponse: z.array(z.enum(["rush", "freeze", "second_guess", "calm", "depends"])),
+  panicCause: z.string().min(10, "Please share your thoughts"),
+  disciplineReason: z.string().min(10, "Please share your reason"),
+  repeatMistakeResponse: z.string().min(10, "Please share your response"),
+  ttMeaning: z.string().min(10, "Please share your interpretation"),
+  structurePreference: z.enum(["structure", "flexibility"]),
+  hoursPerWeek: z.string().min(1, "Please specify hours"),
+  availableAfternoon: z.enum(["yes", "no", "sometimes"]),
+  finalReason: z.string().min(10, "Please share your reason"),
+  commitment: z.enum(["yes", "no"]),
+});
 
-export function ApplicationForm({ onSuccess, onCancel }) {
+type ApplicationFormData = {
+  fullName: string;
+  age: string;
+  phone: string;
+  email: string;
+  city: string;
+  completedMatric: "yes" | "currently" | "no";
+  matricYear?: string;
+  mathLevel: "core" | "literacy";
+  mathResult?: string;
+  otherSubjects?: string;
+  currentSituation: "gap_year" | "waiting_uni" | "studying" | "working" | "other";
+  currentSituationOther?: string;
+  interestReason: string;
+  helpedBefore: "yes" | "no";
+  helpExplanation?: string;
+  studentDontGet: string;
+  pressureStory: string;
+  pressureResponse: Array<"rush" | "freeze" | "second_guess" | "calm" | "depends">;
+  panicCause: string;
+  disciplineReason: string;
+  repeatMistakeResponse: string;
+  ttMeaning: string;
+  structurePreference: "structure" | "flexibility";
+  hoursPerWeek: string;
+  availableAfternoon: "yes" | "no" | "sometimes";
+  finalReason: string;
+  commitment: "yes" | "no";
+};
+
+type ApplicationFormProps = {
+  onSuccess?: () => void;
+  onCancel?: () => void;
+};
+
+export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
   const STORAGE_KEY = "tt_application_draft";
   const [showResumePrompt, setShowResumePrompt] = useState(false);
-  const [resumeDraft, setResumeDraft] = useState(null);
-  const progressRef = useRef(null);
+  const [resumeDraft, setResumeDraft] = useState<string | null>(null);
+  const progressRef = useRef<HTMLDivElement | null>(null);
   const totalSteps = 10;
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const form = useForm({
+  const form = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
     defaultValues: {
       fullName: "",
@@ -84,6 +148,7 @@ export function ApplicationForm({ onSuccess, onCancel }) {
       matricYear: "",
       mathLevel: "core",
       mathResult: "",
+      otherSubjects: "",
       currentSituation: "gap_year",
       currentSituationOther: "",
       interestReason: "",
@@ -128,10 +193,8 @@ export function ApplicationForm({ onSuccess, onCancel }) {
   const handleResumeDraft = () => {
     if (resumeDraft) {
       try {
-        const parsed = JSON.parse(resumeDraft);
-        Object.keys(parsed).forEach(key => {
-          form.setValue(key, parsed[key]);
-        });
+        const parsed = JSON.parse(resumeDraft) as Partial<ApplicationFormData>;
+        form.reset({ ...form.getValues(), ...parsed });
       } catch {}
     }
     setShowResumePrompt(false);
@@ -156,12 +219,12 @@ export function ApplicationForm({ onSuccess, onCancel }) {
   // Accessibility: focus first input on step change
   useEffect(() => {
     if (progressRef.current) {
-      const input = progressRef.current.querySelector("input,textarea,select");
+      const input = progressRef.current.querySelector("input,textarea,select") as HTMLElement | null;
       if (input) input.focus();
     }
   }, [currentStep]);
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: ApplicationFormData) => {
     setIsSubmitting(true);
     try {
       // await apiRequest("POST", "/api/tutor/application", data);
@@ -183,7 +246,7 @@ export function ApplicationForm({ onSuccess, onCancel }) {
     const result = schema.safeParse(values);
     // Special logic for conditional fields:
     if (currentStep === 2) {
-      if (["yes", "currently"].includes(values.completedMatric)) {
+      if (values.completedMatric === "yes") {
         if (!values.matricYear || !values.mathResult) return false;
       }
     }
@@ -261,7 +324,10 @@ export function ApplicationForm({ onSuccess, onCancel }) {
             </CardHeader>
             <CardContent className="space-y-4">
               <Label>Did you complete matric?</Label>
-              <RadioGroup value={form.watch("completedMatric")} onValueChange={v => form.setValue("completedMatric", v)}>
+              <RadioGroup
+                value={form.watch("completedMatric")}
+                onValueChange={(v) => form.setValue("completedMatric", v as ApplicationFormData["completedMatric"])}
+              >
                 <div className="flex flex-col gap-2 mt-2">
                   <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
                     <RadioGroupItem value="yes" id="matric_yes" />
@@ -279,7 +345,10 @@ export function ApplicationForm({ onSuccess, onCancel }) {
               </RadioGroup>
               <div style={{ height: 16 }} />
               <Label>Mathematics Level</Label>
-              <RadioGroup value={form.watch("mathLevel")} onValueChange={v => form.setValue("mathLevel", v)}>
+              <RadioGroup
+                value={form.watch("mathLevel")}
+                onValueChange={(v) => form.setValue("mathLevel", v as ApplicationFormData["mathLevel"])}
+              >
                 <div className="flex flex-col gap-2 mt-2">
                   <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
                     <RadioGroupItem value="core" id="math_core" />
@@ -316,7 +385,10 @@ export function ApplicationForm({ onSuccess, onCancel }) {
             </CardHeader>
             <CardContent className="space-y-4">
               <Label>What are you currently doing?</Label>
-              <RadioGroup value={form.watch("currentSituation")} onValueChange={v => form.setValue("currentSituation", v)}>
+              <RadioGroup
+                value={form.watch("currentSituation")}
+                onValueChange={(v) => form.setValue("currentSituation", v as ApplicationFormData["currentSituation"])}
+              >
                 <div className="flex flex-col gap-2 mt-2">
                   <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
                     <RadioGroupItem value="gap_year" id="gap_year" />
@@ -355,7 +427,10 @@ export function ApplicationForm({ onSuccess, onCancel }) {
             </CardHeader>
             <CardContent className="space-y-4">
               <Label>Have you ever helped someone understand schoolwork before?</Label>
-              <RadioGroup value={form.watch("helpedBefore")} onValueChange={v => form.setValue("helpedBefore", v)}>
+              <RadioGroup
+                value={form.watch("helpedBefore")}
+                onValueChange={(v) => form.setValue("helpedBefore", v as ApplicationFormData["helpedBefore"])}
+              >
                 <div className="flex flex-col gap-2 mt-2">
                   <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
                     <RadioGroupItem value="yes" id="helped_yes" />
@@ -433,7 +508,10 @@ export function ApplicationForm({ onSuccess, onCancel }) {
               <Label htmlFor="ttMeaning">Read this carefully:<br />“Most schools teach the work. Very few systems train how students respond when the work becomes difficult.”<br />What do you think this means?</Label>
               <Textarea id="ttMeaning" {...form.register("ttMeaning")} />
               <Label>Which of the following best describes you?</Label>
-              <RadioGroup value={form.watch("structurePreference")} onValueChange={v => form.setValue("structurePreference", v)}>
+              <RadioGroup
+                value={form.watch("structurePreference")}
+                onValueChange={(v) => form.setValue("structurePreference", v as ApplicationFormData["structurePreference"])}
+              >
                 <div className="flex flex-col gap-2 mt-2">
                   <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
                     <RadioGroupItem value="structure" id="structure" />
@@ -457,7 +535,10 @@ export function ApplicationForm({ onSuccess, onCancel }) {
               <Label htmlFor="hoursPerWeek">How many hours per week can you realistically commit?</Label>
               <Input id="hoursPerWeek" {...form.register("hoursPerWeek")} />
               <Label>Are you available for online sessions in the afternoon/evening?</Label>
-              <RadioGroup value={form.watch("availableAfternoon")} onValueChange={v => form.setValue("availableAfternoon", v)}>
+              <RadioGroup
+                value={form.watch("availableAfternoon")}
+                onValueChange={(v) => form.setValue("availableAfternoon", v as ApplicationFormData["availableAfternoon"])}
+              >
                 <div className="flex flex-col gap-2 mt-2">
                   <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
                     <RadioGroupItem value="yes" id="afternoon_yes" />
@@ -499,7 +580,10 @@ export function ApplicationForm({ onSuccess, onCancel }) {
                 <li>Follow TT session protocols</li>
                 <li>Be evaluated before working with students</li>
               </ul>
-              <RadioGroup value={form.watch("commitment")} onValueChange={v => form.setValue("commitment", v)}>
+              <RadioGroup
+                value={form.watch("commitment")}
+                onValueChange={(v) => form.setValue("commitment", v as ApplicationFormData["commitment"])}
+              >
                 <div className="flex flex-col gap-2 mt-2">
                   <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
                     <RadioGroupItem value="yes" id="commit_yes" />
