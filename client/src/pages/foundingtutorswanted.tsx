@@ -18,8 +18,8 @@ function FoundingTutorsWanted() {
               <TerritorialTutoringLogoSVG width={200} />
             </span>
             <span className="hidden md:block flex-1 text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A1A]">FOUNDING TUTOR COHORT</span>
-            <div className="flex-1 md:flex-none flex md:hidden flex-col items-center justify-center">
-              <span className="text-base sm:text-lg font-bold tracking-tight text-[#2D1A06] text-center">
+            <div className="flex-1 md:flex-none flex md:hidden flex-col items-start justify-center ml-3">
+              <span className="text-base sm:text-lg font-bold tracking-tight text-[#2D1A06] text-left">
                 <span className="block leading-tight">Founding</span>
                 <span className="block leading-tight">Tutor Cohort</span>
               </span>
@@ -43,7 +43,7 @@ function FoundingTutorsWanted() {
               <p className="text-base sm:text-lg md:text-xl text-[#1A1A1A] mb-3 sm:mb-4 leading-relaxed">We are building a small group of disciplined academic mentors who can train students to stay calm, think clearly, and execute when math becomes difficult.</p>
               <p className="text-base sm:text-lg md:text-xl text-[#1A1A1A] mb-3 sm:mb-4 leading-relaxed">This is the Founding Tutor Cohort.</p>
               <p className="text-base sm:text-lg md:text-xl text-[#1A1A1A] mb-3 sm:mb-4 leading-relaxed">If selected, you will not just teach math.</p>
-              <p className="text-base sm:text-lg md:text-xl text-[#1A1A1A] mb-3 sm:mb-4 leading-relaxed">You will be trained in the doctrine, methods, and response conditioning standards that Territorial Tutoring is built on.</p>
+              <p className="text-base sm:text-lg md:text-xl text-[#1A1A1A] mb-3 sm:mb-4 leading-relaxed">You will be trained in the methods and response-conditioning standards that TT is built on.</p>
               <div className="flex flex-col items-center mt-6 sm:mt-8 mb-4">
                 <Button
                   size="lg"
