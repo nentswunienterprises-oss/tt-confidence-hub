@@ -10,7 +10,7 @@ function FoundingTutorsWanted() {
     <>
       <div className="min-h-screen bg-gradient-to-br from-[#FFF5ED] to-[#F9E3D8] flex flex-col">
         <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#F3D2C1] w-full backdrop-blur-md" style={{ background: 'linear-gradient(135deg, #FFF5ED 0%, #F9E3D8 100%)', boxShadow: '0 2px 8px 0 rgba(233, 57, 70, 0.04)', backgroundColor: 'rgba(255,245,237,0.95)' }}>
-          <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between gap-2 sm:gap-4">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center gap-3 sm:gap-5">
             <span className="flex-shrink-0 block md:hidden">
               <TerritorialTutoringLogoSVG width={120} />
             </span>
@@ -18,12 +18,13 @@ function FoundingTutorsWanted() {
               <TerritorialTutoringLogoSVG width={200} />
             </span>
             <span className="hidden md:block flex-1 text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A1A]">FOUNDING TUTOR COHORT</span>
-            <div className="flex-1 md:flex-none flex md:hidden flex-col items-start justify-center ml-3">
-              <span className="text-base sm:text-lg font-bold tracking-tight text-[#2D1A06] text-left">
-                <span className="block leading-tight">Founding</span>
-                <span className="block leading-tight">Tutor Cohort</span>
+            <div className="flex-shrink-0 md:hidden flex flex-col items-start justify-center">
+              <span className="text-sm sm:text-base font-bold tracking-tight text-[#2D1A06] text-left leading-tight">
+                <span className="block">Founding</span>
+                <span className="block">Tutor Cohort</span>
               </span>
             </div>
+            <div className="flex-1 md:hidden" />
             <Button
               className="flex-shrink-0 text-sm sm:text-base font-semibold px-4 sm:px-6 py-2.5 sm:py-3 rounded-full border-0 shadow-lg hover:shadow-xl transition-all"
               style={{ backgroundColor: "#E63946", color: "white" }}
