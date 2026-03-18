@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
+import { useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -130,12 +132,18 @@ type ApplicationFormProps = {
 
 export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
   const STORAGE_KEY = "tt_application_draft";
+  const AUTOSAVE_DELAY_MS = 400;
   const [showResumePrompt, setShowResumePrompt] = useState(false);
   const [resumeDraft, setResumeDraft] = useState<string | null>(null);
   const progressRef = useRef<HTMLDivElement | null>(null);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const submitAbortRef = useRef<AbortController | null>(null);
+  const isMountedRef = useRef(true);
   const totalSteps = 10;
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const form = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
     defaultValues: {
@@ -168,6 +176,15 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
       commitment: "yes",
     },
   });
+  const completedMatric = useWatch({ control: form.control, name: "completedMatric" });
+  const mathLevel = useWatch({ control: form.control, name: "mathLevel" });
+  const currentSituation = useWatch({ control: form.control, name: "currentSituation" });
+  const helpedBefore = useWatch({ control: form.control, name: "helpedBefore" });
+  const pressureResponse = useWatch({ control: form.control, name: "pressureResponse" });
+  const structurePreference = useWatch({ control: form.control, name: "structurePreference" });
+  const availableAfternoon = useWatch({ control: form.control, name: "availableAfternoon" });
+  const commitment = useWatch({ control: form.control, name: "commitment" });
+  const watchedFormValues = useWatch({ control: form.control });
   // Autofill email if available
   useEffect(() => {
     if (typeof window !== "undefined" && window.localStorage) {
@@ -193,9 +210,18 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
   const handleResumeDraft = () => {
     if (resumeDraft) {
       try {
-        const parsed = JSON.parse(resumeDraft) as Partial<ApplicationFormData>;
-        form.reset({ ...form.getValues(), ...parsed });
-      } catch {}
+        const parsed = JSON.parse(resumeDraft);
+        const safeDraft = applicationSchema.partial().safeParse(parsed);
+        if (safeDraft.success) {
+          form.reset({ ...form.getValues(), ...safeDraft.data });
+        } else if (typeof window !== "undefined" && window.localStorage) {
+          window.localStorage.removeItem(STORAGE_KEY);
+        }
+      } catch {
+        if (typeof window !== "undefined" && window.localStorage) {
+          window.localStorage.removeItem(STORAGE_KEY);
+        }
+      }
     }
     setShowResumePrompt(false);
   };
@@ -210,11 +236,34 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
   useEffect(() => {
     const subscription = form.watch((values) => {
       if (typeof window !== "undefined" && window.localStorage) {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+        }
+        saveTimeoutRef.current = setTimeout(() => {
+          window.localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
+        }, AUTOSAVE_DELAY_MS);
       }
     });
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
+      }
+    };
   }, [form]);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      if (submitAbortRef.current) {
+        submitAbortRef.current.abort();
+      }
+    };
+  }, []);
 
   // Accessibility: focus first input on step change
   useEffect(() => {
@@ -225,23 +274,50 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
   }, [currentStep]);
 
   const onSubmit = async (data: ApplicationFormData) => {
+    setSubmitError(null);
     setIsSubmitting(true);
+    submitAbortRef.current?.abort();
+    const controller = new AbortController();
+    submitAbortRef.current = controller;
+
     try {
-      // await apiRequest("POST", "/api/tutor/application", data);
+      await apiRequest("POST", "/api/tutor/application", data);
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["/api/tutor/applications"] }),
+        queryClient.invalidateQueries({ queryKey: ["/api/tutor/application-status"] }),
+        queryClient.invalidateQueries({ queryKey: ["/api/tutor/gateway-session"] }),
+      ]);
+
       if (typeof window !== "undefined" && window.localStorage) {
         window.localStorage.removeItem(STORAGE_KEY);
       }
       onSuccess && onSuccess();
     } catch (error) {
-      // handle error
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
+      const message = error instanceof Error ? error.message : "Something went wrong while submitting. Please try again.";
+      setSubmitError(message);
     } finally {
-      setIsSubmitting(false);
+      if (isMountedRef.current) {
+        setIsSubmitting(false);
+      }
     }
+  };
+
+  const togglePressureResponse = (option: ApplicationFormData["pressureResponse"][number], checked: boolean) => {
+    const arr = form.getValues("pressureResponse") || [];
+    if (checked) {
+      form.setValue("pressureResponse", Array.from(new Set([...arr, option])));
+      return;
+    }
+    form.setValue("pressureResponse", arr.filter((v) => v !== option));
   };
 
   // Per-section validation
   const isSectionValid = () => {
-    const values = form.getValues();
+    const values = watchedFormValues ?? form.getValues();
     const schema = sectionSchemas[currentStep - 1];
     const result = schema.safeParse(values);
     // Special logic for conditional fields:
@@ -298,6 +374,11 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
         />
       </div>
       <form onSubmit={form.handleSubmit(onSubmit)} aria-label="Application form" autoComplete="on">
+        {submitError && (
+          <div className="mb-4 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+            {submitError}
+          </div>
+        )}
         {currentStep === 1 && (
           <Card>
             <CardHeader>
@@ -325,7 +406,7 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
             <CardContent className="space-y-4">
               <Label>Did you complete matric?</Label>
               <RadioGroup
-                value={form.watch("completedMatric")}
+                value={completedMatric}
                 onValueChange={(v) => form.setValue("completedMatric", v as ApplicationFormData["completedMatric"])}
               >
                 <div className="flex flex-col gap-2 mt-2">
@@ -346,7 +427,7 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
               <div style={{ height: 16 }} />
               <Label>Mathematics Level</Label>
               <RadioGroup
-                value={form.watch("mathLevel")}
+                value={mathLevel}
                 onValueChange={(v) => form.setValue("mathLevel", v as ApplicationFormData["mathLevel"])}
               >
                 <div className="flex flex-col gap-2 mt-2">
@@ -360,14 +441,14 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
                   </div>
                 </div>
               </RadioGroup>
-              {(form.watch("completedMatric") === "yes" || form.watch("completedMatric") === "currently") && (
+              {(completedMatric === "yes" || completedMatric === "currently") && (
                 <>
                   <Label htmlFor="matricYear">Year of matric completion</Label>
                   <Input
                     id="matricYear"
                     {...form.register("matricYear")}
-                    disabled={form.watch("completedMatric") === "currently"}
-                    placeholder={form.watch("completedMatric") === "currently" ? "Not applicable" : ""}
+                    disabled={completedMatric === "currently"}
+                    placeholder={completedMatric === "currently" ? "Not applicable" : ""}
                   />
                   <Label htmlFor="mathResult">Final Mathematics Result (%)</Label>
                   <Input id="mathResult" {...form.register("mathResult")} />
@@ -386,7 +467,7 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
             <CardContent className="space-y-4">
               <Label>What are you currently doing?</Label>
               <RadioGroup
-                value={form.watch("currentSituation")}
+                value={currentSituation}
                 onValueChange={(v) => form.setValue("currentSituation", v as ApplicationFormData["currentSituation"])}
               >
                 <div className="flex flex-col gap-2 mt-2">
@@ -412,7 +493,7 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
                   </div>
                 </div>
               </RadioGroup>
-              {form.watch("currentSituation") === "other" && (
+              {currentSituation === "other" && (
                 <Input id="currentSituationOther" placeholder="Other: ______" {...form.register("currentSituationOther")} />
               )}
               <Label htmlFor="interestReason">Why are you interested in this opportunity?</Label>
@@ -428,7 +509,7 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
             <CardContent className="space-y-4">
               <Label>Have you ever helped someone understand schoolwork before?</Label>
               <RadioGroup
-                value={form.watch("helpedBefore")}
+                value={helpedBefore}
                 onValueChange={(v) => form.setValue("helpedBefore", v as ApplicationFormData["helpedBefore"])}
               >
                 <div className="flex flex-col gap-2 mt-2">
@@ -442,7 +523,7 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
                   </div>
                 </div>
               </RadioGroup>
-              {form.watch("helpedBefore") === "yes" && (
+              {helpedBefore === "yes" && (
                 <Textarea id="helpExplanation" placeholder="If yes, briefly explain the situation." {...form.register("helpExplanation")} />
               )}
               <Label htmlFor="studentDontGet">A student says: “I don’t get this at all.” What would you do first?</Label>
@@ -460,25 +541,20 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
               <Textarea id="pressureStory" {...form.register("pressureStory")} />
               <Label>When work becomes difficult, which of these do you relate to most? (Select all that apply)</Label>
               <div className="space-y-2">
-                <Checkbox checked={form.watch("pressureResponse")?.includes("rush")} onCheckedChange={checked => {
-                  const arr = form.getValues("pressureResponse") || [];
-                  form.setValue("pressureResponse", checked ? [...arr, "rush"] : arr.filter(v => v !== "rush"));
+                <Checkbox checked={pressureResponse?.includes("rush")} onCheckedChange={checked => {
+                  togglePressureResponse("rush", Boolean(checked));
                 }} /> <Label>I rush to finish quickly</Label><br />
-                <Checkbox checked={form.watch("pressureResponse")?.includes("freeze")} onCheckedChange={checked => {
-                  const arr = form.getValues("pressureResponse") || [];
-                  form.setValue("pressureResponse", checked ? [...arr, "freeze"] : arr.filter(v => v !== "freeze"));
+                <Checkbox checked={pressureResponse?.includes("freeze")} onCheckedChange={checked => {
+                  togglePressureResponse("freeze", Boolean(checked));
                 }} /> <Label>I freeze and don’t know where to start</Label><br />
-                <Checkbox checked={form.watch("pressureResponse")?.includes("second_guess")} onCheckedChange={checked => {
-                  const arr = form.getValues("pressureResponse") || [];
-                  form.setValue("pressureResponse", checked ? [...arr, "second_guess"] : arr.filter(v => v !== "second_guess"));
+                <Checkbox checked={pressureResponse?.includes("second_guess")} onCheckedChange={checked => {
+                  togglePressureResponse("second_guess", Boolean(checked));
                 }} /> <Label>I second-guess myself</Label><br />
-                <Checkbox checked={form.watch("pressureResponse")?.includes("calm")} onCheckedChange={checked => {
-                  const arr = form.getValues("pressureResponse") || [];
-                  form.setValue("pressureResponse", checked ? [...arr, "calm"] : arr.filter(v => v !== "calm"));
+                <Checkbox checked={pressureResponse?.includes("calm")} onCheckedChange={checked => {
+                  togglePressureResponse("calm", Boolean(checked));
                 }} /> <Label>I stay calm and work step-by-step</Label><br />
-                <Checkbox checked={form.watch("pressureResponse")?.includes("depends")} onCheckedChange={checked => {
-                  const arr = form.getValues("pressureResponse") || [];
-                  form.setValue("pressureResponse", checked ? [...arr, "depends"] : arr.filter(v => v !== "depends"));
+                <Checkbox checked={pressureResponse?.includes("depends")} onCheckedChange={checked => {
+                  togglePressureResponse("depends", Boolean(checked));
                 }} /> <Label>It depends on the situation</Label>
               </div>
               <Label htmlFor="panicCause">What do you think causes students to panic during tests?</Label>
@@ -509,7 +585,7 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
               <Textarea id="ttMeaning" {...form.register("ttMeaning")} />
               <Label>Which of the following best describes you?</Label>
               <RadioGroup
-                value={form.watch("structurePreference")}
+                value={structurePreference}
                 onValueChange={(v) => form.setValue("structurePreference", v as ApplicationFormData["structurePreference"])}
               >
                 <div className="flex flex-col gap-2 mt-2">
@@ -536,7 +612,7 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
               <Input id="hoursPerWeek" {...form.register("hoursPerWeek")} />
               <Label>Are you available for online sessions in the afternoon/evening?</Label>
               <RadioGroup
-                value={form.watch("availableAfternoon")}
+                value={availableAfternoon}
                 onValueChange={(v) => form.setValue("availableAfternoon", v as ApplicationFormData["availableAfternoon"])}
               >
                 <div className="flex flex-col gap-2 mt-2">
@@ -581,7 +657,7 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
                 <li>Be evaluated before working with students</li>
               </ul>
               <RadioGroup
-                value={form.watch("commitment")}
+                value={commitment}
                 onValueChange={(v) => form.setValue("commitment", v as ApplicationFormData["commitment"])}
               >
                 <div className="flex flex-col gap-2 mt-2">
@@ -602,6 +678,9 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
           </Card>
         )}
         <div className="flex justify-between gap-2 mt-4">
+          {onCancel && (
+            <Button type="button" variant="ghost" onClick={onCancel} disabled={isSubmitting} aria-label="Cancel application">Cancel</Button>
+          )}
           {currentStep > 1 && (
             <Button type="button" variant="outline" onClick={prevStep} disabled={isSubmitting} aria-label="Previous section">Previous</Button>
           )}
