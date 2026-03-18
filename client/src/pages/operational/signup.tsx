@@ -3,7 +3,7 @@ import { AuthForm } from "@/components/auth/auth-form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Brain, Crown, ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { Crown, ArrowLeft, ArrowRight, Check } from "lucide-react";
 
 export default function OperationalSignup() {
   // Allow deep-linking to a specific role using `?role=tutor` or `?role=td`

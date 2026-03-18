@@ -3,7 +3,7 @@ import { AuthForm } from "@/components/auth/auth-form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Brain, Crown, ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { Crown, ArrowLeft, ArrowRight, Check } from "lucide-react";
 export default function OperationalSignup() {
     // Allow deep-linking to a specific role using `?role=tutor` or `?role=td`
     var urlParams = new URLSearchParams(window.location.search);
@@ -54,7 +54,7 @@ export default function OperationalSignup() {
               {/* Tutor Card */}
               <Card className="p-8 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group" style={{ backgroundColor: "white" }} onClick={function () { return setSelectedRole("tutor"); }}>
                 <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform" style={{ backgroundColor: "#FFF0F0" }}>
-                  <Brain className="w-8 h-8" style={{ color: "#E63946" }}/>
+                  {/* Icon removed for tutor */}
                 </div>
                 <h3 className="text-2xl font-bold mb-3" style={{ color: "#1A1A1A" }}>Tutor</h3>
                 <p className="mb-6" style={{ color: "#5A5A5A" }}>
@@ -123,7 +123,7 @@ export default function OperationalSignup() {
           {/* Hero Section */}
           <div className="text-center space-y-4">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto" style={{ backgroundColor: "#FFF0F0" }}>
-              {selectedRole === "tutor" ? (<Brain className="w-8 h-8" style={{ color: "#E63946" }}/>) : (<Crown className="w-8 h-8" style={{ color: "#E63946" }}/>)}
+              {selectedRole === "tutor" ? (null) : (<Crown className="w-8 h-8" style={{ color: "#E63946" }}/>) }
             </div>
             <h2 className="text-3xl font-bold" style={{ color: "#1A1A1A" }}>
               {selectedRole === "tutor" ? "Join as a Tutor" : "Join as Territory Director"}
