@@ -558,7 +558,8 @@ export default function TutorGateway() {
                     </div>
 
                     {/* Parent Consent (if under 18) */}
-                    {applicationStatus.isUnder18 && (
+                    {/* Only show parent consent upload if user is under 18 */}
+                    {applicationStatus.isUnder18 === true && (
                       <div className="p-4 rounded-lg border" style={{ 
                         backgroundColor: applicationStatus.parentConsentVerified 
                           ? "#F0FDF4" 

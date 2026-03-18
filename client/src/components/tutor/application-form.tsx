@@ -193,6 +193,16 @@ export function ApplicationForm({ onSuccess, onCancel }) {
     if (currentStep === 4) {
       if (values.helpedBefore === "yes" && !values.helpExplanation) return false;
     }
+    if (currentStep === 5) {
+      // Require at least one checkbox in pressureResponse
+      if (!values.pressureStory || values.pressureStory.length < 10) return false;
+      if (!values.panicCause || values.panicCause.length < 10) return false;
+      if (!Array.isArray(values.pressureResponse) || values.pressureResponse.length === 0) return false;
+    }
+    if (currentStep === 6) {
+      if (!values.disciplineReason || values.disciplineReason.length < 10) return false;
+      if (!values.repeatMistakeResponse || values.repeatMistakeResponse.length < 10) return false;
+    }
     return result.success;
   };
 
@@ -252,20 +262,34 @@ export function ApplicationForm({ onSuccess, onCancel }) {
             <CardContent className="space-y-4">
               <Label>Did you complete matric?</Label>
               <RadioGroup value={form.watch("completedMatric")} onValueChange={v => form.setValue("completedMatric", v)}>
-                <RadioGroupItem value="yes" id="matric_yes" />
-                <Label htmlFor="matric_yes">Yes</Label>
-                <RadioGroupItem value="currently" id="matric_currently" />
-                <Label htmlFor="matric_currently">Currently completing</Label>
-                <RadioGroupItem value="no" id="matric_no" />
-                <Label htmlFor="matric_no">No</Label>
+                <div className="flex flex-col gap-2 mt-2">
+                  <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
+                    <RadioGroupItem value="yes" id="matric_yes" />
+                    <Label htmlFor="matric_yes" className="font-medium">Yes</Label>
+                  </div>
+                  <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
+                    <RadioGroupItem value="currently" id="matric_currently" />
+                    <Label htmlFor="matric_currently" className="font-medium">Currently completing</Label>
+                  </div>
+                  <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
+                    <RadioGroupItem value="no" id="matric_no" />
+                    <Label htmlFor="matric_no" className="font-medium">No</Label>
+                  </div>
+                </div>
               </RadioGroup>
               <div style={{ height: 16 }} />
               <Label>Mathematics Level</Label>
               <RadioGroup value={form.watch("mathLevel")} onValueChange={v => form.setValue("mathLevel", v)}>
-                <RadioGroupItem value="core" id="math_core" />
-                <Label htmlFor="math_core">Pure Mathematics</Label>
-                <RadioGroupItem value="literacy" id="math_lit" />
-                <Label htmlFor="math_lit">Mathematical Literacy</Label>
+                <div className="flex flex-col gap-2 mt-2">
+                  <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
+                    <RadioGroupItem value="core" id="math_core" />
+                    <Label htmlFor="math_core" className="font-medium">Pure Mathematics</Label>
+                  </div>
+                  <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
+                    <RadioGroupItem value="literacy" id="math_lit" />
+                    <Label htmlFor="math_lit" className="font-medium">Mathematical Literacy</Label>
+                  </div>
+                </div>
               </RadioGroup>
               {(form.watch("completedMatric") === "yes" || form.watch("completedMatric") === "currently") && (
                 <>
@@ -293,16 +317,28 @@ export function ApplicationForm({ onSuccess, onCancel }) {
             <CardContent className="space-y-4">
               <Label>What are you currently doing?</Label>
               <RadioGroup value={form.watch("currentSituation")} onValueChange={v => form.setValue("currentSituation", v)}>
-                <RadioGroupItem value="gap_year" id="gap_year" />
-                <Label htmlFor="gap_year">Gap year</Label>
-                <RadioGroupItem value="waiting_uni" id="waiting_uni" />
-                <Label htmlFor="waiting_uni">Waiting for university</Label>
-                <RadioGroupItem value="studying" id="studying" />
-                <Label htmlFor="studying">Studying part-time</Label>
-                <RadioGroupItem value="working" id="working" />
-                <Label htmlFor="working">Working</Label>
-                <RadioGroupItem value="other" id="other" />
-                <Label htmlFor="other">Other</Label>
+                <div className="flex flex-col gap-2 mt-2">
+                  <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
+                    <RadioGroupItem value="gap_year" id="gap_year" />
+                    <Label htmlFor="gap_year" className="font-medium">Gap year</Label>
+                  </div>
+                  <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
+                    <RadioGroupItem value="waiting_uni" id="waiting_uni" />
+                    <Label htmlFor="waiting_uni" className="font-medium">Waiting for university</Label>
+                  </div>
+                  <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
+                    <RadioGroupItem value="studying" id="studying" />
+                    <Label htmlFor="studying" className="font-medium">Studying part-time</Label>
+                  </div>
+                  <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
+                    <RadioGroupItem value="working" id="working" />
+                    <Label htmlFor="working" className="font-medium">Working</Label>
+                  </div>
+                  <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
+                    <RadioGroupItem value="other" id="other" />
+                    <Label htmlFor="other" className="font-medium">Other</Label>
+                  </div>
+                </div>
               </RadioGroup>
               {form.watch("currentSituation") === "other" && (
                 <Input id="currentSituationOther" placeholder="Other: ______" {...form.register("currentSituationOther")} />
@@ -320,10 +356,16 @@ export function ApplicationForm({ onSuccess, onCancel }) {
             <CardContent className="space-y-4">
               <Label>Have you ever helped someone understand schoolwork before?</Label>
               <RadioGroup value={form.watch("helpedBefore")} onValueChange={v => form.setValue("helpedBefore", v)}>
-                <RadioGroupItem value="yes" id="helped_yes" />
-                <Label htmlFor="helped_yes">Yes</Label>
-                <RadioGroupItem value="no" id="helped_no" />
-                <Label htmlFor="helped_no">No</Label>
+                <div className="flex flex-col gap-2 mt-2">
+                  <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
+                    <RadioGroupItem value="yes" id="helped_yes" />
+                    <Label htmlFor="helped_yes" className="font-medium">Yes</Label>
+                  </div>
+                  <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
+                    <RadioGroupItem value="no" id="helped_no" />
+                    <Label htmlFor="helped_no" className="font-medium">No</Label>
+                  </div>
+                </div>
               </RadioGroup>
               {form.watch("helpedBefore") === "yes" && (
                 <Textarea id="helpExplanation" placeholder="If yes, briefly explain the situation." {...form.register("helpExplanation")} />
@@ -336,7 +378,7 @@ export function ApplicationForm({ onSuccess, onCancel }) {
         {currentStep === 5 && (
           <Card>
             <CardHeader>
-              <CardTitle>Section 5 - Response Under Pressure (Core Filter)</CardTitle>
+              <CardTitle>Section 5 - Response Under Pressure</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <Label htmlFor="pressureStory">Think about a time you struggled with a difficult question in a test. What happened in your mind?</Label>
@@ -392,10 +434,16 @@ export function ApplicationForm({ onSuccess, onCancel }) {
               <Textarea id="ttMeaning" {...form.register("ttMeaning")} />
               <Label>Which of the following best describes you?</Label>
               <RadioGroup value={form.watch("structurePreference")} onValueChange={v => form.setValue("structurePreference", v)}>
-                <RadioGroupItem value="structure" id="structure" />
-                <Label htmlFor="structure">I prefer structure and clear systems</Label>
-                <RadioGroupItem value="flexibility" id="flexibility" />
-                <Label htmlFor="flexibility">I prefer flexibility and doing things my own way</Label>
+                <div className="flex flex-col gap-2 mt-2">
+                  <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
+                    <RadioGroupItem value="structure" id="structure" />
+                    <Label htmlFor="structure" className="font-medium">I prefer structure and clear systems</Label>
+                  </div>
+                  <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
+                    <RadioGroupItem value="flexibility" id="flexibility" />
+                    <Label htmlFor="flexibility" className="font-medium">I prefer flexibility and doing things my own way</Label>
+                  </div>
+                </div>
               </RadioGroup>
             </CardContent>
           </Card>
@@ -410,12 +458,20 @@ export function ApplicationForm({ onSuccess, onCancel }) {
               <Input id="hoursPerWeek" {...form.register("hoursPerWeek")} />
               <Label>Are you available for online sessions in the afternoon/evening?</Label>
               <RadioGroup value={form.watch("availableAfternoon")} onValueChange={v => form.setValue("availableAfternoon", v)}>
-                <RadioGroupItem value="yes" id="afternoon_yes" />
-                <Label htmlFor="afternoon_yes">Yes</Label>
-                <RadioGroupItem value="no" id="afternoon_no" />
-                <Label htmlFor="afternoon_no">No</Label>
-                <RadioGroupItem value="sometimes" id="afternoon_sometimes" />
-                <Label htmlFor="afternoon_sometimes">Sometimes</Label>
+                <div className="flex flex-col gap-2 mt-2">
+                  <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
+                    <RadioGroupItem value="yes" id="afternoon_yes" />
+                    <Label htmlFor="afternoon_yes" className="font-medium">Yes</Label>
+                  </div>
+                  <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
+                    <RadioGroupItem value="no" id="afternoon_no" />
+                    <Label htmlFor="afternoon_no" className="font-medium">No</Label>
+                  </div>
+                  <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
+                    <RadioGroupItem value="sometimes" id="afternoon_sometimes" />
+                    <Label htmlFor="afternoon_sometimes" className="font-medium">Sometimes</Label>
+                  </div>
+                </div>
               </RadioGroup>
             </CardContent>
           </Card>
@@ -444,10 +500,16 @@ export function ApplicationForm({ onSuccess, onCancel }) {
                 <li>Be evaluated before working with students</li>
               </ul>
               <RadioGroup value={form.watch("commitment")} onValueChange={v => form.setValue("commitment", v)}>
-                <RadioGroupItem value="yes" id="commit_yes" />
-                <Label htmlFor="commit_yes">Yes</Label>
-                <RadioGroupItem value="no" id="commit_no" />
-                <Label htmlFor="commit_no">No</Label>
+                <div className="flex flex-col gap-2 mt-2">
+                  <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
+                    <RadioGroupItem value="yes" id="commit_yes" />
+                    <Label htmlFor="commit_yes" className="font-medium">Yes</Label>
+                  </div>
+                  <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 border border-gray-200">
+                    <RadioGroupItem value="no" id="commit_no" />
+                    <Label htmlFor="commit_no" className="font-medium">No</Label>
+                  </div>
+                </div>
               </RadioGroup>
               <div className="mt-4 text-xs text-center text-gray-600">
                 Final Section - Instruction<br />Submit your application only if you are serious about being trained and held to a high standard.
