@@ -56,7 +56,7 @@ function FoundingTutorsWanted() {
           </section>
 
           <section className="mb-10">
-            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-5 text-[#1A1A1A]">What Territorial Tutoring Actually Does</h2>
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-5 text-[#1A1A1A]">What TT Actually Does</h2>
             <p className="text-base sm:text-lg mb-3 sm:mb-4 leading-relaxed">Most schools teach the content.<br />Very few systems train how students respond when the work becomes difficult.<br />That is our focus.</p>
             <p className="text-base sm:text-lg mb-3 sm:mb-4 leading-relaxed">When a student sees an unfamiliar question, pressure appears.</p>
             <ul className="list-disc ml-5 sm:ml-6 mb-3 sm:mb-4 text-base sm:text-lg">
