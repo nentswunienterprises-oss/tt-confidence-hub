@@ -705,7 +705,7 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
           {currentStep < 10 ? (
             <Button type="button" onClick={nextStep} disabled={isSubmitting || !isSectionValid()} aria-label="Next section">Next</Button>
           ) : (
-            <Button type="submit" disabled={isSubmitting || !form.formState.isValid} aria-label="Submit application">Submit Application</Button>
+            <Button type="submit" disabled={isSubmitting || !isSectionValid()} aria-label="Submit application">Submit Application</Button>
           )}
         </div>
       </form>
