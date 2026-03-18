@@ -65,7 +65,7 @@ function FoundingTutorsWanted() {
               <li>Some freeze.</li>
             </ul>
             <p className="text-base sm:text-lg mb-3 sm:mb-4 leading-relaxed">At that moment, the issue is not always intelligence.<br />The issue is execution under pressure.</p>
-            <p className="text-base sm:text-lg mb-3 sm:mb-4 leading-relaxed">Territorial Tutoring trains students to:</p>
+            <p className="text-base sm:text-lg mb-3 sm:mb-4 leading-relaxed">TT trains students to:</p>
             <ul className="list-disc ml-5 sm:ml-6 mb-3 sm:mb-4 text-base sm:text-lg">
               <li className="mb-1">remain composed when difficulty appears</li>
               <li className="mb-1">read questions fully</li>
