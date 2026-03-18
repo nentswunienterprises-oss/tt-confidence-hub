@@ -130,6 +130,19 @@ type ApplicationFormProps = {
   onCancel?: () => void;
 };
 
+const stepFieldNames: Record<number, Array<keyof ApplicationFormData>> = {
+  1: ["fullName", "age", "phone", "email", "city"],
+  2: ["completedMatric", "matricYear", "mathLevel", "mathResult", "otherSubjects"],
+  3: ["currentSituation", "currentSituationOther", "interestReason"],
+  4: ["helpedBefore", "helpExplanation", "studentDontGet"],
+  5: ["pressureStory", "pressureResponse", "panicCause"],
+  6: ["disciplineReason", "repeatMistakeResponse"],
+  7: ["ttMeaning", "structurePreference"],
+  8: ["hoursPerWeek", "availableAfternoon"],
+  9: ["finalReason"],
+  10: ["commitment"],
+};
+
 export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
   const STORAGE_KEY = "tt_application_draft";
   const AUTOSAVE_DELAY_MS = 400;
@@ -184,7 +197,10 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
   const structurePreference = useWatch({ control: form.control, name: "structurePreference" });
   const availableAfternoon = useWatch({ control: form.control, name: "availableAfternoon" });
   const commitment = useWatch({ control: form.control, name: "commitment" });
-  const watchedFormValues = useWatch({ control: form.control });
+  const watchedCurrentStepFields = useWatch({
+    control: form.control,
+    name: stepFieldNames[currentStep] as any,
+  });
   // Autofill email if available
   useEffect(() => {
     if (typeof window !== "undefined" && window.localStorage) {
@@ -317,7 +333,9 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
 
   // Per-section validation
   const isSectionValid = () => {
-    const values = watchedFormValues ?? form.getValues();
+    // Re-run validation whenever active-step fields change.
+    void watchedCurrentStepFields;
+    const values = form.getValues();
     const schema = sectionSchemas[currentStep - 1];
     const result = schema.safeParse(values);
     // Special logic for conditional fields:
