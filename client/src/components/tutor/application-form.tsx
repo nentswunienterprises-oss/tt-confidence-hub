@@ -297,7 +297,49 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
     submitAbortRef.current = controller;
 
     try {
-      await apiRequest("POST", "/api/tutor/application", data);
+      // Map form fields to DB schema (insertTutorApplicationSchema)
+      const payload = {
+        fullNames: data.fullName,
+        age: parseInt(data.age, 10),
+        phoneNumber: data.phone,
+        email: data.email,
+        city: data.city,
+        currentStatus: data.currentSituation,
+        // Not asked directly in this form — default to senior grades for founding tutors
+        gradesEquipped: ["Grade 10", "Grade 11", "Grade 12"],
+        canExplainClearly: "Yes",
+        bootcampAvailable: data.availableAfternoon,
+        commitToTrial: data.commitment === "yes",
+        // Academic background packed into environment field
+        environment: [
+          data.completedMatric ? `Completed Matric: ${data.completedMatric}` : "",
+          data.matricYear ? `Matric Year: ${data.matricYear}` : "",
+          data.mathLevel ? `Math Level: ${data.mathLevel}` : "",
+          data.mathResult ? `Math Result: ${data.mathResult}%` : "",
+          data.otherSubjects ? `Other Subjects: ${data.otherSubjects}` : "",
+        ].filter(Boolean).join(", "),
+        mindsetData: {
+          interestReason: data.interestReason,
+          helpedBefore: data.helpedBefore,
+          helpExplanation: data.helpExplanation,
+          studentDontGet: data.studentDontGet,
+          ttMeaning: data.ttMeaning,
+          structurePreference: data.structurePreference,
+        },
+        psychologicalData: {
+          pressureStory: data.pressureStory,
+          pressureResponse: data.pressureResponse,
+          panicCause: data.panicCause,
+          disciplineReason: data.disciplineReason,
+          repeatMistakeResponse: data.repeatMistakeResponse,
+        },
+        visionData: {
+          hoursPerWeek: data.hoursPerWeek,
+          finalReason: data.finalReason,
+        },
+      };
+
+      await apiRequest("POST", "/api/tutor/application", payload);
 
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["/api/tutor/applications"] }),
