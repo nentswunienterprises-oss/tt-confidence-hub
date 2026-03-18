@@ -414,40 +414,54 @@ export const insertVerificationDocSchema = createInsertSchema(
 export const tutorApplications = pgTable("tutor_applications", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id),
-  
-  // Personal & Environmental Profile
-  fullNames: varchar("full_names").notNull(),
+
+  // Section 1 - Basic Information
+  fullName: varchar("full_name").notNull(),
   age: integer("age").notNull(),
-  phoneNumber: varchar("phone_number").notNull(),
+  phone: varchar("phone").notNull(),
   email: varchar("email").notNull(),
   city: varchar("city").notNull(),
-  currentStatus: varchar("current_status").notNull(), // High School Student, University Student, etc.
-  whoInfluences: text("who_influences"),
-  environment: text("environment"),
-  
-  // Mindset & Mission (stored as JSONB for flexibility)
-  mindsetData: jsonb("mindset_data"), // Contains: whyTutor, whatIsConfidenceMentor, resilienceStory, reactionToStudent, beliefInConfidence, pressureWeak, motivationQuote
-  
-  // Academic Confidence
-  gradesEquipped: text("grades_equipped").array().notNull(), // Array of grades: Grade 6, 7, 8, 9
-  canExplainClearly: varchar("can_explain_clearly").notNull(), // Yes definitely, I think so, I'd need guidance
-  toolConfidence: jsonb("tool_confidence"), // Ratings for Google Meet, OneNote, Screen Sharing
-  studentNotImproving: varchar("student_not_improving"), // A/B/C/D choice
-  
-  // Psychological Fit (stored as JSONB)
-  psychologicalData: jsonb("psychological_data"), // Contains: statementHits, feedbackResponse, quitReason, teamMeaning, whatScares
-  
-  // Vision & Long-term
-  visionData: jsonb("vision_data"), // Contains: futurePersonality, earningsUse, studentRemembrance, impactVsScale
-  
-  // Video Introduction
-  videoUrl: varchar("video_url"),
-  
-  // Availability & Commitment
-  bootcampAvailable: varchar("bootcamp_available").notNull(), // Yes, Maybe, No
-  commitToTrial: boolean("commit_to_trial").notNull(),
-  referralSource: varchar("referral_source"), // School, Friend, Social Media, WhatsApp, Other
-  
+
+  // Section 2 - Academic Background
+  completedMatric: varchar("completed_matric").notNull(),       // 'yes' | 'currently' | 'no'
+  matricYear: varchar("matric_year"),
+  mathLevel: varchar("math_level").notNull(),                   // 'core' | 'literacy'
+  mathResult: varchar("math_result"),
+  otherSubjects: text("other_subjects"),
+
+  // Section 3 - Current Situation
+  currentSituation: varchar("current_situation").notNull(),     // 'gap_year' | 'waiting_uni' | 'studying' | 'working' | 'other'
+  currentSituationOther: varchar("current_situation_other"),
+  interestReason: text("interest_reason").notNull(),
+
+  // Section 4 - Teaching & Communication
+  helpedBefore: varchar("helped_before").notNull(),             // 'yes' | 'no'
+  helpExplanation: text("help_explanation"),
+  studentDontGet: text("student_dont_get").notNull(),
+
+  // Section 5 - Response Under Pressure
+  pressureStory: text("pressure_story").notNull(),
+  pressureResponse: text("pressure_response").array().notNull(),
+  panicCause: text("panic_cause").notNull(),
+
+  // Section 6 - Discipline & Responsibility
+  disciplineReason: text("discipline_reason").notNull(),
+  repeatMistakeResponse: text("repeat_mistake_response").notNull(),
+
+  // Section 7 - Alignment With TT
+  ttMeaning: text("tt_meaning").notNull(),
+  structurePreference: varchar("structure_preference").notNull(), // 'structure' | 'flexibility'
+
+  // Section 8 - Availability
+  hoursPerWeek: varchar("hours_per_week").notNull(),
+  availableAfternoon: varchar("available_afternoon").notNull(), // 'yes' | 'no' | 'sometimes'
+
+  // Section 9 - Final Filter
+  finalReason: text("final_reason").notNull(),
+
+  // Section 10 - Commitment
+  commitment: varchar("commitment").notNull(),                  // 'yes' | 'no'
+
   // Application Status
   status: applicationStatusEnum("status").notNull().default("pending"),
   reviewedBy: varchar("reviewed_by").references(() => users.id), // COO who approved/rejected
