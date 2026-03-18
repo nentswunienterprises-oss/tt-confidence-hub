@@ -18,7 +18,7 @@ function FoundingTutorsWanted() {
               <TerritorialTutoringLogoSVG width={200} />
             </span>
             <span className="hidden md:block flex-1 text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A1A] ml-6">FOUNDING TUTOR COHORT</span>
-            <div className="flex-shrink-0 md:hidden flex flex-col items-start justify-center -ml-2">
+            <div className="flex-shrink-0 md:hidden flex flex-col items-start justify-center -ml-3">
               <span className="block text-sm sm:text-base font-bold tracking-tight text-[#2D1A06] leading-tight">Founding</span>
               <span className="block text-sm sm:text-base font-bold tracking-tight text-[#2D1A06] leading-tight -ml-3">Tutor Cohort</span>
             </div>
