@@ -12,15 +12,15 @@ function FoundingTutorsWanted() {
         <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#F3D2C1] w-full backdrop-blur-md" style={{ background: 'linear-gradient(135deg, #FFF5ED 0%, #F9E3D8 100%)', boxShadow: '0 2px 8px 0 rgba(233, 57, 70, 0.04)', backgroundColor: 'rgba(255,245,237,0.95)' }}>
           <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center gap-3 sm:gap-5">
             <span className="flex-shrink-0 block md:hidden">
-              <TerritorialTutoringLogoSVG width={120} />
+              <TerritorialTutoringLogoSVG width={145} />
             </span>
             <span className="flex-shrink-0 hidden md:block">
               <TerritorialTutoringLogoSVG width={200} />
             </span>
             <span className="hidden md:block flex-1 text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A1A]">FOUNDING TUTOR COHORT</span>
             <div className="flex-shrink-0 md:hidden flex flex-col items-start justify-center">
-              <span className="block text-sm sm:text-base font-bold tracking-tight text-[#2D1A06] leading-tight">Founding</span>
-              <span className="block text-sm sm:text-base font-bold tracking-tight text-[#2D1A06] leading-tight -ml-3">Tutor Cohort</span>
+              <span className="block text-base sm:text-lg font-bold tracking-tight text-[#2D1A06] leading-tight">Founding</span>
+              <span className="block text-base sm:text-lg font-bold tracking-tight text-[#2D1A06] leading-tight -ml-3">Tutor Cohort</span>
             </div>
             <div className="flex-1 md:hidden" />
             <Button
