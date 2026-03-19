@@ -38,6 +38,90 @@ export function transformSnakeToCamel(obj: any): any {
   return result;
 }
 
+type SequentialDocumentStatus =
+  | "not_started"
+  | "pending_upload"
+  | "pending_review"
+  | "approved"
+  | "rejected";
+
+const INITIAL_TUTOR_DOCUMENT_STATUSES: Record<string, SequentialDocumentStatus> = {
+  "1": "pending_upload",
+  "2": "not_started",
+  "3": "not_started",
+  "4": "not_started",
+  "5": "not_started",
+};
+
+const SEQUENTIAL_TUTOR_DOCUMENT_FIELDS: Record<
+  number,
+  {
+    url: string;
+    uploadedAt: string;
+    verified: string;
+    verifiedBy: string;
+    verifiedAt: string;
+    rejectionReason: string;
+  }
+> = {
+  1: {
+    url: "doc_1_tutor_agreement_url",
+    uploadedAt: "doc_1_tutor_agreement_uploaded_at",
+    verified: "doc_1_tutor_agreement_verified",
+    verifiedBy: "doc_1_tutor_agreement_verified_by",
+    verifiedAt: "doc_1_tutor_agreement_verified_at",
+    rejectionReason: "doc_1_tutor_agreement_rejection_reason",
+  },
+  2: {
+    url: "doc_2_code_of_conduct_url",
+    uploadedAt: "doc_2_code_of_conduct_uploaded_at",
+    verified: "doc_2_code_of_conduct_verified",
+    verifiedBy: "doc_2_code_of_conduct_verified_by",
+    verifiedAt: "doc_2_code_of_conduct_verified_at",
+    rejectionReason: "doc_2_code_of_conduct_rejection_reason",
+  },
+  3: {
+    url: "doc_3_emergency_waiver_url",
+    uploadedAt: "doc_3_emergency_waiver_uploaded_at",
+    verified: "doc_3_emergency_waiver_verified",
+    verifiedBy: "doc_3_emergency_waiver_verified_by",
+    verifiedAt: "doc_3_emergency_waiver_verified_at",
+    rejectionReason: "doc_3_emergency_waiver_rejection_reason",
+  },
+  4: {
+    url: "doc_4_background_auth_url",
+    uploadedAt: "doc_4_background_auth_uploaded_at",
+    verified: "doc_4_background_auth_verified",
+    verifiedBy: "doc_4_background_auth_verified_by",
+    verifiedAt: "doc_4_background_auth_verified_at",
+    rejectionReason: "doc_4_background_auth_rejection_reason",
+  },
+  5: {
+    url: "doc_5_tax_info_url",
+    uploadedAt: "doc_5_tax_info_uploaded_at",
+    verified: "doc_5_tax_info_verified",
+    verifiedBy: "doc_5_tax_info_verified_by",
+    verifiedAt: "doc_5_tax_info_verified_at",
+    rejectionReason: "doc_5_tax_info_rejection_reason",
+  },
+};
+
+function normalizeTutorDocumentStatuses(statuses: any): Record<string, SequentialDocumentStatus> {
+  return {
+    ...INITIAL_TUTOR_DOCUMENT_STATUSES,
+    ...(statuses && typeof statuses === "object" ? statuses : {}),
+  };
+}
+
+function getSequentialTutorDocumentFields(docStep: number) {
+  const fields = SEQUENTIAL_TUTOR_DOCUMENT_FIELDS[docStep];
+  if (!fields) {
+    throw new Error(`Invalid sequential tutor document step: ${docStep}`);
+  }
+
+  return fields;
+}
+
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
@@ -106,10 +190,22 @@ export interface IStorage {
     documentType: "trial_agreement" | "parent_consent",
     documentUrl: string
   ): Promise<TutorApplication | undefined>;
+  updateTutorSequentialDocument(
+    applicationId: string,
+    docStep: number,
+    documentUrl: string
+  ): Promise<TutorApplication | undefined>;
   verifyTutorOnboardingDocument(
     applicationId: string,
     documentType: "trial_agreement" | "parent_consent",
     verifiedBy: string
+  ): Promise<TutorApplication | undefined>;
+  reviewTutorSequentialDocument(
+    applicationId: string,
+    docStep: number,
+    approved: boolean,
+    reviewedBy: string,
+    rejectionReason?: string
   ): Promise<TutorApplication | undefined>;
   completeTutorOnboarding(applicationId: string): Promise<TutorApplication | undefined>;
 
@@ -1198,18 +1294,24 @@ export class SupabaseStorage implements IStorage {
   }
 
   async approveTutorApplication(id: string, reviewedBy: string): Promise<TutorApplication | undefined> {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("tutor_applications")
       .update({
         status: "approved",
         reviewed_by: reviewedBy,
         reviewed_at: new Date(),
+        document_submission_step: 1,
+        documents_status: INITIAL_TUTOR_DOCUMENT_STATUSES,
         updated_at: new Date(),
       })
       .eq("id", id)
       .select()
       .single();
-    return data ?? undefined;
+    if (error) {
+      console.error("Error approving tutor application:", error);
+      return undefined;
+    }
+    return data ? (transformSnakeToCamel(data) as TutorApplication) : undefined;
   }
 
   async rejectTutorApplication(id: string, reviewedBy: string, reason: string): Promise<TutorApplication | undefined> {
@@ -1281,6 +1383,53 @@ export class SupabaseStorage implements IStorage {
     return data ? (transformSnakeToCamel(data) as TutorApplication) : undefined;
   }
 
+  async updateTutorSequentialDocument(
+    applicationId: string,
+    docStep: number,
+    documentUrl: string
+  ): Promise<TutorApplication | undefined> {
+    const fields = getSequentialTutorDocumentFields(docStep);
+    const { data: existing, error: existingError } = await supabase
+      .from("tutor_applications")
+      .select("documents_status")
+      .eq("id", applicationId)
+      .single();
+
+    if (existingError) {
+      console.error("Error fetching sequential document status:", existingError);
+      return undefined;
+    }
+
+    const documentsStatus = normalizeTutorDocumentStatuses(existing?.documents_status);
+    documentsStatus[docStep.toString()] = "pending_review";
+
+    const updateData: Record<string, any> = {
+      document_submission_step: docStep,
+      documents_status: documentsStatus,
+      updated_at: new Date(),
+      [fields.url]: documentUrl,
+      [fields.uploadedAt]: new Date(),
+      [fields.verified]: false,
+      [fields.verifiedBy]: null,
+      [fields.verifiedAt]: null,
+      [fields.rejectionReason]: null,
+    };
+
+    const { data, error } = await supabase
+      .from("tutor_applications")
+      .update(updateData)
+      .eq("id", applicationId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error updating sequential onboarding document:", error);
+      return undefined;
+    }
+
+    return data ? (transformSnakeToCamel(data) as TutorApplication) : undefined;
+  }
+
   async verifyTutorOnboardingDocument(
     applicationId: string,
     documentType: "trial_agreement" | "parent_consent",
@@ -1311,6 +1460,72 @@ export class SupabaseStorage implements IStorage {
       console.error("Error verifying onboarding document:", error);
       return undefined;
     }
+    return data ? (transformSnakeToCamel(data) as TutorApplication) : undefined;
+  }
+
+  async reviewTutorSequentialDocument(
+    applicationId: string,
+    docStep: number,
+    approved: boolean,
+    reviewedBy: string,
+    rejectionReason?: string
+  ): Promise<TutorApplication | undefined> {
+    const fields = getSequentialTutorDocumentFields(docStep);
+    const { data: existing, error: existingError } = await supabase
+      .from("tutor_applications")
+      .select("documents_status")
+      .eq("id", applicationId)
+      .single();
+
+    if (existingError) {
+      console.error("Error fetching sequential review state:", existingError);
+      return undefined;
+    }
+
+    const documentsStatus = normalizeTutorDocumentStatuses(existing?.documents_status);
+    const updateData: Record<string, any> = {
+      updated_at: new Date(),
+      [fields.verified]: approved,
+      [fields.verifiedBy]: approved ? reviewedBy : null,
+      [fields.verifiedAt]: approved ? new Date() : null,
+      [fields.rejectionReason]: approved ? null : (rejectionReason || "Please review and resubmit"),
+    };
+
+    if (approved) {
+      documentsStatus[docStep.toString()] = "approved";
+
+      if (docStep < 5) {
+        const nextStep = (docStep + 1).toString();
+        if (documentsStatus[nextStep] !== "approved") {
+          documentsStatus[nextStep] = "pending_upload";
+        }
+        updateData.document_submission_step = docStep + 1;
+      } else {
+        updateData.document_submission_step = 5;
+      }
+
+      if (Object.values(documentsStatus).every((status) => status === "approved")) {
+        updateData.status = "confirmed";
+      }
+    } else {
+      documentsStatus[docStep.toString()] = "rejected";
+      updateData.document_submission_step = docStep;
+    }
+
+    updateData.documents_status = documentsStatus;
+
+    const { data, error } = await supabase
+      .from("tutor_applications")
+      .update(updateData)
+      .eq("id", applicationId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error reviewing sequential onboarding document:", error);
+      return undefined;
+    }
+
     return data ? (transformSnakeToCamel(data) as TutorApplication) : undefined;
   }
 

@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { CheckCircle2, Circle, ArrowLeft, FileText, Upload, AlertCircle, Loader2, Clock, ExternalLink, Users } from "lucide-react";
+import { CheckCircle2, Circle, ArrowLeft, FileText, AlertCircle, Users } from "lucide-react";
 import { TTLogo } from "@/components/TTLogo";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -12,8 +12,6 @@ import { API_URL } from "@/lib/config";
 import { ApplicationForm } from "@/components/tutor/application-form";
 import { SequentialDocumentSubmission } from "@/components/tutor/SequentialDocumentSubmission";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 interface ApplicationStatus {
   status: "not_applied" | "pending" | "approved" | "rejected" | "verification" | "confirmed";
@@ -33,21 +31,16 @@ interface PodData {
 }
 
 export default function TutorGateway() {
-  // ...existing code...
-  // ...existing code...
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [step, setStep] = useState<"application" | "submitted" | "loading">("loading");
   const [showApplicationForm, setShowApplicationForm] = useState(false);
   const justSubmittedRef = useRef(false);
-  const [uploadingDoc, setUploadingDoc] = useState<"trial_agreement" | "parent_consent" | null>(null);
-  const trialAgreementInputRef = useRef<HTMLInputElement>(null);
-  const parentConsentInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch current user data
   // Use shared auth hook which waits for Supabase session restore
-  const { user, isLoading: userLoading, isAuthenticated } = useAuth();
+  const { isLoading: userLoading, isAuthenticated } = useAuth();
 
   // Fetch aggregated gateway session
   const { data: gatewaySession, isLoading: gatewayLoading, error: gatewayError } = useQuery<any>({
@@ -81,110 +74,6 @@ export default function TutorGateway() {
   // Loading and error states
   const appStatusLoading = gatewayLoading;
   const appStatusError = gatewayError;
-
-  // Document upload mutation
-  const uploadDocumentMutation = useMutation({
-    mutationFn: async ({ documentType, file }: { documentType: "trial_agreement" | "parent_consent"; file: File }) => {
-      if (!applicationStatus?.applicationId || !user?.id) {
-        throw new Error("Missing application or user info");
-      }
-
-      // Read file as base64
-      const readFileAsBase64 = (fileToRead: File): Promise<string> => {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            const result = reader.result as string;
-            // result is like: data:<mime>;base64,XXXX
-            const parts = result.split(',', 2);
-            resolve(parts[1]);
-          };
-          reader.onerror = (err) => reject(err);
-          reader.readAsDataURL(fileToRead);
-        });
-      };
-
-      const base64 = await readFileAsBase64(file);
-      const ext = file.name.split('.').pop();
-      const fileName = `${user.id}/${documentType}_${Date.now()}.${ext}`;
-
-      const response = await fetch(`${API_URL}/api/tutor/onboarding-documents/upload`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          applicationId: applicationStatus.applicationId,
-          documentType,
-          fileName,
-          fileData: base64,
-          fileType: file.type,
-        }),
-      });
-
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`Upload failed: ${response.status} ${text}`);
-      }
-
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tutor/application-status"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tutor/gateway-session"] });
-      toast({
-        title: "Document Uploaded",
-        description: "Your document has been submitted for verification.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Upload Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-    onSettled: () => {
-      setUploadingDoc(null);
-    },
-  });
-
-  // Handle file selection
-  const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-    documentType: "trial_agreement" | "parent_consent"
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    
-    // Validate file type
-    const allowedTypes = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
-    if (!allowedTypes.includes(file.type)) {
-      toast({
-        title: "Invalid File Type",
-        description: "Please upload a PDF or image file (JPEG, PNG)",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Validate file size (10MB max)
-    if (file.size > 10 * 1024 * 1024) {
-      toast({
-        title: "File Too Large",
-        description: "Please upload a file smaller than 10MB",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setUploadingDoc(documentType);
-    uploadDocumentMutation.mutate({ documentType, file });
-    
-    // Reset input
-    event.target.value = "";
-  };
 
   // Auto-set step based on application status
   useEffect(() => {
@@ -236,7 +125,6 @@ export default function TutorGateway() {
   const completeOnboarding = async () => {
     if (!applicationStatus?.applicationId) return;
     try {
-      setUploadingDoc(null);
       const res = await fetch(`${API_URL}/api/tutor/complete-onboarding`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

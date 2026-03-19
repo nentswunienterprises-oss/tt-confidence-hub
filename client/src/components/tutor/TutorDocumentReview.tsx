@@ -34,11 +34,11 @@ interface TutorDocumentReviewProps {
 }
 
 const DOCUMENT_NAMES: Record<number, string> = {
-  1: "Tutor Agreement",
-  2: "Code of Conduct",
-  3: "Emergency Contact & Liability Waiver",
-  4: "Background Check Authorization",
-  5: "Tax Information",
+  1: "Consent Form (Adult)",
+  2: "Independent Contractor Agreement (Adult)",
+  3: "Safeguarding and Conduct Policy (Adult)",
+  4: "Data Protection Consent (Adult)",
+  5: "Matric Entry Qualification Verification",
 };
 
 export function TutorDocumentReview({
@@ -50,7 +50,7 @@ export function TutorDocumentReview({
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
 
-  const documentsStatus = application.documents_status || {};
+  const documentsStatus = application.documentsStatus || application.documents_status || {};
 
   // Find the first document that's pending_review
   let currentDocStep = 0;
@@ -63,11 +63,11 @@ export function TutorDocumentReview({
 
   // Get document URL
   const documentUrls: Record<number, string | null> = {
-    1: application.doc_1_tutor_agreement_url,
-    2: application.doc_2_code_of_conduct_url,
-    3: application.doc_3_emergency_waiver_url,
-    4: application.doc_4_background_auth_url,
-    5: application.doc_5_tax_info_url,
+    1: application.doc1TutorAgreementUrl || application.doc_1_tutor_agreement_url,
+    2: application.doc2CodeOfConductUrl || application.doc_2_code_of_conduct_url,
+    3: application.doc3EmergencyWaiverUrl || application.doc_3_emergency_waiver_url,
+    4: application.doc4BackgroundAuthUrl || application.doc_4_background_auth_url,
+    5: application.doc5TaxInfoUrl || application.doc_5_tax_info_url,
   };
 
   const documentUrl = currentDocStep ? documentUrls[currentDocStep] : null;

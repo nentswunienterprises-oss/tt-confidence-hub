@@ -14,6 +14,7 @@ import { CheckCircle, XCircle, FileText, Clock, User, Upload, ExternalLink, File
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { TutorDocumentReview } from "@/components/tutor/TutorDocumentReview";
 import type { TutorApplication } from "@shared/schema";
 import { format } from "date-fns";
 
@@ -74,25 +75,6 @@ export default function TutorApplicationsPage() {
     },
   });
 
-  const verifyDocMutation = useMutation({
-    mutationFn: ({ applicationId, documentType }: { applicationId: string; documentType: "trial_agreement" | "parent_consent" }) =>
-      apiRequest("POST", `/api/coo/verify-tutor-document`, { applicationId, documentType }),
-    onSuccess: () => {
-      toast({
-        title: "Document Verified",
-        description: "The document has been verified successfully.",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/coo/tutor-applications"] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to verify document",
-        variant: "destructive",
-      });
-    },
-  });
-
   const rejectMutation = useMutation({
     mutationFn: ({ id, reason }: { id: string; reason: string }) =>
       apiRequest("POST", `/api/coo/tutor-applications/${id}/reject`, { reason }),
@@ -127,21 +109,12 @@ export default function TutorApplicationsPage() {
 
   const pendingApplications = applications?.filter((app) => app.status === "pending") || [];
   const approvedApplications = applications?.filter((app) => app.status === "approved") || [];
-  // Verification tab: approved tutors who have uploaded docs but not fully verified yet
+  // Verification tab: approved tutors with a document pending COO review
   const verificationApplications = applications?.filter((app) => {
     if (app.status !== "approved") return false;
     const a = app as any;
-    const hasTrialAgreement = !!(a.trial_agreement_url || a.trialAgreementUrl);
-    const trialVerified = !!(a.trial_agreement_verified || a.trialAgreementVerified);
-    const isUnder18 = (a.age || 0) < 18;
-    const hasParentConsent = !!(a.parent_consent_url || a.parentConsentUrl);
-    const parentVerified = !!(a.parent_consent_verified || a.parentConsentVerified);
-    
-    // Show in verification if: has docs uploaded but not all verified
-    if (isUnder18) {
-      return (hasTrialAgreement || hasParentConsent) && (!trialVerified || !parentVerified);
-    }
-    return hasTrialAgreement && !trialVerified;
+    const documentsStatus = a.documentsStatus || a.documents_status || {};
+    return Object.values(documentsStatus).some((status) => status === "pending_review");
   }) || [];
   const rejectedApplications = applications?.filter((app) => app.status === "rejected") || [];
 
@@ -214,11 +187,9 @@ export default function TutorApplicationsPage() {
               </Card>
             ) : (
               verificationApplications.map((application) => (
-                <VerificationCard
+                <TutorDocumentReview
                   key={application.id}
                   application={application}
-                  onVerifyDocument={(documentType) => verifyDocMutation.mutate({ applicationId: application.id, documentType })}
-                  isVerifying={verifyDocMutation.isPending}
                 />
               ))
             )}

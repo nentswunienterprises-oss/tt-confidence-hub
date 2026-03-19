@@ -26,38 +26,38 @@ import { API_URL } from "@/lib/config";
 const ONBOARDING_DOCUMENTS = [
   {
     step: 1,
-    title: "Tutor Agreement",
-    description: "Foundation tutoring agreement & policies",
+    title: "Consent Form (Adult)",
+    description: "Adult consent acknowledgement",
     details:
-      "Please review and sign this tutoring agreement which outlines your responsibilities, payment terms, and conduct standards.",
+      "Download the consent form, sign it, and upload the signed copy to continue.",
   },
   {
     step: 2,
-    title: "Code of Conduct",
-    description: "Professional standards & expectations",
+    title: "Independent Contractor Agreement (Adult)",
+    description: "Contractor terms and engagement conditions",
     details:
-      "Review our code of conduct guidelines for professional interactions with parents and students.",
+      "Review and sign the independent contractor agreement, then upload the signed document.",
   },
   {
     step: 3,
-    title: "Emergency Contact & Liability",
-    description: "Safety information & liability acknowledgment",
+    title: "Safeguarding and Conduct Policy (Adult)",
+    description: "Safeguarding obligations and conduct standards",
     details:
-      "Please provide emergency contact information and acknowledge our liability waiver.",
+      "Read and sign the safeguarding and conduct policy before upload.",
   },
   {
     step: 4,
-    title: "Background Check Authorization",
-    description: "Consent form for background screening",
+    title: "Data Protection Consent (Adult)",
+    description: "Consent for handling personal data",
     details:
-      "Sign this form to authorize our background check and verification process.",
+      "Sign the data protection consent form and upload it for review.",
   },
   {
     step: 5,
-    title: "Tax Information",
-    description: "Tax ID & payment details for compensation",
+    title: "Matric Entry Qualification Verification",
+    description: "Qualification declaration and verification",
     details:
-      "Provide your tax information so we can process your compensation correctly.",
+      "Complete and sign the qualification verification form, then upload it as the final step.",
   },
 ];
 
@@ -84,18 +84,44 @@ export function SequentialDocumentSubmission({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingStep, setUploadingStep] = useState<number | null>(null);
 
+  const defaultDocumentStatuses: Record<string, string> = {
+    "1": "not_started",
+    "2": "not_started",
+    "3": "not_started",
+    "4": "not_started",
+    "5": "not_started",
+  };
+
+  const documentStatuses = {
+    ...defaultDocumentStatuses,
+    ...(applicationStatus?.documentsStatus || applicationStatus?.documents_status || {}),
+  };
+
+  const findCurrentStep = () => {
+    const explicitStep =
+      applicationStatus?.documentSubmissionStep ||
+      applicationStatus?.document_submission_step;
+
+    if (explicitStep) {
+      return explicitStep;
+    }
+
+    for (let step = 1; step <= 5; step++) {
+      const status = documentStatuses[step.toString()];
+      if (status !== "approved") {
+        return step;
+      }
+    }
+
+    if (["approved", "verification"].includes(applicationStatus?.status)) {
+      return 1;
+    }
+
+    return 0;
+  };
+
   // Extract current step and document statuses from applicationStatus
-  const currentStep =
-    applicationStatus?.documentSubmissionStep || 0;
-  const documentStatuses =
-    applicationStatus?.documentsStatus ||
-    {
-      "1": "not_started",
-      "2": "not_started",
-      "3": "not_started",
-      "4": "not_started",
-      "5": "not_started",
-    };
+  const currentStep = findCurrentStep();
 
   // Check if all documents are approved
   const allDocumentsApproved =
@@ -376,6 +402,7 @@ export function SequentialDocumentSubmission({
               </p>
               <p className="text-sm text-red-700">
                 {applicationStatus?.[`doc${currentStep}RejectionReason`] ||
+                  applicationStatus?.[`doc_${currentStep}_rejection_reason`] ||
                   "Please review and resubmit"}
               </p>
             </div>

@@ -10,9 +10,11 @@ declare module 'express-session' {
 // ...existing imports...
 // Remove duplicate registerRoutes definition above. Only keep the one below.
 import type { Express, Request, Response } from "express";
+import { existsSync } from "fs";
 import { createServer, type Server } from "http";
 import { storage, supabase, createAffiliateCode } from "./storage";
 import { setupAuth, isAuthenticated } from "./supabaseAuth";
+import { fileURLToPath } from "url";
 import {
   insertPodSchema,
   insertTutorAssignmentSchema,
@@ -673,19 +675,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const latestApp = tutorApplications && tutorApplications.length > 0 ? tutorApplications[0] : null;
           let applicationStatus = null;
           if (latestApp) {
-            // Set status to 'confirmed' as soon as required docs are verified
+            const fallbackDocumentsStatus = {
+              "1": "pending_upload",
+              "2": "not_started",
+              "3": "not_started",
+              "4": "not_started",
+              "5": "not_started",
+            };
+            const documentsStatus = latestApp.documentsStatus && typeof latestApp.documentsStatus === "object"
+              ? { ...fallbackDocumentsStatus, ...latestApp.documentsStatus }
+              : fallbackDocumentsStatus;
+            const sequentialReviewStarted = Object.values(documentsStatus).some((docStatus) => docStatus !== "not_started");
+            const allSequentialDocumentsApproved = Object.values(documentsStatus).every((docStatus) => docStatus === "approved");
             let status = latestApp.status;
             const isUnder18 = latestApp.age < 18;
-            let docsVerified = false;
-            if (!isUnder18) {
-              docsVerified = !!latestApp.trialAgreementVerified;
-            } else {
-              docsVerified = !!latestApp.trialAgreementVerified && !!latestApp.parentConsentVerified;
-            }
-            if (docsVerified) {
+            if (allSequentialDocumentsApproved) {
               status = "confirmed";
+            } else if (status === "approved" && sequentialReviewStarted) {
+              status = "verification";
             }
             applicationStatus = {
+              ...latestApp,
               status,
               applicationId: latestApp.id,
               hasTrialAgreement: !!latestApp.trialAgreementUrl,
@@ -695,6 +705,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               trialAgreementUrl: latestApp.trialAgreementUrl,
               parentConsentUrl: latestApp.parentConsentUrl,
               isUnder18,
+              documentSubmissionStep: latestApp.documentSubmissionStep || (latestApp.status === "approved" ? 1 : 0),
+              documentsStatus,
               onboardingCompletedAt: latestApp.onboardingCompletedAt ?? null,
             };
           }
@@ -3139,7 +3151,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Check if under 18 based on age in application
         const isUnder18 = latestApp.age < 18;
         
-        // Check document upload status
+        const fallbackDocumentsStatus = {
+          "1": "pending_upload",
+          "2": "not_started",
+          "3": "not_started",
+          "4": "not_started",
+          "5": "not_started",
+        };
+        const documentsStatus = latestApp.documentsStatus && typeof latestApp.documentsStatus === "object"
+          ? { ...fallbackDocumentsStatus, ...latestApp.documentsStatus }
+          : fallbackDocumentsStatus;
+        const sequentialReviewStarted = Object.values(documentsStatus).some((docStatus) => docStatus !== "not_started");
+        const allSequentialDocumentsApproved = Object.values(documentsStatus).every((docStatus) => docStatus === "approved");
+
+        // Check legacy document upload status
         const hasTrialAgreement = !!latestApp.trialAgreementUrl;
         const hasParentConsent = !!latestApp.parentConsentUrl;
         const trialAgreementVerified = !!latestApp.trialAgreementVerified;
@@ -3156,9 +3181,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             status = "pending";
             break;
           case "approved":
-            if (docsVerified) {
+            if (allSequentialDocumentsApproved || docsVerified) {
               status = "confirmed";
-            } else if (requiredDocsComplete) {
+            } else if (sequentialReviewStarted || requiredDocsComplete) {
               status = "verification"; // Docs uploaded, awaiting verification
             } else {
               status = "approved"; // Still needs to upload docs
@@ -3182,6 +3207,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           parentConsentVerified,
           trialAgreementUrl: latestApp.trialAgreementUrl,
           parentConsentUrl: latestApp.parentConsentUrl,
+          documentSubmissionStep: latestApp.documentSubmissionStep || (latestApp.status === "approved" ? 1 : 0),
+          documentsStatus,
           onboardingCompletedAt: latestApp.onboardingCompletedAt ?? null,
         });
       } catch (error) {
@@ -3199,13 +3226,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: Request, res: Response) => {
       try {
         const userId = (req.session as any).userId;
-        const { applicationId, documentType, fileName, fileData, fileType } = req.body;
+        const { applicationId, documentType, docStep, fileName, fileData, fileType } = req.body;
+        const parsedDocStep = typeof docStep === "number" ? docStep : Number(docStep);
+        const isSequentialUpload = Number.isInteger(parsedDocStep) && parsedDocStep >= 1 && parsedDocStep <= 5;
 
-        if (!applicationId || !documentType || !fileName || !fileData) {
+        if (!applicationId || !fileName || !fileData || (!documentType && !isSequentialUpload)) {
           return res.status(400).json({ message: "Missing required fields" });
         }
 
-        if (!["trial_agreement", "parent_consent"].includes(documentType)) {
+        if (!isSequentialUpload && !["trial_agreement", "parent_consent"].includes(documentType)) {
           return res.status(400).json({ message: "Invalid document type" });
         }
 
@@ -3239,11 +3268,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { data: urlData } = supabase.storage.from('tutor-documents').getPublicUrl(safeFileName);
 
         // Save to database
-        const updated = await storage.updateTutorOnboardingDocument(
-          applicationId,
-          documentType as 'trial_agreement' | 'parent_consent',
-          urlData.publicUrl
-        );
+        const updated = isSequentialUpload
+          ? await storage.updateTutorSequentialDocument(applicationId, parsedDocStep, urlData.publicUrl)
+          : await storage.updateTutorOnboardingDocument(
+              applicationId,
+              documentType as 'trial_agreement' | 'parent_consent',
+              urlData.publicUrl
+            );
 
         if (!updated) {
           return res.status(500).json({ message: 'Failed to update document record' });
@@ -3253,6 +3284,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error('Error uploading onboarding document (server handler):', error);
         res.status(500).json({ message: 'Failed to upload document' });
+      }
+    }
+  );
+
+  app.get(
+    "/api/tutor/onboarding-documents/:docStep/download",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const docStep = Number(req.params.docStep);
+        const templateFileNames: Record<number, string> = {
+          1: "01-consent-form-adult.pdf",
+          2: "02-independent-contractor-agreement-adult.pdf",
+          3: "03-safeguarding-and-conduct-policy-adult.pdf",
+          4: "04-data-protection-consent-adult.pdf",
+          5: "05-matric-entry-qualification-verification.pdf",
+        };
+
+        const templateFileName = templateFileNames[docStep];
+        if (!templateFileName) {
+          return res.status(400).json({ message: "Invalid document step" });
+        }
+
+        const templatePath = fileURLToPath(
+          new URL(`../assets/tutor-onboarding/${templateFileName}`, import.meta.url)
+        );
+
+        if (!existsSync(templatePath)) {
+          return res.status(404).json({
+            message: "Template not configured yet for this document step",
+          });
+        }
+
+        res.download(templatePath, templateFileName);
+      } catch (error) {
+        console.error("Error downloading onboarding template:", error);
+        res.status(500).json({ message: "Failed to download document template" });
       }
     }
   );
@@ -3336,6 +3405,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // COO: Verify tutor onboarding document
+  app.post(
+    "/api/coo/tutor/:id/document/:docStep/review",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { id } = req.params;
+        const docStep = Number(req.params.docStep);
+        const { approved, rejectionReason } = req.body;
+        const reviewerId = (req.session as any).userId;
+
+        if (!Number.isInteger(docStep) || docStep < 1 || docStep > 5) {
+          return res.status(400).json({ message: "Invalid document step" });
+        }
+
+        if (typeof approved !== "boolean") {
+          return res.status(400).json({ message: "Missing approval decision" });
+        }
+
+        const updated = await storage.reviewTutorSequentialDocument(
+          id,
+          docStep,
+          approved,
+          reviewerId,
+          rejectionReason
+        );
+
+        if (!updated) {
+          return res.status(404).json({ message: "Application not found" });
+        }
+
+        res.json({
+          success: true,
+          application: updated,
+          message: approved
+            ? docStep === 5 && updated.status === "confirmed"
+              ? "Document approved. Tutor onboarding is complete."
+              : `Document ${docStep} approved. Tutor can move to the next document.`
+            : `Document ${docStep} rejected. Tutor must resubmit this step.`,
+        });
+      } catch (error) {
+        console.error("Error reviewing sequential tutor document:", error);
+        res.status(500).json({ message: "Failed to review document" });
+      }
+    }
+  );
+
   app.post(
     "/api/coo/verify-tutor-document",
     isAuthenticated,
