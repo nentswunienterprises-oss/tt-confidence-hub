@@ -266,7 +266,7 @@ export default function TutorApplicationsPage() {
           <Dialog open={!!selectedApplication} onOpenChange={() => setSelectedApplication(null)}>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>{(selectedApplication as any).full_names || selectedApplication.fullNames}</DialogTitle>
+                <DialogTitle>{(selectedApplication as any).full_name || selectedApplication.fullName}</DialogTitle>
                 <DialogDescription>
                   Submitted on {format(new Date((selectedApplication as any).created_at || selectedApplication.createdAt), "PPP")}
                 </DialogDescription>
@@ -359,13 +359,12 @@ function ApplicationCard({
 
   // Handle both camelCase and snake_case
   const app = application as any;
-  const fullNames = app.full_names || app.fullNames;
+  const fullName = app.full_name || app.fullName;
   const email = app.email;
-  const phoneNumber = app.phone_number || app.phoneNumber;
+  const phone = app.phone;
   const age = app.age;
   const city = app.city;
-  const currentStatus = app.current_status || app.currentStatus || "N/A";
-  const gradesEquipped = app.grades_equipped || app.gradesEquipped || [];
+  const currentSituation = (app.current_situation || app.currentSituation || "N/A").replace(/_/g, " ");
   const rejectionReason = app.rejection_reason || app.rejectionReason;
 
   return (
@@ -373,9 +372,9 @@ function ApplicationCard({
       <CardHeader className="pb-3 sm:pb-6">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
           <div className="space-y-1 min-w-0">
-            <CardTitle className="text-lg sm:text-xl truncate">{fullNames}</CardTitle>
+            <CardTitle className="text-lg sm:text-xl truncate">{fullName}</CardTitle>
             <CardDescription className="text-xs sm:text-sm break-all">
-              {email} • {phoneNumber}
+              {email} • {phone}
             </CardDescription>
           </div>
           <Badge className={`${statusColors[application.status]} shrink-0 text-xs`}>{application.status.toUpperCase()}</Badge>
@@ -392,12 +391,12 @@ function ApplicationCard({
             <p className="font-medium text-sm sm:text-base truncate">{city}</p>
           </div>
           <div>
-            <p className="text-xs sm:text-sm text-muted-foreground">Status</p>
-            <p className="font-medium text-sm sm:text-base">{currentStatus.replace(/_/g, " ")}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">Situation</p>
+            <p className="font-medium text-sm sm:text-base">{currentSituation}</p>
           </div>
           <div>
-            <p className="text-xs sm:text-sm text-muted-foreground">Grades</p>
-            <p className="font-medium text-sm sm:text-base truncate">{gradesEquipped.join(", ")}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">Commitment</p>
+            <p className="font-medium text-sm sm:text-base">{app.commitment === "yes" ? "Yes" : "No"}</p>
           </div>
         </div>
 
@@ -432,69 +431,66 @@ function ApplicationCard({
 }
 
 function ApplicationDetails({ application }: { application: TutorApplication }) {
-  // Handle both camelCase and snake_case from database
   const app = application as any;
-  const mindset = (app.mindsetData || app.mindset_data) as any;
-  const psychological = (app.psychologicalData || app.psychological_data) as any;
-  const vision = (app.visionData || app.vision_data) as any;
-  const toolConfidence = (app.toolConfidence || app.tool_confidence) as any;
-
-  // Helper to get field value (handles both camelCase and snake_case)
-  const getField = (camelCase: string, snake_case: string) => app[camelCase] || app[snake_case];
+  const g = (camel: string, snake: string) => app[camel] ?? app[snake];
 
   return (
     <div className="space-y-6">
-      <Section title="Personal Information">
-        <InfoItem label="Full Names" value={getField('fullNames', 'full_names')} />
-        <InfoItem label="Age" value={(getField('age', 'age') || 0).toString()} />
-        <InfoItem label="Email" value={getField('email', 'email')} />
-        <InfoItem label="Phone" value={getField('phoneNumber', 'phone_number')} />
-        <InfoItem label="City" value={getField('city', 'city')} />
-        <InfoItem label="Current Status" value={(getField('currentStatus', 'current_status') || '').replace(/_/g, " ")} />
-        <InfoItem label="Who Influences You" value={getField('whoInfluences', 'who_influences') || "Not provided"} />
-        <InfoItem label="Environment" value={getField('environment', 'environment') || "Not provided"} />
+      <Section title="Section 1 – Basic Information">
+        <InfoItem label="Full Name" value={g('fullName', 'full_name')} />
+        <InfoItem label="Age" value={String(app.age ?? '')} />
+        <InfoItem label="Email" value={app.email} />
+        <InfoItem label="Phone" value={app.phone} />
+        <InfoItem label="City" value={app.city} />
       </Section>
 
-      <Section title="Mindset & Mission">
-        <InfoItem label="Why Tutor?" value={mindset?.whyTutor || mindset?.why_tutor} />
-        <InfoItem label="Confidence Mentor Understanding" value={mindset?.whatIsConfidenceMentor || mindset?.what_is_confidence_mentor} />
-        <InfoItem label="Resilience Story" value={mindset?.resilienceStory || mindset?.resilience_story} />
-        <InfoItem label="Reaction to Struggling Student" value={mindset?.reactionToStudent || mindset?.reaction_to_student} />
-        <InfoItem label="Belief in Confidence" value={mindset?.beliefInConfidence || mindset?.belief_in_confidence} />
-        <InfoItem label="Pressure Weakness" value={mindset?.pressureWeak || mindset?.pressure_weak} />
-        <InfoItem label="Motivation Type" value={mindset?.motivationQuote || mindset?.motivation_quote} />
+      <Section title="Section 2 – Academic Background">
+        <InfoItem label="Completed Matric" value={g('completedMatric', 'completed_matric')} />
+        <InfoItem label="Matric Year" value={g('matricYear', 'matric_year')} />
+        <InfoItem label="Math Level" value={g('mathLevel', 'math_level')} />
+        <InfoItem label="Math Result" value={g('mathResult', 'math_result')} />
+        <InfoItem label="Other Subjects" value={g('otherSubjects', 'other_subjects')} />
       </Section>
 
-      <Section title="Academic Confidence">
-        <InfoItem label="Grades Equipped" value={(getField('gradesEquipped', 'grades_equipped') || []).join(", ")} />
-        <InfoItem label="Can Explain Clearly" value={(getField('canExplainClearly', 'can_explain_clearly') || '').replace(/_/g, " ")} />
-        <InfoItem label="Google Meet Confidence" value={`${toolConfidence?.googleMeet || toolConfidence?.google_meet || 0}/5`} />
-        <InfoItem label="OneNote Confidence" value={`${toolConfidence?.onenote || 0}/5`} />
-        <InfoItem label="Screen Share Confidence" value={`${toolConfidence?.screenShare || toolConfidence?.screen_share || 0}/5`} />
-        <InfoItem label="Student Not Improving Response" value={(getField('studentNotImproving', 'student_not_improving') || '').replace(/_/g, " ")} />
+      <Section title="Section 3 – Current Situation">
+        <InfoItem label="Current Situation" value={(g('currentSituation', 'current_situation') || '').replace(/_/g, ' ')} />
+        <InfoItem label="Other (if applicable)" value={g('currentSituationOther', 'current_situation_other')} />
+        <InfoItem label="Why interested?" value={g('interestReason', 'interest_reason')} />
       </Section>
 
-      <Section title="Psychological Fit">
-        <InfoItem label="Statement That Hits Hardest" value={(psychological?.statementHits || psychological?.statement_hits || '').replace(/_/g, " ")} />
-        <InfoItem label="Feedback Response" value={(psychological?.feedbackResponse || psychological?.feedback_response || '').replace(/_/g, " ")} />
-        <InfoItem label="Quit Reason" value={(psychological?.quitReason || psychological?.quit_reason || '').replace(/_/g, " ")} />
-        <InfoItem label="Team Meaning" value={(psychological?.teamMeaning || psychological?.team_meaning || '').replace(/_/g, " ")} />
-        <InfoItem label="What Scares You" value={psychological?.whatScares || psychological?.what_scares} />
+      <Section title="Section 4 – Teaching & Communication">
+        <InfoItem label="Helped someone before?" value={g('helpedBefore', 'helped_before')} />
+        <InfoItem label="Explanation" value={g('helpExplanation', 'help_explanation')} />
+        <InfoItem label="Student says 'I don't get this'" value={g('studentDontGet', 'student_dont_get')} />
       </Section>
 
-      <Section title="Vision & Long-Term">
-        <InfoItem label="Future Personality" value={vision?.futurePersonality || vision?.future_personality} />
-        <InfoItem label="Earnings Use" value={vision?.earningsUse || vision?.earnings_use} />
-        <InfoItem label="Student Remembrance" value={vision?.studentRemembrance || vision?.student_remembrance} />
-        <InfoItem label="Impact vs Scale" value={(vision?.impactVsScale || vision?.impact_vs_scale || '').replace(/_/g, " ")} />
-        <InfoItem label="Reasoning" value={vision?.impactVsScaleReason || vision?.impact_vs_scale_reason} />
+      <Section title="Section 5 – Response Under Pressure">
+        <InfoItem label="Pressure Story" value={g('pressureStory', 'pressure_story')} />
+        <InfoItem label="Pressure Response" value={(g('pressureResponse', 'pressure_response') || []).join(', ')} />
+        <InfoItem label="Panic Cause" value={g('panicCause', 'panic_cause')} />
       </Section>
 
-      <Section title="Availability & Commitment">
-        <InfoItem label="Bootcamp Available" value={getField('bootcampAvailable', 'bootcamp_available')} />
-        <InfoItem label="Commit to Trial" value={(getField('commitToTrial', 'commit_to_trial')) ? "Yes" : "No"} />
-        <InfoItem label="Referral Source" value={getField('referralSource', 'referral_source') || "Not provided"} />
-        {(getField('videoUrl', 'video_url')) && <InfoItem label="Video URL" value={getField('videoUrl', 'video_url')} link />}
+      <Section title="Section 6 – Discipline & Responsibility">
+        <InfoItem label="Discipline Reason" value={g('disciplineReason', 'discipline_reason')} />
+        <InfoItem label="Repeat Mistake Response" value={g('repeatMistakeResponse', 'repeat_mistake_response')} />
+      </Section>
+
+      <Section title="Section 7 – Alignment With TT">
+        <InfoItem label="TT Meaning" value={g('ttMeaning', 'tt_meaning')} />
+        <InfoItem label="Structure Preference" value={g('structurePreference', 'structure_preference')} />
+      </Section>
+
+      <Section title="Section 8 – Availability">
+        <InfoItem label="Hours Per Week" value={g('hoursPerWeek', 'hours_per_week')} />
+        <InfoItem label="Available Afternoons?" value={g('availableAfternoon', 'available_afternoon')} />
+      </Section>
+
+      <Section title="Section 9 – Final Filter">
+        <InfoItem label="Why should you be considered?" value={g('finalReason', 'final_reason')} />
+      </Section>
+
+      <Section title="Section 10 – Commitment">
+        <InfoItem label="Committed to training & protocols?" value={g('commitment', 'commitment')} />
       </Section>
     </div>
   );
@@ -536,7 +532,7 @@ function VerificationCard({
   isVerifying: boolean;
 }) {
   const app = application as any;
-  const fullNames = app.full_names || app.fullNames;
+  const fullName = app.full_name || app.fullName;
   const email = app.email;
   const age = app.age;
   const isUnder18 = age < 18;
@@ -552,7 +548,7 @@ function VerificationCard({
       <CardHeader className="pb-3 sm:pb-4">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
           <div className="space-y-1 min-w-0">
-            <CardTitle className="text-lg sm:text-xl truncate">{fullNames}</CardTitle>
+            <CardTitle className="text-lg sm:text-xl truncate">{fullName}</CardTitle>
             <CardDescription className="text-xs sm:text-sm break-all">
               {email} • Age: {age} {isUnder18 && "(Under 18)"}
             </CardDescription>
