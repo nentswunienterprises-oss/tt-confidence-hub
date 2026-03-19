@@ -480,6 +480,50 @@ export const tutorApplications = pgTable("tutor_applications", {
   parentConsentVerifiedBy: varchar("parent_consent_verified_by").references(() => users.id),
   parentConsentVerifiedAt: timestamp("parent_consent_verified_at"),
   onboardingCompletedAt: timestamp("onboarding_completed_at"),
+
+  // Sequential Document Submission (5-step process)
+  documentSubmissionStep: integer("document_submission_step").default(0),
+  documentsStatus: jsonb("documents_status").default('{"1": "not_started", "2": "not_started", "3": "not_started", "4": "not_started", "5": "not_started"}'),
+
+  // Step 1: Tutor Agreement
+  doc1TutorAgreementUrl: varchar("doc_1_tutor_agreement_url"),
+  doc1TutorAgreementUploadedAt: timestamp("doc_1_tutor_agreement_uploaded_at"),
+  doc1TutorAgreementVerified: boolean("doc_1_tutor_agreement_verified").default(false),
+  doc1TutorAgreementVerifiedBy: varchar("doc_1_tutor_agreement_verified_by").references(() => users.id),
+  doc1TutorAgreementVerifiedAt: timestamp("doc_1_tutor_agreement_verified_at"),
+  doc1TutorAgreementRejectionReason: text("doc_1_tutor_agreement_rejection_reason"),
+
+  // Step 2: Code of Conduct
+  doc2CodeOfConductUrl: varchar("doc_2_code_of_conduct_url"),
+  doc2CodeOfConductUploadedAt: timestamp("doc_2_code_of_conduct_uploaded_at"),
+  doc2CodeOfConductVerified: boolean("doc_2_code_of_conduct_verified").default(false),
+  doc2CodeOfConductVerifiedBy: varchar("doc_2_code_of_conduct_verified_by").references(() => users.id),
+  doc2CodeOfConductVerifiedAt: timestamp("doc_2_code_of_conduct_verified_at"),
+  doc2CodeOfConductRejectionReason: text("doc_2_code_of_conduct_rejection_reason"),
+
+  // Step 3: Emergency Contact & Liability Waiver
+  doc3EmergencyWaiverUrl: varchar("doc_3_emergency_waiver_url"),
+  doc3EmergencyWaiverUploadedAt: timestamp("doc_3_emergency_waiver_uploaded_at"),
+  doc3EmergencyWaiverVerified: boolean("doc_3_emergency_waiver_verified").default(false),
+  doc3EmergencyWaiverVerifiedBy: varchar("doc_3_emergency_waiver_verified_by").references(() => users.id),
+  doc3EmergencyWaiverVerifiedAt: timestamp("doc_3_emergency_waiver_verified_at"),
+  doc3EmergencyWaiverRejectionReason: text("doc_3_emergency_waiver_rejection_reason"),
+
+  // Step 4: Background Check Authorization
+  doc4BackgroundAuthUrl: varchar("doc_4_background_auth_url"),
+  doc4BackgroundAuthUploadedAt: timestamp("doc_4_background_auth_uploaded_at"),
+  doc4BackgroundAuthVerified: boolean("doc_4_background_auth_verified").default(false),
+  doc4BackgroundAuthVerifiedBy: varchar("doc_4_background_auth_verified_by").references(() => users.id),
+  doc4BackgroundAuthVerifiedAt: timestamp("doc_4_background_auth_verified_at"),
+  doc4BackgroundAuthRejectionReason: text("doc_4_background_auth_rejection_reason"),
+
+  // Step 5: Tax Information
+  doc5TaxInfoUrl: varchar("doc_5_tax_info_url"),
+  doc5TaxInfoUploadedAt: timestamp("doc_5_tax_info_uploaded_at"),
+  doc5TaxInfoVerified: boolean("doc_5_tax_info_verified").default(false),
+  doc5TaxInfoVerifiedBy: varchar("doc_5_tax_info_verified_by").references(() => users.id),
+  doc5TaxInfoVerifiedAt: timestamp("doc_5_tax_info_verified_at"),
+  doc5TaxInfoRejectionReason: text("doc_5_tax_info_rejection_reason"),
   
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
