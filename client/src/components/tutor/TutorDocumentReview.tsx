@@ -49,6 +49,14 @@ export function TutorDocumentReview({
   const queryClient = useQueryClient();
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+  const fullName =
+    application.fullName ||
+    application.fullNames ||
+    application.full_name ||
+    application.full_names ||
+    "Unknown Tutor";
+  const email = application.email || "No email";
+  const applicationId = application.id || "Unknown";
 
   const documentsStatus = application.documentsStatus || application.documents_status || {};
 
@@ -145,14 +153,24 @@ export function TutorDocumentReview({
   return (
     <>
       <Card className="border-blue-200">
-        <CardHeader>
-          <div className="space-y-2">
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between gap-4 mb-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <div>
+              <p className="text-sm font-semibold text-amber-900">{fullName}</p>
+              <p className="text-xs text-amber-700">{email}</p>
+              <p className="text-xs text-amber-600 mt-0.5">ID: {applicationId}</p>
+            </div>
+            <span className="text-xs font-medium bg-amber-100 text-amber-800 px-2 py-1 rounded whitespace-nowrap">
+              Step {currentDocStep} of 5
+            </span>
+          </div>
+          <div className="space-y-1">
             <CardTitle className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-blue-600" />
               Pending Review: {documentName}
             </CardTitle>
             <CardDescription>
-              Step {currentDocStep} of 5 - Document uploaded {currentDocStep} of 5
+              Document uploaded — awaiting COO review
             </CardDescription>
           </div>
         </CardHeader>
@@ -192,7 +210,7 @@ export function TutorDocumentReview({
           <div className="flex gap-2 pt-2">
             <Button
               size="sm"
-              disabled={reviewMutation.isPending}
+              disabled={reviewMutation.isPending || !documentUrl}
               onClick={() => reviewMutation.mutate({ approved: true })}
               className="gap-2"
             >
@@ -217,6 +235,12 @@ export function TutorDocumentReview({
               Reject & Ask for Changes
             </Button>
           </div>
+
+          {!documentUrl && (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-2">
+              Approve is disabled until the uploaded file URL is available. You can still reject and request re-upload.
+            </p>
+          )}
 
           {/* Info Box */}
           <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
