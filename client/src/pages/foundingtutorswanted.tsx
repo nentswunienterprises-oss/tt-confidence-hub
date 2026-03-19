@@ -17,7 +17,7 @@ function FoundingTutorsWanted() {
             <span className="flex-shrink-0 hidden md:block">
               <TerritorialTutoringLogoSVG width={200} />
             </span>
-            <span className="hidden md:block flex-1 text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A1A] ml-6">FOUNDING TUTOR COHORT</span>
+            <span className="hidden md:block text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A1A] ml-auto">Founding Tutor Cohort</span>
             <div className="flex-shrink-0 md:hidden flex flex-col items-start justify-center -ml-3">
               <span className="block text-sm sm:text-base font-bold tracking-tight text-[#2D1A06] leading-tight">Founding</span>
               <span className="block text-sm sm:text-base font-bold tracking-tight text-[#2D1A06] leading-tight -ml-3">Tutor Cohort</span>
@@ -108,7 +108,7 @@ function FoundingTutorsWanted() {
             <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-5 text-[#1A1A1A]">What Makes TT Different</h2>
             <ol className="list-decimal ml-5 sm:ml-6 mb-3 sm:mb-4 text-base sm:text-lg">
               <li className="mb-4"><span className="font-semibold">This is not ordinary tutoring</span><br />You will not just explain methods.<br />You will be trained to observe and correct how students respond when math becomes difficult.<br />That is a different skill.</li>
-              <li className="mb-4"><span className="font-semibold">This is doctrine-driven</span><br />Territorial Tutoring operates through clear standards.<br />Every tutor is trained in:<ul className="list-disc ml-5 sm:ml-6 mt-2 mb-2"><li className="mb-1">calm communication</li><li className="mb-1">structured problem-solving</li><li className="mb-1">response-conditioning protocols</li><li className="mb-1">session discipline</li><li>student composure under pressure</li></ul>We do not improvise the core system.</li>
+              <li className="mb-4"><span className="font-semibold">This is doctrine-driven</span><br />TT operates through clear standards.<br />Every tutor is trained in:<ul className="list-disc ml-5 sm:ml-6 mt-2 mb-2"><li className="mb-1">calm communication</li><li className="mb-1">structured problem-solving</li><li className="mb-1">response-conditioning protocols</li><li className="mb-1">session discipline</li><li>student composure under pressure</li></ul>We do not improvise the core system.</li>
               <li className="mb-4"><span className="font-semibold">This is selective</span><br />We are not building a large random tutor pool.<br />We are building a small founding group that sets the standard for everyone who enters later.<br />Selection matters.</li>
               <li className="mb-4"><span className="font-semibold">This builds real skill</span><br />If selected, you will develop:<ul className="list-disc ml-5 sm:ml-6 mt-2 mb-2"><li className="mb-1">teaching clarity</li><li className="mb-1">mentorship discipline</li><li className="mb-1">leadership maturity</li><li className="mb-1">structured thinking</li><li className="mb-1">communication under pressure</li><li>income-generating tutoring skills</li></ul>This is not just work.<br />It is capability development.</li>
             </ol>

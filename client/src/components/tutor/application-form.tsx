@@ -160,6 +160,7 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
   const progressRef = useRef<HTMLDivElement | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const submitAbortRef = useRef<AbortController | null>(null);
+  const submitIntentRef = useRef(false);
   const isMountedRef = useRef(true);
   const totalSteps = 10;
   const [currentStep, setCurrentStep] = useState(1);
@@ -299,6 +300,9 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
   }, [currentStep]);
 
   const onSubmit = async (data: ApplicationFormData) => {
+    if (!submitIntentRef.current) {
+      return;
+    }
     setSubmitError(null);
     setIsSubmitting(true);
     submitAbortRef.current?.abort();
@@ -330,6 +334,7 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
       const message = error instanceof Error ? error.message : "Something went wrong while submitting. Please try again.";
       setSubmitError(message);
     } finally {
+      submitIntentRef.current = false;
       if (isMountedRef.current) {
         setIsSubmitting(false);
       }
@@ -719,7 +724,17 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
           {currentStep < 10 ? (
             <Button type="button" onClick={nextStep} disabled={isSubmitting || !isSectionValid()} aria-label="Next section">Next</Button>
           ) : (
-            <Button type="submit" disabled={isSubmitting || !isSectionValid()} aria-label="Submit application">Submit Application</Button>
+            <Button
+              type="button"
+              onClick={() => {
+                submitIntentRef.current = true;
+                void form.handleSubmit(onSubmit)();
+              }}
+              disabled={isSubmitting || !isSectionValid()}
+              aria-label="Submit application"
+            >
+              Submit Application
+            </Button>
           )}
         </div>
       </form>
