@@ -1524,9 +1524,8 @@ export class SupabaseStorage implements IStorage {
         updateData.document_submission_step = 5;
       }
 
-      if (Object.values(documentsStatus).every((status) => status === "approved")) {
-        updateData.status = "confirmed";
-      }
+      // Keep persisted status within DB enum values.
+      // Gateway status "confirmed" is derived from documents_status at read time.
     } else {
       documentsStatus[docStep.toString()] = "rejected";
       updateData.document_submission_step = docStep;

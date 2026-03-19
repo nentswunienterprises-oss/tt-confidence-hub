@@ -321,11 +321,6 @@ export function AuthForm(_a) {
               <Input id="password" type="password" placeholder="Enter your password" value={password} onChange={function (e) { return setPassword(e.target.value); }} required minLength={6} className="rounded-lg border-gray-200 focus:border-[#E63946] focus:ring-[#E63946]"/>
             </div>
 
-            {/* Affiliate Code Field */}
-            <div className="space-y-2">
-              <Label htmlFor="affiliateCode" style={{ color: "#1A1A1A" }}>Affiliate Code (optional)</Label>
-              <Input id="affiliateCode" type="text" placeholder="Enter affiliate code if you have one" value={code} onChange={function (e) { return setCode(e.target.value); }} className="rounded-lg border-gray-200 focus:border-[#E63946] focus:ring-[#E63946]"/>
-            </div>
           </>)}
 
         {mode === "login" && (<>

@@ -3469,7 +3469,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           success: true,
           application: updated,
           message: approved
-            ? docStep === 5 && updated.status === "confirmed"
+            ? docStep === 5 && Object.values(updated.documentsStatus || {}).every((status) => status === "approved")
               ? "Document approved. Tutor onboarding is complete."
               : `Document ${docStep} approved. Tutor can move to the next document.`
             : `Document ${docStep} rejected. Tutor must resubmit this step.`,
