@@ -85,8 +85,8 @@ export function useAuth() {
       // Clear ALL React Query cache (memory + localStorage) to prevent stale user data showing for next user
       clearAllCache();
 
-      // Redirect to executive signup page
-      setLocation("/executive");
+      // Redirect to landing page
+      setLocation("/");
     } catch (error) {
       console.error("Logout error:", error);
       // Clear cache even on error

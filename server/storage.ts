@@ -1,8 +1,37 @@
-// ...existing imports...
-import { affiliateCodes } from "../dist/shared/schema.js";
-// Create affiliate code
-export async function createAffiliateCode({ affiliateId, code, type, personName, entityName, schoolType }) {
-  // Use pg pool directly for inserts
+import { createClient } from "@supabase/supabase-js";
+import { db } from "./db";
+import {
+  User, UpsertUser,
+  Pod, InsertPod,
+  TutorAssignment, InsertTutorAssignment,
+  Student, InsertStudent,
+  Session, InsertSession,
+  Reflection, InsertReflection,
+  AcademicProfile, InsertAcademicProfile,
+  StruggleTarget, InsertStruggleTarget,
+  VerificationDoc, InsertVerificationDoc,
+  TutorApplication, InsertTutorApplication,
+  Broadcast, InsertBroadcast,
+  RolePermission,
+  affiliateCodes,
+  weeklyCheckIns,
+} from "@shared/schema";
+
+// Initialize Supabase client with service role key to bypass RLS
+const supabaseUrl = process.env.SUPABASE_URL!;
+// Use service role key if available (bypasses RLS), fall back to anon key
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY!;
+export const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Create affiliate code (used by routes.ts)
+export async function createAffiliateCode({ affiliateId, code, type, personName, entityName, schoolType }: {
+  affiliateId: string;
+  code: string;
+  type?: string;
+  personName?: string;
+  entityName?: string;
+  schoolType?: string;
+}) {
   const text = `
     INSERT INTO affiliate_codes
       (affiliate_id, code, type, person_name, entity_name, school_type, created_at)
@@ -13,15 +42,6 @@ export async function createAffiliateCode({ affiliateId, code, type, personName,
   const result = await (await import('./db')).pool.query(text, values);
   return result.rows[0];
 }
-import { createClient } from "@supabase/supabase-js";
-import { db } from "./db";
-import { weeklyCheckIns } from "@shared/schema";
-
-// Initialize Supabase client with service role key to bypass RLS
-const supabaseUrl = process.env.SUPABASE_URL!;
-// Use service role key if available (bypasses RLS), fall back to anon key
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY!;
-export const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Helper function to transform snake_case to camelCase
 export function transformSnakeToCamel(obj: any): any {
@@ -355,7 +375,7 @@ export class SupabaseStorage implements IStorage {
     }));
   }
 
-  async upsertUser(user: UpsertUser): Promise<User> {
+  async upsertUser(user: any): Promise<User> {
     const { data, error } = await supabase
       .from("users")
       .upsert({
@@ -447,7 +467,7 @@ export class SupabaseStorage implements IStorage {
   }
 
   // Pods
-  async createPod(pod: InsertPod): Promise<Pod> {
+  async createPod(pod: any): Promise<Pod> {
     console.log("💾 Inserting pod into database:", pod);
     const dbPod = {
       pod_name: pod.podName,
@@ -590,7 +610,7 @@ export class SupabaseStorage implements IStorage {
   }
 
   // Tutor Assignments
-  async createTutorAssignment(assignment: InsertTutorAssignment): Promise<TutorAssignment> {
+  async createTutorAssignment(assignment: any): Promise<TutorAssignment> {
     const dbAssignment = {
       tutor_id: assignment.tutorId,
       pod_id: assignment.podId,
@@ -661,9 +681,9 @@ export class SupabaseStorage implements IStorage {
   }
 
   // Students
-  async createStudent(student: InsertStudent): Promise<Student> {
+  async createStudent(student: any): Promise<Student> {
     // Bulletproof parent_id assignment with explicit logging
-    let parentId: string | null = student.parent_id || null;
+    let parentId: string | null = (student as any).parent_id || null;
     if (!parentId && student.parentContact) {
       const { data: parentRow, error: parentLookupError } = await supabase
         .from("parent_enrollments")
@@ -756,7 +776,7 @@ export class SupabaseStorage implements IStorage {
   }
 
   // Session
-  async createSession(session: InsertSession): Promise<Session> {
+  async createSession(session: any): Promise<Session> {
     const dbSession = {
       tutor_id: session.tutorId,
       student_id: session.studentId,
@@ -812,7 +832,7 @@ export class SupabaseStorage implements IStorage {
   }
 
   // Reflections
-  async createReflection(reflection: InsertReflection): Promise<Reflection> {
+  async createReflection(reflection: any): Promise<Reflection> {
     const { data } = await supabase.from("reflections").insert({
       tutor_id: reflection.tutorId,
       date: reflection.date,
@@ -879,7 +899,7 @@ export class SupabaseStorage implements IStorage {
     };
   }
 
-  async upsertAcademicProfile(profile: InsertAcademicProfile): Promise<AcademicProfile> {
+  async upsertAcademicProfile(profile: any): Promise<AcademicProfile> {
     const dbProfile = {
       student_id: profile.studentId,
       full_name: profile.fullName,
@@ -943,7 +963,7 @@ export class SupabaseStorage implements IStorage {
     }));
   }
 
-  async createStruggleTarget(target: InsertStruggleTarget): Promise<StruggleTarget> {
+  async createStruggleTarget(target: any): Promise<StruggleTarget> {
     const dbTarget = {
       student_id: target.studentId,
       subject: target.subject,
@@ -981,7 +1001,7 @@ export class SupabaseStorage implements IStorage {
 
   async updateStruggleTarget(
     id: string,
-    updates: Partial<InsertStruggleTarget>
+    updates: any
   ): Promise<StruggleTarget | undefined> {
     const dbUpdates: any = { updated_at: new Date() };
     if (updates.subject !== undefined) dbUpdates.subject = updates.subject;
@@ -1025,7 +1045,7 @@ export class SupabaseStorage implements IStorage {
   }
 
   // Verification Docs
-  async createVerificationDoc(doc: InsertVerificationDoc): Promise<VerificationDoc> {
+  async createVerificationDoc(doc: any): Promise<VerificationDoc> {
     const dbDoc = {
       tutor_id: doc.tutorId,
       file_url_agreement: doc.fileUrlAgreement,
@@ -1047,7 +1067,7 @@ export class SupabaseStorage implements IStorage {
   }
 
   // Broadcasts
-  async createBroadcast(broadcast: InsertBroadcast): Promise<Broadcast> {
+  async createBroadcast(broadcast: any): Promise<Broadcast> {
     const dbBroadcast = {
       subject: broadcast.subject,
       message: broadcast.message,
@@ -1217,7 +1237,7 @@ export class SupabaseStorage implements IStorage {
   }
 
   // Tutor Applications
-  async createTutorApplication(application: InsertTutorApplication): Promise<TutorApplication> {
+  async createTutorApplication(application: any): Promise<TutorApplication> {
     const dbApplication = {
       user_id: application.userId,
       full_name: application.fullName,

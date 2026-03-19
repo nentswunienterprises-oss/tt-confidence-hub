@@ -118,8 +118,8 @@ export function useAuth() {
                     setCurrentUserId(null);
                     // Clear ALL React Query cache (memory + localStorage) to prevent stale user data showing for next user
                     clearAllCache();
-                    // Redirect to executive signup page
-                    setLocation("/executive");
+                    // Redirect to landing page
+                    setLocation("/");
                     return [3 /*break*/, 4];
                 case 3:
                     error_1 = _a.sent();

@@ -170,7 +170,7 @@ export function TutorDocumentReview({
               Pending Review: {documentName}
             </CardTitle>
             <CardDescription>
-              Document uploaded — awaiting COO review
+              Document uploaded - awaiting COO review
             </CardDescription>
           </div>
         </CardHeader>

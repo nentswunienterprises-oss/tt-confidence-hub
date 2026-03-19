@@ -195,7 +195,7 @@ export function SequentialDocumentSubmission({
       toast({
         title: "Document Uploaded",
         description:
-          "Your document has been submitted for COO review. We'll notify you once approved.",
+          "Your document has been submitted for review. We'll notify you once approved.",
       });
     },
     onError: (error: Error) => {

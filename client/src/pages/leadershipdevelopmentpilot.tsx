@@ -354,6 +354,7 @@ export default function LeadershipDevelopmentPilot() {
               </div>
             )}
 
+            </div>
           </CardContent>
         </Card>
       </section>

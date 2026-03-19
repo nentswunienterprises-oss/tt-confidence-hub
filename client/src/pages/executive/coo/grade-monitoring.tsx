@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,72 @@ import { Button } from "@/components/ui/button";
 // - All actions require confirmation and reason
 // - No silent changes, all visible in audit log
 // - Clear, unemotional, metric-based notifications
+function SubjectDeclarationForm() {
+  const [subjects, setSubjects] = useState<string[]>([""]);
+  const [academicYear, setAcademicYear] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubjectChange = (idx: number, value: string) => {
+    const updated = [...subjects];
+    updated[idx] = value;
+    setSubjects(updated);
+  };
+  const addSubject = () => setSubjects([...subjects, ""]);
+  const removeSubject = (idx: number) => setSubjects(subjects.filter((_, i) => i !== idx));
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+    setLoading(true);
+    const trimmed = subjects.map(s => s.trim()).filter(Boolean);
+    if (!academicYear) { setError("Academic year required"); setLoading(false); return; }
+    if (trimmed.length === 0) { setError("At least one subject required"); setLoading(false); return; }
+    if (new Set(trimmed).size !== trimmed.length) { setError("Duplicate subject names"); setLoading(false); return; }
+    try {
+      const res = await fetch("/api/tutor/subjects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subjects: trimmed, academicYear }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.message || "Error submitting subjects"); }
+      else { setSuccess("Subjects declared and locked for academic year"); setSubjects([""]); setAcademicYear(""); }
+    } catch { setError("Network error"); }
+    setLoading(false);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="font-medium">Academic Year</label>
+        <input type="text" value={academicYear} onChange={e => setAcademicYear(e.target.value)}
+          className="border rounded px-2 py-1 w-full" placeholder="e.g. 2026" />
+      </div>
+      <div>
+        <label className="font-medium">Subjects</label>
+        {subjects.map((subject, idx) => (
+          <div key={idx} className="flex gap-2 mb-2">
+            <input type="text" value={subject} onChange={e => handleSubjectChange(idx, e.target.value)}
+              className="border rounded px-2 py-1 flex-1" placeholder="Subject name" />
+            {subjects.length > 1 && (
+              <button type="button" onClick={() => removeSubject(idx)} className="text-red-600">Remove</button>
+            )}
+          </div>
+        ))}
+        <button type="button" onClick={addSubject} className="mt-2 text-blue-600">Add Subject</button>
+      </div>
+      {error && <div className="text-red-600">{error}</div>}
+      {success && <div className="text-green-600">{success}</div>}
+      <button type="submit" disabled={loading} className="bg-primary text-white px-4 py-2 rounded">
+        {loading ? "Submitting..." : "Declare Subjects"}
+      </button>
+    </form>
+  );
+}
+
 export default function GradeMonitoring() {
   return (
     <DashboardLayout>
@@ -61,105 +128,6 @@ export default function GradeMonitoring() {
             <SubjectDeclarationForm />
           </CardContent>
         </Card>
-
-// Subject Declaration Form Component
-import { useState } from "react";
-function SubjectDeclarationForm() {
-  const [subjects, setSubjects] = useState<string[]>([""]);
-  const [academicYear, setAcademicYear] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleSubjectChange = (idx: number, value: string) => {
-    const updated = [...subjects];
-    updated[idx] = value;
-    setSubjects(updated);
-  };
-  const addSubject = () => setSubjects([...subjects, ""]);
-  const removeSubject = (idx: number) => setSubjects(subjects.filter((_, i) => i !== idx));
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-    setLoading(true);
-    // Validation
-    const trimmed = subjects.map(s => s.trim()).filter(Boolean);
-    if (!academicYear) {
-      setError("Academic year required");
-      setLoading(false);
-      return;
-    }
-    if (trimmed.length === 0) {
-      setError("At least one subject required");
-      setLoading(false);
-      return;
-    }
-    if (new Set(trimmed).size !== trimmed.length) {
-      setError("Duplicate subject names");
-      setLoading(false);
-      return;
-    }
-    // Submit
-    try {
-      const res = await fetch("/api/tutor/subjects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subjects: trimmed, academicYear }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.message || "Error submitting subjects");
-      } else {
-        setSuccess("Subjects declared and locked for academic year");
-        setSubjects([""]);
-        setAcademicYear("");
-      }
-    } catch (err) {
-      setError("Network error");
-    }
-    setLoading(false);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="font-medium">Academic Year</label>
-        <input
-          type="text"
-          value={academicYear}
-          onChange={e => setAcademicYear(e.target.value)}
-          className="border rounded px-2 py-1 w-full"
-          placeholder="e.g. 2026"
-        />
-      </div>
-      <div>
-        <label className="font-medium">Subjects</label>
-        {subjects.map((subject, idx) => (
-          <div key={idx} className="flex gap-2 mb-2">
-            <input
-              type="text"
-              value={subject}
-              onChange={e => handleSubjectChange(idx, e.target.value)}
-              className="border rounded px-2 py-1 flex-1"
-              placeholder="Subject name"
-            />
-            {subjects.length > 1 && (
-              <button type="button" onClick={() => removeSubject(idx)} className="text-red-600">Remove</button>
-            )}
-          </div>
-        ))}
-        <button type="button" onClick={addSubject} className="mt-2 text-blue-600">Add Subject</button>
-      </div>
-      {error && <div className="text-red-600">{error}</div>}
-      {success && <div className="text-green-600">{success}</div>}
-      <button type="submit" disabled={loading} className="bg-primary text-white px-4 py-2 rounded">
-        {loading ? "Submitting..." : "Declare Subjects"}
-      </button>
-    </form>
-  );
-}
         <Card className="border-2">
           <CardHeader>
             <CardTitle>Grade Monitoring & Academic Compliance System</CardTitle>

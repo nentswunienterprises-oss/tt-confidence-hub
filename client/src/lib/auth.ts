@@ -12,7 +12,7 @@ export async function logout() {
     // Clear ALL React Query cache (memory + localStorage) to prevent stale user data
     clearAllCache();
     
-    // Redirect to executive signup page
+    // Redirect to executive landing page for COO
     window.location.href = "/executive";
   } catch (error) {
     console.error("Logout error:", error);
