@@ -181,7 +181,12 @@ export function SequentialDocumentSubmission({
         throw new Error(`Upload failed: ${response.status} ${text}`);
       }
 
-      return response.json();
+      const payload = await response.json();
+      if (!payload?.publicUrl) {
+        throw new Error("Upload completed but document URL was not returned. Please try again.");
+      }
+
+      return payload;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -213,7 +218,19 @@ export function SequentialDocumentSubmission({
           credentials: "include",
         }
       );
-      if (!response.ok) throw new Error("Failed to download document");
+      if (!response.ok) {
+        let details = "Failed to download document";
+        try {
+          const errorBody = await response.json();
+          details = errorBody?.message || details;
+        } catch {
+          const fallbackText = await response.text();
+          if (fallbackText) {
+            details = fallbackText;
+          }
+        }
+        throw new Error(`(${response.status}) ${details}`);
+      }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -225,9 +242,10 @@ export function SequentialDocumentSubmission({
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not download document template";
       toast({
         title: "Download Failed",
-        description: "Could not download document template",
+        description: message,
         variant: "destructive",
       });
     }
@@ -401,9 +419,13 @@ export function SequentialDocumentSubmission({
                 Revisions Needed:
               </p>
               <p className="text-sm text-red-700">
-                {applicationStatus?.[`doc${currentStep}RejectionReason`] ||
-                  applicationStatus?.[`doc_${currentStep}_rejection_reason`] ||
-                  "Please review and resubmit"}
+                {({
+                  1: applicationStatus?.doc1TutorAgreementRejectionReason || applicationStatus?.doc_1_tutor_agreement_rejection_reason,
+                  2: applicationStatus?.doc2CodeOfConductRejectionReason || applicationStatus?.doc_2_code_of_conduct_rejection_reason,
+                  3: applicationStatus?.doc3EmergencyWaiverRejectionReason || applicationStatus?.doc_3_emergency_waiver_rejection_reason,
+                  4: applicationStatus?.doc4BackgroundAuthRejectionReason || applicationStatus?.doc_4_background_auth_rejection_reason,
+                  5: applicationStatus?.doc5TaxInfoRejectionReason || applicationStatus?.doc_5_tax_info_rejection_reason,
+                } as Record<number, string | undefined>)[currentStep] || "Please review and resubmit"}
               </p>
             </div>
           )}
@@ -423,7 +445,7 @@ export function SequentialDocumentSubmission({
               </Button>
               <input
                 type="file"
-                ref={fileInputRef}
+                disabled={uploadingStep === currentStep}
                 onChange={handleFileChange}
                 accept=".pdf,.jpg,.jpeg,.png"
                 className="hidden"
