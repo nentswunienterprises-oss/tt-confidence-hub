@@ -434,17 +434,18 @@ export function SequentialDocumentSubmission({
           {getDocumentStatus(currentStep) === "not_started" ||
           getDocumentStatus(currentStep) === "pending_upload" ||
           getDocumentStatus(currentStep) === "rejected" ? (
-            <div className="flex gap-2 pt-2">
+            <div className="flex flex-col sm:flex-row gap-2 pt-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handleDownloadTemplate(currentStep)}
-                className="flex items-center gap-2"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto"
               >
                 <Download className="w-4 h-4" />
                 Download Template
               </Button>
               <input
+                ref={fileInputRef}
                 type="file"
                 disabled={uploadingStep === currentStep}
                 onChange={handleFileChange}
@@ -455,7 +456,7 @@ export function SequentialDocumentSubmission({
                 size="sm"
                 disabled={uploadingStep === currentStep}
                 onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-2"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto"
               >
                 {uploadingStep === currentStep ? (
                   <>
