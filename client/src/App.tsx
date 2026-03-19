@@ -35,7 +35,7 @@ import FoundingTutorsWanted from "@/pages/foundingtutorswanted";
 
 // Legacy Tutor Pages (kept for backwards compatibility)
 import TutorPod from "@/pages/operational/tutor/pod";
-import TutorGateway from "@/pages/operational/tutor/gateway";
+import TutorGateway from "@/pages/operational/tutor/gateway.tsx";
 import TutorGrowth from "@/pages/operational/tutor/growth";
 import TutorAcademics from "@/pages/operational/tutor/academics";
 import TutorSessions from "@/pages/operational/tutor/sessions";
@@ -53,7 +53,7 @@ import TDUpdates from "@/pages/operational/td/updates";
 // Legacy COO Pages (kept for backwards compatibility)
 import COODashboard from "@/pages/executive/coo/dashboard";
 import COOApplications from "@/pages/executive/coo/applications";
-import COOTutorApplications from "@/pages/executive/coo/tutor-applications";
+import COOTutorApplications from "@/pages/executive/coo/tutor-applications.tsx";
 import COOPods from "@/pages/executive/coo/pods";
 import COOPodDetail from "@/pages/executive/coo/pod-detail";
 import COOVerification from "@/pages/executive/coo/verification";

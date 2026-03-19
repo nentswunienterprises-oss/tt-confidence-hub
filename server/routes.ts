@@ -685,7 +685,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const documentsStatus = latestApp.documentsStatus && typeof latestApp.documentsStatus === "object"
               ? { ...fallbackDocumentsStatus, ...latestApp.documentsStatus }
               : fallbackDocumentsStatus;
-            const sequentialReviewStarted = Object.values(documentsStatus).some((docStatus) => docStatus !== "not_started");
+            const sequentialReviewStarted = Object.values(documentsStatus).some(
+              (docStatus) => docStatus === "pending_review" || docStatus === "approved" || docStatus === "rejected"
+            );
             const allSequentialDocumentsApproved = Object.values(documentsStatus).every((docStatus) => docStatus === "approved");
             let status = latestApp.status;
             const isUnder18 = latestApp.age < 18;
@@ -3161,7 +3163,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const documentsStatus = latestApp.documentsStatus && typeof latestApp.documentsStatus === "object"
           ? { ...fallbackDocumentsStatus, ...latestApp.documentsStatus }
           : fallbackDocumentsStatus;
-        const sequentialReviewStarted = Object.values(documentsStatus).some((docStatus) => docStatus !== "not_started");
+        const sequentialReviewStarted = Object.values(documentsStatus).some(
+          (docStatus) => docStatus === "pending_review" || docStatus === "approved" || docStatus === "rejected"
+        );
         const allSequentialDocumentsApproved = Object.values(documentsStatus).every((docStatus) => docStatus === "approved");
 
         // Check legacy document upload status
@@ -3181,9 +3185,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             status = "pending";
             break;
           case "approved":
-            if (allSequentialDocumentsApproved || docsVerified) {
+            if (allSequentialDocumentsApproved) {
               status = "confirmed";
-            } else if (sequentialReviewStarted || requiredDocsComplete) {
+            } else if (sequentialReviewStarted) {
               status = "verification"; // Docs uploaded, awaiting verification
             } else {
               status = "approved"; // Still needs to upload docs
