@@ -266,7 +266,7 @@ export default function TutorApplicationsPage() {
           <Dialog open={!!selectedApplication} onOpenChange={() => setSelectedApplication(null)}>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>{(selectedApplication as any).full_name || selectedApplication.fullName}</DialogTitle>
+                <DialogTitle>{(selectedApplication as any).fullName || (selectedApplication as any).fullNames || (selectedApplication as any).full_name || (selectedApplication as any).full_names}</DialogTitle>
                 <DialogDescription>
                   Submitted on {format(new Date((selectedApplication as any).created_at || selectedApplication.createdAt), "PPP")}
                 </DialogDescription>
@@ -357,15 +357,15 @@ function ApplicationCard({
     rejected: "bg-red-100 text-red-800 border-red-200",
   };
 
-  // Handle both camelCase and snake_case
+  // Handle new column names, old column names, and raw snake_case from DB
   const app = application as any;
-  const fullName = app.full_name || app.fullName;
-  const email = app.email;
-  const phone = app.phone;
+  const fullName = app.fullName || app.fullNames || app.full_name || app.full_names || "—";
+  const email = app.email || "—";
+  const phone = app.phone || app.phoneNumber || app.phone_number || "—";
   const age = app.age;
-  const city = app.city;
-  const currentSituation = (app.current_situation || app.currentSituation || "N/A").replace(/_/g, " ");
-  const rejectionReason = app.rejection_reason || app.rejectionReason;
+  const city = app.city || "—";
+  const currentSituation = (app.currentSituation || app.currentStatus || app.current_situation || app.current_status || "N/A").replace(/_/g, " ");
+  const rejectionReason = app.rejectionReason || app.rejection_reason;
 
   return (
     <Card data-testid={`application-card-${application.id}`}>
@@ -432,15 +432,17 @@ function ApplicationCard({
 
 function ApplicationDetails({ application }: { application: TutorApplication }) {
   const app = application as any;
-  const g = (camel: string, snake: string) => app[camel] ?? app[snake];
+  // g() tries new camelCase, old camelCase, new snake_case, old snake_case
+  const g = (newCamel: string, newSnake: string, oldCamel?: string, oldSnake?: string) =>
+    app[newCamel] ?? (oldCamel ? app[oldCamel] : undefined) ?? app[newSnake] ?? (oldSnake ? app[oldSnake] : undefined);
 
   return (
     <div className="space-y-6">
       <Section title="Section 1 – Basic Information">
-        <InfoItem label="Full Name" value={g('fullName', 'full_name')} />
+        <InfoItem label="Full Name" value={g('fullName', 'full_name', 'fullNames', 'full_names')} />
         <InfoItem label="Age" value={String(app.age ?? '')} />
         <InfoItem label="Email" value={app.email} />
-        <InfoItem label="Phone" value={app.phone} />
+        <InfoItem label="Phone" value={g('phone', 'phone', 'phoneNumber', 'phone_number')} />
         <InfoItem label="City" value={app.city} />
       </Section>
 
@@ -453,7 +455,7 @@ function ApplicationDetails({ application }: { application: TutorApplication }) 
       </Section>
 
       <Section title="Section 3 – Current Situation">
-        <InfoItem label="Current Situation" value={(g('currentSituation', 'current_situation') || '').replace(/_/g, ' ')} />
+        <InfoItem label="Current Situation" value={(g('currentSituation', 'current_situation', 'currentStatus', 'current_status') || '').replace(/_/g, ' ')} />
         <InfoItem label="Other (if applicable)" value={g('currentSituationOther', 'current_situation_other')} />
         <InfoItem label="Why interested?" value={g('interestReason', 'interest_reason')} />
       </Section>
@@ -482,7 +484,7 @@ function ApplicationDetails({ application }: { application: TutorApplication }) 
 
       <Section title="Section 8 – Availability">
         <InfoItem label="Hours Per Week" value={g('hoursPerWeek', 'hours_per_week')} />
-        <InfoItem label="Available Afternoons?" value={g('availableAfternoon', 'available_afternoon')} />
+        <InfoItem label="Available Afternoons?" value={g('availableAfternoon', 'available_afternoon', 'bootcampAvailable', 'bootcamp_available')} />
       </Section>
 
       <Section title="Section 9 – Final Filter">
@@ -490,7 +492,7 @@ function ApplicationDetails({ application }: { application: TutorApplication }) 
       </Section>
 
       <Section title="Section 10 – Commitment">
-        <InfoItem label="Committed to training & protocols?" value={g('commitment', 'commitment')} />
+        <InfoItem label="Committed to training & protocols?" value={g('commitment', 'commitment', 'commitToTrial', 'commit_to_trial') === true ? 'yes' : g('commitment', 'commitment', 'commitToTrial', 'commit_to_trial')} />
       </Section>
     </div>
   );
@@ -532,8 +534,8 @@ function VerificationCard({
   isVerifying: boolean;
 }) {
   const app = application as any;
-  const fullName = app.full_name || app.fullName;
-  const email = app.email;
+  const fullName = app.fullName || app.fullNames || app.full_name || app.full_names || "—";
+  const email = app.email || "—";
   const age = app.age;
   const isUnder18 = age < 18;
   
