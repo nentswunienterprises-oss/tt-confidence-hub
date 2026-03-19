@@ -432,7 +432,8 @@ export function SequentialDocumentSubmission({
 
           {/* Action Buttons */}
           {getDocumentStatus(currentStep) === "not_started" ||
-          getDocumentStatus(currentStep) === "pending_upload" ? (
+          getDocumentStatus(currentStep) === "pending_upload" ||
+          getDocumentStatus(currentStep) === "rejected" ? (
             <div className="flex gap-2 pt-2">
               <Button
                 variant="outline"
@@ -464,17 +465,21 @@ export function SequentialDocumentSubmission({
                 ) : (
                   <>
                     <Upload className="w-4 h-4" />
-                    Upload Signed Document
+                    {getDocumentStatus(currentStep) === "rejected" ? "Resubmit Document" : "Upload Signed Document"}
                   </>
                 )}
               </Button>
             </div>
-          ) : (
+          ) : getDocumentStatus(currentStep) === "pending_review" ? (
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-800">
-                {getDocumentStatus(currentStep) === "pending_review"
-                  ? "✓ Your document has been submitted. We're reviewing it now."
-                  : "✓ This document has been approved!"}
+                ✓ Your document has been submitted. We're reviewing it now.
+              </p>
+            </div>
+          ) : (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-800">
+                ✓ This document has been approved!
               </p>
             </div>
           )}
