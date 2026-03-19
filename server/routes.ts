@@ -12,6 +12,7 @@ declare module 'express-session' {
 import type { Express, Request, Response } from "express";
 import { existsSync } from "fs";
 import { createServer, type Server } from "http";
+import { join, resolve } from "path";
 import { storage, supabase, createAffiliateCode } from "./storage";
 import { setupAuth, isAuthenticated } from "./supabaseAuth";
 import { fileURLToPath } from "url";
@@ -3270,6 +3271,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Get public URL
         const { data: urlData } = supabase.storage.from('tutor-documents').getPublicUrl(safeFileName);
+        if (!urlData?.publicUrl) {
+          console.error('Could not resolve public URL for uploaded onboarding document', {
+            applicationId,
+            docStep: isSequentialUpload ? parsedDocStep : undefined,
+            documentType: isSequentialUpload ? undefined : documentType,
+            safeFileName,
+          });
+          return res.status(500).json({ message: 'Upload succeeded but file URL could not be generated' });
+        }
 
         // Save to database
         const updated = isSequentialUpload
@@ -3312,13 +3322,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "Invalid document step" });
         }
 
-        const templatePath = fileURLToPath(
-          new URL(`../assets/tutor-onboarding/${templateFileName}`, import.meta.url)
-        );
+        const templatePathCandidates = [
+          // Source execution (tsx server/index.ts)
+          fileURLToPath(new URL(`../assets/tutor-onboarding/${templateFileName}`, import.meta.url)),
+          // Dist execution (node dist/index.js)
+          fileURLToPath(new URL(`../../assets/tutor-onboarding/${templateFileName}`, import.meta.url)),
+          // Runtime cwd fallback
+          resolve(process.cwd(), "assets", "tutor-onboarding", templateFileName),
+          // Runtime cwd fallback when started from server folder
+          resolve(process.cwd(), "..", "assets", "tutor-onboarding", templateFileName),
+        ];
 
-        if (!existsSync(templatePath)) {
+        const templatePath = templatePathCandidates.find((candidate) => existsSync(candidate));
+
+        if (!templatePath) {
+          console.error("Onboarding template not found", {
+            docStep,
+            templateFileName,
+            triedPaths: templatePathCandidates,
+          });
           return res.status(404).json({
-            message: "Template not configured yet for this document step",
+            message: "Template file not found on API server for this step",
+            templateFileName,
           });
         }
 
