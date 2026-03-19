@@ -24,6 +24,7 @@ export default function TutorApplicationsPage() {
   const [selectedApplication, setSelectedApplication] = useState<TutorApplication | null>(null);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [verificationSubTab, setVerificationSubTab] = useState<"pending" | "verified">("pending");
 
   const { data: applications, isLoading, error } = useQuery<TutorApplication[]>({
     queryKey: ["/api/coo/tutor-applications"],
@@ -109,12 +110,19 @@ export default function TutorApplicationsPage() {
 
   const pendingApplications = applications?.filter((app) => app.status === "pending") || [];
   const approvedApplications = applications?.filter((app) => app.status === "approved") || [];
-  // Verification tab: approved tutors with a document pending COO review
-  const verificationApplications = applications?.filter((app) => {
+  // Verification tab pending: approved tutors with at least one document pending COO review
+  const verificationPendingApplications = applications?.filter((app) => {
     if (app.status !== "approved") return false;
     const a = app as any;
     const documentsStatus = a.documentsStatus || a.documents_status || {};
     return Object.values(documentsStatus).some((status) => status === "pending_review");
+  }) || [];
+  // Verification tab verified: approved tutors with all 5 sequential docs approved
+  const verificationVerifiedApplications = applications?.filter((app) => {
+    if (app.status !== "approved") return false;
+    const a = app as any;
+    const documentsStatus = a.documentsStatus || a.documents_status || {};
+    return ["1", "2", "3", "4", "5"].every((step) => documentsStatus[step] === "approved");
   }) || [];
   const rejectedApplications = applications?.filter((app) => app.status === "rejected") || [];
 
@@ -145,7 +153,7 @@ export default function TutorApplicationsPage() {
             </TabsTrigger>
             <TabsTrigger value="verification" className="flex-1 min-w-0 gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4" data-testid="tab-verification">
               <FileCheck className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-              <span className="truncate">Verification ({verificationApplications.length})</span>
+              <span className="truncate">Verification ({verificationPendingApplications.length})</span>
             </TabsTrigger>
             <TabsTrigger value="approved" className="flex-1 min-w-0 gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4" data-testid="tab-approved">
               <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
@@ -180,19 +188,45 @@ export default function TutorApplicationsPage() {
           </TabsContent>
 
           <TabsContent value="verification" className="space-y-4">
-            {verificationApplications.length === 0 ? (
-              <Card className="p-12 text-center">
-                <FileCheck className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground">No documents awaiting verification</p>
-              </Card>
-            ) : (
-              verificationApplications.map((application) => (
-                <TutorDocumentReview
-                  key={application.id}
-                  application={application}
-                />
-              ))
-            )}
+            <Tabs value={verificationSubTab} onValueChange={(value) => setVerificationSubTab(value as "pending" | "verified")}>
+              <TabsList className="w-full sm:w-auto grid grid-cols-2">
+                <TabsTrigger value="pending" data-testid="tab-verification-pending">
+                  Pending ({verificationPendingApplications.length})
+                </TabsTrigger>
+                <TabsTrigger value="verified" data-testid="tab-verification-verified">
+                  Verified ({verificationVerifiedApplications.length})
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="pending" className="space-y-4 mt-4">
+                {verificationPendingApplications.length === 0 ? (
+                  <Card className="p-12 text-center">
+                    <FileCheck className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-muted-foreground">No documents awaiting verification</p>
+                  </Card>
+                ) : (
+                  verificationPendingApplications.map((application) => (
+                    <TutorDocumentReview
+                      key={application.id}
+                      application={application}
+                    />
+                  ))
+                )}
+              </TabsContent>
+
+              <TabsContent value="verified" className="space-y-4 mt-4">
+                {verificationVerifiedApplications.length === 0 ? (
+                  <Card className="p-12 text-center">
+                    <FileCheck className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-muted-foreground">No fully verified document sets yet</p>
+                  </Card>
+                ) : (
+                  verificationVerifiedApplications.map((application) => (
+                    <VerifiedSubmissionCard key={application.id} application={application} />
+                  ))
+                )}
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="approved" className="space-y-4">
@@ -639,6 +673,76 @@ function VerificationCard({
             </p>
           </div>
         )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function VerifiedSubmissionCard({ application }: { application: TutorApplication }) {
+  const app = application as any;
+  const fullName = app.fullName || app.fullNames || app.full_name || app.full_names || "—";
+  const email = app.email || "—";
+
+  const submittedDocs: Array<{ step: number; name: string; url?: string }> = [
+    {
+      step: 1,
+      name: "Consent Form (Adult)",
+      url: app.doc1TutorAgreementUrl || app.doc_1_tutor_agreement_url,
+    },
+    {
+      step: 2,
+      name: "Independent Contractor Agreement (Adult)",
+      url: app.doc2CodeOfConductUrl || app.doc_2_code_of_conduct_url,
+    },
+    {
+      step: 3,
+      name: "Safeguarding and Conduct Policy (Adult)",
+      url: app.doc3EmergencyWaiverUrl || app.doc_3_emergency_waiver_url,
+    },
+    {
+      step: 4,
+      name: "Data Protection Consent (Adult)",
+      url: app.doc4BackgroundAuthUrl || app.doc_4_background_auth_url,
+    },
+    {
+      step: 5,
+      name: "Matric Entry Qualification Verification",
+      url: app.doc5TaxInfoUrl || app.doc_5_tax_info_url,
+    },
+  ];
+
+  return (
+    <Card data-testid={`verified-submissions-${application.id}`}>
+      <CardHeader className="pb-3 sm:pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+          <div className="space-y-1 min-w-0">
+            <CardTitle className="text-lg sm:text-xl truncate">{fullName}</CardTitle>
+            <CardDescription className="text-xs sm:text-sm break-all">{email}</CardDescription>
+          </div>
+          <Badge className="bg-green-100 text-green-800 border-green-200 shrink-0 text-xs">
+            5 DOCS VERIFIED
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {submittedDocs.map((doc) => (
+          <div key={doc.step} className="flex items-center justify-between gap-3 rounded-md border p-3">
+            <div>
+              <p className="text-sm font-medium">Step {doc.step}: {doc.name}</p>
+              <p className="text-xs text-muted-foreground">Signed submission</p>
+            </div>
+            {doc.url ? (
+              <a href={doc.url} target="_blank" rel="noopener noreferrer" className="inline-flex">
+                <Button size="sm" variant="outline" className="gap-1">
+                  View
+                  <ExternalLink className="w-3 h-3" />
+                </Button>
+              </a>
+            ) : (
+              <Badge variant="outline" className="text-muted-foreground">Missing URL</Badge>
+            )}
+          </div>
+        ))}
       </CardContent>
     </Card>
   );
