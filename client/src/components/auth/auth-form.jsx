@@ -202,7 +202,8 @@ export function AuthForm(_a) {
                     }
                     redirectUrl = data.redirectUrl || getDefaultDashboardRoute(role);
                     toast({
-                        title: "Account successfully created, you may log in!",
+                        title: "Welcome!",
+                        description: "Your account has been created successfully. You may log in now.",
                     });
                     // Wait for session to fully propagate before redirecting
                     // Increased from 100ms to 500ms to ensure cookies are properly set
