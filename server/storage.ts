@@ -31,7 +31,7 @@ export function transformSnakeToCamel(obj: any): any {
   const result: any = {};
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+      const camelKey = key.replace(/_([a-z0-9])/g, (_, char) => char.toUpperCase());
       result[camelKey] = transformSnakeToCamel(obj[key]);
     }
   }

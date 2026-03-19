@@ -420,11 +420,11 @@ export function SequentialDocumentSubmission({
               </p>
               <p className="text-sm text-red-700">
                 {({
-                  1: applicationStatus?.doc1TutorAgreementRejectionReason || applicationStatus?.doc_1_tutor_agreement_rejection_reason,
-                  2: applicationStatus?.doc2CodeOfConductRejectionReason || applicationStatus?.doc_2_code_of_conduct_rejection_reason,
-                  3: applicationStatus?.doc3EmergencyWaiverRejectionReason || applicationStatus?.doc_3_emergency_waiver_rejection_reason,
-                  4: applicationStatus?.doc4BackgroundAuthRejectionReason || applicationStatus?.doc_4_background_auth_rejection_reason,
-                  5: applicationStatus?.doc5TaxInfoRejectionReason || applicationStatus?.doc_5_tax_info_rejection_reason,
+                  1: applicationStatus?.doc1TutorAgreementRejectionReason || applicationStatus?.doc_1TutorAgreementRejectionReason || applicationStatus?.doc_1_tutor_agreement_rejection_reason,
+                  2: applicationStatus?.doc2CodeOfConductRejectionReason || applicationStatus?.doc_2CodeOfConductRejectionReason || applicationStatus?.doc_2_code_of_conduct_rejection_reason,
+                  3: applicationStatus?.doc3EmergencyWaiverRejectionReason || applicationStatus?.doc_3EmergencyWaiverRejectionReason || applicationStatus?.doc_3_emergency_waiver_rejection_reason,
+                  4: applicationStatus?.doc4BackgroundAuthRejectionReason || applicationStatus?.doc_4BackgroundAuthRejectionReason || applicationStatus?.doc_4_background_auth_rejection_reason,
+                  5: applicationStatus?.doc5TaxInfoRejectionReason || applicationStatus?.doc_5TaxInfoRejectionReason || applicationStatus?.doc_5_tax_info_rejection_reason,
                 } as Record<number, string | undefined>)[currentStep] || "Please review and resubmit"}
               </p>
             </div>
