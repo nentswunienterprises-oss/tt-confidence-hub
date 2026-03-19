@@ -202,8 +202,7 @@ export function AuthForm(_a) {
                     }
                     redirectUrl = data.redirectUrl || getDefaultDashboardRoute(role);
                     toast({
-                        title: "Verify your email",
-                        description: "Check your email and click the verification link before logging in.",
+                        title: "Account successfully created, you may log in!",
                     });
                     // Wait for session to fully propagate before redirecting
                     // Increased from 100ms to 500ms to ensure cookies are properly set

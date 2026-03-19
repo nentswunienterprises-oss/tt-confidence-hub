@@ -180,8 +180,7 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
         redirectUrl = data.redirectUrl || getDefaultDashboardRoute(role);
 
         toast({
-          title: "Verify your email",
-          description: "Check your email and click the verification link before logging in.",
+          title: "Account successfully created, you may log in!",
         });
         
         // Wait for session to fully propagate before redirecting
