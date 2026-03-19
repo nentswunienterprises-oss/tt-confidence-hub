@@ -46,7 +46,7 @@ import TDUpdates from "@/pages/operational/td/updates";
 // Legacy COO Pages (kept for backwards compatibility)
 import COODashboard from "@/pages/executive/coo/dashboard";
 import COOApplications from "@/pages/executive/coo/applications";
-import COOTutorApplications from "@/pages/executive/coo/tutor-applications";
+import COOTutorApplications from "@/pages/executive/coo/tutor-applications.tsx";
 import COOPods from "@/pages/executive/coo/pods";
 import COOPodDetail from "@/pages/executive/coo/pod-detail";
 import COOVerification from "@/pages/executive/coo/verification";

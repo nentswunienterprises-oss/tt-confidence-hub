@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Loader2 } from "lucide-react";
 
 const ageSchema = z
   .string()
@@ -732,8 +733,10 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
               }}
               disabled={isSubmitting || !isSectionValid()}
               aria-label="Submit application"
+              className="gap-2"
             >
-              Submit Application
+              {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+              {isSubmitting ? "Submitting..." : "Submit Application"}
             </Button>
           )}
         </div>
