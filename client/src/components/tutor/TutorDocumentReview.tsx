@@ -56,6 +56,7 @@ export function TutorDocumentReview({
     application.full_names ||
     "Unknown Tutor";
   const email = application.email || "No email";
+  const tutorUserId = application.userId || application.user_id || "Unknown";
   const applicationId = application.id || "Unknown";
 
   const documentsStatus = application.documentsStatus || application.documents_status || {};
@@ -158,7 +159,8 @@ export function TutorDocumentReview({
             <div>
               <p className="text-sm font-semibold text-amber-900">{fullName}</p>
               <p className="text-xs text-amber-700">{email}</p>
-              <p className="text-xs text-amber-600 mt-0.5">ID: {applicationId}</p>
+              <p className="text-xs text-amber-600 mt-0.5">Tutor ID: {tutorUserId}</p>
+              <p className="text-xs text-amber-600">Application Ref: {applicationId}</p>
             </div>
             <span className="text-xs font-medium bg-amber-100 text-amber-800 px-2 py-1 rounded whitespace-nowrap">
               Step {currentDocStep} of 5
