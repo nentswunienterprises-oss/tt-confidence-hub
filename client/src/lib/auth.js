@@ -55,8 +55,8 @@ export function logout() {
                     _a.sent();
                     // Clear ALL React Query cache (memory + localStorage) to prevent stale user data
                     clearAllCache();
-                    // Redirect to home
-                    window.location.href = "/";
+                    // Redirect to executive signup page
+                    window.location.href = "/executive";
                     return [3 /*break*/, 4];
                 case 3:
                     error_1 = _a.sent();
@@ -64,7 +64,7 @@ export function logout() {
                     // Clear cache even on error
                     clearAllCache();
                     // Force redirect even on error
-                    window.location.href = "/";
+                    window.location.href = "/executive";
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
             }
