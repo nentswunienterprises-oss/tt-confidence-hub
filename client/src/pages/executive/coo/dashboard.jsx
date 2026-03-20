@@ -471,8 +471,8 @@ export default function COODashboard() {
     };
     return (<DashboardLayout>
       <div className="space-y-8">
-        {/* Grade Monitoring System Link */}
-        <section>
+        {/* Grade Monitoring System Link - hidden */}
+        {false && <section>
           <Card className="mb-4">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -486,9 +486,9 @@ export default function COODashboard() {
               <p className="text-muted-foreground text-sm">Protect institutional credibility, enforce tutor discipline, automate consequences, and maintain trust with schools. Full compliance engine for academic review.</p>
             </CardContent>
           </Card>
-        </section>
-        {/* Sales & Affiliates Section */}
-        <section>
+        </section>}
+        {/* Sales & Affiliates Section - hidden */}
+        {false && <section>
           <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Affiliate Sales</h2>
           
           {salesStatsLoading ? (<Card>
@@ -502,7 +502,7 @@ export default function COODashboard() {
                 No affiliates yet.
               </CardContent>
             </Card>)}
-        </section>
+        </section>}
 
         {/* Pods Section - VIEW ONLY */}
         {/* Pilot Considerations Section - ALL PILOT SUBMISSIONS */}
