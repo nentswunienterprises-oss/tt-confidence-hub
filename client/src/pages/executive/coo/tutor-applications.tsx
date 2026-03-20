@@ -189,11 +189,11 @@ export default function TutorApplicationsPage() {
 
           <TabsContent value="verification" className="space-y-4">
             <Tabs value={verificationSubTab} onValueChange={(value) => setVerificationSubTab(value as "pending" | "verified")}>
-              <TabsList className="w-full sm:w-auto grid grid-cols-2">
-                <TabsTrigger value="pending" data-testid="tab-verification-pending">
+              <TabsList className="w-full sm:w-auto grid grid-cols-2 h-auto">
+                <TabsTrigger value="pending" data-testid="tab-verification-pending" className="text-xs sm:text-sm px-2 sm:px-4">
                   Pending ({verificationPendingApplications.length})
                 </TabsTrigger>
-                <TabsTrigger value="verified" data-testid="tab-verification-verified">
+                <TabsTrigger value="verified" data-testid="tab-verification-verified" className="text-xs sm:text-sm px-2 sm:px-4">
                   Verified ({verificationVerifiedApplications.length})
                 </TabsTrigger>
               </TabsList>

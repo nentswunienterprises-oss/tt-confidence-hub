@@ -155,14 +155,14 @@ export function TutorDocumentReview({
     <>
       <Card className="border-blue-200">
         <CardHeader className="pb-3">
-          <div className="flex items-start justify-between gap-4 mb-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
             <div>
               <p className="text-sm font-semibold text-amber-900">{fullName}</p>
               <p className="text-xs text-amber-700">{email}</p>
               <p className="text-xs text-amber-600 mt-0.5">Tutor ID: {tutorUserId}</p>
               <p className="text-xs text-amber-600">Application Ref: {applicationId}</p>
             </div>
-            <span className="text-xs font-medium bg-amber-100 text-amber-800 px-2 py-1 rounded whitespace-nowrap">
+            <span className="text-xs font-medium bg-amber-100 text-amber-800 px-2 py-1 rounded self-start whitespace-nowrap">
               Step {currentDocStep} of 5
             </span>
           </div>
@@ -180,7 +180,7 @@ export function TutorDocumentReview({
           {/* Document Viewer */}
           {documentUrl ? (
             <div className="p-4 bg-gray-50 border rounded-lg">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
                 <p className="text-sm font-medium flex items-center gap-2">
                   <FileText className="w-4 h-4" />
                   {documentName}
@@ -209,12 +209,12 @@ export function TutorDocumentReview({
           )}
 
           {/* Review Actions */}
-          <div className="flex gap-2 pt-2">
+          <div className="flex flex-col sm:flex-row gap-2 pt-2">
             <Button
               size="sm"
               disabled={reviewMutation.isPending || !documentUrl}
               onClick={() => reviewMutation.mutate({ approved: true })}
-              className="gap-2"
+              className="gap-2 w-full sm:w-auto"
             >
               {reviewMutation.isPending ? (
                 <>
@@ -233,6 +233,7 @@ export function TutorDocumentReview({
               variant="outline"
               disabled={reviewMutation.isPending}
               onClick={() => setShowRejectDialog(true)}
+              className="w-full sm:w-auto"
             >
               Reject & Ask for Changes
             </Button>
