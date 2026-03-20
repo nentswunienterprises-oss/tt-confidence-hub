@@ -292,6 +292,17 @@ export default function FAQPage() {
           </details>
         ))}
       </div>
+      <div className="mt-12 text-center rounded-xl p-6 sm:p-8" style={{ backgroundColor: "#FFF0F0" }}>
+        <p className="text-base sm:text-lg font-semibold mb-1" style={{ color: "#1A1A1A" }}>Still have questions?</p>
+        <p className="text-sm sm:text-base mb-4" style={{ color: "#5A5A5A" }}>Reach out directly and we'll respond with clarity.</p>
+        <a
+          href="mailto:admin@territorialtutoring.co.za"
+          className="inline-block rounded-lg px-6 py-3 text-sm sm:text-base font-semibold text-white transition-opacity hover:opacity-90"
+          style={{ backgroundColor: "#CC0000" }}
+        >
+          admin@territorialtutoring.co.za
+        </a>
+      </div>
     </div>
   );
 }
