@@ -197,7 +197,7 @@ export default function ResponseConditioningHowToGuide() {
           <h2 className="text-2xl font-bold">The Silence Rule</h2>
           <p className="text-muted-foreground">When the student is stuck:</p>
           <p className="text-xl font-bold text-primary">Wait.</p>
-          <p className="text-lg font-semibold">10–15 seconds.</p>
+          <p className="text-lg font-semibold">10-15 seconds.</p>
 
           <div>
             <p className="font-semibold mb-2">Why</p>
