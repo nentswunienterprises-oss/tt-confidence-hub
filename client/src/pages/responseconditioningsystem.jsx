@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  ArrowLeft,
   Lock,
   Cpu,
   Radar,
@@ -119,6 +121,13 @@ export default function ResponseConditioningSystem() {
     <div className="min-h-screen bg-background">
       <div className="border-b bg-card">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+          <Button variant="ghost" className="mb-4 -ml-2" asChild>
+            <Link to="/operational/tutor/pod">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Pod
+            </Link>
+          </Button>
+
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
               <Lock className="w-6 h-6 text-primary" />
