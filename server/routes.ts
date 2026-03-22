@@ -1682,7 +1682,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .order("created_at", { ascending: false })
           .maybeSingle();
 
-        if (introSession?.status !== "confirmed") {
+        // Fallback: session may be stored with parent_id only (student_id null)
+        let resolvedSession = introSession;
+        if (!resolvedSession) {
+          const parentId = (student as any).parentId || null;
+          if (parentId) {
+            const { data: introByParent } = await supabase
+              .from("scheduled_sessions")
+              .select("status")
+              .eq("tutor_id", dbUser.id)
+              .eq("parent_id", parentId)
+              .eq("type", "intro")
+              .is("student_id", null)
+              .order("created_at", { ascending: false })
+              .maybeSingle();
+            resolvedSession = introByParent;
+          }
+        }
+
+        if (resolvedSession?.status !== "confirmed") {
           return res.status(400).json({ message: "Intro session must be confirmed before completing" });
         }
 
