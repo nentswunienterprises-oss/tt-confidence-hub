@@ -122,7 +122,7 @@ export default function ResponseConditioningSystem() {
       <div className="border-b bg-card">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
           <Button variant="ghost" className="mb-4 -ml-2" asChild>
-            <Link to="/operational/tutor/pod">
+            <Link to="/tutor/pod">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Pod
             </Link>

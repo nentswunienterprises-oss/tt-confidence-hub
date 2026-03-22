@@ -28,7 +28,7 @@ export default function ResponseConditioningControlledDiscomfort() {
                 TT-OS Deep Dive
               </p>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-1">
-                Phase 3 - Controlled Discomfort
+                Controlled Discomfort
               </h1>
             </div>
           </div>
