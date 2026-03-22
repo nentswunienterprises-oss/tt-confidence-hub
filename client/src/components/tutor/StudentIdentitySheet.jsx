@@ -544,7 +544,7 @@ export default function StudentIdentitySheet(_a) {
             <Card className="bg-blue-50">
               <CardHeader>
                 <CardTitle className="text-lg">
-                  🟣 Identity Sheet: The Real TT Intro Session Blueprint
+                  Introductory Session
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">

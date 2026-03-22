@@ -308,7 +308,7 @@ export default function TutorPod() {
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium text-foreground">TT-OS Protocol</span>
                   <br />
-                  Every session conditions response: 3-Layer Lens + Boss Battles + Timed Execution = Conditioned Response.
+                  3-Layer Lens + Boss Battles + Timed Execution = Conditioned Response.
                 </p>
               </div>
               {/* <Button className="w-full" asChild>
