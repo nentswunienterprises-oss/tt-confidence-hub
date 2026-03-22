@@ -28,7 +28,7 @@ export default function ResponseConditioningTimePressureStability() {
                 TT-OS Deep Dive
               </p>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-1">
-                Phase 4 - Time Pressure Stability
+                Time Pressure Stability
               </h1>
             </div>
           </div>
