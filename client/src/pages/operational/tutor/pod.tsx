@@ -303,7 +303,7 @@ export default function TutorPod() {
                 variant="outline"
                 asChild
               >
-                <Link to="/operational/tutor/tt-os">
+                <Link to="/responseconditioningsystem">
                   <Lock className="w-4 h-4 mr-2" />
                   View TT-OS
                 </Link>

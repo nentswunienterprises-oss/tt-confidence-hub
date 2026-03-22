@@ -1,0 +1,196 @@
+import { Link } from "react-router-dom";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Lock,
+  Cpu,
+  Radar,
+  Cog,
+  Gauge,
+  ChevronRight,
+  AlertTriangle,
+} from "lucide-react";
+
+const modules = [
+  {
+    id: "1",
+    title: "Transformation Phases",
+    subtitle: "What happens to the student",
+    icon: Gauge,
+    items: [
+      {
+        label: "Clarity",
+        href: "/responseconditioningsystem/clarity",
+      },
+      {
+        label: "Structured Execution",
+        href: "/responseconditioningsystem/structured-execution",
+      },
+      {
+        label: "Controlled Discomfort",
+        href: "/responseconditioningsystem/controlled-discomfort",
+      },
+      {
+        label: "Time Pressure Stability",
+        href: "/responseconditioningsystem/time-pressure-stability",
+      },
+    ],
+  },
+  {
+    id: "2",
+    title: "Execution Standards",
+    subtitle: "How tutors must operate",
+    icon: Cog,
+    items: [
+      {
+        label: "How to model",
+        href: "/responseconditioningsystem/execution-standards/how-to-model",
+      },
+      {
+        label: "How to guide",
+        href: "/responseconditioningsystem/execution-standards/how-to-guide",
+      },
+      {
+        label: "How to use Boss Battles",
+        href: "/responseconditioningsystem/execution-standards/how-to-use-boss-battles",
+      },
+      {
+        label: "What not to do",
+        href: "/responseconditioningsystem/execution-standards/what-not-to-do",
+      },
+      {
+        label: "Emotional discipline under discomfort",
+        href: "/responseconditioningsystem/execution-standards/emotional-discipline-under-discomfort",
+      },
+    ],
+  },
+  {
+    id: "3",
+    title: "System Intelligence",
+    subtitle: "How to interpret student behavior",
+    icon: Radar,
+    items: [
+      {
+        label: "What changes in the student",
+        href: "/responseconditioningsystem/system-intelligence/what-changes-in-the-student",
+      },
+      {
+        label: "Signs of progress",
+        href: "/responseconditioningsystem/system-intelligence/signs-of-progress",
+      },
+      {
+        label: "Breakdown patterns",
+        href: "/responseconditioningsystem/system-intelligence/breakdown-patterns",
+      },
+      {
+        label: "Before vs after",
+        href: "/responseconditioningsystem/system-intelligence/before-vs-after",
+      },
+    ],
+  },
+  {
+    id: "4",
+    title: "Session Infrastructure",
+    subtitle: "How the system is executed and tracked",
+    icon: Cpu,
+    items: [
+      {
+        label: "Intro session structure",
+        href: "/responseconditioningsystem/session-infrastructure/intro-session-structure",
+      },
+      {
+        label: "Session flow control",
+        href: "/responseconditioningsystem/session-infrastructure/session-flow-control",
+      },
+      {
+        label: "Logging system",
+        href: "/responseconditioningsystem/session-infrastructure/logging-system",
+      },
+      {
+        label: "Tools required",
+        href: "/responseconditioningsystem/session-infrastructure/tools-required",
+      },
+    ],
+  },
+];
+
+export default function ResponseConditioningSystem() {
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="border-b bg-card">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Lock className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-2">
+                The Response Conditioning System
+              </h1>
+              <p className="text-base md:text-lg text-muted-foreground max-w-3xl">
+                Mechanism gate. This is the system map: enter each module, study the protocol,
+                and execute with precision.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-12 space-y-8">
+        <Card className="border-primary/30 bg-primary/5">
+          <div className="p-6">
+            <div className="flex gap-3 items-start">
+              <AlertTriangle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+              <div className="space-y-2">
+                <h2 className="font-bold text-lg">Gate Access</h2>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  TT-OS is what separates us from every other tutoring company. What you're about to learn is not shared with parents, not discussed publicly, and not optional. This is the system. You execute it with precision. This page is the entry point. Each section below links to its own deep-dive
+                  protocol page. Use this as the operating index, not a summary.
+                </p>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        <div className="grid md:grid-cols-2 gap-5">
+          {modules.map((module) => {
+            const Icon = module.icon;
+
+            return (
+              <Card
+                key={module.id}
+                className="group border border-border/80 bg-card hover:border-primary/40 transition-colors"
+              >
+                <div className="p-6 h-full flex flex-col gap-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <Badge className="mb-3">Module {module.id}</Badge>
+                      <h3 className="text-xl font-bold leading-tight">{module.title}</h3>
+                      <p className="text-sm text-muted-foreground mt-2">{module.subtitle}</p>
+                    </div>
+                    <div className="w-10 h-10 rounded-md border bg-primary/5 border-primary/20 flex items-center justify-center flex-shrink-0">
+                      <Icon className="w-5 h-5 text-primary" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    {module.items.map((item) => (
+                      <Link
+                        key={item.label}
+                        to={item.href}
+                        className="flex items-center justify-between text-sm text-muted-foreground border-b border-dashed border-border/60 pb-2 hover:text-foreground transition-colors"
+                      >
+                        <span>{item.label}</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -177,7 +177,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const tutorNav: NavItem[] = [
     { label: "My Pod", path: "/tutor/pod", icon: <FolderKanban className="w-5 h-5" /> },
     { label: "Growth", path: "/tutor/growth", icon: <TrendingUp className="w-5 h-5" /> },
-    { label: "Academics", path: "/tutor/academics", icon: <BookOpen className="w-5 h-5" /> },
     { label: "Sessions", path: "/tutor/sessions", icon: <Calendar className="w-5 h-5" /> },
     { label: "Updates", path: "/tutor/updates", icon: <Bell className="w-5 h-5" /> },
   ];

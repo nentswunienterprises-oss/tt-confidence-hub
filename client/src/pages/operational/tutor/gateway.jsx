@@ -61,65 +61,79 @@ export default function TutorGateway() {
     var trialAgreementInputRef = useRef(null);
     var parentConsentInputRef = useRef(null);
     // Fetch current user data
-    // Use shared auth hook which waits for Supabase session restore
-    var _d = useAuth(), user = _d.user, userLoading = _d.isLoading, isAuthenticated = _d.isAuthenticated;
-    // Fetch aggregated gateway session
-    var _e = useQuery({
-        queryKey: ["/api/tutor/gateway-session"],
-        queryFn: getQueryFn({ on401: "returnNull" }),
-        enabled: isAuthenticated,
-        retry: 3,
-        retryDelay: function (attemptIndex) { return Math.min(1000 * Math.pow(2, attemptIndex), 5000); },
-    }), gatewaySession = _e.data, gatewayLoading = _e.isLoading, gatewayError = _e.error;
-    // Debug: log the gateway session response
-    useEffect(function () {
-        if (gatewaySession) {
-            console.log("🔍 gatewaySession response:", gatewaySession);
-        }
-    }, [gatewaySession]);
-    // Extract application status, pod assignment, etc. from gatewaySession
-    var applicationStatus = (gatewaySession === null || gatewaySession === void 0 ? void 0 : gatewaySession.applicationStatus) || null;
-    var podData = {
-        assignment: gatewaySession === null || gatewaySession === void 0 ? void 0 : gatewaySession.assignment,
-        students: gatewaySession === null || gatewaySession === void 0 ? void 0 : gatewaySession.students,
-    };
-    var hasPodAssignment = !!podData.assignment;
-    // Province, role, enrollmentStatus, verificationStatus available as needed
-    // const province = gatewaySession?.province;
-    // const role = gatewaySession?.role;
-    // const enrollmentStatus = gatewaySession?.enrollmentStatus;
-    // const verificationStatus = gatewaySession?.verificationStatus;
-    // Loading and error states
-    var appStatusLoading = gatewayLoading;
-    var appStatusError = gatewayError;
-    // Document upload mutation
-    var uploadDocumentMutation = useMutation({
-        mutationFn: function (_a) { return __awaiter(_this, [_a], void 0, function (_b) {
-            var readFileAsBase64, base64, ext, fileName, response, text;
-            var documentType = _b.documentType, file = _b.file;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        if (!(applicationStatus === null || applicationStatus === void 0 ? void 0 : applicationStatus.applicationId) || !(user === null || user === void 0 ? void 0 : user.id)) {
-                            throw new Error("Missing application or user info");
-                        }
-                        readFileAsBase64 = function (fileToRead) {
-                            return new Promise(function (resolve, reject) {
-                                var reader = new FileReader();
-                                reader.onload = function () {
-                                    var result = reader.result;
-                                    // result is like: data:<mime>;base64,XXXX
-                                    var parts = result.split(',', 2);
-                                    resolve(parts[1]);
-                                };
-                                reader.onerror = function (err) { return reject(err); };
-                                reader.readAsDataURL(fileToRead);
-                            });
-                        };
-                        return [4 /*yield*/, readFileAsBase64(file)];
-                    case 1:
-                        base64 = _c.sent();
-                        ext = file.name.split('.').pop();
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <TTLogo size="md"/>
+          </div>
+
+          <div className="hidden md:block">
+            <span className="text-xl lg:text-3xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
+              System Entry
+            </span>
+          </div>
+
+          <Button variant="ghost" className="text-sm sm:text-base font-medium hover:bg-transparent flex items-center gap-1 sm:gap-2 px-2 sm:px-4" style={{ color: "#1A1A1A" }} onClick={function () { return window.history.back(); }}>
+            <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4"/>
+            Back
+          </Button>
+        </div>
+      </header>
+
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 flex justify-center">
+        <div className="flex items-center justify-between w-full max-w-2xl overflow-x-auto">
+          {[
+            { label: "Application", status: getStageStatus("Application") },
+            { label: "Review", status: getStageStatus("Review") },
+            { label: "Verification", status: getStageStatus("Verification") },
+            { label: "Assigned", status: getStageStatus("Assigned") },
+          ].map(function (item, idx, arr) { return (<div key={item.label} className="flex items-center flex-1 min-w-0">
+              <div className="flex flex-col items-center">
+                <div className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 transition" style={{
+                backgroundColor: item.status ? "#E63946" : "transparent",
+                borderColor: item.status ? "#E63946" : "#D1D5DB",
+                color: item.status ? "white" : "#9CA3AF"
+            }}>
+                  {item.status ? (<CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4"/>) : (<Circle className="w-3 h-3 sm:w-4 sm:h-4"/>)}
+                </div>
+                <span className="text-[10px] sm:text-xs mt-1 sm:mt-2 font-medium text-center" style={{ color: "#1A1A1A" }}>{item.label}</span>
+              </div>
+              {idx < arr.length - 1 && (<div className="flex-1 h-0.5 mx-1 sm:mx-2 transition min-w-[12px]" style={{ backgroundColor: item.status ? "#E63946" : "#E5E5E5" }}/>) }
+            </div>); })}
+        </div>
+      </div>
+
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-2xl">
+        {/* Application Prompt */}
+        {step === "application" && (<Card className="border-0 shadow-lg" style={{ backgroundColor: "white" }}>
+            <CardHeader className="px-4 sm:px-6">
+              <CardTitle className="text-lg sm:text-xl" style={{ color: "#1A1A1A" }}>Founding Team Application</CardTitle>
+              <CardDescription className="text-sm" style={{ color: "#5A5A5A" }}>
+                Territorial Tutoring - Join Our Founding Cohort
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 px-4 sm:px-6">
+              {/* Introduction */}
+              <div className="rounded-xl p-4 sm:p-5 space-y-2 sm:space-y-3" style={{ backgroundColor: "#FFF0F0" }}>
+                <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
+                  This application is for the Territorial Tutoring Founding Tutor Cohort.
+                </p>
+                <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
+                  We are selecting a small group of individuals who will be trained to guide how students respond when math becomes difficult.
+                </p>
+                <p className="text-xs sm:text-sm font-semibold" style={{ color: "#1A1A1A" }}>
+                  This is not a casual tutoring role.
+                </p>
+                <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
+                  Selection is based on discipline, clarity of thinking, and alignment with how we operate.
+                </p>
+                <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
+                  Complete this carefully.
+                </p>
+                <p className="text-xs sm:text-sm font-semibold" style={{ color: "#1A1A1A" }}>
+                  Low-effort applications remove themselves.
+                </p>
+              </div>
                         fileName = "".concat(user.id, "/").concat(documentType, "_").concat(Date.now(), ".").concat(ext);
                         return [4 /*yield*/, fetch("".concat(API_URL, "/api/tutor/onboarding-documents/upload"), {
                                 method: "POST",
@@ -301,58 +315,24 @@ export default function TutorGateway() {
     return (<div className="min-h-screen" style={{ backgroundColor: "#FFF5ED" }}>
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <TTLogo size="md"/>
           </div>
-          
-          <div className="hidden md:block">
+                  This application is for the Territorial Tutoring Founding Tutor Cohort.
+                  This is not a casual tutoring role.
             <span className="text-xl lg:text-3xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-              System Entry
-            </span>
-          </div>
-          
-          <Button variant="ghost" className="text-sm sm:text-base font-medium hover:bg-transparent flex items-center gap-1 sm:gap-2 px-2 sm:px-4" style={{ color: "#1A1A1A" }} onClick={function () { return window.history.back(); }}>
-            <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4"/>
-            Back
-          </Button>
-        </div>
-      </header>
-
-      {/* Spacer for fixed header */}
-      <div className="h-16 sm:h-20"/>
-
-      {/* Journey Status Bar */}
-      <div style={{ backgroundColor: "#FFF0F0" }}>
-        <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 flex justify-center">
-          <div className="flex items-center justify-between w-full max-w-2xl overflow-x-auto">
-            {[
-            { label: "Application", status: getStageStatus("Application") },
-            { label: "Review", status: getStageStatus("Review") },
-            { label: "Verification", status: getStageStatus("Verification") },
-            { label: "Assigned", status: getStageStatus("Assigned") },
-        ].map(function (item, idx, arr) { return (<div key={item.label} className="flex items-center flex-1 min-w-0">
-                <div className="flex flex-col items-center">
-                  <div className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 transition" style={{
-                backgroundColor: item.status ? "#E63946" : "transparent",
-                borderColor: item.status ? "#E63946" : "#D1D5DB",
-                color: item.status ? "white" : "#9CA3AF"
-            }}>
-                    {item.status ? (<CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4"/>) : (<Circle className="w-3 h-3 sm:w-4 sm:h-4"/>)}
-                  </div>
-                  <span className="text-[10px] sm:text-xs mt-1 sm:mt-2 font-medium text-center" style={{ color: "#1A1A1A" }}>{item.label}</span>
-                </div>
-                {idx < arr.length - 1 && (<div className="flex-1 h-0.5 mx-1 sm:mx-2 transition min-w-[12px]" style={{ backgroundColor: item.status ? "#E63946" : "#E5E5E5" }}/>)}
-              </div>); })}
-          </div>
-        </div>
-      </div>
-
-      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-2xl">
-        {/* Application Prompt */}
-        {step === "application" && (<Card className="border-0 shadow-lg" style={{ backgroundColor: "white" }}>
-            <CardHeader className="px-4 sm:px-6">
-              <CardTitle className="text-lg sm:text-xl" style={{ color: "#1A1A1A" }}>Founding Team Application</CardTitle>
+                  We are selecting a small group of individuals who will be trained to guide how students respond when math becomes difficult.
+                  Selection is based on discipline, clarity of thinking, and alignment with how we operate.
+                <p className="text-xs sm:text-sm font-semibold" style={{ color: "#1A1A1A" }}>
+                  This is not a casual tutoring role.
+                </p>
+                <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
+                  Selection is based on discipline, clarity of thinking, and alignment with how we operate.
+                </p>
+                <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
+                  Complete this carefully.
+                </p>
+                <p className="text-xs sm:text-sm font-semibold" style={{ color: "#1A1A1A" }}>
+                  Low-effort applications remove themselves.
+                </p>
               <CardDescription className="text-sm" style={{ color: "#5A5A5A" }}>
                 Territorial Tutoring - Join Our Founding Cohort
               </CardDescription>

@@ -32,6 +32,22 @@ import EarlyInterventionReferralProgram from "@/pages/earlyinterventionreferralp
 import AboutTT from "@/pages/aboutTT";
 import LeadershipDevelopmentPilot from "@/pages/leadershipdevelopmentpilot";
 import FoundingTutorsWanted from "@/pages/foundingtutorswanted";
+import ResponseConditioningSystem from "@/pages/responseconditioningsystem";
+import ResponseConditioningClarity from "@/pages/responseconditioningsystem/transformation-phases/clarity";
+import ResponseConditioningStructuredExecution from "@/pages/responseconditioningsystem/transformation-phases/structured-execution";
+import ResponseConditioningControlledDiscomfort from "@/pages/responseconditioningsystem/transformation-phases/controlled-discomfort";
+import ResponseConditioningTimePressureStability from "@/pages/responseconditioningsystem/transformation-phases/time-pressure-stability";
+import ResponseConditioningHowToModel from "@/pages/responseconditioningsystem/execution-standards/how-to-model";
+import ResponseConditioningHowToGuide from "@/pages/responseconditioningsystem/execution-standards/how-to-guide";
+import ResponseConditioningHowToUseBossBattles from "@/pages/responseconditioningsystem/execution-standards/how-to-use-boss-battles";
+import ResponseConditioningWhatNotToDo from "@/pages/responseconditioningsystem/execution-standards/what-not-to-do";
+import ResponseConditioningEmotionalDisciplineUnderDiscomfort from "@/pages/responseconditioningsystem/execution-standards/emotional-discipline-under-discomfort";
+import ResponseConditioningWhatChangesInTheStudent from "@/pages/responseconditioningsystem/system-intelligence/what-changes-in-the-student";
+import ResponseConditioningSignsOfProgress from "@/pages/responseconditioningsystem/system-intelligence/signs-of-progress";
+import ResponseConditioningBreakdownPatterns from "@/pages/responseconditioningsystem/system-intelligence/breakdown-patterns";
+import ResponseConditioningBeforeVsAfter from "@/pages/responseconditioningsystem/system-intelligence/before-vs-after";
+import ResponseConditioningIntroSessionStructure from "@/pages/responseconditioningsystem/session-infrastructure/intro-session-structure";
+import ResponseConditioningSessionFlowControl from "@/pages/responseconditioningsystem/session-infrastructure/session-flow-control";
 
 // Legacy Tutor Pages (kept for backwards compatibility)
 import TutorPod from "@/pages/operational/tutor/pod";
@@ -139,6 +155,131 @@ function Router() {
       <Route path="/aboutTT" element={<AboutTT />} />
       <Route path="/leadershipdevelopmentpilot" element={<LeadershipDevelopmentPilot />} />
       <Route path="/foundingtutorswanted" element={<FoundingTutorsWanted />} />
+      <Route path="/responseconditioningsystem" element={<ResponseConditioningSystem />} />
+      <Route
+        path="/responseconditioningsystem/clarity"
+        element={<ResponseConditioningClarity />}
+      />
+      <Route
+        path="/responseconditioningsystem/structured-execution"
+        element={<ResponseConditioningStructuredExecution />}
+      />
+      <Route
+        path="/responseconditioningsystem/controlled-discomfort"
+        element={<ResponseConditioningControlledDiscomfort />}
+      />
+      <Route
+        path="/responseconditioningsystem/time-pressure-stability"
+        element={<ResponseConditioningTimePressureStability />}
+      />
+      <Route
+        path="/responseconditioningsystem/transformation-phases"
+        element={<Navigate to="/responseconditioningsystem/clarity" replace />}
+      />
+      <Route
+        path="/responseconditioningsystem/transformation-phases/clarity"
+        element={<ResponseConditioningClarity />}
+      />
+      <Route
+        path="/responseconditioningsystem/transformation-phases/structured-execution"
+        element={<ResponseConditioningStructuredExecution />}
+      />
+      <Route
+        path="/responseconditioningsystem/transformation-phases/controlled-discomfort"
+        element={<ResponseConditioningControlledDiscomfort />}
+      />
+      <Route
+        path="/responseconditioningsystem/transformation-phases/time-pressure-stability"
+        element={<ResponseConditioningTimePressureStability />}
+      />
+      <Route
+        path="/responseconditioningsystem/how-to-model"
+        element={<ResponseConditioningHowToModel />}
+      />
+      <Route
+        path="/responseconditioningsystem/execution-standards/how-to-model"
+        element={<ResponseConditioningHowToModel />}
+      />
+      <Route
+        path="/responseconditioningsystem/how-to-guide"
+        element={<ResponseConditioningHowToGuide />}
+      />
+      <Route
+        path="/responseconditioningsystem/execution-standards/how-to-guide"
+        element={<ResponseConditioningHowToGuide />}
+      />
+      <Route
+        path="/responseconditioningsystem/how-to-use-boss-battles"
+        element={<ResponseConditioningHowToUseBossBattles />}
+      />
+      <Route
+        path="/responseconditioningsystem/execution-standards/how-to-use-boss-battles"
+        element={<ResponseConditioningHowToUseBossBattles />}
+      />
+      <Route
+        path="/responseconditioningsystem/what-not-to-do"
+        element={<ResponseConditioningWhatNotToDo />}
+      />
+      <Route
+        path="/responseconditioningsystem/execution-standards/what-not-to-do"
+        element={<ResponseConditioningWhatNotToDo />}
+      />
+      <Route
+        path="/responseconditioningsystem/emotional-discipline-under-discomfort"
+        element={<ResponseConditioningEmotionalDisciplineUnderDiscomfort />}
+      />
+      <Route
+        path="/responseconditioningsystem/execution-standards/emotional-discipline-under-discomfort"
+        element={<ResponseConditioningEmotionalDisciplineUnderDiscomfort />}
+      />
+      <Route
+        path="/responseconditioningsystem/what-changes-in-the-student"
+        element={<ResponseConditioningWhatChangesInTheStudent />}
+      />
+      <Route
+        path="/responseconditioningsystem/system-intelligence/what-changes-in-the-student"
+        element={<ResponseConditioningWhatChangesInTheStudent />}
+      />
+      <Route
+        path="/responseconditioningsystem/signs-of-progress"
+        element={<ResponseConditioningSignsOfProgress />}
+      />
+      <Route
+        path="/responseconditioningsystem/system-intelligence/signs-of-progress"
+        element={<ResponseConditioningSignsOfProgress />}
+      />
+      <Route
+        path="/responseconditioningsystem/breakdown-patterns"
+        element={<ResponseConditioningBreakdownPatterns />}
+      />
+      <Route
+        path="/responseconditioningsystem/system-intelligence/breakdown-patterns"
+        element={<ResponseConditioningBreakdownPatterns />}
+      />
+      <Route
+        path="/responseconditioningsystem/before-vs-after"
+        element={<ResponseConditioningBeforeVsAfter />}
+      />
+      <Route
+        path="/responseconditioningsystem/system-intelligence/before-vs-after"
+        element={<ResponseConditioningBeforeVsAfter />}
+      />
+      <Route
+        path="/responseconditioningsystem/intro-session-structure"
+        element={<ResponseConditioningIntroSessionStructure />}
+      />
+      <Route
+        path="/responseconditioningsystem/session-infrastructure/intro-session-structure"
+        element={<ResponseConditioningIntroSessionStructure />}
+      />
+      <Route
+        path="/responseconditioningsystem/session-flow-control"
+        element={<ResponseConditioningSessionFlowControl />}
+      />
+      <Route
+        path="/responseconditioningsystem/session-infrastructure/session-flow-control"
+        element={<ResponseConditioningSessionFlowControl />}
+      />
 
       {/* ==================== CLIENT PORTAL ==================== */}
       {/* Client Signup */}

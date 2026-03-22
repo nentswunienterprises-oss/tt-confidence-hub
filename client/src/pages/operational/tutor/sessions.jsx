@@ -59,7 +59,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, Plus, Clock } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -84,7 +83,6 @@ export default function TutorSessions() {
         methodNotes: "",
         reasonNotes: "",
         studentResponse: "",
-        confidenceChange: [0], // 1-5 scale for + or -
         tutorGrowthReflection: "",
         bossBattlesDone: "",
         practiceProblems: "",
@@ -139,7 +137,6 @@ export default function TutorSessions() {
                             methodNotes: data.methodNotes.trim() || null,
                             reasonNotes: data.reasonNotes.trim() || null,
                             studentResponse: data.studentResponse.trim() || null,
-                            confidenceChange: data.confidenceChange[0],
                             tutorGrowthReflection: data.tutorGrowthReflection.trim() || null,
                             bossBattlesDone: data.bossBattlesDone.trim() || null,
                             practiceProblems: data.practiceProblems.trim() || null,
@@ -148,7 +145,6 @@ export default function TutorSessions() {
                             needsReinforcement: data.needsReinforcement.trim() || null,
                             techChallengeDescription: data.techChallengeDescription.trim() || null,
                             techChallengeResolution: data.techChallengeResolution.trim() || null,
-                            confidenceScoreDelta: data.confidenceChange[0],
                             date: new Date().toISOString(),
                         })];
                     case 1:
@@ -176,7 +172,6 @@ export default function TutorSessions() {
                 methodNotes: "",
                 reasonNotes: "",
                 studentResponse: "",
-                confidenceChange: [0],
                 tutorGrowthReflection: "",
                 bossBattlesDone: "",
                 practiceProblems: "",
@@ -371,23 +366,6 @@ export default function TutorSessions() {
                           <Textarea id="techChallengeResolution" placeholder="Describe how the issue was resolved or the methods used" value={formData.techChallengeResolution} onChange={function (e) { return setFormData(__assign(__assign({}, formData), { techChallengeResolution: e.target.value })); }} rows={2} data-testid="input-tech-challenge-resolution"/>
                         </div>
                       </div>)}
-                  </div>
-
-                  {/* Confidence Change */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="confidence">Confidence Change (1-5 scale)</Label>
-                      <span className="text-sm font-bold">
-                        {formData.confidenceChange[0] > 0 ? "+" : ""}
-                        {formData.confidenceChange[0]}
-                      </span>
-                    </div>
-                    <Slider id="confidence" min={-5} max={5} step={1} value={formData.confidenceChange} onValueChange={function (value) {
-            return setFormData(__assign(__assign({}, formData), { confidenceChange: value }));
-        }} className="py-4" data-testid="input-confidence-change"/>
-                    <p className="text-xs text-muted-foreground">
-                      Rate from -5 (big decline) to +5 (big improvement)
-                    </p>
                   </div>
 
                   {/* Tutor Growth Reflection */}

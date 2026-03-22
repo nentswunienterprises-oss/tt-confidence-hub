@@ -54,7 +54,7 @@ export default function TutorGateway() {
   // Debug: log the gateway session response
   useEffect(() => {
     if (gatewaySession) {
-      console.log("🔍 gatewaySession response:", gatewaySession);
+      console.log("=��� gatewaySession response:", gatewaySession);
     }
   }, [gatewaySession]);
 
@@ -83,37 +83,37 @@ export default function TutorGateway() {
     
     // While user auth is loading, show loading
     if (userLoading || !isAuthenticated) {
-      console.log("🔄 gateway: waiting for auth", { userLoading, isAuthenticated });
+      console.log("=��� gateway: waiting for auth", { userLoading, isAuthenticated });
       setStep("loading");
       return;
     }
     
     // If application-status query is still loading, show loading
     if (appStatusLoading) {
-      console.log("🔄 gateway: fetching application status...");
+      console.log("=��� gateway: fetching application status...");
       setStep("loading");
       return;
     }
     
     // If there was an error fetching application status, try to proceed or show error
     if (appStatusError) {
-      console.error("❌ gateway: error fetching application status:", appStatusError);
+      console.error("G�� gateway: error fetching application status:", appStatusError);
       // Still show loading UI but don't get stuck forever
       setStep("loading");
       return;
     }
     
     // Now we have the application status data (or it's null/undefined)
-    console.log("✅ gateway: application status resolved:", applicationStatus);
+    console.log("G�� gateway: application status resolved:", applicationStatus);
     if (!applicationStatus) {
       // Either the user has no application record (not_applied) or error occurred
       // Default to application form
-      console.log("📋 gateway: no application status, showing form");
+      console.log("=��� gateway: no application status, showing form");
       setStep("application");
     } else if (applicationStatus.status === "not_applied") {
       setStep("application");
     } else if (applicationStatus.status === "confirmed") {
-      // If confirmed, show submitted view — if assigned, show Assigned stage with Continue button
+      // If confirmed, show submitted view G�� if assigned, show Assigned stage with Continue button
       setStep("submitted");
     } else {
       // pending, approved, verification states
@@ -172,13 +172,13 @@ export default function TutorGateway() {
           <div className="flex items-center gap-2">
             <TTLogo size="md" />
           </div>
-          
+
           <div className="hidden md:block">
             <span className="text-xl lg:text-3xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
               System Entry
             </span>
           </div>
-          
+
           <Button
             variant="ghost"
             className="text-sm sm:text-base font-medium hover:bg-transparent flex items-center gap-1 sm:gap-2 px-2 sm:px-4"
@@ -191,46 +191,40 @@ export default function TutorGateway() {
         </div>
       </header>
 
-      {/* Spacer for fixed header */}
-      <div className="h-16 sm:h-20" />
-
-      {/* Journey Status Bar */}
-      <div style={{ backgroundColor: "#FFF0F0" }}>
-        <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 flex justify-center">
-          <div className="flex items-center justify-between w-full max-w-2xl overflow-x-auto">
-            {[
-              { label: "Application", status: getStageStatus("Application") },
-              { label: "Review", status: getStageStatus("Review") },
-              { label: "Verification", status: getStageStatus("Verification") },
-              { label: "Assigned", status: getStageStatus("Assigned") },
-            ].map((item, idx, arr) => (
-              <div key={item.label} className="flex items-center flex-1 min-w-0">
-                <div className="flex flex-col items-center">
-                  <div
-                    className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 transition"
-                    style={{
-                      backgroundColor: item.status ? "#E63946" : "transparent",
-                      borderColor: item.status ? "#E63946" : "#D1D5DB",
-                      color: item.status ? "white" : "#9CA3AF"
-                    }}
-                  >
-                    {item.status ? (
-                      <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                    ) : (
-                      <Circle className="w-3 h-3 sm:w-4 sm:h-4" />
-                    )}
-                  </div>
-                  <span className="text-[10px] sm:text-xs mt-1 sm:mt-2 font-medium text-center" style={{ color: "#1A1A1A" }}>{item.label}</span>
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 flex justify-center">
+        <div className="flex items-center justify-between w-full max-w-2xl overflow-x-auto">
+          {[
+            { label: "Application", status: getStageStatus("Application") },
+            { label: "Review", status: getStageStatus("Review") },
+            { label: "Verification", status: getStageStatus("Verification") },
+            { label: "Assigned", status: getStageStatus("Assigned") },
+          ].map((item, idx, arr) => (
+            <div key={item.label} className="flex items-center flex-1 min-w-0">
+              <div className="flex flex-col items-center">
+                <div
+                  className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 transition"
+                  style={{
+                    backgroundColor: item.status ? "#E63946" : "transparent",
+                    borderColor: item.status ? "#E63946" : "#D1D5DB",
+                    color: item.status ? "white" : "#9CA3AF"
+                  }}
+                >
+                  {item.status ? (
+                    <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                  ) : (
+                    <Circle className="w-3 h-3 sm:w-4 sm:h-4" />
+                  )}
                 </div>
-                {idx < arr.length - 1 && (
-                  <div
-                    className="flex-1 h-0.5 mx-1 sm:mx-2 transition min-w-[12px]"
-                    style={{ backgroundColor: item.status ? "#E63946" : "#E5E5E5" }}
-                  />
-                )}
+                <span className="text-[10px] sm:text-xs mt-1 sm:mt-2 font-medium text-center" style={{ color: "#1A1A1A" }}>{item.label}</span>
               </div>
-            ))}
-          </div>
+              {idx < arr.length - 1 && (
+                <div
+                  className="flex-1 h-0.5 mx-1 sm:mx-2 transition min-w-[12px]"
+                  style={{ backgroundColor: item.status ? "#E63946" : "#E5E5E5" }}
+                />
+              )}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -247,38 +241,25 @@ export default function TutorGateway() {
             <CardContent className="space-y-6 px-4 sm:px-6">
               {/* Introduction */}
               <div className="rounded-xl p-4 sm:p-5 space-y-2 sm:space-y-3" style={{ backgroundColor: "#FFF0F0" }}>
-                <h3 className="font-semibold text-sm sm:text-base" style={{ color: "#E63946" }}>"Systems produce results. Everything else produces noise."</h3>
                 <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-                  TT operates on structure. Tutors execute a system - not improvisation, not personality, not motivation.
+                  This application is for the Territorial Tutoring Founding Tutor Cohort.
                 </p>
                 <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-                  This application determines if you're ready to execute with precision. If you need creative freedom, this isn't for you.
+                  We are selecting a small group of individuals who will be trained to guide how students respond when math becomes difficult.
+                </p>
+                <p className="text-xs sm:text-sm font-semibold" style={{ color: "#1A1A1A" }}>
+                  This is not a casual tutoring role.
+                </p>
+                <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
+                  Selection is based on discipline, clarity of thinking, and alignment with how we operate.
+                </p>
+                <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
+                  Complete this carefully.
+                </p>
+                <p className="text-xs sm:text-sm font-semibold" style={{ color: "#1A1A1A" }}>
+                  Low-effort applications remove themselves.
                 </p>
               </div>
-
-              {/* What to Expect */}
-              <div className="space-y-3">
-                <h4 className="font-semibold text-sm" style={{ color: "#1A1A1A" }}>Application Process:</h4>
-                <ul className="space-y-2 text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-                  <li className="flex gap-2">
-                    <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#E63946" }} />
-                    <span>7-step application - mindset, execution capacity, and fit</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#E63946" }} />
-                    <span>15-20 minutes if answered directly</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#E63946" }} />
-                    <span>Video introduction optional but recommended</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#E63946" }} />
-                    <span>Review within 48 hours</span>
-                  </li>
-                </ul>
-              </div>
-
               {/* Start Application Button */}
               <Button
                 onClick={() => setShowApplicationForm(true)}
