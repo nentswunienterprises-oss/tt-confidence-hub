@@ -105,60 +105,45 @@ var CONFIDENCE_KILLERS = [
 ];
 var IDENTITY_SHEET_QUESTIONS = [
     {
-        category: "Who Are You?",
+    category: "Phase 1 - Orientation",
         questions: [
-            "What's something in life or school you're proud of this year?",
-            "What's your dream life or job?",
-            "What subject just gets you… and which one drains you?",
-            "If school was a playlist, what's your skip button?",
+      "Which math topics usually feel easiest for you?",
+      "Which topics tend to confuse you the most?",
+      "When a question looks unfamiliar, what usually happens first?",
+      "Do you usually rush, freeze, or guess?",
         ],
     },
     {
-        category: "Mindset & Self-Perception",
+    category: "Phase 2 - Surface the Pattern",
         questions: [
-            "When do you feel most like yourself?",
-            "What do you wish adults & parents understood better about you?",
-            "If your brain had a voice, what would it say after a bad test?",
-            "What's something you believe about yourself that no one sees?",
+      "Which math topic never quite made sense?",
+      "Are there moments in math where your mind goes blank?",
+      "Which type of question usually causes problems?",
         ],
     },
     {
-        category: "Values & Emotional Landscape",
+    category: "Phase 3 - Diagnose the Layer",
         questions: [
-            "What kind of person do you want to be remembered as?",
-            "What makes you feel safe? What makes you feel anxious?",
-            "If you had a reset button for this year, what would you change?",
-            "Who's someone in your life you deeply respect, and why?",
+      "What did you observe when the student attempted unfamiliar problems?",
+      "What response pattern showed up during difficulty (rush, freeze, guess, shutdown, etc.)?",
+      "What are the two primary problem areas identified in this session?",
         ],
     },
     {
-        category: "Coping & Resilience",
+    category: "3-Layer Lens Diagnosis",
         questions: [
-            "What's something you do that helps you feel proud or strong?",
+      "Vocabulary: Which terms or wording did the student not understand?",
+      "Method: Where did the student's process sequence break down?",
+      "Reason: What could the student not explain about why the method works?",
         ],
     },
     {
-        category: "Social & Cultural Identity",
+    category: "Intro Session Outcome",
         questions: [
-            "What do people usually get wrong about you?",
-            "What does your culture, family, or background mean to you?",
-            "Who do you look up to - in real life or online - and what do they teach you?",
-        ],
-    },
-    {
-        category: "Creativity & Imagination",
-        questions: [
-            "If your life was a movie, what's the plot right now?",
-            "What kind of stories or characters speak to you most?",
-            "If you could design your own subject in school, what would it be called?",
-        ],
-    },
-    {
-        category: "Dreams & Inner Drive",
-        questions: [
-            "What's a dream you haven't told anyone about?",
-            "What's something you really want - even if it feels out of reach/impossible?",
-            "If nothing could stop you, what would you be doing five years from now?",
+      "Main difficulty topic to prioritize in early sessions",
+      "Most unstable learning layer (Vocabulary, Method, or Reason)",
+      "How the student responds when confused",
+      "TT working structure agreed for next sessions",
         ],
     },
 ];
@@ -554,7 +539,7 @@ export default function StudentIdentitySheet(_a) {
             </Card>
           </TabsContent>
 
-          {/* TAB 4: IDENTITY SHEET - 4-PART FLOW */}
+          {/* TAB 4: IDENTITY SHEET - INTRO SESSION STRUCTURE */}
           <TabsContent value="identity" className="space-y-6">
             <Card className="bg-blue-50">
               <CardHeader>
