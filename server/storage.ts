@@ -714,7 +714,6 @@ export class SupabaseStorage implements IStorage {
       tutor_id: student.tutorId,
       session_progress: student.sessionProgress ?? 0,
       concept_mastery: student.conceptMastery ?? {},
-      confidence_score: student.confidenceScore ?? 5,
       parent_contact: student.parentContact,
       parent_id: parentId,
     };
@@ -747,8 +746,7 @@ export class SupabaseStorage implements IStorage {
   async updateStudentProgress(id: string, sessionCount: number, confidenceDelta: number): Promise<void> {
     const student = await this.getStudent(id);
     if (!student) return;
-    const confidenceScore = Math.max(0, Math.min(10, (student.confidenceScore ?? 5) + confidenceDelta));
-    await supabase.from("students").update({ session_progress: sessionCount, confidence_score: confidenceScore, updated_at: new Date() }).eq("id", id);
+    await supabase.from("students").update({ session_progress: sessionCount, updated_at: new Date() }).eq("id", id);
   }
 
   async updateStudent(id: string, data: Partial<Student>): Promise<Student | undefined> {

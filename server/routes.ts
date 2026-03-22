@@ -107,15 +107,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       name: enrollment.student_full_name,
       grade: enrollment.student_grade,
       parent_contact: enrollment.parent_email,
-      confidence_score: getConfidenceScore(enrollment.confidence_level),
     };
 
     if (existingStudent) {
       const needsUpdate =
         existingStudent.name !== studentPayload.name ||
         existingStudent.grade !== studentPayload.grade ||
-        existingStudent.parent_contact !== studentPayload.parent_contact ||
-        existingStudent.confidence_score !== studentPayload.confidence_score;
+        existingStudent.parent_contact !== studentPayload.parent_contact;
 
       if (needsUpdate) {
         const { data: updatedStudent, error: updateError } = await supabase
@@ -136,7 +134,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: enrollment.student_full_name,
         grade: enrollment.student_grade,
         tutorId,
-        confidenceScore: getConfidenceScore(enrollment.confidence_level),
         sessionProgress: 0,
         parentContact: enrollment.parent_email,
         parent_id: enrollment.user_id,
@@ -1058,7 +1055,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   name: enrollment.student_full_name,
                   grade: enrollment.student_grade,
                   tutor_id: tutorId,
-                  confidence_score: confidenceScore,
                   session_progress: 0,
                   parent_contact: enrollment.parent_email,
                 });
