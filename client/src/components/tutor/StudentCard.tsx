@@ -129,14 +129,30 @@ export function StudentCard({
               Log Identity Sheet
             </Button>
             <p className="text-xs text-muted-foreground text-center">
-              Identity sheet unlocks after intro session completion.
+              Log student's identity sheet to unlock proposal.
             </p>
           </div>
         )}
 
-        {/* Step 4: Create/Send Proposal */}
+        {/* Step 4: Create/Send Proposal (after identity saved) */}
         {workflow?.identitySaved && !workflow.proposalSent && (
           <div className="pt-4 border-t space-y-2">
+            <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-800 text-center">
+              ✓ Identity sheet saved
+            </div>
+            <Button
+              className="w-full"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSelectedStudentId(student.id);
+                setSelectedStudentName(student.name);
+                setIdentitySheetOpen(true);
+              }}
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              View / Edit Identity Sheet
+            </Button>
             <Button
               className="w-full"
               variant="outline"

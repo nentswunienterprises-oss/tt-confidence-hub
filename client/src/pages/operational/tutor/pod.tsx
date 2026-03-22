@@ -135,7 +135,7 @@ export default function TutorPod() {
         <div className="space-y-6">
           <div className="space-y-2">
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-              Welcome back, {user?.name?.split(" ")[0] || "Tutor"}!
+              Welcome back, {user?.name?.split(" ")[0] || "Tutor"}.
             </h1>
             <p className="text-lg text-muted-foreground">
               Ready to start your journey? Let's condition responses together.
@@ -203,7 +203,7 @@ export default function TutorPod() {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-              Welcome back, {firstName}!
+              Welcome back, {firstName}.
             </h1>
             <Badge
               className="bg-primary text-primary-foreground border-primary font-semibold uppercase tracking-wide text-xs px-4 py-1.5 rounded-full"

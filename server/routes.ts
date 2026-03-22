@@ -1542,7 +1542,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
         }
 
-        const { data: introSession } = await supabase
+        // Try to find intro session directly by student_id
+        let introSession: { status: string } | null = null;
+        const { data: introByStudent } = await supabase
           .from("scheduled_sessions")
           .select("status")
           .eq("tutor_id", dbUser.id)
@@ -1550,6 +1552,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .eq("type", "intro")
           .order("created_at", { ascending: false })
           .maybeSingle();
+        introSession = introByStudent;
+
+        // Fallback: look for intro sessions stored with parent_id only (student_id is null)
+        if (!introSession) {
+          const parentId = student.parentId || (() => null)();
+          if (parentId) {
+            const { data: introByParent } = await supabase
+              .from("scheduled_sessions")
+              .select("status")
+              .eq("tutor_id", dbUser.id)
+              .eq("parent_id", parentId)
+              .eq("type", "intro")
+              .is("student_id", null)
+              .order("created_at", { ascending: false })
+              .maybeSingle();
+            introSession = introByParent;
+          }
+        }
 
         const { data: latestProposal } = await supabase
           .from("onboarding_proposals")
