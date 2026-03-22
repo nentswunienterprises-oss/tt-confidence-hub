@@ -215,18 +215,18 @@ export default function ResponseConditioningClarity() {
               <tbody>
                 <tr className="border-t">
                   <td className="px-4 py-3">Vocabulary</td>
-                  <td className="px-4 py-3 text-muted-foreground">Orientation</td>
+                  <td className="px-4 py-3 text-muted-foreground">Clarity</td>
                   <td className="px-4 py-3 text-muted-foreground">Confusion</td>
                 </tr>
                 <tr className="border-t">
                   <td className="px-4 py-3">Method</td>
-                  <td className="px-4 py-3 text-muted-foreground">Execution</td>
+                  <td className="px-4 py-3 text-muted-foreground">Structured Execution</td>
                   <td className="px-4 py-3 text-muted-foreground">Guessing</td>
                 </tr>
                 <tr className="border-t">
                   <td className="px-4 py-3">Reason</td>
                   <td className="px-4 py-3 text-muted-foreground">Stability</td>
-                  <td className="px-4 py-3 text-muted-foreground">Doubt</td>
+                  <td className="px-4 py-3 text-muted-foreground">Cramming</td>
                 </tr>
               </tbody>
             </table>

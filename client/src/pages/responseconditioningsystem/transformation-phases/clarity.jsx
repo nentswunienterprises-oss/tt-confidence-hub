@@ -73,7 +73,7 @@ export default function ResponseConditioningClarity() {
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li>vocabulary collapses - confusion</li>
             <li>method collapses - guessing</li>
-            <li>reason collapses - doubt</li>
+            <li>reason collapses - cramming</li>
           </ul>
           <p className="font-medium">The 3-Layer Lens prevents collapse.</p>
         </Card>
@@ -103,7 +103,7 @@ export default function ResponseConditioningClarity() {
           <h3 className="text-lg font-semibold">Your Response</h3>
           <p className="text-muted-foreground">You correct immediately.</p>
           <p className="text-muted-foreground">Not later. Not softly.</p>
-          <p className="text-muted-foreground">You enforce:</p>
+          <p className="text-muted-foreground">You enstill:</p>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li>correct term</li>
             <li>correct usage</li>
@@ -215,18 +215,18 @@ export default function ResponseConditioningClarity() {
               <tbody>
                 <tr className="border-t">
                   <td className="px-4 py-3">Vocabulary</td>
-                  <td className="px-4 py-3 text-muted-foreground">Orientation</td>
+                  <td className="px-4 py-3 text-muted-foreground">Clarity</td>
                   <td className="px-4 py-3 text-muted-foreground">Confusion</td>
                 </tr>
                 <tr className="border-t">
                   <td className="px-4 py-3">Method</td>
-                  <td className="px-4 py-3 text-muted-foreground">Execution</td>
+                  <td className="px-4 py-3 text-muted-foreground">Structured Execution</td>
                   <td className="px-4 py-3 text-muted-foreground">Guessing</td>
                 </tr>
                 <tr className="border-t">
                   <td className="px-4 py-3">Reason</td>
                   <td className="px-4 py-3 text-muted-foreground">Stability</td>
-                  <td className="px-4 py-3 text-muted-foreground">Doubt</td>
+                  <td className="px-4 py-3 text-muted-foreground">Cramming</td>
                 </tr>
               </tbody>
             </table>
