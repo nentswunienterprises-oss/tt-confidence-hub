@@ -16,7 +16,7 @@ import { StudentCard } from "@/components/tutor/StudentCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Users, Target, Calendar, TrendingUp, AlertCircle, Flame, FileText, Send, Lock, Check, Sparkles } from "lucide-react";
+import { Users, Target, Calendar, TrendingUp, AlertCircle, FileText, Send, Lock, Check, Sparkles } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { ApplicationForm } from "@/components/tutor/application-form";
@@ -135,7 +135,7 @@ export default function TutorPod() {
         <div className="space-y-6">
           <div className="space-y-2">
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-              Welcome back, {user?.name?.split(" ")[0] || "Tutor"}! <Flame className="inline w-8 h-8 text-primary" />
+              Welcome back, {user?.name?.split(" ")[0] || "Tutor"}!
             </h1>
             <p className="text-lg text-muted-foreground">
               Ready to start your journey? Let's condition responses together.
@@ -203,7 +203,7 @@ export default function TutorPod() {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-              Welcome back, {firstName}! <Flame className="inline w-8 h-8 text-primary" />
+              Welcome back, {firstName}!
             </h1>
             <Badge
               className="bg-primary text-primary-foreground border-primary font-semibold uppercase tracking-wide text-xs px-4 py-1.5 rounded-full"

@@ -60,7 +60,7 @@ import { StudentCard } from "@/components/tutor/StudentCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Users, Target, Calendar, Flame, FileText, Lock, Sparkles } from "lucide-react";
+import { Users, Target, Calendar, FileText, Lock, Sparkles } from "lucide-react";
 import { ApplicationForm } from "@/components/tutor/application-form";
 import StudentIdentitySheet from "@/components/tutor/StudentIdentitySheet";
 import ParentOnboardingProposal from "@/components/tutor/ParentOnboardingProposal";
@@ -176,7 +176,7 @@ export default function TutorPod() {
         <div className="space-y-6">
           <div className="space-y-2">
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-              Welcome back, {((_a = user === null || user === void 0 ? void 0 : user.name) === null || _a === void 0 ? void 0 : _a.split(" ")[0]) || "Tutor"}! <Flame className="inline w-8 h-8 text-primary"/>
+              Welcome back, {((_a = user === null || user === void 0 ? void 0 : user.name) === null || _a === void 0 ? void 0 : _a.split(" ")[0]) || "Tutor"}!
             </h1>
             <p className="text-lg text-muted-foreground">
               Ready to start your journey? Let's build confidence together.
@@ -229,7 +229,7 @@ export default function TutorPod() {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-              Welcome back, {firstName} <Flame className="inline w-8 h-8 text-primary"/>
+              Welcome back, {firstName}
             </h1>
             <Badge className="bg-primary text-primary-foreground border-primary font-semibold uppercase tracking-wide text-xs px-4 py-1.5 rounded-full" data-testid="badge-pod-name">
               {assignment.pod.podName}
