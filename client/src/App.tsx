@@ -1,5 +1,7 @@
 import ExecutiveCOOTrackLeads from "@/pages/executive/coo/track-leads";
 import { Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { queryClient, persister } from "./lib/queryClient";
@@ -134,6 +136,16 @@ import MediaLanding from "@/pages/media/landing";
 import CarouselSelect from "@/pages/media/carousel/select";
 import CarouselCreate from "@/pages/media/carousel/create";
 import CarouselLibrary from "@/pages/media/carousel/library";
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
 
 function Router() {
   return (
@@ -419,6 +431,7 @@ export default function App() {
       persistOptions={{ persister }}
     >
       <TooltipProvider>
+        <ScrollToTop />
         <OfflineIndicator />
         <Toaster />
         <Router />

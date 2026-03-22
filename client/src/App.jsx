@@ -1,5 +1,7 @@
 import ExecutiveCOOTrackLeads from "@/pages/executive/coo/track-leads";
 import { Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { queryClient, persister } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
@@ -119,6 +121,13 @@ import MediaLanding from "@/pages/media/landing";
 import CarouselSelect from "@/pages/media/carousel/select";
 import CarouselCreate from "@/pages/media/carousel/create";
 import CarouselLibrary from "@/pages/media/carousel/library";
+function ScrollToTop() {
+  var pathname = useLocation().pathname;
+  useEffect(function () {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
 function Router() {
     return (<Routes>
       {/* General Routes */}
@@ -302,6 +311,7 @@ export default function App() {
     console.log("App component rendering...");
     return (<PersistQueryClientProvider client={queryClient} persistOptions={{ persister: persister }}>
       <TooltipProvider>
+        <ScrollToTop />
         <OfflineIndicator />
         <Toaster />
         <Router />
