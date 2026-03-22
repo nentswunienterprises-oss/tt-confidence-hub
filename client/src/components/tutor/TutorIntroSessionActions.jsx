@@ -24,7 +24,7 @@ export function TutorIntroSessionActions(_a) {
         </div>
         {data.status === "pending_tutor_confirmation" && (
           <div className="flex gap-1 items-center">
-            <Button size="sm" onClick={() => respond.mutate({ action: "accept" })} disabled={respond.isLoading}>
+            <Button size="sm" onClick={() => respond.mutate({ action: "accept" })} disabled={respond.isPending}>
               Confirm
             </Button>
             <span className="mx-1 text-muted-foreground">or</span>
@@ -68,7 +68,7 @@ export function TutorIntroSessionActions(_a) {
                 autoFocus
               />
             )}
-            <Button size="sm" variant="outline" onClick={() => respond.mutate({ action: "propose_adjustment", newDate, newTime })} disabled={respond.isLoading || !newDate || !newTime}>
+            <Button size="sm" variant="outline" onClick={() => respond.mutate({ action: "propose_adjustment", newDate, newTime })} disabled={respond.isPending || !newDate || !newTime}>
               Adjust
             </Button>
           </div>
@@ -82,7 +82,7 @@ export function TutorIntroSessionActions(_a) {
         {data.status === "confirmed" && (
           <div className="text-[11px] text-green-700">Session confirmed!</div>
         )}
-        {respond.isError && <div className="text-[11px] text-red-600">{respond.error.message}</div>}
+        {respond.isError && <div className="text-[11px] text-red-600">{respond.error instanceof Error ? respond.error.message : "Failed to send response"}</div>}
         {respond.isSuccess && <div className="text-[11px] text-green-600">Response sent!</div>}
       </div>
     );

@@ -50,6 +50,7 @@ import ResponseConditioningBreakdownPatterns from "@/pages/responseconditionings
 import ResponseConditioningBeforeVsAfter from "@/pages/responseconditioningsystem/system-intelligence/before-vs-after";
 import ResponseConditioningIntroSessionStructure from "@/pages/responseconditioningsystem/session-infrastructure/intro-session-structure";
 import ResponseConditioningSessionFlowControl from "@/pages/responseconditioningsystem/session-infrastructure/session-flow-control";
+import ResponseConditioningLoggingSystem from "@/pages/responseconditioningsystem/session-infrastructure/logging-system";
 
 // Legacy Tutor Pages (kept for backwards compatibility)
 import TutorPod from "@/pages/operational/tutor/pod";
@@ -291,6 +292,14 @@ function Router() {
       <Route
         path="/responseconditioningsystem/session-infrastructure/session-flow-control"
         element={<ResponseConditioningSessionFlowControl />}
+      />
+      <Route
+        path="/responseconditioningsystem/logging-system"
+        element={<ResponseConditioningLoggingSystem />}
+      />
+      <Route
+        path="/responseconditioningsystem/session-infrastructure/logging-system"
+        element={<ResponseConditioningLoggingSystem />}
       />
 
       {/* ==================== CLIENT PORTAL ==================== */}

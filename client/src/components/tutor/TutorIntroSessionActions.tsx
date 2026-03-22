@@ -1,84 +1,94 @@
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { useScheduledSession, useTutorRespondToSession } from "@/hooks/useScheduledSession";
+import { useState } from "react";
 
-export function TutorIntroSessionActions({ studentId, parentId, tutorId }) {
-  const [sessionData, setSessionData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+export function TutorIntroSessionActions({ studentId }) {
+  const { data, isLoading, error } = useScheduledSession(studentId);
+  const respond = useTutorRespondToSession(studentId);
+  const [newDate, setNewDate] = useState("");
+  const [newTime, setNewTime] = useState("");
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
-  useEffect(() => {
-    async function fetchSession() {
-      setLoading(true);
-      setError(null);
-      // Try by studentId first
-      let res = await fetch(`/api/tutor/student/${studentId}/intro-session-details`, { credentials: "include" });
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.scheduled_time) {
-          setSessionData(data);
-          setLoading(false);
-          return;
-        }
-      }
-      // Fallback: try by parentId/tutorId
-      if (parentId && tutorId) {
-        let fallbackRes = await fetch(`/api/tutor/parent/${parentId}/tutor/${tutorId}/intro-session-details`, { credentials: "include" });
-        if (fallbackRes.ok) {
-          const fallbackData = await fallbackRes.json();
-          if (fallbackData && fallbackData.scheduled_time) {
-            setSessionData(fallbackData);
-            setLoading(false);
-            return;
-          }
-        }
-      }
-      setSessionData(null);
-      setLoading(false);
-      setError("No intro session found");
-    }
-    if (studentId || (parentId && tutorId)) fetchSession();
-  }, [studentId, parentId, tutorId]);
+  if (isLoading) return <div className="text-xs text-muted-foreground">Loading...</div>;
+  if (error) return <div className="text-xs text-red-600">Error loading session</div>;
+  if (!data || !data.scheduled_time) return <div className="text-xs text-muted-foreground">No intro session proposed.</div>;
+
+  const proposed = new Date(data.scheduled_time);
+  const formatted = proposed.toLocaleString();
 
   return (
-    <div>
-      <div className="text-xs bg-yellow-100 text-black p-2 mb-2 rounded">
-        <b>DEBUG:</b>
-        <pre className="text-xs text-left">{JSON.stringify({ studentId, parentId, tutorId, sessionData, loading, error }, null, 2)}</pre>
+    <div className="space-y-1">
+      <div className="text-xs">
+        <span className="font-semibold">Proposed:</span> {formatted}
       </div>
-      {(() => {
-        if (loading) return <div className="text-sm text-muted-foreground">Loading session info...</div>;
-        if (error) return <div className="text-sm text-red-600">{error}</div>;
-        if (!sessionData || !sessionData.scheduled_time) {
-          return (
-            <div className="text-sm text-muted-foreground">
-              No intro session proposed yet.
-            </div>
-          );
-        }
-        const proposed = new Date(sessionData.scheduled_time);
-        const formatted = proposed.toLocaleString();
-        return (
-          <div className="space-y-2">
-            <div className="text-sm">
-              <b>Parent proposed:</b> {formatted}
-            </div>
-            {sessionData.status === "pending_tutor_confirmation" && (
-              <div className="flex gap-2">
-                <Button size="sm">Accept</Button>
-                <input type="date" className="border rounded px-2 py-1 text-sm" />
-                <input type="time" className="border rounded px-2 py-1 text-sm" />
-                <Button size="sm" variant="outline">Propose Adjustment</Button>
-              </div>
-            )}
-            {sessionData.status === "pending_parent_confirmation" && (
-              <div className="text-xs text-yellow-700">Waiting for parent to confirm new time.</div>
-            )}
-            {sessionData.status === "confirmed" && (
-              <div className="text-xs text-green-700">Session confirmed!</div>
-            )}
-          </div>
-        );
-      })()}
+      {data.status === "pending_tutor_confirmation" && (
+        <div className="flex gap-1 items-center">
+          <Button size="sm" onClick={() => respond.mutate({ action: "accept" })} disabled={respond.isPending}>
+            Confirm
+          </Button>
+          <span className="mx-1 text-muted-foreground">or</span>
+          <button
+            type="button"
+            className="border rounded px-1 py-0.5 text-xs w-[110px] bg-white"
+            onClick={() => setShowDatePicker(true)}
+          >
+            {newDate || "Pick date"}
+          </button>
+          {showDatePicker && (
+            <input
+              type="date"
+              value={newDate}
+              onChange={(e) => {
+                setNewDate(e.target.value);
+                setShowDatePicker(false);
+              }}
+              className="absolute z-10"
+              style={{ left: 0 }}
+              autoFocus
+            />
+          )}
+          <button
+            type="button"
+            className="border rounded px-1 py-0.5 text-xs w-[90px] bg-white"
+            onClick={() => setShowTimePicker(true)}
+          >
+            {newTime || "Pick time"}
+          </button>
+          {showTimePicker && (
+            <input
+              type="time"
+              value={newTime}
+              onChange={(e) => {
+                setNewTime(e.target.value);
+                setShowTimePicker(false);
+              }}
+              className="absolute z-10"
+              style={{ left: 120 }}
+              autoFocus
+            />
+          )}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => respond.mutate({ action: "propose_adjustment", newDate, newTime })}
+            disabled={respond.isPending || !newDate || !newTime}
+          >
+            Adjust
+          </Button>
+        </div>
+      )}
+      {newDate && newTime && data.status === "pending_tutor_confirmation" && (
+        <div className="text-[11px] text-muted-foreground">New: {newDate} {newTime}</div>
+      )}
+      {data.status === "pending_parent_confirmation" && (
+        <div className="text-[11px] text-yellow-700">Waiting for parent confirmation...</div>
+      )}
+      {data.status === "confirmed" && (
+        <div className="text-[11px] text-green-700">Session confirmed!</div>
+      )}
+      {respond.isError && <div className="text-[11px] text-red-600">{respond.error instanceof Error ? respond.error.message : "Failed to send response"}</div>}
+      {respond.isSuccess && <div className="text-[11px] text-green-600">Response sent!</div>}
     </div>
   );
 }

@@ -1523,6 +1523,116 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  // Get persisted student workflow state for tutor card actions
+  app.get(
+    "/api/tutor/students/:studentId/workflow-state",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { studentId } = req.params;
+        const dbUser = (req as any).dbUser;
+
+        const student = await storage.getStudent(studentId);
+        if (!student) {
+          return res.status(404).json({ message: "Student not found" });
+        }
+
+        if (student.tutorId !== dbUser.id) {
+          return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
+        }
+
+        const { data: introSession } = await supabase
+          .from("scheduled_sessions")
+          .select("status")
+          .eq("tutor_id", dbUser.id)
+          .eq("student_id", studentId)
+          .eq("type", "intro")
+          .order("created_at", { ascending: false })
+          .maybeSingle();
+
+        const { data: latestProposal } = await supabase
+          .from("onboarding_proposals")
+          .select("sent_at, accepted_at")
+          .eq("student_id", studentId)
+          .eq("tutor_id", dbUser.id)
+          .order("created_at", { ascending: false })
+          .maybeSingle();
+
+        const personalProfile = (student.personalProfile as any) || {};
+        const workflow = personalProfile.workflow || {};
+
+        res.json({
+          introConfirmed: introSession?.status === "confirmed",
+          introCompleted: !!workflow.introCompletedAt,
+          identitySaved: !!student.identitySheetCompletedAt,
+          proposalSent: !!latestProposal?.sent_at,
+          proposalAccepted: !!latestProposal?.accepted_at,
+        });
+      } catch (error) {
+        console.error("Error fetching workflow state:", error);
+        res.status(500).json({ message: "Failed to fetch workflow state" });
+      }
+    }
+  );
+
+  // Mark intro session completed (persisted)
+  app.post(
+    "/api/tutor/students/:studentId/workflow/intro-completed",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { studentId } = req.params;
+        const dbUser = (req as any).dbUser;
+
+        const student = await storage.getStudent(studentId);
+        if (!student) {
+          return res.status(404).json({ message: "Student not found" });
+        }
+
+        if (student.tutorId !== dbUser.id) {
+          return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
+        }
+
+        const { data: introSession } = await supabase
+          .from("scheduled_sessions")
+          .select("status")
+          .eq("tutor_id", dbUser.id)
+          .eq("student_id", studentId)
+          .eq("type", "intro")
+          .order("created_at", { ascending: false })
+          .maybeSingle();
+
+        if (introSession?.status !== "confirmed") {
+          return res.status(400).json({ message: "Intro session must be confirmed before completing" });
+        }
+
+        const existingProfile = (student.personalProfile as any) || {};
+        const updatedProfile = {
+          ...existingProfile,
+          workflow: {
+            ...(existingProfile.workflow || {}),
+            introCompletedAt: new Date().toISOString(),
+          },
+        };
+
+        const updated = await storage.updateStudent(studentId, {
+          personalProfile: updatedProfile,
+        } as any);
+
+        res.json({
+          success: true,
+          introCompleted: true,
+          student: updated,
+        });
+      } catch (error) {
+        console.error("Error marking intro completed:", error);
+        res.status(500).json({ message: "Failed to mark intro completed" });
+      }
+    }
+  );
+
   // Get student tracking systems (sessions, reports, TD feedback)
   app.get(
     "/api/tutor/students/:studentId/tracking",

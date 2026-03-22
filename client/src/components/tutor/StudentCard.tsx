@@ -2,8 +2,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, FileText } from "lucide-react";
-import { useIntroSessionStatus } from "@/hooks/useIntroSessionStatus";
-import React from "react";
+import { useStudentWorkflowState, useMarkIntroCompleted } from "@/hooks/useStudentWorkflowState";
 import { TutorIntroSessionActions } from "./TutorIntroSessionActions";
 
 export function StudentCard({
@@ -14,6 +13,7 @@ export function StudentCard({
   setIdentitySheetOpen,
   setTrackingDialogOpen,
   setAssignmentsDialogOpen,
+  setProposalOpen,
 }) {
   const sessionProgress = student.sessionProgress || 0;
   // Determine onboarding type (pilot or commercial) from parentInfo if available
@@ -31,17 +31,8 @@ export function StudentCard({
     .toUpperCase()
     .slice(0, 2);
 
-  const { data: introSessionStatus } = useIntroSessionStatus(student.id);
-  // Local UI state for progressive unlocks
-  const [introCompleted, setIntroCompleted] = React.useState(false);
-  const [identitySheetLogged, setIdentitySheetLogged] = React.useState(false);
-  const [proposalSent, setProposalSent] = React.useState(false);
-  const [proposalAccepted, setProposalAccepted] = React.useState(false);
-
-  // Simulate unlocks for demo: in real app, these would be set by backend events
-  // Identity sheet unlocks after introCompleted
-  // Proposal unlocks after identitySheetLogged
-  // Tracking/Assignments unlock after proposalAccepted
+  const { data: workflow, isLoading: workflowLoading } = useStudentWorkflowState(student.id);
+  const markIntroCompleted = useMarkIntroCompleted(student.id);
 
   return (
     <div className="p-6 border shadow-sm hover-elevate card">
@@ -85,25 +76,44 @@ export function StudentCard({
           </p>
         </div>
         {/* Confidence Level bars removed as requested */}
-        {/* Step 1: Show session proposal and actions if not confirmed */}
-        {introSessionStatus?.status !== "confirmed" && (
+        {workflowLoading && <p className="text-xs text-muted-foreground">Loading workflow...</p>}
+
+        {/* Step 1: Handle intro session confirmation */}
+        {workflow && !workflow.introConfirmed && (
           <TutorIntroSessionActions
             studentId={student.id}
             parentId={student.parentInfo?.parent_id}
             tutorId={student.tutor_id}
           />
         )}
-        {/* Step 2: Mark Intro Session As Completed */}
-        {introSessionStatus?.status === "confirmed" && !introCompleted && (
+
+        {/* Step 2: Mark Intro Session As Completed (persisted) */}
+        {workflow?.introConfirmed && !workflow.introCompleted && (
           <div className="pt-4 border-t space-y-2">
-            <Button className="w-full" variant="primary" size="sm" onClick={() => setIntroCompleted(true)}>
-              Mark Intro Session As Completed
+            <Button
+              className="w-full"
+              variant="primary"
+              size="sm"
+              onClick={() => markIntroCompleted.mutate()}
+              disabled={markIntroCompleted.isPending}
+            >
+              {markIntroCompleted.isPending ? "Saving..." : "Mark Intro Session As Completed"}
             </Button>
-            <p className="text-xs text-muted-foreground text-center">Complete the intro session before logging the identity sheet.</p>
+            <p className="text-xs text-muted-foreground text-center">
+              Complete the intro session before logging the identity sheet.
+            </p>
+            {markIntroCompleted.isError && (
+              <p className="text-xs text-red-600 text-center">
+                {markIntroCompleted.error instanceof Error
+                  ? markIntroCompleted.error.message
+                  : "Failed to mark intro session completed"}
+              </p>
+            )}
           </div>
         )}
+
         {/* Step 3: Log/Unlock Identity Sheet */}
-        {introSessionStatus?.status === "confirmed" && introCompleted && !identitySheetLogged && (
+        {workflow?.introCompleted && !workflow.identitySaved && (
           <div className="pt-4 border-t space-y-2">
             <Button
               className="w-full"
@@ -113,37 +123,50 @@ export function StudentCard({
                 setSelectedStudentId(student.id);
                 setSelectedStudentName(student.name);
                 setIdentitySheetOpen(true);
-                setIdentitySheetLogged(true);
               }}
             >
               <FileText className="w-4 h-4 mr-2" />
               Log Identity Sheet
             </Button>
-            <p className="text-xs text-muted-foreground text-center">Identity sheet unlocks after intro session completion.</p>
+            <p className="text-xs text-muted-foreground text-center">
+              Identity sheet unlocks after intro session completion.
+            </p>
           </div>
         )}
-        {/* Step 4: Send Proposal */}
-        {introSessionStatus?.status === "confirmed" && introCompleted && identitySheetLogged && !proposalSent && (
+
+        {/* Step 4: Create/Send Proposal */}
+        {workflow?.identitySaved && !workflow.proposalSent && (
           <div className="pt-4 border-t space-y-2">
-            <Button className="w-full" variant="outline" size="sm" onClick={() => setProposalSent(true)}>
+            <Button
+              className="w-full"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSelectedStudentId(student.id);
+                setSelectedStudentName(student.name);
+                setProposalOpen(true);
+              }}
+            >
               <FileText className="w-4 h-4 mr-2" />
-              Send Proposal
+              Create & Send Proposal
             </Button>
-            <p className="text-xs text-muted-foreground text-center">Send proposal after identity sheet is saved.</p>
+            <p className="text-xs text-muted-foreground text-center">
+              Send proposal after identity sheet is saved.
+            </p>
           </div>
         )}
-        {/* Step 5: Unlock Tracking/Assignments after proposal accepted */}
-        {introSessionStatus?.status === "confirmed" && introCompleted && identitySheetLogged && proposalSent && !proposalAccepted && (
+
+        {/* Step 5: Wait for proposal acceptance */}
+        {workflow?.proposalSent && !workflow.proposalAccepted && (
           <div className="pt-4 border-t space-y-2">
-            <Button className="w-full" variant="outline" size="sm" onClick={() => setProposalAccepted(true)}>
-              <FileText className="w-4 h-4 mr-2" />
-              Accept Proposal (Demo)
-            </Button>
-            <p className="text-xs text-muted-foreground text-center">Proposal must be accepted to unlock resources.</p>
+            <p className="text-xs text-muted-foreground text-center">
+              Proposal sent. Waiting for parent acceptance to unlock tracking and assignments.
+            </p>
           </div>
         )}
+
         {/* Final: Show Tracking Systems and Assignments */}
-        {introSessionStatus?.status === "confirmed" && introCompleted && identitySheetLogged && proposalSent && proposalAccepted && (
+        {workflow?.proposalAccepted && (
           <div className="pt-4 border-t space-y-2">
             <Button
               className="w-full"

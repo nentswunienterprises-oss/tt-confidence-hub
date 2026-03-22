@@ -349,6 +349,7 @@ export default function TutorPod() {
                   setIdentitySheetOpen={setIdentitySheetOpen}
                   setTrackingDialogOpen={setTrackingDialogOpen}
                   setAssignmentsDialogOpen={setAssignmentsDialogOpen}
+                  setProposalOpen={setProposalOpen}
                 />
               ))}
             </div>
@@ -391,7 +392,10 @@ export default function TutorPod() {
             }
             
             queryClient.invalidateQueries({ queryKey: ["/api/tutor/pod"] });
-            
+            if (selectedStudentId) {
+              queryClient.invalidateQueries({ queryKey: ["/api/tutor/students", selectedStudentId, "workflow-state"] });
+            }
+
             toast({
               title: "Success",
               description: "Identity sheet saved successfully",

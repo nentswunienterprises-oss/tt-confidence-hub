@@ -227,8 +227,9 @@ export default function ParentOnboardingProposal({
         duration: 5000,
       });
       
-      // Refresh pod data to update button state
+      // Refresh pod + student workflow state to update button progression
       await queryClient.invalidateQueries({ queryKey: ["/api/tutor/pod"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/tutor/students", studentId, "workflow-state"] });
       
       // Close dialog
       onOpenChange(false);

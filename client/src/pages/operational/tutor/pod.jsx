@@ -351,7 +351,7 @@ export default function TutorPod() {
                 Manage identity sheets and track student progress
               </p>
             </Card>) : (<div className="grid md:grid-cols-2 gap-6">
-              {students.map(function (student) { return (<StudentCard key={student.id} student={student} studentIdentitySheets={studentIdentitySheets} setSelectedStudentId={setSelectedStudentId} setSelectedStudentName={setSelectedStudentName} setIdentitySheetOpen={setIdentitySheetOpen} setTrackingDialogOpen={setTrackingDialogOpen} setAssignmentsDialogOpen={setAssignmentsDialogOpen}/>); })}
+              {students.map(function (student) { return (<StudentCard key={student.id} student={student} studentIdentitySheets={studentIdentitySheets} setSelectedStudentId={setSelectedStudentId} setSelectedStudentName={setSelectedStudentName} setIdentitySheetOpen={setIdentitySheetOpen} setTrackingDialogOpen={setTrackingDialogOpen} setAssignmentsDialogOpen={setAssignmentsDialogOpen} setProposalOpen={setProposalOpen}/>); })}
             </div>)}
         </div>
 
@@ -395,6 +395,9 @@ export default function TutorPod() {
                         return [3 /*break*/, 5];
                     case 5:
                         queryClient.invalidateQueries({ queryKey: ["/api/tutor/pod"] });
+                        if (selectedStudentId) {
+                            queryClient.invalidateQueries({ queryKey: ["/api/tutor/students", selectedStudentId, "workflow-state"] });
+                        }
                         toast({
                             title: "Success",
                             description: "Identity sheet saved successfully",
