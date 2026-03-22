@@ -541,7 +541,7 @@ export default function StudentIdentitySheet(_a) {
 
           {/* TAB 4: IDENTITY SHEET - INTRO SESSION STRUCTURE */}
           <TabsContent value="identity" className="space-y-6">
-            <Card className="bg-blue-50">
+            <Card>
               <CardHeader>
                 <CardTitle className="text-lg">
                   Introductory Session
@@ -549,7 +549,7 @@ export default function StudentIdentitySheet(_a) {
               </CardHeader>
               <CardContent className="space-y-6">
                 {IDENTITY_SHEET_QUESTIONS.map(function (section, sectionIdx) { return (<div key={sectionIdx} className="space-y-3 pb-4 border-b last:border-b-0">
-                    <h4 className="font-semibold text-sm text-blue-900">
+                    <h4 className="font-semibold text-sm text-gray-800">
                       {section.category}
                     </h4>
                     {section.questions.map(function (question, qIdx) {
