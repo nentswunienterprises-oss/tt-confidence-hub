@@ -51,6 +51,114 @@ const requireRole = (roles: string[]) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  const getConfidenceScore = (confidenceLevel?: string | null) => {
+    const confidenceLevelMap: Record<string, number> = {
+      "very confident": 9,
+      "confident": 8,
+      "somewhat confident": 6,
+      "not confident": 3,
+      "very confident ": 9,
+      "confident ": 8,
+      "somewhat confident ": 6,
+      "not confident ": 3,
+    };
+
+    return confidenceLevelMap[(confidenceLevel || "").toLowerCase()] || 5;
+  };
+
+  const ensureStudentForEnrollment = async (enrollment: any, tutorIdOverride?: string) => {
+    const tutorId = tutorIdOverride || enrollment?.assigned_tutor_id;
+    if (!enrollment || !tutorId || !enrollment.user_id || !enrollment.student_full_name || !enrollment.student_grade) {
+      return null;
+    }
+
+    let existingStudent: any = null;
+
+    if (enrollment.assigned_student_id) {
+      const { data } = await supabase
+        .from("students")
+        .select("*")
+        .eq("id", enrollment.assigned_student_id)
+        .maybeSingle();
+      existingStudent = data;
+    }
+
+    if (!existingStudent) {
+      const { data } = await supabase
+        .from("students")
+        .select("*")
+        .eq("parent_id", enrollment.user_id)
+        .eq("tutor_id", tutorId)
+        .maybeSingle();
+      existingStudent = data;
+    }
+
+    if (!existingStudent) {
+      const { data } = await supabase
+        .from("students")
+        .select("*")
+        .eq("name", enrollment.student_full_name)
+        .eq("tutor_id", tutorId)
+        .maybeSingle();
+      existingStudent = data;
+    }
+
+    const studentPayload = {
+      name: enrollment.student_full_name,
+      grade: enrollment.student_grade,
+      parent_contact: enrollment.parent_email,
+      confidence_score: getConfidenceScore(enrollment.confidence_level),
+    };
+
+    if (existingStudent) {
+      const needsUpdate =
+        existingStudent.name !== studentPayload.name ||
+        existingStudent.grade !== studentPayload.grade ||
+        existingStudent.parent_contact !== studentPayload.parent_contact ||
+        existingStudent.confidence_score !== studentPayload.confidence_score;
+
+      if (needsUpdate) {
+        const { data: updatedStudent, error: updateError } = await supabase
+          .from("students")
+          .update(studentPayload)
+          .eq("id", existingStudent.id)
+          .select("*")
+          .maybeSingle();
+
+        if (updateError) {
+          throw updateError;
+        }
+
+        existingStudent = updatedStudent || existingStudent;
+      }
+    } else {
+      const createdStudent = await storage.createStudent({
+        name: enrollment.student_full_name,
+        grade: enrollment.student_grade,
+        tutorId,
+        confidenceScore: getConfidenceScore(enrollment.confidence_level),
+        sessionProgress: 0,
+        parentContact: enrollment.parent_email,
+        parent_id: enrollment.user_id,
+      } as any);
+
+      existingStudent = createdStudent;
+    }
+
+    if (existingStudent?.id && enrollment.id && enrollment.assigned_student_id !== existingStudent.id) {
+      const { error: linkError } = await supabase
+        .from("parent_enrollments")
+        .update({ assigned_student_id: existingStudent.id, updated_at: new Date().toISOString() })
+        .eq("id", enrollment.id);
+
+      if (linkError) {
+        console.error("Failed to link enrollment to student:", linkError);
+      }
+    }
+
+    return existingStudent;
+  };
+
                   // Tutor fetches intro session by parentId and tutorId (studentId null)
                   app.get("/api/tutor/parent/:parentId/tutor/:tutorId/intro-session-details", isAuthenticated, requireRole(["tutor"]), async (req: Request, res: Response) => {
                     try {
@@ -441,7 +549,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get parent's enrollment to find assigned tutor
       const { data: enrollmentData, error: enrollmentError } = await supabase
         .from("parent_enrollments")
-        .select("assigned_tutor_id, status")
+        .select("*")
         .eq("user_id", userId)
         .maybeSingle();
 
@@ -475,37 +583,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "Failed to propose session" });
       }
 
-      // Patch: Create student record if not exists for this parent/tutor
-      const { data: parentRow } = await supabase
-        .from("parents")
-        .select("full_name, email")
-        .eq("id", userId)
-        .maybeSingle();
-      const studentName = parentRow?.full_name || "Student";
-      const studentEmail = parentRow?.email || null;
-      // Check if student already exists
-      const { data: existingStudent } = await supabase
-        .from("students")
-        .select("id")
-        .eq("parent_id", userId)
-        .eq("tutor_id", enrollmentData.assigned_tutor_id)
-        .maybeSingle();
-      if (!existingStudent) {
-        const { error: studentCreateError } = await supabase
-          .from("students")
-          .insert({
-            parent_id: userId,
-            tutor_id: enrollmentData.assigned_tutor_id,
-            name: studentName,
-            email: studentEmail,
-            grade: null,
-            session_progress: 0,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
-        if (studentCreateError) {
-          console.error("Error creating student record on intro session booking:", studentCreateError);
-        }
+      try {
+        await ensureStudentForEnrollment(enrollmentData, enrollmentData.assigned_tutor_id);
+      } catch (studentCreateError) {
+        console.error("Error creating student record on intro session booking:", studentCreateError);
       }
 
       res.json({ success: true });
@@ -845,48 +926,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from("parent_enrollments")
           .select("*")
           .eq("assigned_tutor_id", tutorId)
-          .eq("status", "assigned");
+          .in("status", ["assigned", "proposal_sent", "session_booked", "report_received", "confirmed"]);
         
         // For each enrollment, check if a student exists, if not create one
         if (assignedEnrollments && assignedEnrollments.length > 0) {
           for (const enrollment of assignedEnrollments) {
             try {
-              // Check if student already exists with this name and tutor
-              const { data: existingStudent } = await supabase
-                .from("students")
-                .select("id")
-                .eq("name", enrollment.student_full_name)
-                .eq("tutor_id", tutorId)
-                .single();
-              
-              // If no existing student, create one
-              if (!existingStudent) {
-                const confidenceLevelMap: any = {
-                  "very confident": 9,
-                  "confident": 8,
-                  "somewhat confident": 6,
-                  "not confident": 3,
-                  "very confident ": 9,
-                  "confident ": 8,
-                  "somewhat confident ": 6,
-                  "not confident ": 3,
-                };
-                
-                const confidenceText = (enrollment.confidence_level || "").toLowerCase();
-                const confidenceScore = confidenceLevelMap[confidenceText] || 5;
-                
-                await supabase
-                  .from("students")
-                  .insert({
-                    name: enrollment.student_full_name,
-                    grade: enrollment.student_grade,
-                    tutor_id: tutorId,
-                    confidence_score: confidenceScore,
-                    session_progress: 0,
-                    parent_contact: enrollment.parent_email,
-                  });
-                
-                console.log("Created missing student:", enrollment.student_full_name);
+              const ensuredStudent = await ensureStudentForEnrollment(enrollment, tutorId);
+              if (ensuredStudent) {
+                console.log("Ensured student exists:", enrollment.student_full_name);
               }
             } catch (err) {
               console.error("Error creating student from enrollment:", err);
@@ -901,12 +949,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           students.map(async (student: any) => {
             try {
               // Get parent enrollment for this student (match by student name and tutor)
-              const { data: parentEnrollment } = await supabase
+              let parentEnrollment: any = null;
+
+              const { data: linkedEnrollment } = await supabase
                 .from("parent_enrollments")
                 .select("*")
                 .eq("assigned_tutor_id", tutorId)
-                .eq("student_full_name", student.name)
-                .single();
+                .eq("assigned_student_id", student.id)
+                .maybeSingle();
+
+              parentEnrollment = linkedEnrollment;
+
+              if (!parentEnrollment) {
+                const { data: namedEnrollment } = await supabase
+                  .from("parent_enrollments")
+                  .select("*")
+                  .eq("assigned_tutor_id", tutorId)
+                  .eq("student_full_name", student.name)
+                  .maybeSingle();
+                parentEnrollment = namedEnrollment;
+              }
               
               // Check if proposal was accepted by querying the proposal table
               let proposalAcceptedAt = null;
@@ -3942,39 +4004,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const enrollment = data[0];
 
-        // Create a student record for the assigned tutor
+        // Create or repair a student record for the assigned tutor
         try {
-          // Parse confidence level from text (e.g., "Very confident" -> 9)
-          const confidenceLevelMap: any = {
-            "very confident": 9,
-            "confident": 8,
-            "somewhat confident": 6,
-            "not confident": 3,
-            "very confident ": 9,
-            "confident ": 8,
-            "somewhat confident ": 6,
-            "not confident ": 3,
-          };
-          
-          const confidenceText = (enrollment.confidence_level || "").toLowerCase();
-          const confidenceScore = confidenceLevelMap[confidenceText] || 5; // Default to 5 if not found
+          const student = await ensureStudentForEnrollment(enrollment, tutorId);
 
-          const { error: studentError } = await supabase
-            .from("students")
-            .insert({
-              name: enrollment.student_full_name,
-              grade: enrollment.student_grade,
-              tutor_id: tutorId,
-              confidence_score: confidenceScore,
-              session_progress: 0,
-              parent_contact: enrollment.parent_email,
-            });
-
-          if (studentError) {
-            console.error("Error creating student:", studentError);
-            // Don't fail the tutor assignment if student creation fails
-          } else {
-            console.log("Student created successfully for:", enrollment.student_full_name);
+          if (student) {
+            console.log("Student ensured successfully for:", enrollment.student_full_name);
           }
         } catch (studentErr) {
           console.error("Error in student creation flow:", studentErr);
