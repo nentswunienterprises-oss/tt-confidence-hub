@@ -66,7 +66,7 @@ export default function ResponseConditioningHowToUseBossBattles() {
           <ul className="space-y-2 pl-4">
             <li className="font-medium">the student has completed 3-4 problems correctly</li>
             <li className="font-medium">the method is stable</li>
-            <li className="font-medium">they appear comfortable</li>
+            <li className="font-medium">the student appears comfortable</li>
           </ul>
 
           <div className="bg-muted rounded p-3 mt-3">
@@ -108,7 +108,7 @@ export default function ResponseConditioningHowToUseBossBattles() {
 
           <p className="text-muted-foreground">When the student reacts:</p>
           <p className="font-medium">You do nothing.</p>
-          <p className="text-lg font-semibold">For 10&ndash;15 seconds.</p>
+          <p className="text-lg font-semibold">For 10-15 seconds.</p>
 
           <div className="space-y-3 mt-4">
             <div>
