@@ -195,7 +195,7 @@ export default function ResponseConditioningBreakdownPatterns() {
               <li>skipping steps</li>
             </ul>
             <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">What It Means</p>
-            <p className="font-semibold">Panic response &rarr; speed as escape</p>
+            <p className="font-semibold">Panic response becomes speed as escape</p>
             <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">Action</p>
             <p className="font-semibold">Slow them down.</p>
             <p className="font-semibold">Return to structure.</p>

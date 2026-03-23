@@ -223,7 +223,7 @@ export default function ResponseConditioningHowToUseBossBattles() {
                 </span>
                 Introduce Too Early
               </p>
-              <p className="text-muted-foreground">Student is not ready &rarr; chaos</p>
+              <p className="text-muted-foreground">Student is not ready, and chaos follows.</p>
             </div>
 
             <div>
@@ -233,7 +233,7 @@ export default function ResponseConditioningHowToUseBossBattles() {
                 </span>
                 Over-Guide
               </p>
-              <p className="text-muted-foreground">Too many hints &rarr; no thinking</p>
+              <p className="text-muted-foreground">Too many hints leave no room for thinking.</p>
             </div>
 
             <div>
@@ -243,7 +243,7 @@ export default function ResponseConditioningHowToUseBossBattles() {
                 </span>
                 Rescue
               </p>
-              <p className="text-muted-foreground">Jump in quickly &rarr; no conditioning</p>
+              <p className="text-muted-foreground">Jumping in quickly prevents conditioning.</p>
             </div>
 
             <div>

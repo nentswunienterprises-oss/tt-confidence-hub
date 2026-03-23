@@ -266,10 +266,10 @@ export default function ResponseConditioningHowToGuide() {
           <p className="text-muted-foreground">It is a loop:</p>
           <div className="space-y-2 pl-4 font-medium">
             <p>Student executes</p>
-            <p>→ makes error</p>
-            <p>→ you diagnose</p>
-            <p>→ you guide</p>
-            <p>→ student continues</p>
+            <p>Student makes an error</p>
+            <p>You diagnose</p>
+            <p>You guide</p>
+            <p>Student continues</p>
           </div>
           <p className="text-muted-foreground">Repeated until stable.</p>
         </Card>

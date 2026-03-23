@@ -261,8 +261,8 @@ export default function ResponseConditioningControlledDiscomfort() {
           <p className="text-muted-foreground">This reinforces fragility.</p>
           <p className="font-medium">Wrong Timing</p>
           <p className="text-muted-foreground">Boss Battle introduced:</p>
-          <p className="text-muted-foreground">too early -> overwhelm</p>
-          <p className="text-muted-foreground">too late -> no impact</p>
+          <p className="text-muted-foreground">too early causes overwhelm</p>
+          <p className="text-muted-foreground">too late has no impact</p>
         </Card>
 
         <Card className="p-6 space-y-5">

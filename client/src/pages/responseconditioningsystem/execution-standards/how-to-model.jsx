@@ -65,7 +65,7 @@ export default function ResponseConditioningHowToModel() {
         <Card className="p-6 space-y-4 border-primary/30 bg-primary/5">
           <h2 className="text-2xl font-bold">The Structure</h2>
           <p className="text-muted-foreground">Every model must follow:</p>
-          <p className="text-xl font-bold text-primary">Vocabulary &rarr; Method &rarr; Reason</p>
+          <p className="text-xl font-bold text-primary">Vocabulary, Method, and Reason</p>
           <p className="text-muted-foreground">No skipping.</p>
           <p className="text-muted-foreground">No mixing.</p>
         </Card>
@@ -157,7 +157,7 @@ export default function ResponseConditioningHowToModel() {
             <p className="font-semibold">1. Keep It Linear</p>
             <p className="text-muted-foreground">Do not jump between layers.</p>
             <p className="text-muted-foreground">Do not mix explanation randomly.</p>
-            <p className="text-muted-foreground">Follow: Vocabulary &rarr; Method &rarr; Reason</p>
+            <p className="text-muted-foreground">Follow: Vocabulary, Method, and Reason</p>
           </div>
 
           <div className="space-y-2">

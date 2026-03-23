@@ -83,7 +83,7 @@ export default function ResponseConditioningBeforeVsAfter() {
               </div>
             </div>
             <p className="font-semibold">Shift</p>
-            <p className="text-lg font-semibold">Confusion &rarr; Orientation</p>
+            <p className="text-lg font-semibold">From Confusion to Orientation</p>
           </Card>
 
           <Card className="p-6 space-y-4">
@@ -107,7 +107,7 @@ export default function ResponseConditioningBeforeVsAfter() {
               </div>
             </div>
             <p className="font-semibold">Shift</p>
-            <p className="text-lg font-semibold">Delay &rarr; Initiation</p>
+            <p className="text-lg font-semibold">From Delay to Initiation</p>
           </Card>
 
           <Card className="p-6 space-y-4">
@@ -131,7 +131,7 @@ export default function ResponseConditioningBeforeVsAfter() {
               </div>
             </div>
             <p className="font-semibold">Shift</p>
-            <p className="text-lg font-semibold">Guessing &rarr; Structure</p>
+            <p className="text-lg font-semibold">From Guessing to Structure</p>
           </Card>
 
           <Card className="p-6 space-y-4">
@@ -155,7 +155,7 @@ export default function ResponseConditioningBeforeVsAfter() {
               </div>
             </div>
             <p className="font-semibold">Shift</p>
-            <p className="text-lg font-semibold">Collapse &rarr; Control</p>
+            <p className="text-lg font-semibold">From Collapse to Control</p>
           </Card>
 
           <Card className="p-6 space-y-4">
@@ -179,7 +179,7 @@ export default function ResponseConditioningBeforeVsAfter() {
               </div>
             </div>
             <p className="font-semibold">Shift</p>
-            <p className="text-lg font-semibold">Reaction &rarr; Regulation</p>
+            <p className="text-lg font-semibold">From Reaction to Regulation</p>
           </Card>
 
           <Card className="p-6 space-y-4">
@@ -203,7 +203,7 @@ export default function ResponseConditioningBeforeVsAfter() {
               </div>
             </div>
             <p className="font-semibold">Shift</p>
-            <p className="text-lg font-semibold">Vague &rarr; Precise</p>
+            <p className="text-lg font-semibold">From Vague to Precise</p>
           </Card>
 
           <Card className="p-6 space-y-4">
@@ -227,7 +227,7 @@ export default function ResponseConditioningBeforeVsAfter() {
               </div>
             </div>
             <p className="font-semibold">Shift</p>
-            <p className="text-lg font-semibold">Dependent &rarr; Independent</p>
+            <p className="text-lg font-semibold">From Dependent to Independent</p>
           </Card>
 
           <Card className="p-6 space-y-4">
@@ -251,7 +251,7 @@ export default function ResponseConditioningBeforeVsAfter() {
               </div>
             </div>
             <p className="font-semibold">Shift</p>
-            <p className="text-lg font-semibold">Unstable &rarr; Stable</p>
+            <p className="text-lg font-semibold">From Unstable to Stable</p>
           </Card>
         </div>
 
@@ -280,7 +280,7 @@ export default function ResponseConditioningBeforeVsAfter() {
         </Card>
 
         <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">The One-Line Shift</h2>
+          <h2 className="text-2xl font-bold">The Difference</h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">Before</p>

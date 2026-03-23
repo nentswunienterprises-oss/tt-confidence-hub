@@ -101,11 +101,11 @@ export default function ResponseConditioningSignsOfProgress() {
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">Before</p>
-                <p className="text-muted-foreground">long pause &rarr; no action</p>
+                <p className="text-muted-foreground">long pause with no action</p>
               </div>
               <div className="space-y-2">
                 <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">After</p>
-                <p className="font-semibold">short pause &rarr; first step</p>
+                <p className="font-semibold">short pause, then first step</p>
               </div>
             </div>
             <div className="border-l-4 border-primary pl-4">
@@ -235,7 +235,7 @@ export default function ResponseConditioningSignsOfProgress() {
               </div>
               <div className="space-y-2">
                 <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">After</p>
-                <p className="font-semibold">pause &rarr; continue</p>
+                <p className="font-semibold">pause, then continue</p>
               </div>
             </div>
             <div className="border-l-4 border-primary pl-4">

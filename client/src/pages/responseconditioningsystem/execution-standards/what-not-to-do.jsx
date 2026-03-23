@@ -168,7 +168,7 @@ export default function ResponseConditioningWhatNotToDo() {
 
           <div className="bg-muted rounded p-3">
             <p className="font-semibold text-sm uppercase tracking-wide mb-1">Rule</p>
-            <p className="text-muted-foreground">Every concept must pass through Vocabulary &rarr; Method &rarr; Reason.</p>
+            <p className="text-muted-foreground">Every concept must pass through Vocabulary, Method, and Reason.</p>
           </div>
         </Card>
 
