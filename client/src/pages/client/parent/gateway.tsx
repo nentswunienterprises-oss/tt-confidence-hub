@@ -896,11 +896,22 @@ export default function ParentGateway() {
                   )}
                   {introSessionConfirmation?.status === "confirmed" && (
                     <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                      <p className="font-medium text-green-900">Your session has been confirmed</p>
-                      {introSessionConfirmation.scheduled_time && (
-                        <p className="text-sm text-green-700 mt-2">Scheduled for: {new Date(introSessionConfirmation.scheduled_time).toLocaleString()}</p>
+                      {introSessionConfirmation.introCompleted ? (
+                        <>
+                          <p className="font-medium text-green-900">Your introductory session has been conducted</p>
+                          <p className="text-sm text-green-700 mt-2">
+                            Tutor is now preparing your training proposal. You'll see it here once it has been sent.
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="font-medium text-green-900">Your session has been confirmed</p>
+                          {introSessionConfirmation.scheduled_time && (
+                            <p className="text-sm text-green-700 mt-2">Scheduled for: {new Date(introSessionConfirmation.scheduled_time).toLocaleString()}</p>
+                          )}
+                          <p className="text-sm text-green-700 mt-2">You will receive an introductory report and proposal here after you've had your intro session</p>
+                        </>
                       )}
-                      <p className="text-sm text-green-700 mt-2">You will receive an introductory report and proposal here after you've had your intro session</p>
                     </div>
                   )}
                   {introSessionConfirmation?.status === "not_scheduled" && (

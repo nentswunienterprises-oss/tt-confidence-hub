@@ -601,7 +601,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Get parent's enrollment to find assigned tutor
         const { data: enrollmentData, error: enrollmentError } = await supabase
           .from("parent_enrollments")
-          .select("assigned_tutor_id")
+          .select("assigned_tutor_id, assigned_student_id")
           .eq("user_id", userId)
           .maybeSingle();
 
@@ -623,26 +623,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json({ status: "not_scheduled" });
         }
 
+        let introCompleted = false;
+        if (enrollmentData.assigned_student_id) {
+          const assignedStudent = await storage.getStudent(enrollmentData.assigned_student_id);
+          const workflow = (assignedStudent?.personalProfile as any)?.workflow || {};
+          introCompleted = !!workflow.introCompletedAt;
+        }
+
         // Always include id in response
         if (!session.tutor_confirmed) {
           return res.json({
             id: session.id,
             status: "pending_tutor_confirmation",
-            scheduled_time: session.scheduled_time
+            scheduled_time: session.scheduled_time,
+            introCompleted,
           });
         }
         if (!session.parent_confirmed) {
           return res.json({
             id: session.id,
             status: "pending_parent_confirmation",
-            scheduled_time: session.scheduled_time
+            scheduled_time: session.scheduled_time,
+            introCompleted,
           });
         }
-        // No completed field in new table, so just check confirmations
         return res.json({
           id: session.id,
           status: "confirmed",
-          scheduled_time: session.scheduled_time
+          scheduled_time: session.scheduled_time,
+          introCompleted,
         });
       } catch (error) {
         console.error("Error in intro-session-confirmation:", error);
