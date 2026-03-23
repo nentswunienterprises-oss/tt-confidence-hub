@@ -857,7 +857,9 @@ export default function ParentGateway() {
                             <p className="text-sm text-red-900 mt-1">{assignedTutor.bio}</p>
                           )}
                           {assignedTutor.email && (
-                            <p className="text-sm text-red-900 mt-1">📧 {assignedTutor.email}</p>
+                            <p className="mt-2 text-sm text-red-900">
+                              <span className="font-medium">Email:</span> {assignedTutor.email}
+                            </p>
                           )}
                         </div>
                       </div>
