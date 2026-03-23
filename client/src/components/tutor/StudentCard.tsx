@@ -1,8 +1,10 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Calendar, FileText, ScrollText } from "lucide-react";
-import { useStudentWorkflowState, useMarkIntroCompleted } from "@/hooks/useStudentWorkflowState";
+import { useEffect, useState } from "react";
+import { useStudentWorkflowState, useMarkIntroCompleted, useRespondToAssignment } from "@/hooks/useStudentWorkflowState";
 import { TutorIntroSessionActions } from "./TutorIntroSessionActions";
 
 function splitReportedTopics(rawValue) {
@@ -65,11 +67,19 @@ export function StudentCard({
 
   const { data: workflow, isLoading: workflowLoading } = useStudentWorkflowState(student.id);
   const markIntroCompleted = useMarkIntroCompleted(student.id);
+  const respondToAssignment = useRespondToAssignment(student.id);
+  const [assignmentModalOpen, setAssignmentModalOpen] = useState(false);
   const hasLaterWorkflowProgress = !!(
     workflow?.identitySaved ||
     workflow?.proposalSent ||
     workflow?.proposalAccepted
   );
+
+  useEffect(() => {
+    if (workflow && !workflow.assignmentAccepted) {
+      setAssignmentModalOpen(true);
+    }
+  }, [workflow?.assignmentAccepted]);
 
   const reportedTopics = splitReportedTopics(student.parentInfo?.math_struggle_areas);
   const reportedSymptoms = inferReportedSymptoms({
@@ -170,8 +180,32 @@ export function StudentCard({
           </div>
         )}
 
+        {workflow && !workflow.assignmentAccepted && (
+          <div className="pt-4 border-t space-y-2">
+            <p className="text-xs text-muted-foreground text-center">
+              New parent assignment received. Accept or decline this assignment before intro booking can begin.
+            </p>
+            <Button
+              className="w-full"
+              variant="outline"
+              size="sm"
+              onClick={() => setAssignmentModalOpen(true)}
+              disabled={respondToAssignment.isPending}
+            >
+              Review Assignment
+            </Button>
+            {respondToAssignment.isError && (
+              <p className="text-xs text-red-600 text-center">
+                {respondToAssignment.error instanceof Error
+                  ? respondToAssignment.error.message
+                  : "Failed to submit assignment decision"}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Step 1: Handle intro session confirmation */}
-        {workflow && !workflow.introConfirmed && (
+        {workflow?.assignmentAccepted && !workflow.introConfirmed && (
           <TutorIntroSessionActions
             studentId={student.id}
             parentId={student.parentInfo?.parent_id}
@@ -180,7 +214,7 @@ export function StudentCard({
         )}
 
         {/* Step 2: Mark Intro Session As Completed (persisted) */}
-        {workflow?.introConfirmed && !workflow.introCompleted && !hasLaterWorkflowProgress && (
+        {workflow?.assignmentAccepted && workflow?.introConfirmed && !workflow.introCompleted && !hasLaterWorkflowProgress && (
           <div className="pt-4 border-t space-y-2">
             <Button
               className="w-full"
@@ -205,7 +239,7 @@ export function StudentCard({
         )}
 
         {/* Step 3: Log/Unlock Identity Sheet */}
-        {workflow?.introCompleted && !workflow.identitySaved && !workflow?.proposalSent && !workflow?.proposalAccepted && (
+        {workflow?.assignmentAccepted && workflow?.introCompleted && !workflow.identitySaved && !workflow?.proposalSent && !workflow?.proposalAccepted && (
           <div className="pt-4 border-t space-y-2">
             <Button
               className="w-full"
@@ -227,7 +261,7 @@ export function StudentCard({
         )}
 
         {/* Step 4: Create/Send Proposal (after identity saved) */}
-        {workflow?.identitySaved && !workflow.proposalSent && !workflow?.proposalAccepted && (
+        {workflow?.assignmentAccepted && workflow?.identitySaved && !workflow.proposalSent && !workflow?.proposalAccepted && (
           <div className="pt-4 border-t space-y-2">
             <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-800 text-center">
               ✓ Identity sheet saved
@@ -265,7 +299,7 @@ export function StudentCard({
         )}
 
         {/* Step 5: Wait for proposal acceptance */}
-        {workflow?.proposalSent && !workflow.proposalAccepted && (
+        {workflow?.assignmentAccepted && workflow?.proposalSent && !workflow.proposalAccepted && (
           <div className="pt-4 border-t space-y-2">
             <p className="text-xs text-muted-foreground text-center">
               Proposal sent. Waiting for parent acceptance to unlock tracking and assignments.
@@ -274,7 +308,7 @@ export function StudentCard({
         )}
 
         {/* Final: Show Tracking Systems and Assignments */}
-        {workflow?.proposalAccepted && (
+        {workflow?.assignmentAccepted && workflow?.proposalAccepted && (
           <div className="pt-4 border-t space-y-2">
             <Button
               className="w-full"
@@ -305,7 +339,7 @@ export function StudentCard({
           </div>
         )}
 
-        {workflow?.proposalAccepted && (
+        {workflow?.assignmentAccepted && workflow?.proposalAccepted && (
           <div className="pt-4 border-t space-y-2">
             <Button
               className="w-full"
@@ -323,6 +357,44 @@ export function StudentCard({
           </div>
         )}
       </div>
+
+      <Dialog open={assignmentModalOpen} onOpenChange={setAssignmentModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Respond to Parent Assignment</DialogTitle>
+            <DialogDescription>
+              You can accept this assignment to start onboarding, or decline it so the parent can be rematched.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-md border bg-muted/40 p-3 text-sm">
+            <p className="font-medium text-foreground">Student: {student.name}</p>
+            <p className="text-muted-foreground mt-1">Parent: {student.parentInfo?.parent_full_name || "Unknown"}</p>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => {
+                respondToAssignment.mutate("decline", {
+                  onSuccess: () => setAssignmentModalOpen(false),
+                });
+              }}
+              disabled={respondToAssignment.isPending}
+            >
+              {respondToAssignment.isPending ? "Saving..." : "Decline Assignment"}
+            </Button>
+            <Button
+              onClick={() => {
+                respondToAssignment.mutate("accept", {
+                  onSuccess: () => setAssignmentModalOpen(false),
+                });
+              }}
+              disabled={respondToAssignment.isPending}
+            >
+              {respondToAssignment.isPending ? "Saving..." : "Accept Assignment"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

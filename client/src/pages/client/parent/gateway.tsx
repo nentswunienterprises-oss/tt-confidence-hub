@@ -914,6 +914,14 @@ export default function ParentGateway() {
                       )}
                     </div>
                   )}
+                  {introSessionConfirmation?.status === "awaiting_tutor_acceptance" && (
+                    <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="font-medium text-yellow-900">Tutor assignment pending confirmation</p>
+                      <p className="text-sm text-yellow-700 mt-2">
+                        Your tutor has been assigned and is reviewing this assignment. Intro session booking will unlock once they accept.
+                      </p>
+                    </div>
+                  )}
                   {introSessionConfirmation?.status === "not_scheduled" && (
                     <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                       <p className="font-medium text-red-900 mb-4">Schedule your introductory session</p>

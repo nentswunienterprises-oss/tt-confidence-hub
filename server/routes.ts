@@ -557,6 +557,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "You must be assigned a tutor before booking a session." });
       }
 
+      const assignedStudent = enrollmentData.assigned_student_id
+        ? await storage.getStudent(enrollmentData.assigned_student_id)
+        : await ensureStudentForEnrollment(enrollmentData, enrollmentData.assigned_tutor_id);
+
+      const assignedWorkflow = ((assignedStudent?.personalProfile as any) || {}).workflow || {};
+      if (!assignedWorkflow.assignmentAcceptedAt) {
+        return res.status(400).json({ message: "Your tutor must accept this assignment before intro booking can begin." });
+      }
+
       // Insert new intro session
       const { data: sessionInsert, error: sessionError } = await supabase
         .from("scheduled_sessions")
@@ -620,6 +629,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .maybeSingle();
 
         if (sessionError || !session) {
+          const assignedStudent = enrollmentData.assigned_student_id
+            ? await storage.getStudent(enrollmentData.assigned_student_id)
+            : null;
+          const assignedWorkflow = ((assignedStudent?.personalProfile as any) || {}).workflow || {};
+          const assignmentAccepted = !!assignedWorkflow.assignmentAcceptedAt;
+
+          if (!assignmentAccepted) {
+            return res.json({
+              status: "awaiting_tutor_acceptance",
+              introCompleted: false,
+            });
+          }
+
           return res.json({ status: "not_scheduled" });
         }
 
@@ -2120,7 +2142,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const personalProfile = (student.personalProfile as any) || {};
         const workflow = personalProfile.workflow || {};
 
+        const assignmentAccepted = !!(
+          workflow.assignmentAcceptedAt ||
+          introSession ||
+          workflow.introCompletedAt ||
+          student.identitySheetCompletedAt ||
+          latestProposal?.sent_at ||
+          latestProposal?.accepted_at
+        );
+
         res.json({
+          assignmentAccepted,
           introConfirmed: introSession?.status === "confirmed",
           introCompleted: !!workflow.introCompletedAt,
           identitySaved: !!student.identitySheetCompletedAt,
@@ -2135,6 +2167,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Mark intro session completed (persisted)
+  app.post(
+    "/api/tutor/students/:studentId/workflow/assignment-decision",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { studentId } = req.params;
+        const { decision } = req.body as { decision?: "accept" | "decline" };
+        const dbUser = (req as any).dbUser;
+
+        if (decision !== "accept" && decision !== "decline") {
+          return res.status(400).json({ message: "Decision must be 'accept' or 'decline'" });
+        }
+
+        const student = await storage.getStudent(studentId);
+        if (!student) {
+          return res.status(404).json({ message: "Student not found" });
+        }
+
+        if (student.tutorId !== dbUser.id) {
+          return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
+        }
+
+        const existingProfile = (student.personalProfile as any) || {};
+        const workflow = existingProfile.workflow || {};
+
+        if (decision === "accept") {
+          const updatedProfile = {
+            ...existingProfile,
+            workflow: {
+              ...workflow,
+              assignmentAcceptedAt: workflow.assignmentAcceptedAt || new Date().toISOString(),
+              assignmentDeclinedAt: null,
+            },
+          };
+
+          const updated = await storage.updateStudent(studentId, {
+            personalProfile: updatedProfile,
+          } as any);
+
+          return res.json({
+            success: true,
+            assignmentAccepted: true,
+            student: updated,
+          });
+        }
+
+        const { data: existingIntroSession } = await supabase
+          .from("scheduled_sessions")
+          .select("id")
+          .eq("tutor_id", dbUser.id)
+          .eq("student_id", studentId)
+          .eq("type", "intro")
+          .maybeSingle();
+
+        if (existingIntroSession || workflow.introCompletedAt || student.identitySheetCompletedAt) {
+          return res.status(400).json({ message: "Assignment can only be declined before the intro workflow begins" });
+        }
+
+        const { data: enrollmentByStudent } = await supabase
+          .from("parent_enrollments")
+          .select("id")
+          .eq("assigned_tutor_id", dbUser.id)
+          .eq("assigned_student_id", studentId)
+          .maybeSingle();
+
+        if (enrollmentByStudent?.id) {
+          const { error: enrollmentUpdateError } = await supabase
+            .from("parent_enrollments")
+            .update({
+              status: "awaiting_assignment",
+              assigned_tutor_id: null,
+              assigned_student_id: null,
+              proposal_id: null,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", enrollmentByStudent.id);
+
+          if (enrollmentUpdateError) {
+            return res.status(500).json({ message: "Failed to re-open parent assignment" });
+          }
+        }
+
+        const { error: deleteStudentError } = await supabase
+          .from("students")
+          .delete()
+          .eq("id", studentId)
+          .eq("tutor_id", dbUser.id);
+
+        if (deleteStudentError) {
+          return res.status(500).json({ message: "Failed to decline assignment" });
+        }
+
+        return res.json({
+          success: true,
+          assignmentAccepted: false,
+          declined: true,
+        });
+      } catch (error) {
+        console.error("Error responding to assignment:", error);
+        res.status(500).json({ message: "Failed to respond to assignment" });
+      }
+    }
+  );
+
   app.post(
     "/api/tutor/students/:studentId/workflow/intro-completed",
     isAuthenticated,

@@ -433,6 +433,7 @@ export default function ParentOnboardingProposal({
             </CardHeader>
             <CardContent className="px-4 pb-4">
               <ul className="text-xs text-muted-foreground space-y-0.5 ml-2">
+                <li>Cadence: 2 sessions per week (8 sessions per month)</li>
                 <li>Clarity</li>
                 <li>Immediate execution</li>
                 <li>Layer correction</li>
@@ -464,8 +465,8 @@ export default function ParentOnboardingProposal({
               </p>
               <p className="text-xs text-muted-foreground">
                 <strong className="text-foreground">Commitment</strong> - Consistency and active
-                participation are required. Students are expected to attempt before receiving
-                guidance.
+                participation are required. Cadence is fixed at 2 sessions per week (8 sessions per month).
+                Students are expected to attempt before receiving guidance.
               </p>
             </CardContent>
           </Card>

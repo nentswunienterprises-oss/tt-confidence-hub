@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { API_URL } from "@/lib/config";
 
 export interface StudentWorkflowState {
+  assignmentAccepted: boolean;
   introConfirmed: boolean;
   introCompleted: boolean;
   identitySaved: boolean;
@@ -15,6 +16,7 @@ export function useStudentWorkflowState(studentId: string) {
     queryFn: async () => {
       if (!studentId) {
         return {
+          assignmentAccepted: false,
           introConfirmed: false,
           introCompleted: false,
           identitySaved: false,
@@ -58,6 +60,32 @@ export function useMarkIntroCompleted(studentId: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tutor/students", studentId, "workflow-state"] });
+    },
+  });
+}
+
+export function useRespondToAssignment(studentId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (decision: "accept" | "decline") => {
+      const res = await fetch(`${API_URL}/api/tutor/students/${studentId}/workflow/assignment-decision`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ decision }),
+      });
+
+      if (!res.ok) {
+        const errorBody = await res.json().catch(() => ({}));
+        throw new Error(errorBody?.message || "Failed to submit assignment decision");
+      }
+
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tutor/students", studentId, "workflow-state"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tutor/pod"] });
     },
   });
 }
