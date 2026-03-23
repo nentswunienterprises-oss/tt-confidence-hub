@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Zap } from "lucide-react";
+import { ArrowLeft, X, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -217,27 +217,52 @@ export default function ResponseConditioningHowToUseBossBattles() {
 
           <div className="space-y-4">
             <div>
-              <p className="font-semibold">❌ Introduce Too Early</p>
+              <p className="font-semibold flex items-center gap-2">
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-destructive/40 bg-destructive/10 text-destructive">
+                  <X className="h-3.5 w-3.5" strokeWidth={2.5} />
+                </span>
+                Introduce Too Early
+              </p>
               <p className="text-muted-foreground">Student is not ready &rarr; chaos</p>
             </div>
 
             <div>
-              <p className="font-semibold">❌ Over-Guide</p>
+              <p className="font-semibold flex items-center gap-2">
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-destructive/40 bg-destructive/10 text-destructive">
+                  <X className="h-3.5 w-3.5" strokeWidth={2.5} />
+                </span>
+                Over-Guide
+              </p>
               <p className="text-muted-foreground">Too many hints &rarr; no thinking</p>
             </div>
 
             <div>
-              <p className="font-semibold">❌ Rescue</p>
+              <p className="font-semibold flex items-center gap-2">
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-destructive/40 bg-destructive/10 text-destructive">
+                  <X className="h-3.5 w-3.5" strokeWidth={2.5} />
+                </span>
+                Rescue
+              </p>
               <p className="text-muted-foreground">Jump in quickly &rarr; no conditioning</p>
             </div>
 
             <div>
-              <p className="font-semibold">❌ Label It as "Hard"</p>
+              <p className="font-semibold flex items-center gap-2">
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-destructive/40 bg-destructive/10 text-destructive">
+                  <X className="h-3.5 w-3.5" strokeWidth={2.5} />
+                </span>
+                Label It as "Hard"
+              </p>
               <p className="text-muted-foreground">Creates anticipation and anxiety</p>
             </div>
 
             <div>
-              <p className="font-semibold">❌ Skip Debrief</p>
+              <p className="font-semibold flex items-center gap-2">
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-destructive/40 bg-destructive/10 text-destructive">
+                  <X className="h-3.5 w-3.5" strokeWidth={2.5} />
+                </span>
+                Skip Debrief
+              </p>
               <p className="text-muted-foreground">Misses the learning moment</p>
             </div>
           </div>
