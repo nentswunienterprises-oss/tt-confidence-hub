@@ -40,6 +40,8 @@ export default defineConfig({
   },
   root: path.resolve(import.meta.dirname, "client"),
   resolve: {
+    // Prefer TypeScript sources over legacy JSX twins when imports omit extensions.
+    extensions: [".tsx", ".ts", ".jsx", ".js", ".mjs", ".json"],
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
       "@shared": path.resolve(import.meta.dirname, "shared"),

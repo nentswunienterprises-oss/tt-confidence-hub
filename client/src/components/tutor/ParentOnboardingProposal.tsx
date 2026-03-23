@@ -1,91 +1,139 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { API_URL } from "@/lib/config";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download, Send } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ChevronLeft, ChevronRight, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
-const IDENTITIES = [
-  "Entrepreneur",
-  "Lawyer",
-  "Accountant",
-  "Doctor",
-  "Engineer",
-  "Director",
-  "Coach",
-  "CEO",
-  "Storyteller",
-  "Teacher",
+const TOTAL_STEPS = 3;
+
+const BREAKDOWN_OPTIONS = [
+  "Vocabulary gaps",
+  "Method inconsistency",
+  "Weak reasoning",
+  "Freezes under difficulty",
+  "Rushes under pressure",
+  "Depends on tutor",
+  "Skips steps",
 ];
 
-const PRESSURE_RESPONSES = ["Fight", "Freeze", "Avoid", "Overthink", "Shut-down"];
+const RESPONSE_PATTERN_OPTIONS = [
+  "Freezes",
+  "Rushes",
+  "Guesses",
+  "Seeks help early",
+  "Stays structured",
+];
 
-const PLANS = ["Standard Plan", "Premium Plan"];
+const PHASE_SEQUENCE = [
+  "Clarity",
+  "Structured Execution",
+  "Controlled Discomfort",
+  "Time Pressure Stability",
+];
 
-const JUSTIFICATION_SCRIPTS = {
-  "Premium Plan": [
-    "{studentName} performs best with tight, consistent touchpoints. Premium matches their learning tempo and keeps their progress sharp.",
-    "{studentName} grasps concepts quickly, but they also move on quickly. Premium lets us channel that speed into mastery instead of rushing.",
-    "{studentName} is aiming high. Premium gives them the intensity and structure that matches the goals they're chasing.",
-    "{studentName} grows when they stay in flow. Premium keeps them in that flow so every lesson builds directly on the last.",
-    "{studentName} responds well to quick corrections. Premium lets us turn mistakes into improvements before they settle.",
-    "{studentName} benefits from a training-style routine. Premium mirrors athletic conditioning: frequent reps, steady gains.",
-  ],
-  "Standard Plan": [
-    "{studentName} learns deeply when they have time to process. Standard gives them room to think, reflect, and come back stronger each week.",
-    "{studentName} performs best without feeling rushed. Standard offers reliable support while keeping things calm and manageable.",
-    "{studentName} naturally takes initiative. Standard ensures they have weekly guidance while still letting them build independence.",
-    "{studentName} has a tight schedule. Standard keeps tutoring effective without crowding their routine.",
-    "{studentName} improves consistently over time. Standard matches their natural pace and keeps progress smooth.",
-    "{studentName} needs time to practice after learning something new. Standard gives them the perfect cycle: learn, apply, return.",
-  ],
-};
+function computePhasePriority(
+  vocabulary: string,
+  reason: string,
+  followsSteps: string,
+  startsIndependently: string,
+  responsePatterns: string[],
+  breakdownPatterns: string[]
+): { phase: string; label: string }[] {
+  const scores = [0, 0, 0, 0];
 
-interface IdentitySheetData {
-  personalProfile?: {
-    personalityType?: string;
-    name?: string;
-    grade?: string;
-    school?: string;
-    learningId?: string;
-    longTermGoals?: string;
-  };
-  emotionalInsights?: {
-    relationshipWithMath?: string;
-    confidenceTriggers?: string;
-    confidenceKillers?: string;
-    pressureResponse?: string;
-    growthDrivers?: string;
-  };
-  academicDiagnosis?: {
-    currentClassTopics?: string;
-    strugglesWith?: string;
-    gapsIdentified?: string;
-    bossBattlesCompleted?: string;
-    lastBossBattleResult?: string;
-    tutorNotes?: string;
-  };
-  identitySheet?: Record<string, string[]>;
-  completedAt?: string | null;
+  // Clarity (index 0)
+  if (["weak", "inconsistent"].includes(vocabulary)) scores[0] += 2;
+  if (["partial", "unclear"].includes(reason)) scores[0] += 1;
+  if (breakdownPatterns.includes("Vocabulary gaps")) scores[0] += 2;
+  if (breakdownPatterns.includes("Weak reasoning")) scores[0] += 1;
+
+  // Structured Execution (index 1)
+  if (["partial", "skips-guesses"].includes(followsSteps)) scores[1] += 2;
+  if (["delayed", "does-not-start"].includes(startsIndependently)) scores[1] += 1;
+  if (breakdownPatterns.includes("Method inconsistency")) scores[1] += 2;
+  if (breakdownPatterns.includes("Skips steps")) scores[1] += 2;
+  if (breakdownPatterns.includes("Depends on tutor")) scores[1] += 1;
+
+  // Controlled Discomfort (index 2)
+  if (responsePatterns.includes("Freezes")) scores[2] += 2;
+  if (breakdownPatterns.includes("Freezes under difficulty")) scores[2] += 2;
+
+  // Time Pressure Stability (index 3)
+  if (responsePatterns.includes("Rushes")) scores[3] += 2;
+  if (breakdownPatterns.includes("Rushes under pressure")) scores[3] += 2;
+
+  const maxScore = Math.max(...scores);
+  return PHASE_SEQUENCE.map((phase, i) => ({
+    phase,
+    label:
+      scores[i] === maxScore && maxScore > 0
+        ? "Primary"
+        : scores[i] > 0
+        ? i <= 1
+          ? "Secondary"
+          : "Later"
+        : "Later",
+  }));
+}
+
+function computeExpectedProgress(
+  vocabulary: string,
+  startsIndependently: string,
+  followsSteps: string,
+  responsePatterns: string[],
+  breakdownPatterns: string[]
+): string[] {
+  const items: string[] = [];
+  if (
+    ["weak", "inconsistent"].includes(vocabulary) ||
+    breakdownPatterns.includes("Vocabulary gaps")
+  )
+    items.push("Faster problem identification");
+  if (
+    ["delayed", "does-not-start"].includes(startsIndependently) ||
+    breakdownPatterns.includes("Depends on tutor")
+  )
+    items.push("Earlier independent starts");
+  if (
+    responsePatterns.includes("Freezes") ||
+    breakdownPatterns.includes("Freezes under difficulty")
+  )
+    items.push("Reduced hesitation under difficulty");
+  if (
+    ["partial", "skips-guesses"].includes(followsSteps) ||
+    breakdownPatterns.includes("Skips steps")
+  )
+    items.push("More consistent step execution");
+  if (
+    responsePatterns.includes("Rushes") ||
+    breakdownPatterns.includes("Rushes under pressure")
+  )
+    items.push("Improved stability under time pressure");
+  if (breakdownPatterns.includes("Method inconsistency"))
+    items.push("Increased method stability");
+  // Ensure at least 3 items
+  const defaults = [
+    "Reduced hesitation under difficulty",
+    "More consistent step execution",
+    "Improved stability under time pressure",
+  ];
+  for (const d of defaults) {
+    if (items.length >= 3) break;
+    if (!items.includes(d)) items.push(d);
+  }
+  return items;
 }
 
 interface ParentOnboardingProposalProps {
@@ -94,7 +142,7 @@ interface ParentOnboardingProposalProps {
   studentName: string;
   studentId: string;
   tutorName?: string;
-  identitySheetData?: IdentitySheetData;
+  identitySheetData?: unknown;
 }
 
 export default function ParentOnboardingProposal({
@@ -103,140 +151,150 @@ export default function ParentOnboardingProposal({
   studentName,
   studentId,
   tutorName = "Your Tutor",
-  identitySheetData,
 }: ParentOnboardingProposalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState("overview");
-  const [formData, setFormData] = useState({
-    primaryIdentity: "",
-    mathRelationship: "",
-    confidenceTriggers: "",
-    confidenceKillers: "",
-    pressureResponse: "",
-    growthDrivers: "",
-    currentTopics: "",
-    immediateStruggles: "",
-    gapsIdentified: "",
-    tutorNotes: "",
-    futureIdentity: "",
-    wantToRemembered: "",
-    hiddenMotivations: "",
-    internalConflict: "",
-    recommendedPlan: "Standard Plan",
-    justification: "",
-    childWillWin: "",
-  });
-  const [selectedJustificationScript, setSelectedJustificationScript] = useState<string>("");
 
-  // Pre-populate form when identity sheet data is available
-  useEffect(() => {
-    if (identitySheetData && open) {
-      // Extract specific answers from identity sheet Q&A
-      const identitySheet = identitySheetData.identitySheet || {};
-      
-      // Map questions to form fields
-      const dreamJob = identitySheet["Who Are You?-1"]?.[0] || ""; // "What's your dream life or job?"
-      const wantRemembered = identitySheet["Values & Emotional Landscape-0"]?.[0] || ""; // "What kind of person do you want to be remembered as?"
-      const hiddenBelief = identitySheet["Mindset & Self-Perception-3"]?.[0] || ""; // "What's something you believe about yourself that no one sees?"
-      const secretDream = identitySheet["Dreams & Inner Drive-0"]?.[0] || ""; // "What's a dream you haven't told anyone about?"
-      const deepDesire = identitySheet["Dreams & Inner Drive-1"]?.[0] || ""; // "What's something you really want"
-      
-      // Clean up corrupted array data (filters out single-char strings)
-      const cleanArray = (value: any): string => {
-        if (!value) return "";
-        if (Array.isArray(value)) {
-          // Filter out single-character corruption, keep real values
-          const cleaned = value.filter(item => typeof item === 'string' && item.length > 1);
-          return cleaned.join(", ");
-        }
-        if (typeof value === 'string') return value;
-        return "";
-      };
+  // Wizard state
+  const [step, setStep] = useState(1);
+  const [showOutput, setShowOutput] = useState(false);
 
-      setFormData((prev) => ({
-        ...prev,
-        primaryIdentity: identitySheetData.personalProfile?.learningId || "",
-        mathRelationship: identitySheetData.emotionalInsights?.relationshipWithMath || "",
-        confidenceTriggers: cleanArray(identitySheetData.emotionalInsights?.confidenceTriggers),
-        confidenceKillers: cleanArray(identitySheetData.emotionalInsights?.confidenceKillers),
-        pressureResponse: identitySheetData.emotionalInsights?.pressureResponse || "",
-        growthDrivers: identitySheetData.emotionalInsights?.growthDrivers || "",
-        currentTopics: identitySheetData.academicDiagnosis?.currentClassTopics || "",
-        immediateStruggles: identitySheetData.academicDiagnosis?.strugglesWith || "",
-        gapsIdentified: identitySheetData.academicDiagnosis?.gapsIdentified || "",
-        tutorNotes: identitySheetData.academicDiagnosis?.tutorNotes || "",
-        // Psychological Anchor fields from identity sheet Q&A
-        futureIdentity: dreamJob,
-        wantToRemembered: wantRemembered,
-        hiddenMotivations: [secretDream, deepDesire].filter(Boolean).join("; "),
-        internalConflict: hiddenBelief,
-      }));
-    }
-  }, [identitySheetData, open]);
+  // Step 1 — Baseline Capture
+  const [vocabulary, setVocabulary] = useState<"strong" | "inconsistent" | "weak" | "">("");
+  const [method, setMethod] = useState<"stable" | "inconsistent" | "unstable" | "">("");
+  const [reason, setReason] = useState<"clear" | "partial" | "unclear" | "">("");
+  const [startsIndependently, setStartsIndependently] = useState<
+    "immediate" | "delayed" | "does-not-start" | ""
+  >("");
+  const [followsSteps, setFollowsSteps] = useState<
+    "consistent" | "partial" | "skips-guesses" | ""
+  >("");
+  const [responsePatterns, setResponsePatterns] = useState<string[]>([]);
 
-  const handleInputChange = (
-    field: string,
-    value: string
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-    
-    // Reset justification script selector when plan changes
-    if (field === "recommendedPlan") {
-      setSelectedJustificationScript("");
-    }
+  // Step 2 — Breakdown Patterns
+  const [breakdownPatterns, setBreakdownPatterns] = useState<string[]>([]);
+  const [notes, setNotes] = useState("");
+
+  // Step 3 — Phase Priority (auto, tutor can toggle)
+  const autoPhases = computePhasePriority(
+    vocabulary,
+    reason,
+    followsSteps,
+    startsIndependently,
+    responsePatterns,
+    breakdownPatterns
+  );
+  const [phasePriorityOverride, setPhasePriorityOverride] = useState<
+    Record<number, string> | null
+  >(null);
+  const phasePriority =
+    phasePriorityOverride !== null
+      ? autoPhases.map((p, i) => ({
+          ...p,
+          label: phasePriorityOverride[i] ?? p.label,
+        }))
+      : autoPhases;
+
+  // Expected Progress (auto)
+  const expectedProgress = computeExpectedProgress(
+    vocabulary,
+    startsIndependently,
+    followsSteps,
+    responsePatterns,
+    breakdownPatterns
+  );
+
+  const toggleMultiSelect = (list: string[], setList: (v: string[]) => void, value: string) => {
+    setList(list.includes(value) ? list.filter((x) => x !== value) : [...list, value]);
   };
 
-  const handleJustificationScriptSelect = (scriptTemplate: string) => {
-    setSelectedJustificationScript(scriptTemplate);
-    // Replace {studentName} with actual student name
-    const personalizedScript = scriptTemplate.replace(/{studentName}/g, studentName);
-    handleInputChange("justification", personalizedScript);
+  const resetWizard = () => {
+    setStep(1);
+    setShowOutput(false);
+    setVocabulary("");
+    setMethod("");
+    setReason("");
+    setStartsIndependently("");
+    setFollowsSteps("");
+    setResponsePatterns([]);
+    setBreakdownPatterns([]);
+    setNotes("");
+    setPhasePriorityOverride(null);
   };
+
+  const canProceedStep1 =
+    vocabulary !== "" &&
+    method !== "" &&
+    reason !== "" &&
+    startsIndependently !== "" &&
+    followsSteps !== "" &&
+    responsePatterns.length > 0;
+
+  const canProceedStep2 = breakdownPatterns.length > 0;
 
   const handleSendProposal = async () => {
+    const primaryPhase = phasePriority.find((p) => p.label === "Primary")?.phase ?? "Clarity";
+    const secondaryPhase = phasePriority.find((p) => p.label === "Secondary")?.phase ?? "Structured Execution";
+    const planName = "Premium Response Training";
+    const planJustification = `${studentName}'s current response profile requires a structured sequence: ${primaryPhase} first, ${secondaryPhase} second, followed by progressive stability work.`;
+
+    const payload = {
+      studentId,
+      type: "training-plan",
+      baselineCapture: { vocabulary, method, reason, startsIndependently, followsSteps, responsePatterns },
+      breakdownPatterns,
+      notes,
+      phasePriority,
+      expectedProgress,
+      primaryIdentity: "Response-focused learner profile",
+      mathRelationship: `${vocabulary} vocabulary, ${method} method, ${reason} reasoning`,
+      confidenceTriggers: responsePatterns.includes("Stays structured")
+        ? "Performs better with clear step structure"
+        : "Needs explicit structure to sustain confidence",
+      confidenceKillers: responsePatterns
+        .filter((p) => ["Freezes", "Rushes", "Guesses"].includes(p))
+        .join(", "),
+      pressureResponse:
+        responsePatterns.find((p) => ["Freezes", "Rushes", "Guesses"].includes(p)) ??
+        "Seeks help early",
+      growthDrivers: "Structured execution with attempt-first coaching",
+      currentTopics: "Onboarding baseline diagnostic",
+      immediateStruggles: breakdownPatterns.join(", "),
+      gapsIdentified: breakdownPatterns.join(", "),
+      tutorNotes: notes,
+      futureIdentity: "Independent and stable problem solver",
+      wantToRemembered: "A student who attempts with structure before support",
+      hiddenMotivations: "Not captured in onboarding template",
+      internalConflict: "Not captured in onboarding template",
+      recommendedPlan: planName,
+      justification: planJustification,
+      childWillWin: expectedProgress.slice(0, 2).join("; "),
+    };
     try {
       const response = await fetch(`${API_URL}/api/tutor/proposal`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          studentId,
-          ...formData,
-        }),
+        body: JSON.stringify(payload),
       });
-
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: "Failed to send proposal" }));
-        console.error("Server error:", errorData);
-        throw new Error(errorData.message || "Failed to send proposal");
+        const err = await response.json().catch(() => ({ message: "Failed to send proposal" }));
+        throw new Error(err.message || "Failed to send proposal");
       }
-
-      const data = await response.json();
-      console.log("✅ Proposal sent successfully:", data);
-      
-      // Show success message
       toast({
-        title: "Proposal Sent Successfully!",
-        description: `The personalized proposal for ${studentName} has been sent to their parent.`,
+        title: "Training Plan Sent!",
+        description: `The training plan for ${studentName} has been sent to their parent.`,
         duration: 5000,
       });
-      
-      // Refresh pod + student workflow state to update button progression
       await queryClient.invalidateQueries({ queryKey: ["/api/tutor/pod"] });
-      await queryClient.invalidateQueries({ queryKey: ["/api/tutor/students", studentId, "workflow-state"] });
-      
-      // Close dialog
+      await queryClient.invalidateQueries({
+        queryKey: ["/api/tutor/students", studentId, "workflow-state"],
+      });
       onOpenChange(false);
+      resetWizard();
     } catch (error) {
-      console.error("❌ Error sending proposal:", error);
       toast({
-        title: "Failed to Send Proposal",
+        title: "Failed to Send",
         description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive",
         duration: 5000,
@@ -244,223 +302,444 @@ export default function ParentOnboardingProposal({
     }
   };
 
-  const handleDownloadProposal = () => {
-    // TODO: Implement PDF download
-    console.log("Downloading proposal for student:", studentId);
+  // ── Helpers ──────────────────────────────────────────────────────────────
+  const RadioGroup = ({
+    options,
+    value,
+    onSelect,
+  }: {
+    options: { value: string; label: string }[];
+    value: string;
+    onSelect: (v: string) => void;
+  }) => (
+    <div className="flex flex-wrap gap-2">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          onClick={() => onSelect(o.value)}
+          className={`px-3 py-1.5 rounded-md border text-xs font-medium transition-colors ${
+            value === o.value
+              ? "bg-primary text-primary-foreground border-primary"
+              : "bg-background text-foreground border-border hover:bg-muted"
+          }`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+
+  const SectionLabel = ({ children }: { children: React.ReactNode }) => (
+    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+      {children}
+    </p>
+  );
+
+  // ── Step content ─────────────────────────────────────────────────────────
+  const stepContent = () => {
+    if (showOutput) {
+      return (
+        <div className="space-y-4">
+          <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
+            <h3 className="font-bold text-sm text-center mb-0.5">TT Training Plan</h3>
+            <p className="text-xs text-center text-muted-foreground">{studentName}</p>
+          </div>
+
+          <Card>
+            <CardHeader className="pb-2 pt-4 px-4">
+              <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Student Starting Point
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4 space-y-3">
+              <div>
+                <p className="text-xs font-semibold mb-1">Clarity</p>
+                <ul className="text-xs text-muted-foreground space-y-0.5 ml-2">
+                  <li>Vocabulary: <span className="text-foreground capitalize">{vocabulary}</span></li>
+                  <li>Method: <span className="text-foreground capitalize">{method}</span></li>
+                  <li>Reason: <span className="text-foreground capitalize">{reason}</span></li>
+                </ul>
+              </div>
+              <div>
+                <p className="text-xs font-semibold mb-1">Execution</p>
+                <ul className="text-xs text-muted-foreground space-y-0.5 ml-2">
+                  <li>
+                    Starts:{" "}
+                    <span className="text-foreground capitalize">
+                      {startsIndependently.replace("-", " ")}
+                    </span>
+                  </li>
+                  <li>
+                    Follows Steps:{" "}
+                    <span className="text-foreground capitalize">
+                      {followsSteps.replace("-", " ")}
+                    </span>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <p className="text-xs font-semibold mb-1">Response Pattern</p>
+                <ul className="text-xs text-muted-foreground ml-2 space-y-0.5">
+                  {responsePatterns.map((p) => (
+                    <li key={p}>{p}</li>
+                  ))}
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2 pt-4 px-4">
+              <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Identified Patterns
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              <ul className="text-xs text-muted-foreground space-y-0.5 ml-2">
+                {breakdownPatterns.map((p) => (
+                  <li key={p}>{p}</li>
+                ))}
+              </ul>
+              {notes && (
+                <p className="text-xs text-muted-foreground mt-2 italic">Note: {notes}</p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2 pt-4 px-4">
+              <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Training Focus
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              <ul className="text-xs space-y-0.5 ml-2">
+                {phasePriority.map((p, i) => (
+                  <li key={p.phase} className="text-muted-foreground">
+                    <span className="text-foreground font-medium">Phase {i + 1}: {p.phase}</span>
+                    <span className="text-muted-foreground"> - {p.label}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2 pt-4 px-4">
+              <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Session Structure
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              <ul className="text-xs text-muted-foreground space-y-0.5 ml-2">
+                <li>Clarity</li>
+                <li>Immediate execution</li>
+                <li>Layer correction</li>
+                <li>Controlled difficulty when appropriate</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2 pt-4 px-4">
+              <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Expected Progress
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              <ul className="text-xs text-muted-foreground space-y-0.5 ml-2">
+                {expectedProgress.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="px-4 py-3 space-y-2">
+              <p className="text-xs text-muted-foreground">
+                <strong className="text-foreground">Important Note</strong> - This training focuses
+                on how the student responds under difficulty, not only on correct answers.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                <strong className="text-foreground">Commitment</strong> - Consistency and active
+                participation are required. Students are expected to attempt before receiving
+                guidance.
+              </p>
+            </CardContent>
+          </Card>
+
+          <div className="flex gap-2 pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => { setShowOutput(false); setStep(3); }}
+              className="gap-1"
+            >
+              <ChevronLeft className="w-3 h-3" /> Back
+            </Button>
+            <Button onClick={handleSendProposal} className="flex-1 gap-2" size="sm">
+              <Send className="w-3 h-3" /> Send to Parent
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    switch (step) {
+      case 1:
+        return (
+          <div className="space-y-5">
+            <div>
+              <SectionLabel>Clarity</SectionLabel>
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-xs mb-1.5 block">Vocabulary</Label>
+                  <RadioGroup
+                    options={[
+                      { value: "strong", label: "Strong" },
+                      { value: "inconsistent", label: "Inconsistent" },
+                      { value: "weak", label: "Weak" },
+                    ]}
+                    value={vocabulary}
+                    onSelect={(v) => setVocabulary(v as typeof vocabulary)}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs mb-1.5 block">Method</Label>
+                  <RadioGroup
+                    options={[
+                      { value: "stable", label: "Stable" },
+                      { value: "inconsistent", label: "Inconsistent" },
+                      { value: "unstable", label: "Unstable" },
+                    ]}
+                    value={method}
+                    onSelect={(v) => setMethod(v as typeof method)}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs mb-1.5 block">Reason</Label>
+                  <RadioGroup
+                    options={[
+                      { value: "clear", label: "Clear" },
+                      { value: "partial", label: "Partial" },
+                      { value: "unclear", label: "Unclear" },
+                    ]}
+                    value={reason}
+                    onSelect={(v) => setReason(v as typeof reason)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <SectionLabel>Execution</SectionLabel>
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-xs mb-1.5 block">Starts Independently</Label>
+                  <RadioGroup
+                    options={[
+                      { value: "immediate", label: "Immediate" },
+                      { value: "delayed", label: "Delayed" },
+                      { value: "does-not-start", label: "Does not start" },
+                    ]}
+                    value={startsIndependently}
+                    onSelect={(v) => setStartsIndependently(v as typeof startsIndependently)}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs mb-1.5 block">Follows Steps</Label>
+                  <RadioGroup
+                    options={[
+                      { value: "consistent", label: "Consistent" },
+                      { value: "partial", label: "Partial" },
+                      { value: "skips-guesses", label: "Skips / guesses" },
+                    ]}
+                    value={followsSteps}
+                    onSelect={(v) => setFollowsSteps(v as typeof followsSteps)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <SectionLabel>Response Pattern - select all that apply</SectionLabel>
+              <div className="flex flex-col gap-2">
+                {RESPONSE_PATTERN_OPTIONS.map((opt) => (
+                  <div key={opt} className="flex items-center gap-2">
+                    <Checkbox
+                      id={`rp-${opt}`}
+                      checked={responsePatterns.includes(opt)}
+                      onCheckedChange={() =>
+                        toggleMultiSelect(responsePatterns, setResponsePatterns, opt)
+                      }
+                    />
+                    <label htmlFor={`rp-${opt}`} className="text-xs cursor-pointer">
+                      {opt}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-4">
+            <div>
+              <SectionLabel>Breakdown Patterns - select all that apply</SectionLabel>
+              <div className="flex flex-col gap-2">
+                {BREAKDOWN_OPTIONS.map((opt) => (
+                  <div key={opt} className="flex items-center gap-2">
+                    <Checkbox
+                      id={`bp-${opt}`}
+                      checked={breakdownPatterns.includes(opt)}
+                      onCheckedChange={() =>
+                        toggleMultiSelect(breakdownPatterns, setBreakdownPatterns, opt)
+                      }
+                    />
+                    <label htmlFor={`bp-${opt}`} className="text-xs cursor-pointer">
+                      {opt}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs mb-1.5 block">Note</Label>
+              <Textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Brief observation..."
+                className="min-h-[60px] text-xs"
+                maxLength={200}
+              />
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-4">
+            <div className="bg-muted/40 rounded-lg p-3 text-xs text-muted-foreground">
+              Auto-suggested based on your inputs. You can adjust labels.
+            </div>
+            <div className="space-y-2">
+              {phasePriority.map((p, i) => (
+                <div key={p.phase} className="flex items-center justify-between border rounded-md px-3 py-2">
+                  <span className="text-xs font-medium">Phase {i + 1}: {p.phase}</span>
+                  <div className="flex gap-1">
+                    {["Primary", "Secondary", "Later"].map((lbl) => (
+                      <button
+                        key={lbl}
+                        type="button"
+                        onClick={() =>
+                          setPhasePriorityOverride((prev) => ({ ...(prev ?? {}), [i]: lbl }))
+                        }
+                        className={`px-2 py-0.5 rounded text-[10px] font-medium border transition-colors ${
+                          p.label === lbl
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-background text-muted-foreground border-border hover:bg-muted"
+                        }`}
+                      >
+                        {lbl}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
   };
 
+  const stepLabels = [
+    "Baseline Capture",
+    "Breakdown Patterns",
+    "Training Phase Priority",
+  ];
+
+  const canProceed =
+    step === 1 ? canProceedStep1 :
+    step === 2 ? canProceedStep2 :
+    true;
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
-        <DialogHeader className="space-y-1 sm:space-y-2">
-          <DialogTitle className="text-base sm:text-lg">Parent Onboarding Proposal</DialogTitle>
-          <DialogDescription className="text-xs sm:text-sm">
-            Creating a personalized proposal for {studentName}
-          </DialogDescription>
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!v) resetWizard();
+        onOpenChange(v);
+      }}
+    >
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="text-base sm:text-lg">Generate Training Plan</DialogTitle>
+          <DialogDescription className="text-xs sm:text-sm">{studentName}</DialogDescription>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-auto">
-            <TabsTrigger value="overview" className="text-xs sm:text-sm px-2 sm:px-4 py-1.5 sm:py-2">Overview</TabsTrigger>
-            <TabsTrigger value="academics" className="text-xs sm:text-sm px-2 sm:px-4 py-1.5 sm:py-2">Academics</TabsTrigger>
-            <TabsTrigger value="recommendation" className="text-xs sm:text-sm px-2 sm:px-4 py-1.5 sm:py-2">Recommendation</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-3 sm:space-y-4">
-            <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-3 sm:p-6 rounded-lg mb-3 sm:mb-6">
-              <h3 className="text-sm sm:text-lg font-bold text-foreground mb-1 sm:mb-2">
-                Response Pattern Assessment
-              </h3>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Observations of {studentName}'s response patterns and academic needs.
-              </p>
+        {/* Step indicator */}
+        {!showOutput && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-muted-foreground">
+                Step {step} of {TOTAL_STEPS} — {stepLabels[step - 1]}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {Math.round((step / TOTAL_STEPS) * 100)}%
+              </span>
             </div>
+            <div className="w-full bg-muted rounded-full h-1.5">
+              <div
+                className="bg-primary h-1.5 rounded-full transition-all"
+                style={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
 
-            <Card>
-              <CardHeader className="p-3 sm:p-6">
-                <CardTitle className="text-sm sm:text-base">1. Tutor Session Notes</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6 pt-0 sm:pt-0">
-                <div>
-                  <Label htmlFor="tutorNotes" className="text-xs sm:text-sm font-medium">
-                    Observed Response Patterns
-                  </Label>
-                  <Textarea
-                    id="tutorNotes"
-                    placeholder="Observable patterns during problem-solving: how they approach new topics, response to errors, work pace, etc..."
-                    value={formData.tutorNotes}
-                    onChange={(e) =>
-                      handleInputChange("tutorNotes", e.target.value)
-                    }
-                    className="mt-2 min-h-20 sm:min-h-24 text-sm"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Focus on procedural observations, not emotional interpretation
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+        {/* Step content */}
+        <div className="py-2">{stepContent()}</div>
 
-          <TabsContent value="academics" className="space-y-3 sm:space-y-4">
-            <Card>
-              <CardHeader className="p-3 sm:p-6">
-                <CardTitle className="text-sm sm:text-base">2. Academic Diagnosis</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6 pt-0 sm:pt-0">
-                <div>
-                  <Label htmlFor="currentTopics" className="text-xs sm:text-sm font-medium">
-                    Current Topics
-                  </Label>
-                  <Textarea
-                    id="currentTopics"
-                    placeholder="Based on what the child mentioned in session..."
-                    value={formData.currentTopics}
-                    onChange={(e) =>
-                      handleInputChange("currentTopics", e.target.value)
-                    }
-                    className="mt-2 min-h-16 sm:min-h-20 text-sm"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div>
-                    <Label htmlFor="immediateStruggles" className="text-xs sm:text-sm font-medium">
-                      Immediate Struggles
-                    </Label>
-                    <Textarea
-                      id="immediateStruggles"
-                      placeholder="Patterns, not just topics..."
-                      value={formData.immediateStruggles}
-                      onChange={(e) =>
-                        handleInputChange("immediateStruggles", e.target.value)
-                      }
-                      className="mt-2 min-h-16 sm:min-h-20 text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="gapsIdentified" className="text-xs sm:text-sm font-medium">
-                      Gaps Identified
-                    </Label>
-                    <Textarea
-                      id="gapsIdentified"
-                      placeholder="Where foundations cracked..."
-                      value={formData.gapsIdentified}
-                      onChange={(e) =>
-                        handleInputChange("gapsIdentified", e.target.value)
-                      }
-                      className="mt-2 min-h-16 sm:min-h-20 text-sm"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="p-3 sm:p-6">
-                <CardTitle className="text-sm sm:text-base">3. The Training Roadmap (90-Day Plan)</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6 pt-0 sm:pt-0">
-                <div className="bg-accent/50 p-3 sm:p-4 rounded-lg space-y-2 sm:space-y-3">
-                  <div>
-                    <h4 className="font-semibold text-xs sm:text-sm mb-2">Phase 1: Foundation Assessment (Weeks 1–3)</h4>
-                    <ul className="text-xs sm:text-sm text-muted-foreground space-y-1">
-                      <li>• Identify response patterns under pressure</li>
-                      <li>• Map procedural gaps</li>
-                      <li>• Establish baseline problem-solving approach</li>
-                      <li>• Introduce step-by-step problem protocols</li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h4 className="font-semibold text-xs sm:text-sm mb-2">Phase 2: Systematic Training (Weeks 4–7)</h4>
-                    <ul className="text-xs sm:text-sm text-muted-foreground space-y-1">
-                      <li>• Address identified gaps systematically</li>
-                      <li>• Practice under timed conditions</li>
-                      <li>• Reinforce procedural consistency</li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h4 className="font-semibold text-xs sm:text-sm mb-2">Phase 3: Performance Testing (Weeks 8–12)</h4>
-                    <ul className="text-xs sm:text-sm text-muted-foreground space-y-1">
-                      <li>• Progressive difficulty increase</li>
-                      <li>• Pressure simulation sessions</li>
-                      <li>• Test-condition practice</li>
-                      <li>• Performance consistency measurement</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="bg-primary/10 p-3 sm:p-4 rounded-lg space-y-2 sm:space-y-3">
-                  <h4 className="font-semibold text-xs sm:text-sm mb-2 text-foreground">Expected Outcomes by Day 90</h4>
-                  <ul className="text-xs sm:text-sm text-muted-foreground space-y-1">
-                    <li>✓ Consistent problem-solving procedure</li>
-                    <li>✓ Measurable gap closure</li>
-                    <li>✓ Improved test performance</li>
-                    <li>✓ Reduced error rate under time pressure</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="recommendation" className="space-y-3 sm:space-y-4">
-            <Card className="bg-gradient-to-r from-primary/10 to-primary/5">
-              <CardHeader className="p-3 sm:p-6">
-                <CardTitle className="text-sm sm:text-base">Standard Program: Premium Response Training</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6 pt-0 sm:pt-0">
-                <div className="space-y-2 sm:space-y-3">
-                  <p className="text-xs sm:text-sm font-medium">
-                    All students receive the same standardized program: <strong>Premium Response Training</strong>
-                  </p>
-                  
-                  <div className="bg-white dark:bg-gray-900 p-3 sm:p-4 rounded-lg space-y-2 sm:space-y-3">
-                    <h4 className="font-semibold text-xs sm:text-sm">What's Included</h4>
-                    <ul className="text-xs sm:text-sm text-muted-foreground space-y-1">
-                      <li>✓ Weekly 1-on-1 session</li>
-                      <li>✓ Response-first problem training</li>
-                      <li>✓ Monthly pressure simulation</li>
-                      <li>✓ Neutral progress reporting</li>
-                    </ul>
-                  </div>
-
-                  <div className="bg-muted/30 p-2 sm:p-3 rounded-lg">
-                    <p className="text-[10px] sm:text-xs text-muted-foreground italic">
-                      No psychology theatre, no identity probing, no motivational leakage.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="p-3 sm:p-6">
-                <CardTitle className="text-sm sm:text-base">Ready to Send</CardTitle>
-              </CardHeader>
-              <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
-                <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-3 sm:p-4 rounded-lg mb-3 sm:mb-4">
-                  <p className="text-xs sm:text-sm font-medium text-foreground">
-                    Click "Send to Parent" to deliver the standardized Premium Response Training program to {studentName}'s parent.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="flex gap-2 sm:gap-3 pt-3 sm:pt-4 px-3 sm:px-0">
+        {/* Navigation */}
+        {!showOutput && (
+          <div className="flex gap-2 pt-2 border-t">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={step === 1}
+              onClick={() => setStep((s) => s - 1)}
+              className="gap-1"
+            >
+              <ChevronLeft className="w-3 h-3" /> Back
+            </Button>
+            <div className="flex-1" />
+            {step < TOTAL_STEPS ? (
               <Button
-                onClick={handleSendProposal}
-                className="w-full gap-2 text-sm sm:text-base"
-                size="lg"
+                size="sm"
+                disabled={!canProceed}
+                onClick={() => setStep((s) => s + 1)}
+                className="gap-1"
               >
-                <Send className="w-4 h-4" />
-                Send to Parent
+                Next <ChevronRight className="w-3 h-3" />
               </Button>
-            </div>
-          </TabsContent>
-        </Tabs>
+            ) : (
+              <Button
+                size="sm"
+                onClick={() => setShowOutput(true)}
+                className="gap-1"
+              >
+                Generate Proposal <ChevronRight className="w-3 h-3" />
+              </Button>
+            )}
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

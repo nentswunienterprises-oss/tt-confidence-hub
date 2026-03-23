@@ -1,9 +1,40 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, FileText } from "lucide-react";
+import { Calendar, FileText, ScrollText } from "lucide-react";
 import { useStudentWorkflowState, useMarkIntroCompleted } from "@/hooks/useStudentWorkflowState";
 import { TutorIntroSessionActions } from "./TutorIntroSessionActions";
+
+function splitReportedTopics(rawValue) {
+  if (!rawValue || typeof rawValue !== "string") return [];
+  return rawValue
+    .split(/[,\n;|]+/)
+    .map((part) => part.replace(/^[-*\u2022\s]+/, "").trim())
+    .filter(Boolean);
+}
+
+function inferReportedSymptoms({ struggleAreas, parentMotivation }) {
+  const combined = `${struggleAreas || ""} ${parentMotivation || ""}`.toLowerCase();
+  const symptoms = [];
+
+  if (/(freeze|freezes|panic|panics|stuck|blank)/.test(combined)) {
+    symptoms.push("Freezes when questions look unfamiliar");
+  }
+  if (/(rush|rushed|careless|quickly|too fast)/.test(combined)) {
+    symptoms.push("Rushes under time pressure");
+  }
+  if (/(guess|guesses|guessing)/.test(combined)) {
+    symptoms.push("Guesses without full structure");
+  }
+  if (/(avoid|avoids|avoidance)/.test(combined)) {
+    symptoms.push("Avoids difficult problems");
+  }
+  if (/(help|depends|dependent|reassurance|support)/.test(combined)) {
+    symptoms.push("Seeks help early");
+  }
+
+  return symptoms;
+}
 
 export function StudentCard({
   student,
@@ -14,6 +45,7 @@ export function StudentCard({
   setTrackingDialogOpen,
   setAssignmentsDialogOpen,
   setProposalOpen,
+  setReportsDialogOpen,
 }) {
   const sessionProgress = student.sessionProgress || 0;
   // Determine onboarding type (pilot or commercial) from parentInfo if available
@@ -33,6 +65,14 @@ export function StudentCard({
 
   const { data: workflow, isLoading: workflowLoading } = useStudentWorkflowState(student.id);
   const markIntroCompleted = useMarkIntroCompleted(student.id);
+
+  const reportedTopics = splitReportedTopics(student.parentInfo?.math_struggle_areas);
+  const reportedSymptoms = inferReportedSymptoms({
+    struggleAreas: student.parentInfo?.math_struggle_areas,
+    parentMotivation: student.parentInfo?.parent_motivation,
+  });
+  const suggestedTopic = reportedTopics[0] || "Current class topic with highest friction";
+  const suggestedSymptoms = reportedSymptoms.slice(0, 2);
 
   return (
     <div className="p-6 border shadow-sm hover-elevate card">
@@ -77,6 +117,53 @@ export function StudentCard({
         </div>
         {/* Confidence Level bars removed as requested */}
         {workflowLoading && <p className="text-xs text-muted-foreground">Loading workflow...</p>}
+
+        {/* Pre-session intelligence from parent enrollment */}
+        {workflow && !workflow.introCompleted && student.parentInfo && (
+          <div className="pt-4 border-t space-y-3">
+            <div>
+              <p className="text-xs font-semibold text-foreground">Pre-Session Intelligence</p>
+            </div>
+
+            <div className="rounded-md border bg-muted/30 p-3 space-y-2">
+              <p className="text-[11px] font-medium text-foreground">Parent-Reported Topics</p>
+              {reportedTopics.length > 0 ? (
+                <ul className="text-xs text-muted-foreground space-y-1">
+                  {reportedTopics.slice(0, 4).map((topic) => (
+                    <li key={topic}>• {topic}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs text-muted-foreground">No specific topics listed by parent.</p>
+              )}
+            </div>
+
+            <div className="rounded-md border bg-muted/30 p-3 space-y-2">
+              <p className="text-[11px] font-medium text-foreground">Parent-Observed Symptoms</p>
+              {reportedSymptoms.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {reportedSymptoms.map((symptom) => (
+                    <Badge key={symptom} variant="secondary" className="text-[10px]">
+                      {symptom}
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  No explicit symptom keywords found. Observe freeze, rush, guess, avoid, and early help-seeking.
+                </p>
+              )}
+            </div>
+
+            <div className="rounded-md border border-primary/30 bg-primary/5 p-3 space-y-1">
+              <p className="text-[11px] font-semibold text-foreground">Diagnostic Focus Suggestion</p>
+              <p className="text-xs text-muted-foreground">Start with: <span className="text-foreground font-medium">{suggestedTopic}</span></p>
+              <p className="text-xs text-muted-foreground">
+                Watch for: <span className="text-foreground font-medium">{suggestedSymptoms.length > 0 ? suggestedSymptoms.join(" + ") : "Freezing + early help-seeking"}</span>
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Step 1: Handle intro session confirmation */}
         {workflow && !workflow.introConfirmed && (
@@ -212,6 +299,22 @@ export function StudentCard({
             </Button>
           </div>
         )}
+
+        <div className="pt-4 border-t space-y-2">
+          <Button
+            className="w-full"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setSelectedStudentId(student.id);
+              setSelectedStudentName(student.name);
+              setReportsDialogOpen(true);
+            }}
+          >
+            <ScrollText className="w-4 h-4 mr-2" />
+            Reports
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -451,7 +451,7 @@ export default function StudentAcademicTracker() {
                 <DialogTitle className="text-base sm:text-lg">
                   {editingTargetId ? "Edit Struggle Target" : "New Struggle Target"}
                 </DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm" className="text-xs sm:text-sm">
+                <DialogDescription className="text-xs sm:text-sm">
                   Track a specific struggle and plan how to overcome it
                 </DialogDescription>
               </DialogHeader>

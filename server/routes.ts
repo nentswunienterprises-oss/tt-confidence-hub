@@ -906,6 +906,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     );
 
   // Get tutor's pod assignment and students
+  const TOPIC_LABELS: Record<string, string> = {
+    word_problems: "Word problems",
+    tests: "Tests",
+    timed_work: "Timed work",
+    new_topics: "New topics",
+    careless_errors: "Careless errors",
+  };
+
+  const parseTopicText = (value: unknown): string[] => {
+    if (!value || typeof value !== "string") return [];
+    return value
+      .split(/[\n,;|]+/)
+      .map((part) => part.replace(/^[-*\u2022\s]+/, "").trim())
+      .filter(Boolean);
+  };
+
+  const buildReportedTopics = (stuckAreas: unknown, mathStruggleAreas: unknown): string[] => {
+    const selected = Array.isArray(stuckAreas)
+      ? stuckAreas
+          .map((value) => TOPIC_LABELS[String(value)] || String(value))
+          .map((topic) => topic.trim())
+          .filter(Boolean)
+      : [];
+
+    const typed = parseTopicText(mathStruggleAreas);
+    return Array.from(new Set([...selected, ...typed]));
+  };
+
+  const buildResponseSymptoms = (confidenceLevel: unknown): string[] => {
+    switch (confidenceLevel) {
+      case "very_low":
+        return ["Freezes when questions look unfamiliar", "Seeks help early"];
+      case "low":
+        return ["Rushes under pressure", "Guesses without full structure"];
+      case "average":
+        return ["Breaks under time pressure"];
+      case "high":
+        return ["Stays structured under uncertainty"];
+      default:
+        return [];
+    }
+  };
+
+  const buildIntakeSignals = (enrollment: any) => {
+    const reportedTopics = buildReportedTopics([], enrollment?.math_struggle_areas);
+    const responseSymptoms = buildResponseSymptoms(enrollment?.confidence_level);
+    return {
+      reported_topics: reportedTopics,
+      response_symptoms: responseSymptoms,
+      diagnostic_focus: {
+        start_with: reportedTopics[0] || null,
+        watch_for: responseSymptoms.slice(0, 2),
+      },
+    };
+  };
+
   app.get(
     "/api/tutor/pod",
     isAuthenticated,
@@ -985,7 +1041,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               
               return {
                 ...student,
-                parentInfo: parentEnrollment || null,
+                parentInfo: parentEnrollment
+                  ? {
+                      ...parentEnrollment,
+                      ...buildIntakeSignals(parentEnrollment),
+                    }
+                  : null,
                 proposalSentAt: parentEnrollment?.proposal_sent_at || null,
                 parentApprovedAt: isApproved ? (proposalAcceptedAt || parentEnrollment?.updated_at) : null,
               };
@@ -1141,6 +1202,416 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error("Error creating session:", error);
         res.status(400).json({ message: "Failed to create session" });
+      }
+    }
+  );
+
+  const parseStructuredReportSummary = (summary: string | null) => {
+    if (!summary) return null;
+    try {
+      const parsed = JSON.parse(summary);
+      if (parsed && typeof parsed === "object") {
+        return parsed;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
+  const getIsoWeekNumber = (date: Date) => {
+    const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = utcDate.getUTCDay() || 7;
+    utcDate.setUTCDate(utcDate.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(utcDate.getUTCFullYear(), 0, 1));
+    return Math.ceil((((utcDate as any) - (yearStart as any)) / 86400000 + 1) / 7);
+  };
+
+  const formatMonthName = (date: Date) => {
+    return date.toLocaleString("en-US", { month: "long", year: "numeric" });
+  };
+
+  const mapParentFacingReport = (report: any, tutorName?: string | null) => {
+    const structured = parseStructuredReportSummary(report.summary) || {};
+    const base = {
+      id: report.id,
+      reportType: report.report_type,
+      sentAt: report.sent_at,
+      tutor: {
+        name: tutorName || "Tutor",
+      },
+      parentFeedback: report.parent_feedback || null,
+      parentFeedbackAt: report.parent_feedback_at || null,
+    };
+
+    if (report.report_type === "weekly") {
+      return {
+        ...base,
+        weekRange:
+          structured.weekStartDate && structured.weekEndDate
+            ? {
+                start: structured.weekStartDate,
+                end: structured.weekEndDate,
+              }
+            : null,
+        sessionsCompleted: Number(structured.sessionsCompletedThisWeek || report.solutions_unlocked || 0),
+        mainTopicsCovered: structured.mainTopicsCovered || report.topics_learned || "",
+        whatImproved: structured.whatImprovedThisWeek || report.strengths || "",
+        studentResponsePattern: structured.studentResponsePatternThisWeek || "",
+        mainMisunderstanding: structured.mainMisunderstandingThisWeek || report.areas_for_growth || "",
+        correctionThatHelped: structured.mainCorrectionHelpedThisWeek || "",
+        bossBattleSummary: structured.bossBattleSummaryThisWeek || "",
+        nextFocus: structured.reinforcementNextWeek || report.next_steps || "",
+      };
+    }
+
+    return {
+      ...base,
+      monthRange:
+        structured.monthStartDate && structured.monthEndDate
+          ? {
+              start: structured.monthStartDate,
+              end: structured.monthEndDate,
+            }
+          : null,
+      monthName: report.month_name || null,
+      totalSessionsCompleted: Number(structured.totalSessionsCompletedThisMonth || report.solutions_unlocked || 0),
+      mainAreasCovered: structured.mainAreasCoveredThisMonth || report.topics_learned || "",
+      skillsStronger: structured.strongerSkillsThisMonth || report.strengths || "",
+      responsePatternTrend: structured.responsePatternTrendThisMonth || "",
+      recurringChallenge: structured.recurringChallengeThisMonth || report.areas_for_growth || "",
+      mostEffectiveIntervention: structured.mostEffectiveInterventionThisMonth || "",
+      bossBattleTrend: structured.bossBattleTrendThisMonth || "",
+      nextMonthPriority: structured.nextMonthPriority || report.next_steps || "",
+    };
+  };
+
+  // Get all reports created by tutor (optional student filter)
+  app.get(
+    "/api/tutor/reports",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const tutorId = (req as any).dbUser.id;
+        const studentId = typeof req.query.studentId === "string" ? req.query.studentId : null;
+
+        let query = supabase
+          .from("parent_reports")
+          .select("*")
+          .eq("tutor_id", tutorId)
+          .order("sent_at", { ascending: false });
+
+        if (studentId) {
+          query = query.eq("student_id", studentId);
+        }
+
+        const { data, error } = await query;
+        if (error) {
+          throw error;
+        }
+
+        const reports = (data || []).map((report: any) => ({
+          id: report.id,
+          tutorId: report.tutor_id,
+          studentId: report.student_id,
+          parentId: report.parent_id,
+          reportType: report.report_type,
+          weekNumber: report.week_number,
+          monthName: report.month_name,
+          summary: report.summary,
+          topicsLearned: report.topics_learned,
+          strengths: report.strengths,
+          areasForGrowth: report.areas_for_growth,
+          bossBattlesCompleted: report.boss_battles_completed,
+          solutionsUnlocked: report.solutions_unlocked,
+          confidenceGrowth: report.confidence_growth,
+          nextSteps: report.next_steps,
+          parentFeedback: report.parent_feedback,
+          parentFeedbackAt: report.parent_feedback_at,
+          sentAt: report.sent_at,
+          createdAt: report.created_at,
+          structuredData: parseStructuredReportSummary(report.summary),
+        }));
+
+        res.json(reports);
+      } catch (error) {
+        console.error("Error fetching tutor reports:", error);
+        res.status(500).json({ message: "Failed to fetch tutor reports" });
+      }
+    }
+  );
+
+  // Reports center data per student (sessions + weekly/monthly reports)
+  app.get(
+    "/api/tutor/students/:studentId/reports-center",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const tutorId = (req as any).dbUser.id;
+        const { studentId } = req.params;
+
+        const student = await storage.getStudent(studentId);
+        if (!student || student.tutorId !== tutorId) {
+          return res.status(403).json({ message: "Unauthorized" });
+        }
+
+        const sessions = (await storage.getSessionsByStudent(studentId)).filter(
+          (session: any) => session.tutorId === tutorId
+        );
+
+        const { data: reports, error: reportsError } = await supabase
+          .from("parent_reports")
+          .select("*")
+          .eq("student_id", studentId)
+          .eq("tutor_id", tutorId)
+          .order("sent_at", { ascending: false });
+
+        if (reportsError) {
+          throw reportsError;
+        }
+
+        const enrichedReports = (reports || []).map((report: any) => ({
+          id: report.id,
+          tutorId: report.tutor_id,
+          studentId: report.student_id,
+          parentId: report.parent_id,
+          reportType: report.report_type,
+          weekNumber: report.week_number,
+          monthName: report.month_name,
+          summary: report.summary,
+          topicsLearned: report.topics_learned,
+          strengths: report.strengths,
+          areasForGrowth: report.areas_for_growth,
+          bossBattlesCompleted: report.boss_battles_completed,
+          solutionsUnlocked: report.solutions_unlocked,
+          confidenceGrowth: report.confidence_growth,
+          nextSteps: report.next_steps,
+          parentFeedback: report.parent_feedback,
+          parentFeedbackAt: report.parent_feedback_at,
+          sentAt: report.sent_at,
+          createdAt: report.created_at,
+          structuredData: parseStructuredReportSummary(report.summary),
+        }));
+
+        res.json({
+          sessions,
+          reports: enrichedReports,
+        });
+      } catch (error) {
+        console.error("Error fetching reports center data:", error);
+        res.status(500).json({ message: "Failed to fetch reports center data" });
+      }
+    }
+  );
+
+  // Create weekly parent report
+  app.post(
+    "/api/tutor/reports/weekly",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const tutorId = (req as any).dbUser.id;
+        const {
+          studentId,
+          weekStartDate,
+          weekEndDate,
+          sessionsCompletedThisWeek,
+          mainTopicsCovered,
+          whatImprovedThisWeek,
+          studentResponsePatternThisWeek,
+          mainMisunderstandingThisWeek,
+          mainCorrectionHelpedThisWeek,
+          bossBattleSummaryThisWeek,
+          reinforcementNextWeek,
+          internalWeeklyTutorNote,
+          sourceSessionIds,
+          sourceSessionCount,
+          bossBattlesCompletedThisWeek,
+        } = req.body || {};
+
+        if (!studentId || !weekStartDate || !weekEndDate || !mainTopicsCovered || !whatImprovedThisWeek || !studentResponsePatternThisWeek || !mainMisunderstandingThisWeek || !mainCorrectionHelpedThisWeek || !bossBattleSummaryThisWeek || !reinforcementNextWeek) {
+          return res.status(400).json({ message: "Missing required weekly report fields" });
+        }
+
+        const student = await storage.getStudent(studentId);
+        if (!student || student.tutorId !== tutorId) {
+          return res.status(403).json({ message: "Unauthorized" });
+        }
+
+        let parentId = (student as any).parentId || null;
+        if (!parentId) {
+          const { data: enrollment } = await supabase
+            .from("enrollments")
+            .select("parent_id")
+            .eq("assigned_tutor_id", tutorId)
+            .eq("student_full_name", student.name)
+            .maybeSingle();
+          parentId = enrollment?.parent_id || null;
+        }
+
+        if (!parentId) {
+          return res.status(400).json({ message: "Unable to resolve parent for this student" });
+        }
+
+        const start = new Date(weekStartDate);
+        const weekNumber = getIsoWeekNumber(start);
+        const structuredData = {
+          version: "weekly-v1",
+          weekStartDate,
+          weekEndDate,
+          sessionsCompletedThisWeek: Number(sessionsCompletedThisWeek || 0),
+          mainTopicsCovered,
+          whatImprovedThisWeek,
+          studentResponsePatternThisWeek,
+          mainMisunderstandingThisWeek,
+          mainCorrectionHelpedThisWeek,
+          bossBattleSummaryThisWeek,
+          reinforcementNextWeek,
+          internalWeeklyTutorNote: internalWeeklyTutorNote || "",
+          sourceSessionIds: Array.isArray(sourceSessionIds) ? sourceSessionIds : [],
+          sourceSessionCount: Number(sourceSessionCount || 0),
+          bossBattlesCompletedThisWeek: Number(bossBattlesCompletedThisWeek || 0),
+        };
+
+        const { data: inserted, error } = await supabase
+          .from("parent_reports")
+          .insert({
+            tutor_id: tutorId,
+            student_id: studentId,
+            parent_id: parentId,
+            report_type: "weekly",
+            week_number: weekNumber,
+            month_name: null,
+            summary: JSON.stringify(structuredData),
+            topics_learned: mainTopicsCovered,
+            strengths: whatImprovedThisWeek,
+            areas_for_growth: mainMisunderstandingThisWeek,
+            boss_battles_completed: Number(bossBattlesCompletedThisWeek || 0),
+            solutions_unlocked: Number(sessionsCompletedThisWeek || 0),
+            confidence_growth: null,
+            next_steps: reinforcementNextWeek,
+            sent_at: new Date().toISOString(),
+          })
+          .select("*")
+          .single();
+
+        if (error) {
+          throw error;
+        }
+
+        res.json({
+          ...inserted,
+          structuredData,
+        });
+      } catch (error) {
+        console.error("Error creating weekly report:", error);
+        res.status(500).json({ message: "Failed to create weekly report" });
+      }
+    }
+  );
+
+  // Create monthly parent report
+  app.post(
+    "/api/tutor/reports/monthly",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const tutorId = (req as any).dbUser.id;
+        const {
+          studentId,
+          monthStartDate,
+          monthEndDate,
+          totalSessionsCompletedThisMonth,
+          mainAreasCoveredThisMonth,
+          strongerSkillsThisMonth,
+          responsePatternTrendThisMonth,
+          recurringChallengeThisMonth,
+          mostEffectiveInterventionThisMonth,
+          bossBattleTrendThisMonth,
+          nextMonthPriority,
+          internalMonthlyTutorNote,
+          sourceWeeklyReportIds,
+        } = req.body || {};
+
+        if (!studentId || !monthStartDate || !monthEndDate || !mainAreasCoveredThisMonth || !strongerSkillsThisMonth || !responsePatternTrendThisMonth || !recurringChallengeThisMonth || !mostEffectiveInterventionThisMonth || !bossBattleTrendThisMonth || !nextMonthPriority) {
+          return res.status(400).json({ message: "Missing required monthly report fields" });
+        }
+
+        const student = await storage.getStudent(studentId);
+        if (!student || student.tutorId !== tutorId) {
+          return res.status(403).json({ message: "Unauthorized" });
+        }
+
+        let parentId = (student as any).parentId || null;
+        if (!parentId) {
+          const { data: enrollment } = await supabase
+            .from("enrollments")
+            .select("parent_id")
+            .eq("assigned_tutor_id", tutorId)
+            .eq("student_full_name", student.name)
+            .maybeSingle();
+          parentId = enrollment?.parent_id || null;
+        }
+
+        if (!parentId) {
+          return res.status(400).json({ message: "Unable to resolve parent for this student" });
+        }
+
+        const start = new Date(monthStartDate);
+        const monthName = formatMonthName(start);
+        const structuredData = {
+          version: "monthly-v1",
+          monthStartDate,
+          monthEndDate,
+          totalSessionsCompletedThisMonth: Number(totalSessionsCompletedThisMonth || 0),
+          mainAreasCoveredThisMonth,
+          strongerSkillsThisMonth,
+          responsePatternTrendThisMonth,
+          recurringChallengeThisMonth,
+          mostEffectiveInterventionThisMonth,
+          bossBattleTrendThisMonth,
+          nextMonthPriority,
+          internalMonthlyTutorNote: internalMonthlyTutorNote || "",
+          sourceWeeklyReportIds: Array.isArray(sourceWeeklyReportIds) ? sourceWeeklyReportIds : [],
+        };
+
+        const { data: inserted, error } = await supabase
+          .from("parent_reports")
+          .insert({
+            tutor_id: tutorId,
+            student_id: studentId,
+            parent_id: parentId,
+            report_type: "monthly",
+            week_number: null,
+            month_name: monthName,
+            summary: JSON.stringify(structuredData),
+            topics_learned: mainAreasCoveredThisMonth,
+            strengths: strongerSkillsThisMonth,
+            areas_for_growth: recurringChallengeThisMonth,
+            boss_battles_completed: 0,
+            solutions_unlocked: Number(totalSessionsCompletedThisMonth || 0),
+            confidence_growth: null,
+            next_steps: nextMonthPriority,
+            sent_at: new Date().toISOString(),
+          })
+          .select("*")
+          .single();
+
+        if (error) {
+          throw error;
+        }
+
+        res.json({
+          ...inserted,
+          structuredData,
+        });
+      } catch (error) {
+        console.error("Error creating monthly report:", error);
+        res.status(500).json({ message: "Failed to create monthly report" });
       }
     }
   );
@@ -5240,16 +5711,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         studentFullName,
         studentGrade,
         schoolName,
+        stuckAreas,
         mathStruggleAreas,
         previousTutoring,
         confidenceLevel,
         internetAccess,
         parentMotivation,
+        processAlignment,
         agreedToTerms,
         onboardingType,
         cohortCode,
         affiliateCode: bodyAffiliateCode
       } = req.body;
+
+      const reportedTopics = buildReportedTopics(stuckAreas, mathStruggleAreas);
+      const responseSymptoms = buildResponseSymptoms(confidenceLevel);
+
+      const normalizedMathStruggleAreas =
+        reportedTopics.length > 0 ? reportedTopics.join(", ") : mathStruggleAreas;
+      const normalizedParentMotivation = [
+        parentMotivation,
+        processAlignment ? `Process alignment: ${processAlignment}` : "",
+        responseSymptoms.length > 0
+          ? `Observed response symptoms: ${responseSymptoms.join(", ")}`
+          : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
 
       // Use affiliate code from session if not present in body
       let affiliateCode = bodyAffiliateCode || req.session.affiliateCode || null;
@@ -5379,11 +5867,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           student_full_name: studentFullName,
           student_grade: studentGrade,
           school_name: schoolName,
-          math_struggle_areas: mathStruggleAreas,
+          math_struggle_areas: normalizedMathStruggleAreas,
           previous_tutoring: previousTutoring,
           confidence_level: confidenceLevel,
           internet_access: internetAccess,
-          parent_motivation: parentMotivation,
+          parent_motivation: normalizedParentMotivation,
           status: "awaiting_assignment",
           current_step: "awaiting-assignment",
           created_at: new Date().toISOString(),
@@ -6815,7 +7303,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .order("sent_at", { ascending: false });
 
       if (error) throw error;
-      res.json(reports || []);
+
+      const tutorIds = Array.from(new Set((reports || []).map((report: any) => report.tutor_id).filter(Boolean)));
+      let tutorNameMap: Record<string, string> = {};
+
+      if (tutorIds.length > 0) {
+        const { data: tutors, error: tutorError } = await supabase
+          .from("users")
+          .select("id, name")
+          .in("id", tutorIds);
+
+        if (tutorError) {
+          console.error("Error fetching tutor names for parent reports:", tutorError);
+        } else {
+          tutorNameMap = (tutors || []).reduce((acc: Record<string, string>, tutor: any) => {
+            acc[tutor.id] = tutor.name || "Tutor";
+            return acc;
+          }, {});
+        }
+      }
+
+      const parentFacingReports = (reports || []).map((report: any) =>
+        mapParentFacingReport(report, tutorNameMap[report.tutor_id])
+      );
+
+      res.json(parentFacingReports);
     } catch (error) {
       console.error("Error fetching reports:", error);
       res.status(500).json({ message: "Failed to fetch reports" });

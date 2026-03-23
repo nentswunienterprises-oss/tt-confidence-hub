@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
 import { useState } from "react";
-import { Calendar, TrendingUp, Target, MessageSquare, Send } from "lucide-react";
+import { Calendar, MessageSquare, Send, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -19,16 +19,36 @@ import {
 interface ParentReport {
   id: string;
   reportType: "weekly" | "monthly";
-  weekNumber?: number;
+  weekRange?: {
+    start: string;
+    end: string;
+  } | null;
+  monthRange?: {
+    start: string;
+    end: string;
+  } | null;
   monthName?: string;
-  summary: string;
-  topicsLearned: string;
-  strengths: string;
-  areasForGrowth: string;
-  bossBattlesCompleted: number;
-  solutionsUnlocked: number;
-  confidenceGrowth: number;
-  nextSteps: string;
+  sessionsCompleted?: number;
+  totalSessionsCompleted?: number;
+
+  // Weekly parent-facing fields
+  mainTopicsCovered?: string;
+  whatImproved?: string;
+  studentResponsePattern?: string;
+  mainMisunderstanding?: string;
+  correctionThatHelped?: string;
+  bossBattleSummary?: string;
+  nextFocus?: string;
+
+  // Monthly parent-facing fields
+  mainAreasCovered?: string;
+  skillsStronger?: string;
+  responsePatternTrend?: string;
+  recurringChallenge?: string;
+  mostEffectiveIntervention?: string;
+  bossBattleTrend?: string;
+  nextMonthPriority?: string;
+
   parentFeedback?: string;
   parentFeedbackAt?: string;
   sentAt: string;
@@ -38,7 +58,7 @@ interface ParentReport {
 }
 
 export default function ParentProgress() {
-  const { user } = useAuth();
+  useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedReport, setSelectedReport] = useState<ParentReport | null>(null);
@@ -99,6 +119,12 @@ export default function ParentProgress() {
   // Separate weekly and monthly reports
   const weeklyReports = reports.filter(r => r.reportType === "weekly");
   const monthlyReports = reports.filter(r => r.reportType === "monthly");
+  const formatRange = (start?: string, end?: string) => {
+    if (!start || !end) return "Date range unavailable";
+    return `${new Date(start).toLocaleDateString()} - ${new Date(end).toLocaleDateString()}`;
+  };
+  const isLegacyWeeklyReport = (report: ParentReport) => !report.weekRange?.start || !report.weekRange?.end;
+  const isLegacyMonthlyReport = (report: ParentReport) => !report.monthRange?.start || !report.monthRange?.end;
 
   return (
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
@@ -112,12 +138,10 @@ export default function ParentProgress() {
           <Card>
             <CardContent className="p-3 sm:pt-6">
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-3 text-center sm:text-left">
-                <Target className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+                <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
                 <div>
-                  <p className="text-lg sm:text-2xl font-bold">
-                    {reports.reduce((sum, r) => sum + (r.bossBattlesCompleted || 0), 0)}
-                  </p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">Total Battles</p>
+                  <p className="text-lg sm:text-2xl font-bold">{weeklyReports.length}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Weekly Reports</p>
                 </div>
               </div>
             </CardContent>
@@ -125,12 +149,10 @@ export default function ParentProgress() {
           <Card>
             <CardContent className="p-3 sm:pt-6">
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-3 text-center sm:text-left">
-                <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+                <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
                 <div>
-                  <p className="text-lg sm:text-2xl font-bold">
-                    {reports.reduce((sum, r) => sum + (r.solutionsUnlocked || 0), 0)}
-                  </p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">Solutions</p>
+                  <p className="text-lg sm:text-2xl font-bold">{monthlyReports.length}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Monthly Reports</p>
                 </div>
               </div>
             </CardContent>
@@ -166,7 +188,12 @@ export default function ParentProgress() {
                       <div>
                         <CardTitle className="flex flex-wrap items-center gap-2 text-sm sm:text-base">
                           <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
-                          Week {report.weekNumber} Report
+                          Weekly Report
+                          {isLegacyWeeklyReport(report) && (
+                            <Badge variant="outline" className="text-xs">
+                              Legacy format
+                            </Badge>
+                          )}
                           {report.parentFeedback && (
                             <Badge variant="secondary" className="text-xs">
                               <MessageSquare className="w-3 h-3 mr-1" />
@@ -174,6 +201,9 @@ export default function ParentProgress() {
                             </Badge>
                           )}
                         </CardTitle>
+                        <CardDescription className="text-xs sm:text-sm mt-1">
+                          {formatRange(report.weekRange?.start, report.weekRange?.end)}
+                        </CardDescription>
                         <CardDescription className="text-xs sm:text-sm mt-1">
                           Sent {new Date(report.sentAt).toLocaleDateString()} by {report.tutor.name}
                         </CardDescription>
@@ -190,59 +220,48 @@ export default function ParentProgress() {
                     </div>
                   </CardHeader>
                   <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0 space-y-3 sm:space-y-4">
-                    {/* Progress Metrics */}
-                    <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                      <div className="bg-muted/30 rounded-lg p-2 sm:p-3 text-center">
-                        <p className="text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">Battles</p>
-                        <p className="text-base sm:text-xl font-bold">{report.bossBattlesCompleted}</p>
-                      </div>
-                      <div className="bg-muted/30 rounded-lg p-2 sm:p-3 text-center">
-                        <p className="text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">Solutions</p>
-                        <p className="text-base sm:text-xl font-bold">{report.solutionsUnlocked}</p>
-                      </div>
-                      <div className="bg-muted/30 rounded-lg p-2 sm:p-3 text-center">
-                        <p className="text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">Growth</p>
-                        <p className="text-base sm:text-xl font-bold text-green-600">+{report.confidenceGrowth}%</p>
-                      </div>
+                    <div className="bg-muted/30 rounded-lg p-2 sm:p-3">
+                      <p className="text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">Sessions Completed</p>
+                      <p className="text-base sm:text-xl font-bold">{report.sessionsCompleted || 0}</p>
                     </div>
+                    {isLegacyWeeklyReport(report) && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-2 sm:p-3">
+                        <p className="text-xs sm:text-sm text-amber-900">
+                          This report was created before structured ranges were introduced. Some sections may have limited detail.
+                        </p>
+                      </div>
+                    )}
 
-                    {/* Summary */}
                     <div>
-                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Summary</h4>
-                      <p className="text-xs sm:text-sm text-muted-foreground">{report.summary}</p>
+                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Main Topics Covered</h4>
+                      <p className="text-xs sm:text-sm text-muted-foreground">{report.mainTopicsCovered || "Not provided"}</p>
                     </div>
-
-                    {/* Topics Learned */}
-                    {report.topicsLearned && (
-                      <div>
-                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Topics Learned</h4>
-                        <p className="text-xs sm:text-sm text-muted-foreground">{report.topicsLearned}</p>
-                      </div>
-                    )}
-
-                    {/* Strengths & Areas for Growth */}
+                    <div>
+                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">What Improved</h4>
+                      <p className="text-xs sm:text-sm text-muted-foreground">{report.whatImproved || "Not provided"}</p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Student Response Pattern</h4>
+                      <p className="text-xs sm:text-sm text-muted-foreground">{report.studentResponsePattern || "Not provided"}</p>
+                    </div>
                     <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
-                      {report.strengths && (
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-2 sm:p-3">
-                          <h4 className="font-semibold text-xs sm:text-sm text-green-900 mb-1 sm:mb-2">Strengths</h4>
-                          <p className="text-xs sm:text-sm text-green-800">{report.strengths}</p>
-                        </div>
-                      )}
-                      {report.areasForGrowth && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 sm:p-3">
-                          <h4 className="font-semibold text-xs sm:text-sm text-blue-900 mb-1 sm:mb-2">Areas for Growth</h4>
-                          <p className="text-xs sm:text-sm text-blue-800">{report.areasForGrowth}</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Next Steps */}
-                    {report.nextSteps && (
-                      <div className="bg-primary/5 border border-primary/20 rounded-lg p-2 sm:p-3">
-                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Next Steps</h4>
-                        <p className="text-xs sm:text-sm text-muted-foreground">{report.nextSteps}</p>
+                      <div className="bg-muted/30 rounded-lg p-2 sm:p-3">
+                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Main Misunderstanding</h4>
+                        <p className="text-xs sm:text-sm text-muted-foreground">{report.mainMisunderstanding || "Not provided"}</p>
                       </div>
-                    )}
+                      <div className="bg-muted/30 rounded-lg p-2 sm:p-3">
+                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Correction That Helped</h4>
+                        <p className="text-xs sm:text-sm text-muted-foreground">{report.correctionThatHelped || "Not provided"}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Boss Battle Summary</h4>
+                      <p className="text-xs sm:text-sm text-muted-foreground">{report.bossBattleSummary || "Not provided"}</p>
+                    </div>
+                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-2 sm:p-3">
+                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Next Focus</h4>
+                      <p className="text-xs sm:text-sm text-muted-foreground">{report.nextFocus || "Not provided"}</p>
+                    </div>
 
                     {/* Parent Feedback Display */}
                     {report.parentFeedback && (
@@ -279,7 +298,12 @@ export default function ParentProgress() {
                       <div>
                         <CardTitle className="flex flex-wrap items-center gap-2 text-sm sm:text-base">
                           <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
-                          {report.monthName} Monthly Report
+                          {report.monthName || "Monthly"} Report
+                          {isLegacyMonthlyReport(report) && (
+                            <Badge variant="outline" className="text-xs">
+                              Legacy format
+                            </Badge>
+                          )}
                           {report.parentFeedback && (
                             <Badge variant="secondary" className="text-xs">
                               <MessageSquare className="w-3 h-3 mr-1" />
@@ -287,6 +311,9 @@ export default function ParentProgress() {
                             </Badge>
                           )}
                         </CardTitle>
+                        <CardDescription className="text-xs sm:text-sm mt-1">
+                          {formatRange(report.monthRange?.start, report.monthRange?.end)}
+                        </CardDescription>
                         <CardDescription className="text-xs sm:text-sm mt-1">
                           Sent {new Date(report.sentAt).toLocaleDateString()} by {report.tutor.name}
                         </CardDescription>
@@ -303,55 +330,47 @@ export default function ParentProgress() {
                     </div>
                   </CardHeader>
                   <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0 space-y-3 sm:space-y-4">
-                    {/* Progress Metrics */}
-                    <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                      <div className="bg-muted/30 rounded-lg p-2 sm:p-3 text-center">
-                        <p className="text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">Battles</p>
-                        <p className="text-base sm:text-xl font-bold">{report.bossBattlesCompleted}</p>
-                      </div>
-                      <div className="bg-muted/30 rounded-lg p-2 sm:p-3 text-center">
-                        <p className="text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">Solutions</p>
-                        <p className="text-base sm:text-xl font-bold">{report.solutionsUnlocked}</p>
-                      </div>
-                      <div className="bg-muted/30 rounded-lg p-2 sm:p-3 text-center">
-                        <p className="text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">Growth</p>
-                        <p className="text-base sm:text-xl font-bold text-green-600">+{report.confidenceGrowth}%</p>
-                      </div>
+                    <div className="bg-muted/30 rounded-lg p-2 sm:p-3">
+                      <p className="text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">Total Sessions Completed</p>
+                      <p className="text-base sm:text-xl font-bold">{report.totalSessionsCompleted || 0}</p>
                     </div>
-
+                    {isLegacyMonthlyReport(report) && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-2 sm:p-3">
+                        <p className="text-xs sm:text-sm text-amber-900">
+                          This report was created before structured ranges were introduced. Some sections may have limited detail.
+                        </p>
+                      </div>
+                    )}
                     <div>
-                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Summary</h4>
-                      <p className="text-xs sm:text-sm text-muted-foreground">{report.summary}</p>
+                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Main Areas Covered</h4>
+                      <p className="text-xs sm:text-sm text-muted-foreground">{report.mainAreasCovered || "Not provided"}</p>
                     </div>
-
-                    {report.topicsLearned && (
-                      <div>
-                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Topics Learned</h4>
-                        <p className="text-xs sm:text-sm text-muted-foreground">{report.topicsLearned}</p>
-                      </div>
-                    )}
-
+                    <div>
+                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Skills That Became Stronger</h4>
+                      <p className="text-xs sm:text-sm text-muted-foreground">{report.skillsStronger || "Not provided"}</p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Response Pattern Trend</h4>
+                      <p className="text-xs sm:text-sm text-muted-foreground">{report.responsePatternTrend || "Not provided"}</p>
+                    </div>
                     <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
-                      {report.strengths && (
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-2 sm:p-3">
-                          <h4 className="font-semibold text-xs sm:text-sm text-green-900 mb-1 sm:mb-2">Strengths</h4>
-                          <p className="text-xs sm:text-sm text-green-800">{report.strengths}</p>
-                        </div>
-                      )}
-                      {report.areasForGrowth && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 sm:p-3">
-                          <h4 className="font-semibold text-xs sm:text-sm text-blue-900 mb-1 sm:mb-2">Areas for Growth</h4>
-                          <p className="text-xs sm:text-sm text-blue-800">{report.areasForGrowth}</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {report.nextSteps && (
-                      <div className="bg-primary/5 border border-primary/20 rounded-lg p-2 sm:p-3">
-                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Next Steps</h4>
-                        <p className="text-xs sm:text-sm text-muted-foreground">{report.nextSteps}</p>
+                      <div className="bg-muted/30 rounded-lg p-2 sm:p-3">
+                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Recurring Challenge</h4>
+                        <p className="text-xs sm:text-sm text-muted-foreground">{report.recurringChallenge || "Not provided"}</p>
                       </div>
-                    )}
+                      <div className="bg-muted/30 rounded-lg p-2 sm:p-3">
+                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Most Effective Intervention</h4>
+                        <p className="text-xs sm:text-sm text-muted-foreground">{report.mostEffectiveIntervention || "Not provided"}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Boss Battle Trend</h4>
+                      <p className="text-xs sm:text-sm text-muted-foreground">{report.bossBattleTrend || "Not provided"}</p>
+                    </div>
+                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-2 sm:p-3">
+                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Next Month Priority</h4>
+                      <p className="text-xs sm:text-sm text-muted-foreground">{report.nextMonthPriority || "Not provided"}</p>
+                    </div>
 
                     {report.parentFeedback && (
                       <div className="bg-muted/50 rounded-lg p-2 sm:p-3 border-l-2 border-l-primary">

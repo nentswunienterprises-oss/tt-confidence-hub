@@ -16,7 +16,7 @@ import { StudentCard } from "@/components/tutor/StudentCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Users, Target, Calendar, TrendingUp, AlertCircle, FileText, Send, Lock, Check, Sparkles } from "lucide-react";
+import { Users, Calendar, TrendingUp, AlertCircle, FileText, Send, Lock, Check } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { ApplicationForm } from "@/components/tutor/application-form";
@@ -24,6 +24,7 @@ import StudentIdentitySheet from "@/components/tutor/StudentIdentitySheet";
 import ParentOnboardingProposal from "@/components/tutor/ParentOnboardingProposal";
 import ViewAssignmentsDialog from "@/components/tutor/ViewAssignmentsDialog";
 import ViewTrackingSystemsDialog from "@/components/tutor/ViewTrackingSystemsDialog";
+import StudentReportsDialog from "@/components/tutor/StudentReportsDialog";
 import type { Student, TutorAssignment, Pod } from "@shared/schema";
 
 interface PodData {
@@ -44,6 +45,7 @@ export default function TutorPod() {
   const [proposalOpen, setProposalOpen] = useState(false);
   const [assignmentsDialogOpen, setAssignmentsDialogOpen] = useState(false);
   const [trackingDialogOpen, setTrackingDialogOpen] = useState(false);
+  const [reportsDialogOpen, setReportsDialogOpen] = useState(false);
   const [studentIdentitySheets, setStudentIdentitySheets] = useState<Record<string, any>>({});
   // Force refresh - identity sheet integration
 
@@ -280,24 +282,14 @@ export default function TutorPod() {
           {/* Right: Transformation Formula */}
           <Card className="p-6 border shadow-sm">
             <div className="space-y-4">
-              <h2 className="text-xl font-bold">Your Transformation Formula</h2>
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <Target className="w-5 h-5" />
-                <p>Your personalized roadmap to tutoring excellence</p>
-              </div>
+              <h2 className="text-xl font-bold">Transformation Process</h2>
               <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
                 <p className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">Blueprint Ready</span>
+                  <span className="font-medium text-foreground">TT-OS Protocol</span>
                   <br />
-                  Access your step-by-step formula for transforming student confidence.
+                  3-Layer Lens + Boss Battles + Timed Execution = Conditioned Response.
                 </p>
               </div>
-              <Button className="w-full" asChild>
-                <Link to="/tutor/blueprint">
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  View Blueprint
-                </Link>
-              </Button>
               <Button 
                 className="w-full" 
                 variant="outline"
@@ -305,7 +297,7 @@ export default function TutorPod() {
               >
                 <Link to="/responseconditioningsystem">
                   <Lock className="w-4 h-4 mr-2" />
-                  View TT-OS
+                  View TT-OS Protocol
                 </Link>
               </Button>
             </div>
@@ -350,6 +342,7 @@ export default function TutorPod() {
                   setTrackingDialogOpen={setTrackingDialogOpen}
                   setAssignmentsDialogOpen={setAssignmentsDialogOpen}
                   setProposalOpen={setProposalOpen}
+                  setReportsDialogOpen={setReportsDialogOpen}
                 />
               ))}
             </div>
@@ -422,6 +415,13 @@ export default function TutorPod() {
         <ViewTrackingSystemsDialog
           open={trackingDialogOpen}
           onOpenChange={setTrackingDialogOpen}
+          studentId={selectedStudentId}
+          studentName={selectedStudentName}
+        />
+
+        <StudentReportsDialog
+          open={reportsDialogOpen}
+          onOpenChange={setReportsDialogOpen}
           studentId={selectedStudentId}
           studentName={selectedStudentName}
         />
