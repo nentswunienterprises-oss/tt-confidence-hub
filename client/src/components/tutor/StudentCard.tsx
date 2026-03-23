@@ -65,6 +65,11 @@ export function StudentCard({
 
   const { data: workflow, isLoading: workflowLoading } = useStudentWorkflowState(student.id);
   const markIntroCompleted = useMarkIntroCompleted(student.id);
+  const hasLaterWorkflowProgress = !!(
+    workflow?.identitySaved ||
+    workflow?.proposalSent ||
+    workflow?.proposalAccepted
+  );
 
   const reportedTopics = splitReportedTopics(student.parentInfo?.math_struggle_areas);
   const reportedSymptoms = inferReportedSymptoms({
@@ -175,7 +180,7 @@ export function StudentCard({
         )}
 
         {/* Step 2: Mark Intro Session As Completed (persisted) */}
-        {workflow?.introConfirmed && !workflow.introCompleted && (
+        {workflow?.introConfirmed && !workflow.introCompleted && !hasLaterWorkflowProgress && (
           <div className="pt-4 border-t space-y-2">
             <Button
               className="w-full"
@@ -200,7 +205,7 @@ export function StudentCard({
         )}
 
         {/* Step 3: Log/Unlock Identity Sheet */}
-        {workflow?.introCompleted && !workflow.identitySaved && (
+        {workflow?.introCompleted && !workflow.identitySaved && !workflow?.proposalSent && !workflow?.proposalAccepted && (
           <div className="pt-4 border-t space-y-2">
             <Button
               className="w-full"
@@ -222,7 +227,7 @@ export function StudentCard({
         )}
 
         {/* Step 4: Create/Send Proposal (after identity saved) */}
-        {workflow?.identitySaved && !workflow.proposalSent && (
+        {workflow?.identitySaved && !workflow.proposalSent && !workflow?.proposalAccepted && (
           <div className="pt-4 border-t space-y-2">
             <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-800 text-center">
               ✓ Identity sheet saved
@@ -300,21 +305,23 @@ export function StudentCard({
           </div>
         )}
 
-        <div className="pt-4 border-t space-y-2">
-          <Button
-            className="w-full"
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setSelectedStudentId(student.id);
-              setSelectedStudentName(student.name);
-              setReportsDialogOpen(true);
-            }}
-          >
-            <ScrollText className="w-4 h-4 mr-2" />
-            Reports
-          </Button>
-        </div>
+        {workflow?.proposalAccepted && (
+          <div className="pt-4 border-t space-y-2">
+            <Button
+              className="w-full"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSelectedStudentId(student.id);
+                setSelectedStudentName(student.name);
+                setReportsDialogOpen(true);
+              }}
+            >
+              <ScrollText className="w-4 h-4 mr-2" />
+              Reports
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
