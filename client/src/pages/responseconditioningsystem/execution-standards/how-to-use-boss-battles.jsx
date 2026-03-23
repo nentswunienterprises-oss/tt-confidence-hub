@@ -42,7 +42,7 @@ export default function ResponseConditioningHowToUseBossBattles() {
         <Card className="p-6 space-y-4">
           <h2 className="text-2xl font-bold">What a Boss Battle Is</h2>
           <p className="text-muted-foreground">A Boss Battle is:</p>
-          <p className="font-medium">a problem designed to trigger uncertainty after stability</p>
+          <p className="font-medium">an intentionally more difficult problem designed to trigger uncertainty after stability</p>
           <p className="text-muted-foreground">Not random.</p>
           <p className="text-muted-foreground">Not punishment.</p>
           <p className="text-muted-foreground">Not excessive difficulty.</p>
@@ -64,7 +64,7 @@ export default function ResponseConditioningHowToUseBossBattles() {
           <h2 className="text-2xl font-bold">When to Use It</h2>
           <p className="text-muted-foreground">Only when:</p>
           <ul className="space-y-2 pl-4">
-            <li className="font-medium">the student has completed 3&ndash;4 problems correctly</li>
+            <li className="font-medium">the student has completed 3-4 problems correctly</li>
             <li className="font-medium">the method is stable</li>
             <li className="font-medium">they appear comfortable</li>
           </ul>
