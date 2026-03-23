@@ -903,6 +903,9 @@ export const onboardingProposals = pgTable("onboarding_proposals", {
   growthDrivers: text("growth_drivers"),
   // Academic Diagnosis
   currentTopics: text("current_topics"),
+  topicConditioningTopic: text("topic_conditioning_topic"),
+  topicConditioningEntryPhase: varchar("topic_conditioning_entry_phase"),
+  topicConditioningStability: varchar("topic_conditioning_stability"),
   immediateStruggles: text("immediate_struggles"),
   gapsIdentified: text("gaps_identified"),
   tutorNotes: text("tutor_notes"),

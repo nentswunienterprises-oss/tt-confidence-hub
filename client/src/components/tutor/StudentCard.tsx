@@ -88,6 +88,7 @@ export function StudentCard({
   });
   const suggestedTopic = reportedTopics[0] || "Current class topic with highest friction";
   const suggestedSymptoms = reportedSymptoms.slice(0, 2);
+  const topicConditioning = student.topicConditioning;
 
   return (
     <div className="p-6 border shadow-sm hover-elevate card">
@@ -132,6 +133,23 @@ export function StudentCard({
         </div>
         {/* Confidence Level bars removed as requested */}
         {workflowLoading && <p className="text-xs text-muted-foreground">Loading workflow...</p>}
+
+        {topicConditioning && (
+          <div className="pt-4 border-t space-y-2">
+            <p className="text-xs font-semibold text-foreground">Topic Conditioning Map</p>
+            <div className="rounded-md border border-primary/30 bg-primary/5 p-3 space-y-1">
+              <p className="text-xs text-muted-foreground">
+                Topic: <span className="text-foreground font-medium">{topicConditioning.topic || "Not set"}</span>
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Entry Phase: <span className="text-foreground font-medium">{topicConditioning.entry_phase || "Not set"}</span>
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Stability: <span className="text-foreground font-medium">{topicConditioning.stability || "Not set"}</span>
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Pre-session intelligence from parent enrollment */}
         {workflow && !workflow.introCompleted && student.parentInfo && (

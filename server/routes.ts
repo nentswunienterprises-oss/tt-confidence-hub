@@ -993,6 +993,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     };
   };
 
+  const buildTopicConditioningMap = (proposal: any) => {
+    if (!proposal) return null;
+
+    const topic = String(proposal.topic_conditioning_topic || proposal.current_topics || "").trim();
+    const noteText = String(proposal.tutor_notes || "");
+    const justificationText = String(proposal.justification || "");
+
+    const phaseFromNotes = noteText.match(/Entry Phase:\s*([^\n\r]+)/i)?.[1]?.trim();
+    const phaseFromJustification = justificationText.match(/Entry phase\s*([^|\.]+)/i)?.[1]?.trim();
+    const stabilityFromNotes = noteText.match(/Stability:\s*([^\n\r]+)/i)?.[1]?.trim();
+    const stabilityFromJustification = justificationText.match(/Stability\s*([^|\.]+)/i)?.[1]?.trim();
+
+    const phase = proposal.topic_conditioning_entry_phase || phaseFromNotes || phaseFromJustification || null;
+    const stability = proposal.topic_conditioning_stability || stabilityFromNotes || stabilityFromJustification || null;
+
+    if (!topic && !phase && !stability) return null;
+    return {
+      topic: topic || null,
+      entry_phase: phase,
+      stability,
+    };
+  };
+
   app.get(
     "/api/tutor/pod",
     isAuthenticated,
@@ -1056,12 +1079,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
               
               // Check if proposal was accepted by querying the proposal table
               let proposalAcceptedAt = null;
+              let proposalSnapshot: any = null;
               if (parentEnrollment?.proposal_id) {
                 const { data: proposal } = await supabase
                   .from("onboarding_proposals")
-                  .select("accepted_at")
+                  .select("accepted_at, current_topics, justification, tutor_notes")
                   .eq("id", parentEnrollment.proposal_id)
                   .single();
+                proposalSnapshot = proposal || null;
                 proposalAcceptedAt = proposal?.accepted_at || null;
               }
               
@@ -1078,6 +1103,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       ...buildIntakeSignals(parentEnrollment),
                     }
                   : null,
+                topicConditioning: buildTopicConditioningMap(proposalSnapshot),
                 proposalSentAt: parentEnrollment?.proposal_sent_at || null,
                 parentApprovedAt: isApproved ? (proposalAcceptedAt || parentEnrollment?.updated_at) : null,
               };
@@ -1086,6 +1112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               return {
                 ...student,
                 parentInfo: null,
+                topicConditioning: null,
                 proposalSentAt: null,
                 parentApprovedAt: null,
               };
@@ -6070,6 +6097,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         immediateStruggles,
         gapsIdentified,
         tutorNotes,
+        topicConditioningTopic,
+        topicConditioningEntryPhase,
+        topicConditioningStability,
         futureIdentity,
         wantToRemembered,
         hiddenMotivations,
@@ -6119,6 +6149,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           pressure_response: pressureResponse,
           growth_drivers: growthDrivers,
           current_topics: currentTopics,
+          topic_conditioning_topic: topicConditioningTopic,
+          topic_conditioning_entry_phase: topicConditioningEntryPhase,
+          topic_conditioning_stability: topicConditioningStability,
           immediate_struggles: immediateStruggles,
           gaps_identified: gapsIdentified,
           tutor_notes: tutorNotes,
@@ -6296,6 +6329,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currentTopics: (proposal.current_topics && proposal.current_topics !== "Onboarding baseline diagnostic")
           ? proposal.current_topics
           : (enrollmentFull?.math_struggle_areas || proposal.current_topics),
+        topicConditioning: buildTopicConditioningMap({
+          ...proposal,
+          current_topics: (proposal.current_topics && proposal.current_topics !== "Onboarding baseline diagnostic")
+            ? proposal.current_topics
+            : (enrollmentFull?.math_struggle_areas || proposal.current_topics),
+        }),
         immediateStruggles: proposal.immediate_struggles,
         gapsIdentified: proposal.gaps_identified,
         tutorNotes: proposal.tutor_notes,

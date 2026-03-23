@@ -658,8 +658,8 @@ export function registerRoutes(app) {
                                 case 10: return [4 /*yield*/, storage.getStudentsByTutor(tutorId_1)];
                                 case 11:
                                     students = _a.sent();
-                                    return [4 /*yield*/, Promise.all(students.map(function (student) { return __awaiter(_this, void 0, void 0, function () {
-                                            var parentEnrollment, proposalAcceptedAt, proposal, isApproved, err_3;
+                                        return [4 /*yield*/, Promise.all(students.map(function (student) { return __awaiter(_this, void 0, void 0, function () {
+                                            var parentEnrollment, proposalAcceptedAt, proposalSnapshot, proposal, isApproved, topic, noteText, justificationText, phaseFromNotes, phaseFromJustification, stabilityFromNotes, stabilityFromJustification, topicConditioning, err_3;
                                             return __generator(this, function (_a) {
                                                 switch (_a.label) {
                                                     case 0:
@@ -673,25 +673,41 @@ export function registerRoutes(app) {
                                                     case 1:
                                                         parentEnrollment = (_a.sent()).data;
                                                         proposalAcceptedAt = null;
+                                                        proposalSnapshot = null;
                                                         if (!(parentEnrollment === null || parentEnrollment === void 0 ? void 0 : parentEnrollment.proposal_id)) return [3 /*break*/, 3];
                                                         return [4 /*yield*/, supabase
-                                                                .from("onboarding_proposals")
-                                                                .select("accepted_at")
+                                                            .from("onboarding_proposals")
+                                                            .select("accepted_at, current_topics, topic_conditioning_topic, topic_conditioning_entry_phase, topic_conditioning_stability, justification, tutor_notes")
                                                                 .eq("id", parentEnrollment.proposal_id)
                                                                 .single()];
                                                     case 2:
                                                         proposal = (_a.sent()).data;
+                                                        proposalSnapshot = proposal || null;
                                                         proposalAcceptedAt = (proposal === null || proposal === void 0 ? void 0 : proposal.accepted_at) || null;
                                                         _a.label = 3;
                                                     case 3:
                                                         isApproved = parentEnrollment &&
                                                             (proposalAcceptedAt ||
                                                                 ["session_booked", "report_received", "confirmed"].includes(parentEnrollment.status));
-                                                        return [2 /*return*/, __assign(__assign({}, student), { parentInfo: parentEnrollment || null, proposalSentAt: (parentEnrollment === null || parentEnrollment === void 0 ? void 0 : parentEnrollment.proposal_sent_at) || null, parentApprovedAt: isApproved ? (proposalAcceptedAt || (parentEnrollment === null || parentEnrollment === void 0 ? void 0 : parentEnrollment.updated_at)) : null })];
+                                                        topic = String(((proposalSnapshot === null || proposalSnapshot === void 0 ? void 0 : proposalSnapshot.topic_conditioning_topic) || (proposalSnapshot === null || proposalSnapshot === void 0 ? void 0 : proposalSnapshot.current_topics) || "")).trim();
+                                                        noteText = String((proposalSnapshot === null || proposalSnapshot === void 0 ? void 0 : proposalSnapshot.tutor_notes) || "");
+                                                        justificationText = String((proposalSnapshot === null || proposalSnapshot === void 0 ? void 0 : proposalSnapshot.justification) || "");
+                                                        phaseFromNotes = (noteText.match(/Entry Phase:\s*([^\n\r]+)/i) || [])[1];
+                                                        phaseFromJustification = (justificationText.match(/Entry phase\s*([^|\.]+)/i) || [])[1];
+                                                        stabilityFromNotes = (noteText.match(/Stability:\s*([^\n\r]+)/i) || [])[1];
+                                                        stabilityFromJustification = (justificationText.match(/Stability\s*([^|\.]+)/i) || [])[1];
+                                                        topicConditioning = topic || phaseFromNotes || phaseFromJustification || stabilityFromNotes || stabilityFromJustification
+                                                            ? {
+                                                                topic: topic || null,
+                                                                entry_phase: String(((proposalSnapshot === null || proposalSnapshot === void 0 ? void 0 : proposalSnapshot.topic_conditioning_entry_phase) || phaseFromNotes || phaseFromJustification || "")).trim() || null,
+                                                                stability: String(((proposalSnapshot === null || proposalSnapshot === void 0 ? void 0 : proposalSnapshot.topic_conditioning_stability) || stabilityFromNotes || stabilityFromJustification || "")).trim() || null,
+                                                            }
+                                                            : null;
+                                                        return [2 /*return*/, __assign(__assign({}, student), { parentInfo: parentEnrollment || null, topicConditioning: topicConditioning, proposalSentAt: (parentEnrollment === null || parentEnrollment === void 0 ? void 0 : parentEnrollment.proposal_sent_at) || null, parentApprovedAt: isApproved ? (proposalAcceptedAt || (parentEnrollment === null || parentEnrollment === void 0 ? void 0 : parentEnrollment.updated_at)) : null })];
                                                     case 4:
                                                         err_3 = _a.sent();
                                                         // If no parent enrollment found, return student without parentInfo
-                                                        return [2 /*return*/, __assign(__assign({}, student), { parentInfo: null, proposalSentAt: null, parentApprovedAt: null })];
+                                                        return [2 /*return*/, __assign(__assign({}, student), { parentInfo: null, topicConditioning: null, proposalSentAt: null, parentApprovedAt: null })];
                                                     case 5: return [2 /*return*/];
                                                 }
                                             });
@@ -5136,13 +5152,13 @@ export function registerRoutes(app) {
                     // ========================================
                     // Create/Send proposal (Tutor)
                     app.post("/api/tutor/proposal", isAuthenticated, requireRole(["tutor", "td", "hr", "coo", "ceo"]), function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-                        var tutorId, _a, studentId, enrollmentId, primaryIdentity, mathRelationship, confidenceTriggers, confidenceKillers, pressureResponse, growthDrivers, currentTopics, immediateStruggles, gapsIdentified, tutorNotes, futureIdentity, wantToRemembered, hiddenMotivations, internalConflict, recommendedPlan, justification, childWillWin, actualEnrollmentId, student, enrollment, _b, proposalData, error, error_128;
+                        var tutorId, _a, studentId, enrollmentId, primaryIdentity, mathRelationship, confidenceTriggers, confidenceKillers, pressureResponse, growthDrivers, currentTopics, immediateStruggles, gapsIdentified, tutorNotes, topicConditioningTopic, topicConditioningEntryPhase, topicConditioningStability, futureIdentity, wantToRemembered, hiddenMotivations, internalConflict, recommendedPlan, justification, childWillWin, actualEnrollmentId, student, enrollment, _b, proposalData, error, error_128;
                         return __generator(this, function (_c) {
                             switch (_c.label) {
                                 case 0:
                                     _c.trys.push([0, 7, , 8]);
                                     tutorId = req.dbUser.id;
-                                    _a = req.body, studentId = _a.studentId, enrollmentId = _a.enrollmentId, primaryIdentity = _a.primaryIdentity, mathRelationship = _a.mathRelationship, confidenceTriggers = _a.confidenceTriggers, confidenceKillers = _a.confidenceKillers, pressureResponse = _a.pressureResponse, growthDrivers = _a.growthDrivers, currentTopics = _a.currentTopics, immediateStruggles = _a.immediateStruggles, gapsIdentified = _a.gapsIdentified, tutorNotes = _a.tutorNotes, futureIdentity = _a.futureIdentity, wantToRemembered = _a.wantToRemembered, hiddenMotivations = _a.hiddenMotivations, internalConflict = _a.internalConflict, recommendedPlan = _a.recommendedPlan, justification = _a.justification, childWillWin = _a.childWillWin;
+                                    _a = req.body, studentId = _a.studentId, enrollmentId = _a.enrollmentId, primaryIdentity = _a.primaryIdentity, mathRelationship = _a.mathRelationship, confidenceTriggers = _a.confidenceTriggers, confidenceKillers = _a.confidenceKillers, pressureResponse = _a.pressureResponse, growthDrivers = _a.growthDrivers, currentTopics = _a.currentTopics, immediateStruggles = _a.immediateStruggles, gapsIdentified = _a.gapsIdentified, tutorNotes = _a.tutorNotes, topicConditioningTopic = _a.topicConditioningTopic, topicConditioningEntryPhase = _a.topicConditioningEntryPhase, topicConditioningStability = _a.topicConditioningStability, futureIdentity = _a.futureIdentity, wantToRemembered = _a.wantToRemembered, hiddenMotivations = _a.hiddenMotivations, internalConflict = _a.internalConflict, recommendedPlan = _a.recommendedPlan, justification = _a.justification, childWillWin = _a.childWillWin;
                                     // Validate required fields
                                     if (!studentId || !recommendedPlan || !justification) {
                                         return [2 /*return*/, res.status(400).json({ message: "Missing required fields" })];
@@ -5180,6 +5196,9 @@ export function registerRoutes(app) {
                                         pressure_response: pressureResponse,
                                         growth_drivers: growthDrivers,
                                         current_topics: currentTopics,
+                                        topic_conditioning_topic: topicConditioningTopic,
+                                        topic_conditioning_entry_phase: topicConditioningEntryPhase,
+                                        topic_conditioning_stability: topicConditioningStability,
                                         immediate_struggles: immediateStruggles,
                                         gaps_identified: gapsIdentified,
                                         tutor_notes: tutorNotes,
@@ -5350,6 +5369,13 @@ export function registerRoutes(app) {
                                         currentTopics: (proposal.current_topics && proposal.current_topics !== "Onboarding baseline diagnostic")
                                             ? proposal.current_topics
                                             : (enrollment === null || enrollment === void 0 ? void 0 : enrollment.math_struggle_areas) || proposal.current_topics,
+                                        topicConditioning: {
+                                            topic: String((proposal.topic_conditioning_topic || ((proposal.current_topics && proposal.current_topics !== "Onboarding baseline diagnostic")
+                                                ? proposal.current_topics
+                                                : (enrollment === null || enrollment === void 0 ? void 0 : enrollment.math_struggle_areas) || proposal.current_topics) || "")).trim() || null,
+                                            entryPhase: String((proposal.topic_conditioning_entry_phase || ((proposal.tutor_notes || "").match(/Entry Phase:\s*([^\n\r]+)/i) || [])[1] || ((proposal.justification || "").match(/Entry phase\s*([^|\.]+)/i) || [])[1] || "")).trim() || null,
+                                            stability: String((proposal.topic_conditioning_stability || ((proposal.tutor_notes || "").match(/Stability:\s*([^\n\r]+)/i) || [])[1] || ((proposal.justification || "").match(/Stability\s*([^|\.]+)/i) || [])[1] || "")).trim() || null,
+                                        },
                                         immediateStruggles: proposal.immediate_struggles,
                                         gapsIdentified: proposal.gaps_identified,
                                         tutorNotes: proposal.tutor_notes,

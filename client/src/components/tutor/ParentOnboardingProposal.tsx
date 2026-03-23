@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { API_URL } from "@/lib/config";
 import {
   Dialog,
@@ -42,6 +42,14 @@ const PHASE_SEQUENCE = [
   "Controlled Discomfort",
   "Time Pressure Stability",
 ];
+
+function parseTopics(rawValue: string): string[] {
+  if (!rawValue) return [];
+  return rawValue
+    .split(/[\n,;|]+/)
+    .map((item) => item.replace(/^[-*\u2022\s]+/, "").trim())
+    .filter(Boolean);
+}
 
 function computePhasePriority(
   vocabulary: string,
@@ -156,10 +164,21 @@ export default function ParentOnboardingProposal({
 }: ParentOnboardingProposalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const topicOptions = parseTopics(parentTopics);
+  const studentFirstName = studentName.trim().split(/\s+/)[0] || "Your child";
 
   // Wizard state
   const [step, setStep] = useState(1);
   const [showOutput, setShowOutput] = useState(false);
+  const [activeTopic, setActiveTopic] = useState("");
+  const [topicStability, setTopicStability] = useState<"Low" | "Medium" | "High">("Low");
+
+  useEffect(() => {
+    if (open) {
+      setActiveTopic(topicOptions[0] || parentTopics || "Current school focus topic");
+      setTopicStability("Low");
+    }
+  }, [open, parentTopics]);
 
   // Step 1 — Baseline Capture
   const [vocabulary, setVocabulary] = useState<"strong" | "inconsistent" | "weak" | "">("");
@@ -213,6 +232,8 @@ export default function ParentOnboardingProposal({
   const resetWizard = () => {
     setStep(1);
     setShowOutput(false);
+    setActiveTopic(topicOptions[0] || parentTopics || "Current school focus topic");
+    setTopicStability("Low");
     setVocabulary("");
     setMethod("");
     setReason("");
@@ -238,7 +259,8 @@ export default function ParentOnboardingProposal({
     const primaryPhase = phasePriority.find((p) => p.label === "Primary")?.phase ?? "Clarity";
     const secondaryPhase = phasePriority.find((p) => p.label === "Secondary")?.phase ?? "Structured Execution";
     const planName = "Premium Response Training";
-    const planJustification = `${studentName}'s current response profile requires a structured sequence: ${primaryPhase} first, ${secondaryPhase} second, followed by progressive stability work.`;
+    const topicForConditioning = activeTopic || parentTopics || "Current school focus topic";
+    const planJustification = `${studentName}'s current response profile requires a structured sequence: ${primaryPhase} first, ${secondaryPhase} second, followed by progressive stability work. Topic conditioning map: ${topicForConditioning} | Entry phase ${primaryPhase} | Stability ${topicStability}.`;
 
     const payload = {
       studentId,
@@ -259,11 +281,14 @@ export default function ParentOnboardingProposal({
       pressureResponse:
         responsePatterns.find((p) => ["Freezes", "Rushes", "Guesses"].includes(p)) ??
         "Seeks help early",
-      growthDrivers: "Structured execution with attempt-first coaching",
-      currentTopics: parentTopics || "Pending intro session",
+      growthDrivers: `Structured execution with attempt-first coaching; Topic arena: ${topicForConditioning}; Stability: ${topicStability}`,
+      currentTopics: topicForConditioning,
+      topicConditioningTopic: topicForConditioning,
+      topicConditioningEntryPhase: primaryPhase,
+      topicConditioningStability: topicStability,
       immediateStruggles: breakdownPatterns.join(", "),
       gapsIdentified: breakdownPatterns.join(", "),
-      tutorNotes: notes,
+      tutorNotes: `${notes ? `${notes}\n\n` : ""}Topic Conditioning Map:\n- Topic: ${topicForConditioning}\n- Entry Phase: ${primaryPhase}\n- Stability: ${topicStability}`,
       futureIdentity: "Independent and stable problem solver",
       wantToRemembered: "A student who attempts with structure before support",
       hiddenMotivations: "Not captured in onboarding template",
@@ -285,7 +310,7 @@ export default function ParentOnboardingProposal({
       }
       toast({
         title: "Training Plan Sent!",
-        description: `The training plan for ${studentName} has been sent to their parent.`,
+        description: `The training plan for ${studentFirstName} has been sent to their parent.`,
         duration: 5000,
       });
       await queryClient.invalidateQueries({ queryKey: ["/api/tutor/pod"] });
@@ -338,15 +363,84 @@ export default function ParentOnboardingProposal({
     </p>
   );
 
+  const getParentFacingBreakdown = (phase: string) => {
+    switch (phase) {
+      case "Clarity":
+        return `${studentFirstName} is not yet consistently identifying what the problem is asking or what method to use first.`;
+      case "Structured Execution":
+        return `${studentFirstName} can begin work, but does not yet apply a stable method consistently without support.`;
+      case "Controlled Discomfort":
+        return `${studentFirstName} becomes less stable when the work feels unfamiliar or more difficult.`;
+      case "Time Pressure Stability":
+        return `${studentFirstName} loses structure when working under time pressure.`;
+      default:
+        return `${studentFirstName} needs a more stable starting structure inside the current topic.`;
+    }
+  };
+
+  const getParentFacingPriority = (phase: string) => {
+    switch (phase) {
+      case "Clarity":
+        return `We will first help ${studentFirstName} read problems more clearly, recognise what is being asked, and name the structure before solving.`;
+      case "Structured Execution":
+        return `We will first train ${studentFirstName} to start earlier and follow a repeatable method without waiting to be carried through each step.`;
+      case "Controlled Discomfort":
+        return `We will first train ${studentFirstName} to stay calm and structured when questions become less familiar or more demanding.`;
+      case "Time Pressure Stability":
+        return `We will first train ${studentFirstName} to keep the same structure and decision-making even when time pressure increases.`;
+      default:
+        return `We will first strengthen ${studentFirstName}'s consistency in the current topic before adding more difficulty.`;
+    }
+  };
+
   // ── Step content ─────────────────────────────────────────────────────────
   const stepContent = () => {
     if (showOutput) {
+      const topicForConditioning = activeTopic || parentTopics || "Current school focus topic";
+      const entryPhase = phasePriority.find((p) => p.label === "Primary")?.phase ?? "Clarity";
+      const firstBreakdown = getParentFacingBreakdown(entryPhase);
+      const firstPriority = getParentFacingPriority(entryPhase);
       return (
         <div className="space-y-4">
           <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
-            <h3 className="font-bold text-sm text-center mb-0.5">TT Training Plan</h3>
+            <h3 className="font-bold text-sm text-center mb-0.5">Training Proposal Ready</h3>
             <p className="text-xs text-center text-muted-foreground">{studentName}</p>
           </div>
+
+          <Card>
+            <CardHeader className="pb-2 pt-4 px-4">
+              <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Focus Area
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              <p className="text-xs text-muted-foreground">
+                We will start in <span className="text-foreground font-medium">{topicForConditioning}</span>. It gives us the clearest view of how {studentFirstName} responds when the work pushes back.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2 pt-4 px-4">
+              <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Where {studentFirstName} Currently Gets Stuck
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              <p className="text-xs text-muted-foreground">{firstBreakdown}</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2 pt-4 px-4">
+              <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                What We Will Work On First
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              <p className="text-xs text-muted-foreground">{firstPriority}</p>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader className="pb-2 pt-4 px-4">
@@ -412,15 +506,14 @@ export default function ParentOnboardingProposal({
           <Card>
             <CardHeader className="pb-2 pt-4 px-4">
               <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Training Focus
+                Training Priorities
               </CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-4">
               <ul className="text-xs space-y-0.5 ml-2">
                 {phasePriority.map((p, i) => (
                   <li key={p.phase} className="text-muted-foreground">
-                    <span className="text-foreground font-medium">Phase {i + 1}: {p.phase}</span>
-                    <span className="text-muted-foreground"> - {p.label}</span>
+                    <span className="text-foreground font-medium">Priority {i + 1}: {p.phase}</span>
                   </li>
                 ))}
               </ul>
@@ -430,16 +523,16 @@ export default function ParentOnboardingProposal({
           <Card>
             <CardHeader className="pb-2 pt-4 px-4">
               <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Session Structure
+                How Sessions Will Be Structured
               </CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-4">
               <ul className="text-xs text-muted-foreground space-y-0.5 ml-2">
                 <li>Cadence: 2 sessions per week (8 sessions per month)</li>
-                <li>Clarity</li>
-                <li>Immediate execution</li>
-                <li>Layer correction</li>
-                <li>Controlled difficulty when appropriate</li>
+                <li>Clear explanation of the problem structure</li>
+                <li>Guided practice with immediate correction</li>
+                <li>Repeated method-building in the same topic</li>
+                <li>Gradual increase in difficulty when readiness improves</li>
               </ul>
             </CardContent>
           </Card>
@@ -447,7 +540,7 @@ export default function ParentOnboardingProposal({
           <Card>
             <CardHeader className="pb-2 pt-4 px-4">
               <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Expected Progress
+                How You Will Know It Is Improving
               </CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-4">
@@ -494,6 +587,52 @@ export default function ParentOnboardingProposal({
       case 1:
         return (
           <div className="space-y-5">
+            <div>
+              <SectionLabel>Topic Conditioning</SectionLabel>
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-xs mb-1.5 block">Active Topic Arena</Label>
+                  {topicOptions.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {topicOptions.map((topic) => (
+                        <button
+                          key={topic}
+                          type="button"
+                          onClick={() => setActiveTopic(topic)}
+                          className={`px-3 py-1.5 rounded-md border text-xs font-medium transition-colors ${
+                            activeTopic === topic
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "bg-background text-foreground border-border hover:bg-muted"
+                          }`}
+                        >
+                          {topic}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <Textarea
+                      value={activeTopic}
+                      onChange={(e) => setActiveTopic(e.target.value)}
+                      className="min-h-[56px] text-xs"
+                      placeholder="Enter current school topic to condition"
+                    />
+                  )}
+                </div>
+                <div>
+                  <Label className="text-xs mb-1.5 block">Current Stability in Topic</Label>
+                  <RadioGroup
+                    options={[
+                      { value: "Low", label: "Low" },
+                      { value: "Medium", label: "Medium" },
+                      { value: "High", label: "High" },
+                    ]}
+                    value={topicStability}
+                    onSelect={(v) => setTopicStability(v as typeof topicStability)}
+                  />
+                </div>
+              </div>
+            </div>
+
             <div>
               <SectionLabel>Clarity</SectionLabel>
               <div className="space-y-3">

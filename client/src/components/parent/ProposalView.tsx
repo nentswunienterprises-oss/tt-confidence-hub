@@ -23,6 +23,11 @@ interface ProposalData {
   recommendedPlan: string;
   justification: string;
   childWillWin?: string;
+  topicConditioning?: {
+    topic?: string | null;
+    entryPhase?: string | null;
+    stability?: string | null;
+  };
   student?: {
     name: string;
     grade: string;
@@ -54,6 +59,7 @@ export default function ProposalView({
   console.log("📋 ProposalView rendering with data:", proposal);
 
   const studentName = proposal.student?.name || "Your Child";
+  const studentFirstName = studentName.trim().split(/\s+/)[0] || "Your child";
 
   const splitList = (value?: string): string[] => {
     if (!value) return [];
@@ -78,6 +84,31 @@ export default function ProposalView({
     return "Structured Execution";
   };
 
+  const extractTopicConditioning = () => {
+    if (proposal.topicConditioning) {
+      return {
+        topic: proposal.topicConditioning.topic?.trim() || null,
+        entryPhase: proposal.topicConditioning.entryPhase?.trim() || null,
+        stability: proposal.topicConditioning.stability?.trim() || null,
+      };
+    }
+
+    const noteText = proposal.tutorNotes || "";
+    const justificationText = proposal.justification || "";
+    const topic = (proposal.currentTopics || "").trim() || null;
+
+    const phaseFromNotes = noteText.match(/Entry Phase:\s*([^\n\r]+)/i)?.[1]?.trim();
+    const phaseFromJustification = justificationText.match(/Entry phase\s*([^|\.]+)/i)?.[1]?.trim();
+    const stabilityFromNotes = noteText.match(/Stability:\s*([^\n\r]+)/i)?.[1]?.trim();
+    const stabilityFromJustification = justificationText.match(/Stability\s*([^|\.]+)/i)?.[1]?.trim();
+
+    return {
+      topic,
+      entryPhase: phaseFromNotes || phaseFromJustification || null,
+      stability: stabilityFromNotes || stabilityFromJustification || null,
+    };
+  };
+
   const placeholderTopic = "Onboarding baseline diagnostic";
   const focusTopics =
     proposal.currentTopics && proposal.currentTopics.trim() !== "" && proposal.currentTopics !== placeholderTopic
@@ -94,42 +125,80 @@ export default function ProposalView({
 
   const expectedChanges = splitList(proposal.childWillWin);
   const entryPoint = extractEntryPoint();
-  const trainingPath = [
-    `Build ${entryPoint.toLowerCase()} first through structured repetition`,
-    "Reinforce method through immediate execution and layer correction",
-    "Introduce controlled difficulty once execution becomes stable",
-    "Progress to timed pressure only after structured stability",
-  ];
+  const topicConditioning = extractTopicConditioning();
+  const focusArea = topicConditioning.topic || focusTopics[0] || "Current school topic";
+
+  const getFirstBreakdown = () => {
+    switch (topicConditioning.entryPhase || entryPoint) {
+      case "Clarity":
+        return `${studentFirstName} is not yet consistently identifying what the question is asking or what structure to use first.`;
+      case "Structured Execution":
+        return `${studentFirstName} can begin work, but does not yet apply a stable method consistently without support.`;
+      case "Controlled Discomfort":
+        return `${studentFirstName} becomes less stable when the work feels unfamiliar or more difficult.`;
+      case "Time Pressure Stability":
+        return `${studentFirstName} loses structure when working under time pressure.`;
+      default:
+        return `${studentFirstName} needs more stability in the current topic before more pressure is added.`;
+    }
+  };
+
+  const getFirstPriority = () => {
+    switch (topicConditioning.entryPhase || entryPoint) {
+      case "Clarity":
+        return `We will first help ${studentFirstName} read problems more clearly, recognise what is being asked, and identify the structure before solving.`;
+      case "Structured Execution":
+        return `We will first train ${studentFirstName} to start earlier and follow a repeatable method without waiting to be carried through each step.`;
+      case "Controlled Discomfort":
+        return `We will first train ${studentFirstName} to stay calm and structured when questions become less familiar or more difficult.`;
+      case "Time Pressure Stability":
+        return `We will first train ${studentFirstName} to keep the same structure and decision-making even when time pressure increases.`;
+      default:
+        return `We will first strengthen ${studentFirstName}'s consistency inside the current topic.`;
+    }
+  };
+
+  const progressSignals = expectedChanges.length > 0
+    ? expectedChanges
+    : [
+        "Earlier independent starts",
+        "Less hesitation when beginning problems",
+        "More consistent method use",
+        "Better calm under difficulty",
+      ];
 
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-6 rounded-lg">
-        <h2 className="text-2xl font-bold text-foreground mb-2">TT Training Plan</h2>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Training Plan</h2>
         <p className="text-muted-foreground">
-          Structured response-conditioning plan for {studentName}
+          Structured plan for {studentName}
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Focus Topic</CardTitle>
+          <CardTitle>Focus</CardTitle>
         </CardHeader>
         <CardContent>
-          {focusTopics.length > 0 ? (
-            <ul className="text-sm text-muted-foreground space-y-1">
-              {focusTopics.map((topic) => (
-                <li key={topic}>- {topic}</li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-muted-foreground">Current focus topic selected during onboarding diagnostic.</p>
-          )}
+          <p className="text-sm text-muted-foreground">
+            We will start in <span className="text-foreground font-medium">{focusArea}</span>. It gives us the clearest view of how {studentFirstName} responds when the work pushes back.
+          </p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Observed Response</CardTitle>
+          <CardTitle>Where {studentFirstName} Currently Gets Stuck</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">{getFirstBreakdown()}</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>What We Have Observed</CardTitle>
         </CardHeader>
         <CardContent>
           {observedResponse.length > 0 ? (
@@ -146,23 +215,10 @@ export default function ProposalView({
 
       <Card>
         <CardHeader>
-          <CardTitle>Entry Point</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Badge>{entryPoint}</Badge>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
           <CardTitle>Training Path</CardTitle>
         </CardHeader>
         <CardContent>
-          <ul className="text-sm text-muted-foreground space-y-1">
-            {trainingPath.map((item) => (
-              <li key={item}>- {item}</li>
-            ))}
-          </ul>
+          <p className="text-sm text-muted-foreground">{getFirstPriority()}</p>
         </CardContent>
       </Card>
 
@@ -173,22 +229,22 @@ export default function ProposalView({
         <CardContent>
           <ul className="text-sm text-muted-foreground space-y-1">
             <li>- Cadence: 2 sessions per week (8 sessions per month)</li>
-            <li>- Clarity</li>
-            <li>- Structured execution</li>
-            <li>- Layer correction</li>
-            <li>- Controlled difficulty (when ready)</li>
+            <li>- Clear explanation of the problem structure</li>
+            <li>- Guided practice with immediate correction</li>
+            <li>- Repeated method-building in the same topic</li>
+            <li>- Gradual increase in difficulty when readiness improves</li>
           </ul>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Expected Behavioral Changes</CardTitle>
+          <CardTitle>How You Will Know It Is Improving</CardTitle>
         </CardHeader>
         <CardContent>
-          {expectedChanges.length > 0 ? (
+          {progressSignals.length > 0 ? (
             <ul className="text-sm text-muted-foreground space-y-1">
-              {expectedChanges.map((item) => (
+              {progressSignals.map((item) => (
                 <li key={item}>- {item}</li>
               ))}
             </ul>

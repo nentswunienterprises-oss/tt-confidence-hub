@@ -105,6 +105,10 @@ const modules = [
         href: "/responseconditioningsystem/session-infrastructure/session-flow-control",
       },
       {
+        label: "Topic conditioning",
+        href: "/responseconditioningsystem/session-infrastructure/topic-conditioning",
+      },
+      {
         label: "Logging system",
         href: "/responseconditioningsystem/session-infrastructure/logging-system",
       },
