@@ -5290,9 +5290,9 @@ export function registerRoutes(app) {
                                     _f.trys.push([0, 6, , 7]);
                                     parentId = req.dbUser.id;
                                     console.log("📋 Fetching proposal for parent:", parentId);
-                                    return [4 /*yield*/, supabase
+                                        return [4 /*yield*/, supabase
                                             .from("parent_enrollments")
-                                            .select("id, proposal_id, status")
+                                            .select("id, proposal_id, status, math_struggle_areas")
                                             .eq("user_id", parentId)
                                             .maybeSingle()];
                                 case 1:
@@ -5347,7 +5347,9 @@ export function registerRoutes(app) {
                                         confidenceKillers: proposal.confidence_killers,
                                         pressureResponse: proposal.pressure_response,
                                         growthDrivers: proposal.growth_drivers,
-                                        currentTopics: proposal.current_topics,
+                                        currentTopics: (proposal.current_topics && proposal.current_topics !== "Onboarding baseline diagnostic")
+                                            ? proposal.current_topics
+                                            : (enrollment === null || enrollment === void 0 ? void 0 : enrollment.math_struggle_areas) || proposal.current_topics,
                                         immediateStruggles: proposal.immediate_struggles,
                                         gapsIdentified: proposal.gaps_identified,
                                         tutorNotes: proposal.tutor_notes,

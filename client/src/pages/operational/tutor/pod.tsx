@@ -403,6 +403,7 @@ export default function TutorPod() {
           studentName={selectedStudentName}
           tutorName={user?.name || "Your Tutor"}
           identitySheetData={studentIdentitySheets[selectedStudentId]}
+          parentTopics={((podData?.students as any[]) ?? []).find((s: any) => s.id === selectedStudentId)?.parentInfo?.math_struggle_areas || ""}
         />
 
         <ViewAssignmentsDialog

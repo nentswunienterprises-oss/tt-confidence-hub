@@ -6228,6 +6228,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .eq("user_id", parentId)
         .maybeSingle();
 
+        // Also fetch math_struggle_areas to fix stale currentTopics in proposals
+        const { data: enrollmentFull } = await supabase
+          .from("parent_enrollments")
+          .select("math_struggle_areas")
+          .eq("user_id", parentId)
+          .maybeSingle();
+
       console.log("📋 Enrollment data:", enrollment, "Error:", enrollmentError);
 
       if (enrollmentError) {
@@ -6286,7 +6293,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         confidenceKillers: proposal.confidence_killers,
         pressureResponse: proposal.pressure_response,
         growthDrivers: proposal.growth_drivers,
-        currentTopics: proposal.current_topics,
+        currentTopics: (proposal.current_topics && proposal.current_topics !== "Onboarding baseline diagnostic")
+          ? proposal.current_topics
+          : (enrollmentFull?.math_struggle_areas || proposal.current_topics),
         immediateStruggles: proposal.immediate_struggles,
         gapsIdentified: proposal.gaps_identified,
         tutorNotes: proposal.tutor_notes,

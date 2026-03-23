@@ -143,6 +143,7 @@ interface ParentOnboardingProposalProps {
   studentId: string;
   tutorName?: string;
   identitySheetData?: unknown;
+  parentTopics?: string;
 }
 
 export default function ParentOnboardingProposal({
@@ -151,6 +152,7 @@ export default function ParentOnboardingProposal({
   studentName,
   studentId,
   tutorName = "Your Tutor",
+  parentTopics = "",
 }: ParentOnboardingProposalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -258,7 +260,7 @@ export default function ParentOnboardingProposal({
         responsePatterns.find((p) => ["Freezes", "Rushes", "Guesses"].includes(p)) ??
         "Seeks help early",
       growthDrivers: "Structured execution with attempt-first coaching",
-      currentTopics: "Onboarding baseline diagnostic",
+      currentTopics: parentTopics || "Pending intro session",
       immediateStruggles: breakdownPatterns.join(", "),
       gapsIdentified: breakdownPatterns.join(", "),
       tutorNotes: notes,

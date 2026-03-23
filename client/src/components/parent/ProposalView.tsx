@@ -78,7 +78,11 @@ export default function ProposalView({
     return "Structured Execution";
   };
 
-  const focusTopics = splitList(proposal.currentTopics);
+  const placeholderTopic = "Onboarding baseline diagnostic";
+  const focusTopics =
+    proposal.currentTopics && proposal.currentTopics.trim() !== "" && proposal.currentTopics !== placeholderTopic
+      ? splitList(proposal.currentTopics)
+      : splitList(proposal.immediateStruggles);
   const observedResponse = [
     proposal.mathRelationship,
     proposal.pressureResponse,
