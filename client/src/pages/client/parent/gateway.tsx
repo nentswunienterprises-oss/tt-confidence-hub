@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -109,6 +109,11 @@ export default function ParentGateway() {
     enabled: !!user && !!enrollmentStatus,
     retry: false, // Don't retry on 404
   });
+
+  // Derive effective parent code from local state or proposal data
+  const effectiveParentCode = useMemo(() => {
+    return parentCode || proposal?.parentCode || null;
+  }, [parentCode, proposal?.parentCode]);
 
   // Auto-set step based on enrollment status
   useEffect(() => {
@@ -1044,7 +1049,12 @@ export default function ParentGateway() {
               )}
               {(enrollmentStatus.status === "session_booked" || enrollmentStatus.status === "report_received" || enrollmentStatus.status === "confirmed") && (
                 <>
-                  {parentCode ? (
+                  {proposalLoading && !effectiveParentCode ? (
+                    <div className="bg-muted/30 rounded-lg p-4 text-center mb-4 sm:mb-6">
+                      <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-3" />
+                      <p className="text-sm text-muted-foreground">Loading your student access code...</p>
+                    </div>
+                  ) : effectiveParentCode ? (
                     <Card className="border-2 border-primary mb-4 sm:mb-6">
                       <CardHeader className="p-3 sm:p-6">
                         <CardTitle className="text-base sm:text-xl">Student Access Code</CardTitle>
@@ -1056,12 +1066,12 @@ export default function ParentGateway() {
                         <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-4 sm:p-6 rounded-lg text-center">
                           <p className="text-xs sm:text-sm text-muted-foreground mb-2">Student Code</p>
                           <div className="text-2xl sm:text-4xl font-bold tracking-wider text-primary mb-3 sm:mb-4">
-                            {parentCode}
+                            {effectiveParentCode}
                           </div>
                           <Button
                             variant="outline"
                             onClick={() => {
-                              navigator.clipboard.writeText(parentCode);
+                              navigator.clipboard.writeText(effectiveParentCode);
                               toast({
                                 title: "Copied",
                                 description: "Code copied",

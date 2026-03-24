@@ -4,9 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Calendar,
-  TrendingUp,
   FileText,
-  Trophy,
   Zap,
   UserRound,
   ArrowRight,
@@ -283,6 +281,10 @@ export default function ParentDashboard() {
     queryKey: ["/api/parent/student-stats"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchInterval: 10000,
   });
 
   const { data: studentInfo, isLoading: studentInfoLoading, error: studentInfoError } = useQuery<any>({
@@ -307,7 +309,7 @@ export default function ParentDashboard() {
     queryKey: ["/api/parent/topic-conditioning-states"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
-    refetchInterval: 15000,
+    refetchInterval: (query) => (query.state.error ? false : 15000),
     refetchOnWindowFocus: true,
   });
 
@@ -378,26 +380,35 @@ export default function ParentDashboard() {
     {
       label: "Sessions Completed",
       value: stats?.sessionsCompleted || 0,
-      icon: Calendar,
       tone: "text-primary",
     },
     {
-      label: "Challenge Sessions",
+      label: "Active Commitments",
+      value: stats?.totalCommitments || 0,
+      tone: "text-blue-600",
+    },
+  ];
+
+  const trainingMarkers = [
+    {
+      label: "Challenge Exposure",
       value: stats?.bossBattlesCompleted || 0,
-      icon: Trophy,
       tone: "text-yellow-600",
     },
     {
       label: "Structured Solutions",
       value: stats?.solutionsUnlocked || 0,
-      icon: Zap,
       tone: "text-rose-600",
     },
     {
-      label: "Current Streak",
-      value: `${stats?.currentStreak || 0}d`,
-      icon: TrendingUp,
+      label: "Topics In Conditioning",
+      value: topicCards.length,
       tone: "text-green-600",
+    },
+    {
+      label: "Current Training Stage",
+      value: activeStage || "Baseline",
+      tone: "text-primary",
     },
   ];
 
@@ -634,26 +645,45 @@ export default function ParentDashboard() {
         </Card>
       </div>
 
-      <Card className="border-primary/15">
-        <CardHeader>
-          <CardTitle className="text-lg">Session Markers</CardTitle>
-          <CardDescription>These are secondary signals. They support the picture, but they are not the main story.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            {sessionMarkers.map((item) => {
-              const Icon = item.icon;
-              return (
-                <div key={item.label} className="rounded-lg border border-primary/15 bg-background p-4 text-center transition-colors hover:border-primary/35">
-                  <Icon className={`w-6 h-6 mx-auto mb-2 ${item.tone}`} />
-                  <p className="text-2xl font-bold">{item.value}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{item.label}</p>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
+        <Card className="border-primary/15">
+          <CardHeader>
+            <CardTitle className="text-lg">Session Markers</CardTitle>
+            <CardDescription>Operational secondary signals. Useful context, not the main TT outcome layer.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              {sessionMarkers.map((item) => {
+                return (
+                  <div key={item.label} className="rounded-lg border border-primary/15 bg-background p-4 text-center transition-colors hover:border-primary/35">
+                    <p className={`text-2xl font-bold ${item.tone}`}>{item.value}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{item.label}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background">
+          <CardHeader>
+            <CardTitle className="text-lg">Training Markers</CardTitle>
+            <CardDescription>TT-specific secondary signals that show conditioning pressure and response structure.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              {trainingMarkers.map((item) => {
+                return (
+                  <div key={item.label} className="rounded-lg border border-primary/20 bg-background p-4 text-center transition-colors hover:border-primary/40">
+                    <p className={`text-2xl font-bold break-words ${item.tone}`}>{item.value}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{item.label}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {proposal && (
         <Dialog open={proposalDialogOpen} onOpenChange={setProposalDialogOpen}>

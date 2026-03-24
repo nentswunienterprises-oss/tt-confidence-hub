@@ -149,7 +149,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .eq("id", enrollment.id);
 
       if (linkError) {
-        console.error("Failed to link enrollment to student:", linkError);
+        // Some deployments don't yet have assigned_student_id on parent_enrollments.
+        // In that case we continue using canonical session matching fallbacks.
+        if (String(linkError?.message || "").includes("assigned_student_id")) {
+          console.warn("parent_enrollments.assigned_student_id missing; skipping enrollment-student linking");
+        } else {
+          console.error("Failed to link enrollment to student:", linkError);
+        }
       }
     }
 
@@ -1084,7 +1090,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         
-        const students = await hydrateStudentsWithSessionProgress(await storage.getStudentsByTutor(tutorId));
+        const students = await hydrateStudentsWithSessionProgress(tutorId, await storage.getStudentsByTutor(tutorId));
         
         // Fetch parent enrollment info for each student
         const studentsWithParentInfo = await Promise.all(
@@ -1235,7 +1241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: Request, res: Response) => {
       try {
         const tutorId = (req as any).dbUser.id;
-        const students = await hydrateStudentsWithSessionProgress(await storage.getStudentsByTutor(tutorId));
+        const students = await hydrateStudentsWithSessionProgress(tutorId, await storage.getStudentsByTutor(tutorId));
         res.json(students);
       } catch (error) {
         console.error("Error fetching students:", error);
@@ -1385,16 +1391,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   const getSessionMetrics = (sessions: any[]) => {
+    const readSessionText = (session: any, camelKey: string, snakeKey: string) => {
+      return String(session?.[camelKey] ?? session?.[snakeKey] ?? "").trim();
+    };
+
     const completedSessions = sessions.length;
     const bossBattlesCompleted = sessions.reduce(
-      (sum, session) => sum + parseBossBattleCount(session.bossBattlesDone),
+      (sum, session) => sum + parseBossBattleCount(session?.bossBattlesDone ?? session?.boss_battles_done),
       0
     );
     const solutionsUnlocked = sessions.filter(
       (session) =>
-        !!String(session.vocabularyNotes || "").trim() ||
-        !!String(session.methodNotes || "").trim() ||
-        !!String(session.reasonNotes || "").trim()
+        !!readSessionText(session, "vocabularyNotes", "vocabulary_notes") ||
+        !!readSessionText(session, "methodNotes", "method_notes") ||
+        !!readSessionText(session, "reasonNotes", "reason_notes")
     ).length;
 
     const uniqueSessionDays = Array.from(
@@ -1432,10 +1442,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     };
   };
 
-  const hydrateStudentsWithSessionProgress = async (students: any[]) => {
+  const normalizeComparableName = (value: unknown) => String(value || "").trim().toLowerCase();
+
+  const getCanonicalStudentSessions = async ({
+    tutorId,
+    studentId,
+    studentName,
+    parentId,
+    parentContact,
+  }: {
+    tutorId: string;
+    studentId?: string | null;
+    studentName?: string | null;
+    parentId?: string | null;
+    parentContact?: string | null;
+  }) => {
+    const { data: tutorStudents } = await supabase
+      .from("students")
+      .select("id, name, parent_id, parent_contact")
+      .eq("tutor_id", tutorId);
+
+    const normalizedName = normalizeComparableName(studentName);
+    const normalizedParentContact = normalizeComparableName(parentContact);
+    const candidateIds = Array.from(
+      new Set(
+        (tutorStudents || [])
+          .filter((candidate: any) => {
+            if (studentId && candidate.id === studentId) return true;
+            if (parentId && candidate.parent_id && candidate.parent_id === parentId) return true;
+            if (normalizedParentContact && normalizeComparableName(candidate.parent_contact) === normalizedParentContact) return true;
+            if (normalizedName && normalizeComparableName(candidate.name) === normalizedName) return true;
+            return false;
+          })
+          .map((candidate: any) => candidate.id)
+          .concat(studentId ? [studentId] : [])
+      )
+    );
+
+    if (candidateIds.length === 0) {
+      return [] as any[];
+    }
+
+    const { data: sessions } = await supabase
+      .from("tutoring_sessions")
+      .select("*")
+      .eq("tutor_id", tutorId)
+      .in("student_id", candidateIds)
+      .order("date", { ascending: false });
+
+    return sessions || [];
+  };
+
+  const hydrateStudentsWithSessionProgress = async (tutorId: string, students: any[]) => {
     return Promise.all(
       students.map(async (student) => {
-        const sessions = await storage.getSessionsByStudent(student.id);
+        const sessions = await getCanonicalStudentSessions({
+          tutorId,
+          studentId: student.id,
+          studentName: student.name,
+          parentId: student.parentId || student.parent_id || null,
+          parentContact: student.parentContact || student.parent_contact || null,
+        });
         return {
           ...student,
           sessionProgress: sessions.length,
@@ -7519,11 +7586,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const parentId = (req as any).dbUser.id;
 
       // Get parent's enrollment to find student
-      const { data: enrollment } = await supabase
+      const enrollmentWithAssignedStudent = await supabase
         .from("parent_enrollments")
-        .select("student_full_name, assigned_tutor_id, assigned_student_id")
+        .select("student_full_name, assigned_tutor_id, assigned_student_id, parent_email")
         .eq("user_id", parentId)
         .maybeSingle();
+
+      let enrollment: any = enrollmentWithAssignedStudent.data || null;
+      let enrollmentError: any = enrollmentWithAssignedStudent.error || null;
+
+      if (enrollmentError && String(enrollmentError.message || "").includes("assigned_student_id")) {
+        const enrollmentFallback = await supabase
+          .from("parent_enrollments")
+          .select("student_full_name, assigned_tutor_id, parent_email")
+          .eq("user_id", parentId)
+          .maybeSingle();
+
+        enrollment = enrollmentFallback.data
+          ? { ...enrollmentFallback.data, assigned_student_id: null }
+          : null;
+        enrollmentError = enrollmentFallback.error || null;
+      }
+
+      if (enrollmentError) {
+        return res.status(500).json({ message: "Failed to fetch enrollment" });
+      }
 
       if (!enrollment?.assigned_tutor_id) {
         return res.json({
@@ -7549,26 +7636,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         studentId = student?.id || null;
       }
 
-      if (!studentId) {
-        return res.json({
-          bossBattlesCompleted: 0,
-          solutionsUnlocked: 0,
-          confidenceGrowth: 0,
-          sessionsCompleted: 0,
-          currentStreak: 0,
-          totalCommitments: 0,
-        });
-      }
-
-      const sessions = await storage.getSessionsByStudent(studentId);
+      const sessions = await getCanonicalStudentSessions({
+        tutorId: enrollment.assigned_tutor_id,
+        studentId,
+        studentName: enrollment.student_full_name,
+        parentId,
+        parentContact: enrollment.parent_email || null,
+      });
       const stats = getSessionMetrics(sessions);
 
+      const matchedStudentIds = Array.from(
+        new Set(
+          sessions
+            .map((session: any) => session?.student_id)
+            .filter((id: unknown): id is string => typeof id === "string" && id.length > 0)
+        )
+      );
+
       // Get commitments count
-      const { data: commitments } = await supabase
-        .from("student_commitments")
-        .select("id")
-        .eq("student_id", studentId)
-        .eq("is_active", true);
+      let commitments: any[] | null = null;
+      if (matchedStudentIds.length > 0) {
+        const { data } = await supabase
+          .from("student_commitments")
+          .select("id")
+          .in("student_id", matchedStudentIds)
+          .eq("is_active", true);
+        commitments = data || [];
+      } else if (studentId) {
+        const { data } = await supabase
+          .from("student_commitments")
+          .select("id")
+          .eq("student_id", studentId)
+          .eq("is_active", true);
+        commitments = data || [];
+      }
 
       res.json({
         bossBattlesCompleted: stats.bossBattlesCompleted,
@@ -7647,11 +7748,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const parentId = (req as any).dbUser.id;
 
-      const { data: enrollment, error: enrollmentError } = await supabase
+      const enrollmentWithAssignedStudent = await supabase
         .from("parent_enrollments")
-        .select("student_full_name, assigned_tutor_id")
+        .select("student_full_name, assigned_tutor_id, assigned_student_id, parent_email")
         .eq("user_id", parentId)
         .maybeSingle();
+
+      let enrollment: any = enrollmentWithAssignedStudent.data || null;
+      let enrollmentError: any = enrollmentWithAssignedStudent.error || null;
+
+      if (enrollmentError && String(enrollmentError.message || "").includes("assigned_student_id")) {
+        const enrollmentFallback = await supabase
+          .from("parent_enrollments")
+          .select("student_full_name, assigned_tutor_id, parent_email")
+          .eq("user_id", parentId)
+          .maybeSingle();
+
+        enrollment = enrollmentFallback.data
+          ? { ...enrollmentFallback.data, assigned_student_id: null }
+          : null;
+        enrollmentError = enrollmentFallback.error || null;
+      }
 
       if (enrollmentError) {
         return res.status(500).json({ message: "Failed to fetch enrollment" });
@@ -7661,22 +7778,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json([]);
       }
 
-      const { data: student, error: studentError } = await supabase
-        .from("students")
-        .select("id")
-        .eq("name", enrollment.student_full_name)
-        .eq("tutor_id", enrollment.assigned_tutor_id)
-        .maybeSingle();
+      const sessions = await getCanonicalStudentSessions({
+        tutorId: enrollment.assigned_tutor_id,
+        studentId: enrollment.assigned_student_id || null,
+        studentName: enrollment.student_full_name,
+        parentId,
+        parentContact: enrollment.parent_email || null,
+      });
 
-      if (studentError) {
-        return res.status(500).json({ message: "Failed to fetch student" });
-      }
-
-      if (!student?.id) {
+      if (!sessions.length) {
         return res.json([]);
       }
-
-      const sessions = await storage.getSessionsByStudent(student.id);
 
       const normalizePhase = (value?: string | null) => {
         const v = String(value || "").toLowerCase();
@@ -7702,9 +7814,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const parseObservation = (session: any) => {
-        const noteText = String(session.notes || "");
-        const methodText = String(session.methodNotes || "");
-        const responseText = String(session.studentResponse || "");
+        const noteText = String(session.notes ?? session.session_notes ?? "");
+        const methodText = String(session.methodNotes ?? session.method_notes ?? "");
+        const responseText = String(session.studentResponse ?? session.student_response ?? "");
+
+        const dateSource = session.date ?? session.session_date ?? session.created_at ?? null;
+        const parsedDate = new Date(String(dateSource || ""));
+        if (Number.isNaN(parsedDate.getTime())) {
+          return null;
+        }
 
         const topicFromNotes = noteText.match(/Active Topic:\s*([^\n\r]+)/i)?.[1]?.trim();
         const topicFromMethod = methodText.match(/Active Topic:\s*(.+)$/i)?.[1]?.trim();
@@ -7720,7 +7838,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           topic,
           phase: normalizePhase(phaseFromNotes || phaseFromResponse),
           stability: normalizeStability(stabilityFromNotes || stabilityFromResponse),
-          date: new Date(session.date).toISOString(),
+          date: parsedDate.toISOString(),
         };
       };
 

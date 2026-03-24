@@ -58,6 +58,9 @@ export default function TutorPod() {
   } = useQuery<PodData>({
     queryKey: ["/api/tutor/pod"],
     enabled: isAuthenticated && !authLoading,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
   });
 
   const {

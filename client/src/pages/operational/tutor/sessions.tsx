@@ -129,6 +129,9 @@ export default function TutorSessions() {
   } = useQuery<Session[]>({
     queryKey: ["/api/tutor/sessions"],
     enabled: isAuthenticated && !authLoading,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
   });
 
   const {
@@ -137,6 +140,9 @@ export default function TutorSessions() {
   } = useQuery<Student[]>({
     queryKey: ["/api/tutor/students"],
     enabled: isAuthenticated && !authLoading,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
   });
 
   const { data: reports } = useQuery<ReportRecord[]>({
