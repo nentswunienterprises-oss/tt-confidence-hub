@@ -569,8 +569,8 @@ export default function StudentTopicConditioningDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100vw-1rem)] sm:w-full sm:max-w-7xl max-h-[92vh] overflow-y-auto p-3 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Target className="w-4 h-4" />
+          <DialogTitle className="flex items-start gap-2 text-base sm:text-lg leading-tight pr-6">
+            <Target className="w-4 h-4 shrink-0 mt-0.5" />
             {studentName} Topic x Phase Dashboard
           </DialogTitle>
           <DialogDescription>
@@ -596,42 +596,70 @@ export default function StudentTopicConditioningDialog({
                   No topic observations logged yet. Use Session Log Form to add Active Topic, Phase Observed, and Stability Observed.
                 </div>
               ) : (
-                <div className="w-full overflow-x-auto">
-                  <Table className="min-w-[720px]">
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Topic</TableHead>
-                        <TableHead>Current Phase</TableHead>
-                        <TableHead>Stability</TableHead>
-                        <TableHead>Last Updated</TableHead>
-                        <TableHead>Next Action</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {topics.map((row) => (
-                        <TableRow key={row.topic}>
-                          <TableCell className="font-medium">{row.topic}</TableCell>
-                          <TableCell>{row.phase}</TableCell>
-                          <TableCell>
-                            <Badge className={stabilityTone(row.stability)}>
-                              <span
-                                className={`inline-block w-2 h-2 rounded-full mr-1.5 ${
-                                  row.stability === "High"
-                                    ? "bg-green-500"
-                                    : row.stability === "Medium"
-                                    ? "bg-amber-500"
-                                    : "bg-red-400"
-                                }`}
-                              />
-                              {row.stability}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{row.lastSession}</TableCell>
-                          <TableCell>{nextActionFor(row.phase, row.stability)}</TableCell>
+                <div className="space-y-3">
+                  <div className="space-y-3 md:hidden">
+                    {topics.map((row) => (
+                      <div key={`mobile-map-${row.topic}`} className="rounded-md border p-3 space-y-2">
+                        <p className="font-medium break-words">{row.topic}</p>
+                        <p className="text-xs text-muted-foreground">Current Phase: {row.phase}</p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">Stability:</span>
+                          <Badge className={stabilityTone(row.stability)}>
+                            <span
+                              className={`inline-block w-2 h-2 rounded-full mr-1.5 ${
+                                row.stability === "High"
+                                  ? "bg-green-500"
+                                  : row.stability === "Medium"
+                                  ? "bg-amber-500"
+                                  : "bg-red-400"
+                              }`}
+                            />
+                            {row.stability}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Last Updated: {row.lastSession}</p>
+                        <p className="text-xs"><span className="font-medium">Next Action:</span> {nextActionFor(row.phase, row.stability)}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="hidden md:block">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Topic</TableHead>
+                          <TableHead>Current Phase</TableHead>
+                          <TableHead>Stability</TableHead>
+                          <TableHead>Last Updated</TableHead>
+                          <TableHead>Next Action</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {topics.map((row) => (
+                          <TableRow key={row.topic}>
+                            <TableCell className="font-medium">{row.topic}</TableCell>
+                            <TableCell>{row.phase}</TableCell>
+                            <TableCell>
+                              <Badge className={stabilityTone(row.stability)}>
+                                <span
+                                  className={`inline-block w-2 h-2 rounded-full mr-1.5 ${
+                                    row.stability === "High"
+                                      ? "bg-green-500"
+                                      : row.stability === "Medium"
+                                      ? "bg-amber-500"
+                                      : "bg-red-400"
+                                  }`}
+                                />
+                                {row.stability}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{row.lastSession}</TableCell>
+                            <TableCell>{nextActionFor(row.phase, row.stability)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
               )}
             </Card>
@@ -829,12 +857,12 @@ export default function StudentTopicConditioningDialog({
 
                 <div className="space-y-2">
                   <p className="font-medium text-sm">Topic Progress Timeline</p>
-                  <div className="rounded-md border overflow-x-auto">
+                  <div className="rounded-md border p-2 space-y-2">
                     {(selectedRow.timeline || []).map((point) => (
-                      <div key={`${point.date}-${point.phase}`} className="grid min-w-[420px] grid-cols-3 gap-3 text-sm px-3 py-2 border-b last:border-b-0">
-                        <span>{point.date}</span>
-                        <span>{point.phase}</span>
-                        <span>{point.stability}</span>
+                      <div key={`${point.date}-${point.phase}`} className="rounded-md border bg-muted/20 px-3 py-2 text-sm">
+                        <p><span className="font-medium">Date:</span> {point.date}</p>
+                        <p><span className="font-medium">Phase:</span> {point.phase}</p>
+                        <p><span className="font-medium">Stability:</span> {point.stability}</p>
                       </div>
                     ))}
                   </div>
@@ -849,31 +877,46 @@ export default function StudentTopicConditioningDialog({
                   Matrix will appear after first topic observation is logged.
                 </div>
               ) : (
-                <div className="w-full overflow-x-auto">
-                  <Table className="min-w-[760px]">
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Topic</TableHead>
-                        <TableHead>Phase</TableHead>
-                        <TableHead>Stability</TableHead>
-                        <TableHead>Trend</TableHead>
-                        <TableHead>Last Updated</TableHead>
-                        <TableHead>Next Action</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {topics.map((row) => (
-                        <TableRow key={`matrix-${row.topic}`}>
-                          <TableCell className="font-medium">{row.topic}</TableCell>
-                          <TableCell>{row.phase}</TableCell>
-                          <TableCell>{row.stability}</TableCell>
-                          <TableCell>{row.trend}</TableCell>
-                          <TableCell>{row.lastSession}</TableCell>
-                          <TableCell>{nextActionFor(row.phase, row.stability)}</TableCell>
+                <div className="space-y-3">
+                  <div className="space-y-3 md:hidden">
+                    {topics.map((row) => (
+                      <div key={`mobile-matrix-${row.topic}`} className="rounded-md border p-3 space-y-1.5">
+                        <p className="font-medium break-words">{row.topic}</p>
+                        <p className="text-xs text-muted-foreground">Phase: {row.phase}</p>
+                        <p className="text-xs text-muted-foreground">Stability: {row.stability}</p>
+                        <p className="text-xs text-muted-foreground">Trend: {row.trend}</p>
+                        <p className="text-xs text-muted-foreground">Last Updated: {row.lastSession}</p>
+                        <p className="text-xs"><span className="font-medium">Next Action:</span> {nextActionFor(row.phase, row.stability)}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="hidden md:block">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Topic</TableHead>
+                          <TableHead>Phase</TableHead>
+                          <TableHead>Stability</TableHead>
+                          <TableHead>Trend</TableHead>
+                          <TableHead>Last Updated</TableHead>
+                          <TableHead>Next Action</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {topics.map((row) => (
+                          <TableRow key={`matrix-${row.topic}`}>
+                            <TableCell className="font-medium">{row.topic}</TableCell>
+                            <TableCell>{row.phase}</TableCell>
+                            <TableCell>{row.stability}</TableCell>
+                            <TableCell>{row.trend}</TableCell>
+                            <TableCell>{row.lastSession}</TableCell>
+                            <TableCell>{nextActionFor(row.phase, row.stability)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
               )}
             </Card>
