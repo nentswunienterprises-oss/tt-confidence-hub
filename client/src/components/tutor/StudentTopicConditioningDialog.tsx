@@ -567,25 +567,25 @@ export default function StudentTopicConditioningDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-1rem)] sm:w-full sm:max-w-7xl max-h-[92vh] overflow-y-auto p-3 sm:p-6">
+      <DialogContent className="w-[calc(100vw-0.5rem)] sm:w-full sm:max-w-7xl max-h-[92vh] overflow-y-auto p-2 sm:p-6">
         <DialogHeader>
           <DialogTitle className="flex items-start gap-2 text-base sm:text-lg leading-tight pr-6">
             <Target className="w-4 h-4 shrink-0 mt-0.5" />
             {studentName} Topic x Phase Dashboard
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-xs sm:text-sm leading-snug pr-6">
             One glance = full understanding of the student. Semi-automatic recommendations require tutor approval before phase movement.
           </DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="dashboard" className="w-full">
           <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 h-auto">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="session-form">Topic Management</TabsTrigger>
+            <TabsTrigger value="dashboard" className="h-auto whitespace-normal text-xs sm:text-sm py-2">Dashboard</TabsTrigger>
+            <TabsTrigger value="session-form" className="h-auto whitespace-normal text-xs sm:text-sm py-2">Topic Management</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="dashboard" className="space-y-6">
-            <Card className="p-4 md:p-5 space-y-3">
+          <TabsContent value="dashboard" className="space-y-4 sm:space-y-6">
+            <Card className="p-3 sm:p-4 md:p-5 space-y-3">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <h3 className="font-semibold">Active Conditioning Map</h3>
                 <Badge variant="outline" className="w-fit">Student ID: {studentId || "-"}</Badge>
@@ -664,8 +664,8 @@ export default function StudentTopicConditioningDialog({
               )}
             </Card>
 
-            <div className="grid lg:grid-cols-2 gap-6">
-              <Card className="p-4 md:p-5 space-y-4">
+            <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
+              <Card className="p-3 sm:p-4 md:p-5 space-y-4">
                 <h3 className="font-semibold">Stability Tracker</h3>
                 <p className="text-sm text-muted-foreground">
                   Stability: {selectedRow?.stability || "Low"}
@@ -703,7 +703,7 @@ export default function StudentTopicConditioningDialog({
                 </div>
               </Card>
 
-              <Card className="p-4 md:p-5 space-y-4">
+              <Card className="p-3 sm:p-4 md:p-5 space-y-4">
                 <h3 className="font-semibold">Phase Progression</h3>
                 <p className="text-sm text-muted-foreground">Clarity to Structured Execution to Controlled Discomfort to Time Pressure Stability</p>
                 <div className="flex flex-wrap gap-2">
@@ -715,10 +715,10 @@ export default function StudentTopicConditioningDialog({
                         variant="outline"
                         className={
                           state === "completed"
-                            ? "bg-muted/60 border-muted text-foreground/50"
+                            ? "bg-muted/60 border-muted text-foreground/50 text-[11px] sm:text-xs whitespace-normal"
                             : state === "current"
-                            ? "bg-primary/10 border-primary/30 text-foreground font-medium"
-                            : "bg-muted/30 border-muted text-muted-foreground"
+                            ? "bg-primary/10 border-primary/30 text-foreground font-medium text-[11px] sm:text-xs whitespace-normal"
+                            : "bg-muted/30 border-muted text-muted-foreground text-[11px] sm:text-xs whitespace-normal"
                         }
                       >
                         {phase}
@@ -766,7 +766,7 @@ export default function StudentTopicConditioningDialog({
               </Card>
             </div>
 
-            <Card className="p-4 md:p-5 space-y-4">
+            <Card className="p-3 sm:p-4 md:p-5 space-y-4">
               <div className="flex items-center gap-2">
                 <h3 className="font-semibold">Phase Definitions</h3>
                 <AlertCircle className="w-4 h-4 text-muted-foreground" />
@@ -795,7 +795,7 @@ export default function StudentTopicConditioningDialog({
               </TooltipProvider>
             </Card>
 
-            <Card className="p-4 md:p-5 space-y-4">
+            <Card className="p-3 sm:p-4 md:p-5 space-y-4">
               <h3 className="font-semibold">Topic Conditioning Grid</h3>
               <p className="text-sm text-muted-foreground">Click a topic card to open the active topic focus panel.</p>
               {topics.length === 0 ? (
@@ -826,7 +826,7 @@ export default function StudentTopicConditioningDialog({
             </Card>
 
             {selectedRow && (
-              <Card className="p-4 md:p-5 space-y-4">
+              <Card className="p-3 sm:p-4 md:p-5 space-y-4">
                 <h3 className="font-semibold">Active Topics</h3>
                 <div className="grid lg:grid-cols-2 gap-4">
                   <div className="space-y-2 text-sm">
@@ -870,7 +870,7 @@ export default function StudentTopicConditioningDialog({
               </Card>
             )}
 
-            <Card className="p-4 md:p-5 space-y-3">
+            <Card className="p-3 sm:p-4 md:p-5 space-y-3">
               <h3 className="font-semibold">Cross-topic Matrix (Executive View)</h3>
               {topics.length === 0 ? (
                 <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
@@ -922,8 +922,8 @@ export default function StudentTopicConditioningDialog({
             </Card>
           </TabsContent>
 
-          <TabsContent value="session-form" className="space-y-6">
-            <Card className="p-4 md:p-5 space-y-4">
+          <TabsContent value="session-form" className="space-y-4 sm:space-y-6">
+            <Card className="p-3 sm:p-4 md:p-5 space-y-4">
               <h3 className="font-semibold">Topic-first Session Logging</h3>
               <p className="text-sm text-muted-foreground">
                 Select a topic card, review current phase and stability, then use the full session log form for that topic.
