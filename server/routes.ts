@@ -1289,6 +1289,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
               sessions.length,
               confidenceScoreDelta
             );
+
+            const topicStatePayload = req.body?.topicStatePayload;
+            const topic = String(topicStatePayload?.topic || "").trim();
+            const phase = String(topicStatePayload?.phase || "").trim();
+            const stability = String(topicStatePayload?.stability || "").trim();
+            if (topic && phase && stability) {
+              const conceptMastery: any =
+                student.conceptMastery && typeof student.conceptMastery === "object"
+                  ? { ...(student.conceptMastery as any) }
+                  : {};
+              const topicConditioningStore: any =
+                conceptMastery.topicConditioning && typeof conceptMastery.topicConditioning === "object"
+                  ? { ...conceptMastery.topicConditioning }
+                  : {};
+              const topicsStore: Record<string, any> =
+                topicConditioningStore.topics && typeof topicConditioningStore.topics === "object"
+                  ? { ...topicConditioningStore.topics }
+                  : {};
+
+              const nowIso = new Date(req.body?.date || new Date().toISOString()).toISOString();
+              const existing = topicsStore[topic] && typeof topicsStore[topic] === "object" ? topicsStore[topic] : {};
+              const history = Array.isArray(existing.history) ? [...existing.history] : [];
+              history.push({
+                date: nowIso,
+                phase,
+                stability,
+                nextAction: String(topicStatePayload?.nextAction || req.body?.needsReinforcement || "").trim() || null,
+                observationNotes: String(topicStatePayload?.observationNotes || "").trim() || null,
+                sessionId: session.id,
+              });
+
+              topicsStore[topic] = {
+                topic,
+                phase,
+                stability,
+                lastUpdated: nowIso,
+                nextAction: String(topicStatePayload?.nextAction || req.body?.needsReinforcement || "").trim() || null,
+                observationNotes: String(topicStatePayload?.observationNotes || "").trim() || null,
+                history: history.slice(-60),
+              };
+
+              topicConditioningStore.topics = topicsStore;
+              topicConditioningStore.lastUpdatedTopic = topic;
+              topicConditioningStore.lastUpdatedAt = nowIso;
+              conceptMastery.topicConditioning = topicConditioningStore;
+
+              await storage.updateStudent(studentId, { conceptMastery });
+            }
           }
         }
         res.json(session);

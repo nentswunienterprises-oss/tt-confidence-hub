@@ -145,10 +145,18 @@ export default function TutorSessionLogForm({
             .join("\n")
         : null;
 
+      const rawNotes = data.notes.trim();
+      const normalizedRawNotes = rawNotes.toLowerCase();
+      const normalizedTopic = String(topicState?.topic || "").trim().toLowerCase();
+      const effectiveFreeNotes =
+        rawNotes && (!topicState || (normalizedRawNotes !== normalizedTopic && normalizedRawNotes !== "topic conditioning observation"))
+          ? rawNotes
+          : "";
+
       await apiRequest("POST", "/api/tutor/sessions", {
         studentId: data.studentId,
         duration,
-        notes: [data.notes.trim(), topicSummary].filter(Boolean).join("\n\n") || null,
+        notes: [effectiveFreeNotes, topicSummary].filter(Boolean).join("\n\n") || null,
         solutionPurpose: data.solutionPurpose.trim() || (topicState ? `Topic conditioning for ${topicState.topic}` : null),
         vocabularyNotes: data.vocabularyNotes.trim() || null,
         methodNotes: [data.methodNotes.trim(), topicState ? `Active Topic: ${topicState.topic}` : null].filter(Boolean).join("\n") || null,
@@ -165,6 +173,15 @@ export default function TutorSessionLogForm({
         needsReinforcement: data.needsReinforcement.trim() || (topicState ? nextActionFor(topicState.phase, topicState.stability) : null),
         techChallengeDescription: data.techChallengeDescription.trim() || null,
         techChallengeResolution: data.techChallengeResolution.trim() || null,
+        topicStatePayload: topicState
+          ? {
+              topic: topicState.topic,
+              phase: topicState.phase,
+              stability: topicState.stability,
+              observationNotes: topicState.observationNotes?.trim() || null,
+              nextAction: nextActionFor(topicState.phase, topicState.stability),
+            }
+          : null,
         date: new Date().toISOString(),
       });
     },
@@ -273,10 +290,14 @@ export default function TutorSessionLogForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="notes">Session Notes</Label>
+        <Label htmlFor="notes">Session Notes {topicState ? "(optional context)" : ""}</Label>
         <Textarea
           id="notes"
-          placeholder="What did you cover? Any challenges or breakthroughs?"
+          placeholder={
+            topicState
+              ? "Optional extra context beyond the topic-state block"
+              : "What did you cover? Any challenges or breakthroughs?"
+          }
           value={formData.notes}
           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
           rows={3}

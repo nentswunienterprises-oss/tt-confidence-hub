@@ -296,12 +296,12 @@ export default function ProposalView({
             <p className="text-sm text-muted-foreground text-center mb-6">
               Accept this program to move forward with {studentName}'s training
             </p>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 variant="outline"
                 onClick={onDecline}
                 disabled={isProcessing}
-                className="flex-1 gap-2"
+                className="w-full sm:flex-1 gap-2"
                 size="lg"
               >
                 <X className="w-4 h-4" />
@@ -310,7 +310,7 @@ export default function ProposalView({
               <Button
                 onClick={onAccept}
                 disabled={isProcessing}
-                className="flex-1 gap-2"
+                className="w-full sm:flex-1 gap-2"
                 size="lg"
               >
                 <Check className="w-4 h-4" />

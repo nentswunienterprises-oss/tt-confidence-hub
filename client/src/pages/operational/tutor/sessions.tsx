@@ -590,9 +590,14 @@ export default function TutorSessions() {
                         {selectedWeekSessions.map((session) => (
                           <AccordionItem key={session.id} value={`weekly-source-${session.id}`}>
                             <AccordionTrigger className="text-left">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <span>{format(new Date(session.date), "EEE, MMM d")}</span>
-                                <Badge variant="secondary">{session.duration} min</Badge>
+                              <div className="flex flex-col gap-1 min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span>{format(new Date(session.date), "EEE, MMM d")}</span>
+                                  <Badge variant="secondary">{session.duration} min</Badge>
+                                </div>
+                                <p className="text-sm text-muted-foreground line-clamp-2 pr-4">
+                                  {session.notes?.trim() || "No session notes"}
+                                </p>
                               </div>
                             </AccordionTrigger>
                             <AccordionContent className="space-y-3 text-sm">

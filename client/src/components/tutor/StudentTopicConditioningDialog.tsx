@@ -82,6 +82,23 @@ interface StudentTopicConditioningDialogProps {
   studentName: string;
   parentTopics?: string | null;
   topicConditioning?: TopicConditioningMap | null;
+  persistedTopicStates?: Record<
+    string,
+    {
+      topic?: string | null;
+      phase?: string | null;
+      stability?: string | null;
+      lastUpdated?: string | null;
+      observationNotes?: string | null;
+      history?: Array<{
+        date?: string | null;
+        phase?: string | null;
+        stability?: string | null;
+        nextAction?: string | null;
+        observationNotes?: string | null;
+      }>;
+    }
+  > | null;
 }
 
 function splitTopics(raw?: string | null): string[] {
@@ -345,6 +362,7 @@ function formatLastUpdatedLabel(dateText?: string): string {
 function buildTopics(
   parentTopics: string | null | undefined,
   map: TopicConditioningMap | null | undefined,
+  persistedTopicStates: StudentTopicConditioningDialogProps["persistedTopicStates"],
   sessions: TutorSessionRecord[] | undefined,
 ): TopicRow[] {
   const byTopic = new Map<
@@ -365,6 +383,37 @@ function buildTopics(
       },
     });
   }
+
+  const persistedEntries = persistedTopicStates && typeof persistedTopicStates === "object"
+    ? Object.values(persistedTopicStates)
+    : [];
+
+  persistedEntries.forEach((entry: any) => {
+    const persistedTopic = sanitizeTopic(entry?.topic || "");
+    if (!persistedTopic) return;
+
+    const existing = byTopic.get(persistedTopic) || { history: [] as any[] };
+    const mergedHistory = [...(existing.history || [])];
+
+    const persistedHistory = Array.isArray(entry?.history) ? entry.history : [];
+    persistedHistory.forEach((h: any) => {
+      if (!h?.date) return;
+      mergedHistory.push({
+        date: String(h.date),
+        phase: normalizePhase(h.phase),
+        stability: normalizeStability(h.stability),
+        note: h?.observationNotes ? `Observation Notes: ${String(h.observationNotes)}` : "",
+      });
+    });
+
+    byTopic.set(persistedTopic, {
+      history: mergedHistory,
+      seeded: {
+        phase: normalizePhase(entry?.phase || map?.entry_phase),
+        stability: normalizeStability(entry?.stability || map?.stability),
+      },
+    });
+  });
 
   const observations = (sessions || [])
     .map(parseObservation)
@@ -459,6 +508,7 @@ export default function StudentTopicConditioningDialog({
   studentName,
   parentTopics,
   topicConditioning,
+  persistedTopicStates,
 }: StudentTopicConditioningDialogProps) {
   const { data: sessions } = useQuery<TutorSessionRecord[]>({
     queryKey: ["/api/tutor/sessions"],
@@ -472,8 +522,8 @@ export default function StudentTopicConditioningDialog({
   );
 
   const topics = useMemo(
-    () => buildTopics(parentTopics, topicConditioning, studentSessions),
-    [parentTopics, topicConditioning, studentSessions],
+    () => buildTopics(parentTopics, topicConditioning, persistedTopicStates, studentSessions),
+    [parentTopics, topicConditioning, persistedTopicStates, studentSessions],
   );
   const [selectedTopic, setSelectedTopic] = useState<string>(topics[0]?.topic || "");
 
@@ -517,7 +567,7 @@ export default function StudentTopicConditioningDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl max-h-[92vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100vw-1rem)] sm:w-full sm:max-w-7xl max-h-[92vh] overflow-y-auto p-3 sm:p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Target className="w-4 h-4" />
@@ -529,16 +579,16 @@ export default function StudentTopicConditioningDialog({
         </DialogHeader>
 
         <Tabs defaultValue="dashboard" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 h-auto">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="session-form">Topic Management</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
             <Card className="p-4 md:p-5 space-y-3">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <h3 className="font-semibold">Active Conditioning Map</h3>
-                <Badge variant="outline">Student ID: {studentId || "-"}</Badge>
+                <Badge variant="outline" className="w-fit">Student ID: {studentId || "-"}</Badge>
               </div>
 
               {topics.length === 0 ? (
@@ -546,41 +596,43 @@ export default function StudentTopicConditioningDialog({
                   No topic observations logged yet. Use Session Log Form to add Active Topic, Phase Observed, and Stability Observed.
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Topic</TableHead>
-                      <TableHead>Current Phase</TableHead>
-                      <TableHead>Stability</TableHead>
-                    <TableHead>Last Updated</TableHead>
-                      <TableHead>Next Action</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {topics.map((row) => (
-                      <TableRow key={row.topic}>
-                        <TableCell className="font-medium">{row.topic}</TableCell>
-                        <TableCell>{row.phase}</TableCell>
-                        <TableCell>
-                          <Badge className={stabilityTone(row.stability)}>
-                            <span
-                              className={`inline-block w-2 h-2 rounded-full mr-1.5 ${
-                                row.stability === "High"
-                                  ? "bg-green-500"
-                                  : row.stability === "Medium"
-                                  ? "bg-amber-500"
-                                  : "bg-red-400"
-                              }`}
-                            />
-                            {row.stability}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{row.lastSession}</TableCell>
-                        <TableCell>{nextActionFor(row.phase, row.stability)}</TableCell>
+                <div className="w-full overflow-x-auto">
+                  <Table className="min-w-[720px]">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Topic</TableHead>
+                        <TableHead>Current Phase</TableHead>
+                        <TableHead>Stability</TableHead>
+                        <TableHead>Last Updated</TableHead>
+                        <TableHead>Next Action</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {topics.map((row) => (
+                        <TableRow key={row.topic}>
+                          <TableCell className="font-medium">{row.topic}</TableCell>
+                          <TableCell>{row.phase}</TableCell>
+                          <TableCell>
+                            <Badge className={stabilityTone(row.stability)}>
+                              <span
+                                className={`inline-block w-2 h-2 rounded-full mr-1.5 ${
+                                  row.stability === "High"
+                                    ? "bg-green-500"
+                                    : row.stability === "Medium"
+                                    ? "bg-amber-500"
+                                    : "bg-red-400"
+                                }`}
+                              />
+                              {row.stability}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{row.lastSession}</TableCell>
+                          <TableCell>{nextActionFor(row.phase, row.stability)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
             </Card>
 
@@ -777,9 +829,9 @@ export default function StudentTopicConditioningDialog({
 
                 <div className="space-y-2">
                   <p className="font-medium text-sm">Topic Progress Timeline</p>
-                  <div className="rounded-md border overflow-hidden">
+                  <div className="rounded-md border overflow-x-auto">
                     {(selectedRow.timeline || []).map((point) => (
-                      <div key={`${point.date}-${point.phase}`} className="flex items-center justify-between text-sm px-3 py-2 border-b last:border-b-0">
+                      <div key={`${point.date}-${point.phase}`} className="grid min-w-[420px] grid-cols-3 gap-3 text-sm px-3 py-2 border-b last:border-b-0">
                         <span>{point.date}</span>
                         <span>{point.phase}</span>
                         <span>{point.stability}</span>
@@ -797,30 +849,32 @@ export default function StudentTopicConditioningDialog({
                   Matrix will appear after first topic observation is logged.
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Topic</TableHead>
-                      <TableHead>Phase</TableHead>
-                      <TableHead>Stability</TableHead>
-                      <TableHead>Trend</TableHead>
-                      <TableHead>Last Updated</TableHead>
-                      <TableHead>Next Action</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {topics.map((row) => (
-                      <TableRow key={`matrix-${row.topic}`}>
-                        <TableCell className="font-medium">{row.topic}</TableCell>
-                        <TableCell>{row.phase}</TableCell>
-                        <TableCell>{row.stability}</TableCell>
-                        <TableCell>{row.trend}</TableCell>
-                        <TableCell>{row.lastSession}</TableCell>
-                        <TableCell>{nextActionFor(row.phase, row.stability)}</TableCell>
+                <div className="w-full overflow-x-auto">
+                  <Table className="min-w-[760px]">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Topic</TableHead>
+                        <TableHead>Phase</TableHead>
+                        <TableHead>Stability</TableHead>
+                        <TableHead>Trend</TableHead>
+                        <TableHead>Last Updated</TableHead>
+                        <TableHead>Next Action</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {topics.map((row) => (
+                        <TableRow key={`matrix-${row.topic}`}>
+                          <TableCell className="font-medium">{row.topic}</TableCell>
+                          <TableCell>{row.phase}</TableCell>
+                          <TableCell>{row.stability}</TableCell>
+                          <TableCell>{row.trend}</TableCell>
+                          <TableCell>{row.lastSession}</TableCell>
+                          <TableCell>{nextActionFor(row.phase, row.stability)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
             </Card>
           </TabsContent>

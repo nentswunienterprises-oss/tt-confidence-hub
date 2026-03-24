@@ -443,6 +443,7 @@ export default function TutorPod() {
           studentName={selectedStudentName}
           parentTopics={selectedStudent?.parentInfo?.math_struggle_areas || ""}
           topicConditioning={selectedStudent?.topicConditioning || null}
+          persistedTopicStates={((selectedStudent as any)?.conceptMastery?.topicConditioning?.topics as Record<string, any>) || null}
         />
       </div>
     </DashboardLayout>
