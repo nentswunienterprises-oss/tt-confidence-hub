@@ -567,9 +567,9 @@ export default function StudentTopicConditioningDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-0.5rem)] sm:w-full sm:max-w-7xl max-h-[92vh] overflow-y-auto p-2 sm:p-6">
+      <DialogContent className="w-[calc(100vw-0.5rem)] sm:w-full sm:max-w-7xl max-h-[92vh] overflow-y-auto overflow-x-hidden p-2 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="flex items-start gap-2 text-base sm:text-lg leading-tight pr-6">
+          <DialogTitle className="flex items-start gap-2 text-base sm:text-lg leading-tight pr-6 break-words">
             <Target className="w-4 h-4 shrink-0 mt-0.5" />
             {studentName} Topic x Phase Dashboard
           </DialogTitle>
@@ -578,17 +578,17 @@ export default function StudentTopicConditioningDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="dashboard" className="w-full">
+        <Tabs defaultValue="dashboard" className="w-full overflow-x-hidden">
           <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 h-auto">
             <TabsTrigger value="dashboard" className="h-auto whitespace-normal text-xs sm:text-sm py-2">Dashboard</TabsTrigger>
             <TabsTrigger value="session-form" className="h-auto whitespace-normal text-xs sm:text-sm py-2">Topic Management</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="dashboard" className="space-y-4 sm:space-y-6">
+          <TabsContent value="dashboard" className="space-y-4 sm:space-y-6 overflow-x-hidden">
             <Card className="p-3 sm:p-4 md:p-5 space-y-3">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <h3 className="font-semibold">Active Conditioning Map</h3>
-                <Badge variant="outline" className="w-fit">Student ID: {studentId || "-"}</Badge>
+                <Badge variant="outline" className="w-full sm:w-fit max-w-full break-all">Student ID: {studentId || "-"}</Badge>
               </div>
 
               {topics.length === 0 ? (
@@ -961,7 +961,7 @@ export default function StudentTopicConditioningDialog({
               {topics.length > 0 ? (
                 <div className="rounded-md border bg-muted/20 p-3 text-sm">
                   <p className="font-medium text-foreground">Selected Topic</p>
-                  <p className="text-muted-foreground mt-1">{effectiveTopicForLog || "Select a topic card above"}</p>
+                  <p className="text-muted-foreground mt-1 break-words">{effectiveTopicForLog || "Select a topic card above"}</p>
                 </div>
               ) : (
                 <div className="space-y-2">
