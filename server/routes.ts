@@ -1084,7 +1084,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         
-        const students = await storage.getStudentsByTutor(tutorId);
+        const students = await hydrateStudentsWithSessionProgress(await storage.getStudentsByTutor(tutorId));
         
         // Fetch parent enrollment info for each student
         const studentsWithParentInfo = await Promise.all(
@@ -1235,7 +1235,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: Request, res: Response) => {
       try {
         const tutorId = (req as any).dbUser.id;
-        const students = await storage.getStudentsByTutor(tutorId);
+        const students = await hydrateStudentsWithSessionProgress(await storage.getStudentsByTutor(tutorId));
         res.json(students);
       } catch (error) {
         console.error("Error fetching students:", error);
@@ -1370,6 +1370,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const formatMonthName = (date: Date) => {
     return date.toLocaleString("en-US", { month: "long", year: "numeric" });
+  };
+
+  const parseBossBattleCount = (rawValue: unknown) => {
+    const text = String(rawValue || "").trim();
+    if (!text) return 0;
+
+    const numericMatches = text.match(/\d+/g);
+    if (numericMatches && numericMatches.length > 0) {
+      return numericMatches.reduce((sum, value) => sum + Number(value || 0), 0);
+    }
+
+    return 1;
+  };
+
+  const getSessionMetrics = (sessions: any[]) => {
+    const completedSessions = sessions.length;
+    const bossBattlesCompleted = sessions.reduce(
+      (sum, session) => sum + parseBossBattleCount(session.bossBattlesDone),
+      0
+    );
+    const solutionsUnlocked = sessions.filter(
+      (session) =>
+        !!String(session.vocabularyNotes || "").trim() ||
+        !!String(session.methodNotes || "").trim() ||
+        !!String(session.reasonNotes || "").trim()
+    ).length;
+
+    const uniqueSessionDays = Array.from(
+      new Set(
+        sessions
+          .map((session) => {
+            const date = new Date(session.date);
+            if (Number.isNaN(date.getTime())) return null;
+            return date.toISOString().slice(0, 10);
+          })
+          .filter((value): value is string => !!value)
+      )
+    ).sort((a, b) => b.localeCompare(a));
+
+    let currentStreak = 0;
+    if (uniqueSessionDays.length > 0) {
+      let cursor = new Date(`${uniqueSessionDays[0]}T00:00:00.000Z`);
+      for (const sessionDay of uniqueSessionDays) {
+        const currentDay = new Date(`${sessionDay}T00:00:00.000Z`);
+        if (currentDay.getTime() === cursor.getTime()) {
+          currentStreak += 1;
+          cursor.setUTCDate(cursor.getUTCDate() - 1);
+          continue;
+        }
+
+        break;
+      }
+    }
+
+    return {
+      completedSessions,
+      bossBattlesCompleted,
+      solutionsUnlocked,
+      currentStreak,
+    };
+  };
+
+  const hydrateStudentsWithSessionProgress = async (students: any[]) => {
+    return Promise.all(
+      students.map(async (student) => {
+        const sessions = await storage.getSessionsByStudent(student.id);
+        return {
+          ...student,
+          sessionProgress: sessions.length,
+        };
+      })
+    );
   };
 
   const mapParentFacingReport = (report: any, tutorName?: string | null) => {
@@ -7449,7 +7521,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get parent's enrollment to find student
       const { data: enrollment } = await supabase
         .from("parent_enrollments")
-        .select("student_full_name, assigned_tutor_id")
+        .select("student_full_name, assigned_tutor_id, assigned_student_id")
         .eq("user_id", parentId)
         .maybeSingle();
 
@@ -7464,15 +7536,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Find student by name and tutor
-      const { data: student } = await supabase
-        .from("students")
-        .select("id")
-        .eq("name", enrollment.student_full_name)
-        .eq("tutor_id", enrollment.assigned_tutor_id)
-        .maybeSingle();
+      let studentId = enrollment.assigned_student_id || null;
 
-      if (!student) {
+      if (!studentId) {
+        const { data: student } = await supabase
+          .from("students")
+          .select("id")
+          .eq("name", enrollment.student_full_name)
+          .eq("tutor_id", enrollment.assigned_tutor_id)
+          .maybeSingle();
+
+        studentId = student?.id || null;
+      }
+
+      if (!studentId) {
         return res.json({
           bossBattlesCompleted: 0,
           solutionsUnlocked: 0,
@@ -7483,37 +7560,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Call get_student_stats function
-      const { data, error } = await supabase
-        .rpc("get_student_stats", { p_student_id: student.id });
-
-      if (error) {
-        console.error("Error calling get_student_stats:", error);
-        return res.json({
-          bossBattlesCompleted: 0,
-          solutionsUnlocked: 0,
-          confidenceGrowth: 0,
-          sessionsCompleted: 0,
-          currentStreak: 0,
-          totalCommitments: 0,
-        });
-      }
-
-      const stats = data?.[0] || {};
+      const sessions = await storage.getSessionsByStudent(studentId);
+      const stats = getSessionMetrics(sessions);
 
       // Get commitments count
       const { data: commitments } = await supabase
         .from("student_commitments")
         .select("id")
-        .eq("student_id", student.id)
+        .eq("student_id", studentId)
         .eq("is_active", true);
 
       res.json({
-        bossBattlesCompleted: stats.boss_battles_completed || 0,
-        solutionsUnlocked: stats.solutions_unlocked || 0,
-        confidenceGrowth: stats.confidence_level || 50,
-        sessionsCompleted: stats.total_sessions || 0,
-        currentStreak: stats.current_streak || 0,
+        bossBattlesCompleted: stats.bossBattlesCompleted,
+        solutionsUnlocked: stats.solutionsUnlocked,
+        confidenceGrowth: 50,
+        sessionsCompleted: stats.completedSessions,
+        currentStreak: stats.currentStreak,
         totalCommitments: commitments?.length || 0,
       });
     } catch (error) {
