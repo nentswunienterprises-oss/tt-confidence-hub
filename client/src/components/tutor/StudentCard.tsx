@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Calendar, FileText, ScrollText } from "lucide-react";
+import { Calendar, FileText, ScrollText, Target } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useStudentWorkflowState, useMarkIntroCompleted, useRespondToAssignment } from "@/hooks/useStudentWorkflowState";
 import { TutorIntroSessionActions } from "./TutorIntroSessionActions";
@@ -13,6 +13,30 @@ function splitReportedTopics(rawValue) {
     .split(/[,\n;|]+/)
     .map((part) => part.replace(/^[-*\u2022\s]+/, "").trim())
     .filter(Boolean);
+}
+
+function normalizePhaseLabel(rawValue) {
+  const value = String(rawValue || "").toLowerCase();
+  if (value.includes("clarity")) return "Clarity";
+  if (value.includes("structured")) return "Structured Execution";
+  if (value.includes("discomfort")) return "Controlled Discomfort";
+  if (value.includes("time") || value.includes("pressure")) return "Time Pressure Stability";
+  return null;
+}
+
+function normalizeStabilityLabel(rawValue) {
+  const value = String(rawValue || "").toLowerCase();
+  if (value.includes("high")) return "High";
+  if (value.includes("medium")) return "Medium";
+  if (value.includes("low")) return "Low";
+  return null;
+}
+
+function normalizeTopicLabel(rawValue) {
+  const cleaned = String(rawValue || "").trim();
+  if (!cleaned) return null;
+  if (cleaned.toLowerCase() === "onboarding baseline diagnostic") return null;
+  return cleaned;
 }
 
 function inferReportedSymptoms({ struggleAreas, parentMotivation }) {
@@ -47,6 +71,7 @@ export function StudentCard({
   setTrackingDialogOpen,
   setAssignmentsDialogOpen,
   setProposalOpen,
+  setTopicConditioningDialogOpen,
   setReportsDialogOpen,
 }) {
   const sessionProgress = student.sessionProgress || 0;
@@ -81,14 +106,28 @@ export function StudentCard({
     }
   }, [workflow?.assignmentAccepted]);
 
-  const reportedTopics = splitReportedTopics(student.parentInfo?.math_struggle_areas);
-  const reportedSymptoms = inferReportedSymptoms({
+  const reportedTopics =
+    (Array.isArray(student.parentInfo?.reported_topics) ? student.parentInfo.reported_topics : []).filter(Boolean)
+      .map((topic) => String(topic).trim())
+      .filter(Boolean) ||
+    splitReportedTopics(student.parentInfo?.math_struggle_areas);
+
+  const inferredSymptoms = inferReportedSymptoms({
     struggleAreas: student.parentInfo?.math_struggle_areas,
     parentMotivation: student.parentInfo?.parent_motivation,
   });
+  const reportedSymptoms =
+    (Array.isArray(student.parentInfo?.response_symptoms) ? student.parentInfo.response_symptoms : []).filter(Boolean)
+      .map((symptom) => String(symptom).trim())
+      .filter(Boolean);
+  const symptomSignals = reportedSymptoms.length > 0 ? reportedSymptoms : inferredSymptoms;
+
   const suggestedTopic = reportedTopics[0] || "Current class topic with highest friction";
-  const suggestedSymptoms = reportedSymptoms.slice(0, 2);
+  const suggestedSymptoms = symptomSignals.slice(0, 2);
   const topicConditioning = student.topicConditioning;
+  const displayTopic = normalizeTopicLabel(topicConditioning?.topic) || reportedTopics[0] || "Current class topic";
+  const displayPhase = normalizePhaseLabel(topicConditioning?.entry_phase) || "Structured Execution";
+  const displayStability = normalizeStabilityLabel(topicConditioning?.stability) || "Low";
 
   return (
     <div className="p-6 border shadow-sm hover-elevate card">
@@ -114,38 +153,40 @@ export function StudentCard({
         </div>
       </div>
       <div className="space-y-4">
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="font-medium text-foreground">{progressLabel}</span>
-            <span className="font-semibold text-primary">
-              {sessionProgress} of {progressTotal} completed
-            </span>
+        {workflow?.proposalAccepted && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium text-foreground">{progressLabel}</span>
+              <span className="font-semibold text-primary">
+                {sessionProgress} of {progressTotal} completed
+              </span>
+            </div>
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full progress-gradient transition-all duration-300"
+                style={{ width: `${Math.min((sessionProgress / progressTotal) * 100, 100)}%` }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {Math.max(0, progressTotal - sessionProgress)} sessions remaining
+            </p>
           </div>
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full progress-gradient transition-all duration-300"
-              style={{ width: `${(sessionProgress / progressTotal) * 100}%` }}
-            />
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {progressTotal - sessionProgress} sessions remaining
-          </p>
-        </div>
+        )}
         {/* Confidence Level bars removed as requested */}
         {workflowLoading && <p className="text-xs text-muted-foreground">Loading workflow...</p>}
 
-        {topicConditioning && (
+        {(topicConditioning || reportedTopics.length > 0) && (
           <div className="pt-4 border-t space-y-2">
             <p className="text-xs font-semibold text-foreground">Topic Conditioning Map</p>
             <div className="rounded-md border border-primary/30 bg-primary/5 p-3 space-y-1">
               <p className="text-xs text-muted-foreground">
-                Topic: <span className="text-foreground font-medium">{topicConditioning.topic || "Not set"}</span>
+                Topic: <span className="text-foreground font-medium">{displayTopic}</span>
               </p>
               <p className="text-xs text-muted-foreground">
-                Entry Phase: <span className="text-foreground font-medium">{topicConditioning.entry_phase || "Not set"}</span>
+                Entry Phase: <span className="text-foreground font-medium">{displayPhase}</span>
               </p>
               <p className="text-xs text-muted-foreground">
-                Stability: <span className="text-foreground font-medium">{topicConditioning.stability || "Not set"}</span>
+                Stability: <span className="text-foreground font-medium">{displayStability}</span>
               </p>
             </div>
           </div>
@@ -173,9 +214,9 @@ export function StudentCard({
 
             <div className="rounded-md border bg-muted/30 p-3 space-y-2">
               <p className="text-[11px] font-medium text-foreground">Parent-Observed Symptoms</p>
-              {reportedSymptoms.length > 0 ? (
+              {symptomSignals.length > 0 ? (
                 <div className="flex flex-wrap gap-1.5">
-                  {reportedSymptoms.map((symptom) => (
+                  {symptomSignals.map((symptom) => (
                     <Badge key={symptom} variant="secondary" className="text-[10px]">
                       {symptom}
                     </Badge>
@@ -326,8 +367,21 @@ export function StudentCard({
         )}
 
         {/* Final: Show Tracking Systems and Assignments */}
-        {workflow?.assignmentAccepted && workflow?.proposalAccepted && (
+        {(workflow?.assignmentAccepted || topicConditioning) && (
           <div className="pt-4 border-t space-y-2">
+            <Button
+              className="w-full"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSelectedStudentId(student.id);
+                setSelectedStudentName(student.name);
+                setTopicConditioningDialogOpen(true);
+              }}
+            >
+              <Target className="w-4 h-4 mr-2" />
+              Topic Conditioning
+            </Button>
             <Button
               className="w-full"
               variant="outline"

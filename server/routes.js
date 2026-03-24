@@ -5421,7 +5421,7 @@ export function registerRoutes(app) {
                     }); });
                     // Accept proposal (Parent)
                     app.post("/api/parent/proposal/accept", isAuthenticated, requireRole(["parent"]), function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-                        var parentId, enrollment, proposal, generateParentCode, parentCode, codeIsUnique, attempts, existing, updateError, lead, tutorAssignment, closeError, error_131;
+                        var parentId, _a, enrollment, enrollmentError, proposal, generateParentCode, parentCode, codeIsUnique, attempts, existing, updateError, lead, tutorAssignment, closeError, error_131;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
@@ -5429,16 +5429,21 @@ export function registerRoutes(app) {
                                     parentId = req.dbUser.id;
                                     return [4 /*yield*/, supabase
                                             .from("parent_enrollments")
-                                            .select("id, status, proposal_id, assigned_student_id")
+                                            .select("id, status, proposal_id")
                                             .eq("user_id", parentId)
+                                            .eq("status", "proposal_sent")
+                                            .not("proposal_id", "is", null)
+                                            .order("updated_at", { ascending: false })
+                                            .limit(1)
                                             .maybeSingle()];
                                 case 1:
-                                    enrollment = (_a.sent()).data;
-                                    if (!enrollment || !enrollment.proposal_id) {
-                                        return [2 /*return*/, res.status(404).json({ message: "No proposal found" })];
+                                    _a = _a.sent(), enrollment = _a.data, enrollmentError = _a.error;
+                                    if (enrollmentError) {
+                                        console.error("Error fetching pending enrollment for accept:", enrollmentError);
+                                        return [2 /*return*/, res.status(500).json({ message: "Failed to find pending proposal" })];
                                     }
-                                    if (enrollment.status !== "proposal_sent") {
-                                        return [2 /*return*/, res.status(400).json({ message: "Proposal already processed" })];
+                                    if (!enrollment || !enrollment.proposal_id) {
+                                        return [2 /*return*/, res.status(404).json({ message: "No pending proposal found" })];
                                     }
                                     return [4 /*yield*/, supabase
                                             .from("onboarding_proposals")
@@ -5566,6 +5571,9 @@ export function registerRoutes(app) {
                                             .from("parent_enrollments")
                                             .select("id, status, proposal_id")
                                             .eq("user_id", parentId)
+                                            .not("proposal_id", "is", null)
+                                            .order("updated_at", { ascending: false })
+                                            .limit(1)
                                             .maybeSingle()];
                                 case 1:
                                     _a = _c.sent(), enrollment = _a.data, enrollmentError = _a.error;
@@ -5650,7 +5658,7 @@ export function registerRoutes(app) {
                     }); });
                     // Decline proposal (Parent)
                     app.post("/api/parent/proposal/decline", isAuthenticated, requireRole(["parent"]), function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-                        var parentId, reason, enrollment, updateError, error_133;
+                        var parentId, reason, _a, enrollment, enrollmentError, updateError, error_133;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
@@ -5661,14 +5669,19 @@ export function registerRoutes(app) {
                                             .from("parent_enrollments")
                                             .select("id, status, proposal_id")
                                             .eq("user_id", parentId)
+                                            .eq("status", "proposal_sent")
+                                            .not("proposal_id", "is", null)
+                                            .order("updated_at", { ascending: false })
+                                            .limit(1)
                                             .maybeSingle()];
                                 case 1:
-                                    enrollment = (_a.sent()).data;
-                                    if (!enrollment || !enrollment.proposal_id) {
-                                        return [2 /*return*/, res.status(404).json({ message: "No proposal found" })];
+                                    _a = _a.sent(), enrollment = _a.data, enrollmentError = _a.error;
+                                    if (enrollmentError) {
+                                        console.error("Error fetching pending enrollment for decline:", enrollmentError);
+                                        return [2 /*return*/, res.status(500).json({ message: "Failed to find pending proposal" })];
                                     }
-                                    if (enrollment.status !== "proposal_sent") {
-                                        return [2 /*return*/, res.status(400).json({ message: "Proposal already processed" })];
+                                    if (!enrollment || !enrollment.proposal_id) {
+                                        return [2 /*return*/, res.status(404).json({ message: "No pending proposal found" })];
                                     }
                                     return [4 /*yield*/, supabase
                                             .from("parent_enrollments")

@@ -44,6 +44,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import type { Session, Student } from "@shared/schema";
 import { endOfMonth, endOfWeek, format, isWithinInterval, startOfMonth, startOfWeek } from "date-fns";
+import TutorSessionLogForm from "@/components/tutor/TutorSessionLogForm";
 
 interface ReportRecord {
   id: string;
@@ -60,6 +61,25 @@ interface ReportRecord {
 }
 
 const formatDateInput = (date: Date) => format(date, "yyyy-MM-dd");
+
+const initialSessionFormData = {
+  studentId: "",
+  duration: "120",
+  notes: "",
+  solutionPurpose: "",
+  vocabularyNotes: "",
+  methodNotes: "",
+  reasonNotes: "",
+  studentResponse: "",
+  tutorGrowthReflection: "",
+  bossBattlesDone: "",
+  practiceProblems: "",
+  whatMisunderstood: "",
+  correctionHelped: "",
+  needsReinforcement: "",
+  techChallengeDescription: "",
+  techChallengeResolution: "",
+};
 
 export default function TutorSessions() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -100,25 +120,7 @@ export default function TutorSessions() {
     internalTutorNote: "",
   });
 
-  const [formData, setFormData] = useState({
-    studentId: "",
-    duration: "120",
-    notes: "",
-    // 3-Layer Lens Teaching Model fields
-    solutionPurpose: "",
-    vocabularyNotes: "",
-    methodNotes: "",
-    reasonNotes: "",
-    studentResponse: "",
-    tutorGrowthReflection: "",
-    bossBattlesDone: "",
-    practiceProblems: "",
-    whatMisunderstood: "",
-    correctionHelped: "",
-    needsReinforcement: "",
-    techChallengeDescription: "",
-    techChallengeResolution: "",
-  });
+  const [formData, setFormData] = useState(initialSessionFormData);
 
   const {
     data: sessions,
@@ -141,6 +143,15 @@ export default function TutorSessions() {
     queryKey: ["/api/tutor/reports"],
     enabled: isAuthenticated && !authLoading,
   });
+
+  const resetSessionForm = () => {
+    setFormData(initialSessionFormData);
+    setHasBossBattles(false);
+    setAssignPractice(false);
+    setHas3LayerSolutions(false);
+    setHasChallenges(false);
+    setHasTechChallenges(false);
+  };
 
   const weeklyStartDate = new Date(weeklyForm.weekStartDate || new Date().toISOString());
   const weeklyEndDate = endOfWeek(weeklyStartDate, { weekStartsOn: 1 });
@@ -201,9 +212,14 @@ export default function TutorSessions() {
 
   const createSession = useMutation({
     mutationFn: async (data: typeof formData) => {
+      const durationValue = Number(data.duration);
+      if (!Number.isFinite(durationValue) || durationValue < 30 || durationValue > 240) {
+        throw new Error("Duration must be between 30 and 240 minutes.");
+      }
+
       await apiRequest("POST", "/api/tutor/sessions", {
         studentId: data.studentId,
-        duration: parseInt(data.duration),
+        duration: durationValue,
         notes: data.notes.trim() || null,
         solutionPurpose: data.solutionPurpose.trim() || null,
         vocabularyNotes: data.vocabularyNotes.trim() || null,
@@ -226,29 +242,7 @@ export default function TutorSessions() {
       queryClient.invalidateQueries({ queryKey: ["/api/tutor/pod"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tutor/students"] });
       setDialogOpen(false);
-      setHasBossBattles(false);
-      setAssignPractice(false);
-      setHas3LayerSolutions(false);
-      setHasChallenges(false);
-      setHasTechChallenges(false);
-      setFormData({ 
-        studentId: "", 
-        duration: "120", 
-        notes: "",
-        solutionPurpose: "",
-        vocabularyNotes: "",
-        methodNotes: "",
-        reasonNotes: "",
-        studentResponse: "",
-        tutorGrowthReflection: "",
-        bossBattlesDone: "",
-        practiceProblems: "",
-        whatMisunderstood: "",
-        correctionHelped: "",
-        needsReinforcement: "",
-        techChallengeDescription: "",
-        techChallengeResolution: "",
-      });
+      resetSessionForm();
       toast({
         title: "Session logged",
         description: "Your session has been recorded successfully.",
@@ -370,6 +364,10 @@ export default function TutorSessions() {
     },
   });
 
+  const durationValue = Number(formData.duration);
+  const hasValidDuration = Number.isFinite(durationValue) && durationValue >= 30 && durationValue <= 240;
+  const isSessionFormValid = !!formData.studentId && hasValidDuration;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.studentId || !formData.duration) {
@@ -380,6 +378,16 @@ export default function TutorSessions() {
       });
       return;
     }
+
+    if (!Number.isFinite(durationValue) || durationValue < 30 || durationValue > 240) {
+      toast({
+        title: "Validation Error",
+        description: "Duration must be between 30 and 240 minutes.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     createSession.mutate(formData);
   };
 
@@ -451,7 +459,13 @@ export default function TutorSessions() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Sessions</h1>
           <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2">
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <Dialog
+              open={dialogOpen}
+              onOpenChange={(open) => {
+                setDialogOpen(open);
+                if (!open) resetSessionForm();
+              }}
+            >
               <DialogTrigger asChild>
                 <Button className="gap-2 w-full sm:w-auto" data-testid="button-log-session">
                   <Plus className="w-4 h-4" />
@@ -459,320 +473,21 @@ export default function TutorSessions() {
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <form onSubmit={handleSubmit}>
                 <DialogHeader>
                   <DialogTitle>Log New Session</DialogTitle>
                   <DialogDescription>
                     Record your session using the 3-Layer Lens Teaching Model
                   </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-6 py-4">
-                  {/* Student Selection */}
-                  <div className="space-y-2">
-                    <Label htmlFor="student">Student *</Label>
-                    <Select
-                      value={formData.studentId}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, studentId: value })
-                      }
-                    >
-                      <SelectTrigger data-testid="select-student">
-                        <SelectValue placeholder="Select a student" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {students?.map((student) => (
-                          <SelectItem key={student.id} value={student.id}>
-                            {student.name} - {student.grade}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Duration */}
-                  <div className="space-y-2">
-                    <Label htmlFor="duration">Duration (minutes) *</Label>
-                    <Input
-                      id="duration"
-                      type="number"
-                      min="30"
-                      max="240"
-                      value={formData.duration}
-                      onChange={(e) =>
-                        setFormData({ ...formData, duration: e.target.value })
-                      }
-                      data-testid="input-duration"
-                    />
-                  </div>
-
-                  {/* Session Notes */}
-                  <div className="space-y-2">
-                    <Label htmlFor="notes">Session Notes</Label>
-                    <Textarea
-                      id="notes"
-                      placeholder="What did you cover? Any challenges or breakthroughs?"
-                      value={formData.notes}
-                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                      rows={3}
-                      data-testid="input-notes"
-                    />
-                  </div>
-
-                  {/* 3-Layer Solutions Implemented */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="has3LayerSolutions">3-Layer Solutions Implemented?</Label>
-                      <Switch
-                        id="has3LayerSolutions"
-                        checked={has3LayerSolutions}
-                        onCheckedChange={(checked) => {
-                          setHas3LayerSolutions(checked);
-                          if (!checked) {
-                            setFormData({ ...formData, solutionPurpose: "", vocabularyNotes: "", methodNotes: "", reasonNotes: "" });
-                          }
-                        }}
-                        data-testid="switch-3-layer-solutions"
-                      />
-                    </div>
-                    {has3LayerSolutions && (
-                      <div className="space-y-3 border-t pt-3">
-                        <div className="space-y-2">
-                          <Label htmlFor="solutionPurpose">What solution (describe the purpose)?</Label>
-                          <Textarea
-                            id="solutionPurpose"
-                            placeholder="What is the purpose of this solution? What problem does it solve?"
-                            value={formData.solutionPurpose}
-                            onChange={(e) => setFormData({ ...formData, solutionPurpose: e.target.value })}
-                            rows={2}
-                            data-testid="input-solution-purpose"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="vocabulary">Vocabulary Notes</Label>
-                          <Textarea
-                            id="vocabulary"
-                            placeholder="What terms/concepts did you teach?"
-                            value={formData.vocabularyNotes}
-                            onChange={(e) => setFormData({ ...formData, vocabularyNotes: e.target.value })}
-                            rows={2}
-                            data-testid="input-vocabulary"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="method">Method Notes</Label>
-                          <Textarea
-                            id="method"
-                            placeholder="What steps/process did you follow?"
-                            value={formData.methodNotes}
-                            onChange={(e) => setFormData({ ...formData, methodNotes: e.target.value })}
-                            rows={2}
-                            data-testid="input-method"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="reason">Reason Notes</Label>
-                          <Textarea
-                            id="reason"
-                            placeholder="Why does this approach work?"
-                            value={formData.reasonNotes}
-                            onChange={(e) => setFormData({ ...formData, reasonNotes: e.target.value })}
-                            rows={2}
-                            data-testid="input-reason"
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Student Response */}
-                  <div className="space-y-2">
-                    <Label htmlFor="studentResponse">Student Response</Label>
-                    <Textarea
-                      id="studentResponse"
-                      placeholder="How did the student respond to today's session?"
-                      value={formData.studentResponse}
-                      onChange={(e) => setFormData({ ...formData, studentResponse: e.target.value })}
-                      rows={2}
-                      data-testid="input-student-response"
-                    />
-                  </div>
-
-                  {/* Any Challenges */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="hasChallenges">Any Challenges?</Label>
-                      <Switch
-                        id="hasChallenges"
-                        checked={hasChallenges}
-                        onCheckedChange={(checked) => {
-                          setHasChallenges(checked);
-                          if (!checked) {
-                            setFormData({ ...formData, whatMisunderstood: "", correctionHelped: "", needsReinforcement: "" });
-                          }
-                        }}
-                        data-testid="switch-challenges"
-                      />
-                    </div>
-                    {hasChallenges && (
-                      <div className="space-y-3 border-t pt-3">
-                        <div className="space-y-2">
-                          <Label htmlFor="whatMisunderstood">1. What was misunderstood?</Label>
-                          <Textarea
-                            id="whatMisunderstood"
-                            placeholder="Describe what the student misunderstood"
-                            value={formData.whatMisunderstood}
-                            onChange={(e) => setFormData({ ...formData, whatMisunderstood: e.target.value })}
-                            rows={2}
-                            data-testid="input-what-misunderstood"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="correctionHelped">2. What correction helped?</Label>
-                          <Textarea
-                            id="correctionHelped"
-                            placeholder="Describe the correction or approach that helped"
-                            value={formData.correctionHelped}
-                            onChange={(e) => setFormData({ ...formData, correctionHelped: e.target.value })}
-                            rows={2}
-                            data-testid="input-correction-helped"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="needsReinforcement">3. What needs to be reinforced?</Label>
-                          <Textarea
-                            id="needsReinforcement"
-                            placeholder="Describe what concepts or skills need reinforcement"
-                            value={formData.needsReinforcement}
-                            onChange={(e) => setFormData({ ...formData, needsReinforcement: e.target.value })}
-                            rows={2}
-                            data-testid="input-needs-reinforcement"
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Any Tech Challenges */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="hasTechChallenges">Any Tech Challenges?</Label>
-                      <Switch
-                        id="hasTechChallenges"
-                        checked={hasTechChallenges}
-                        onCheckedChange={(checked) => {
-                          setHasTechChallenges(checked);
-                          if (!checked) {
-                            setFormData({ ...formData, techChallengeDescription: "", techChallengeResolution: "" });
-                          }
-                        }}
-                        data-testid="switch-tech-challenges"
-                      />
-                    </div>
-                    {hasTechChallenges && (
-                      <div className="space-y-3 border-t pt-3">
-                        <div className="space-y-2">
-                          <Label htmlFor="techChallengeDescription">1. Describe the challenge & incident</Label>
-                          <Textarea
-                            id="techChallengeDescription"
-                            placeholder="Describe the technical challenge and what happened"
-                            value={formData.techChallengeDescription}
-                            onChange={(e) => setFormData({ ...formData, techChallengeDescription: e.target.value })}
-                            rows={2}
-                            data-testid="input-tech-challenge-description"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="techChallengeResolution">2. How it ended (methods taken)</Label>
-                          <Textarea
-                            id="techChallengeResolution"
-                            placeholder="Describe how the issue was resolved or the methods used"
-                            value={formData.techChallengeResolution}
-                            onChange={(e) => setFormData({ ...formData, techChallengeResolution: e.target.value })}
-                            rows={2}
-                            data-testid="input-tech-challenge-resolution"
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Tutor Growth Reflection */}
-                  <div className="space-y-2">
-                    <Label htmlFor="reflection">Tutor Growth Reflection/Notes</Label>
-                    <Textarea
-                      id="reflection"
-                      placeholder="What did you learn? How can you improve?"
-                      value={formData.tutorGrowthReflection}
-                      onChange={(e) => setFormData({ ...formData, tutorGrowthReflection: e.target.value })}
-                      rows={2}
-                      data-testid="input-tutor-reflection"
-                    />
-                  </div>
-
-                  {/* Boss Battles */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="hasBossBattles">Any Boss Battles done in-session?</Label>
-                      <Switch
-                        id="hasBossBattles"
-                        checked={hasBossBattles}
-                        onCheckedChange={(checked) => {
-                          setHasBossBattles(checked);
-                          if (!checked) {
-                            setFormData({ ...formData, bossBattlesDone: "" });
-                          }
-                        }}
-                        data-testid="switch-boss-battles"
-                      />
-                    </div>
-                    {hasBossBattles && (
-                      <Textarea
-                        placeholder="Describe the Boss Battles completed"
-                        value={formData.bossBattlesDone}
-                        onChange={(e) => setFormData({ ...formData, bossBattlesDone: e.target.value })}
-                        rows={2}
-                        data-testid="input-boss-battles"
-                      />
-                    )}
-                  </div>
-
-                  {/* Practice Problems */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="assignPractice">Assign Practice Problems?</Label>
-                      <Switch
-                        id="assignPractice"
-                        checked={assignPractice}
-                        onCheckedChange={(checked) => {
-                          setAssignPractice(checked);
-                          if (!checked) {
-                            setFormData({ ...formData, practiceProblems: "" });
-                          }
-                        }}
-                        data-testid="switch-practice-problems"
-                      />
-                    </div>
-                    {assignPractice && (
-                      <Textarea
-                        placeholder="Practice problems assigned for student"
-                        value={formData.practiceProblems}
-                        onChange={(e) => setFormData({ ...formData, practiceProblems: e.target.value })}
-                        rows={2}
-                        data-testid="input-practice-problems"
-                      />
-                    )}
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button
-                    type="submit"
-                    disabled={createSession.isPending}
-                    data-testid="button-submit-session"
-                  >
-                    {createSession.isPending ? "Saving..." : "Log Session"}
-                  </Button>
-                </DialogFooter>
-              </form>
+                <TutorSessionLogForm
+                  studentOptions={(students || []).map((student) => ({
+                    id: student.id,
+                    name: student.name,
+                    grade: student.grade,
+                  }))}
+                  submitLabel="Log Session"
+                  onSuccess={() => setDialogOpen(false)}
+                />
               </DialogContent>
             </Dialog>
 

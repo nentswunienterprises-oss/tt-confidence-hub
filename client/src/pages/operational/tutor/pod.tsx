@@ -25,6 +25,7 @@ import ParentOnboardingProposal from "@/components/tutor/ParentOnboardingProposa
 import ViewAssignmentsDialog from "@/components/tutor/ViewAssignmentsDialog";
 import ViewTrackingSystemsDialog from "@/components/tutor/ViewTrackingSystemsDialog";
 import StudentReportsDialog from "@/components/tutor/StudentReportsDialog";
+import StudentTopicConditioningDialog from "@/components/tutor/StudentTopicConditioningDialog";
 import type { Student, TutorAssignment, Pod } from "@shared/schema";
 
 interface PodData {
@@ -45,6 +46,7 @@ export default function TutorPod() {
   const [proposalOpen, setProposalOpen] = useState(false);
   const [assignmentsDialogOpen, setAssignmentsDialogOpen] = useState(false);
   const [trackingDialogOpen, setTrackingDialogOpen] = useState(false);
+  const [topicConditioningDialogOpen, setTopicConditioningDialogOpen] = useState(false);
   const [reportsDialogOpen, setReportsDialogOpen] = useState(false);
   const [studentIdentitySheets, setStudentIdentitySheets] = useState<Record<string, any>>({});
   // Force refresh - identity sheet integration
@@ -190,11 +192,17 @@ export default function TutorPod() {
   }
 
   const { assignment, students } = podData;
-  const totalSessions = students.reduce((sum: number, s: any) => sum + s.sessionProgress, 0);
-  const remainingSessions = students.reduce((sum: number, s: any) => sum + (16 - s.sessionProgress), 0);
-  const maxSessions = students.length * 16;
+  const totalSessions = students.reduce((sum: number, s: any) => sum + (s.sessionProgress || 0), 0);
+  const remainingSessions = students.reduce((sum: number, s: any) => {
+    const progressTotal = s.parentInfo?.onboarding_type === 'pilot' ? 9 : 8;
+    return sum + Math.max(0, progressTotal - (s.sessionProgress || 0));
+  }, 0);
+  const maxSessions = students.reduce((sum: number, s: any) => {
+    return sum + (s.parentInfo?.onboarding_type === 'pilot' ? 9 : 8);
+  }, 0);
   const progress = maxSessions > 0 ? (totalSessions / maxSessions) * 100 : 0;
   const studentsImpacted = students.filter((s: any) => s.sessionProgress > 0).length;
+  const selectedStudent = (students as any[]).find((s: any) => s.id === selectedStudentId) || null;
 
   const firstName = user?.name?.split(" ")[0] || "Tutor";
 
@@ -342,6 +350,7 @@ export default function TutorPod() {
                   setTrackingDialogOpen={setTrackingDialogOpen}
                   setAssignmentsDialogOpen={setAssignmentsDialogOpen}
                   setProposalOpen={setProposalOpen}
+                  setTopicConditioningDialogOpen={setTopicConditioningDialogOpen}
                   setReportsDialogOpen={setReportsDialogOpen}
                 />
               ))}
@@ -425,6 +434,15 @@ export default function TutorPod() {
           onOpenChange={setReportsDialogOpen}
           studentId={selectedStudentId}
           studentName={selectedStudentName}
+        />
+
+        <StudentTopicConditioningDialog
+          open={topicConditioningDialogOpen}
+          onOpenChange={setTopicConditioningDialogOpen}
+          studentId={selectedStudentId}
+          studentName={selectedStudentName}
+          parentTopics={selectedStudent?.parentInfo?.math_struggle_areas || ""}
+          topicConditioning={selectedStudent?.topicConditioning || null}
         />
       </div>
     </DashboardLayout>

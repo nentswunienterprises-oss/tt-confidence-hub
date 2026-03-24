@@ -239,7 +239,7 @@ export default function ProposalView({
 
       <Card>
         <CardHeader>
-          <CardTitle>How You Will Know It Is Improving</CardTitle>
+          <CardTitle>How We Will Know It Is Improving</CardTitle>
         </CardHeader>
         <CardContent>
           {progressSignals.length > 0 ? (

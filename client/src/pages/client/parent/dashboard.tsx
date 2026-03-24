@@ -1,12 +1,22 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, TrendingUp, Target, FileText, Trophy, Zap } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Calendar,
+  TrendingUp,
+  FileText,
+  Trophy,
+  Zap,
+  UserRound,
+  ArrowRight,
+} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ProposalView from "@/components/parent/ProposalView";
+import { useLocation } from "wouter";
 
 interface StudentStats {
   bossBattlesCompleted: number;
@@ -17,40 +27,290 @@ interface StudentStats {
   totalCommitments: number;
 }
 
+interface TutorInfo {
+  id: string;
+  name: string;
+  email?: string;
+  bio?: string;
+}
+
+interface IntroSessionInfo {
+  status:
+    | "not_scheduled"
+    | "awaiting_tutor_acceptance"
+    | "pending_tutor_confirmation"
+    | "pending_parent_confirmation"
+    | "confirmed";
+  scheduled_time?: string;
+  introCompleted?: boolean;
+}
+
+const PHASE_SEQUENCE = ["Clarity", "Structured Execution", "Controlled Discomfort", "Time Pressure Stability"] as const;
+const STABILITY_SEQUENCE = ["Low", "Medium", "High"] as const;
+const PARENT_STAGE_SEQUENCE = ["Foundation", "Method", "Challenge", "Timed Stability"] as const;
+
+type PhaseLabel = (typeof PHASE_SEQUENCE)[number];
+type StabilityLabel = (typeof STABILITY_SEQUENCE)[number];
+
+type ParentStateCopy = {
+  status: string;
+  meaning: string;
+  focus: string;
+};
+
+type ParentTopicState = {
+  topic: string;
+  phase: string;
+  stability: string;
+  lastUpdated?: string | null;
+  previousPhase?: string | null;
+  previousStability?: string | null;
+  movement?: "none" | "improved" | "regressed" | "changed";
+  bucket?: "active" | "recent" | "older";
+};
+
+const PARENT_STATE_ENGINE: Record<PhaseLabel, Record<StabilityLabel, ParentStateCopy>> = {
+  Clarity: {
+    Low: {
+      status: "Your child is still building a clear understanding of this topic.",
+      meaning: "They are not yet fully comfortable with the terms, steps, or logic involved.",
+      focus: "We are rebuilding the foundation so they can clearly recognize and understand the problem.",
+    },
+    Medium: {
+      status: "Your child is beginning to understand this topic more clearly.",
+      meaning: "They can follow explanations, but still need reinforcement to apply it independently.",
+      focus: "We are increasing practice and helping them apply the method more consistently.",
+    },
+    High: {
+      status: "Your child now understands this topic clearly.",
+      meaning: "They can recognize the problem and explain the steps with confidence.",
+      focus: "We are moving into independent problem-solving to build execution.",
+    },
+  },
+  "Structured Execution": {
+    Low: {
+      status: "Your child is learning to apply the steps correctly.",
+      meaning: "They understand the topic but struggle to follow the method consistently on their own.",
+      focus: "We are reinforcing a clear step-by-step approach so they can start and complete problems reliably.",
+    },
+    Medium: {
+      status: "Your child is becoming more consistent in solving problems.",
+      meaning: "They can follow the method in many cases, but still show occasional inconsistency.",
+      focus: "We are increasing independent practice to strengthen consistency.",
+    },
+    High: {
+      status: "Your child can now solve problems consistently in this topic.",
+      meaning: "They are able to follow the correct steps independently with minimal support.",
+      focus: "We are introducing more challenging questions to strengthen their response under difficulty.",
+    },
+  },
+  "Controlled Discomfort": {
+    Low: {
+      status: "Your child is starting to face more challenging problems in this topic.",
+      meaning: "They can solve basic problems, but struggle when questions become less familiar.",
+      focus: "We are helping them stay calm and start correctly even when the problem feels difficult.",
+    },
+    Medium: {
+      status: "Your child is improving in handling difficult questions.",
+      meaning: "They can work through unfamiliar problems, but still show hesitation at times.",
+      focus: "We are increasing exposure to harder questions to build confidence under difficulty.",
+    },
+    High: {
+      status: "Your child is handling difficult problems well.",
+      meaning: "They are able to stay structured and solve unfamiliar questions with stability.",
+      focus: "We are preparing them to perform under time pressure.",
+    },
+  },
+  "Time Pressure Stability": {
+    Low: {
+      status: "Your child is learning to stay structured under time pressure.",
+      meaning: "They can solve problems, but may lose structure when working against the clock.",
+      focus: "We are helping them maintain their method while working within time limits.",
+    },
+    Medium: {
+      status: "Your child is becoming more stable under time pressure.",
+      meaning: "They are improving their ability to complete problems within time while staying structured.",
+      focus: "We are increasing timed practice to strengthen consistency.",
+    },
+    High: {
+      status: "Your child is performing consistently under time pressure.",
+      meaning: "They can solve problems accurately and maintain structure even under time constraints.",
+      focus: "We are maintaining performance and preparing them to transfer this skill to new topics.",
+    },
+  },
+};
+
+function splitList(value?: string): string[] {
+  if (!value) return [];
+  return value
+    .split(/[\n,;|]+/)
+    .map((item) => item.replace(/^[-*\u2022\s]+/, "").trim())
+    .filter(Boolean);
+}
+
+function extractTopicConditioning(proposal: any) {
+  if (!proposal) {
+    return { topic: null, entryPhase: null, stability: null };
+  }
+
+  if (proposal.topicConditioning) {
+    return {
+      topic: proposal.topicConditioning.topic?.trim() || null,
+      entryPhase: proposal.topicConditioning.entryPhase?.trim() || null,
+      stability: proposal.topicConditioning.stability?.trim() || null,
+    };
+  }
+
+  const noteText = String(proposal.tutorNotes || "");
+  const justificationText = String(proposal.justification || "");
+
+  return {
+    topic: String(proposal.currentTopics || "").trim() || null,
+    entryPhase:
+      noteText.match(/Entry Phase:\s*([^\n\r]+)/i)?.[1]?.trim() ||
+      justificationText.match(/Entry phase\s*([^|\.]+)/i)?.[1]?.trim() ||
+      null,
+    stability:
+      noteText.match(/Stability:\s*([^\n\r]+)/i)?.[1]?.trim() ||
+      justificationText.match(/Stability\s*([^|\.]+)/i)?.[1]?.trim() ||
+      null,
+  };
+}
+
+function getProgressSignals(proposal: any) {
+  const signals = splitList(proposal?.childWillWin);
+  if (signals.length > 0) return signals;
+
+  return [
+    "Earlier independent starts",
+    "Less hesitation under difficulty",
+    "More consistent method use",
+    "Calmer response when work becomes uncomfortable",
+  ];
+}
+
+function normalizePhaseLabel(phase?: string | null) {
+  if (!phase) return null;
+  const normalized = phase.trim().toLowerCase();
+  const matched = PHASE_SEQUENCE.find((item) => item.toLowerCase() === normalized);
+  return matched || null;
+}
+
+function normalizeStabilityLabel(stability?: string | null): StabilityLabel {
+  const v = String(stability || "").toLowerCase();
+  if (v.includes("high")) return "High";
+  if (v.includes("medium")) return "Medium";
+  return "Low";
+}
+
+function stabilityIndicator(stability: StabilityLabel): "Developing" | "Strengthening" | "Stable" {
+  if (stability === "High") return "Stable";
+  if (stability === "Medium") return "Strengthening";
+  return "Developing";
+}
+
+function parentCopyForState(phase?: string | null, stability?: string | null): ParentStateCopy {
+  const normalizedPhase = normalizePhaseLabel(phase) || "Structured Execution";
+  const normalizedStability = normalizeStabilityLabel(stability);
+  return PARENT_STATE_ENGINE[normalizedPhase][normalizedStability];
+}
+
+function formatDateLabel(dateText?: string | null): string {
+  if (!dateText) return "Recently updated";
+  const date = new Date(dateText);
+  if (Number.isNaN(date.getTime())) return "Recently updated";
+  return date.toLocaleDateString("en-US", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function getCurrentStepCopy(introSession: IntroSessionInfo | null, hasProposal: boolean, hasCode: boolean) {
+  if (hasCode) {
+    return {
+      title: "Student Access Is Ready",
+      description: "Your child can now use the access code to enter the system and begin the active training journey.",
+    };
+  }
+
+  if (introSession?.status === "pending_tutor_confirmation") {
+    return {
+      title: "Waiting For Tutor Confirmation",
+      description: "A time has been proposed for the intro session. The next move is tutor confirmation.",
+    };
+  }
+
+  if (introSession?.status === "pending_parent_confirmation") {
+    return {
+      title: "Time Needs Your Confirmation",
+      description: "Your tutor proposed a new intro-session time. Confirming that time is the next move.",
+    };
+  }
+
+  if (introSession?.status === "confirmed" && !introSession?.introCompleted) {
+    return {
+      title: "Intro Session Confirmed",
+      description: "The intro session is scheduled. That session will identify the first place the work breaks down.",
+    };
+  }
+
+  if (introSession?.status === "confirmed" && introSession?.introCompleted && hasProposal) {
+    return {
+      title: "Training Plan Is Active",
+      description: "The intro session has been completed and TT is now training from the identified breakpoint.",
+    };
+  }
+
+  return {
+    title: "System Is In Motion",
+    description: "Your dashboard reflects the current training state and the next thing TT is moving forward.",
+  };
+}
+
 export default function ParentDashboard() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [proposalDialogOpen, setProposalDialogOpen] = useState(false);
 
-  console.log("👨‍👩‍👧 Parent Dashboard - User:", user);
-
-  // Fetch proposal if available
   const { data: proposal, isLoading: proposalLoading, error: proposalError } = useQuery<any>({
     queryKey: ["/api/parent/proposal"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
   });
 
-  console.log("📋 Proposal:", { proposal, proposalLoading, proposalError });
-
-  // Fetch student stats (real-time metrics)
   const { data: stats, isLoading: statsLoading, error: statsError } = useQuery<StudentStats>({
     queryKey: ["/api/parent/student-stats"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
   });
 
-  console.log("📊 Stats:", { stats, statsLoading, statsError });
-
-  // Fetch assigned student info
   const { data: studentInfo, isLoading: studentInfoLoading, error: studentInfoError } = useQuery<any>({
     queryKey: ["/api/parent/student-info"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
   });
 
-  console.log("🎓 Student Info:", { studentInfo, studentInfoLoading, studentInfoError });
+  const { data: assignedTutor } = useQuery<TutorInfo | null>({
+    queryKey: ["/api/parent/assigned-tutor"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    retry: false,
+  });
 
-  // Show loading state
+  const { data: introSession } = useQuery<IntroSessionInfo | null>({
+    queryKey: ["/api/parent/intro-session-confirmation"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    retry: false,
+  });
+
+  const { data: topicStatesData } = useQuery<ParentTopicState[]>({
+    queryKey: ["/api/parent/topic-conditioning-states"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    retry: false,
+    refetchInterval: 15000,
+    refetchOnWindowFocus: true,
+  });
+
   if (proposalLoading || statsLoading || studentInfoLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -62,7 +322,6 @@ export default function ParentDashboard() {
     );
   }
 
-  // Show error state
   if (proposalError || statsError || studentInfoError) {
     return (
       <Card className="border-orange-200 bg-orange-50">
@@ -70,204 +329,342 @@ export default function ParentDashboard() {
           <CardTitle className="text-orange-900">Dashboard Loading</CardTitle>
         </CardHeader>
         <CardContent className="text-orange-800">
-          <p>Some features are still loading. Please ensure:</p>
-          <ul className="list-disc list-inside mt-2 space-y-1">
-            <li>The database migration has been run</li>
-            <li>The server has been restarted</li>
-            <li>Your tutor has logged at least one session</li>
-          </ul>
-          <p className="mt-4 text-sm">Error details: {proposalError?.message || statsError?.message || studentInfoError?.message}</p>
+          <p>The dashboard could not fully load the current parent state.</p>
+          <p className="mt-3 text-sm">
+            {proposalError?.message || statsError?.message || studentInfoError?.message}
+          </p>
         </CardContent>
       </Card>
     );
   }
 
+  const studentName = studentInfo?.name || proposal?.student?.name || "Your child";
+  const studentFirstName = studentName.trim().split(/\s+/)[0] || "Your child";
+  const topicConditioning = extractTopicConditioning(proposal);
+  const activePhase = normalizePhaseLabel(topicConditioning.entryPhase);
+  const focusArea = topicConditioning.topic || splitList(proposal?.currentTopics)[0] || "Current school topic";
+  const progressSignals = getProgressSignals(proposal);
+  const currentStep = getCurrentStepCopy(introSession || null, !!proposal, !!proposal?.parentCode);
+  const nextSessionTime = introSession?.scheduled_time
+    ? new Date(introSession.scheduled_time).toLocaleString()
+    : null;
+  const firstParentName = user?.name?.split(" ")[0] || user?.email?.split("@")[0] || "Parent";
+
+  const normalizedTopicStates = (topicStatesData || [])
+    .map((item) => ({
+      ...item,
+      phase: normalizePhaseLabel(item.phase) || "Structured Execution",
+      stability: normalizeStabilityLabel(item.stability),
+      topic: String(item.topic || "").trim(),
+    }))
+    .filter((item) => item.topic.length > 0)
+    .slice(0, 6);
+
+  const fallbackTopicCards = topicConditioning.topic
+    ? [{
+        topic: topicConditioning.topic,
+        phase: normalizePhaseLabel(topicConditioning.entryPhase) || "Structured Execution",
+        stability: normalizeStabilityLabel(topicConditioning.stability),
+        lastUpdated: null,
+        movement: "none" as const,
+        bucket: "active" as const,
+      }]
+    : [];
+
+  const topicCards = normalizedTopicStates.length > 0 ? normalizedTopicStates : fallbackTopicCards;
+  const activeStage = activePhase ? PARENT_STAGE_SEQUENCE[PHASE_SEQUENCE.indexOf(activePhase)] : null;
+
+  const sessionMarkers = [
+    {
+      label: "Sessions Completed",
+      value: stats?.sessionsCompleted || 0,
+      icon: Calendar,
+      tone: "text-primary",
+    },
+    {
+      label: "Challenge Sessions",
+      value: stats?.bossBattlesCompleted || 0,
+      icon: Trophy,
+      tone: "text-yellow-600",
+    },
+    {
+      label: "Structured Solutions",
+      value: stats?.solutionsUnlocked || 0,
+      icon: Zap,
+      tone: "text-rose-600",
+    },
+    {
+      label: "Current Streak",
+      value: `${stats?.currentStreak || 0}d`,
+      icon: TrendingUp,
+      tone: "text-green-600",
+    },
+  ];
+
   return (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Welcome Header */}
-      <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Welcome, {user?.email?.split("@")[0]}!</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Track your child's confidence journey</p>
-          {studentInfo && (
-            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-              Student: <span className="font-medium">{studentInfo.name}</span> • {studentInfo.grade}
+    <div className="space-y-6 sm:space-y-8">
+      <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-background via-background to-primary/5 p-5 sm:p-7">
+        <div className="pointer-events-none absolute -top-12 -right-12 h-40 w-40 rounded-full bg-primary/8 blur-2xl" />
+        <div className="pointer-events-none absolute -bottom-16 -left-10 h-48 w-48 rounded-full bg-primary/5 blur-2xl" />
+        <div className="relative flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-xs sm:text-sm uppercase tracking-[0.2em] text-foreground/70">Parent Dashboard</p>
+            <p className="text-sm text-foreground/70 mt-1">Hi {firstParentName}, here is the live TT operating view.</p>
+            <h1
+              className="text-2xl sm:text-4xl font-bold tracking-tight mt-2"
+              style={{ fontFamily: '"Space Grotesk", "Avenir Next", "Segoe UI", sans-serif' }}
+            >
+              Current training state for {studentName}
+            </h1>
+            <p className="text-sm sm:text-base text-foreground/75 mt-2 max-w-2xl">
+              Stay aligned with how TT is training {studentFirstName} right now.
             </p>
-          )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {studentInfo?.grade && <Badge variant="outline" className="border-primary/30 bg-background/70">{studentInfo.grade}</Badge>}
+            {studentInfo?.podName && <Badge className="bg-primary/90 text-primary-foreground">{studentInfo.podName}</Badge>}
+          </div>
         </div>
-
-        {/* Real-Time Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-          <Card>
-            <CardContent className="pt-4 sm:pt-6">
-              <div className="text-center">
-                <Trophy className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-600 mx-auto mb-1 sm:mb-2" />
-                <p className="text-xl sm:text-2xl font-bold">{stats?.bossBattlesCompleted || 0}</p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground">Boss Battles</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 sm:pt-6">
-              <div className="text-center">
-                <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600 mx-auto mb-1 sm:mb-2" />
-                <p className="text-xl sm:text-2xl font-bold">{stats?.solutionsUnlocked || 0}</p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground">Solutions Unlocked</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 sm:pt-6">
-              <div className="text-center">
-                <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-green-600 mx-auto mb-1 sm:mb-2" />
-                <p className="text-xl sm:text-2xl font-bold">+{stats?.confidenceGrowth || 0}%</p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground">Confidence Growth</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 sm:pt-6">
-              <div className="text-center">
-                <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-primary mx-auto mb-1 sm:mb-2" />
-                <p className="text-xl sm:text-2xl font-bold">{stats?.sessionsCompleted || 0}</p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground">Sessions Completed</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Student Commitments Overview */}
-        <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
-          <Card>
-            <CardHeader className="pb-2 sm:pb-4">
-              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                <Target className="w-4 h-4 sm:w-5 sm:h-5" />
-                Student Commitments
-              </CardTitle>
-              <CardDescription className="text-xs sm:text-sm">Your child's active goals and habits</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3 sm:space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs sm:text-sm text-muted-foreground">Active Commitments</span>
-                  <span className="text-xl sm:text-2xl font-bold">{stats?.totalCommitments || 0}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs sm:text-sm text-muted-foreground">Current Streak</span>
-                  <span className="text-xl sm:text-2xl font-bold text-orange-600">{stats?.currentStreak || 0} days</span>
-                </div>
-                <p className="text-[10px] sm:text-xs text-muted-foreground mt-4">
-                  These are personal goals your child is tracking daily
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2 sm:pb-4">
-              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
-                Academic Progress
-              </CardTitle>
-              <CardDescription className="text-xs sm:text-sm">Session-based learning metrics</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3 sm:space-y-4">
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-3 sm:p-4">
-                <p className="text-xs sm:text-sm font-medium mb-1 sm:mb-2">3-Layer Solutions</p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground">
-                  Your tutor tracks vocabulary, method, and reasoning for each concept mastered
-                </p>
-              </div>
-              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-3 sm:p-4">
-                <p className="text-xs sm:text-sm font-medium mb-1 sm:mb-2">Boss Battles</p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground">
-                  Challenging problems your child has conquered
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Content Sections */}
-        <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
-          {/* Learning Proposal */}
-          {proposal && (
-            <Card className="md:col-span-2 border-primary/30">
-              <CardHeader className="pb-2 sm:pb-4">
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                  <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
-                  Your Personalized Learning Proposal
-                </CardTitle>
-                <CardDescription className="text-xs sm:text-sm">
-                  A comprehensive plan designed specifically for your child's success
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-3 sm:p-4 mb-4">
-                  <p className="text-xs sm:text-sm text-muted-foreground mb-2">
-                    Your tutor has created a detailed proposal outlining your child's learning identity, 
-                    strengths, growth areas, and recommended plan.
-                  </p>
-                  <div className="flex gap-2 text-[10px] sm:text-xs text-muted-foreground">
-                    <span>📋 Recommended Plan: <strong>{proposal.recommendedPlan}</strong></span>
-                  </div>
-                </div>
-                <Button 
-                  onClick={() => setProposalDialogOpen(true)}
-                  className="w-full text-sm sm:text-base"
-                >
-                  View Full Proposal
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader className="pb-2 sm:pb-4">
-              <CardTitle className="text-base sm:text-lg">Quick Actions</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">Common tasks and resources</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2 sm:space-y-3">
-              <Button variant="outline" className="w-full justify-start gap-2 text-sm">
-                <Calendar className="w-4 h-4" />
-                View Progress Reports
-              </Button>
-              <Button variant="outline" className="w-full justify-start gap-2 text-sm">
-                <TrendingUp className="w-4 h-4" />
-                See Latest Updates
-              </Button>
-              <Button variant="outline" className="w-full justify-start gap-2 text-sm">
-                <FileText className="w-4 h-4" />
-                Message Tutor
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* How Stats Update */}
-          <Card className="bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200">
-            <CardHeader className="pb-2 sm:pb-4">
-              <CardTitle className="text-slate-900 text-base sm:text-lg">How Stats Update</CardTitle>
-            </CardHeader>
-            <CardContent className="text-xs sm:text-sm text-slate-700 space-y-2">
-              <p><strong>Real-Time Tracking:</strong> Stats update automatically when your tutor logs a session</p>
-              <p><strong>Boss Battles:</strong> Counted when tutor marks challenging problems completed</p>
-              <p><strong>Solutions:</strong> Incremented based on 3-layer teaching model (vocabulary + method + reasoning)</p>
-              <p><strong>Confidence:</strong> Measured through session feedback and student response patterns</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Proposal Dialog */}
-        {proposal && (
-          <Dialog open={proposalDialogOpen} onOpenChange={setProposalDialogOpen}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Your Personalized Learning Proposal</DialogTitle>
-              </DialogHeader>
-              <ProposalView proposal={proposal} />
-            </DialogContent>
-          </Dialog>
-        )}
       </div>
+
+      <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
+        <Card className="lg:col-span-2 border-primary/20 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-lg sm:text-xl">Topic Focus</CardTitle>
+            <CardDescription>
+              
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {topicCards.length === 0 ? (
+              <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+                Topic cards appear after the first topic conditioning session is logged.
+              </div>
+            ) : (
+              <div className="grid sm:grid-cols-2 gap-4">
+                {topicCards.map((row) => {
+                  const copy = parentCopyForState(row.phase, row.stability);
+                  const hasProgressUpdate = row.movement === "improved";
+
+                  return (
+                    <div key={`${row.topic}-${row.phase}-${row.stability}`} className="rounded-xl border border-primary/20 bg-gradient-to-br from-background to-primary/5 p-4 space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-base font-semibold text-foreground">{row.topic}</p>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="border-primary/30 bg-background/80">
+                            {stabilityIndicator(row.stability as StabilityLabel)}
+                          </Badge>
+                          {row.bucket === "recent" && (
+                            <Badge variant="secondary">Recently Trained</Badge>
+                          )}
+                        </div>
+                      </div>
+
+                      {hasProgressUpdate && (
+                        <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2">
+                          <p className="text-sm font-medium text-green-800">Progress Update</p>
+                          <p className="text-xs text-green-700">Your child has improved in this topic this week.</p>
+                        </div>
+                      )}
+
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-xs uppercase tracking-wide text-muted-foreground">Current Status</p>
+                          <p className="text-sm text-foreground">{copy.status}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase tracking-wide text-muted-foreground">What This Means</p>
+                          <p className="text-sm text-foreground">{copy.meaning}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase tracking-wide text-muted-foreground">Current Focus</p>
+                          <p className="text-sm text-foreground">{copy.focus}</p>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-muted-foreground">Last updated: {formatDateLabel(row.lastUpdated)}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="border-primary/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <UserRound className="w-5 h-5" />
+              Tutor Context
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div>
+              <p className="text-muted-foreground">Assigned tutor</p>
+              <p className="font-semibold text-foreground">{assignedTutor?.name || "Assigned inside TT"}</p>
+            </div>
+            {assignedTutor?.bio && (
+              <p className="text-muted-foreground">{assignedTutor.bio}</p>
+            )}
+            <div className="pt-2 border-t">
+              <p className="text-muted-foreground">Parent role now</p>
+              <p className="font-medium text-foreground">Hold consistency. Do not rescue the struggle too early.</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="border-primary/20 shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-lg">How Training Difficulty Scales</CardTitle>
+          <CardDescription>
+            TT moves from foundation to timed performance only after consistent stability is shown.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-4 gap-3">
+            {PARENT_STAGE_SEQUENCE.map((stage, idx) => {
+              const isActive = activeStage === stage;
+              return (
+                <div
+                  key={stage}
+                  className={`rounded-lg border p-3 transition-all duration-200 ${isActive ? "border-primary bg-primary/10 shadow-sm" : "bg-background hover:border-primary/30"}`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Stage {idx + 1}</p>
+                    {isActive && <Badge className="bg-primary/90 text-primary-foreground">Current</Badge>}
+                  </div>
+                  <p className={`text-sm mt-2 font-medium ${isActive ? "text-primary" : "text-foreground"}`}>{stage}</p>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-3 rounded-lg bg-muted/40 p-3 text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">Current stage:</span> {activeStage || "Building baseline"}
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
+        <Card className="border-primary/15">
+          <CardHeader>
+            <CardTitle className="text-lg">What To Look For As Progress</CardTitle>
+            <CardDescription>These are the parent-visible signs that the training is taking hold.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              {progressSignals.map((signal) => (
+                <li key={signal} className="flex gap-2">
+                  <ArrowRight className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
+                  <span>{signal}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+
+        <Card className="border-primary/25 bg-gradient-to-br from-primary/10 via-background to-orange-100/20">
+          <CardHeader>
+            <CardTitle className="text-lg">Parent Role</CardTitle>
+            <CardDescription>What helps the system work as intended outside the session.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li>Keep session attendance steady and protected.</li>
+              <li>Let discomfort happen before stepping in with reassurance.</li>
+              <li>Look for calmer starts and steadier attempts, not only marks.</li>
+              <li>Use the tutor and training plan as the operating reference.</li>
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
+        <Card className="lg:col-span-2 border-primary/15">
+          <CardHeader>
+            <CardTitle className="text-lg">Training Plan</CardTitle>
+            <CardDescription>The accepted plan is the current operating reference for this student.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
+              <p className="text-sm text-muted-foreground">
+                {proposal
+                  ? `TT is operating from ${studentFirstName}'s current breakpoint inside ${focusArea}.`
+                  : `The training plan is still being loaded for ${studentFirstName}.`}
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button onClick={() => setProposalDialogOpen(true)} disabled={!proposal} className="sm:flex-1 bg-primary hover:bg-primary/90">
+                View Full Training Plan
+              </Button>
+              {proposal?.parentCode && (
+                <Button
+                  variant="outline"
+                  className="sm:flex-1"
+                  onClick={() => navigator.clipboard.writeText(proposal.parentCode)}
+                >
+                  Copy Student Access Code
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-primary/15">
+          <CardHeader>
+            <CardTitle className="text-lg">Parent Controls</CardTitle>
+            <CardDescription>Use these when you need to make the next move quickly.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button variant="outline" className="w-full justify-start gap-2 text-sm" onClick={() => setProposalDialogOpen(true)}>
+              <FileText className="w-4 h-4" />
+              Review Training Plan
+            </Button>
+            <Button variant="outline" className="w-full justify-start gap-2 text-sm" onClick={() => setLocation("/client/parent/gateway")}>
+              <Calendar className="w-4 h-4" />
+              Review Onboarding Flow
+            </Button>
+            {proposal?.parentCode && (
+              <Button variant="outline" className="w-full justify-start gap-2 text-sm" onClick={() => navigator.clipboard.writeText(proposal.parentCode)}>
+                <Zap className="w-4 h-4" />
+                Copy Student Code
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="border-primary/15">
+        <CardHeader>
+          <CardTitle className="text-lg">Session Markers</CardTitle>
+          <CardDescription>These are secondary signals. They support the picture, but they are not the main story.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            {sessionMarkers.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div key={item.label} className="rounded-lg border border-primary/15 bg-background p-4 text-center transition-colors hover:border-primary/35">
+                  <Icon className={`w-6 h-6 mx-auto mb-2 ${item.tone}`} />
+                  <p className="text-2xl font-bold">{item.value}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{item.label}</p>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {proposal && (
+        <Dialog open={proposalDialogOpen} onOpenChange={setProposalDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{studentName} Training Plan</DialogTitle>
+            </DialogHeader>
+            <ProposalView proposal={proposal} />
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
   );
 }

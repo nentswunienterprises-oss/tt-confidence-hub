@@ -130,12 +130,14 @@ export default function ParentGateway() {
     } else if (enrollmentStatus.status === "not_enrolled") {
       console.log("  → Setting step to 'enrollment'");
       setStep("enrollment");
-    } else if (enrollmentStatus.status === "session_booked" || enrollmentStatus.status === "report_received" || enrollmentStatus.status === "confirmed") {
-      console.log("  → REDIRECTING to parent dashboard! Status:", enrollmentStatus.status);
-      // Redirect to dashboard after proposal accepted
-      setStep("loading"); // Show loading during redirect
-      navigate("/client/parent/dashboard", { replace: true });
-    } else if (enrollmentStatus.status === "awaiting_assignment" || enrollmentStatus.status === "assigned" || enrollmentStatus.status === "proposal_sent") {
+    } else if (
+      enrollmentStatus.status === "awaiting_assignment" ||
+      enrollmentStatus.status === "assigned" ||
+      enrollmentStatus.status === "proposal_sent" ||
+      enrollmentStatus.status === "session_booked" ||
+      enrollmentStatus.status === "report_received" ||
+      enrollmentStatus.status === "confirmed"
+    ) {
       console.log("  → Setting step to 'submitted'");
       setStep("submitted");
     } else {
@@ -258,9 +260,11 @@ export default function ParentGateway() {
       const response = await fetch(`${API_URL}/api/parent/proposal/accept`, {
         method: "POST",
         headers,
+        credentials: "include",
       });
       if (!response.ok) {
-        throw new Error("Failed to accept proposal");
+        const err = await response.json().catch(() => ({ message: "Failed to accept proposal" }));
+        throw new Error(err.message || "Failed to accept proposal");
       }
 
       const data = await response.json();
@@ -281,7 +285,7 @@ export default function ParentGateway() {
       console.error("Error accepting proposal:", error);
       toast({
         title: "Error",
-        description: "Failed to accept proposal. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to accept proposal. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -300,12 +304,14 @@ export default function ParentGateway() {
       const response = await fetch(`${API_URL}/api/parent/proposal/decline`, {
         method: "POST",
         headers,
+        credentials: "include",
         body: JSON.stringify({
           reason: "Parent declined proposal", // Could add a dialog to collect reason
         }),
       });
       if (!response.ok) {
-        throw new Error("Failed to decline proposal");
+        const err = await response.json().catch(() => ({ message: "Failed to decline proposal" }));
+        throw new Error(err.message || "Failed to decline proposal");
       }
 
       toast({
@@ -318,7 +324,7 @@ export default function ParentGateway() {
       console.error("Error declining proposal:", error);
       toast({
         title: "Error",
-        description: "Failed to decline proposal. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to decline proposal. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -1074,6 +1080,13 @@ export default function ParentGateway() {
                             <li>3. They enter this code during account creation</li>
                           </ol>
                         </div>
+                        <Button
+                          onClick={() => navigate("/client/parent/dashboard")}
+                          className="w-full"
+                          size="lg"
+                        >
+                          Continue to Dashboard
+                        </Button>
                       </CardContent>
                     </Card>
                   ) : (

@@ -996,7 +996,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const buildTopicConditioningMap = (proposal: any) => {
     if (!proposal) return null;
 
-    const topic = String(proposal.topic_conditioning_topic || proposal.current_topics || "").trim();
+    const normalizePhase = (raw: string | null | undefined) => {
+      const value = String(raw || "").trim();
+      const lower = value.toLowerCase();
+      if (!value) return null;
+      if (lower.includes("clarity")) return "Clarity";
+      if (lower.includes("structured")) return "Structured Execution";
+      if (lower.includes("discomfort")) return "Controlled Discomfort";
+      if (lower.includes("time") || lower.includes("pressure")) return "Time Pressure Stability";
+      return null;
+    };
+
+    const normalizeStability = (raw: string | null | undefined) => {
+      const value = String(raw || "").trim().toLowerCase();
+      if (!value) return null;
+      if (value.includes("high")) return "High";
+      if (value.includes("medium")) return "Medium";
+      if (value.includes("low")) return "Low";
+      return null;
+    };
+
+    const sanitizeTopic = (raw: string | null | undefined) => {
+      const value = String(raw || "").trim();
+      if (!value) return null;
+      if (value.toLowerCase() === "onboarding baseline diagnostic") return null;
+      return value;
+    };
+
+    const topic = sanitizeTopic(proposal.topic_conditioning_topic || proposal.current_topics || "");
     const noteText = String(proposal.tutor_notes || "");
     const justificationText = String(proposal.justification || "");
 
@@ -1005,8 +1032,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const stabilityFromNotes = noteText.match(/Stability:\s*([^\n\r]+)/i)?.[1]?.trim();
     const stabilityFromJustification = justificationText.match(/Stability\s*([^|\.]+)/i)?.[1]?.trim();
 
-    const phase = proposal.topic_conditioning_entry_phase || phaseFromNotes || phaseFromJustification || null;
-    const stability = proposal.topic_conditioning_stability || stabilityFromNotes || stabilityFromJustification || null;
+    const phase =
+      normalizePhase(proposal.topic_conditioning_entry_phase) ||
+      normalizePhase(phaseFromNotes) ||
+      normalizePhase(phaseFromJustification) ||
+      null;
+    const stability =
+      normalizeStability(proposal.topic_conditioning_stability) ||
+      normalizeStability(stabilityFromNotes) ||
+      normalizeStability(stabilityFromJustification) ||
+      null;
 
     if (!topic && !phase && !stability) return null;
     return {
@@ -1083,7 +1118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               if (parentEnrollment?.proposal_id) {
                 const { data: proposal } = await supabase
                   .from("onboarding_proposals")
-                  .select("accepted_at, current_topics, justification, tutor_notes")
+                  .select("accepted_at, current_topics, topic_conditioning_topic, topic_conditioning_entry_phase, topic_conditioning_stability, justification, tutor_notes")
                   .eq("id", parentEnrollment.proposal_id)
                   .single();
                 proposalSnapshot = proposal || null;
@@ -6378,19 +6413,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const parentId = (req as any).dbUser.id;
 
-      // Get parent's enrollment
-      const { data: enrollment } = await supabase
+      // Get latest pending proposal enrollment for this parent.
+      const { data: enrollment, error: enrollmentError } = await supabase
         .from("parent_enrollments")
-        .select("id, status, proposal_id, assigned_student_id")
+        .select("id, status, proposal_id")
         .eq("user_id", parentId)
+        .eq("status", "proposal_sent")
+        .not("proposal_id", "is", null)
+        .order("updated_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
 
-      if (!enrollment || !enrollment.proposal_id) {
-        return res.status(404).json({ message: "No proposal found" });
+      if (enrollmentError) {
+        console.error("Error fetching pending enrollment for accept:", enrollmentError);
+        return res.status(500).json({ message: "Failed to find pending proposal" });
       }
 
-      if (enrollment.status !== "proposal_sent") {
-        return res.status(400).json({ message: "Proposal already processed" });
+      if (!enrollment || !enrollment.proposal_id) {
+        return res.status(404).json({ message: "No pending proposal found" });
       }
 
       // Get proposal details to get student and pod info
@@ -6508,11 +6548,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const parentId = (req as any).dbUser.id;
       console.log("🎓 Generate student code request from parent:", parentId);
 
-      // Get parent's enrollment
+      // Get the latest enrollment that has a linked proposal.
       const { data: enrollment, error: enrollmentError } = await supabase
         .from("parent_enrollments")
         .select("id, status, proposal_id")
         .eq("user_id", parentId)
+        .not("proposal_id", "is", null)
+        .order("updated_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       console.log("📋 Enrollment:", enrollment, "Error:", enrollmentError);
@@ -6603,19 +6646,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const parentId = (req as any).dbUser.id;
       const { reason } = req.body; // Optional decline reason
 
-      // Get parent's enrollment
-      const { data: enrollment } = await supabase
+      // Get latest pending proposal enrollment for this parent.
+      const { data: enrollment, error: enrollmentError } = await supabase
         .from("parent_enrollments")
         .select("id, status, proposal_id")
         .eq("user_id", parentId)
+        .eq("status", "proposal_sent")
+        .not("proposal_id", "is", null)
+        .order("updated_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
 
-      if (!enrollment || !enrollment.proposal_id) {
-        return res.status(404).json({ message: "No proposal found" });
+      if (enrollmentError) {
+        console.error("Error fetching pending enrollment for decline:", enrollmentError);
+        return res.status(500).json({ message: "Failed to find pending proposal" });
       }
 
-      if (enrollment.status !== "proposal_sent") {
-        return res.status(400).json({ message: "Proposal already processed" });
+      if (!enrollment || !enrollment.proposal_id) {
+        return res.status(404).json({ message: "No pending proposal found" });
       }
 
       // Update enrollment status back to assigned (tutor can revise proposal)
@@ -7482,6 +7530,150 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching student info:", error);
       res.status(500).json({ message: "Failed to fetch student info" });
+    }
+  });
+
+  app.get("/api/parent/topic-conditioning-states", isAuthenticated, requireRole(["parent"]), async (req: Request, res: Response) => {
+    try {
+      const parentId = (req as any).dbUser.id;
+
+      const { data: enrollment, error: enrollmentError } = await supabase
+        .from("parent_enrollments")
+        .select("student_full_name, assigned_tutor_id")
+        .eq("user_id", parentId)
+        .maybeSingle();
+
+      if (enrollmentError) {
+        return res.status(500).json({ message: "Failed to fetch enrollment" });
+      }
+
+      if (!enrollment?.assigned_tutor_id || !enrollment?.student_full_name) {
+        return res.json([]);
+      }
+
+      const { data: student, error: studentError } = await supabase
+        .from("students")
+        .select("id")
+        .eq("name", enrollment.student_full_name)
+        .eq("tutor_id", enrollment.assigned_tutor_id)
+        .maybeSingle();
+
+      if (studentError) {
+        return res.status(500).json({ message: "Failed to fetch student" });
+      }
+
+      if (!student?.id) {
+        return res.json([]);
+      }
+
+      const sessions = await storage.getSessionsByStudent(student.id);
+
+      const normalizePhase = (value?: string | null) => {
+        const v = String(value || "").toLowerCase();
+        if (v.includes("clarity")) return "Clarity";
+        if (v.includes("structured")) return "Structured Execution";
+        if (v.includes("discomfort")) return "Controlled Discomfort";
+        if (v.includes("time") || v.includes("pressure")) return "Time Pressure Stability";
+        return "Structured Execution";
+      };
+
+      const normalizeStability = (value?: string | null) => {
+        const v = String(value || "").toLowerCase();
+        if (v.includes("high")) return "High";
+        if (v.includes("medium")) return "Medium";
+        return "Low";
+      };
+
+      const sanitizeTopic = (value?: string | null) => {
+        const cleaned = String(value || "").trim();
+        if (!cleaned) return null;
+        if (cleaned.toLowerCase() === "onboarding baseline diagnostic") return null;
+        return cleaned;
+      };
+
+      const parseObservation = (session: any) => {
+        const noteText = String(session.notes || "");
+        const methodText = String(session.methodNotes || "");
+        const responseText = String(session.studentResponse || "");
+
+        const topicFromNotes = noteText.match(/Active Topic:\s*([^\n\r]+)/i)?.[1]?.trim();
+        const topicFromMethod = methodText.match(/Active Topic:\s*(.+)$/i)?.[1]?.trim();
+        const phaseFromNotes = noteText.match(/Phase Observed in Session:\s*([^\n\r]+)/i)?.[1]?.trim();
+        const phaseFromResponse = responseText.match(/Phase:\s*([^|\n\r]+)/i)?.[1]?.trim();
+        const stabilityFromNotes = noteText.match(/Stability Observed in Session:\s*([^\n\r]+)/i)?.[1]?.trim();
+        const stabilityFromResponse = responseText.match(/Stability:\s*([^|\n\r]+)/i)?.[1]?.trim();
+
+        const topic = sanitizeTopic(topicFromNotes || topicFromMethod);
+        if (!topic) return null;
+
+        return {
+          topic,
+          phase: normalizePhase(phaseFromNotes || phaseFromResponse),
+          stability: normalizeStability(stabilityFromNotes || stabilityFromResponse),
+          date: new Date(session.date).toISOString(),
+        };
+      };
+
+      const observations = (sessions || [])
+        .map(parseObservation)
+        .filter((item: any) => !!item)
+        .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+      const byTopic = new Map<string, Array<{ phase: string; stability: string; date: string }>>();
+      observations.forEach((obs: any) => {
+        if (!byTopic.has(obs.topic)) byTopic.set(obs.topic, []);
+        byTopic.get(obs.topic)?.push({ phase: obs.phase, stability: obs.stability, date: obs.date });
+      });
+
+      const phaseOrder = ["Clarity", "Structured Execution", "Controlled Discomfort", "Time Pressure Stability"];
+      const stabilityScore = (value: string) => (value === "Low" ? 1 : value === "Medium" ? 2 : 3);
+
+      const now = Date.now();
+      const rows = Array.from(byTopic.entries())
+        .map(([topic, history]) => {
+          const latest = history[history.length - 1];
+          const previous = history.length > 1 ? history[history.length - 2] : null;
+
+          const latestPhaseIdx = phaseOrder.indexOf(latest.phase);
+          const previousPhaseIdx = previous ? phaseOrder.indexOf(previous.phase) : -1;
+          const latestStabilityScore = stabilityScore(latest.stability);
+          const previousStabilityScore = previous ? stabilityScore(previous.stability) : 0;
+
+          let movement: "none" | "improved" | "regressed" | "changed" = "none";
+          if (previous) {
+            if (latestPhaseIdx > previousPhaseIdx || (latestPhaseIdx === previousPhaseIdx && latestStabilityScore > previousStabilityScore)) {
+              movement = "improved";
+            } else if (latestPhaseIdx < previousPhaseIdx || (latestPhaseIdx === previousPhaseIdx && latestStabilityScore < previousStabilityScore)) {
+              movement = "regressed";
+            } else if (latest.phase !== previous.phase || latest.stability !== previous.stability) {
+              movement = "changed";
+            }
+          }
+
+          const daysSinceUpdate = Math.floor((now - new Date(latest.date).getTime()) / (1000 * 60 * 60 * 24));
+          const bucket = daysSinceUpdate <= 14 ? "active" : daysSinceUpdate <= 45 ? "recent" : "older";
+
+          return {
+            topic,
+            phase: latest.phase,
+            stability: latest.stability,
+            lastUpdated: latest.date,
+            previousPhase: previous?.phase || null,
+            previousStability: previous?.stability || null,
+            movement,
+            bucket,
+          };
+        })
+        .filter((row) => row.bucket !== "older")
+        .sort((a, b) => {
+          if (a.bucket !== b.bucket) return a.bucket === "active" ? -1 : 1;
+          return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
+        });
+
+      res.json(rows);
+    } catch (error) {
+      console.error("Error fetching parent topic conditioning states:", error);
+      res.status(500).json({ message: "Failed to fetch topic conditioning states" });
     }
   });
 
