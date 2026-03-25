@@ -91,12 +91,12 @@ function PortalLanding() {
           <div className="space-y-5 sm:space-y-8">
             <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
               <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
-                For Parents of Grade 6 & 7 Students
+                For Parents of Grade 6-9 Students
               </span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight" style={{ color: "#1A1A1A" }}>
-              Clarity
+              Calm Execution
               <br />
               <span style={{ color: "#E63946" }}>Under Pressure.</span>
             </h1>
@@ -170,7 +170,7 @@ function PortalLanding() {
               {
                 number: "2",
                 title: "Calm Becomes Automatic",
-                description: "Through repetition under controlled pressure exposure, emotional control becomes muscle memory."
+                description: "Through repetition under controlled pressure, executing and moving forward without emotional negotiation becomes habit."
               },
               {
                 number: "3",
@@ -258,7 +258,7 @@ function PortalLanding() {
             Ready to Build Confidence the Right Way?
           </h2>
           <p className="text-base sm:text-lg mb-8 sm:mb-10" style={{ color: "#A0A0A0" }}>
-            Structure creates calm. Calm creates confidence. Confidence creates results.
+            Pressure being familiar creates calm. Calm creates confidence. Confidence creates results.
           </p>
           <Button
             size="lg"
@@ -311,7 +311,7 @@ function PortalLanding() {
             <p className="text-center md:text-right text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
               © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
               <br />
-              <span className="text-xs sm:text-sm">Confidence, made inevitable.</span>
+              <span className="text-xs sm:text-sm">Math Pressure Response-Training.</span>
             </p>
           </div>
         </div>
