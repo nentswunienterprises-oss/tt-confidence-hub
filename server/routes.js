@@ -3711,7 +3711,7 @@ export function registerRoutes(app) {
                                             confidenceScore: confidenceScore,
                                             parent_id: enrollment.user_id, // Use parent_id directly
                                         };
-                                        await storage.createStudent(studentData);
+                                        storage.createStudent(studentData);
                                         console.log("Student created successfully for:", enrollment.student_full_name);
                                     } catch (studentError) {
                                         console.error("Error creating student:", studentError);
