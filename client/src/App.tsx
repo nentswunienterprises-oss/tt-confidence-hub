@@ -188,7 +188,11 @@ function Router() {
       />
       <Route
         path="/responseconditioningsystem/transformation-phases"
-        element={<Navigate to="/responseconditioningsystem/clarity" replace />}
+        element={<Navigate to="/responseconditioningsystem/transformation-phases/topic-conditioning" replace />}
+      />
+      <Route
+        path="/responseconditioningsystem/transformation-phases/topic-conditioning"
+        element={<ResponseConditioningTopicConditioning />}
       />
       <Route
         path="/responseconditioningsystem/transformation-phases/clarity"
@@ -300,7 +304,7 @@ function Router() {
       />
       <Route
         path="/responseconditioningsystem/session-infrastructure/topic-conditioning"
-        element={<ResponseConditioningTopicConditioning />}
+        element={<Navigate to="/responseconditioningsystem/transformation-phases/topic-conditioning" replace />}
       />
       <Route
         path="/responseconditioningsystem/logging-system"

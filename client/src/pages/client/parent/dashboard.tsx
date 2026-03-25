@@ -3,11 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Calendar,
-  FileText,
-  Zap,
   UserRound,
-  ArrowRight,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
@@ -374,18 +370,18 @@ export default function ParentDashboard() {
     : [];
 
   const topicCards = normalizedTopicStates.length > 0 ? normalizedTopicStates : fallbackTopicCards;
-  const activeStage = activePhase ? PARENT_STAGE_SEQUENCE[PHASE_SEQUENCE.indexOf(activePhase)] : null;
+  const activePhaseFromTopicCards = normalizePhaseLabel(
+    topicCards.length > 0 ? String(topicCards[0].phase || "") : null
+  );
+  const activePhaseForStage = activePhaseFromTopicCards || activePhase;
+  const activeStage = activePhaseForStage
+    ? PARENT_STAGE_SEQUENCE[PHASE_SEQUENCE.indexOf(activePhaseForStage)]
+    : "Foundation";
 
   const sessionMarkers = [
     {
       label: "Sessions Completed",
       value: stats?.sessionsCompleted || 0,
-      tone: "text-primary",
-    },
-    {
-      label: "Active Commitments",
-      value: stats?.totalCommitments || 0,
-      tone: "text-blue-600",
     },
   ];
 
@@ -393,41 +389,35 @@ export default function ParentDashboard() {
     {
       label: "Challenge Exposure",
       value: stats?.bossBattlesCompleted || 0,
-      tone: "text-yellow-600",
     },
     {
       label: "Structured Solutions",
       value: stats?.solutionsUnlocked || 0,
-      tone: "text-rose-600",
     },
     {
       label: "Topics In Conditioning",
       value: topicCards.length,
-      tone: "text-green-600",
     },
     {
       label: "Current Training Stage",
-      value: activeStage || "Baseline",
-      tone: "text-primary",
+      value: activeStage,
     },
   ];
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-background via-background to-primary/5 p-5 sm:p-7">
-        <div className="pointer-events-none absolute -top-12 -right-12 h-40 w-40 rounded-full bg-primary/8 blur-2xl" />
-        <div className="pointer-events-none absolute -bottom-16 -left-10 h-48 w-48 rounded-full bg-primary/5 blur-2xl" />
+      <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-background p-5 sm:p-7">
         <div className="relative flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-xs sm:text-sm uppercase tracking-[0.2em] text-foreground/70">Parent Dashboard</p>
-            <p className="text-sm text-foreground/70 mt-1">Hi {firstParentName}, here is the live TT operating view.</p>
+            <p className="text-[11px] sm:text-xs font-medium uppercase tracking-[0.08em] text-foreground/65">Parent Dashboard</p>
+            <p className="text-sm text-foreground/70 mt-1.5">Hi {firstParentName}, here is the live TT operating view.</p>
             <h1
-              className="text-2xl sm:text-4xl font-bold tracking-tight mt-2"
-              style={{ fontFamily: '"Space Grotesk", "Avenir Next", "Segoe UI", sans-serif' }}
+              className="text-2xl sm:text-[2.1rem] font-semibold tracking-[-0.01em] leading-tight mt-2"
+              style={{ fontFamily: '"Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif' }}
             >
               Current training state for {studentName}
             </h1>
-            <p className="text-sm sm:text-base text-foreground/75 mt-2 max-w-2xl">
+            <p className="text-sm sm:text-base text-foreground/75 mt-2.5 max-w-2xl leading-relaxed">
               Stay aligned with how TT is training {studentFirstName} right now.
             </p>
           </div>
@@ -440,11 +430,8 @@ export default function ParentDashboard() {
 
       <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
         <Card className="lg:col-span-2 border-primary/20 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg sm:text-xl">Topic Focus</CardTitle>
-            <CardDescription>
-              
-            </CardDescription>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg sm:text-xl font-semibold tracking-[-0.01em]">Topic Focus</CardTitle>
           </CardHeader>
           <CardContent>
             {topicCards.length === 0 ? (
@@ -458,9 +445,9 @@ export default function ParentDashboard() {
                   const hasProgressUpdate = row.movement === "improved";
 
                   return (
-                    <div key={`${row.topic}-${row.phase}-${row.stability}`} className="rounded-xl border border-primary/20 bg-gradient-to-br from-background to-primary/5 p-4 space-y-3">
+                    <div key={`${row.topic}-${row.phase}-${row.stability}`} className="rounded-xl border border-primary/20 bg-background p-4 space-y-3">
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="text-base font-semibold text-foreground">{row.topic}</p>
+                        <p className="text-base font-semibold tracking-tight text-foreground">{row.topic}</p>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="border-primary/30 bg-background/80">
                             {stabilityIndicator(row.stability as StabilityLabel)}
@@ -480,16 +467,16 @@ export default function ParentDashboard() {
 
                       <div className="space-y-2">
                         <div>
-                          <p className="text-xs uppercase tracking-wide text-muted-foreground">Current Status</p>
-                          <p className="text-sm text-foreground">{copy.status}</p>
+                          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Current Status</p>
+                          <p className="text-sm text-foreground leading-relaxed">{copy.status}</p>
                         </div>
                         <div>
-                          <p className="text-xs uppercase tracking-wide text-muted-foreground">What This Means</p>
-                          <p className="text-sm text-foreground">{copy.meaning}</p>
+                          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">What This Means</p>
+                          <p className="text-sm text-foreground leading-relaxed">{copy.meaning}</p>
                         </div>
                         <div>
-                          <p className="text-xs uppercase tracking-wide text-muted-foreground">Current Focus</p>
-                          <p className="text-sm text-foreground">{copy.focus}</p>
+                          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Current Focus</p>
+                          <p className="text-sm text-foreground leading-relaxed">{copy.focus}</p>
                         </div>
                       </div>
 
@@ -503,8 +490,8 @@ export default function ParentDashboard() {
         </Card>
 
         <Card className="border-primary/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg font-semibold tracking-[-0.01em]">
               <UserRound className="w-5 h-5" />
               Tutor Context
             </CardTitle>
@@ -526,8 +513,8 @@ export default function ParentDashboard() {
       </div>
 
       <Card className="border-primary/20 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-lg">How Training Difficulty Scales</CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-semibold tracking-[-0.01em]">How Training Difficulty Progresses</CardTitle>
           <CardDescription>
             TT moves from foundation to timed performance only after consistent stability is shown.
           </CardDescription>
@@ -539,13 +526,13 @@ export default function ParentDashboard() {
               return (
                 <div
                   key={stage}
-                  className={`rounded-lg border p-3 transition-all duration-200 ${isActive ? "border-primary bg-primary/10 shadow-sm" : "bg-background hover:border-primary/30"}`}
+                  className={`rounded-lg border p-3 ${isActive ? "border-primary bg-primary/10 shadow-sm" : "bg-background"}`}
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Stage {idx + 1}</p>
+                    <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Stage {idx + 1}</p>
                     {isActive && <Badge className="bg-primary/90 text-primary-foreground">Current</Badge>}
                   </div>
-                  <p className={`text-sm mt-2 font-medium ${isActive ? "text-primary" : "text-foreground"}`}>{stage}</p>
+                  <p className={`text-sm mt-2 font-medium leading-snug ${isActive ? "text-primary" : "text-foreground"}`}>{stage}</p>
                 </div>
               );
             })}
@@ -558,29 +545,26 @@ export default function ParentDashboard() {
 
       <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
         <Card className="border-primary/15">
-          <CardHeader>
-            <CardTitle className="text-lg">What To Look For As Progress</CardTitle>
-            <CardDescription>These are the parent-visible signs that the training is taking hold.</CardDescription>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-semibold tracking-[-0.01em]">What is Being Observed</CardTitle>
+            <CardDescription>The training is taking hold:</CardDescription>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-2 text-sm text-muted-foreground">
+            <ul className="space-y-2 text-sm text-muted-foreground leading-relaxed">
               {progressSignals.map((signal) => (
-                <li key={signal} className="flex gap-2">
-                  <ArrowRight className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
-                  <span>{signal}</span>
-                </li>
+                <li key={signal}>{signal}</li>
               ))}
             </ul>
           </CardContent>
         </Card>
 
-        <Card className="border-primary/25 bg-gradient-to-br from-primary/10 via-background to-orange-100/20">
-          <CardHeader>
-            <CardTitle className="text-lg">Parent Role</CardTitle>
-            <CardDescription>What helps the system work as intended outside the session.</CardDescription>
+        <Card className="border-primary/25 bg-background">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-semibold tracking-[-0.01em]">Parent Role</CardTitle>
+            <CardDescription>What helps the system work as intended outside the session:</CardDescription>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-2 text-sm text-muted-foreground">
+            <ul className="space-y-2 text-sm text-muted-foreground leading-relaxed">
               <li>Keep session attendance steady and protected.</li>
               <li>Let discomfort happen before stepping in with reassurance.</li>
               <li>Look for calmer starts and steadier attempts, not only marks.</li>
@@ -592,8 +576,8 @@ export default function ParentDashboard() {
 
       <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
         <Card className="lg:col-span-2 border-primary/15">
-          <CardHeader>
-            <CardTitle className="text-lg">Training Plan</CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-semibold tracking-[-0.01em]">Training Plan</CardTitle>
             <CardDescription>The accepted plan is the current operating reference for this student.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -622,22 +606,19 @@ export default function ParentDashboard() {
         </Card>
 
         <Card className="border-primary/15">
-          <CardHeader>
-            <CardTitle className="text-lg">Parent Controls</CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-semibold tracking-[-0.01em]">Parent Controls</CardTitle>
             <CardDescription>Use these when you need to make the next move quickly.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button variant="outline" className="w-full justify-start gap-2 text-sm" onClick={() => setProposalDialogOpen(true)}>
-              <FileText className="w-4 h-4" />
+            <Button variant="outline" className="w-full justify-start text-sm" onClick={() => setProposalDialogOpen(true)}>
               Review Training Plan
             </Button>
-            <Button variant="outline" className="w-full justify-start gap-2 text-sm" onClick={() => setLocation("/client/parent/gateway")}>
-              <Calendar className="w-4 h-4" />
+            <Button variant="outline" className="w-full justify-start text-sm" onClick={() => setLocation("/client/parent/gateway")}>
               Review Onboarding Flow
             </Button>
             {proposal?.parentCode && (
-              <Button variant="outline" className="w-full justify-start gap-2 text-sm" onClick={() => navigator.clipboard.writeText(proposal.parentCode)}>
-                <Zap className="w-4 h-4" />
+              <Button variant="outline" className="w-full justify-start text-sm" onClick={() => navigator.clipboard.writeText(proposal.parentCode)}>
                 Copy Student Code
               </Button>
             )}
@@ -646,18 +627,18 @@ export default function ParentDashboard() {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
-        <Card className="border-primary/15">
-          <CardHeader>
-            <CardTitle className="text-lg">Session Markers</CardTitle>
+        <Card className="border-primary/20 bg-background shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-semibold tracking-[-0.01em]">Session Markers</CardTitle>
             <CardDescription>Operational secondary signals. Useful context, not the main TT outcome layer.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {sessionMarkers.map((item) => {
                 return (
-                  <div key={item.label} className="rounded-lg border border-primary/15 bg-background p-4 text-center transition-colors hover:border-primary/35">
-                    <p className={`text-2xl font-bold ${item.tone}`}>{item.value}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{item.label}</p>
+                  <div key={item.label} className="rounded-xl border border-primary/20 bg-muted/20 px-4 py-3">
+                    <p className="text-[11px] uppercase tracking-[0.07em] text-muted-foreground">{item.label}</p>
+                    <p className="mt-2 text-2xl font-semibold tabular-nums text-foreground">{item.value}</p>
                   </div>
                 );
               })}
@@ -665,18 +646,19 @@ export default function ParentDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background">
-          <CardHeader>
-            <CardTitle className="text-lg">Training Markers</CardTitle>
+        <Card className="border-primary/20 bg-background shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-semibold tracking-[-0.01em]">Training Markers</CardTitle>
             <CardDescription>TT-specific secondary signals that show conditioning pressure and response structure.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {trainingMarkers.map((item) => {
+                const displayValue = item.value ?? "Foundation";
                 return (
-                  <div key={item.label} className="rounded-lg border border-primary/20 bg-background p-4 text-center transition-colors hover:border-primary/40">
-                    <p className={`text-2xl font-bold break-words ${item.tone}`}>{item.value}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{item.label}</p>
+                  <div key={item.label} className="rounded-xl border border-primary/20 bg-muted/20 px-4 py-3">
+                    <p className="text-[11px] uppercase tracking-[0.07em] text-muted-foreground">{item.label}</p>
+                    <p className="mt-2 text-2xl font-semibold tabular-nums text-foreground break-words">{displayValue}</p>
                   </div>
                 );
               })}

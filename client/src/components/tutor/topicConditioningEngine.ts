@@ -1,0 +1,206 @@
+export const PHASES = [
+  "Clarity",
+  "Structured Execution",
+  "Controlled Discomfort",
+  "Time Pressure Stability",
+] as const;
+
+export type PhaseLabel = (typeof PHASES)[number];
+export type StabilityLabel = "Low" | "Medium" | "High";
+export type TopicTrend = "Improving" | "Holding" | "Regressing" | "Stable";
+
+export type NextActionData = {
+  primaryAction: string;
+  nextActions: string[];
+  rules: string[];
+  advanceTo?: PhaseLabel;
+};
+
+export const NEXT_ACTION_ENGINE: Record<PhaseLabel, Record<StabilityLabel, NextActionData>> = {
+  Clarity: {
+    Low: {
+      primaryAction: "Reinforce Vocabulary",
+      nextActions: [
+        "Reinforce Vocabulary",
+        "Reinforce Method (step sequence)",
+        "Reinforce Reason (why it works)",
+        "Re-model same concept",
+        "Immediate Apply after each model",
+      ],
+      rules: ["No Boss Battles", "No time pressure", "No skipping layers"],
+    },
+    Medium: {
+      primaryAction: "Continue 3-Layer Lens",
+      nextActions: [
+        "Continue 3-Layer Lens",
+        "Increase Apply volume (more reps)",
+        "Start light execution checks (can they repeat without help?)",
+      ],
+      rules: ["No Boss Battles as primary", "No time pressure", "Reduce explanation, increase execution"],
+    },
+    High: {
+      primaryAction: "Transition to Structured Execution",
+      nextActions: [
+        "Transition to Structured Execution",
+        "Reduce modeling",
+        "Increase independent attempts",
+      ],
+      rules: ["Do NOT stay in teaching mode", "Move forward"],
+      advanceTo: "Structured Execution",
+    },
+  },
+  "Structured Execution": {
+    Low: {
+      primaryAction: "Run strict Model → Apply → Guide loops",
+      nextActions: [
+        "Run strict Model → Apply → Guide loops",
+        "Enforce step-by-step execution",
+        "Correct every skipped step",
+        "Force student to start every problem",
+      ],
+      rules: ["No time pressure", "Boss Battles only if student can start", "No over-explaining"],
+    },
+    Medium: {
+      primaryAction: "Increase independent problem volume",
+      nextActions: [
+        "Increase independent problem volume",
+        "Reduce modeling",
+        "Strengthen consistency across multiple problems",
+        "Introduce light Boss Battles",
+      ],
+      rules: ["Do not rush to time pressure", "Still reinforce structure every time"],
+    },
+    High: {
+      primaryAction: "Transition to Controlled Discomfort",
+      nextActions: [
+        "Transition to Controlled Discomfort",
+        "Introduce Boss Battles consistently",
+        "Focus on response under uncertainty",
+      ],
+      rules: ["Do NOT keep repeating basic problems", "Move forward"],
+      advanceTo: "Controlled Discomfort",
+    },
+  },
+  "Controlled Discomfort": {
+    Low: {
+      primaryAction: "Introduce Boss Battles carefully",
+      nextActions: [
+        "Introduce Boss Battles carefully",
+        "Enforce 10-15 second pause",
+        "Guide only to first step",
+        "Reinforce \"start despite uncertainty\"",
+      ],
+      rules: ["No rescuing", "No full explanations mid-struggle", "No time pressure yet"],
+    },
+    Medium: {
+      primaryAction: "Increase frequency of Boss Battles",
+      nextActions: [
+        "Increase frequency of Boss Battles",
+        "Reduce hesitation time",
+        "Push independent starts",
+        "Reinforce calm execution",
+      ],
+      rules: ["Do not remove difficulty", "Do not over-guide"],
+    },
+    High: {
+      primaryAction: "Transition to Time Pressure Stability",
+      nextActions: [
+        "Transition to Time Pressure Stability",
+        "Introduce timed Boss Battles",
+        "Maintain structure under constraint",
+      ],
+      rules: ["Do NOT stay in comfort zone", "Move forward"],
+      advanceTo: "Time Pressure Stability",
+    },
+  },
+  "Time Pressure Stability": {
+    Low: {
+      primaryAction: "Introduce short timed problems",
+      nextActions: [
+        "Introduce short timed problems",
+        "Reinforce \"process over speed\"",
+        "Debrief after every attempt",
+        "Re-anchor structure",
+      ],
+      rules: ["Do not push speed", "Do not increase time pressure aggressively"],
+    },
+    Medium: {
+      primaryAction: "Increase timed repetitions",
+      nextActions: [
+        "Increase timed repetitions",
+        "Reduce breakdown frequency",
+        "Strengthen full execution within time",
+      ],
+      rules: ["Do not sacrifice structure for speed", "Maintain method discipline"],
+    },
+    High: {
+      primaryAction: "Maintain with mixed practice",
+      nextActions: [
+        "Maintain with mixed practice",
+        "Introduce new variations of topic",
+        "Prepare for transfer to new topics",
+      ],
+      rules: ["Do not over-train same pattern", "Begin cross-topic conditioning"],
+    },
+  },
+};
+
+export function phaseIndex(phase: PhaseLabel): number {
+  return PHASES.indexOf(phase);
+}
+
+export function getNextActionData(phase: PhaseLabel, stability: StabilityLabel): NextActionData {
+  return NEXT_ACTION_ENGINE[phase][stability];
+}
+
+export function nextActionFor(phase: PhaseLabel, stability: StabilityLabel): string {
+  return NEXT_ACTION_ENGINE[phase][stability].primaryAction;
+}
+
+function trendByStability(stability: StabilityLabel): TopicTrend {
+  if (stability === "High") return "Stable";
+  if (stability === "Medium") return "Improving";
+  return "Holding";
+}
+
+export function trendFromHistory(history: StabilityLabel[]): TopicTrend {
+  if (history.length < 2) return trendByStability(history[history.length - 1] || "Low");
+  const score = (s: StabilityLabel) => (s === "Low" ? 1 : s === "Medium" ? 2 : 3);
+  const prev = score(history[history.length - 2]);
+  const curr = score(history[history.length - 1]);
+  if (curr > prev) return "Improving";
+  if (curr < prev) return "Regressing";
+  return curr === 3 ? "Stable" : "Holding";
+}
+
+export function topicPriorityScore(row: Pick<{ stability: StabilityLabel; trend: TopicTrend }, "stability" | "trend">): number {
+  const stabilityScore = row.stability === "Low" ? 3 : row.stability === "Medium" ? 2 : 1;
+  const trendScore = row.trend === "Regressing" ? 3 : row.trend === "Holding" ? 2 : row.trend === "Improving" ? 1 : 0;
+  return stabilityScore + trendScore;
+}
+
+export function getPriorityReason(stability: StabilityLabel, trend: TopicTrend): string {
+  if (trend === "Regressing") return `${stability} stability and regressing trend`;
+  if (stability === "Low") return "Low stability needs reinforcement before progression";
+  if (stability === "Medium") return "Medium stability still needs consistency";
+  return "High stability with stable trend";
+}
+
+export function getRecommendationConfidence(logCount: number): "Low" | "Medium" | "High" {
+  if (logCount >= 5) return "High";
+  if (logCount >= 2) return "Medium";
+  return "Low";
+}
+
+export function nextMoveRecommendation(phase: PhaseLabel, stability: StabilityLabel): string {
+  const idx = phaseIndex(phase);
+  if (stability === "High") {
+    if (idx === PHASES.length - 1) return "Maintain and transfer to new topics";
+    return `Advance to ${PHASES[idx + 1]}`;
+  }
+  if (stability === "Low") {
+    if (idx === 0) return "Hold at Clarity - reinforce foundations";
+    return `Reinforce ${PHASES[idx - 1]} - stability too low to advance`;
+  }
+  return "Hold current phase - build stability before advancing";
+}

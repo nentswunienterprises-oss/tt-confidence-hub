@@ -21,6 +21,10 @@ const modules = [
     icon: Gauge,
     items: [
       {
+        label: "Topic Conditioning",
+        href: "/responseconditioningsystem/transformation-phases/topic-conditioning",
+      },
+      {
         label: "Clarity",
         href: "/responseconditioningsystem/clarity",
       },
@@ -103,10 +107,6 @@ const modules = [
       {
         label: "Session flow control",
         href: "/responseconditioningsystem/session-infrastructure/session-flow-control",
-      },
-      {
-        label: "Topic conditioning",
-        href: "/responseconditioningsystem/session-infrastructure/topic-conditioning",
       },
       {
         label: "Logging system",

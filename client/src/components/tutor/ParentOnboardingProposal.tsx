@@ -108,7 +108,7 @@ function computeExpectedProgress(
     ["weak", "inconsistent"].includes(vocabulary) ||
     breakdownPatterns.includes("Vocabulary gaps")
   )
-    items.push("Faster problem identification");
+    items.push("Better problem identification");
   if (
     ["delayed", "does-not-start"].includes(startsIndependently) ||
     breakdownPatterns.includes("Depends on tutor")

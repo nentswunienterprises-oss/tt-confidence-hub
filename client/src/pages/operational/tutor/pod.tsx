@@ -10,13 +10,11 @@ import { authorizedGetJson } from "@/lib/api";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { StudentCard } from "@/components/tutor/StudentCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Users, Calendar, TrendingUp, AlertCircle, FileText, Send, Lock, Check } from "lucide-react";
+import { FileText } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { ApplicationForm } from "@/components/tutor/application-form";
@@ -139,37 +137,61 @@ export default function TutorPod() {
   if (!podData || !podData.assignment) {
     return (
       <DashboardLayout>
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+        <div className="space-y-8">
+          <div className="rounded-2xl border border-primary/15 bg-background p-5 shadow-sm sm:p-7">
+            <div className="space-y-2">
+              <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Tutor Pod</p>
+              <h1 className="text-3xl font-semibold tracking-[-0.01em] md:text-4xl">
               Welcome back, {user?.name?.split(" ")[0] || "Tutor"}.
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              Ready to start your journey? Let's condition responses together.
-            </p>
+              </h1>
+              <p className="text-sm text-muted-foreground sm:text-base">
+                Your pod assignment will unlock the live operating layer for students, onboarding, conditioning, and reports.
+              </p>
+            </div>
           </div>
           
-          <Card className="p-12 text-center border shadow-sm">
-            <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-            <h2 className="text-xl font-semibold mb-2">
-              {hasPendingApplication ? "Application Pending" : "No Pod Assignment Yet"}
-            </h2>
-            <p className="text-muted-foreground max-w-md mx-auto mb-6">
-              {hasPendingApplication 
-                ? "Your application is being reviewed. You'll be notified once it's approved and you're assigned to a pod."
-                : "You don't have any students assigned yet. Apply here to get started with your first pod."}
-            </p>
+          <Card className="border-primary/15 bg-background shadow-sm">
+            <div className="space-y-5 p-8 text-center sm:p-12">
+              <div className="mx-auto max-w-2xl space-y-3">
+                <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+                  {hasPendingApplication ? "Application Status" : "Assignment Status"}
+                </p>
+                <h2 className="text-2xl font-semibold tracking-[-0.01em] text-foreground">
+                  {hasPendingApplication ? "Application Pending" : "No Pod Assignment Yet"}
+                </h2>
+                <p className="text-sm text-muted-foreground sm:text-base">
+                  {hasPendingApplication
+                    ? "Your application is under review. Once approved, this space becomes your operating view for student training and pod work."
+                    : "You do not have any students assigned yet. Apply to join a pod and unlock your live tutor operating view."}
+                </p>
+              </div>
+
+              <div className="mx-auto grid max-w-3xl gap-3 sm:grid-cols-3">
+                <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-4">
+                  <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Roster</p>
+                  <p className="mt-2 text-sm font-medium text-foreground">Students appear here after pod assignment.</p>
+                </div>
+                <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-4">
+                  <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Systems</p>
+                  <p className="mt-2 text-sm font-medium text-foreground">Identity sheets, conditioning, and reports unlock here.</p>
+                </div>
+                <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-4">
+                  <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Pod</p>
+                  <p className="mt-2 text-sm font-medium text-foreground">Your territory director and pod context live here.</p>
+                </div>
+              </div>
+
             {!hasPendingApplication && (
               <Button 
                 onClick={() => setShowApplicationForm(true)} 
                 size="lg"
-                className="gap-2"
+                className="min-w-[220px]"
                 data-testid="button-apply"
               >
-                <FileText className="w-5 h-5" />
                 Apply Now
               </Button>
             )}
+            </div>
           </Card>
 
           <Dialog open={showApplicationForm} onOpenChange={setShowApplicationForm}>
@@ -203,7 +225,6 @@ export default function TutorPod() {
   const maxSessions = students.reduce((sum: number, s: any) => {
     return sum + (s.parentInfo?.onboarding_type === 'pilot' ? 9 : 8);
   }, 0);
-  const progress = maxSessions > 0 ? (totalSessions / maxSessions) * 100 : 0;
   const studentsImpacted = students.filter((s: any) => s.sessionProgress > 0).length;
   const selectedStudent = (students as any[]).find((s: any) => s.id === selectedStudentId) || null;
 
@@ -212,102 +233,85 @@ export default function TutorPod() {
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        {/* Personal Greeting */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-              Welcome back, {firstName}.
-            </h1>
+        <div className="rounded-2xl border border-primary/15 bg-background p-5 shadow-sm sm:p-7">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Tutor Pod</p>
+              <h1 className="mt-2 text-3xl font-semibold tracking-[-0.01em] md:text-4xl">
+                Welcome back, {firstName}.
+              </h1>
+              <p className="mt-2 text-sm text-muted-foreground sm:text-base">
+                You are training calm execution, response structure, and stability across your active students.
+              </p>
+            </div>
             <Badge
-              className="bg-primary text-primary-foreground border-primary font-semibold uppercase tracking-wide text-xs px-4 py-1.5 rounded-full"
+              className="bg-primary/90 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.08em] text-primary-foreground"
               data-testid="badge-pod-name"
             >
               {assignment.pod.podName}
             </Badge>
           </div>
-          <p className="text-lg text-muted-foreground">
-            You're training calm execution, one session at a time. Keep showing up!
-          </p>
         </div>
 
-        {/* Key Metrics - Prominent Stats */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-6">
-          <Card className="p-3 sm:p-8 border shadow-sm hover-elevate">
-            <div className="space-y-1 sm:space-y-2 text-center sm:text-left">
-              <p className="text-2xl sm:text-5xl font-bold text-foreground" data-testid="text-sessions-done">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+          <Card className="border-primary/15 bg-background shadow-sm">
+            <div className="px-4 py-4 sm:px-5 sm:py-5">
+              <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Sessions Done</p>
+              <p className="mt-2 text-3xl font-semibold tabular-nums text-foreground sm:text-4xl" data-testid="text-sessions-done">
                 {totalSessions}
               </p>
-              <p className="text-[10px] sm:text-sm text-muted-foreground uppercase tracking-wide font-medium">
-                Sessions Done
-              </p>
             </div>
           </Card>
 
-          <Card className="p-3 sm:p-8 border shadow-sm hover-elevate">
-            <div className="space-y-1 sm:space-y-2 text-center sm:text-left">
-              <p className="text-2xl sm:text-5xl font-bold text-foreground" data-testid="text-remaining">
+          <Card className="border-primary/15 bg-background shadow-sm">
+            <div className="px-4 py-4 sm:px-5 sm:py-5">
+              <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Remaining</p>
+              <p className="mt-2 text-3xl font-semibold tabular-nums text-foreground sm:text-4xl" data-testid="text-remaining">
                 {remainingSessions}
               </p>
-              <p className="text-[10px] sm:text-sm text-muted-foreground uppercase tracking-wide font-medium">
-                Remaining
-              </p>
             </div>
           </Card>
 
-          <Card className="p-3 sm:p-8 border shadow-sm hover-elevate">
-            <div className="space-y-1 sm:space-y-2 text-center sm:text-left">
-              <p className="text-2xl sm:text-5xl font-bold text-foreground" data-testid="text-students-impacted">
+          <Card className="border-primary/15 bg-background shadow-sm">
+            <div className="px-4 py-4 sm:px-5 sm:py-5">
+              <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Students Impacted</p>
+              <p className="mt-2 text-3xl font-semibold tabular-nums text-foreground sm:text-4xl" data-testid="text-students-impacted">
                 {studentsImpacted}
-              </p>
-              <p className="text-[10px] sm:text-sm text-muted-foreground uppercase tracking-wide font-medium">
-                Students Impacted
               </p>
             </div>
           </Card>
         </div>
 
-        {/* Pod Team & Transformation Formula Section */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Left: Territory Director & Pod Team */}
-          <Card className="p-6 border shadow-sm">
-            <div className="space-y-4">
-              <h2 className="text-xl font-bold">Your Territory Director & Pod Team</h2>
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <Users className="w-5 h-5" />
-                <p>View your TD and fellow tutors in the pod</p>
+        <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+          <Card className="border-primary/15 bg-background shadow-sm">
+            <div className="space-y-4 p-5 sm:p-6">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Pod Team</p>
+                <h2 className="mt-1 text-xl font-semibold tracking-[-0.01em]">Territory Director and Pod</h2>
               </div>
-              <div className="p-4 bg-accent/30 rounded-lg">
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">Pod Members (0/12)</span>
-                  <br />
-                  
-                </p>
+              <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-3">
+                <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Team Capacity</p>
+                <p className="mt-2 text-sm text-foreground">Pod Members (0/12)</p>
               </div>
-              <Button className="w-full" variant="outline">
-                <Users className="w-4 h-4 mr-2" />
+              <p className="text-sm text-muted-foreground">Use this to review the TD layer and the tutors operating in your pod.</p>
+              <Button className="w-full justify-start text-sm" variant="outline">
                 View Team
               </Button>
             </div>
           </Card>
 
-          {/* Right: Transformation Formula */}
-          <Card className="p-6 border shadow-sm">
-            <div className="space-y-4">
-              <h2 className="text-xl font-bold">Transformation Process</h2>
-              <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">TT-OS Protocol</span>
-                  <br />
-                  3-Layer Lens + Boss Battles + Timed Execution = Conditioned Response.
-                </p>
+          <Card className="border-primary/15 bg-background shadow-sm">
+            <div className="space-y-4 p-5 sm:p-6">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Protocol</p>
+                <h2 className="mt-1 text-xl font-semibold tracking-[-0.01em]">Transformation Process</h2>
               </div>
-              <Button 
-                className="w-full" 
-                variant="outline"
-                asChild
-              >
+              <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-3">
+                <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">TT-OS Protocol</p>
+                <p className="mt-2 text-sm text-foreground">3-Layer Lens + Boss Battles + Timed Execution = Conditioned Response.</p>
+              </div>
+              <Button className="w-full justify-start text-sm" variant="outline" asChild>
                 <Link to="/responseconditioningsystem">
-                  <Lock className="w-4 h-4 mr-2" />
                   View TT-OS Protocol
                 </Link>
               </Button>
@@ -315,38 +319,54 @@ export default function TutorPod() {
           </Card>
         </div>
 
-        {/* Today's Sessions */}
-        <Card className="border shadow-sm">
-          <div className="p-6 border-b">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold">Today's Sessions</h2>
-              <span className="text-sm text-muted-foreground">0 scheduled</span>
+        <Card className="border-primary/15 bg-background shadow-sm">
+          <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-6">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Today</p>
+              <h2 className="mt-1 text-xl font-semibold tracking-[-0.01em]">Today's Sessions</h2>
+              <p className="mt-1 text-sm text-muted-foreground">The live operating window for today’s delivery load.</p>
+            </div>
+            <div className="rounded-xl border border-primary/15 bg-muted/20 px-3 py-2 text-right">
+              <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Scheduled</p>
+              <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">0</p>
             </div>
           </div>
-          <div className="p-12 text-center">
-            <Calendar className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground">No sessions scheduled today. Take a breather!</p>
+          <div className="border-t border-border/60 px-5 py-10 text-center sm:px-6 sm:py-12">
+            <p className="text-base font-medium text-foreground">No sessions scheduled today.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Use the time to review identity sheets, proposals, and topic conditioning before the next student block.</p>
           </div>
         </Card>
 
         {/* Students Cards */}
-        <div>
-          <h2 className="text-2xl font-bold mb-6">My Assigned Students</h2>
+        <div className="space-y-5">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Student Roster</p>
+              <h2 className="mt-1 text-2xl font-semibold tracking-[-0.01em]">My Assigned Students</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Active students, onboarding status, and training systems in one operating view.</p>
+            </div>
+            <div className="rounded-xl border border-primary/15 bg-muted/20 px-3 py-2 text-right">
+              <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Active Students</p>
+              <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">{students.length}</p>
+            </div>
+          </div>
+
           {students.length === 0 ? (
-            <Card className="p-12 text-center border shadow-sm">
-              <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">No Students Assigned</h3>
-              <p className="text-muted-foreground max-w-md mx-auto">
-                Manage identity sheets and track student progress
-              </p>
+            <Card className="rounded-2xl border border-primary/15 bg-background p-10 text-center shadow-sm sm:p-12">
+              <div className="mx-auto max-w-xl space-y-3">
+                <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Roster Empty</p>
+                <h3 className="text-xl font-semibold tracking-[-0.01em] text-foreground">No Students Assigned</h3>
+                <p className="text-sm text-muted-foreground">
+                  Once students are assigned, this roster becomes the operating layer for onboarding, conditioning, reports, and progress review.
+                </p>
+              </div>
             </Card>
           ) : (
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid gap-5 xl:grid-cols-2 2xl:gap-6">
               {students.map((student: any) => (
                 <StudentCard
                   key={student.id}
                   student={student}
-                  studentIdentitySheets={studentIdentitySheets}
                   setSelectedStudentId={setSelectedStudentId}
                   setSelectedStudentName={setSelectedStudentName}
                   setIdentitySheetOpen={setIdentitySheetOpen}

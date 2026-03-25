@@ -95,26 +95,29 @@ export default function StudentReportsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl border border-primary/15 bg-background p-0 shadow-sm">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileText className="w-4 h-4" />
-            {studentName} Reports
-          </DialogTitle>
-          <DialogDescription>
-            Review all session logs, weekly reports, and monthly reports for this student.
-          </DialogDescription>
+          <div className="border-b border-border/60 px-6 py-5">
+            <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Reports Center</p>
+            <DialogTitle className="mt-2 flex items-center gap-2 text-xl tracking-[-0.01em]">
+              <FileText className="w-4 h-4" />
+              {studentName} Reports
+            </DialogTitle>
+            <DialogDescription className="mt-1">
+              Review all session logs, weekly reports, and monthly reports for this student.
+            </DialogDescription>
+          </div>
         </DialogHeader>
 
         {isLoading ? (
-          <div className="space-y-3">
+          <div className="space-y-3 px-6 py-5">
             <Skeleton className="h-20" />
             <Skeleton className="h-20" />
             <Skeleton className="h-20" />
           </div>
         ) : (
-          <div className="space-y-6">
-            <Card className="p-4 md:p-5 space-y-4">
+          <div className="space-y-6 px-6 py-5">
+            <Card className="rounded-2xl border border-primary/15 bg-background p-4 md:p-5 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold">Session Logs</h3>
                 <Badge variant="outline">{data?.sessions?.length || 0}</Badge>
@@ -158,7 +161,7 @@ export default function StudentReportsDialog({
               )}
             </Card>
 
-            <Card className="p-4 md:p-5 space-y-4">
+            <Card className="rounded-2xl border border-primary/15 bg-background p-4 md:p-5 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold">Weekly Reports</h3>
                 <Badge variant="outline">{weeklyReports.length}</Badge>
@@ -197,7 +200,7 @@ export default function StudentReportsDialog({
               )}
             </Card>
 
-            <Card className="p-4 md:p-5 space-y-4">
+            <Card className="rounded-2xl border border-primary/15 bg-background p-4 md:p-5 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold">Monthly Reports</h3>
                 <Badge variant="outline">{monthlyReports.length}</Badge>
@@ -232,7 +235,7 @@ export default function StudentReportsDialog({
               )}
             </Card>
 
-            <div className="text-xs text-muted-foreground flex items-center gap-2">
+            <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-3 text-xs text-muted-foreground flex items-center gap-2">
               <Calendar className="w-3.5 h-3.5" />
               Internal tutor notes are stored but remain hidden from parent-facing output.
             </div>

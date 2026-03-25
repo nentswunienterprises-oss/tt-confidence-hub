@@ -2391,10 +2391,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const personalProfile = (student.personalProfile as any) || {};
         const workflow = personalProfile.workflow || {};
 
+        const inferredIntroCompleted = !!(
+          workflow.introCompletedAt ||
+          student.identitySheetCompletedAt ||
+          latestProposal?.sent_at ||
+          latestProposal?.accepted_at
+        );
+
         const assignmentAccepted = !!(
           workflow.assignmentAcceptedAt ||
           introSession ||
-          workflow.introCompletedAt ||
+          inferredIntroCompleted ||
           student.identitySheetCompletedAt ||
           latestProposal?.sent_at ||
           latestProposal?.accepted_at
@@ -2403,7 +2410,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({
           assignmentAccepted,
           introConfirmed: introSession?.status === "confirmed",
-          introCompleted: !!workflow.introCompletedAt,
+          introCompleted: inferredIntroCompleted,
           identitySaved: !!student.identitySheetCompletedAt,
           proposalSent: !!latestProposal?.sent_at,
           proposalAccepted: !!latestProposal?.accepted_at,
@@ -7573,6 +7580,144 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching struggle targets:", error);
       res.status(500).json({ message: "Failed to fetch struggle targets" });
+    }
+  });
+
+  app.get("/api/student/topic-conditioning-state", async (req: Request, res: Response) => {
+    try {
+      const studentUserId = (req.session as any).studentUserId;
+      if (!studentUserId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { data: studentUser } = await supabase
+        .from("student_users")
+        .select("student_id")
+        .eq("id", studentUserId)
+        .single();
+
+      if (!studentUser?.student_id) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+
+      const { data: student } = await supabase
+        .from("students")
+        .select("id, name, tutor_id")
+        .eq("id", studentUser.student_id)
+        .maybeSingle();
+
+      if (!student?.tutor_id) {
+        return res.json({
+          topic: null,
+          phase: null,
+          stability: null,
+          stage: "Foundation",
+          lastUpdated: null,
+        });
+      }
+
+      const sessions = await getCanonicalStudentSessions({
+        tutorId: student.tutor_id,
+        studentId: student.id,
+        studentName: student.name,
+      });
+
+      if (!sessions.length) {
+        return res.json({
+          topic: null,
+          phase: null,
+          stability: null,
+          stage: "Foundation",
+          lastUpdated: null,
+        });
+      }
+
+      const normalizePhase = (value?: string | null) => {
+        const v = String(value || "").toLowerCase();
+        if (v.includes("clarity")) return "Clarity";
+        if (v.includes("structured")) return "Structured Execution";
+        if (v.includes("discomfort")) return "Controlled Discomfort";
+        if (v.includes("time") || v.includes("pressure")) return "Time Pressure Stability";
+        return "Structured Execution";
+      };
+
+      const normalizeStability = (value?: string | null) => {
+        const v = String(value || "").toLowerCase();
+        if (v.includes("high")) return "High";
+        if (v.includes("medium")) return "Medium";
+        return "Low";
+      };
+
+      const sanitizeTopic = (value?: string | null) => {
+        const cleaned = String(value || "").trim();
+        if (!cleaned) return null;
+        if (cleaned.toLowerCase() === "onboarding baseline diagnostic") return null;
+        return cleaned;
+      };
+
+      const parseObservation = (session: any) => {
+        const noteText = String(session.notes ?? session.session_notes ?? "");
+        const methodText = String(session.methodNotes ?? session.method_notes ?? "");
+        const responseText = String(session.studentResponse ?? session.student_response ?? "");
+
+        const dateSource = session.date ?? session.session_date ?? session.created_at ?? null;
+        const parsedDate = new Date(String(dateSource || ""));
+        if (Number.isNaN(parsedDate.getTime())) {
+          return null;
+        }
+
+        const topicFromNotes = noteText.match(/Active Topic:\s*([^\n\r]+)/i)?.[1]?.trim();
+        const topicFromMethod = methodText.match(/Active Topic:\s*(.+)$/i)?.[1]?.trim();
+        const phaseFromNotes = noteText.match(/Phase Observed in Session:\s*([^\n\r]+)/i)?.[1]?.trim();
+        const phaseFromResponse = responseText.match(/Phase:\s*([^|\n\r]+)/i)?.[1]?.trim();
+        const stabilityFromNotes = noteText.match(/Stability Observed in Session:\s*([^\n\r]+)/i)?.[1]?.trim();
+        const stabilityFromResponse = responseText.match(/Stability:\s*([^|\n\r]+)/i)?.[1]?.trim();
+
+        const topic = sanitizeTopic(topicFromNotes || topicFromMethod);
+        if (!topic) return null;
+
+        return {
+          topic,
+          phase: normalizePhase(phaseFromNotes || phaseFromResponse),
+          stability: normalizeStability(stabilityFromNotes || stabilityFromResponse),
+          date: parsedDate.toISOString(),
+        };
+      };
+
+      const observations = (sessions || [])
+        .map(parseObservation)
+        .filter((item: any) => !!item)
+        .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+      if (!observations.length) {
+        return res.json({
+          topic: null,
+          phase: null,
+          stability: null,
+          stage: "Foundation",
+          lastUpdated: null,
+        });
+      }
+
+      const latest = observations[observations.length - 1];
+
+      const phaseToStage: Record<string, string> = {
+        Clarity: "Foundation",
+        "Structured Execution": "Method",
+        "Controlled Discomfort": "Challenge",
+        "Time Pressure Stability": "Timed Stability",
+      };
+
+      res.json({
+        topic: latest.topic,
+        phase: latest.phase,
+        stability: latest.stability,
+        stage: phaseToStage[latest.phase] || "Foundation",
+        lastUpdated: latest.date,
+      });
+    } catch (error) {
+      console.error("Error fetching student topic conditioning state:", error);
+      res.status(500).json({ message: "Failed to fetch topic conditioning state" });
     }
   });
 

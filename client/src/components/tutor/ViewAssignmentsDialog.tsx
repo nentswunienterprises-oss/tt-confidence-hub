@@ -49,22 +49,25 @@ export default function ViewAssignmentsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[80vh]">
+      <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden rounded-2xl border border-primary/15 bg-background p-0 shadow-sm">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            {studentName}'s Assignments
-          </DialogTitle>
-          <DialogDescription>
-            View all assignment submissions and student work
-          </DialogDescription>
+          <div className="border-b border-border/60 px-6 py-5">
+            <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Assignment Review</p>
+            <DialogTitle className="mt-2 flex items-center gap-2 text-xl tracking-[-0.01em]">
+              <FileText className="w-5 h-5" />
+              {studentName}'s Assignments
+            </DialogTitle>
+            <DialogDescription className="mt-1">
+              View all assignment submissions and student work.
+            </DialogDescription>
+          </div>
         </DialogHeader>
 
-        <ScrollArea className="h-[60vh] pr-4">
+        <ScrollArea className="h-[60vh] px-6 py-5">
           {isLoading ? (
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
-                <Card key={i}>
+                <Card key={i} className="rounded-2xl border border-primary/15 bg-background shadow-sm">
                   <CardHeader>
                     <Skeleton className="h-6 w-3/4" />
                   </CardHeader>
@@ -75,7 +78,7 @@ export default function ViewAssignmentsDialog({
               ))}
             </div>
           ) : !assignments || assignments.length === 0 ? (
-            <Card className="p-12 text-center border-dashed">
+            <Card className="rounded-2xl border border-primary/15 bg-muted/20 p-12 text-center shadow-sm">
               <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
               <h3 className="text-lg font-semibold mb-2">No Assignments Yet</h3>
               <p className="text-muted-foreground">
@@ -85,19 +88,19 @@ export default function ViewAssignmentsDialog({
           ) : (
             <div className="space-y-4">
               {assignments.map((assignment) => (
-                <Card key={assignment.id}>
+                <Card key={assignment.id} className="rounded-2xl border border-primary/15 bg-background shadow-sm">
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <CardTitle className="text-lg">{assignment.title}</CardTitle>
                         <div className="flex items-center gap-2 mt-2">
                           {assignment.is_completed ? (
-                            <Badge className="bg-green-100 text-green-800 border-green-200">
+                            <Badge variant="outline" className="border-primary/20 bg-muted/20 text-foreground">
                               <CheckCircle2 className="w-3 h-3 mr-1" />
                               Completed
                             </Badge>
                           ) : (
-                            <Badge variant="secondary">
+                            <Badge variant="outline" className="border-primary/20 text-muted-foreground">
                               <Clock className="w-3 h-3 mr-1" />
                               Pending
                             </Badge>
@@ -137,18 +140,18 @@ export default function ViewAssignmentsDialog({
                     {assignment.is_completed && (
                       <>
                         {assignment.student_work && (
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <h4 className="font-semibold text-sm mb-2 text-blue-900">Student Work</h4>
-                            <p className="text-sm text-blue-800 whitespace-pre-wrap">
+                          <div className="rounded-xl border border-primary/20 bg-muted/20 p-4">
+                            <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Student Work</h4>
+                            <p className="mt-2 text-sm text-foreground whitespace-pre-wrap">
                               {assignment.student_work}
                             </p>
                           </div>
                         )}
 
                         {assignment.student_result && (
-                          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                            <h4 className="font-semibold text-sm mb-2 text-green-900">Result</h4>
-                            <p className="text-sm text-green-800 whitespace-pre-wrap">
+                          <div className="rounded-xl border border-primary/20 bg-muted/20 p-4">
+                            <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Result</h4>
+                            <p className="mt-2 text-sm text-foreground whitespace-pre-wrap">
                               {assignment.student_result}
                             </p>
                           </div>

@@ -74,19 +74,22 @@ export default function ViewTrackingSystemsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-4 sm:p-6">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl border border-primary/15 bg-background p-0 shadow-sm">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
-            <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
-            {studentName}'s Tracking
-          </DialogTitle>
-          <DialogDescription className="text-sm">
-            View sessions, parent reports, and TD feedback
-          </DialogDescription>
+          <div className="border-b border-border/60 px-6 py-5">
+            <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Tracking Systems</p>
+            <DialogTitle className="mt-2 flex items-center gap-2 text-base sm:text-xl tracking-[-0.01em]">
+              <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
+              {studentName}'s Tracking
+            </DialogTitle>
+            <DialogDescription className="mt-1 text-sm">
+              View sessions, parent reports, and TD feedback.
+            </DialogDescription>
+          </div>
         </DialogHeader>
 
-        <Tabs defaultValue="sessions" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-auto">
+        <Tabs defaultValue="sessions" className="w-full px-6 py-5">
+          <TabsList className="grid w-full grid-cols-3 h-auto rounded-xl border border-primary/15 bg-muted/20 p-1">
             <TabsTrigger value="sessions" className="text-xs sm:text-sm py-2 px-1 sm:px-3">
               <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
               Sessions ({trackingData?.sessions?.length || 0})
@@ -107,7 +110,7 @@ export default function ViewTrackingSystemsDialog({
               {isLoading ? (
                 <div className="space-y-4">
                   {[1, 2, 3].map((i) => (
-                    <Card key={i}>
+                    <Card key={i} className="rounded-2xl border border-primary/15 bg-background shadow-sm">
                       <CardHeader>
                         <Skeleton className="h-6 w-3/4" />
                       </CardHeader>
@@ -118,7 +121,7 @@ export default function ViewTrackingSystemsDialog({
                   ))}
                 </div>
               ) : !trackingData?.sessions || trackingData.sessions.length === 0 ? (
-                <Card className="p-12 text-center border-dashed">
+                <Card className="rounded-2xl border border-primary/15 bg-muted/20 p-12 text-center shadow-sm">
                   <Calendar className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg font-semibold mb-2">No Sessions Logged</h3>
                   <p className="text-muted-foreground">
@@ -128,7 +131,7 @@ export default function ViewTrackingSystemsDialog({
               ) : (
                 <div className="space-y-4">
                   {trackingData.sessions.map((session) => (
-                    <Card key={session.id}>
+                    <Card key={session.id} className="rounded-2xl border border-primary/15 bg-background shadow-sm">
                       <CardHeader className="p-3 sm:p-6">
                         <div className="flex flex-col gap-2">
                           <div>
@@ -141,7 +144,7 @@ export default function ViewTrackingSystemsDialog({
                                 <Badge variant="secondary" className="text-xs">Mood: {session.student_mood}</Badge>
                               )}
                               {session.confidence_score && (
-                                <Badge className="bg-blue-100 text-blue-800 text-xs">
+                                <Badge variant="outline" className="border-primary/20 bg-muted/20 text-xs text-foreground">
                                   Conf: {session.confidence_score}/10
                                 </Badge>
                               )}
@@ -158,19 +161,19 @@ export default function ViewTrackingSystemsDialog({
 
                         {/* Gamification Stats */}
                         {(session.boss_battles_count || session.solutions_count) && (
-                          <div className="flex items-center gap-4 bg-purple-50 border border-purple-200 rounded-lg p-3">
+                          <div className="flex items-center gap-4 rounded-xl border border-primary/20 bg-muted/20 p-3">
                             {session.boss_battles_count !== null && session.boss_battles_count > 0 && (
                               <div className="flex items-center gap-2">
-                                <Trophy className="w-4 h-4 text-purple-600" />
-                                <span className="text-sm font-semibold text-purple-900">
+                                <Trophy className="w-4 h-4 text-foreground" />
+                                <span className="text-sm font-semibold text-foreground">
                                   {session.boss_battles_count} Boss {session.boss_battles_count === 1 ? 'Battle' : 'Battles'}
                                 </span>
                               </div>
                             )}
                             {session.solutions_count !== null && session.solutions_count > 0 && (
                               <div className="flex items-center gap-2">
-                                <Trophy className="w-4 h-4 text-purple-600" />
-                                <span className="text-sm font-semibold text-purple-900">
+                                <Trophy className="w-4 h-4 text-foreground" />
+                                <span className="text-sm font-semibold text-foreground">
                                   {session.solutions_count} {session.solutions_count === 1 ? 'Solution' : 'Solutions'}
                                 </span>
                               </div>
@@ -180,8 +183,8 @@ export default function ViewTrackingSystemsDialog({
 
                         {/* Notes */}
                         {session.notes && (
-                          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                            <h4 className="font-semibold text-sm mb-1">Notes</h4>
+                          <div className="rounded-xl border border-primary/20 bg-muted/20 p-3">
+                            <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Notes</h4>
                             <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                               {session.notes}
                             </p>
@@ -199,7 +202,7 @@ export default function ViewTrackingSystemsDialog({
               {isLoading ? (
                 <div className="space-y-4">
                   {[1, 2].map((i) => (
-                    <Card key={i}>
+                    <Card key={i} className="rounded-2xl border border-primary/15 bg-background shadow-sm">
                       <CardHeader>
                         <Skeleton className="h-6 w-3/4" />
                       </CardHeader>
@@ -210,7 +213,7 @@ export default function ViewTrackingSystemsDialog({
                   ))}
                 </div>
               ) : !trackingData?.parentReports || trackingData.parentReports.length === 0 ? (
-                <Card className="p-12 text-center border-dashed">
+                <Card className="rounded-2xl border border-primary/15 bg-muted/20 p-12 text-center shadow-sm">
                   <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg font-semibold mb-2">No Parent Reports</h3>
                   <p className="text-muted-foreground">
@@ -220,7 +223,7 @@ export default function ViewTrackingSystemsDialog({
               ) : (
                 <div className="space-y-4">
                   {trackingData.parentReports.map((report) => (
-                    <Card key={report.id}>
+                    <Card key={report.id} className="rounded-2xl border border-primary/15 bg-background shadow-sm">
                       <CardHeader>
                         <CardTitle className="text-lg">
                           Report - {new Date(report.created_at).toLocaleDateString()}
@@ -237,23 +240,23 @@ export default function ViewTrackingSystemsDialog({
                         )}
 
                         {report.wins && (
-                          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                            <h4 className="font-semibold text-sm mb-1 text-green-900">🎉 Wins</h4>
-                            <p className="text-sm text-green-800 whitespace-pre-wrap">{report.wins}</p>
+                          <div className="rounded-xl border border-primary/20 bg-muted/20 p-3">
+                            <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Wins</h4>
+                            <p className="mt-1 text-sm text-foreground whitespace-pre-wrap">{report.wins}</p>
                           </div>
                         )}
 
                         {report.challenges && (
-                          <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                            <h4 className="font-semibold text-sm mb-1 text-orange-900">💪 Challenges</h4>
-                            <p className="text-sm text-orange-800 whitespace-pre-wrap">{report.challenges}</p>
+                          <div className="rounded-xl border border-primary/20 bg-muted/20 p-3">
+                            <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Challenges</h4>
+                            <p className="mt-1 text-sm text-foreground whitespace-pre-wrap">{report.challenges}</p>
                           </div>
                         )}
 
                         {report.next_focus && (
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                            <h4 className="font-semibold text-sm mb-1 text-blue-900">🎯 Next Focus</h4>
-                            <p className="text-sm text-blue-800 whitespace-pre-wrap">{report.next_focus}</p>
+                          <div className="rounded-xl border border-primary/20 bg-muted/20 p-3">
+                            <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Next Focus</h4>
+                            <p className="mt-1 text-sm text-foreground whitespace-pre-wrap">{report.next_focus}</p>
                           </div>
                         )}
                       </CardContent>
@@ -268,7 +271,7 @@ export default function ViewTrackingSystemsDialog({
               {isLoading ? (
                 <div className="space-y-4">
                   {[1, 2].map((i) => (
-                    <Card key={i}>
+                    <Card key={i} className="rounded-2xl border border-primary/15 bg-background shadow-sm">
                       <CardHeader>
                         <Skeleton className="h-6 w-3/4" />
                       </CardHeader>
@@ -279,7 +282,7 @@ export default function ViewTrackingSystemsDialog({
                   ))}
                 </div>
               ) : !trackingData?.tdFeedback || trackingData.tdFeedback.length === 0 ? (
-                <Card className="p-12 text-center border-dashed">
+                <Card className="rounded-2xl border border-primary/15 bg-muted/20 p-12 text-center shadow-sm">
                   <MessageSquare className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg font-semibold mb-2">No TD Feedback</h3>
                   <p className="text-muted-foreground">
@@ -289,7 +292,7 @@ export default function ViewTrackingSystemsDialog({
               ) : (
                 <div className="space-y-4">
                   {trackingData.tdFeedback.map((feedback) => (
-                    <Card key={feedback.id}>
+                    <Card key={feedback.id} className="rounded-2xl border border-primary/15 bg-background shadow-sm">
                       <CardHeader>
                         <CardTitle className="text-lg">
                           Feedback - {new Date(feedback.created_at).toLocaleDateString()}
@@ -306,23 +309,23 @@ export default function ViewTrackingSystemsDialog({
                         )}
 
                         {feedback.wins && (
-                          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                            <h4 className="font-semibold text-sm mb-1 text-green-900">🎉 Wins</h4>
-                            <p className="text-sm text-green-800 whitespace-pre-wrap">{feedback.wins}</p>
+                          <div className="rounded-xl border border-primary/20 bg-muted/20 p-3">
+                            <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Wins</h4>
+                            <p className="mt-1 text-sm text-foreground whitespace-pre-wrap">{feedback.wins}</p>
                           </div>
                         )}
 
                         {feedback.struggles && (
-                          <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                            <h4 className="font-semibold text-sm mb-1 text-orange-900">💭 Struggles</h4>
-                            <p className="text-sm text-orange-800 whitespace-pre-wrap">{feedback.struggles}</p>
+                          <div className="rounded-xl border border-primary/20 bg-muted/20 p-3">
+                            <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Struggles</h4>
+                            <p className="mt-1 text-sm text-foreground whitespace-pre-wrap">{feedback.struggles}</p>
                           </div>
                         )}
 
                         {feedback.support_needed && (
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                            <h4 className="font-semibold text-sm mb-1 text-blue-900">🤝 Support Needed</h4>
-                            <p className="text-sm text-blue-800 whitespace-pre-wrap">{feedback.support_needed}</p>
+                          <div className="rounded-xl border border-primary/20 bg-muted/20 p-3">
+                            <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Support Needed</h4>
+                            <p className="mt-1 text-sm text-foreground whitespace-pre-wrap">{feedback.support_needed}</p>
                           </div>
                         )}
                       </CardContent>

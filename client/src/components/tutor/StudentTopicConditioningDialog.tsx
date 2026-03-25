@@ -38,16 +38,17 @@ import { Input } from "@/components/ui/input";
 import { getQueryFn } from "@/lib/queryClient";
 import { AlertCircle, Info, Target } from "lucide-react";
 import TutorSessionLogForm from "@/components/tutor/TutorSessionLogForm";
-
-const PHASES = [
-  "Clarity",
-  "Structured Execution",
-  "Controlled Discomfort",
-  "Time Pressure Stability",
-] as const;
-
-type PhaseLabel = (typeof PHASES)[number];
-type StabilityLabel = "Low" | "Medium" | "High";
+import {
+  PHASES,
+  getNextActionData,
+  getPriorityReason,
+  nextActionFor,
+  nextMoveRecommendation,
+  phaseIndex,
+  topicPriorityScore,
+  trendFromHistory,
+} from "@/components/tutor/topicConditioningEngine";
+import type { PhaseLabel, StabilityLabel, TopicTrend } from "@/components/tutor/topicConditioningEngine";
 
 type TopicConditioningMap = {
   topic?: string | null;
@@ -60,7 +61,7 @@ type TopicRow = {
   phase: PhaseLabel;
   stability: StabilityLabel;
   lastSession: string;
-  trend: "Improving" | "Holding" | "Regressing" | "Stable";
+  trend: TopicTrend;
   entryDiagnosis: string;
   recentLogs: string[];
   timeline: Array<{ date: string; phase: PhaseLabel; stability: StabilityLabel }>;
@@ -132,156 +133,8 @@ function sanitizeTopic(value?: string | null): string | null {
   return cleaned;
 }
 
-function phaseIndex(phase: PhaseLabel): number {
-  return PHASES.indexOf(phase);
-}
-
-type NextActionData = {
-  primaryAction: string;
-  nextActions: string[];
-  rules: string[];
-  advanceTo?: PhaseLabel;
-};
-
-const NEXT_ACTION_ENGINE: Record<PhaseLabel, Record<StabilityLabel, NextActionData>> = {
-  Clarity: {
-    Low: {
-      primaryAction: "Reinforce Vocabulary",
-      nextActions: [
-        "Reinforce Vocabulary",
-        "Reinforce Method (step sequence)",
-        "Reinforce Reason (why it works)",
-        "Re-model same concept",
-        "Immediate Apply after each model",
-      ],
-      rules: ["No Boss Battles", "No time pressure", "No skipping layers"],
-    },
-    Medium: {
-      primaryAction: "Continue 3-Layer Lens",
-      nextActions: [
-        "Continue 3-Layer Lens",
-        "Increase Apply volume (more reps)",
-        "Start light execution checks (can they repeat without help?)",
-      ],
-      rules: ["No Boss Battles as primary", "No time pressure", "Reduce explanation, increase execution"],
-    },
-    High: {
-      primaryAction: "Transition to Structured Execution",
-      nextActions: [
-        "Transition to Structured Execution",
-        "Reduce modeling",
-        "Increase independent attempts",
-      ],
-      rules: ["Do NOT stay in teaching mode", "Move forward"],
-      advanceTo: "Structured Execution",
-    },
-  },
-  "Structured Execution": {
-    Low: {
-      primaryAction: "Run strict Model → Apply → Guide loops",
-      nextActions: [
-        "Run strict Model → Apply → Guide loops",
-        "Enforce step-by-step execution",
-        "Correct every skipped step",
-        "Force student to start every problem",
-      ],
-      rules: ["No time pressure", "Boss Battles only if student can start", "No over-explaining"],
-    },
-    Medium: {
-      primaryAction: "Increase independent problem volume",
-      nextActions: [
-        "Increase independent problem volume",
-        "Reduce modeling",
-        "Strengthen consistency across multiple problems",
-        "Introduce light Boss Battles",
-      ],
-      rules: ["Do not rush to time pressure", "Still reinforce structure every time"],
-    },
-    High: {
-      primaryAction: "Transition to Controlled Discomfort",
-      nextActions: [
-        "Transition to Controlled Discomfort",
-        "Introduce Boss Battles consistently",
-        "Focus on response under uncertainty",
-      ],
-      rules: ["Do NOT keep repeating basic problems", "Move forward"],
-      advanceTo: "Controlled Discomfort",
-    },
-  },
-  "Controlled Discomfort": {
-    Low: {
-      primaryAction: "Introduce Boss Battles carefully",
-      nextActions: [
-        "Introduce Boss Battles carefully",
-        "Enforce 10-15 second pause",
-        "Guide only to first step",
-        "Reinforce \"start despite uncertainty\"",
-      ],
-      rules: ["No rescuing", "No full explanations mid-struggle", "No time pressure yet"],
-    },
-    Medium: {
-      primaryAction: "Increase frequency of Boss Battles",
-      nextActions: [
-        "Increase frequency of Boss Battles",
-        "Reduce hesitation time",
-        "Push independent starts",
-        "Reinforce calm execution",
-      ],
-      rules: ["Do not remove difficulty", "Do not over-guide"],
-    },
-    High: {
-      primaryAction: "Transition to Time Pressure Stability",
-      nextActions: [
-        "Transition to Time Pressure Stability",
-        "Introduce timed Boss Battles",
-        "Maintain structure under constraint",
-      ],
-      rules: ["Do NOT stay in comfort zone", "Move forward"],
-      advanceTo: "Time Pressure Stability",
-    },
-  },
-  "Time Pressure Stability": {
-    Low: {
-      primaryAction: "Introduce short timed problems",
-      nextActions: [
-        "Introduce short timed problems",
-        "Reinforce \"process over speed\"",
-        "Debrief after every attempt",
-        "Re-anchor structure",
-      ],
-      rules: ["Do not push speed", "Do not increase time pressure aggressively"],
-    },
-    Medium: {
-      primaryAction: "Increase timed repetitions",
-      nextActions: [
-        "Increase timed repetitions",
-        "Reduce breakdown frequency",
-        "Strengthen full execution within time",
-      ],
-      rules: ["Do not sacrifice structure for speed", "Maintain method discipline"],
-    },
-    High: {
-      primaryAction: "Maintain with mixed practice",
-      nextActions: [
-        "Maintain with mixed practice",
-        "Introduce new variations of topic",
-        "Prepare for transfer to new topics",
-      ],
-      rules: ["Do not over-train same pattern", "Begin cross-topic conditioning"],
-    },
-  },
-};
-
-function getNextActionData(phase: PhaseLabel, stability: StabilityLabel): NextActionData {
-  return NEXT_ACTION_ENGINE[phase][stability];
-}
-
-function nextActionFor(phase: PhaseLabel, stability: StabilityLabel): string {
-  return NEXT_ACTION_ENGINE[phase][stability].primaryAction;
-}
-
 function actionGuidanceFor(phase: PhaseLabel, stability: StabilityLabel): { doItems: string[]; avoidItems: string[] } {
-  const data = NEXT_ACTION_ENGINE[phase][stability];
+  const data = getNextActionData(phase, stability);
   return { doItems: data.nextActions, avoidItems: data.rules };
 }
 
@@ -295,22 +148,6 @@ function stabilityTone(stability: StabilityLabel): string {
   if (stability === "High") return "bg-green-50 text-green-700 border-green-200";
   if (stability === "Medium") return "bg-amber-50 text-amber-700 border-amber-200";
   return "bg-red-50 text-red-600 border-red-200";
-}
-
-function trendByStability(stability: StabilityLabel): TopicRow["trend"] {
-  if (stability === "High") return "Stable";
-  if (stability === "Medium") return "Improving";
-  return "Holding";
-}
-
-function trendFromHistory(history: StabilityLabel[]): TopicRow["trend"] {
-  if (history.length < 2) return trendByStability(history[history.length - 1] || "Low");
-  const score = (s: StabilityLabel) => (s === "Low" ? 1 : s === "Medium" ? 2 : 3);
-  const prev = score(history[history.length - 2]);
-  const curr = score(history[history.length - 1]);
-  if (curr > prev) return "Improving";
-  if (curr < prev) return "Regressing";
-  return curr === 3 ? "Stable" : "Holding";
 }
 
 function parseObservation(session: TutorSessionRecord): {
@@ -420,7 +257,14 @@ function buildTopics(
     .filter((item): item is NonNullable<ReturnType<typeof parseObservation>> => !!item)
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
+  const hasPersistedHistory = persistedEntries.some(
+    (entry: any) => Array.isArray(entry?.history) && entry.history.length > 0,
+  );
+
   observations.forEach((obs) => {
+    // Prefer persisted topic history; only parse raw notes as fallback for unseen topics
+    if (hasPersistedHistory && byTopic.has(obs.topic)) return;
+
     if (!byTopic.has(obs.topic)) {
       byTopic.set(obs.topic, { history: [] });
     }
@@ -476,20 +320,6 @@ function buildTopics(
 
   return rows.sort((a, b) => a.topic.localeCompare(b.topic));
 }
-
-function nextMoveRecommendation(phase: PhaseLabel, stability: StabilityLabel): string {
-  const idx = phaseIndex(phase);
-  if (stability === "High") {
-    if (idx === PHASES.length - 1) return "Maintain and transfer to new topics";
-    return `Advance to ${PHASES[idx + 1]}`;
-  }
-  if (stability === "Low") {
-    if (idx === 0) return "Hold at Clarity — reinforce foundations";
-    return `Reinforce ${PHASES[idx - 1]} — stability too low to advance`;
-  }
-  return "Hold current phase — build stability before advancing";
-}
-
 const phaseDefinition: Record<PhaseLabel, string> = {
   Clarity:
     "Student cannot yet see the topic clearly. Vocabulary, recognition, steps, or reasoning are still unstable.",
@@ -532,6 +362,7 @@ export default function StudentTopicConditioningDialog({
   const [phaseObservedField, setPhaseObservedField] = useState("");
   const [stabilityObservedField, setStabilityObservedField] = useState("");
   const [observationNotes, setObservationNotes] = useState("");
+  const [activeTab, setActiveTab] = useState("dashboard");
 
   useEffect(() => {
     if (topics.length === 0) return;
@@ -543,6 +374,7 @@ export default function StudentTopicConditioningDialog({
   useEffect(() => {
     if (!open) return;
     const firstTopic = topics[0]?.topic || sanitizeTopic(splitTopics(parentTopics)[0]) || "";
+    setActiveTab("dashboard");
     setActiveTopicField(firstTopic);
     setManualTopicField("");
     setPhaseObservedField(topics[0]?.phase || normalizePhase(topicConditioning?.entry_phase));
@@ -556,7 +388,24 @@ export default function StudentTopicConditioningDialog({
     return Array.from(new Set([...fromCards, ...fromParent]));
   }, [topics, parentTopics]);
 
-  const selectedRow = topics.find((row) => row.topic === selectedTopic) || topics[0];
+  const prioritizedTopics = useMemo(
+    () => [...topics].sort((a, b) => topicPriorityScore(b) - topicPriorityScore(a) || a.topic.localeCompare(b.topic)),
+    [topics],
+  );
+
+  const attentionQueue = useMemo(() => {
+    const needsAttention = prioritizedTopics.filter(
+      (row) => row.stability !== "High" || row.trend === "Regressing",
+    );
+    return (needsAttention.length > 0 ? needsAttention : prioritizedTopics).slice(0, 3);
+  }, [prioritizedTopics]);
+
+  const needsStabilizationCount = prioritizedTopics.filter((row) => row.stability === "Low").length;
+  const readyToAdvanceCount = prioritizedTopics.filter(
+    (row) => !!getNextActionData(row.phase, row.stability).advanceTo,
+  ).length;
+
+  const selectedRow = topics.find((row) => row.topic === selectedTopic) || prioritizedTopics[0];
   const phaseIx = selectedRow ? phaseIndex(selectedRow.phase) : 0;
   const guidance = selectedRow
     ? actionGuidanceFor(selectedRow.phase, selectedRow.stability)
@@ -567,7 +416,7 @@ export default function StudentTopicConditioningDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-0.5rem)] sm:w-full sm:max-w-7xl max-h-[92vh] overflow-y-auto overflow-x-hidden p-2 sm:p-6">
+      <DialogContent className="w-[calc(100vw-0.5rem)] sm:w-full sm:max-w-7xl max-h-[92vh] overflow-y-auto overflow-x-hidden rounded-2xl border border-primary/15 bg-background p-2 shadow-sm sm:p-6">
         <DialogHeader>
           <DialogTitle className="flex items-start gap-2 text-base sm:text-lg leading-tight pr-6 break-words">
             <Target className="w-4 h-4 shrink-0 mt-0.5" />
@@ -578,18 +427,21 @@ export default function StudentTopicConditioningDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="dashboard" className="w-full overflow-x-hidden">
-          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 h-auto">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full overflow-x-hidden">
+          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 h-auto rounded-xl border border-primary/15 bg-muted/20 p-1">
             <TabsTrigger value="dashboard" className="h-auto whitespace-normal text-xs sm:text-sm py-2">Dashboard</TabsTrigger>
             <TabsTrigger value="session-form" className="h-auto whitespace-normal text-xs sm:text-sm py-2">Topic Management</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-4 sm:space-y-6 overflow-x-hidden">
-            <Card className="p-3 sm:p-4 md:p-5 space-y-3">
+            <Card className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 md:p-5 shadow-sm space-y-3">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <h3 className="font-semibold">Active Conditioning Map</h3>
                 <Badge variant="outline" className="w-full sm:w-fit max-w-full break-all">Student ID: {studentId || "-"}</Badge>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Select a topic to drive the Stability Tracker and Phase Progression panels below.
+              </p>
 
               {topics.length === 0 ? (
                 <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
@@ -598,8 +450,15 @@ export default function StudentTopicConditioningDialog({
               ) : (
                 <div className="space-y-3">
                   <div className="space-y-3 md:hidden">
-                    {topics.map((row) => (
-                      <div key={`mobile-map-${row.topic}`} className="rounded-md border p-3 space-y-2">
+                    {prioritizedTopics.map((row) => (
+                      <button
+                        key={`mobile-map-${row.topic}`}
+                        type="button"
+                        className={`w-full rounded-md border p-3 space-y-2 text-left transition-colors ${
+                          selectedRow?.topic === row.topic ? "border-primary bg-primary/5" : "hover:bg-muted/40"
+                        }`}
+                        onClick={() => setSelectedTopic(row.topic)}
+                      >
                         <p className="font-medium break-words">{row.topic}</p>
                         <p className="text-xs text-muted-foreground">Current Phase: {row.phase}</p>
                         <div className="flex items-center gap-2">
@@ -619,7 +478,7 @@ export default function StudentTopicConditioningDialog({
                         </div>
                         <p className="text-xs text-muted-foreground">Last Updated: {row.lastSession}</p>
                         <p className="text-xs"><span className="font-medium">Next Action:</span> {nextActionFor(row.phase, row.stability)}</p>
-                      </div>
+                      </button>
                     ))}
                   </div>
 
@@ -635,8 +494,12 @@ export default function StudentTopicConditioningDialog({
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {topics.map((row) => (
-                          <TableRow key={row.topic}>
+                        {prioritizedTopics.map((row) => (
+                          <TableRow
+                            key={row.topic}
+                            className={`cursor-pointer ${selectedRow?.topic === row.topic ? "bg-primary/5" : "hover:bg-muted/30"}`}
+                            onClick={() => setSelectedTopic(row.topic)}
+                          >
                             <TableCell className="font-medium">{row.topic}</TableCell>
                             <TableCell>{row.phase}</TableCell>
                             <TableCell>
@@ -664,8 +527,49 @@ export default function StudentTopicConditioningDialog({
               )}
             </Card>
 
+            <Card className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 md:p-5 shadow-sm space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="font-semibold">Tutor Priority Queue</h3>
+                <p className="text-xs text-muted-foreground">Decision-first snapshot</p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="rounded-md border bg-muted/20 p-3">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Topics Tracked</p>
+                  <p className="mt-1 text-lg font-semibold">{prioritizedTopics.length}</p>
+                </div>
+                <div className="rounded-md border bg-muted/20 p-3">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Needs Stabilization</p>
+                  <p className="mt-1 text-lg font-semibold">{needsStabilizationCount}</p>
+                </div>
+                <div className="rounded-md border bg-muted/20 p-3">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Ready To Advance</p>
+                  <p className="mt-1 text-lg font-semibold">{readyToAdvanceCount}</p>
+                </div>
+              </div>
+
+              {attentionQueue.length > 0 && (
+                <div className="space-y-2">
+                  {attentionQueue.map((row, index) => (
+                    <button
+                      key={`priority-${row.topic}`}
+                      type="button"
+                      onClick={() => setSelectedTopic(row.topic)}
+                      className="w-full rounded-md border p-3 text-left transition-colors hover:bg-muted/40"
+                    >
+                      <p className="text-sm font-medium">#{index + 1} {row.topic}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {row.phase} | {row.stability} stability | {row.trend} trend
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">Why now: {getPriorityReason(row.stability, row.trend)}</p>
+                      <p className="mt-1 text-xs text-foreground">Next action: {nextActionFor(row.phase, row.stability)}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </Card>
+
             <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
-              <Card className="p-3 sm:p-4 md:p-5 space-y-4">
+              <Card className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 md:p-5 shadow-sm space-y-4">
                 <h3 className="font-semibold">Stability Tracker</h3>
                 <p className="text-sm text-muted-foreground">
                   Stability: {selectedRow?.stability || "Low"}
@@ -703,7 +607,7 @@ export default function StudentTopicConditioningDialog({
                 </div>
               </Card>
 
-              <Card className="p-3 sm:p-4 md:p-5 space-y-4">
+              <Card className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 md:p-5 shadow-sm space-y-4">
                 <h3 className="font-semibold">Phase Progression</h3>
                 <p className="text-sm text-muted-foreground">Clarity to Structured Execution to Controlled Discomfort to Time Pressure Stability</p>
                 <div className="flex flex-wrap gap-2">
@@ -728,7 +632,7 @@ export default function StudentTopicConditioningDialog({
                 </div>
 
                 <div className="rounded-md border bg-muted/40 p-3 space-y-2">
-                  <p className="text-sm font-medium">Semi-automatic recommendation</p>
+                  <p className="text-sm font-medium">Recommended movement</p>
                   <p className="text-sm text-muted-foreground">
                     System recommendation: {selectedRow ? nextMoveRecommendation(selectedRow.phase, selectedRow.stability) : "Hold current phase"}
                   </p>
@@ -766,7 +670,7 @@ export default function StudentTopicConditioningDialog({
               </Card>
             </div>
 
-            <Card className="p-3 sm:p-4 md:p-5 space-y-4">
+            <Card className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 md:p-5 shadow-sm space-y-4">
               <div className="flex items-center gap-2">
                 <h3 className="font-semibold">Phase Definitions</h3>
                 <AlertCircle className="w-4 h-4 text-muted-foreground" />
@@ -795,39 +699,9 @@ export default function StudentTopicConditioningDialog({
               </TooltipProvider>
             </Card>
 
-            <Card className="p-3 sm:p-4 md:p-5 space-y-4">
-              <h3 className="font-semibold">Topic Conditioning Grid</h3>
-              <p className="text-sm text-muted-foreground">Click a topic card to open the active topic focus panel.</p>
-              {topics.length === 0 ? (
-                <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-                  No active topics yet.
-                </div>
-              ) : (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {topics.map((row) => (
-                    <button
-                      key={row.topic}
-                      className={`rounded-md border p-3 text-left transition-colors ${
-                        selectedRow?.topic === row.topic
-                          ? "border-primary bg-primary/5"
-                          : "hover:bg-muted/40"
-                      }`}
-                      onClick={() => setSelectedTopic(row.topic)}
-                    >
-                      <p className="font-medium">{row.topic}</p>
-                      <p className="text-xs text-muted-foreground mt-1">Current Phase: {row.phase}</p>
-                      <p className="text-xs text-muted-foreground">Stability: {row.stability}</p>
-                      <p className="text-xs text-muted-foreground">Last Updated: {row.lastSession}</p>
-                      <p className="text-xs font-medium mt-2">Next Action: {nextActionFor(row.phase, row.stability)}</p>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </Card>
-
             {selectedRow && (
-              <Card className="p-3 sm:p-4 md:p-5 space-y-4">
-                <h3 className="font-semibold">Active Topics</h3>
+              <Card className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 md:p-5 shadow-sm space-y-4">
+                <h3 className="font-semibold">Selected Topic Intelligence</h3>
                 <div className="grid lg:grid-cols-2 gap-4">
                   <div className="space-y-2 text-sm">
                     <p><span className="font-medium">Topic Name:</span> {selectedRow.topic}</p>
@@ -852,6 +726,19 @@ export default function StudentTopicConditioningDialog({
                       </p>
                     )}
                     <p className="text-xs text-muted-foreground border-t pt-2">Tutor approves all phase movement. System flags - tutor decides.</p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setActiveTopicField(selectedRow.topic);
+                        setPhaseObservedField(selectedRow.phase);
+                        setStabilityObservedField(selectedRow.stability);
+                        setActiveTab("session-form");
+                      }}
+                    >
+                      Log update for this topic
+                    </Button>
                   </div>
                 </div>
 
@@ -869,65 +756,29 @@ export default function StudentTopicConditioningDialog({
                 </div>
               </Card>
             )}
-
-            <Card className="p-3 sm:p-4 md:p-5 space-y-3">
-              <h3 className="font-semibold">Cross-topic Matrix (Executive View)</h3>
-              {topics.length === 0 ? (
-                <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-                  Matrix will appear after first topic observation is logged.
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="space-y-3 md:hidden">
-                    {topics.map((row) => (
-                      <div key={`mobile-matrix-${row.topic}`} className="rounded-md border p-3 space-y-1.5">
-                        <p className="font-medium break-words">{row.topic}</p>
-                        <p className="text-xs text-muted-foreground">Phase: {row.phase}</p>
-                        <p className="text-xs text-muted-foreground">Stability: {row.stability}</p>
-                        <p className="text-xs text-muted-foreground">Trend: {row.trend}</p>
-                        <p className="text-xs text-muted-foreground">Last Updated: {row.lastSession}</p>
-                        <p className="text-xs"><span className="font-medium">Next Action:</span> {nextActionFor(row.phase, row.stability)}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="hidden md:block">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Topic</TableHead>
-                          <TableHead>Phase</TableHead>
-                          <TableHead>Stability</TableHead>
-                          <TableHead>Trend</TableHead>
-                          <TableHead>Last Updated</TableHead>
-                          <TableHead>Next Action</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {topics.map((row) => (
-                          <TableRow key={`matrix-${row.topic}`}>
-                            <TableCell className="font-medium">{row.topic}</TableCell>
-                            <TableCell>{row.phase}</TableCell>
-                            <TableCell>{row.stability}</TableCell>
-                            <TableCell>{row.trend}</TableCell>
-                            <TableCell>{row.lastSession}</TableCell>
-                            <TableCell>{nextActionFor(row.phase, row.stability)}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </div>
-              )}
-            </Card>
           </TabsContent>
 
           <TabsContent value="session-form" className="space-y-4 sm:space-y-6">
-            <Card className="p-3 sm:p-4 md:p-5 space-y-4">
-              <h3 className="font-semibold">Topic-first Session Logging</h3>
+            <Card className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 md:p-5 shadow-sm space-y-4">
+              <h3 className="font-semibold">Topic Session Record</h3>
               <p className="text-sm text-muted-foreground">
-                Select a topic card, review current phase and stability, then use the full session log form for that topic.
+                Each session record should lock three things first: the topic worked, the phase observed, and the stability observed. Weekly and monthly reports should be written from this evidence.
               </p>
+
+              <div className="grid gap-3 md:grid-cols-3">
+                <div className="rounded-md border bg-muted/20 p-3">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">1. Topic</p>
+                  <p className="mt-1 text-sm text-foreground">What exact topic did this session train?</p>
+                </div>
+                <div className="rounded-md border bg-muted/20 p-3">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">2. Phase + Stability</p>
+                  <p className="mt-1 text-sm text-foreground">What phase was observed, and how stable was the student inside that phase?</p>
+                </div>
+                <div className="rounded-md border bg-muted/20 p-3">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">3. Session Evidence</p>
+                  <p className="mt-1 text-sm text-foreground">What breakdown, intervention, and next reinforcement should feed reports later?</p>
+                </div>
+              </div>
 
               {topicChoices.length > 0 && (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -962,6 +813,9 @@ export default function StudentTopicConditioningDialog({
                 <div className="rounded-md border bg-muted/20 p-3 text-sm">
                   <p className="font-medium text-foreground">Selected Topic</p>
                   <p className="text-muted-foreground mt-1 break-words">{effectiveTopicForLog || "Select a topic card above"}</p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    This session record will update the topic conditioning map and become source evidence for weekly and monthly reports.
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -1006,20 +860,23 @@ export default function StudentTopicConditioningDialog({
               </div>
 
               <div className="space-y-2">
-                <p className="text-sm font-medium">Observation Notes</p>
+                <p className="text-sm font-medium">Source Evidence for Phase + Stability</p>
                 <Textarea
                   value={observationNotes}
                   onChange={(e) => setObservationNotes(e.target.value)}
-                  placeholder="Example: delayed start, guessing in first attempt, improved after guided correction"
+                  placeholder="Example: delayed start, guessed first attempt, stabilized after guided correction"
                   className="min-h-[120px]"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Write the actual evidence that justified this phase and stability call. This is the cleanest bridge into later reporting.
+                </p>
               </div>
 
               <TutorSessionLogForm
                 studentOptions={[{ id: studentId, name: studentName }]}
                 defaultStudentId={studentId}
                 lockStudent
-                submitLabel="Log Session for Topic"
+                submitLabel="Save Topic Session Record"
                 topicState={
                   effectiveTopicForLog && phaseObservedField && stabilityObservedField
                     ? {
