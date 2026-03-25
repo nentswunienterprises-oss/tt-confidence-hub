@@ -52,7 +52,7 @@ function PortalLanding() {
 
           <div className="hidden md:block">
             <span className="text-2xl lg:text-4xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-              RESPONSE-CONDITIONING
+              RESPONSE TRAINING
             </span>
           </div>
 
@@ -83,7 +83,7 @@ function PortalLanding() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-4 sm:pt-8 md:pt-16 md:-mt-12 lg:-mt-14 xl:-mt-16 pb-12 sm:pb-20">
         <div className="md:hidden text-center mb-6">
           <span className="text-2xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-            RESPONSE-CONDITIONING
+            RESPONSE TRAINING
           </span>
         </div>
 
