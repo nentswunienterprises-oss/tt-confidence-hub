@@ -9,6 +9,18 @@ function FoundingTutorsWanted() {
   return (
     <>
       <div className="min-h-screen bg-gradient-to-br from-[#FFF5ED] to-[#F9E3D8] flex flex-col">
+        <style>{`
+          @keyframes heroFadeIn {
+            from {
+              opacity: 0;
+              transform: translateY(8px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        `}</style>
         <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#F3D2C1] w-full backdrop-blur-md" style={{ background: 'linear-gradient(135deg, #FFF5ED 0%, #F9E3D8 100%)', boxShadow: '0 2px 8px 0 rgba(233, 57, 70, 0.04)', backgroundColor: 'rgba(255,245,237,0.95)' }}>
           <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center">
             <span className="flex-shrink-0 block md:hidden">
@@ -23,7 +35,7 @@ function FoundingTutorsWanted() {
               <span className="block text-sm sm:text-base font-bold tracking-tight text-[#2D1A06] leading-tight -ml-3">Tutor Cohort</span>
             </div>
             <Button
-              className="flex-shrink-0 ml-auto text-sm sm:text-base font-semibold px-4 sm:px-6 py-2.5 sm:py-3 rounded-full border-0 shadow-lg hover:shadow-xl transition-all"
+              className="flex-shrink-0 ml-auto text-xs sm:text-sm md:text-base font-semibold px-3 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-full border-0 shadow-lg hover:shadow-xl transition-all"
               style={{ backgroundColor: "#E63946", color: "white" }}
               onClick={() => navigate(signupUrl)}
             >
@@ -53,6 +65,20 @@ function FoundingTutorsWanted() {
                 </Button>
               </div>
             </div>
+          </section>
+
+          <section className="mb-8 sm:mb-10">
+            <div className="w-full sm:max-w-2xl mx-auto" style={{ animation: "heroFadeIn 600ms ease-out" }}>
+              <img
+                src="/images/founding-tutors-hero.webp"
+                alt="Founding Tutors Cohort hero"
+                className="w-full object-cover shadow-lg border border-[#E9CDBF]"
+                style={{ aspectRatio: "4/3" }}
+              />
+            </div>
+            <p className="text-sm sm:text-base text-[#5A5A5A] text-center mt-3 sm:mt-4">
+              Calm operators are built through structure, not noise.
+            </p>
           </section>
 
           <section className="mb-10">
