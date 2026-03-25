@@ -4,7 +4,7 @@
   "installCommand": "npm ci",
   "framework": null,
   "github": {
-    "silent": true
+    "silent": false
   },
   "headers": [
     {
