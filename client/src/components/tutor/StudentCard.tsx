@@ -184,17 +184,17 @@ export function StudentCard({
         <span className="absolute bottom-3 left-3 h-3 w-3 border-b border-l border-black/55" />
         <span className="absolute bottom-3 right-3 h-3 w-3 border-b border-r border-black/55" />
       </div>
-      <div className="flex items-start justify-between gap-4 pb-5 border-b border-border/60">
-        <div className="flex items-start gap-4 min-w-0">
+      <div className="tutor-pod-student-card-header pb-5 border-b border-border/60">
+        <div className="flex items-start gap-4 min-w-0" style={{flex: 1}}>
           <Avatar className="w-14 h-14 border border-primary/15">
             <AvatarFallback className="bg-muted text-foreground font-semibold text-sm tracking-[0.04em]">
-            {initials}
+              {initials}
             </AvatarFallback>
           </Avatar>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <h3 className="text-lg font-semibold tracking-[-0.01em] truncate">{student.name}</h3>
-              <Badge variant="outline" className="text-[10px] uppercase tracking-[0.08em] border-primary/20 text-muted-foreground">
+          <div className="tutor-pod-student-card-header-main">
+            <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0}}>
+              <span className="tutor-pod-student-card-header-name">{student.name}</span>
+              <Badge variant="outline" className="tutor-pod-student-card-header-badge text-[10px] uppercase tracking-[0.08em] border-primary/20 text-muted-foreground">
                 {workflowLabel}
               </Badge>
             </div>
@@ -209,7 +209,7 @@ export function StudentCard({
             )}
           </div>
         </div>
-        <div className="rounded-xl border border-primary/20 bg-muted/20 px-3 py-2 text-right shrink-0">
+        <div className="rounded-xl border border-primary/20 bg-muted/20 px-3 py-2 text-right tutor-pod-student-card-header-progress">
           <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{progressLabel}</p>
           <p className="mt-1 text-lg font-semibold tabular-nums text-foreground">{sessionProgress}/{progressTotal}</p>
         </div>

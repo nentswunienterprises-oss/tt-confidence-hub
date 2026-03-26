@@ -1,20 +1,23 @@
 /* Mobile responsiveness for Tutor Pod page */
 
 @media (max-width: 640px) {
-  /* Stats row: stay horizontal, wrap if needed, no scroll */
+  /* Stats row: always horizontal, wrap if needed, never stack */
   .tutor-pod-stats {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 0.75rem;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
     width: 100%;
+    align-items: stretch;
+    justify-content: space-between;
   }
   .tutor-pod-stats > * {
-    flex: 1 1 110px;
-    min-width: 110px;
+    flex: 1 1 0;
+    min-width: 0;
     max-width: 100%;
+    margin: 0;
   }
-  /* Student cards: stack vertically */
+  /* Student cards: stack vertically, but header never overlaps */
   .tutor-pod-student-cards {
     display: flex;
     flex-direction: column;
@@ -30,8 +33,38 @@
     min-width: 0;
     box-sizing: border-box;
   }
-  /* Prevent card content from being squashed */
-  .tutor-pod-student-card {
-    min-width: 220px;
+  /* StudentCard header: fix overlap, allow name to truncate, badge and progress spaced */
+  .tutor-pod-student-card-header {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .tutor-pod-student-card-header-main {
+    min-width: 0;
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .tutor-pod-student-card-header-name {
+    font-size: 1rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    display: block;
+  }
+  .tutor-pod-student-card-header-badge {
+    margin-left: 0.5rem;
+    flex-shrink: 0;
+  }
+  .tutor-pod-student-card-header-progress {
+    flex-shrink: 0;
+    margin-left: auto;
+    margin-top: 0;
   }
 }
