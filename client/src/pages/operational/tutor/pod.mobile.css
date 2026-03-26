@@ -8,7 +8,7 @@
     flex-wrap: wrap !important;
     gap: 0.5rem !important;
     width: 100%;
-    align-items: stretch;
+    align-items: stretch !important;
     justify-content: space-between;
   }
   .tutor-pod-stats > * {
@@ -16,6 +16,12 @@
     min-width: 0;
     max-width: 100%;
     margin: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    min-height: 90px;
   }
   /* Student cards: stack vertically, but header never overlaps */
   .tutor-pod-student-cards {
