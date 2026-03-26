@@ -39,6 +39,12 @@
     min-height: 110px !important;
     box-sizing: border-box;
   }
+  .tutor-pod-stats.grid,
+  .tutor-pod-stats.sm\:grid-cols-3 {
+    display: flex !important;
+    grid-template-columns: none !important;
+  }
+}
   /* Student cards: stack vertically, but header never overlaps */
   .tutor-pod-student-cards {
     display: flex;

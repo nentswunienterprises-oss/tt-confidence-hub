@@ -265,7 +265,7 @@ export default function TutorPod() {
           </div>
         </div>
 
-        <div className="tutor-pod-stats">
+        <div className="tutor-pod-stats grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           <Card className="border-primary/15 bg-background shadow-sm">
             <div className="px-4 py-4 sm:px-5 sm:py-5">
               <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Sessions Done</p>
