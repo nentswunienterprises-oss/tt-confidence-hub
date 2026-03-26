@@ -135,8 +135,21 @@ export default function TutorGateway() {
         const text = await res.text();
         throw new Error(`Failed to complete onboarding: ${res.status} ${text}`);
       }
-      queryClient.invalidateQueries({ queryKey: ["/api/tutor/application-status"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tutor/pod"] });
+      // Force refetch pod assignment before navigating
+      await queryClient.invalidateQueries({ queryKey: ["/api/tutor/application-status"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/tutor/pod"] });
+      // Optionally, wait for pod assignment to be available
+      let tries = 0;
+      let podAssignment = null;
+      while (tries < 5) {
+        const podData = await queryClient.fetchQuery({ queryKey: ["/api/tutor/pod"] });
+        if (podData && podData.assignment) {
+          podAssignment = podData.assignment;
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 600));
+        tries++;
+      }
       navigate("/tutor/pod", { replace: true });
     } catch (err: any) {
       toast({ title: "Error", description: err.message || "Failed to continue", variant: "destructive" });

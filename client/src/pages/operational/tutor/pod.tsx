@@ -135,7 +135,10 @@ export default function TutorPod() {
     );
   }
 
+  // Show loading/sync state if user is confirmed and pod assignment is expected but not yet loaded
   if (!podData || !podData.assignment) {
+    // Check if user is confirmed and should have a pod assignment
+    const expectingPodAssignment = applications && applications.some((app: any) => app.status === "confirmed");
     return (
       <DashboardLayout>
         <div className="space-y-8">
@@ -143,57 +146,64 @@ export default function TutorPod() {
             <div className="space-y-2">
               <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Tutor Pod</p>
               <h1 className="text-3xl font-semibold tracking-[-0.01em] md:text-4xl">
-              Welcome back, {user?.name?.split(" ")[0] || "Tutor"}.
+                Welcome back, {user?.name?.split(" ")[0] || "Tutor"}.
               </h1>
               <p className="text-sm text-muted-foreground sm:text-base">
                 Your pod assignment will unlock the live operating layer for students, onboarding, conditioning, and reports.
               </p>
             </div>
           </div>
-          
-          <Card className="border-primary/15 bg-background shadow-sm">
-            <div className="space-y-5 p-8 text-center sm:p-12">
-              <div className="mx-auto max-w-2xl space-y-3">
-                <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
-                  {hasPendingApplication ? "Application Status" : "Assignment Status"}
-                </p>
-                <h2 className="text-2xl font-semibold tracking-[-0.01em] text-foreground">
-                  {hasPendingApplication ? "Application Pending" : "No Pod Assignment Yet"}
-                </h2>
-                <p className="text-sm text-muted-foreground sm:text-base">
-                  {hasPendingApplication
-                    ? "Your application is under review. Once approved, this space becomes your operating view for student training and pod work."
-                    : "You do not have any students assigned yet. Apply to join a pod and unlock your live tutor operating view."}
-                </p>
-              </div>
 
-              <div className="mx-auto grid max-w-3xl gap-3 sm:grid-cols-3">
-                <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-4">
-                  <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Roster</p>
-                  <p className="mt-2 text-sm font-medium text-foreground">Students appear here after pod assignment.</p>
+          {expectingPodAssignment ? (
+            <Card className="border-primary/15 bg-background shadow-sm">
+              <div className="space-y-5 p-8 text-center sm:p-12">
+                <div className="mx-auto max-w-2xl space-y-3">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Syncing Assignment</p>
+                  <h2 className="text-2xl font-semibold tracking-[-0.01em] text-foreground">Pod Assignment Syncing...</h2>
+                  <p className="text-sm text-muted-foreground sm:text-base">
+                    Your pod assignment is being prepared. This may take a few seconds. If this persists, please refresh.
+                  </p>
                 </div>
-                <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-4">
-                  <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Systems</p>
-                  <p className="mt-2 text-sm font-medium text-foreground">Identity sheets, conditioning, and reports unlock here.</p>
-                </div>
-                <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-4">
-                  <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Pod</p>
-                  <p className="mt-2 text-sm font-medium text-foreground">Your territory director and pod context live here.</p>
+                <div className="flex justify-center mt-6">
+                  <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
                 </div>
               </div>
+            </Card>
+          ) : (
+            <Card className="border-primary/15 bg-background shadow-sm">
+              <div className="space-y-5 p-8 text-center sm:p-12">
+                <div className="mx-auto max-w-2xl space-y-3">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+                    {hasPendingApplication ? "Application Status" : "Assignment Status"}
+                  </p>
+                  <h2 className="text-2xl font-semibold tracking-[-0.01em] text-foreground">
+                    {hasPendingApplication ? "Application Pending" : "No Pod Assignment Yet"}
+                  </h2>
+                  <p className="text-sm text-muted-foreground sm:text-base">
+                    {hasPendingApplication
+                      ? "Your application is under review. Once approved, this space becomes your operating view for student training and pod work."
+                      : "You do not have any students assigned yet. Pod assignment will unlock your live tutor operating view."}
+                  </p>
+                </div>
 
-            {!hasPendingApplication && (
-              <Button 
-                onClick={() => setShowApplicationForm(true)} 
-                size="lg"
-                className="min-w-[220px]"
-                data-testid="button-apply"
-              >
-                Apply Now
-              </Button>
-            )}
-            </div>
-          </Card>
+                <div className="mx-auto grid max-w-3xl gap-3 sm:grid-cols-3">
+                  <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-4">
+                    <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Roster</p>
+                    <p className="mt-2 text-sm font-medium text-foreground">Students appear here after pod assignment.</p>
+                  </div>
+                  <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-4">
+                    <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Systems</p>
+                    <p className="mt-2 text-sm font-medium text-foreground">Identity sheets, conditioning, and reports unlock here.</p>
+                  </div>
+                  <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-4">
+                    <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Pod</p>
+                    <p className="mt-2 text-sm font-medium text-foreground">Your territory director and pod context live here.</p>
+                  </div>
+                </div>
+                {/* No Apply Now button if user is confirmed or has an application */}
+              </div>
+            </Card>
+          )}
 
           <Dialog open={showApplicationForm} onOpenChange={setShowApplicationForm}>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
