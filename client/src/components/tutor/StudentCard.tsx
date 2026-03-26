@@ -185,20 +185,26 @@ export function StudentCard({
         <span className="absolute bottom-3 right-3 h-3 w-3 border-b border-r border-black/55" />
       </div>
       <div className="tutor-pod-student-card-header pb-5 border-b border-border/60">
-        <div className="flex items-start gap-4 min-w-0" style={{flex: 1}}>
-          <Avatar className="w-14 h-14 border border-primary/15">
+        <div className="flex items-start gap-3 min-w-0 w-full">
+          <Avatar className="w-14 h-14 border border-primary/15 flex-shrink-0">
             <AvatarFallback className="bg-muted text-foreground font-semibold text-sm tracking-[0.04em]">
               {initials}
             </AvatarFallback>
           </Avatar>
-          <div className="tutor-pod-student-card-header-main">
-            <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0}}>
-              <span className="tutor-pod-student-card-header-name">{student.name}</span>
-              <Badge variant="outline" className="tutor-pod-student-card-header-badge text-[10px] uppercase tracking-[0.08em] border-primary/20 text-muted-foreground">
-                {workflowLabel}
-              </Badge>
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col min-w-0">
+              <span className="tutor-pod-student-card-header-name block text-lg font-semibold tracking-[-0.01em] min-w-0" style={{overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{student.name}</span>
+              <div className="flex flex-row flex-wrap items-center gap-2 mt-1">
+                <Badge variant="outline" className="tutor-pod-student-card-header-badge text-[10px] uppercase tracking-[0.08em] border-primary/20 text-muted-foreground">
+                  {workflowLabel}
+                </Badge>
+                <div className="rounded-xl border border-primary/20 bg-muted/20 px-3 py-1 text-right tutor-pod-student-card-header-progress">
+                  <span className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{progressLabel} </span>
+                  <span className="ml-1 text-lg font-semibold tabular-nums text-foreground">{sessionProgress}/{progressTotal}</span>
+                </div>
+              </div>
             </div>
-            <div className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+            <div className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground mt-1">
               {student.grade || "Grade pending"}
             </div>
             {student.parentInfo && (
@@ -208,10 +214,6 @@ export function StudentCard({
               </div>
             )}
           </div>
-        </div>
-        <div className="rounded-xl border border-primary/20 bg-muted/20 px-3 py-2 text-right tutor-pod-student-card-header-progress">
-          <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{progressLabel}</p>
-          <p className="mt-1 text-lg font-semibold tabular-nums text-foreground">{sessionProgress}/{progressTotal}</p>
         </div>
       </div>
 
