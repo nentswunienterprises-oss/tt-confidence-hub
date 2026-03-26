@@ -543,4 +543,34 @@ previous stability
 phase-specific score
 to update the state.
 
+Final architecture of Topic Management
 
+When tutor clicks a topic:
+
+The system should show:
+
+Header
+Topic
+Current Phase
+Previous Stability
+Observation Form
+
+Phase-specific only
+
+Intervention Selection
+
+Only relevant tools for that phase
+
+Live Interpretation Preview
+score
+likely stability update
+likely phase decision
+next action
+Submit
+
+Then system commits:
+
+new topic state
+session summary
+report data
+parent-facing meaning
