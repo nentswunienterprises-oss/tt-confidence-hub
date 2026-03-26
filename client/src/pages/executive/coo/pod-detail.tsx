@@ -150,6 +150,8 @@ export default function PodDetail() {
     onSuccess: () => {
       refetchPodTutors();
       queryClient.invalidateQueries({ queryKey: ["/api/coo/pods"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/coo/all-tutor-assignments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/coo/approved-tutors"] });
       setTutorToRemove(null);
       toast({
         title: "Success",
