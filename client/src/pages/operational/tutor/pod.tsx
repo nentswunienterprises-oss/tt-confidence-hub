@@ -258,6 +258,7 @@ export default function TutorPod() {
             <Badge
               className="tutor-pod-badge-mobile bg-primary/20 px-2 py-1 text-[11px] font-medium uppercase tracking-[0.08em] text-primary border border-primary/30 rounded-md sm:bg-primary/90 sm:text-primary-foreground sm:px-4 sm:py-1.5 sm:font-semibold"
               data-testid="badge-pod-name"
+              style={{maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'inline-block', verticalAlign: 'middle'}}
             >
               {assignment.pod.podName}
             </Badge>
