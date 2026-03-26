@@ -847,9 +847,9 @@ export default function StudentTopicConditioningDialog({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full overflow-x-hidden">
-          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 h-auto rounded-xl border border-primary/15 bg-muted/20 p-1">
-            <TabsTrigger value="dashboard" className="h-auto whitespace-normal text-xs sm:text-sm py-2">Map</TabsTrigger>
-            <TabsTrigger value="session-form" className="h-auto whitespace-normal text-xs sm:text-sm py-2">Topic Management</TabsTrigger>
+          <TabsList className="flex w-full flex-row sm:grid sm:grid-cols-2 h-auto rounded-xl border border-primary/15 bg-muted/20 p-1 gap-1">
+            <TabsTrigger value="dashboard" className="flex-1 h-auto whitespace-normal text-xs sm:text-sm py-2 px-2">Map</TabsTrigger>
+            <TabsTrigger value="session-form" className="flex-1 h-auto whitespace-normal text-xs sm:text-sm py-2 px-2">Topic Management</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-4 sm:space-y-6 overflow-x-hidden">
