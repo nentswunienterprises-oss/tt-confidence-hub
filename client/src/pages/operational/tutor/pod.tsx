@@ -256,7 +256,7 @@ export default function TutorPod() {
               </p>
             </div>
             <Badge
-              className="bg-primary/90 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.08em] text-primary-foreground"
+              className="tutor-pod-badge-mobile bg-primary/20 px-2 py-1 text-[11px] font-medium uppercase tracking-[0.08em] text-primary border border-primary/30 rounded-md sm:bg-primary/90 sm:text-primary-foreground sm:px-4 sm:py-1.5 sm:font-semibold"
               data-testid="badge-pod-name"
             >
               {assignment.pod.podName}
