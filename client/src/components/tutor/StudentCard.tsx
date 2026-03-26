@@ -204,11 +204,11 @@ export function StudentCard({
                 </div>
               </div>
             </div>
-            <div className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground mt-1">
+            <div className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground mt-1 text-left pl-0 sm:pl-0">
               {student.grade || "Grade pending"}
             </div>
             {student.parentInfo && (
-              <div className="mt-3 rounded-xl border border-border/60 bg-muted/20 px-3 py-2 text-sm">
+              <div className="mt-3 rounded-xl border border-border/60 bg-muted/20 px-3 py-2 text-sm text-left pl-0 sm:pl-0">
                 <p className="text-muted-foreground">Parent: <span className="font-medium text-foreground">{student.parentInfo.parent_full_name}</span></p>
                 <p className="text-xs text-muted-foreground mt-0.5 break-all">{student.parentInfo.parent_email}</p>
               </div>
