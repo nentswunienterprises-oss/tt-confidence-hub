@@ -1,54 +1,71 @@
+﻿import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, FileText, MessageSquare, Trophy } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Calendar, FileText } from "lucide-react";
 
-interface TutoringSession {
+interface Assignment {
   id: string;
-  session_date: string;
+  title: string;
+  description: string;
+  problems_assigned: string;
+  due_date: string | null;
+  is_completed: boolean;
+  completed_at: string | null;
+  student_result: string | null;
+  student_work: string | null;
+  created_at: string;
+}
+
+interface SessionRecord {
+  id: string;
+  date: string;
   duration: number;
-  topics_covered: string;
-  student_mood: string | null;
-  confidence_score: number | null;
-  boss_battles_count: number | null;
-  solutions_count: number | null;
-  notes: string | null;
-  created_at: string;
+  notes?: string | null;
+  vocabularyNotes?: string | null;
+  methodNotes?: string | null;
+  reasonNotes?: string | null;
+  studentResponse?: string | null;
+  whatMisunderstood?: string | null;
+  correctionHelped?: string | null;
+  needsReinforcement?: string | null;
+  bossBattlesDone?: string | null;
+  practiceProblems?: string | null;
+  solutionPurpose?: string | null;
 }
 
-interface ParentReport {
+interface ReportRecord {
   id: string;
-  report_text: string;
-  wins: string | null;
-  challenges: string | null;
-  next_focus: string | null;
-  created_at: string;
+  reportType: "weekly" | "monthly";
+  weekNumber?: number | null;
+  monthName?: string | null;
+  sentAt: string;
+  structuredData?: any;
+  topicsLearned?: string | null;
+  strengths?: string | null;
+  areasForGrowth?: string | null;
+  nextSteps?: string | null;
 }
 
-interface TDFeedback {
-  id: string;
-  reflection_text: string;
-  wins: string | null;
-  struggles: string | null;
-  support_needed: string | null;
-  created_at: string;
-}
-
-interface TrackingData {
-  sessions: TutoringSession[];
-  parentReports: ParentReport[];
-  tdFeedback: TDFeedback[];
+interface ReportsCenterData {
+  sessions: SessionRecord[];
+  reports: ReportRecord[];
 }
 
 interface ViewTrackingSystemsDialogProps {
@@ -56,7 +73,24 @@ interface ViewTrackingSystemsDialogProps {
   onOpenChange: (open: boolean) => void;
   studentId: string;
   studentName: string;
-  apiBasePath?: string; // e.g., "/api/coo" for COO view, defaults to "/api/tutor"
+}
+
+function formatDate(value: string | Date, withYear = true): string {
+  const date = value instanceof Date ? value : new Date(value);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: withYear ? "numeric" : undefined,
+  });
+}
+
+function FieldRow({ label, value }: { label: string; value?: string | null }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-[210px_1fr] gap-2 md:gap-3 text-sm">
+      <p className="font-medium text-foreground">{label}</p>
+      <p className="text-muted-foreground whitespace-pre-wrap">{value?.trim() ? value : "Not recorded"}</p>
+    </div>
+  );
 }
 
 export default function ViewTrackingSystemsDialog({
@@ -64,279 +98,247 @@ export default function ViewTrackingSystemsDialog({
   onOpenChange,
   studentId,
   studentName,
-  apiBasePath = "/api/tutor",
 }: ViewTrackingSystemsDialogProps) {
-  const { data: trackingData, isLoading } = useQuery<TrackingData>({
-    queryKey: [`${apiBasePath}/students/${studentId}/tracking`],
+  const { data: reportsCenter, isLoading: reportsLoading } = useQuery<ReportsCenterData>({
+    queryKey: [`/api/tutor/students/${studentId}/reports-center`],
+    queryFn: getQueryFn({ on401: "throw" }),
+    enabled: open && !!studentId,
+  });
+
+  const { data: assignments, isLoading: assignmentsLoading } = useQuery<Assignment[]>({
+    queryKey: [`/api/tutor/students/${studentId}/assignments`],
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: open && !!studentId,
   });
 
+  const weeklyReports = useMemo(
+    () => (reportsCenter?.reports || []).filter((r) => r.reportType === "weekly"),
+    [reportsCenter?.reports]
+  );
+
+  const monthlyReports = useMemo(
+    () => (reportsCenter?.reports || []).filter((r) => r.reportType === "monthly"),
+    [reportsCenter?.reports]
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl border border-primary/15 bg-background p-0 shadow-sm">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl border border-primary/15 bg-background p-0 shadow-sm">
         <DialogHeader>
           <div className="border-b border-border/60 px-6 py-5">
-            <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Tracking Systems</p>
-            <DialogTitle className="mt-2 flex items-center gap-2 text-base sm:text-xl tracking-[-0.01em]">
-              <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
-              {studentName}'s Tracking
+            <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">View Tracking Systems</p>
+            <DialogTitle className="mt-2 flex items-center gap-2 text-xl tracking-[-0.01em]">
+              <FileText className="w-4 h-4" />
+              {studentName}
             </DialogTitle>
-            <DialogDescription className="mt-1 text-sm">
-              View sessions, parent reports, and TD feedback.
+            <DialogDescription className="mt-1">
+              Reports and student assignments in one operating view.
             </DialogDescription>
           </div>
         </DialogHeader>
 
-        <Tabs defaultValue="sessions" className="w-full px-6 py-5">
-          <TabsList className="grid w-full grid-cols-3 h-auto rounded-xl border border-primary/15 bg-muted/20 p-1">
-            <TabsTrigger value="sessions" className="text-xs sm:text-sm py-2 px-1 sm:px-3">
-              <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              Sessions ({trackingData?.sessions?.length || 0})
-            </TabsTrigger>
+        <Tabs defaultValue="reports" className="w-full px-6 py-5">
+          <TabsList className="grid w-full grid-cols-2 h-auto rounded-xl border border-primary/15 bg-muted/20 p-1">
             <TabsTrigger value="reports" className="text-xs sm:text-sm py-2 px-1 sm:px-3">
-              <FileText className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              Reports ({trackingData?.parentReports?.length || 0})
+              Reports
             </TabsTrigger>
-            <TabsTrigger value="feedback" className="text-xs sm:text-sm py-2 px-1 sm:px-3">
-              <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              Feedback ({trackingData?.tdFeedback?.length || 0})
+            <TabsTrigger value="assignments" className="text-xs sm:text-sm py-2 px-1 sm:px-3">
+              Student Assignments
             </TabsTrigger>
           </TabsList>
 
-          <ScrollArea className="h-[50vh] sm:h-[55vh] mt-4">
-            {/* Sessions Tab */}
-            <TabsContent value="sessions">
-              {isLoading ? (
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <Card key={i} className="rounded-2xl border border-primary/15 bg-background shadow-sm">
-                      <CardHeader>
-                        <Skeleton className="h-6 w-3/4" />
-                      </CardHeader>
-                      <CardContent>
-                        <Skeleton className="h-20 w-full" />
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : !trackingData?.sessions || trackingData.sessions.length === 0 ? (
-                <Card className="rounded-2xl border border-primary/15 bg-muted/20 p-12 text-center shadow-sm">
-                  <Calendar className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">No Sessions Logged</h3>
-                  <p className="text-muted-foreground">
-                    No tutoring sessions have been logged for this student yet.
-                  </p>
-                </Card>
-              ) : (
-                <div className="space-y-4">
-                  {trackingData.sessions.map((session) => (
-                    <Card key={session.id} className="rounded-2xl border border-primary/15 bg-background shadow-sm">
-                      <CardHeader className="p-3 sm:p-6">
-                        <div className="flex flex-col gap-2">
-                          <div>
-                            <CardTitle className="text-base sm:text-lg">
-                              Session on {new Date(session.session_date).toLocaleDateString()}
-                            </CardTitle>
-                            <div className="flex flex-wrap items-center gap-1 sm:gap-2 mt-2">
-                              <Badge variant="outline" className="text-xs">{session.duration} min</Badge>
-                              {session.student_mood && (
-                                <Badge variant="secondary" className="text-xs">Mood: {session.student_mood}</Badge>
-                              )}
-                              {session.confidence_score && (
-                                <Badge variant="outline" className="border-primary/20 bg-muted/20 text-xs text-foreground">
-                                  Conf: {session.confidence_score}/10
-                                </Badge>
+          <TabsContent value="reports" className="space-y-6 mt-4">
+            {reportsLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-20" />
+                <Skeleton className="h-20" />
+                <Skeleton className="h-20" />
+              </div>
+            ) : (
+              <>
+                <Card className="rounded-2xl border border-primary/15 bg-background p-4 md:p-5 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold">Session Logs</h3>
+                    <Badge variant="outline">{reportsCenter?.sessions?.length || 0}</Badge>
+                  </div>
+                  {!reportsCenter?.sessions?.length ? (
+                    <p className="text-sm text-muted-foreground">No session logs found for this student.</p>
+                  ) : (
+                    <Accordion type="multiple" className="w-full">
+                      {reportsCenter.sessions.map((session) => (
+                        <AccordionItem key={session.id} value={`session-${session.id}`}>
+                          <AccordionTrigger className="text-left">
+                            <div className="flex flex-col gap-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-medium">{formatDate(session.date, true)}</span>
+                                <Badge variant="secondary">{session.duration} min</Badge>
+                              </div>
+                              {session.notes && (
+                                <p className="text-sm text-muted-foreground line-clamp-2 pr-4">{session.notes}</p>
                               )}
                             </div>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-3 p-3 sm:p-6 pt-0 sm:pt-0">
-                        {/* Topics Covered */}
-                        <div>
-                          <h4 className="font-semibold text-sm mb-1">Topics Covered</h4>
-                          <p className="text-sm text-muted-foreground">{session.topics_covered}</p>
-                        </div>
-
-                        {/* Gamification Stats */}
-                        {(session.boss_battles_count || session.solutions_count) && (
-                          <div className="flex items-center gap-4 rounded-xl border border-primary/20 bg-muted/20 p-3">
-                            {session.boss_battles_count !== null && session.boss_battles_count > 0 && (
-                              <div className="flex items-center gap-2">
-                                <Trophy className="w-4 h-4 text-foreground" />
-                                <span className="text-sm font-semibold text-foreground">
-                                  {session.boss_battles_count} Boss {session.boss_battles_count === 1 ? 'Battle' : 'Battles'}
-                                </span>
-                              </div>
-                            )}
-                            {session.solutions_count !== null && session.solutions_count > 0 && (
-                              <div className="flex items-center gap-2">
-                                <Trophy className="w-4 h-4 text-foreground" />
-                                <span className="text-sm font-semibold text-foreground">
-                                  {session.solutions_count} {session.solutions_count === 1 ? 'Solution' : 'Solutions'}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Notes */}
-                        {session.notes && (
-                          <div className="rounded-xl border border-primary/20 bg-muted/20 p-3">
-                            <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Notes</h4>
-                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                              {session.notes}
-                            </p>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-
-            {/* Parent Reports Tab */}
-            <TabsContent value="reports">
-              {isLoading ? (
-                <div className="space-y-4">
-                  {[1, 2].map((i) => (
-                    <Card key={i} className="rounded-2xl border border-primary/15 bg-background shadow-sm">
-                      <CardHeader>
-                        <Skeleton className="h-6 w-3/4" />
-                      </CardHeader>
-                      <CardContent>
-                        <Skeleton className="h-20 w-full" />
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : !trackingData?.parentReports || trackingData.parentReports.length === 0 ? (
-                <Card className="rounded-2xl border border-primary/15 bg-muted/20 p-12 text-center shadow-sm">
-                  <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">No Parent Reports</h3>
-                  <p className="text-muted-foreground">
-                    No parent reports have been sent for this student yet.
-                  </p>
+                          </AccordionTrigger>
+                          <AccordionContent className="space-y-3">
+                            <FieldRow label="Session Notes" value={session.notes} />
+                            <FieldRow label="Solution Implemented" value={session.solutionPurpose} />
+                            <FieldRow label="Vocabulary Notes" value={session.vocabularyNotes} />
+                            <FieldRow label="Method Notes" value={session.methodNotes} />
+                            <FieldRow label="Reason Notes" value={session.reasonNotes} />
+                            <FieldRow label="Student Response" value={session.studentResponse} />
+                            <FieldRow label="What was misunderstood?" value={session.whatMisunderstood} />
+                            <FieldRow label="What correction helped?" value={session.correctionHelped} />
+                            <FieldRow label="What needs reinforcement?" value={session.needsReinforcement} />
+                            <FieldRow label="Boss Battle" value={session.bossBattlesDone} />
+                            <FieldRow label="Practice assigned" value={session.practiceProblems} />
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  )}
                 </Card>
-              ) : (
-                <div className="space-y-4">
-                  {trackingData.parentReports.map((report) => (
-                    <Card key={report.id} className="rounded-2xl border border-primary/15 bg-background shadow-sm">
-                      <CardHeader>
-                        <CardTitle className="text-lg">
-                          Report - {new Date(report.created_at).toLocaleDateString()}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        {report.report_text && (
-                          <div>
-                            <h4 className="font-semibold text-sm mb-1">Summary</h4>
-                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                              {report.report_text}
-                            </p>
-                          </div>
-                        )}
 
-                        {report.wins && (
-                          <div className="rounded-xl border border-primary/20 bg-muted/20 p-3">
-                            <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Wins</h4>
-                            <p className="mt-1 text-sm text-foreground whitespace-pre-wrap">{report.wins}</p>
-                          </div>
-                        )}
-
-                        {report.challenges && (
-                          <div className="rounded-xl border border-primary/20 bg-muted/20 p-3">
-                            <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Challenges</h4>
-                            <p className="mt-1 text-sm text-foreground whitespace-pre-wrap">{report.challenges}</p>
-                          </div>
-                        )}
-
-                        {report.next_focus && (
-                          <div className="rounded-xl border border-primary/20 bg-muted/20 p-3">
-                            <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Next Focus</h4>
-                            <p className="mt-1 text-sm text-foreground whitespace-pre-wrap">{report.next_focus}</p>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-
-            {/* TD Feedback Tab */}
-            <TabsContent value="feedback">
-              {isLoading ? (
-                <div className="space-y-4">
-                  {[1, 2].map((i) => (
-                    <Card key={i} className="rounded-2xl border border-primary/15 bg-background shadow-sm">
-                      <CardHeader>
-                        <Skeleton className="h-6 w-3/4" />
-                      </CardHeader>
-                      <CardContent>
-                        <Skeleton className="h-20 w-full" />
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : !trackingData?.tdFeedback || trackingData.tdFeedback.length === 0 ? (
-                <Card className="rounded-2xl border border-primary/15 bg-muted/20 p-12 text-center shadow-sm">
-                  <MessageSquare className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">No TD Feedback</h3>
-                  <p className="text-muted-foreground">
-                    No Training Director feedback has been logged yet.
-                  </p>
+                <Card className="rounded-2xl border border-primary/15 bg-background p-4 md:p-5 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold">Weekly Reports</h3>
+                    <Badge variant="outline">{weeklyReports.length}</Badge>
+                  </div>
+                  {!weeklyReports.length ? (
+                    <p className="text-sm text-muted-foreground">No weekly reports created yet.</p>
+                  ) : (
+                    <Accordion type="multiple" className="w-full">
+                      {weeklyReports.map((report) => {
+                        const structured = report.structuredData || {};
+                        return (
+                          <AccordionItem key={report.id} value={`weekly-${report.id}`}>
+                            <AccordionTrigger className="text-left">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span>
+                                  {structured.weekStartDate && structured.weekEndDate
+                                    ? `${formatDate(structured.weekStartDate, false)} - ${formatDate(structured.weekEndDate, true)}`
+                                    : `Week ${report.weekNumber || "-"}`}
+                                </span>
+                                <Badge variant="secondary">Sent {formatDate(report.sentAt, false)}</Badge>
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="space-y-3">
+                              <FieldRow label="Main Topics Covered" value={structured.mainTopicsCovered || report.topicsLearned} />
+                              <FieldRow label="What improved this week" value={structured.whatImprovedThisWeek || report.strengths} />
+                              <FieldRow label="Student response pattern this week" value={structured.studentResponsePatternThisWeek} />
+                              <FieldRow label="Main misunderstanding this week" value={structured.mainMisunderstandingThisWeek || report.areasForGrowth} />
+                              <FieldRow label="Main correction that helped" value={structured.mainCorrectionHelpedThisWeek} />
+                              <FieldRow label="Boss Battle summary this week" value={structured.bossBattleSummaryThisWeek} />
+                              <FieldRow label="What needs reinforcement next week" value={structured.reinforcementNextWeek || report.nextSteps} />
+                            </AccordionContent>
+                          </AccordionItem>
+                        );
+                      })}
+                    </Accordion>
+                  )}
                 </Card>
-              ) : (
-                <div className="space-y-4">
-                  {trackingData.tdFeedback.map((feedback) => (
-                    <Card key={feedback.id} className="rounded-2xl border border-primary/15 bg-background shadow-sm">
-                      <CardHeader>
-                        <CardTitle className="text-lg">
-                          Feedback - {new Date(feedback.created_at).toLocaleDateString()}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        {feedback.reflection_text && (
-                          <div>
-                            <h4 className="font-semibold text-sm mb-1">Reflection</h4>
-                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                              {feedback.reflection_text}
-                            </p>
-                          </div>
-                        )}
 
-                        {feedback.wins && (
-                          <div className="rounded-xl border border-primary/20 bg-muted/20 p-3">
-                            <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Wins</h4>
-                            <p className="mt-1 text-sm text-foreground whitespace-pre-wrap">{feedback.wins}</p>
-                          </div>
-                        )}
+                <Card className="rounded-2xl border border-primary/15 bg-background p-4 md:p-5 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold">Monthly Reports</h3>
+                    <Badge variant="outline">{monthlyReports.length}</Badge>
+                  </div>
+                  {!monthlyReports.length ? (
+                    <p className="text-sm text-muted-foreground">No monthly reports created yet.</p>
+                  ) : (
+                    <Accordion type="multiple" className="w-full">
+                      {monthlyReports.map((report) => {
+                        const structured = report.structuredData || {};
+                        return (
+                          <AccordionItem key={report.id} value={`monthly-${report.id}`}>
+                            <AccordionTrigger className="text-left">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span>{report.monthName || "Monthly report"}</span>
+                                <Badge variant="secondary">Sent {formatDate(report.sentAt, false)}</Badge>
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="space-y-3">
+                              <FieldRow label="Main areas covered this month" value={structured.mainAreasCoveredThisMonth || report.topicsLearned} />
+                              <FieldRow label="What skills became stronger" value={structured.strongerSkillsThisMonth || report.strengths} />
+                              <FieldRow label="Response pattern trend" value={structured.responsePatternTrendThisMonth} />
+                              <FieldRow label="Recurring challenge" value={structured.recurringChallengeThisMonth || report.areasForGrowth} />
+                              <FieldRow label="Most effective intervention" value={structured.mostEffectiveInterventionThisMonth} />
+                              <FieldRow label="Boss Battle trend" value={structured.bossBattleTrendThisMonth} />
+                              <FieldRow label="Next month priority" value={structured.nextMonthPriority || report.nextSteps} />
+                            </AccordionContent>
+                          </AccordionItem>
+                        );
+                      })}
+                    </Accordion>
+                  )}
+                </Card>
 
-                        {feedback.struggles && (
-                          <div className="rounded-xl border border-primary/20 bg-muted/20 p-3">
-                            <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Struggles</h4>
-                            <p className="mt-1 text-sm text-foreground whitespace-pre-wrap">{feedback.struggles}</p>
-                          </div>
-                        )}
-
-                        {feedback.support_needed && (
-                          <div className="rounded-xl border border-primary/20 bg-muted/20 p-3">
-                            <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Support Needed</h4>
-                            <p className="mt-1 text-sm text-foreground whitespace-pre-wrap">{feedback.support_needed}</p>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
+                <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-3 text-xs text-muted-foreground flex items-center gap-2">
+                  <Calendar className="w-3.5 h-3.5" />
+                  Internal tutor notes are stored but remain hidden from parent-facing output.
                 </div>
-              )}
-            </TabsContent>
-          </ScrollArea>
+              </>
+            )}
+          </TabsContent>
+
+          <TabsContent value="assignments" className="space-y-4 mt-4">
+            {assignmentsLoading ? (
+              <div className="space-y-4">
+                <Skeleton className="h-24" />
+                <Skeleton className="h-24" />
+                <Skeleton className="h-24" />
+              </div>
+            ) : !assignments || assignments.length === 0 ? (
+              <Card className="rounded-2xl border border-primary/15 bg-muted/20 p-12 text-center shadow-sm">
+                <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-semibold mb-2">No Assignments Yet</h3>
+                <p className="text-muted-foreground">
+                  No assignments have been created for this student.
+                </p>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {assignments.map((assignment) => (
+                  <Card key={assignment.id} className="rounded-2xl border border-primary/15 bg-background shadow-sm p-4 md:p-5 space-y-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-base">{assignment.title}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Created {new Date(assignment.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <Badge variant="outline" className="border-primary/20 bg-muted/20 text-foreground">
+                        {assignment.is_completed ? "Completed" : "Pending"}
+                      </Badge>
+                    </div>
+
+                    {assignment.description && (
+                      <FieldRow label="Description" value={assignment.description} />
+                    )}
+                    {assignment.problems_assigned && (
+                      <FieldRow label="Problems Assigned" value={assignment.problems_assigned} />
+                    )}
+                    {assignment.student_work && (
+                      <FieldRow label="Student Work" value={assignment.student_work} />
+                    )}
+                    {assignment.student_result && (
+                      <FieldRow label="Result" value={assignment.student_result} />
+                    )}
+                    {assignment.due_date && (
+                      <FieldRow label="Due Date" value={new Date(assignment.due_date).toLocaleDateString()} />
+                    )}
+                    {assignment.completed_at && (
+                      <FieldRow
+                        label="Submitted"
+                        value={`${new Date(assignment.completed_at).toLocaleDateString()} ${new Date(assignment.completed_at).toLocaleTimeString()}`}
+                      />
+                    )}
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
         </Tabs>
       </DialogContent>
     </Dialog>
   );
 }
+

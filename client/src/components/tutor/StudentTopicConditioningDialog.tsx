@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useQuery } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -9,23 +11,8 @@ import {
 } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import {
   Select,
   SelectContent,
@@ -33,22 +20,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { getQueryFn } from "@/lib/queryClient";
-import { AlertCircle, Info, Target } from "lucide-react";
-import TutorSessionLogForm from "@/components/tutor/TutorSessionLogForm";
+import { Target, AlertCircle, Info } from "lucide-react";
+import TutorSessionLogForm from "./TutorSessionLogForm";
 import {
   PHASES,
   getNextActionData,
-  getPriorityReason,
   nextActionFor,
-  nextMoveRecommendation,
   phaseIndex,
   topicPriorityScore,
   trendFromHistory,
-} from "@/components/tutor/topicConditioningEngine";
-import type { PhaseLabel, StabilityLabel, TopicTrend } from "@/components/tutor/topicConditioningEngine";
+  getPriorityReason,
+  nextMoveRecommendation,
+} from "./topicConditioningEngine";
+import { Progress } from "../ui/progress";
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip";
+import type { PhaseLabel, StabilityLabel, TopicTrend } from "./topicConditioningEngine";
 
 type TopicConditioningMap = {
   topic?: string | null;
@@ -74,6 +63,266 @@ type TutorSessionRecord = {
   notes?: string | null;
   methodNotes?: string | null;
   studentResponse?: string | null;
+};
+
+type ObservationOption = { label: string; score: number };
+type ObservationCategory = { key: string; label: string; options: ObservationOption[] };
+
+type StabilityThresholds = {
+  low: { remainMax: number; mediumMax: number; highMin: number };
+  medium: { regressMax: number; remainMax: number; highMin: number };
+  high: { regressMax: number; remainMax: number; advanceReadyMin: number };
+};
+
+const PHASE_OBSERVATION_CONFIG: Record<
+  PhaseLabel,
+  {
+    categories: ObservationCategory[];
+    interventions: string[];
+    thresholds: StabilityThresholds;
+    highGate: (selections: Record<string, string>) => boolean;
+  }
+> = {
+  Clarity: {
+    categories: [
+      {
+        key: "vocabulary_precision",
+        label: "A. Vocabulary Precision",
+        options: [
+          { label: "Correctly named key terms without help", score: 30 },
+          { label: "Named some terms but needed prompting", score: 20 },
+          { label: "Used vague language often", score: 10 },
+          { label: "Could not identify key terms", score: 0 },
+        ],
+      },
+      {
+        key: "method_recognition",
+        label: "B. Method Recognition",
+        options: [
+          { label: "Identified full method correctly", score: 30 },
+          { label: "Identified method partially", score: 18 },
+          { label: "Confused the method sequence", score: 8 },
+          { label: "Could not identify what to do", score: 0 },
+        ],
+      },
+      {
+        key: "reason_clarity",
+        label: "C. Reason Clarity",
+        options: [
+          { label: "Explained why the method works clearly", score: 20 },
+          { label: "Gave partial reason", score: 12 },
+          { label: "Knew steps but not why", score: 6 },
+          { label: "Could not explain why at all", score: 0 },
+        ],
+      },
+      {
+        key: "immediate_apply_response",
+        label: "D. Immediate Apply Response",
+        options: [
+          { label: "Repeated modeled process independently", score: 20 },
+          { label: "Repeated with minor prompting", score: 14 },
+          { label: "Repeated with heavy prompting", score: 6 },
+          { label: "Could not repeat after modeling", score: 0 },
+        ],
+      },
+    ],
+    interventions: [
+      "Re-modeled vocabulary",
+      "Re-modeled method",
+      "Re-modeled reason",
+      "Increased apply repetition",
+    ],
+    thresholds: {
+      low: { remainMax: 49, mediumMax: 69, highMin: 70 },
+      medium: { regressMax: 44, remainMax: 74, highMin: 75 },
+      high: { regressMax: 49, remainMax: 79, advanceReadyMin: 80 },
+    },
+    highGate: (selections) => !Object.values(selections).some((value) => {
+      if (!value) return true;
+      return value.toLowerCase().includes("could not") || value.toLowerCase().includes("0");
+    }),
+  },
+  "Structured Execution": {
+    categories: [
+      {
+        key: "start_behavior",
+        label: "A. Start Behavior",
+        options: [
+          { label: "Started immediately", score: 25 },
+          { label: "Delayed briefly but started alone", score: 18 },
+          { label: "Needed prompting to start", score: 8 },
+          { label: "Avoided / waited for help", score: 0 },
+        ],
+      },
+      {
+        key: "step_execution",
+        label: "B. Step Execution",
+        options: [
+          { label: "Followed all steps in correct order", score: 30 },
+          { label: "Minor step skips", score: 20 },
+          { label: "Frequent step skips", score: 8 },
+          { label: "Guessed instead of following steps", score: 0 },
+        ],
+      },
+      {
+        key: "repeatability",
+        label: "C. Repeatability Across Problems",
+        options: [
+          { label: "Consistent across all problems", score: 25 },
+          { label: "Mostly consistent", score: 18 },
+          { label: "Inconsistent from problem to problem", score: 8 },
+          { label: "Could not sustain method", score: 0 },
+        ],
+      },
+      {
+        key: "independence_level",
+        label: "D. Independence Level",
+        options: [
+          { label: "Executed without support", score: 20 },
+          { label: "Needed light reminders", score: 14 },
+          { label: "Needed repeated guidance", score: 6 },
+          { label: "Could not continue without being carried", score: 0 },
+        ],
+      },
+    ],
+    interventions: [
+      "Model -> Apply -> Guide loop",
+      "Corrected skipped step",
+      "Forced independent start",
+      "Re-modeled method",
+    ],
+    thresholds: {
+      low: { remainMax: 49, mediumMax: 69, highMin: 70 },
+      medium: { regressMax: 44, remainMax: 74, highMin: 75 },
+      high: { regressMax: 49, remainMax: 79, advanceReadyMin: 80 },
+    },
+    highGate: (selections) => {
+      const step = selections.step_execution || "";
+      const start = selections.start_behavior || "";
+      return !step.toLowerCase().includes("guessed") && !start.toLowerCase().includes("avoided");
+    },
+  },
+  "Controlled Discomfort": {
+    categories: [
+      {
+        key: "initial_boss_response",
+        label: "A. Initial Response to Boss Battle",
+        options: [
+          { label: "Calmly attempted", score: 30 },
+          { label: "Hesitated but attempted", score: 20 },
+          { label: "Froze before starting", score: 8 },
+          { label: "Asked for help immediately", score: 6 },
+          { label: "Rushed into random attempt", score: 5 },
+        ],
+      },
+      {
+        key: "first_step_control",
+        label: "B. First-Step Control",
+        options: [
+          { label: "Identified first step independently", score: 25 },
+          { label: "Identified first step after pause", score: 18 },
+          { label: "Needed prompting to identify first step", score: 8 },
+          { label: "Could not identify first step", score: 0 },
+        ],
+      },
+      {
+        key: "discomfort_tolerance",
+        label: "C. Discomfort Tolerance",
+        options: [
+          { label: "Stayed inside difficulty without collapse", score: 25 },
+          { label: "Showed tension but continued", score: 18 },
+          { label: "Broke structure under difficulty", score: 8 },
+          { label: "Avoided the problem", score: 0 },
+        ],
+      },
+      {
+        key: "rescue_dependence",
+        label: "D. Rescue Dependence",
+        options: [
+          { label: "Did not seek rescue", score: 20 },
+          { label: "Sought reassurance only", score: 14 },
+          { label: "Asked for help early", score: 6 },
+          { label: "Needed tutor to carry response", score: 0 },
+        ],
+      },
+    ],
+    interventions: [
+      "Introduced Boss Battle",
+      "Held 10-15 second pause",
+      "Guided first step only",
+      "Debriefed response pattern",
+    ],
+    thresholds: {
+      low: { remainMax: 49, mediumMax: 69, highMin: 70 },
+      medium: { regressMax: 44, remainMax: 74, highMin: 75 },
+      high: { regressMax: 49, remainMax: 79, advanceReadyMin: 80 },
+    },
+    highGate: (selections) => {
+      const initial = selections.initial_boss_response || "";
+      const firstStep = selections.first_step_control || "";
+      return !initial.toLowerCase().includes("froze") && !initial.toLowerCase().includes("avoid") && !firstStep.toLowerCase().includes("could not");
+    },
+  },
+  "Time Pressure Stability": {
+    categories: [
+      {
+        key: "start_under_time",
+        label: "A. Start Under Time",
+        options: [
+          { label: "Started calmly", score: 20 },
+          { label: "Slight delay but started", score: 14 },
+          { label: "Started with visible panic", score: 6 },
+          { label: "Froze under timer", score: 0 },
+        ],
+      },
+      {
+        key: "structure_under_time",
+        label: "B. Structure Under Time",
+        options: [
+          { label: "Maintained full method", score: 35 },
+          { label: "Minor loss of structure", score: 24 },
+          { label: "Frequent loss of steps", score: 10 },
+          { label: "Abandoned process", score: 0 },
+        ],
+      },
+      {
+        key: "pace_control",
+        label: "C. Pace Control",
+        options: [
+          { label: "Controlled pace", score: 20 },
+          { label: "Slight rush", score: 14 },
+          { label: "Significant rushing", score: 6 },
+          { label: "Panic-driven speed / shutdown", score: 0 },
+        ],
+      },
+      {
+        key: "completion_integrity",
+        label: "D. Completion Integrity",
+        options: [
+          { label: "Completed with structure", score: 25 },
+          { label: "Completed with instability", score: 16 },
+          { label: "Partial completion due to breakdown", score: 8 },
+          { label: "Could not complete due to collapse", score: 0 },
+        ],
+      },
+    ],
+    interventions: [
+      "Ran timed attempt",
+      "Debriefed process under pressure",
+      "Re-anchored structure",
+      "Reduced time intensity appropriately",
+    ],
+    thresholds: {
+      low: { remainMax: 49, mediumMax: 69, highMin: 70 },
+      medium: { regressMax: 44, remainMax: 74, highMin: 75 },
+      high: { regressMax: 49, remainMax: 79, advanceReadyMin: 80 },
+    },
+    highGate: (selections) => {
+      const structure = selections.structure_under_time || "";
+      const pace = selections.pace_control || "";
+      return structure.toLowerCase().includes("maintained") && pace.toLowerCase().includes("controlled");
+    },
+  },
 };
 
 interface StudentTopicConditioningDialogProps {
@@ -131,6 +380,62 @@ function sanitizeTopic(value?: string | null): string | null {
   if (!cleaned) return null;
   if (cleaned.toLowerCase() === "onboarding baseline diagnostic") return null;
   return cleaned;
+}
+
+function clamp(min: number, value: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+function stabilityToScore(stability: StabilityLabel): number {
+  if (stability === "High") return 3;
+  if (stability === "Medium") return 2;
+  return 1;
+}
+
+function scoreToStability(score: number): StabilityLabel {
+  if (score >= 3) return "High";
+  if (score === 2) return "Medium";
+  return "Low";
+}
+
+function deriveTransitionStatus(phase: PhaseLabel, stability: StabilityLabel, trend?: TopicTrend) {
+  const advanceTo = getNextActionData(phase, stability).advanceTo;
+  if (trend === "Regressing") return "Regressed" as const;
+  if (phase === "Time Pressure Stability" && stability === "High") return "Transfer Ready" as const;
+  if (stability === "High" && advanceTo) return "Ready to Advance" as const;
+  if (stability === "High") return "Maintain" as const;
+  if (stability === "Medium") return "Building" as const;
+  return "Reinforce" as const;
+}
+
+function interpretTopicState(phase: PhaseLabel, stability: StabilityLabel, trend?: TopicTrend) {
+  const nextAction = nextActionFor(phase, stability);
+  const rules = getNextActionData(phase, stability).rules;
+
+  const tutorMeaningByPhase: Record<PhaseLabel, string> = {
+    Clarity: "Student still needs foundational clarity before independent execution.",
+    "Structured Execution": "Student can begin but still needs consistency without tutor carry.",
+    "Controlled Discomfort": "Student executes, but destabilizes when challenge spikes.",
+    "Time Pressure Stability": "Student can solve, but urgency still tests structure retention.",
+  };
+
+  const parentMeaningByPhase: Record<PhaseLabel, string> = {
+    Clarity: "Your child is building core understanding before speed or pressure work.",
+    "Structured Execution": "Your child is becoming more consistent and independent with method.",
+    "Controlled Discomfort": "Your child is learning to stay composed when work becomes difficult.",
+    "Time Pressure Stability": "Your child is strengthening performance under time pressure.",
+  };
+
+  const transitionStatus = deriveTransitionStatus(phase, stability, trend);
+
+  return {
+    nextAction,
+    rules,
+    transitionStatus,
+    tutorMeaning: tutorMeaningByPhase[phase],
+    parentMeaning: parentMeaningByPhase[phase],
+    direction: `${nextAction}`,
+  };
 }
 
 function actionGuidanceFor(phase: PhaseLabel, stability: StabilityLabel): { doItems: string[]; avoidItems: string[] } {
@@ -210,16 +515,6 @@ function buildTopics(
     }
   >();
 
-  const validSeedTopic = sanitizeTopic(map?.topic) || sanitizeTopic(splitTopics(parentTopics)[0]) || null;
-  if (validSeedTopic) {
-    byTopic.set(validSeedTopic, {
-      history: [],
-      seeded: {
-        phase: normalizePhase(map?.entry_phase),
-        stability: normalizeStability(map?.stability),
-      },
-    });
-  }
 
   const persistedEntries = persistedTopicStates && typeof persistedTopicStates === "object"
     ? Object.values(persistedTopicStates)
@@ -340,6 +635,64 @@ export default function StudentTopicConditioningDialog({
   topicConditioning,
   persistedTopicStates,
 }: StudentTopicConditioningDialogProps) {
+  const queryClient = useQueryClient();
+  // Mutation to add topic
+  const addTopicMutation = useMutation({
+    mutationFn: async ({ topic, reason }: { topic: string; reason: string }) => {
+      const res = await apiRequest(
+        "POST",
+        `/api/tutor/students/${studentId}/topic-conditioning`,
+        { topic, reason }
+      );
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tutor/pod"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tutor/students", studentId, "workflow-state"] });
+    },
+  });
+  // Activation reasons for dropdown
+  const ACTIVATION_REASONS = [
+    "Observed breakdown in class",
+    "Parent reported struggle",
+    "Exam/test focus",
+    "School topic requirement",
+    "Other (enter note)"
+  ];
+
+  // State for Activate Topic dialog
+  const [activateDialogOpen, setActivateDialogOpen] = useState(false);
+  const [newTopic, setNewTopic] = useState("");
+  const [activationReason, setActivationReason] = useState("");
+  const [activationNote, setActivationNote] = useState("");
+  const [activateError, setActivateError] = useState("");
+
+  // Add topic handler
+  const handleActivateTopic = async () => {
+    if (!newTopic.trim()) {
+      setActivateError("Topic is required");
+      return;
+    }
+    if (!activationReason) {
+      setActivateError("Reason is required");
+      return;
+    }
+    const reason = activationReason === "Other (enter note)" ? activationNote.trim() : activationReason;
+    if (activationReason === "Other (enter note)" && !activationNote.trim()) {
+      setActivateError("Please enter a note for 'Other'");
+      return;
+    }
+    try {
+      await addTopicMutation.mutateAsync({ topic: newTopic.trim(), reason });
+      setActivateDialogOpen(false);
+      setNewTopic("");
+      setActivationReason("");
+      setActivationNote("");
+      setActivateError("");
+    } catch (err: any) {
+      setActivateError(err?.message || "Failed to activate topic");
+    }
+  };
   const { data: sessions } = useQuery<TutorSessionRecord[]>({
     queryKey: ["/api/tutor/sessions"],
     queryFn: getQueryFn({ on401: "throw" }),
@@ -361,7 +714,8 @@ export default function StudentTopicConditioningDialog({
   const [manualTopicField, setManualTopicField] = useState("");
   const [phaseObservedField, setPhaseObservedField] = useState("");
   const [stabilityObservedField, setStabilityObservedField] = useState("");
-  const [observationNotes, setObservationNotes] = useState("");
+  const [phaseSelections, setPhaseSelections] = useState<Record<string, string>>({});
+  const [interventionUsed, setInterventionUsed] = useState("");
   const [activeTab, setActiveTab] = useState("dashboard");
 
   useEffect(() => {
@@ -379,7 +733,8 @@ export default function StudentTopicConditioningDialog({
     setManualTopicField("");
     setPhaseObservedField(topics[0]?.phase || normalizePhase(topicConditioning?.entry_phase));
     setStabilityObservedField(topics[0]?.stability || normalizeStability(topicConditioning?.stability));
-    setObservationNotes("");
+    setPhaseSelections({});
+    setInterventionUsed("");
   }, [open, topics, parentTopics, topicConditioning]);
 
   const topicChoices = useMemo(() => {
@@ -408,11 +763,75 @@ export default function StudentTopicConditioningDialog({
   const selectedRow = topics.find((row) => row.topic === selectedTopic) || prioritizedTopics[0];
   const phaseIx = selectedRow ? phaseIndex(selectedRow.phase) : 0;
   const guidance = selectedRow
-    ? actionGuidanceFor(selectedRow.phase, selectedRow.stability)
-    : { doItems: [], avoidItems: [] };
+    ? actionGuidanceFor(selectedRow.phase, selectedRow.stability) : { doItems: [], avoidItems: [] };
   const effectiveTopicForLog = topics.length > 0
     ? activeTopicField || selectedRow?.topic || ""
     : sanitizeTopic(manualTopicField) || "";
+
+  const selectedInterpretation = selectedRow
+    ? interpretTopicState(selectedRow.phase, selectedRow.stability)
+    : null;
+
+  const observedPhase = (selectedRow?.phase || phaseObservedField || "Structured Execution") as PhaseLabel;
+  const previousStability = (selectedRow?.stability || stabilityObservedField || "Low") as StabilityLabel;
+  const phaseConfig = PHASE_OBSERVATION_CONFIG[observedPhase];
+
+  const sessionScore = clamp(
+    0,
+    phaseConfig.categories.reduce((sum, category) => {
+      const selectedLabel = phaseSelections[category.key];
+      const selectedOption = category.options.find((option) => option.label === selectedLabel);
+      return sum + (selectedOption?.score ?? 0);
+    }, 0),
+    100
+  );
+
+  const highGatePasses = phaseConfig.highGate(phaseSelections);
+
+  let projectedStability: StabilityLabel = previousStability;
+  let advanceReady = false;
+
+  if (previousStability === "Low") {
+    if (sessionScore <= phaseConfig.thresholds.low.remainMax) projectedStability = "Low";
+    else if (sessionScore <= phaseConfig.thresholds.low.mediumMax) projectedStability = "Medium";
+    else projectedStability = highGatePasses ? "High" : "Medium";
+  }
+
+  if (previousStability === "Medium") {
+    if (sessionScore <= phaseConfig.thresholds.medium.regressMax) projectedStability = "Low";
+    else if (sessionScore <= phaseConfig.thresholds.medium.remainMax) projectedStability = "Medium";
+    else projectedStability = "High";
+  }
+
+  if (previousStability === "High") {
+    if (sessionScore <= phaseConfig.thresholds.high.regressMax) projectedStability = "Medium";
+    else if (sessionScore <= phaseConfig.thresholds.high.remainMax) projectedStability = "High";
+    else {
+      projectedStability = "High";
+      advanceReady = true;
+    }
+  }
+
+  const nextPhase = getNextActionData(observedPhase, projectedStability).advanceTo;
+  const projectedPhase: PhaseLabel =
+    advanceReady && !!nextPhase
+      ? (nextPhase as PhaseLabel)
+      : observedPhase;
+
+  const phaseDecision: "remain" | "advance" | "regress" =
+    projectedPhase !== observedPhase
+      ? "advance"
+      : stabilityToScore(projectedStability) < stabilityToScore(previousStability)
+      ? "regress"
+      : "remain";
+
+  const projectedInterpretation = interpretTopicState(projectedPhase, projectedStability);
+  const livePreviewConstraint = projectedInterpretation.rules[0] || "Follow phase rules and preserve structure.";
+
+  const canSubmitStructuredRecord =
+    !!effectiveTopicForLog &&
+    phaseConfig.categories.every((category) => !!phaseSelections[category.key]) &&
+    !!interventionUsed;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -420,16 +839,16 @@ export default function StudentTopicConditioningDialog({
         <DialogHeader>
           <DialogTitle className="flex items-start gap-2 text-base sm:text-lg leading-tight pr-6 break-words">
             <Target className="w-4 h-4 shrink-0 mt-0.5" />
-            {studentName} Topic x Phase Dashboard
+            {studentName} Topic x Phase x Stability Dashboard
           </DialogTitle>
           <DialogDescription className="text-xs sm:text-sm leading-snug pr-6">
-            One glance = full understanding of the student. Semi-automatic recommendations require tutor approval before phase movement.
+            One glance = full understanding of the student. Clear direction.
           </DialogDescription>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full overflow-x-hidden">
           <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 h-auto rounded-xl border border-primary/15 bg-muted/20 p-1">
-            <TabsTrigger value="dashboard" className="h-auto whitespace-normal text-xs sm:text-sm py-2">Dashboard</TabsTrigger>
+            <TabsTrigger value="dashboard" className="h-auto whitespace-normal text-xs sm:text-sm py-2">Map</TabsTrigger>
             <TabsTrigger value="session-form" className="h-auto whitespace-normal text-xs sm:text-sm py-2">Topic Management</TabsTrigger>
           </TabsList>
 
@@ -448,21 +867,84 @@ export default function StudentTopicConditioningDialog({
                   No topic observations logged yet. Use Session Log Form to add Active Topic, Phase Observed, and Stability Observed.
                 </div>
               ) : (
-                <div className="space-y-3">
-                  <div className="space-y-3 md:hidden">
-                    {prioritizedTopics.map((row) => (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+                  {prioritizedTopics.map((row) => {
+                    const topicIntel = interpretTopicState(row.phase, row.stability, row.trend);
+                    return (
                       <button
-                        key={`mobile-map-${row.topic}`}
+                        key={`topic-card-${row.topic}`}
                         type="button"
-                        className={`w-full rounded-md border p-3 space-y-2 text-left transition-colors ${
-                          selectedRow?.topic === row.topic ? "border-primary bg-primary/5" : "hover:bg-muted/40"
+                        className={`w-full rounded-xl border p-4 text-left transition-colors space-y-3 ${
+                          selectedRow?.topic === row.topic
+                            ? "border-primary bg-primary/5"
+                            : "hover:bg-muted/40"
                         }`}
                         onClick={() => setSelectedTopic(row.topic)}
                       >
-                        <p className="font-medium break-words">{row.topic}</p>
-                        <p className="text-xs text-muted-foreground">Current Phase: {row.phase}</p>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">Stability:</span>
+                        <p className="text-base font-semibold break-words">{row.topic}</p>
+
+                        <p className="text-sm font-semibold text-foreground">
+                          {row.phase} · {row.stability} Stability
+                        </p>
+
+                        <div className="flex flex-wrap gap-1.5">
+                          {PHASES.map((phase) => {
+                            const stepIndex = phaseIndex(phase);
+                            const currentIndex = phaseIndex(row.phase);
+                            const done = stepIndex < currentIndex;
+                            const active = stepIndex === currentIndex;
+                            const label = done ? `✓ ${phase}` : active ? `ACTIVE ${phase}` : `Locked ${phase}`;
+                            return (
+                              <span
+                                key={`${row.topic}-${phase}`}
+                                className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-[0.06em] ${
+                                  done
+                                    ? "border-muted text-foreground/60 bg-muted/40"
+                                    : active
+                                    ? "border-primary/30 bg-primary/10 text-foreground"
+                                    : "border-muted text-muted-foreground bg-muted/20"
+                                }`}
+                              >
+                                {label}
+                              </span>
+                            );
+                          })}
+                        </div>
+
+                        <div className="space-y-1">
+                          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">State Progression Timeline</p>
+                          {(row.timeline || []).length > 0 ? (
+                            <div className="flex flex-wrap gap-1.5">
+                              {row.timeline.slice(-6).map((point) => (
+                                <span
+                                  key={`${row.topic}-${point.date}-${point.phase}`}
+                                  className="rounded-md border border-border/60 bg-muted/20 px-2 py-0.5 text-[11px] text-muted-foreground"
+                                >
+                                  {point.date} · {point.phase} · {point.stability}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">No timeline events yet.</p>
+                          )}
+                        </div>
+
+                        <p className="text-sm text-muted-foreground">
+                          <span className="font-medium text-foreground">Tutor Meaning:</span> {topicIntel.tutorMeaning}
+                        </p>
+
+                        <p className="text-sm text-foreground font-medium">
+                          Next Move: {topicIntel.nextAction}
+                        </p>
+
+                        <p className="text-sm text-muted-foreground">
+                          Constraint: {topicIntel.rules[0] || "Follow phase constraints"}
+                        </p>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant="outline" className="border-primary/20 bg-muted/20 text-foreground">
+                            {topicIntel.transitionStatus}
+                          </Badge>
                           <Badge className={stabilityTone(row.stability)}>
                             <span
                               className={`inline-block w-2 h-2 rounded-full mr-1.5 ${
@@ -476,53 +958,9 @@ export default function StudentTopicConditioningDialog({
                             {row.stability}
                           </Badge>
                         </div>
-                        <p className="text-xs text-muted-foreground">Last Updated: {row.lastSession}</p>
-                        <p className="text-xs"><span className="font-medium">Next Action:</span> {nextActionFor(row.phase, row.stability)}</p>
                       </button>
-                    ))}
-                  </div>
-
-                  <div className="hidden md:block">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Topic</TableHead>
-                          <TableHead>Current Phase</TableHead>
-                          <TableHead>Stability</TableHead>
-                          <TableHead>Last Updated</TableHead>
-                          <TableHead>Next Action</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {prioritizedTopics.map((row) => (
-                          <TableRow
-                            key={row.topic}
-                            className={`cursor-pointer ${selectedRow?.topic === row.topic ? "bg-primary/5" : "hover:bg-muted/30"}`}
-                            onClick={() => setSelectedTopic(row.topic)}
-                          >
-                            <TableCell className="font-medium">{row.topic}</TableCell>
-                            <TableCell>{row.phase}</TableCell>
-                            <TableCell>
-                              <Badge className={stabilityTone(row.stability)}>
-                                <span
-                                  className={`inline-block w-2 h-2 rounded-full mr-1.5 ${
-                                    row.stability === "High"
-                                      ? "bg-green-500"
-                                      : row.stability === "Medium"
-                                      ? "bg-amber-500"
-                                      : "bg-red-400"
-                                  }`}
-                                />
-                                {row.stability}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>{row.lastSession}</TableCell>
-                            <TableCell>{nextActionFor(row.phase, row.stability)}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
+                    );
+                  })}
                 </div>
               )}
             </Card>
@@ -708,6 +1146,11 @@ export default function StudentTopicConditioningDialog({
                     <p><span className="font-medium">Current Phase:</span> {selectedRow.phase}</p>
                     <p><span className="font-medium">Current Stability:</span> {selectedRow.stability}</p>
                     <p><span className="font-medium">Trend:</span> {selectedRow.trend}</p>
+                    <p><span className="font-medium">Transition Status:</span> {selectedInterpretation?.transitionStatus || "Reinforce"}</p>
+                    <p><span className="font-medium">Tutor Meaning:</span> {selectedInterpretation?.tutorMeaning}</p>
+                    <p><span className="font-medium">Parent Meaning:</span> {selectedInterpretation?.parentMeaning}</p>
+                    <p><span className="font-medium">Direction:</span> {selectedInterpretation?.direction}</p>
+                    <p><span className="font-medium">Constraint:</span> {selectedInterpretation?.rules[0] || "Follow phase constraints"}</p>
                     <p><span className="font-medium">Entry Diagnosis:</span> {selectedRow.entryDiagnosis}</p>
                   </div>
                   <div className="rounded-md border border-primary/30 bg-primary/5 p-3 space-y-2">
@@ -759,6 +1202,49 @@ export default function StudentTopicConditioningDialog({
           </TabsContent>
 
           <TabsContent value="session-form" className="space-y-4 sm:space-y-6">
+                        <div className="flex justify-end mb-2">
+                          <Button variant="outline" onClick={() => setActivateDialogOpen(true)}>
+                            Activate Topic
+                          </Button>
+                        </div>
+                        {/* Activate Topic Dialog */}
+                        <Dialog open={activateDialogOpen} onOpenChange={setActivateDialogOpen}>
+                          <DialogContent className="max-w-md">
+                            <DialogHeader>
+                              <DialogTitle>Activate New Topic</DialogTitle>
+                              <DialogDescription>
+                                Select a topic and provide a reason for activation. This will add the topic to the active list and log the reason.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-3 mt-2">
+                              <Input
+                                placeholder="Topic name (e.g. Linear equations)"
+                                value={newTopic}
+                                onChange={e => setNewTopic(e.target.value)}
+                              />
+                              <Select value={activationReason} onValueChange={setActivationReason}>
+                                <SelectTrigger className="w-full">{activationReason || "Select reason"}</SelectTrigger>
+                                <SelectContent>
+                                  {ACTIVATION_REASONS.map(r => (
+                                    <SelectItem key={r} value={r}>{r}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              {activationReason === "Other (enter note)" && (
+                                <Textarea
+                                  placeholder="Enter activation note"
+                                  value={activationNote}
+                                  onChange={e => setActivationNote(e.target.value)}
+                                />
+                              )}
+                              {activateError && <p className="text-xs text-red-500">{activateError}</p>}
+                              <div className="flex justify-end gap-2">
+                                <Button variant="ghost" onClick={() => setActivateDialogOpen(false)}>Cancel</Button>
+                                <Button onClick={handleActivateTopic}>Activate</Button>
+                              </div>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
             <Card className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 md:p-5 shadow-sm space-y-4">
               <h3 className="font-semibold">Topic Session Record</h3>
               <p className="text-sm text-muted-foreground">
@@ -829,48 +1315,76 @@ export default function StudentTopicConditioningDialog({
                 </div>
               )}
 
-              <div className="grid md:grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Phase Observed in Session</p>
-                  <Select value={phaseObservedField} onValueChange={setPhaseObservedField}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select observed phase" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PHASES.map((phase) => (
-                        <SelectItem key={`phase-${phase}`} value={phase}>{phase}</SelectItem>
+              <div className="grid md:grid-cols-3 gap-3">
+                <div className="rounded-md border bg-muted/20 p-3">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Current Phase</p>
+                  <p className="mt-1 text-sm font-medium text-foreground">{observedPhase}</p>
+                </div>
+                <div className="rounded-md border bg-muted/20 p-3">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Previous Stability</p>
+                  <p className="mt-1 text-sm font-medium text-foreground">{previousStability}</p>
+                </div>
+                <div className="rounded-md border bg-muted/20 p-3">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Transition Strictness</p>
+                  <p className="mt-1 text-sm font-medium text-foreground">Stability-aware</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <p className="text-sm font-medium">Phase-Specific Observation Block</p>
+
+                {phaseConfig.categories.map((category) => (
+                  <div key={category.key} className="space-y-2">
+                    <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">{category.label}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {category.options.map((option) => (
+                        <Button
+                          key={`${category.key}-${option.label}`}
+                          type="button"
+                          variant={phaseSelections[category.key] === option.label ? "default" : "outline"}
+                          size="sm"
+                          onClick={() =>
+                            setPhaseSelections((prev) => ({
+                              ...prev,
+                              [category.key]: option.label,
+                            }))
+                          }
+                        >
+                          {option.label}
+                        </Button>
                       ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                    </div>
+                  </div>
+                ))}
 
                 <div className="space-y-2">
-                  <p className="text-sm font-medium">Stability Observed in Session</p>
-                  <Select value={stabilityObservedField} onValueChange={setStabilityObservedField}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select observed stability" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Low">Low</SelectItem>
-                      <SelectItem value="Medium">Medium</SelectItem>
-                      <SelectItem value="High">High</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">E. Tutor Intervention Used</p>
+                  <div className="flex flex-wrap gap-2">
+                    {phaseConfig.interventions.map((option) => (
+                      <Button
+                        key={option}
+                        type="button"
+                        variant={interventionUsed === option ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setInterventionUsed(option)}
+                      >
+                        {option}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Source Evidence for Phase + Stability</p>
-                <Textarea
-                  value={observationNotes}
-                  onChange={(e) => setObservationNotes(e.target.value)}
-                  placeholder="Example: delayed start, guessed first attempt, stabilized after guided correction"
-                  className="min-h-[120px]"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Write the actual evidence that justified this phase and stability call. This is the cleanest bridge into later reporting.
-                </p>
-              </div>
+              <Card className="rounded-xl border border-primary/20 bg-muted/20 p-4 space-y-2">
+                <p className="text-sm font-semibold">Live Interpretation Preview</p>
+                <p className="text-sm text-muted-foreground">System Interpretation: {projectedInterpretation.tutorMeaning}</p>
+                <p className="text-sm text-muted-foreground">Decision: {phaseDecision.toUpperCase()} ({observedPhase} {"->"} {projectedPhase})</p>
+                <p className="text-sm text-muted-foreground">Updated Stability: {projectedStability}</p>
+                <p className="text-sm text-muted-foreground">Session Score: {sessionScore}</p>
+                <p className="text-sm text-muted-foreground">Next Move: {projectedInterpretation.nextAction}</p>
+                <p className="text-sm text-muted-foreground">Constraint: {livePreviewConstraint}</p>
+                <p className="text-sm text-muted-foreground">Parent Meaning: {projectedInterpretation.parentMeaning}</p>
+              </Card>
 
               <TutorSessionLogForm
                 studentOptions={[{ id: studentId, name: studentName }]}
@@ -878,17 +1392,49 @@ export default function StudentTopicConditioningDialog({
                 lockStudent
                 submitLabel="Save Topic Session Record"
                 topicState={
-                  effectiveTopicForLog && phaseObservedField && stabilityObservedField
+                  canSubmitStructuredRecord
                     ? {
                         topic: effectiveTopicForLog,
-                        phase: phaseObservedField,
-                        stability: stabilityObservedField,
-                        observationNotes,
+                        phase: projectedPhase,
+                        stability: projectedStability,
+                        observationNotes: [
+                          ...phaseConfig.categories.map(
+                            (category) => `${category.label}: ${phaseSelections[category.key] || "Not selected"}`
+                          ),
+                          `Intervention Used: ${interventionUsed}`,
+                          `Session Score: ${sessionScore}`,
+                          `Phase Decision: ${phaseDecision}`,
+                          `Constraint: ${livePreviewConstraint}`,
+                        ].join(" | "),
+                        structuredObservation: {
+                          observedPhase,
+                          previousStability,
+                          categories: phaseConfig.categories.map((category) => ({
+                            key: category.key,
+                            label: category.label,
+                            value: phaseSelections[category.key] || "Not selected",
+                          })),
+                          interventionUsed,
+                          sessionScore,
+                          phaseDecision,
+                          tutorExplanation: projectedInterpretation.tutorMeaning,
+                          parentMeaning: projectedInterpretation.parentMeaning,
+                          nextAction: projectedInterpretation.nextAction,
+                          constraint: livePreviewConstraint,
+                        },
                       }
                     : null
                 }
-                onSuccess={() => setObservationNotes("")}
+                onSuccess={() => {
+                  setPhaseSelections({});
+                  setInterventionUsed("");
+                }}
               />
+              {!canSubmitStructuredRecord ? (
+                <p className="text-xs text-muted-foreground">
+                  Complete all observation sections before saving this topic record.
+                </p>
+              ) : null}
             </Card>
           </TabsContent>
         </Tabs>

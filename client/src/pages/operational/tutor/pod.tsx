@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import "./pod.mobile.css";
 import { useIntroSessionStatus } from "@/hooks/useIntroSessionStatus";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
@@ -253,7 +254,7 @@ export default function TutorPod() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 tutor-pod-stats">
           <Card className="border-primary/15 bg-background shadow-sm">
             <div className="px-4 py-4 sm:px-5 sm:py-5">
               <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Sessions Done</p>
@@ -362,7 +363,7 @@ export default function TutorPod() {
               </div>
             </Card>
           ) : (
-            <div className="grid gap-5 xl:grid-cols-2 2xl:gap-6">
+            <div className="grid gap-5 xl:grid-cols-2 2xl:gap-6 tutor-pod-student-cards">
               {students.map((student: any) => (
                 <StudentCard
                   key={student.id}

@@ -1,14 +1,4 @@
-// Extend Express session type to include affiliateCode
-declare module 'express-session' {
-  interface SessionData {
-    affiliateCode?: string;
-  }
-}
-// ...existing imports...
-  // Debug: Test DB connectivity
-// ...existing imports...
-// ...existing imports...
-// Remove duplicate registerRoutes definition above. Only keep the one below.
+
 import type { Express, Request, Response } from "express";
 import { existsSync } from "fs";
 import { createServer, type Server } from "http";
@@ -32,6 +22,13 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 
+// Extend Express session type to include affiliateCode
+declare module 'express-session' {
+  interface SessionData {
+    affiliateCode?: string;
+  }
+}
+
 
 // Helper middleware to check user role
 const requireRole = (roles: string[]) => {
@@ -51,6 +48,35 @@ const requireRole = (roles: string[]) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
+    // Tutor: Activate a topic for a student
+    app.post("/api/tutor/students/:studentId/topic-conditioning", isAuthenticated, requireRole(["tutor"]), async (req: Request, res: Response) => {
+      try {
+        const { studentId } = req.params;
+        const { topic, reason } = req.body;
+        const tutorId = (req as any).dbUser?.id;
+        if (!studentId || !topic || !reason || !tutorId) {
+          return res.status(400).json({ message: "Missing required fields" });
+        }
+        const { data, error } = await supabase
+          .from("topic_conditioning_activations")
+          .insert({
+            student_id: studentId,
+            tutor_id: tutorId,
+            topic,
+            reason,
+          })
+          .select()
+          .single();
+        if (error) {
+          console.error("Error inserting topic activation:", error);
+          return res.status(500).json({ message: "Failed to activate topic" });
+        }
+        res.json({ activation: data });
+      } catch (err) {
+        console.error("Exception in topic activation:", err);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    });
   const getConfidenceScore = (confidenceLevel?: string | null) => {
     const confidenceLevelMap: Record<string, number> = {
       "very confident": 9,
@@ -1267,6 +1293,309 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  type TopicPhase = "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability";
+  type TopicStability = "Low" | "Medium" | "High";
+
+  const PHASE_ORDER: TopicPhase[] = [
+    "Clarity",
+    "Structured Execution",
+    "Controlled Discomfort",
+    "Time Pressure Stability",
+  ];
+
+  const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, { primaryAction: string; rules: string[]; advanceTo?: TopicPhase }>> = {
+    Clarity: {
+      Low: {
+        primaryAction: "Reinforce Vocabulary",
+        rules: ["No Boss Battles", "No time pressure", "No skipping layers"],
+      },
+      Medium: {
+        primaryAction: "Continue 3-Layer Lens",
+        rules: ["No time pressure", "Boss Battles not primary"],
+      },
+      High: {
+        primaryAction: "Transition to Structured Execution",
+        rules: ["Do not stay in teaching mode"],
+        advanceTo: "Structured Execution",
+      },
+    },
+    "Structured Execution": {
+      Low: {
+        primaryAction: "Run strict Model -> Apply -> Guide loops",
+        rules: ["No time pressure", "Boss Battles only if student can start"],
+      },
+      Medium: {
+        primaryAction: "Increase independent problem volume",
+        rules: ["Do not rush to time pressure"],
+      },
+      High: {
+        primaryAction: "Transition to Controlled Discomfort",
+        rules: ["Do not keep repeating basic problems"],
+        advanceTo: "Controlled Discomfort",
+      },
+    },
+    "Controlled Discomfort": {
+      Low: {
+        primaryAction: "Introduce Boss Battles carefully",
+        rules: ["No time pressure yet", "No rescuing"],
+      },
+      Medium: {
+        primaryAction: "Increase frequency of Boss Battles",
+        rules: ["Do not remove difficulty", "Do not over-guide"],
+      },
+      High: {
+        primaryAction: "Transition to Time Pressure Stability",
+        rules: ["Do not stay in comfort zone"],
+        advanceTo: "Time Pressure Stability",
+      },
+    },
+    "Time Pressure Stability": {
+      Low: {
+        primaryAction: "Introduce short timed problems",
+        rules: ["Do not push speed", "Do not increase time pressure aggressively"],
+      },
+      Medium: {
+        primaryAction: "Increase timed repetitions",
+        rules: ["Do not sacrifice structure for speed"],
+      },
+      High: {
+        primaryAction: "Maintain with mixed practice",
+        rules: ["Do not over-train the same pattern"],
+      },
+    },
+  };
+
+  const PARENT_MEANING_BY_PHASE: Record<TopicPhase, string> = {
+    Clarity: "Your child is building core understanding before speed or pressure work.",
+    "Structured Execution": "Your child is becoming more consistent and independent with method.",
+    "Controlled Discomfort": "Your child is learning to stay composed when work becomes difficult.",
+    "Time Pressure Stability": "Your child is strengthening performance under time pressure.",
+  };
+
+  const TUTOR_MEANING_BY_PHASE: Record<TopicPhase, string> = {
+    Clarity: "Student still needs foundational clarity before independent execution.",
+    "Structured Execution": "Student can begin but still needs consistency without tutor carry.",
+    "Controlled Discomfort": "Student executes, but destabilizes when challenge spikes.",
+    "Time Pressure Stability": "Student can solve, but urgency still tests structure retention.",
+  };
+
+  const OBSERVATION_SCORES: Record<TopicPhase, Record<string, Record<string, number>>> = {
+    Clarity: {
+      vocabulary_precision: {
+        "Correctly named key terms without help": 30,
+        "Named some terms but needed prompting": 20,
+        "Used vague language often": 10,
+        "Could not identify key terms": 0,
+      },
+      method_recognition: {
+        "Identified full method correctly": 30,
+        "Identified method partially": 18,
+        "Confused the method sequence": 8,
+        "Could not identify what to do": 0,
+      },
+      reason_clarity: {
+        "Explained why the method works clearly": 20,
+        "Gave partial reason": 12,
+        "Knew steps but not why": 6,
+        "Could not explain why at all": 0,
+      },
+      immediate_apply_response: {
+        "Repeated modeled process independently": 20,
+        "Repeated with minor prompting": 14,
+        "Repeated with heavy prompting": 6,
+        "Could not repeat after modeling": 0,
+      },
+    },
+    "Structured Execution": {
+      start_behavior: {
+        "Started immediately": 25,
+        "Delayed briefly but started alone": 18,
+        "Needed prompting to start": 8,
+        "Avoided / waited for help": 0,
+      },
+      step_execution: {
+        "Followed all steps in correct order": 30,
+        "Minor step skips": 20,
+        "Frequent step skips": 8,
+        "Guessed instead of following steps": 0,
+      },
+      repeatability: {
+        "Consistent across all problems": 25,
+        "Mostly consistent": 18,
+        "Inconsistent from problem to problem": 8,
+        "Could not sustain method": 0,
+      },
+      independence_level: {
+        "Executed without support": 20,
+        "Needed light reminders": 14,
+        "Needed repeated guidance": 6,
+        "Could not continue without being carried": 0,
+      },
+    },
+    "Controlled Discomfort": {
+      initial_boss_response: {
+        "Calmly attempted": 30,
+        "Hesitated but attempted": 20,
+        "Froze before starting": 8,
+        "Asked for help immediately": 6,
+        "Rushed into random attempt": 5,
+      },
+      first_step_control: {
+        "Identified first step independently": 25,
+        "Identified first step after pause": 18,
+        "Needed prompting to identify first step": 8,
+        "Could not identify first step": 0,
+      },
+      discomfort_tolerance: {
+        "Stayed inside difficulty without collapse": 25,
+        "Showed tension but continued": 18,
+        "Broke structure under difficulty": 8,
+        "Avoided the problem": 0,
+      },
+      rescue_dependence: {
+        "Did not seek rescue": 20,
+        "Sought reassurance only": 14,
+        "Asked for help early": 6,
+        "Needed tutor to carry response": 0,
+      },
+    },
+    "Time Pressure Stability": {
+      start_under_time: {
+        "Started calmly": 20,
+        "Slight delay but started": 14,
+        "Started with visible panic": 6,
+        "Froze under timer": 0,
+      },
+      structure_under_time: {
+        "Maintained full method": 35,
+        "Minor loss of structure": 24,
+        "Frequent loss of steps": 10,
+        "Abandoned process": 0,
+      },
+      pace_control: {
+        "Controlled pace": 20,
+        "Slight rush": 14,
+        "Significant rushing": 6,
+        "Panic-driven speed / shutdown": 0,
+      },
+      completion_integrity: {
+        "Completed with structure": 25,
+        "Completed with instability": 16,
+        "Partial completion due to breakdown": 8,
+        "Could not complete due to collapse": 0,
+      },
+    },
+  };
+
+  const STABILITY_THRESHOLDS = {
+    low: { remainMax: 49, mediumMax: 69, highMin: 70 },
+    medium: { regressMax: 44, remainMax: 74, highMin: 75 },
+    high: { regressMax: 49, remainMax: 79, advanceReadyMin: 80 },
+  };
+
+  const normalizePhase = (value: unknown): TopicPhase => {
+    const v = String(value || "").toLowerCase();
+    if (v.includes("clarity")) return "Clarity";
+    if (v.includes("structured")) return "Structured Execution";
+    if (v.includes("discomfort")) return "Controlled Discomfort";
+    if (v.includes("time") || v.includes("pressure")) return "Time Pressure Stability";
+    return "Structured Execution";
+  };
+
+  const normalizeStability = (value: unknown): TopicStability => {
+    const v = String(value || "").toLowerCase();
+    if (v.includes("high")) return "High";
+    if (v.includes("medium")) return "Medium";
+    return "Low";
+  };
+
+  const stabilityToScore = (stability: TopicStability) => (stability === "Low" ? 1 : stability === "Medium" ? 2 : 3);
+
+  const inferTopicStateFromObservation = (
+    observedPhase: TopicPhase,
+    previousStability: TopicStability,
+    categories: Array<{ key?: string; label?: string; value?: string }>
+  ) => {
+    const byKey = new Map<string, string>();
+    for (const entry of categories || []) {
+      const key = String(entry?.key || "").trim();
+      const value = String(entry?.value || "").trim();
+      if (key && value) byKey.set(key, value);
+    }
+
+    const scoreMap = OBSERVATION_SCORES[observedPhase] || {};
+    let sessionScore = 0;
+    Object.entries(scoreMap).forEach(([key, options]) => {
+      const selected = byKey.get(key) || "";
+      sessionScore += options[selected] ?? 0;
+    });
+    sessionScore = Math.max(0, Math.min(100, sessionScore));
+
+    let highGatePasses = true;
+    if (observedPhase === "Clarity") {
+      highGatePasses = [...byKey.values()].every((value) => !value.toLowerCase().includes("could not"));
+    }
+    if (observedPhase === "Structured Execution") {
+      const step = (byKey.get("step_execution") || "").toLowerCase();
+      const start = (byKey.get("start_behavior") || "").toLowerCase();
+      highGatePasses = !step.includes("guessed") && !start.includes("avoided");
+    }
+    if (observedPhase === "Controlled Discomfort") {
+      const initial = (byKey.get("initial_boss_response") || "").toLowerCase();
+      const firstStep = (byKey.get("first_step_control") || "").toLowerCase();
+      highGatePasses = !initial.includes("froze") && !initial.includes("avoid") && !firstStep.includes("could not");
+    }
+    if (observedPhase === "Time Pressure Stability") {
+      const structure = (byKey.get("structure_under_time") || "").toLowerCase();
+      const pace = (byKey.get("pace_control") || "").toLowerCase();
+      highGatePasses = structure.includes("maintained") && pace.includes("controlled");
+    }
+
+    let projectedStability: TopicStability = previousStability;
+    let advanceReady = false;
+
+    if (previousStability === "Low") {
+      if (sessionScore <= STABILITY_THRESHOLDS.low.remainMax) projectedStability = "Low";
+      else if (sessionScore <= STABILITY_THRESHOLDS.low.mediumMax) projectedStability = "Medium";
+      else projectedStability = highGatePasses ? "High" : "Medium";
+    }
+
+    if (previousStability === "Medium") {
+      if (sessionScore <= STABILITY_THRESHOLDS.medium.regressMax) projectedStability = "Low";
+      else if (sessionScore <= STABILITY_THRESHOLDS.medium.remainMax) projectedStability = "Medium";
+      else projectedStability = "High";
+    }
+
+    if (previousStability === "High") {
+      if (sessionScore <= STABILITY_THRESHOLDS.high.regressMax) projectedStability = "Medium";
+      else if (sessionScore <= STABILITY_THRESHOLDS.high.remainMax) projectedStability = "High";
+      else {
+        projectedStability = "High";
+        advanceReady = true;
+      }
+    }
+
+    const nextPhase = NEXT_ACTION_ENGINE[observedPhase]?.[projectedStability]?.advanceTo;
+    const projectedPhase: TopicPhase = advanceReady && nextPhase ? nextPhase : observedPhase;
+    const phaseDecision: "remain" | "advance" | "regress" =
+      projectedPhase !== observedPhase
+        ? "advance"
+        : stabilityToScore(projectedStability) < stabilityToScore(previousStability)
+        ? "regress"
+        : "remain";
+
+    return {
+      sessionScore,
+      phase: projectedPhase,
+      stability: projectedStability,
+      phaseDecision,
+      nextAction: NEXT_ACTION_ENGINE[projectedPhase][projectedStability].primaryAction,
+      constraint: NEXT_ACTION_ENGINE[projectedPhase][projectedStability].rules[0] || null,
+      tutorMeaning: TUTOR_MEANING_BY_PHASE[projectedPhase],
+      parentMeaning: PARENT_MEANING_BY_PHASE[projectedPhase],
+    };
+  };
+
   // Create session
   app.post(
     "/api/tutor/sessions",
@@ -1275,6 +1604,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: Request, res: Response) => {
       try {
         const tutorId = (req as any).dbUser.id;
+        let authoritativeTopicInference: any = null;
         // Parse and type the data
         const data = insertSessionSchema.parse({
           ...req.body,
@@ -1298,9 +1628,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             const topicStatePayload = req.body?.topicStatePayload;
             const topic = String(topicStatePayload?.topic || "").trim();
-            const phase = String(topicStatePayload?.phase || "").trim();
-            const stability = String(topicStatePayload?.stability || "").trim();
-            if (topic && phase && stability) {
+            if (topic) {
               const conceptMastery: any =
                 student.conceptMastery && typeof student.conceptMastery === "object"
                   ? { ...(student.conceptMastery as any) }
@@ -1316,23 +1644,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
               const nowIso = new Date(req.body?.date || new Date().toISOString()).toISOString();
               const existing = topicsStore[topic] && typeof topicsStore[topic] === "object" ? topicsStore[topic] : {};
+
+              const structuredObservation = topicStatePayload?.structuredObservation;
+              const observedPhase = normalizePhase(
+                structuredObservation?.observedPhase || existing?.phase || topicStatePayload?.phase
+              );
+              const previousStability = normalizeStability(
+                structuredObservation?.previousStability || existing?.stability || topicStatePayload?.stability
+              );
+
+              const inferred =
+                structuredObservation && Array.isArray(structuredObservation?.categories)
+                  ? inferTopicStateFromObservation(observedPhase, previousStability, structuredObservation.categories)
+                  : null;
+
+              const resolvedPhase = inferred?.phase || normalizePhase(topicStatePayload?.phase || existing?.phase);
+              const resolvedStability = inferred?.stability || normalizeStability(topicStatePayload?.stability || existing?.stability);
+              const resolvedNextAction =
+                inferred?.nextAction ||
+                String(topicStatePayload?.nextAction || req.body?.needsReinforcement || "").trim() ||
+                null;
+
+              const resolvedStructuredObservation =
+                structuredObservation && typeof structuredObservation === "object"
+                  ? {
+                      ...structuredObservation,
+                      sessionScore: inferred?.sessionScore ?? structuredObservation?.sessionScore ?? null,
+                      phaseDecision: inferred?.phaseDecision ?? structuredObservation?.phaseDecision ?? null,
+                      tutorExplanation:
+                        inferred?.tutorMeaning ?? structuredObservation?.tutorExplanation ?? null,
+                      parentMeaning:
+                        inferred?.parentMeaning ?? structuredObservation?.parentMeaning ?? null,
+                      nextAction: inferred?.nextAction ?? structuredObservation?.nextAction ?? null,
+                      constraint: inferred?.constraint ?? structuredObservation?.constraint ?? null,
+                    }
+                  : null;
+
               const history = Array.isArray(existing.history) ? [...existing.history] : [];
               history.push({
                 date: nowIso,
-                phase,
-                stability,
-                nextAction: String(topicStatePayload?.nextAction || req.body?.needsReinforcement || "").trim() || null,
+                phase: resolvedPhase,
+                stability: resolvedStability,
+                nextAction: resolvedNextAction,
                 observationNotes: String(topicStatePayload?.observationNotes || "").trim() || null,
+                structuredObservation: resolvedStructuredObservation,
                 sessionId: session.id,
               });
 
               topicsStore[topic] = {
                 topic,
-                phase,
-                stability,
+                phase: resolvedPhase,
+                stability: resolvedStability,
                 lastUpdated: nowIso,
-                nextAction: String(topicStatePayload?.nextAction || req.body?.needsReinforcement || "").trim() || null,
+                nextAction: resolvedNextAction,
                 observationNotes: String(topicStatePayload?.observationNotes || "").trim() || null,
+                structuredObservation: resolvedStructuredObservation,
                 history: history.slice(-60),
               };
 
@@ -1341,11 +1707,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
               topicConditioningStore.lastUpdatedAt = nowIso;
               conceptMastery.topicConditioning = topicConditioningStore;
 
+              authoritativeTopicInference = {
+                topic,
+                observedPhase,
+                previousStability,
+                phase: resolvedPhase,
+                stability: resolvedStability,
+                nextAction: resolvedNextAction,
+                phaseDecision: inferred?.phaseDecision || null,
+                sessionScore: inferred?.sessionScore ?? null,
+                constraint: inferred?.constraint || null,
+                tutorMeaning: inferred?.tutorMeaning || null,
+                parentMeaning: inferred?.parentMeaning || null,
+              };
+
               await storage.updateStudent(studentId, { conceptMastery });
             }
           }
         }
-        res.json(session);
+        res.json({
+          ...session,
+          topicInference: authoritativeTopicInference,
+        });
       } catch (error) {
         console.error("Error creating session:", error);
         res.status(400).json({ message: "Failed to create session" });

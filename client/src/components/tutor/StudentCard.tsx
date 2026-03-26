@@ -177,7 +177,7 @@ export function StudentCard({
   const workflowLabel = getWorkflowLabel(workflow);
 
   return (
-    <div className="relative rounded-2xl border border-black/25 bg-background p-5 shadow-sm transition-shadow hover:shadow-md sm:p-6">
+    <div className="relative rounded-2xl border border-black/25 bg-background p-5 shadow-sm transition-shadow hover:shadow-md sm:p-6 tutor-pod-student-card">
       <div className="pointer-events-none absolute inset-0">
         <span className="absolute left-3 top-3 h-3 w-3 border-l border-t border-black/55" />
         <span className="absolute right-3 top-3 h-3 w-3 border-r border-t border-black/55" />
@@ -460,38 +460,9 @@ export function StudentCard({
                   setTrackingDialogOpen(true);
                 }}
               >
-                Tracking Systems
-              </Button>
-              <Button
-                className="w-full sm:col-span-2"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSelectedStudentId(student.id);
-                  setSelectedStudentName(student.name);
-                  setAssignmentsDialogOpen(true);
-                }}
-              >
-                Assignments
+                View Tracking Systems
               </Button>
             </div>
-          </div>
-        )}
-
-        {workflow?.assignmentAccepted && workflow?.proposalAccepted && (
-          <div className="pt-4 border-t border-border/60 space-y-2">
-            <Button
-              className="w-full"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setSelectedStudentId(student.id);
-                setSelectedStudentName(student.name);
-                setReportsDialogOpen(true);
-              }}
-            >
-              Reports
-            </Button>
           </div>
         )}
       </div>

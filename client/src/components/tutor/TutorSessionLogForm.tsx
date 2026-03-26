@@ -28,6 +28,18 @@ type TopicStatePrefill = {
   phase: string;
   stability: string;
   observationNotes?: string;
+  structuredObservation?: {
+    observedPhase: string;
+    previousStability: string;
+    categories: Array<{ key: string; label: string; value: string }>;
+    interventionUsed: string;
+    sessionScore: number;
+    phaseDecision: "remain" | "advance" | "regress";
+    tutorExplanation: string;
+    parentMeaning: string;
+    nextAction: string;
+    constraint: string;
+  };
 };
 
 type SessionFormData = {
@@ -105,6 +117,7 @@ export default function TutorSessionLogForm({
   onSuccess,
 }: TutorSessionLogFormProps) {
   const { toast } = useToast();
+  const compactTopicMode = !!topicState?.structuredObservation;
   const [formData, setFormData] = useState<SessionFormData>(initialFormData(defaultStudentId || ""));
   const [hasBossBattles, setHasBossBattles] = useState(false);
   const [assignPractice, setAssignPractice] = useState(false);
@@ -153,24 +166,56 @@ export default function TutorSessionLogForm({
           ? rawNotes
           : "";
 
-      await apiRequest("POST", "/api/tutor/sessions", {
+      const structuredObservation = topicState?.structuredObservation;
+      const structuredSummary = structuredObservation
+        ? [
+            "Structured Topic Observation",
+            ...structuredObservation.categories.map((entry) => `${entry.label}: ${entry.value}`),
+            `Intervention Used: ${structuredObservation.interventionUsed}`,
+            `Session Score: ${structuredObservation.sessionScore}`,
+            `Phase Decision: ${structuredObservation.phaseDecision}`,
+            `Tutor Explanation: ${structuredObservation.tutorExplanation}`,
+            `Parent Meaning: ${structuredObservation.parentMeaning}`,
+            `Constraint: ${structuredObservation.constraint}`,
+          ].join("\n")
+        : null;
+
+      const response = await apiRequest("POST", "/api/tutor/sessions", {
         studentId: data.studentId,
         duration,
-        notes: [effectiveFreeNotes, topicSummary].filter(Boolean).join("\n\n") || null,
+        notes: [effectiveFreeNotes, topicSummary, structuredSummary].filter(Boolean).join("\n\n") || null,
         solutionPurpose: data.solutionPurpose.trim() || (topicState ? `Topic conditioning for ${topicState.topic}` : null),
         vocabularyNotes: data.vocabularyNotes.trim() || null,
         methodNotes: [data.methodNotes.trim(), topicState ? `Active Topic: ${topicState.topic}` : null].filter(Boolean).join("\n") || null,
         reasonNotes: data.reasonNotes.trim() || null,
         studentResponse: [
           topicState ? `Phase: ${topicState.phase} | Stability: ${topicState.stability}` : null,
+          structuredObservation
+            ? structuredObservation.categories.map((entry) => `${entry.label}: ${entry.value}`).join(" | ")
+            : null,
           data.studentResponse.trim(),
         ].filter(Boolean).join("\n") || null,
         tutorGrowthReflection: data.tutorGrowthReflection.trim() || null,
         bossBattlesDone: data.bossBattlesDone.trim() || null,
         practiceProblems: data.practiceProblems.trim() || null,
-        whatMisunderstood: data.whatMisunderstood.trim() || null,
-        correctionHelped: data.correctionHelped.trim() || null,
-        needsReinforcement: data.needsReinforcement.trim() || (topicState ? nextActionFor(topicState.phase, topicState.stability) : null),
+        whatMisunderstood:
+          data.whatMisunderstood.trim() ||
+          (structuredObservation
+            ? structuredObservation.categories
+                .filter((entry) => /breakdown|reason|method|structure|pace/i.test(entry.label))
+                .map((entry) => `${entry.label}: ${entry.value}`)
+                .join("; ")
+            : null),
+        correctionHelped:
+          data.correctionHelped.trim() ||
+          (structuredObservation ? structuredObservation.interventionUsed : null),
+        needsReinforcement:
+          data.needsReinforcement.trim() ||
+          (structuredObservation
+            ? structuredObservation.nextAction
+            : topicState
+            ? nextActionFor(topicState.phase, topicState.stability)
+            : null),
         techChallengeDescription: data.techChallengeDescription.trim() || null,
         techChallengeResolution: data.techChallengeResolution.trim() || null,
         topicStatePayload: topicState
@@ -180,21 +225,32 @@ export default function TutorSessionLogForm({
               stability: topicState.stability,
               observationNotes: topicState.observationNotes?.trim() || null,
               nextAction: nextActionFor(topicState.phase, topicState.stability),
+              structuredObservation: topicState.structuredObservation || null,
             }
           : null,
         date: new Date().toISOString(),
       });
+
+      return await response.json();
     },
-    onSuccess: () => {
+    onSuccess: (result: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/tutor/sessions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tutor/pod"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tutor/students"] });
       if (formData.studentId) {
         queryClient.invalidateQueries({ queryKey: [`/api/tutor/students/${formData.studentId}/reports-center`] });
       }
+
+      const inference = result?.topicInference;
+      const authoritativeSummary = inference
+        ? `Server confirmed ${inference.topic}: ${inference.phase} | ${inference.stability}${
+            inference.phaseDecision ? ` | ${String(inference.phaseDecision).toUpperCase()}` : ""
+          }`
+        : "Your session has been recorded successfully.";
+
       toast({
         title: "Session logged",
-        description: "Your session has been recorded successfully.",
+        description: authoritativeSummary,
       });
       setFormData(initialFormData(defaultStudentId || ""));
       setHasBossBattles(false);
@@ -289,6 +345,29 @@ export default function TutorSessionLogForm({
         />
       </div>
 
+      {compactTopicMode && topicState?.structuredObservation ? (
+        <Card className="p-4 space-y-3 border-primary/20 bg-muted/20">
+          <p className="text-sm font-semibold">Live Interpretation Preview</p>
+          <p className="text-sm text-muted-foreground">
+            Score: {topicState.structuredObservation.sessionScore} | Decision: {topicState.structuredObservation.phaseDecision}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Next action: {topicState.structuredObservation.nextAction}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Constraint: {topicState.structuredObservation.constraint}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Tutor explanation: {topicState.structuredObservation.tutorExplanation}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Parent meaning: {topicState.structuredObservation.parentMeaning}
+          </p>
+        </Card>
+      ) : null}
+
+      {!compactTopicMode ? (
+        <>
       <div className="space-y-2">
         <Label htmlFor="notes">Session Notes {topicState ? "(optional context)" : ""}</Label>
         <Textarea
@@ -448,6 +527,8 @@ export default function TutorSessionLogForm({
           <Textarea value={formData.practiceProblems} onChange={(e) => setFormData({ ...formData, practiceProblems: e.target.value })} rows={2} />
         )}
       </div>
+        </>
+      ) : null}
 
       <div className="space-y-2">
         <Button type="submit" disabled={createSession.isPending || !isSessionFormValid}>

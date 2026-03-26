@@ -1,0 +1,31 @@
+/* Mobile responsiveness for Tutor Pod page */
+
+@media (max-width: 640px) {
+  /* Remove horizontal swiping, force vertical stacking */
+  .tutor-pod-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .tutor-pod-stats > * {
+    width: 100%;
+    min-width: 0;
+  }
+  .tutor-pod-student-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .tutor-pod-student-cards > * {
+    width: 100%;
+    min-width: 0;
+  }
+  /* Ensure no stats are in a lit/row form */
+  .tutor-pod-stats {
+    flex-direction: column !important;
+  }
+  /* Card paddings for mobile */
+  .tutor-pod-card, .tutor-pod-student-card {
+    padding: 1rem !important;
+  }
+}
