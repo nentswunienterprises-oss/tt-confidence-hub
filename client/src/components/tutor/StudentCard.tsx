@@ -204,17 +204,15 @@ export function StudentCard({
                 </div>
               </div>
             </div>
-            <div className="flex flex-col items-start mt-2">
-              <div className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground text-left pl-0 sm:pl-0 w-full" style={{paddingLeft: 0}}>
-                {student.grade || "Grade pending"}
-              </div>
-              {student.parentInfo && (
-                <div className="mt-2 rounded-xl border border-border/60 bg-muted/20 px-3 py-2 text-sm text-left w-full" style={{paddingLeft: 0}}>
-                  <p className="text-muted-foreground">Parent: <span className="font-medium text-foreground">{student.parentInfo.parent_full_name}</span></p>
-                  <p className="text-xs text-muted-foreground mt-0.5 break-all">{student.parentInfo.parent_email}</p>
-                </div>
-              )}
+            <div className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground mt-1">
+              {student.grade || "Grade pending"}
             </div>
+            {student.parentInfo && (
+              <div className="mt-3 rounded-xl border border-border/60 bg-muted/20 px-3 py-2 text-sm">
+                <p className="text-muted-foreground">Parent: <span className="font-medium text-foreground">{student.parentInfo.parent_full_name}</span></p>
+                <p className="text-xs text-muted-foreground mt-0.5 break-all">{student.parentInfo.parent_email}</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
