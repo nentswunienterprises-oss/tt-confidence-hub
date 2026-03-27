@@ -1,8 +1,15 @@
+
+
+  // ...existing code...
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+// import { useQuery } from "@tanstack/react-query";
+import { buildTopics } from "./topicUtils";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { useStudentWorkflowState, useMarkIntroCompleted, useRespondToAssignment } from "@/hooks/useStudentWorkflowState";
 import { TutorIntroSessionActions } from "./TutorIntroSessionActions";
 
@@ -99,6 +106,9 @@ export function StudentCard({
   setTopicConditioningDialogOpen,
   setReportsDialogOpen,
 }) {
+  // ...existing code...
+  // State for assignment modal
+  const [assignmentModalOpen, setAssignmentModalOpen] = useState(false);
   const sessionProgress = student.sessionProgress || 0;
   // Determine onboarding type (pilot or commercial) from parentInfo if available
   const onboardingType = student.parentInfo?.onboarding_type || 'commercial';
@@ -118,24 +128,54 @@ export function StudentCard({
   const { data: workflow, isLoading: workflowLoading } = useStudentWorkflowState(student.id);
   const markIntroCompleted = useMarkIntroCompleted(student.id);
   const respondToAssignment = useRespondToAssignment(student.id);
-  const [assignmentModalOpen, setAssignmentModalOpen] = useState(false);
 
-  const explicitReportedTopics = (Array.isArray(student.parentInfo?.reported_topics) ? student.parentInfo.reported_topics : [])
-    .filter(Boolean)
-    .map((topic) => String(topic).trim())
-    .filter(Boolean);
-  const fallbackReportedTopics = splitReportedTopics(student.parentInfo?.math_struggle_areas);
-  const reportedTopics = explicitReportedTopics.length > 0 ? explicitReportedTopics : fallbackReportedTopics;
-
-  const inferredSymptoms = inferReportedSymptoms({
-    struggleAreas: student.parentInfo?.math_struggle_areas,
-    parentMotivation: student.parentInfo?.parent_motivation,
+  // Fetch topic activations for this student (must be at the top of the function body)
+  const { data: activationsData } = useQuery({
+    queryKey: ["/api/tutor/students", student.id, "topic-conditioning-activations"],
+    queryFn: async () => {
+      const res = await apiRequest(
+        "GET",
+        `/api/tutor/students/${student.id}/topic-conditioning-activations`
+      );
+      return res.json();
+    },
+    enabled: !!student.id,
   });
+
   const reportedSymptoms =
     (Array.isArray(student.parentInfo?.response_symptoms) ? student.parentInfo.response_symptoms : []).filter(Boolean)
       .map((symptom) => String(symptom).trim())
       .filter(Boolean);
   const symptomSignals = reportedSymptoms.length > 0 ? reportedSymptoms : inferredSymptoms;
+
+
+  // Derive reportedTopics from all possible parent fields
+  let reportedTopics: string[] = [];
+  // 1. response_topics (legacy string)
+  if (student.parentInfo?.response_topics) {
+    reportedTopics = reportedTopics.concat(splitReportedTopics(student.parentInfo.response_topics));
+  }
+  // 2. reported_topics (array)
+  if (Array.isArray(student.parentInfo?.reported_topics)) {
+    reportedTopics = reportedTopics.concat(student.parentInfo.reported_topics.map(String));
+  }
+  // 3. math_struggle_areas (string)
+  if (student.parentInfo?.math_struggle_areas) {
+    reportedTopics = reportedTopics.concat(splitReportedTopics(student.parentInfo.math_struggle_areas));
+  }
+  // 4. struggleAreas (legacy string)
+  if (student.struggleAreas) {
+    reportedTopics = reportedTopics.concat(splitReportedTopics(student.struggleAreas));
+  }
+  // 5. Add topics from topicConditioning if present
+  if (student.topicConditioning && typeof student.topicConditioning === 'object') {
+    const conditioningTopics = Object.values(student.topicConditioning?.topics || {})
+      .map((t: any) => t?.topic)
+      .filter(Boolean);
+    reportedTopics = reportedTopics.concat(conditioningTopics);
+  }
+  // Deduplicate and clean
+  reportedTopics = Array.from(new Set(reportedTopics.map(t => String(t).trim()).filter(Boolean)));
 
   const suggestedTopic = reportedTopics[0] || "Current class topic with highest friction";
   const suggestedSymptoms = symptomSignals.slice(0, 2);
@@ -148,25 +188,83 @@ export function StudentCard({
       ? (student as any).conceptMastery.topicConditioning.topics
       : {};
 
-  // Find the most-recently-updated topic entry from session logs
-  const latestPersistedEntry = Object.values(persistedTopics)
+  // Merge activations with persisted topics
+  const activationTopics = useMemo(() => {
+    if (!activationsData?.activations) return [];
+    const seen = new Set();
+    return activationsData.activations.filter((a) => {
+      if (!a.topic) return false;
+      const t = String(a.topic).trim();
+      if (seen.has(t)) return false;
+      seen.add(t);
+      return true;
+    }).map((a) => ({ topic: a.topic, activatedAt: a.created_at }));
+  }, [activationsData]);
+
+  // True if there are any persisted topics
+  const hasPersistedTopics = Object.keys(persistedTopics).length > 0;
+
+  // Fetch all sessions for this student
+  const { data: allSessions } = useQuery({
+    queryKey: ["/api/tutor/sessions"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/tutor/sessions");
+      return res.json();
+    },
+    enabled: !!student.id,
+  });
+
+  // Filter sessions for this student
+  const studentSessions = useMemo(
+    () => (allSessions || []).filter((session) => session.studentId === student.id),
+    [allSessions, student.id]
+  );
+
+  // Build topic list using shared buildTopics utility for accurate phase/stability, then merge in activation topics
+  const allTopics = useMemo(() => {
+    const baseTopics = buildTopics(
+      reportedTopics.join(", ") || null,
+      student.topicConditioning || null,
+      persistedTopics,
+      studentSessions
+    );
+    const baseTopicNames = new Set(baseTopics.map(t => t.topic));
+    const merged = [...baseTopics];
+    activationTopics.forEach(({ topic, activatedAt }) => {
+      if (!baseTopicNames.has(topic)) {
+        merged.push({
+          topic,
+          phase: "Clarity",
+          stability: "Low",
+          lastSession: activatedAt ? formatRelativeTime(new Date(activatedAt)) : "Activated",
+          trend: "Stable",
+          entryDiagnosis: "Activated by tutor.",
+          recentLogs: [],
+          timeline: [],
+        });
+      }
+    });
+    return merged;
+  }, [persistedTopics, student.topicConditioning, reportedTopics, studentSessions, activationTopics]);
+
+  // Pick the most recently updated topic for display
+  const latestEntry = allTopics
     .filter((entry: any) => entry?.topic && entry?.lastUpdated)
     .sort((a: any, b: any) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime())[0] as any | undefined;
 
-  const hasPersistedTopics = !!latestPersistedEntry;
-
-  const displayTopic = (hasPersistedTopics
-    ? normalizeTopicLabel(latestPersistedEntry.topic)
+  const hasTopics = !!latestEntry;
+  const displayTopic = (hasTopics
+    ? normalizeTopicLabel(latestEntry.topic)
     : normalizeTopicLabel(topicConditioning?.topic)) || reportedTopics[0] || "Current class topic";
-  const displayPhase = (hasPersistedTopics
-    ? normalizePhaseLabel(latestPersistedEntry.phase)
+  const displayPhase = (hasTopics
+    ? normalizePhaseLabel(latestEntry.phase)
     : normalizePhaseLabel(topicConditioning?.entry_phase)) || "Structured Execution";
-  const displayStability = (hasPersistedTopics
-    ? normalizeStabilityLabel(latestPersistedEntry.stability)
+  const displayStability = (hasTopics
+    ? normalizeStabilityLabel(latestEntry.stability)
     : normalizeStabilityLabel(topicConditioning?.stability)) || "Low";
 
-  const topicConditioningLastUpdatedRaw = hasPersistedTopics
-    ? latestPersistedEntry.lastUpdated
+  const topicConditioningLastUpdatedRaw = hasTopics
+    ? latestEntry.lastUpdated
     : topicConditioning?.lastUpdated || topicConditioning?.last_updated || null;
   const topicConditioningLastUpdated = topicConditioningLastUpdatedRaw
     ? new Date(topicConditioningLastUpdatedRaw)
@@ -233,28 +331,61 @@ export function StudentCard({
             <p className="text-xs text-muted-foreground">
               {Math.max(0, progressTotal - sessionProgress)} sessions remaining
             </p>
+            {allTopics.length > 0 && (
+              <div className="mt-3">
+                <div className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground mb-1">Active Topics</div>
+                <div className="flex flex-wrap gap-2">
+                  {allTopics.map((topic) => (
+                    <div key={topic.topic} className="rounded-lg border border-primary/20 bg-muted/30 px-3 py-1 flex flex-row items-center gap-2">
+                      <span className="font-semibold text-foreground text-xs">{topic.topic}</span>
+                      <span className="text-xs text-muted-foreground">|</span>
+                      <span className="text-xs text-foreground">{topic.phase}</span>
+                      <span className="text-xs text-muted-foreground">|</span>
+                      <span className="text-xs px-2 py-0.5 rounded-full border border-primary/20 bg-muted/40 text-foreground">{topic.stability}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* --- END TOPIC SUMMARY ROW --- */}
           </div>
         )}
 
         {workflowLoading && <p className="text-xs text-muted-foreground">Loading workflow...</p>}
 
         {(topicConditioning || hasPersistedTopics || reportedTopics.length > 0) && (
-          <div className="pt-4 border-t border-border/60 space-y-3">
+          <>
+
+            <div className="pt-4 border-t border-border/60 space-y-3">
             <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Topic Conditioning</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="rounded-xl border border-primary/20 bg-muted/20 px-4 py-3">
-                <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Topic</p>
-                <p className="mt-2 text-sm font-medium text-foreground break-words">{displayTopic}</p>
+            {allTopics.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {allTopics.map((topic) => (
+                  <div key={topic.topic} className="rounded-xl border border-primary/20 bg-muted/20 px-4 py-3">
+                    <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{topic.topic}</p>
+                    <div className="flex flex-row items-center gap-2 mt-2">
+                      <span className="text-sm font-medium text-foreground">{normalizePhaseLabel(topic.phase)}</span>
+                      <span className="text-xs px-2 py-0.5 rounded-full border border-primary/20 bg-muted/40 text-foreground">{normalizeStabilityLabel(topic.stability)}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="rounded-xl border border-primary/20 bg-muted/20 px-4 py-3">
-                <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Topic Phase</p>
-                <p className="mt-2 text-sm font-medium text-foreground break-words">{displayPhase}</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="rounded-xl border border-primary/20 bg-muted/20 px-4 py-3">
+                  <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Topic</p>
+                  <p className="mt-2 text-sm font-medium text-foreground break-words">{displayTopic}</p>
+                </div>
+                <div className="rounded-xl border border-primary/20 bg-muted/20 px-4 py-3">
+                  <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Topic Phase</p>
+                  <p className="mt-2 text-sm font-medium text-foreground break-words">{displayPhase}</p>
+                </div>
+                <div className="rounded-xl border border-primary/20 bg-muted/20 px-4 py-3">
+                  <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Stability</p>
+                  <p className="mt-2 text-sm font-medium text-foreground">{displayStability}</p>
+                </div>
               </div>
-              <div className="rounded-xl border border-primary/20 bg-muted/20 px-4 py-3">
-                <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Stability</p>
-                <p className="mt-2 text-sm font-medium text-foreground">{displayStability}</p>
-              </div>
-            </div>
+            )}
             {hasTopicConditioningTimestamp && (
               <p
                 className="text-xs text-muted-foreground"
@@ -264,6 +395,7 @@ export function StudentCard({
               </p>
             )}
           </div>
+          </>
         )}
 
         {workflow && !workflow.introCompleted && student.parentInfo && (

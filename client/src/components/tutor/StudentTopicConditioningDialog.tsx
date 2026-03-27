@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useQuery } from "@tanstack/react-query";
+
 import {
   Dialog,
   DialogContent,
@@ -359,7 +359,7 @@ function splitTopics(raw?: string | null): string[] {
     .filter(Boolean);
 }
 
-function normalizePhase(value?: string | null): PhaseLabel {
+export function normalizePhase(value?: string | null): PhaseLabel {
   const v = String(value || "").toLowerCase();
   if (v.includes("clarity")) return "Clarity";
   if (v.includes("structured")) return "Structured Execution";
@@ -368,14 +368,14 @@ function normalizePhase(value?: string | null): PhaseLabel {
   return "Structured Execution";
 }
 
-function normalizeStability(value?: string | null): StabilityLabel {
+export function normalizeStability(value?: string | null): StabilityLabel {
   const v = String(value || "").toLowerCase();
   if (v.includes("high")) return "High";
   if (v.includes("medium")) return "Medium";
   return "Low";
 }
 
-function sanitizeTopic(value?: string | null): string | null {
+export function sanitizeTopic(value?: string | null): string | null {
   const cleaned = String(value || "").trim();
   if (!cleaned) return null;
   if (cleaned.toLowerCase() === "onboarding baseline diagnostic") return null;
@@ -455,7 +455,7 @@ function stabilityTone(stability: StabilityLabel): string {
   return "bg-red-50 text-red-600 border-red-200";
 }
 
-function parseObservation(session: TutorSessionRecord): {
+export function parseObservation(session: TutorSessionRecord): {
   topic: string;
   phase: PhaseLabel;
   stability: StabilityLabel;
@@ -490,7 +490,7 @@ function parseObservation(session: TutorSessionRecord): {
   };
 }
 
-function formatLastUpdatedLabel(dateText?: string): string {
+export function formatLastUpdatedLabel(dateText?: string): string {
   if (!dateText) return "Not updated";
   const date = new Date(dateText);
   if (Number.isNaN(date.getTime())) return "Not updated";
@@ -615,6 +615,7 @@ function buildTopics(
 
   return rows.sort((a, b) => a.topic.localeCompare(b.topic));
 }
+export { trendFromHistory };
 const phaseDefinition: Record<PhaseLabel, string> = {
   Clarity:
     "Student cannot yet see the topic clearly. Vocabulary, recognition, steps, or reasoning are still unstable.",
@@ -635,10 +636,23 @@ export default function StudentTopicConditioningDialog({
   topicConditioning,
   persistedTopicStates,
 }: StudentTopicConditioningDialogProps) {
+  // Fetch topic activations for this student (must be inside component to access studentId)
+  const { data: activationsData, refetch: refetchActivations } = useQuery({
+    queryKey: ["/api/tutor/students", studentId, "topic-conditioning-activations"],
+    queryFn: async () => {
+      const res = await apiRequest(
+        "GET",
+        `/api/tutor/students/${studentId}/topic-conditioning-activations`
+      );
+      return res.json();
+    },
+    enabled: !!studentId,
+  });
   const queryClient = useQueryClient();
   // Mutation to add topic
   const addTopicMutation = useMutation({
     mutationFn: async ({ topic, reason }: { topic: string; reason: string }) => {
+
       const res = await apiRequest(
         "POST",
         `/api/tutor/students/${studentId}/topic-conditioning`,
@@ -677,20 +691,28 @@ export default function StudentTopicConditioningDialog({
       setActivateError("Reason is required");
       return;
     }
-    const reason = activationReason === "Other (enter note)" ? activationNote.trim() : activationReason;
+    const activationReasonFinal = activationReason === "Other (enter note)" ? activationNote.trim() : activationReason;
     if (activationReason === "Other (enter note)" && !activationNote.trim()) {
       setActivateError("Please enter a note for 'Other'");
       return;
     }
     try {
-      await addTopicMutation.mutateAsync({ topic: newTopic.trim(), reason });
+      await addTopicMutation.mutateAsync({ topic: newTopic.trim(), reason: activationReasonFinal });
+      await refetchActivations();
       setActivateDialogOpen(false);
       setNewTopic("");
       setActivationReason("");
       setActivationNote("");
       setActivateError("");
     } catch (err: any) {
-      setActivateError(err?.message || "Failed to activate topic");
+      if (err instanceof Error) {
+        setActivateError(err.message);
+      } else if (typeof err === "string") {
+        setActivateError(err);
+      } else {
+        setActivateError("Failed to activate topic (unknown error)");
+      }
+      alert("Topic activation failed: " + (err?.message || JSON.stringify(err)));
     }
   };
   const { data: sessions } = useQuery<TutorSessionRecord[]>({
@@ -704,9 +726,44 @@ export default function StudentTopicConditioningDialog({
     [sessions, studentId],
   );
 
+  // Merge activations into the topic list
+  const activationTopics = useMemo(() => {
+    if (!activationsData?.activations) return [];
+    // Only include unique topic names
+    const seen = new Set<string>();
+    return activationsData.activations.filter((a: any) => {
+      if (!a.topic) return false;
+      const t = String(a.topic).trim();
+      if (seen.has(t)) return false;
+      seen.add(t);
+      return true;
+    }).map((a: any) => ({ topic: a.topic, activatedAt: a.created_at }));
+  }, [activationsData]);
+
   const topics = useMemo(
-    () => buildTopics(parentTopics, topicConditioning, persistedTopicStates, studentSessions),
-    [parentTopics, topicConditioning, persistedTopicStates, studentSessions],
+    () => {
+      // Build the normal topics
+      const baseTopics = buildTopics(parentTopics, topicConditioning, persistedTopicStates, studentSessions);
+      // Add any activation topics not already present
+      const baseTopicNames = new Set(baseTopics.map(t => t.topic));
+      const merged = [...baseTopics];
+      activationTopics.forEach(({ topic, activatedAt }) => {
+        if (!baseTopicNames.has(topic)) {
+          merged.push({
+            topic,
+            phase: "Clarity",
+            stability: "Low",
+            lastSession: activatedAt ? formatLastUpdatedLabel(activatedAt) : "Activated",
+            trend: "Stable",
+            entryDiagnosis: "Activated by tutor.",
+            recentLogs: [],
+            timeline: [],
+          });
+        }
+      });
+      return merged;
+    },
+    [parentTopics, topicConditioning, persistedTopicStates, studentSessions, activationTopics],
   );
   const [selectedTopic, setSelectedTopic] = useState<string>(topics[0]?.topic || "");
 
@@ -731,11 +788,22 @@ export default function StudentTopicConditioningDialog({
     setActiveTab("dashboard");
     setActiveTopicField(firstTopic);
     setManualTopicField("");
-    setPhaseObservedField(topics[0]?.phase || normalizePhase(topicConditioning?.entry_phase));
-    setStabilityObservedField(topics[0]?.stability || normalizeStability(topicConditioning?.stability));
     setPhaseSelections({});
     setInterventionUsed("");
+    // Set phase and stability fields to match first topic
+    setPhaseObservedField(topics[0]?.phase || normalizePhase(topicConditioning?.entry_phase));
+    setStabilityObservedField(topics[0]?.stability || normalizeStability(topicConditioning?.stability));
   }, [open, topics, parentTopics, topicConditioning]);
+
+  // When selectedTopic changes, sync phase and stability fields
+  useEffect(() => {
+    // Always update phase/stability fields when selectedTopic or topics change
+    const found = topics.find((t) => t.topic === selectedTopic);
+    if (found) {
+      setPhaseObservedField(found.phase);
+      setStabilityObservedField(found.stability);
+    }
+  }, [selectedTopic, topics]);
 
   const topicChoices = useMemo(() => {
     const fromCards = topics.map((t) => t.topic);
@@ -772,9 +840,10 @@ export default function StudentTopicConditioningDialog({
     ? interpretTopicState(selectedRow.phase, selectedRow.stability)
     : null;
 
-  const observedPhase = (selectedRow?.phase || phaseObservedField || "Structured Execution") as PhaseLabel;
-  const previousStability = (selectedRow?.stability || stabilityObservedField || "Low") as StabilityLabel;
-  const phaseConfig = PHASE_OBSERVATION_CONFIG[observedPhase];
+  // Always use selectedRow for observedPhase and previousStability, fallback to safe defaults
+  const observedPhase = (selectedRow && selectedRow.phase ? selectedRow.phase : "Clarity") as PhaseLabel;
+  const previousStability = (selectedRow && selectedRow.stability ? selectedRow.stability : "Low") as StabilityLabel;
+  const phaseConfig = PHASE_OBSERVATION_CONFIG[observedPhase] || PHASE_OBSERVATION_CONFIG["Clarity"];
 
   const sessionScore = clamp(
     0,
@@ -854,6 +923,7 @@ export default function StudentTopicConditioningDialog({
 
           <TabsContent value="dashboard" className="space-y-4 sm:space-y-6 overflow-x-hidden">
             <Card className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 md:p-5 shadow-sm space-y-3">
+
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <h3 className="font-semibold">Active Conditioning Map</h3>
                 <Badge variant="outline" className="w-full sm:w-fit max-w-full break-all">Student ID: {studentId || "-"}</Badge>
@@ -965,11 +1035,8 @@ export default function StudentTopicConditioningDialog({
               )}
             </Card>
 
-            <Card className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 md:p-5 shadow-sm space-y-4">
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="font-semibold">Tutor Priority Queue</h3>
-                <p className="text-xs text-muted-foreground">Decision-first snapshot</p>
-              </div>
+            <Card className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 md:p-5 shadow-sm space-y-3">
+                {/* ...existing code... */}
               <div className="grid gap-3 sm:grid-cols-3">
                 <div className="rounded-md border bg-muted/20 p-3">
                   <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Topics Tracked</p>
@@ -1202,6 +1269,29 @@ export default function StudentTopicConditioningDialog({
           </TabsContent>
 
           <TabsContent value="session-form" className="space-y-4 sm:space-y-6">
+            {/* Topic selector for session log */}
+            <div className="mb-3">
+              <label className="block text-xs font-semibold mb-1 text-muted-foreground">Select Topic to Log</label>
+              <select
+                className="border rounded px-2 py-1 text-sm"
+                value={activeTopicField || selectedTopic}
+                onChange={e => {
+                  const topic = e.target.value;
+                  setActiveTopicField(topic);
+                  setSelectedTopic(topic);
+                  // Find topic details and update phase/stability fields
+                  const found = topics.find(t => t.topic === topic);
+                  if (found) {
+                    setPhaseObservedField(found.phase);
+                    setStabilityObservedField(found.stability);
+                  }
+                }}
+              >
+                {topics.map(t => (
+                  <option key={t.topic} value={t.topic}>{t.topic}</option>
+                ))}
+              </select>
+            </div>
                         <div className="flex justify-end mb-2">
                           <Button variant="outline" onClick={() => setActivateDialogOpen(true)}>
                             Activate Topic
@@ -1245,26 +1335,8 @@ export default function StudentTopicConditioningDialog({
                             </div>
                           </DialogContent>
                         </Dialog>
-            <Card className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 md:p-5 shadow-sm space-y-4">
-              <h3 className="font-semibold">Topic Session Record</h3>
-              <p className="text-sm text-muted-foreground">
-                Each session record should lock three things first: the topic worked, the phase observed, and the stability observed. Weekly and monthly reports should be written from this evidence.
-              </p>
 
-              <div className="grid gap-3 md:grid-cols-3">
-                <div className="rounded-md border bg-muted/20 p-3">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">1. Topic</p>
-                  <p className="mt-1 text-sm text-foreground">What exact topic did this session train?</p>
-                </div>
-                <div className="rounded-md border bg-muted/20 p-3">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">2. Phase + Stability</p>
-                  <p className="mt-1 text-sm text-foreground">What phase was observed, and how stable was the student inside that phase?</p>
-                </div>
-                <div className="rounded-md border bg-muted/20 p-3">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">3. Session Evidence</p>
-                  <p className="mt-1 text-sm text-foreground">What breakdown, intervention, and next reinforcement should feed reports later?</p>
-                </div>
-              </div>
+            <Card className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 md:p-5 shadow-sm space-y-4">
 
               {topicChoices.length > 0 && (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">

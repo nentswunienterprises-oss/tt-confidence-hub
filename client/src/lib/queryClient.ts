@@ -74,6 +74,9 @@ export async function apiRequest(
   data?: unknown | undefined,
 ): Promise<Response> {
   const fullUrl = API_URL + url;
+  if (method === 'POST') {
+    console.log('[apiRequest][POST] url:', fullUrl, 'data:', data);
+  }
   console.log("[apiRequest] method:", method, "url:", fullUrl, "credentials: include");
   const res = await fetch(fullUrl, {
     method,

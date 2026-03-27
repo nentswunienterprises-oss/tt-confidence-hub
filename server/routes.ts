@@ -48,6 +48,28 @@ const requireRole = (roles: string[]) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
+        // Tutor: Get all topic activations for a student
+        app.get("/api/tutor/students/:studentId/topic-conditioning-activations", isAuthenticated, requireRole(["tutor"]), async (req: Request, res: Response) => {
+          try {
+            const { studentId } = req.params;
+            if (!studentId) {
+              return res.status(400).json({ message: "Missing studentId" });
+            }
+            const { data, error } = await supabase
+              .from("topic_conditioning_activations")
+              .select("id, student_id, tutor_id, topic, reason, created_at")
+              .eq("student_id", studentId)
+              .order("created_at", { ascending: false });
+            if (error) {
+              console.error("Error fetching topic activations:", error);
+              return res.status(500).json({ message: "Failed to fetch topic activations" });
+            }
+            res.json({ activations: data });
+          } catch (err) {
+            console.error("Exception in topic activations fetch:", err);
+            res.status(500).json({ message: "Internal server error" });
+          }
+        });
     // Tutor: Activate a topic for a student
     app.post("/api/tutor/students/:studentId/topic-conditioning", isAuthenticated, requireRole(["tutor"]), async (req: Request, res: Response) => {
       try {

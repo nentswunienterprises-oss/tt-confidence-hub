@@ -34,8 +34,12 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+
 // Session configuration is handled by setupAuth() in supabaseAuth.ts
 // DO NOT add session middleware here - it will conflict with the one in setupAuth()
+
+// Handle all OPTIONS preflight requests globally to ensure CORS headers are sent
+app.options('*', cors());
 
 declare module 'http' {
   interface IncomingMessage {
