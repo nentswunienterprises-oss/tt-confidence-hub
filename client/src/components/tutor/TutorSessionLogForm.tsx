@@ -290,6 +290,17 @@ export default function TutorSessionLogForm({
       toast({ title: "Validation Error", description: "Duration must be between 30 and 240 minutes.", variant: "destructive" });
       return;
     }
+    // ENFORCE: topicState must have topic, phase, and stability
+    if (topicState) {
+      if (!topicState.topic || !topicState.phase || !topicState.stability) {
+        toast({
+          title: "Validation Error",
+          description: "Topic, phase, and stability are required for observation logs. Please ensure all are set before submitting.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
     createSession.mutate(formData);
   };
 

@@ -795,15 +795,35 @@ export default function StudentTopicConditioningDialog({
     setStabilityObservedField(topics[0]?.stability || normalizeStability(topicConditioning?.stability));
   }, [open, topics, parentTopics, topicConditioning]);
 
-  // When selectedTopic changes, sync phase and stability fields
+  // When selectedTopic changes (Map tab), sync phase and stability fields
   useEffect(() => {
-    // Always update phase/stability fields when selectedTopic or topics change
     const found = topics.find((t) => t.topic === selectedTopic);
     if (found) {
       setPhaseObservedField(found.phase);
       setStabilityObservedField(found.stability);
     }
   }, [selectedTopic, topics]);
+
+  // When activeTopicField changes (Topic Management tab), sync phase and stability fields
+  useEffect(() => {
+    if (!activeTopicField) return;
+    const found = topics.find((t) => t.topic === activeTopicField);
+    if (found) {
+      setPhaseObservedField(found.phase);
+      setStabilityObservedField(found.stability);
+    }
+  }, [activeTopicField, topics]);
+
+  // Always use activeTopicField as the source of truth for Topic Management tab
+  // When switching to session-form tab, ensure activeTopicField is set and in sync
+  useEffect(() => {
+    if (activeTab === "session-form") {
+      // If no topic is selected, default to first topic
+      if (!activeTopicField && topics.length > 0) {
+        setActiveTopicField(topics[0].topic);
+      }
+    }
+  }, [activeTab, activeTopicField, topics]);
 
   const topicChoices = useMemo(() => {
     const fromCards = topics.map((t) => t.topic);
@@ -1274,17 +1294,11 @@ export default function StudentTopicConditioningDialog({
               <label className="block text-xs font-semibold mb-1 text-muted-foreground">Select Topic to Log</label>
               <select
                 className="border rounded px-2 py-1 text-sm"
-                value={activeTopicField || selectedTopic}
+                value={activeTopicField || topics[0]?.topic || ""}
                 onChange={e => {
                   const topic = e.target.value;
                   setActiveTopicField(topic);
-                  setSelectedTopic(topic);
-                  // Find topic details and update phase/stability fields
-                  const found = topics.find(t => t.topic === topic);
-                  if (found) {
-                    setPhaseObservedField(found.phase);
-                    setStabilityObservedField(found.stability);
-                  }
+                  // phase/stability fields now sync via useEffect
                 }}
               >
                 {topics.map(t => (
@@ -1348,11 +1362,7 @@ export default function StudentTopicConditioningDialog({
                       }`}
                       onClick={() => {
                         setActiveTopicField(topic);
-                        const row = topics.find((t) => t.topic === topic);
-                        if (row) {
-                          setPhaseObservedField(row.phase);
-                          setStabilityObservedField(row.stability);
-                        }
+                        // phase/stability fields now sync via useEffect
                       }}
                     >
                       <p className="font-medium">{topic}</p>
@@ -1370,7 +1380,7 @@ export default function StudentTopicConditioningDialog({
               {topics.length > 0 ? (
                 <div className="rounded-md border bg-muted/20 p-3 text-sm">
                   <p className="font-medium text-foreground">Selected Topic</p>
-                  <p className="text-muted-foreground mt-1 break-words">{effectiveTopicForLog || "Select a topic card above"}</p>
+                  <p className="text-muted-foreground mt-1 break-words">{activeTopicField || "Select a topic card above"}</p>
                   <p className="mt-2 text-xs text-muted-foreground">
                     This session record will update the topic conditioning map and become source evidence for weekly and monthly reports.
                   </p>
@@ -1390,11 +1400,11 @@ export default function StudentTopicConditioningDialog({
               <div className="grid md:grid-cols-3 gap-3">
                 <div className="rounded-md border bg-muted/20 p-3">
                   <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Current Phase</p>
-                  <p className="mt-1 text-sm font-medium text-foreground">{observedPhase}</p>
+                  <p className="mt-1 text-sm font-medium text-foreground">{topics.find(t => t.topic === activeTopicField)?.phase || "-"}</p>
                 </div>
                 <div className="rounded-md border bg-muted/20 p-3">
                   <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Previous Stability</p>
-                  <p className="mt-1 text-sm font-medium text-foreground">{previousStability}</p>
+                  <p className="mt-1 text-sm font-medium text-foreground">{topics.find(t => t.topic === activeTopicField)?.stability || "-"}</p>
                 </div>
                 <div className="rounded-md border bg-muted/20 p-3">
                   <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Transition Strictness</p>
@@ -1405,7 +1415,10 @@ export default function StudentTopicConditioningDialog({
               <div className="space-y-4">
                 <p className="text-sm font-medium">Phase-Specific Observation Block</p>
 
-                {phaseConfig.categories.map((category) => (
+                {(topics.find(t => t.topic === activeTopicField)
+                  ? PHASE_OBSERVATION_CONFIG[topics.find(t => t.topic === activeTopicField)!.phase as PhaseLabel] || PHASE_OBSERVATION_CONFIG["Clarity"]
+                  : phaseConfig
+                ).categories.map((category) => (
                   <div key={category.key} className="space-y-2">
                     <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">{category.label}</p>
                     <div className="flex flex-wrap gap-2">
