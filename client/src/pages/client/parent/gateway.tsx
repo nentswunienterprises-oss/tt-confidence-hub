@@ -938,11 +938,17 @@ export default function ParentGateway() {
                       <p className="font-medium text-red-900 mb-4">Schedule your introductory session</p>
                       <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
                         <DialogTrigger asChild>
-                          <Button 
-                            style={{backgroundColor: '#E63946', color: 'white'}} 
-                            className="w-full" 
-                            disabled={enrollmentStatus?.status !== "assigned"}
-                            title={enrollmentStatus?.status !== "assigned" ? "You must be assigned a tutor before booking a session." : undefined}
+                          <Button
+                            style={{ backgroundColor: '#E63946', color: 'white' }}
+                            className="w-full"
+                            disabled={enrollmentStatus?.status !== "assigned" || introSessionConfirmation?.status === "awaiting_tutor_acceptance"}
+                            title={
+                              enrollmentStatus?.status !== "assigned"
+                                ? "You must be assigned a tutor before booking a session."
+                                : introSessionConfirmation?.status === "awaiting_tutor_acceptance"
+                                  ? "Tutor must accept assignment before booking."
+                                  : undefined
+                            }
                           >
                             Book Introductory Session
                           </Button>
@@ -982,9 +988,9 @@ export default function ParentGateway() {
                                 className="mt-1"
                               />
                             </div>
-                            <Button 
-                              onClick={handleProposeIntroSession} 
-                              disabled={isSubmittingSession || enrollmentStatus?.status !== "assigned"}
+                            <Button
+                              onClick={handleProposeIntroSession}
+                              disabled={isSubmittingSession || enrollmentStatus?.status !== "assigned" || introSessionConfirmation?.status === "awaiting_tutor_acceptance"}
                               className="w-full"
                             >
                               {isSubmittingSession ? "Proposing..." : "Propose Time"}
@@ -994,6 +1000,9 @@ export default function ParentGateway() {
                       </Dialog>
                       {enrollmentStatus?.status !== "assigned" && (
                         <p className="text-xs text-red-700 mt-2">You must be assigned a tutor before booking a session.</p>
+                      )}
+                      {introSessionConfirmation?.status === "awaiting_tutor_acceptance" && (
+                        <p className="text-xs text-red-700 mt-2">Your tutor must accept the assignment before you can book an intro session.</p>
                       )}
                     </div>
                   )}
