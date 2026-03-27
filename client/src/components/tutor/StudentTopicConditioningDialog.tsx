@@ -419,11 +419,12 @@ function interpretTopicState(phase: PhaseLabel, stability: StabilityLabel, trend
     "Time Pressure Stability": "Student can solve, but urgency still tests structure retention.",
   };
 
+  // Use 'Their child...' phrasing for parent UI (Map view)
   const parentMeaningByPhase: Record<PhaseLabel, string> = {
-    Clarity: "Your child is building core understanding before speed or pressure work.",
-    "Structured Execution": "Your child is becoming more consistent and independent with method.",
-    "Controlled Discomfort": "Your child is learning to stay composed when work becomes difficult.",
-    "Time Pressure Stability": "Your child is strengthening performance under time pressure.",
+    Clarity: "Their child is building core understanding before speed or pressure work.",
+    "Structured Execution": "Their child is becoming more consistent and independent with method.",
+    "Controlled Discomfort": "Their child is learning to stay composed when work becomes difficult.",
+    "Time Pressure Stability": "Their child is strengthening performance under time pressure.",
   };
 
   const transitionStatus = deriveTransitionStatus(phase, stability, trend);
@@ -580,18 +581,17 @@ function buildTopics(
     const stability = latest?.stability || entry.seeded?.stability || "Low";
     const lastSessionDate = latest?.date;
 
+    const stabilityLabels = [
+      "Last session",
+      "2nd last session",
+      "3rd last session"
+    ];
     const recentLogs = history
       .slice(-3)
       .reverse()
       .map((h, index) => {
-        const noteLine = h.note
-          .split(/\n+/)
-          .find((line) => /Observation Notes:/i.test(line))
-          ?.replace(/Observation Notes:\s*/i, "")
-          .trim();
-        return noteLine && noteLine.length > 0
-          ? `Session ${index + 1}: ${noteLine}`
-          : `Session ${index + 1}: ${h.phase}, ${h.stability} stability observed`;
+        const label = stabilityLabels[index] || `Session ${index + 1}`;
+        return `${label}: ${h.stability} stability`;
       });
 
     rows.push({
@@ -618,13 +618,29 @@ function buildTopics(
 export { trendFromHistory };
 const phaseDefinition: Record<PhaseLabel, string> = {
   Clarity:
-    "Student cannot yet see the topic clearly. Vocabulary, recognition, steps, or reasoning are still unstable.",
+    [
+      "Description: The student learns to see the topic clearly. This means: naming the correct terms (Vocabulary), recognizing the problem type, knowing the steps (Method), knowing why the steps work (Reason).",
+      "Tool: Teach 3-Layer Lens.",
+      "Question: Can the student clearly see what they are dealing with in this topic? If no, this topic starts at Clarity."
+    ].join("\n\n"),
   "Structured Execution":
-    "Student understands enough to begin, but cannot yet execute reliably without being carried.",
+    [
+      "Description: The student must now execute inside the topic. This means: starting without delay, following steps in order, reducing guessing, repeating the method reliably.",
+      "Tool: Use Model → Apply → Guide, 3-Layer Lens correction.",
+      "Question: Can the student act reliably in this topic without being carried? If no, this topic sits in Structured Execution."
+    ].join("\n\n"),
   "Controlled Discomfort":
-    "Student can execute the topic, but difficulty spikes still destabilize response. Boss Battles belong here.",
+    [
+      "Description: Now difficulty is introduced inside the topic. This means: harder questions, unfamiliar forms, no rescue, first-step guidance only.",
+      "Tool: Boss Battles.",
+      "Question: Can the student stay stable in this topic when certainty disappears? If no, this topic sits in Controlled Discomfort."
+    ].join("\n\n"),
   "Time Pressure Stability":
-    "Student can handle the topic, but time pressure still tests whether structure survives urgency. Timed execution belongs here.",
+    [
+      "Description: Now the same topic is tested under time. This means: timed attempts, process under pressure, structure maintained under urgency.",
+      "Tool: Timed Execution.",
+      "Question: Can the student stay structured in this topic when time pressure appears? If no, this topic stays in Time Pressure Stability."
+    ].join("\n\n"),
 };
 
 export default function StudentTopicConditioningDialog({
@@ -771,6 +787,8 @@ export default function StudentTopicConditioningDialog({
   const [manualTopicField, setManualTopicField] = useState("");
   const [phaseObservedField, setPhaseObservedField] = useState("");
   const [stabilityObservedField, setStabilityObservedField] = useState("");
+  // Persist in-progress selections per topic/phase for better UX
+  const [phaseSelectionsMap, setPhaseSelectionsMap] = useState<Record<string, Record<string, string>>>({});
   const [phaseSelections, setPhaseSelections] = useState<Record<string, string>>({});
   const [interventionUsed, setInterventionUsed] = useState("");
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -811,6 +829,9 @@ export default function StudentTopicConditioningDialog({
     if (found) {
       setPhaseObservedField(found.phase);
       setStabilityObservedField(found.stability);
+      // Reset phaseSelections to last in-progress for this topic/phase, or empty
+      const phaseKey = `${found.topic}::${found.phase}`;
+      setPhaseSelections(phaseSelectionsMap[phaseKey] || {});
     }
   }, [activeTopicField, topics]);
 
@@ -907,33 +928,44 @@ export default function StudentTopicConditioningDialog({
       ? (nextPhase as PhaseLabel)
       : observedPhase;
 
-  const phaseDecision: "remain" | "advance" | "regress" =
-    projectedPhase !== observedPhase
-      ? "advance"
-      : stabilityToScore(projectedStability) < stabilityToScore(previousStability)
-      ? "regress"
-      : "remain";
+  let phaseDecision: "remain" | "advance" | "regress" | "improve" = "remain";
+  if (projectedPhase !== observedPhase) {
+    phaseDecision = "advance";
+  } else if (observedPhase === "Clarity") {
+    // For Clarity, never show regress, show improve/remain only
+    if (stabilityToScore(projectedStability) > stabilityToScore(previousStability)) {
+      phaseDecision = "improve";
+    } else if (stabilityToScore(projectedStability) < stabilityToScore(previousStability)) {
+      phaseDecision = "remain"; // Never regress in Clarity
+    } else {
+      phaseDecision = "remain";
+    }
+  } else {
+    if (stabilityToScore(projectedStability) < stabilityToScore(previousStability)) {
+      phaseDecision = "regress";
+    } else if (stabilityToScore(projectedStability) > stabilityToScore(previousStability)) {
+      phaseDecision = "improve";
+    } else {
+      phaseDecision = "remain";
+    }
+  }
 
   const projectedInterpretation = interpretTopicState(projectedPhase, projectedStability);
   const livePreviewConstraint = projectedInterpretation.rules[0] || "Follow phase rules and preserve structure.";
 
+  // Block submission if any observation category is missing or mismatched for the current phase
+  const foundTopic = topics.find(t => t.topic === activeTopicField);
+  const phaseForValidation = foundTopic?.phase && PHASE_OBSERVATION_CONFIG[foundTopic.phase as PhaseLabel] ? foundTopic.phase as PhaseLabel : "Clarity";
+  const configForValidation = PHASE_OBSERVATION_CONFIG[phaseForValidation];
   const canSubmitStructuredRecord =
     !!effectiveTopicForLog &&
-    phaseConfig.categories.every((category) => !!phaseSelections[category.key]) &&
+    configForValidation.categories.every((category) => !!phaseSelections[category.key] && configForValidation.categories.some(c => c.key === category.key)) &&
     !!interventionUsed;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100vw-0.5rem)] sm:w-full sm:max-w-7xl max-h-[92vh] overflow-y-auto overflow-x-hidden rounded-2xl border border-primary/15 bg-background p-2 shadow-sm sm:p-6">
-        <DialogHeader>
-          <DialogTitle className="flex items-start gap-2 text-base sm:text-lg leading-tight pr-6 break-words">
-            <Target className="w-4 h-4 shrink-0 mt-0.5" />
-            {studentName} Topic x Phase x Stability Dashboard
-          </DialogTitle>
-          <DialogDescription className="text-xs sm:text-sm leading-snug pr-6">
-            One glance = full understanding of the student. Clear direction.
-          </DialogDescription>
-        </DialogHeader>
+        <DialogHeader />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full overflow-x-hidden">
           <TabsList className="flex w-full flex-row sm:grid sm:grid-cols-2 h-auto rounded-xl border border-primary/15 bg-muted/20 p-1 gap-1">
@@ -1055,43 +1087,7 @@ export default function StudentTopicConditioningDialog({
               )}
             </Card>
 
-            <Card className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 md:p-5 shadow-sm space-y-3">
-                {/* ...existing code... */}
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-md border bg-muted/20 p-3">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Topics Tracked</p>
-                  <p className="mt-1 text-lg font-semibold">{prioritizedTopics.length}</p>
-                </div>
-                <div className="rounded-md border bg-muted/20 p-3">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Needs Stabilization</p>
-                  <p className="mt-1 text-lg font-semibold">{needsStabilizationCount}</p>
-                </div>
-                <div className="rounded-md border bg-muted/20 p-3">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Ready To Advance</p>
-                  <p className="mt-1 text-lg font-semibold">{readyToAdvanceCount}</p>
-                </div>
-              </div>
-
-              {attentionQueue.length > 0 && (
-                <div className="space-y-2">
-                  {attentionQueue.map((row, index) => (
-                    <button
-                      key={`priority-${row.topic}`}
-                      type="button"
-                      onClick={() => setSelectedTopic(row.topic)}
-                      className="w-full rounded-md border p-3 text-left transition-colors hover:bg-muted/40"
-                    >
-                      <p className="text-sm font-medium">#{index + 1} {row.topic}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {row.phase} | {row.stability} stability | {row.trend} trend
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">Why now: {getPriorityReason(row.stability, row.trend)}</p>
-                      <p className="mt-1 text-xs text-foreground">Next action: {nextActionFor(row.phase, row.stability)}</p>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </Card>
+            {/* Removed Topics Tracked, Needs Stabilization, Ready To Advance cards as requested */}
 
             <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
               <Card className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 md:p-5 shadow-sm space-y-4">
@@ -1200,28 +1196,32 @@ export default function StudentTopicConditioningDialog({
                 <h3 className="font-semibold">Phase Definitions</h3>
                 <AlertCircle className="w-4 h-4 text-muted-foreground" />
               </div>
-              <TooltipProvider>
-                <div className="grid md:grid-cols-2 gap-3">
-                  {PHASES.map((phase) => (
-                    <div key={phase} className="rounded-md border p-3 flex items-start justify-between gap-3">
-                      <div>
-                        <p className="font-medium text-sm">{phase}</p>
-                        <p className="text-xs text-muted-foreground mt-1">Hover info for full meaning</p>
+              <div className="grid md:grid-cols-2 gap-3">
+                {PHASES.map((phase) => {
+                  // Split the definition into Description, Tool, Question
+                  const [desc, tool, question] = phaseDefinition[phase].split(/\n\n/);
+                  const phaseNumber = PHASES.indexOf(phase) + 1;
+                  return (
+                    <div key={phase} className="rounded-md border p-3 flex flex-col items-start gap-2 bg-muted/10">
+                      <p className="font-medium text-sm mb-1">{phaseNumber}. {phase}</p>
+                      <div className="w-full flex flex-col gap-2">
+                        <div className="bg-background rounded px-2 py-1 border border-primary/10">
+                          <span className="font-semibold text-foreground text-xs">Description:</span>
+                          <span className="ml-1 text-muted-foreground text-[11px]">{desc?.replace('Description: ', '')}</span>
+                        </div>
+                        <div className="bg-background rounded px-2 py-1 border border-primary/10">
+                          <span className="font-semibold text-foreground text-xs">Tool:</span>
+                          <span className="ml-1 text-muted-foreground text-[11px]">{tool?.replace('Tool: ', '')}</span>
+                        </div>
+                        <div className="bg-background rounded px-2 py-1 border border-primary/10">
+                          <span className="font-semibold text-foreground text-xs">Question:</span>
+                          <span className="ml-1 text-muted-foreground text-[11px]">{question?.replace('Question: ', '')}</span>
+                        </div>
                       </div>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button className="text-muted-foreground hover:text-foreground" aria-label={`About ${phase}`}>
-                            <Info className="w-4 h-4" />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs text-xs">
-                          {phaseDefinition[phase]}
-                        </TooltipContent>
-                      </Tooltip>
                     </div>
-                  ))}
-                </div>
-              </TooltipProvider>
+                  );
+                })}
+              </div>
             </Card>
 
             {selectedRow && (
@@ -1415,32 +1415,42 @@ export default function StudentTopicConditioningDialog({
               <div className="space-y-4">
                 <p className="text-sm font-medium">Phase-Specific Observation Block</p>
 
-                {(topics.find(t => t.topic === activeTopicField)
-                  ? PHASE_OBSERVATION_CONFIG[topics.find(t => t.topic === activeTopicField)!.phase as PhaseLabel] || PHASE_OBSERVATION_CONFIG["Clarity"]
-                  : phaseConfig
-                ).categories.map((category) => (
-                  <div key={category.key} className="space-y-2">
-                    <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">{category.label}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {category.options.map((option) => (
-                        <Button
-                          key={`${category.key}-${option.label}`}
-                          type="button"
-                          variant={phaseSelections[category.key] === option.label ? "default" : "outline"}
-                          size="sm"
-                          onClick={() =>
-                            setPhaseSelections((prev) => ({
-                              ...prev,
-                              [category.key]: option.label,
-                            }))
-                          }
-                        >
-                          {option.label}
-                        </Button>
-                      ))}
+                {(() => {
+                  // Strictly derive phase and validate
+                  const found = topics.find(t => t.topic === activeTopicField);
+                  const phase = found?.phase && PHASE_OBSERVATION_CONFIG[found.phase as PhaseLabel] ? found.phase as PhaseLabel : "Clarity";
+                  const config = PHASE_OBSERVATION_CONFIG[phase];
+                  if (!found?.phase || !PHASE_OBSERVATION_CONFIG[found.phase as PhaseLabel]) {
+                    return <div className="text-red-500 text-xs font-semibold">Phase missing or invalid for this topic. Please correct before logging.</div>;
+                  }
+                  return config.categories.map((category) => (
+                    <div key={category.key} className="space-y-2">
+                      <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">{category.label}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {category.options.map((option) => (
+                          <Button
+                            key={`${category.key}-${option.label}`}
+                            type="button"
+                            variant={phaseSelections[category.key] === option.label ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => {
+                              const newSelections = { ...phaseSelections, [category.key]: option.label };
+                              setPhaseSelections(newSelections);
+                              // Persist per topic/phase
+                              const found = topics.find(t => t.topic === activeTopicField);
+                              if (found) {
+                                const phaseKey = `${found.topic}::${found.phase}`;
+                                setPhaseSelectionsMap(prev => ({ ...prev, [phaseKey]: newSelections }));
+                              }
+                            }}
+                          >
+                            {option.label}
+                          </Button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ));
+                })()}
 
                 <div className="space-y-2">
                   <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">E. Tutor Intervention Used</p>
