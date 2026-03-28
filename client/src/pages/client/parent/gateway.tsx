@@ -24,11 +24,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
+import { format } from "date-fns/format";
 import { supabase } from "@/lib/supabaseClient";
 
 interface EnrollmentStatus {
-  status: "not_enrolled" | "awaiting_assignment" | "assigned" | "proposal_sent" | "session_booked" | "report_received" | "confirmed";
+  status: "not_enrolled" | "awaiting_assignment" | "awaiting_tutor_acceptance" | "assigned" | "proposal_sent" | "session_booked" | "report_received" | "confirmed";
   step?: string;
 }
 
@@ -36,7 +36,7 @@ export default function ParentGateway() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [step, setStep] = useState<"enrollment" | "submitted" | "loading">("loading");
+  const [step, setStep] = useState<"enrollment" | "submitted" | "loading" | "awaiting_tutor_acceptance">("loading");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isProcessingProposal, setIsProcessingProposal] = useState(false);
   const [parentCode, setParentCode] = useState<string | null>(null);
@@ -145,6 +145,9 @@ export default function ParentGateway() {
     ) {
       console.log("  → Setting step to 'submitted'");
       setStep("submitted");
+    } else if (enrollmentStatus.status === "awaiting_tutor_acceptance") {
+      console.log("  → Setting step to 'awaiting_tutor_acceptance'");
+      setStep("awaiting_tutor_acceptance");
     } else {
       console.log("  → Unhandled status:", enrollmentStatus.status);
     }
@@ -416,6 +419,26 @@ export default function ParentGateway() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#FFF5ED" }}>
+      {/* Awaiting Tutor Acceptance State */}
+      {step === "awaiting_tutor_acceptance" && (
+        <Card className="text-center border-0 shadow-lg my-8" style={{ backgroundColor: "white" }}>
+          <CardHeader className="p-3 sm:p-6">
+            <CardTitle className="flex items-center justify-center gap-2 text-sm sm:text-lg" style={{ color: "#E63946" }}>
+              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: "#E63946" }} />
+              Tutor Assignment Pending Acceptance
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="font-medium text-yellow-900">Your tutor has been assigned and is reviewing this assignment.</p>
+              <p className="text-sm text-yellow-700 mt-2">
+                Intro session booking will unlock once your tutor accepts the assignment. Please check back soon.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
