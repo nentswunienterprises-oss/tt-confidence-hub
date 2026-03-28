@@ -2842,38 +2842,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "Decision must be 'accept' or 'decline'" });
         }
 
-        const student = await storage.getStudent(studentId);
-        if (!student) {
-          return res.status(404).json({ message: "Student not found" });
-        }
-
-        if (student.tutorId !== dbUser.id) {
-          return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
-        }
-
-        const existingProfile = (student.personalProfile as any) || {};
-        const workflow = existingProfile.workflow || {};
-
+        // Accept can be done without a student record; update parent_enrollments by tutor only
         if (decision === "accept") {
-          const updatedProfile = {
-            ...existingProfile,
-            workflow: {
-              ...workflow,
-              assignmentAcceptedAt: workflow.assignmentAcceptedAt || new Date().toISOString(),
-              assignmentDeclinedAt: null,
-            },
-          };
-
-          const updated = await storage.updateStudent(studentId, {
-            personalProfile: updatedProfile,
-          } as any);
-
-          // Also update parent_enrollments status to 'assigned' for this student/tutor
+          // Find parent enrollment for this tutor where status is awaiting_tutor_acceptance
           const { data: parentEnrollment, error: parentEnrollmentError } = await supabase
             .from("parent_enrollments")
             .select("id")
             .eq("assigned_tutor_id", dbUser.id)
-            .eq("assigned_student_id", studentId)
+            .eq("status", "awaiting_tutor_acceptance")
             .maybeSingle();
 
           if (parentEnrollment && parentEnrollment.id) {
@@ -2886,7 +2862,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json({
             success: true,
             assignmentAccepted: true,
-            student: updated,
           });
         }
 
