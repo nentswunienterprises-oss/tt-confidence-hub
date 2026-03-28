@@ -6447,9 +6447,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ status: "not_enrolled" });
       }
 
-      // Return current enrollment status
+      let status = enrollmentData.status || "not_enrolled";
+
+      // Auto-correct: if status is 'awaiting_tutor_acceptance', check if tutor has accepted
+      if (status === "awaiting_tutor_acceptance" && enrollmentData.assigned_tutor_id) {
+        // Try to find the assigned student and check workflow
+        let assignmentAccepted = false;
+        if (enrollmentData.assigned_student_id) {
+          const assignedStudent = await storage.getStudent(enrollmentData.assigned_student_id);
+          const assignedWorkflow = ((assignedStudent?.personalProfile as any) || {}).workflow || {};
+          assignmentAccepted = !!assignedWorkflow.assignmentAcceptedAt;
+        }
+        // If accepted, override status
+        if (assignmentAccepted) {
+          status = "assigned";
+        }
+      }
+
       res.json({
-        status: enrollmentData.status || "not_enrolled",
+        status,
         step: enrollmentData.current_step,
       });
     } catch (error) {
