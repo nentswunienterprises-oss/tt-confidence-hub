@@ -59,6 +59,7 @@ export const applicationStatusEnum = pgEnum("application_status", [
 export const enrollmentStatusEnum = pgEnum("enrollment_status", [
   "not_enrolled",
   "awaiting_assignment",
+  "awaiting_tutor_acceptance",
   "assigned",
   "proposal_sent",
   "session_booked",
