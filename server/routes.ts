@@ -2868,6 +2868,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
             personalProfile: updatedProfile,
           } as any);
 
+          // Also update parent_enrollments status to 'assigned' for this student/tutor
+          const { data: parentEnrollment, error: parentEnrollmentError } = await supabase
+            .from("parent_enrollments")
+            .select("id")
+            .eq("assigned_tutor_id", dbUser.id)
+            .eq("assigned_student_id", studentId)
+            .maybeSingle();
+
+          if (parentEnrollment && parentEnrollment.id) {
+            await supabase
+              .from("parent_enrollments")
+              .update({ status: "assigned", updated_at: new Date().toISOString() })
+              .eq("id", parentEnrollment.id);
+          }
+
           return res.json({
             success: true,
             assignmentAccepted: true,
