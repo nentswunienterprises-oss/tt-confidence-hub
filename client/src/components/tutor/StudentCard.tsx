@@ -146,6 +146,13 @@ export function StudentCard({
     (Array.isArray(student.parentInfo?.response_symptoms) ? student.parentInfo.response_symptoms : []).filter(Boolean)
       .map((symptom) => String(symptom).trim())
       .filter(Boolean);
+
+  // Always define inferredSymptoms for fallback
+  const inferredSymptoms = inferReportedSymptoms({
+    struggleAreas: student.parentInfo?.math_struggle_areas || student.struggleAreas,
+    parentMotivation: student.parentInfo?.parent_motivation || student.parentMotivation,
+  });
+
   const symptomSignals = reportedSymptoms.length > 0 ? reportedSymptoms : inferredSymptoms;
 
 
