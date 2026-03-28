@@ -871,7 +871,7 @@ export default function ParentGateway() {
               )}
               {enrollmentStatus.status === "assigned" && (
                 <>
-                  {/* Show assigned tutor info */}
+                  {/* Always show assigned tutor info when assigned */}
                   {assignedTutor && (
                     <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg">
                       <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
@@ -900,7 +900,15 @@ export default function ParentGateway() {
                     </div>
                   )}
 
-                  {/* Show session status */}
+                  {/* Always show 'tutor assigned' message */}
+                  <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="font-medium text-yellow-900">Your tutor has been assigned.</p>
+                    <p className="text-sm text-yellow-700 mt-2">
+                      Book your intro session below once ready.
+                    </p>
+                  </div>
+
+                  {/* Show session status if present */}
                   {introSessionConfirmation?.status === "pending_tutor_confirmation" && (
                     <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                       <div className="flex items-center gap-3">
@@ -948,15 +956,9 @@ export default function ParentGateway() {
                       )}
                     </div>
                   )}
-                  {introSessionConfirmation?.status === "awaiting_tutor_acceptance" && (
-                    <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <p className="font-medium text-yellow-900">Tutor assignment pending confirmation</p>
-                      <p className="text-sm text-yellow-700 mt-2">
-                        Your tutor has been assigned and is reviewing this assignment. Intro session booking will unlock once they accept.
-                      </p>
-                    </div>
-                  )}
-                  {introSessionConfirmation?.status === "not_scheduled" && enrollmentStatus?.status === "assigned" && (
+
+                  {/* Only show booking button if not_scheduled */}
+                  {introSessionConfirmation?.status === "not_scheduled" && (
                     <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                       <p className="font-medium text-red-900 mb-4">Schedule your introductory session</p>
                       <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
@@ -1019,9 +1021,6 @@ export default function ParentGateway() {
                           </div>
                         </DialogContent>
                       </Dialog>
-                      {introSessionConfirmation?.status !== "not_scheduled" && (
-                        <p className="text-xs text-red-700 mt-2">Your tutor must accept the assignment before you can book an intro session.</p>
-                      )}
                     </div>
                   )}
                 </>
