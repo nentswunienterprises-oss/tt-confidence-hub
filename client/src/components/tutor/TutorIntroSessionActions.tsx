@@ -1,10 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { useScheduledSession, useTutorRespondToSession } from "@/hooks/useScheduledSession";
+import { useParentIntroSessionStatus } from "@/hooks/useParentIntroSessionStatus";
 import { useState } from "react";
 
-export function TutorIntroSessionActions({ studentId }) {
-  const { data, isLoading, error } = useScheduledSession(studentId);
-  const respond = useTutorRespondToSession(studentId);
+export function TutorIntroSessionActions({ studentId, parentId, tutorId }) {
+  // Use parent/tutor-based hook if no studentId yet
+  const { data, isLoading, error } = studentId
+    ? useScheduledSession(studentId)
+    : useParentIntroSessionStatus(parentId, tutorId);
+  const respond = studentId
+    ? useTutorRespondToSession(studentId)
+    : { mutate: () => {}, isPending: false, isError: false, isSuccess: false, error: null };
   const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
