@@ -5274,12 +5274,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "Tutor ID is required" });
         }
 
-        // Update the parent enrollment with the assigned tutor
+        // Update the parent enrollment with the assigned tutor, but do not set to 'assigned' until tutor accepts
         const { data, error } = await supabase
           .from("parent_enrollments")
           .update({
             assigned_tutor_id: tutorId,
-            status: "assigned",
+            status: "awaiting_tutor_acceptance",
             updated_at: new Date().toISOString(),
           })
           .eq("id", enrollmentId)

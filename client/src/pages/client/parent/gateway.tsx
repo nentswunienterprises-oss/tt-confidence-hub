@@ -69,11 +69,11 @@ export default function ParentGateway() {
     enabled: !!user && (enrollmentStatus?.status === "assigned" || enrollmentStatus?.status === "proposal_sent"),
   });
 
-  // Fetch intro session confirmation if status is assigned
+  // Fetch intro session confirmation if status is assigned or awaiting_assignment
   const { data: introSessionConfirmation } = useQuery<any>({
     queryKey: ["/api/parent/intro-session-confirmation"],
     queryFn: getQueryFn({ on401: "returnNull" }),
-    enabled: !!user && enrollmentStatus?.status === "assigned",
+    enabled: !!user && (enrollmentStatus?.status === "assigned" || enrollmentStatus?.status === "awaiting_assignment"),
     refetchInterval: 10000, // Poll every 10s for status updates
   });
 
@@ -933,7 +933,7 @@ export default function ParentGateway() {
                       </p>
                     </div>
                   )}
-                  {introSessionConfirmation?.status === "not_scheduled" && (
+                  {introSessionConfirmation?.status === "not_scheduled" && enrollmentStatus?.status === "assigned" && (
                     <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                       <p className="font-medium text-red-900 mb-4">Schedule your introductory session</p>
                       <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
@@ -941,13 +941,11 @@ export default function ParentGateway() {
                           <Button
                             style={{ backgroundColor: '#E63946', color: 'white' }}
                             className="w-full"
-                            disabled={enrollmentStatus?.status !== "assigned" || introSessionConfirmation?.status === "awaiting_tutor_acceptance"}
+                            disabled={isSubmittingSession || introSessionConfirmation?.status !== "not_scheduled"}
                             title={
-                              enrollmentStatus?.status !== "assigned"
-                                ? "You must be assigned a tutor before booking a session."
-                                : introSessionConfirmation?.status === "awaiting_tutor_acceptance"
-                                  ? "Tutor must accept assignment before booking."
-                                  : undefined
+                              introSessionConfirmation?.status !== "not_scheduled"
+                                ? "Tutor must accept assignment before booking."
+                                : undefined
                             }
                           >
                             Book Introductory Session
@@ -990,7 +988,7 @@ export default function ParentGateway() {
                             </div>
                             <Button
                               onClick={handleProposeIntroSession}
-                              disabled={isSubmittingSession || enrollmentStatus?.status !== "assigned" || introSessionConfirmation?.status === "awaiting_tutor_acceptance"}
+                              disabled={isSubmittingSession || introSessionConfirmation?.status !== "not_scheduled"}
                               className="w-full"
                             >
                               {isSubmittingSession ? "Proposing..." : "Propose Time"}
@@ -998,10 +996,7 @@ export default function ParentGateway() {
                           </div>
                         </DialogContent>
                       </Dialog>
-                      {enrollmentStatus?.status !== "assigned" && (
-                        <p className="text-xs text-red-700 mt-2">You must be assigned a tutor before booking a session.</p>
-                      )}
-                      {introSessionConfirmation?.status === "awaiting_tutor_acceptance" && (
+                      {introSessionConfirmation?.status !== "not_scheduled" && (
                         <p className="text-xs text-red-700 mt-2">Your tutor must accept the assignment before you can book an intro session.</p>
                       )}
                     </div>
