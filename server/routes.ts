@@ -417,9 +417,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 if (!newDate || !newTime) {
                   return res.status(400).json({ message: "Missing new date or time" });
                 }
+                // Tutor is proposing an adjustment, so tutor has confirmed, parent must confirm next
                 updateFields = {
                   scheduled_time: `${newDate}T${newTime}`,
-                  tutor_confirmed: false,
+                  tutor_confirmed: true,
                   parent_confirmed: false,
                   status: "pending_parent_confirmation",
                   updated_at: new Date().toISOString(),
@@ -647,13 +648,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .maybeSingle();
 
       if (existingSession) {
-        // If a pending session exists, return it instead of creating a new one
+        // If a pending session exists, update it with the new proposed time and confirmation flags
+        const { error: updateError } = await supabase
+          .from("scheduled_sessions")
+          .update({
+            scheduled_time: `${proposedDate}T${proposedTime}`,
+            parent_confirmed: true,
+            tutor_confirmed: false,
+            status: "pending_tutor_confirmation",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existingSession.id);
+        if (updateError) {
+          console.error("Error updating existing intro session:", updateError);
+          return res.status(500).json({ message: "Failed to update session" });
+        }
         return res.status(200).json({
           id: existingSession.id,
-          status: existingSession.tutor_confirmed ? "pending_parent_confirmation" : "pending_tutor_confirmation",
-          scheduled_time: existingSession.scheduled_time,
-          parent_confirmed: existingSession.parent_confirmed,
-          tutor_confirmed: existingSession.tutor_confirmed,
+          status: "pending_tutor_confirmation",
+          scheduled_time: `${proposedDate}T${proposedTime}`,
+          parent_confirmed: true,
+          tutor_confirmed: false,
         });
       }
 
@@ -697,77 +712,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.get("/api/parent/intro-session-confirmation", isAuthenticated, async (req: Request, res: Response) => {
       try {
         const userId = (req as any).dbUser.id;
+        console.log("[DEBUG] /api/parent/intro-session-confirmation userId:", userId);
 
         // Get parent's enrollment to find assigned tutor
         const { data: enrollmentData, error: enrollmentError } = await supabase
           .from("parent_enrollments")
-          .select("assigned_tutor_id, assigned_student_id")
+          .select("assigned_tutor_id, status, user_id")
           .eq("user_id", userId)
           .maybeSingle();
+        console.log("[DEBUG] /api/parent/intro-session-confirmation enrollmentData:", enrollmentData, "enrollmentError:", enrollmentError);
 
         if (enrollmentError || !enrollmentData || !enrollmentData.assigned_tutor_id) {
+          console.log("[DEBUG] /api/parent/intro-session-confirmation: no assigned tutor");
           return res.json({ status: "not_scheduled" });
         }
 
 
-        // Find intro session for this parent/tutor
-        const { data: session, error: sessionError } = await supabase
+        // Find all intro sessions for this parent/tutor
+        const { data: allSessions, error: allSessionsError } = await supabase
           .from("scheduled_sessions")
-          .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed")
+          .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, parent_id, tutor_id, type, created_at, updated_at")
           .eq("parent_id", userId)
           .eq("tutor_id", enrollmentData.assigned_tutor_id)
           .eq("type", "intro")
-          .order("created_at", { ascending: false })
-          .maybeSingle();
+          .order("created_at", { ascending: false });
+        console.log("[DEBUG] /api/parent/intro-session-confirmation allSessions:", allSessions, "allSessionsError:", allSessionsError);
 
-        console.log("[DEBUG] /api/parent/intro-session-confirmation session:", session, "error:", sessionError);
+        // Use the most recent session if any
+        const session = allSessions && allSessions.length > 0 ? allSessions[0] : null;
+        const sessionError = allSessionsError;
+        console.log("[DEBUG] /api/parent/intro-session-confirmation session:", session, "sessionError:", sessionError);
 
         if (sessionError || !session) {
-          const assignedStudent = enrollmentData.assigned_student_id
-            ? await storage.getStudent(enrollmentData.assigned_student_id)
-            : null;
-          const assignedWorkflow = ((assignedStudent?.personalProfile as any) || {}).workflow || {};
-          const assignmentAccepted = !!assignedWorkflow.assignmentAcceptedAt;
-
-          if (!assignmentAccepted) {
-            console.log("[DEBUG] /api/parent/intro-session-confirmation response: awaiting_tutor_acceptance");
+          // If we can't find a session, just check if the enrollment is assigned
+          if (enrollmentData.status === "assigned") {
+            console.log("[DEBUG] /api/parent/intro-session-confirmation response: awaiting_tutor_acceptance (no session found, but assigned)");
             return res.json({
               status: "awaiting_tutor_acceptance",
               introCompleted: false,
             });
           }
-
           console.log("[DEBUG] /api/parent/intro-session-confirmation response: not_scheduled");
           return res.json({ status: "not_scheduled" });
         }
 
-        // Log the response before sending
-        let responseObj;
-        if (!session.tutor_confirmed) {
-          responseObj = {
-            id: session.id,
-            status: "pending_tutor_confirmation",
-            scheduled_time: session.scheduled_time,
-            parent_confirmed: session.parent_confirmed,
-            tutor_confirmed: session.tutor_confirmed,
-          };
-        } else if (!session.parent_confirmed) {
-          responseObj = {
-            id: session.id,
-            status: "pending_parent_confirmation",
-            scheduled_time: session.scheduled_time,
-            parent_confirmed: session.parent_confirmed,
-            tutor_confirmed: session.tutor_confirmed,
-          };
-        } else {
-          responseObj = {
-            id: session.id,
-            status: "confirmed",
-            scheduled_time: session.scheduled_time,
-            parent_confirmed: session.parent_confirmed,
-            tutor_confirmed: session.tutor_confirmed,
-          };
-        }
+        // Always use the actual session.status for the response
+        const responseObj = {
+          id: session.id,
+          status: session.status,
+          scheduled_time: session.scheduled_time,
+          parent_confirmed: session.parent_confirmed,
+          tutor_confirmed: session.tutor_confirmed,
+          debug: {
+            parent_id: session.parent_id,
+            tutor_id: session.tutor_id,
+            type: session.type,
+            session_status: session.status
+          }
+        };
         console.log("[DEBUG] /api/parent/intro-session-confirmation response:", responseObj);
         return res.json(responseObj);
 
@@ -959,33 +961,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const dbUser = (req as any).dbUser;
           // Try to find student by ID
           let student = null;
+          let parentId = null;
           try {
             student = await storage.getStudent(studentId);
           } catch {}
-          console.log('[DEBUG] student object:', student);
-          if (student) {
-            console.log('[DEBUG] student.parentId:', student.parentId);
-          }
-          // If student exists, check tutor ownership
-          if (student && student.tutorId !== dbUser.id) {
-            return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
-          }
-          // Try to find intro session by student_id first
-          let session = null;
-          let sessionError = null;
-          let parentId = null;
           if (student) {
             parentId = student.parentId;
-            // Fallback: If parentId is missing, fetch from DB
-            if (!parentId) {
-              const studentRow = await supabase
-                .from("students")
-                .select("parent_id")
-                .eq("id", studentId)
-                .maybeSingle();
-              parentId = studentRow.data?.parent_id;
-              console.log('[DEBUG] Fetched parentId from DB fallback:', parentId);
+            // If student exists, check tutor ownership
+            if (student.tutorId !== dbUser.id) {
+              return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
             }
+          } else {
+            // If student does not exist, try to fetch parentId from DB
+            const studentRow = await supabase
+              .from("students")
+              .select("parent_id")
+              .eq("id", studentId)
+              .maybeSingle();
+            parentId = studentRow.data?.parent_id;
+          }
+          // Try to find intro session by student_id first (if student exists)
+          let session = null;
+          let sessionError = null;
+          if (student) {
             const result = await supabase
               .from("scheduled_sessions")
               .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, created_at, updated_at, tutor_id, student_id, parent_id, type")
@@ -997,7 +995,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             session = result.data;
             sessionError = result.error;
           }
-          // If not found, only return intro session with student_id=null if the student's parentId matches
+          // Always try fallback: return intro session with student_id=null if the parentId matches
           if (!session && parentId) {
             const { data: introSession, error: introSessionError } = await supabase
               .from("scheduled_sessions")

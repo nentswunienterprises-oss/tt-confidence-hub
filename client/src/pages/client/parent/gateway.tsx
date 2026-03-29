@@ -925,13 +925,52 @@ export default function ParentGateway() {
                       <div className="flex items-center gap-3">
                         <div className="w-6 h-6 border-3 border-yellow-400/30 border-t-yellow-600 rounded-full animate-spin flex-shrink-0" />
                         <div>
-                          <p className="font-medium text-yellow-900">Tutor proposed a new time. Please confirm.</p>
+                          <p className="font-medium text-yellow-900">Tutor proposed a different schedule. Please confirm.</p>
                           {introSessionConfirmation.scheduled_time && (
-                            <p className="text-xs text-yellow-700 mt-1">Proposed time: {new Date(introSessionConfirmation.scheduled_time).toLocaleString()}</p>
+                            <p className="text-xs text-yellow-700 mt-1">Proposed schedule: {new Date(introSessionConfirmation.scheduled_time).toLocaleString()}</p>
                           )}
                         </div>
                       </div>
-                      {/* TODO: Add confirm/decline buttons for parent to respond to new time */}
+                      <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                        <Button
+                          style={{ backgroundColor: '#E63946', color: 'white' }}
+                          className="flex-1"
+                          disabled={isSubmittingSession}
+                          onClick={async () => {
+                            setIsSubmittingSession(true);
+                            try {
+                              const { data: { session } } = await supabase.auth.getSession();
+                              const headers: HeadersInit = { "Content-Type": "application/json" };
+                              if (session?.access_token) {
+                                headers["Authorization"] = `Bearer ${session.access_token}`;
+                              }
+                              const response = await fetch(`${API_URL}/api/parent/intro-session/confirm`, {
+                                method: "POST",
+                                headers,
+                                credentials: "include",
+                                body: JSON.stringify({ sessionId: introSessionConfirmation.id }),
+                              });
+                              if (!response.ok) throw new Error("Failed to confirm session");
+                              toast({ title: "Session Confirmed", description: "Your session is now confirmed." });
+                              await refetchIntroSessionConfirmation();
+                            } catch (error) {
+                              toast({ title: "Error", description: "Failed to confirm session. Please try again.", variant: "destructive" });
+                            } finally {
+                              setIsSubmittingSession(false);
+                            }
+                          }}
+                        >
+                          Confirm
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="flex-1"
+                          disabled={isSubmittingSession}
+                          onClick={() => setIsBookingDialogOpen(true)}
+                        >
+                          Adjust Schedule
+                        </Button>
+                      </div>
                     </div>
                   )}
                   {introSessionConfirmation?.status === "confirmed" && (
@@ -955,25 +994,28 @@ export default function ParentGateway() {
                     </div>
                   )}
 
-                  {/* Only show booking button if not_scheduled */}
-                  {introSessionConfirmation?.status === "not_scheduled" && (
+                  {/* Show booking dialog for not_scheduled and pending_parent_confirmation */}
+                  {(introSessionConfirmation?.status === "not_scheduled" || introSessionConfirmation?.status === "pending_parent_confirmation") && (
                     <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                      <p className="font-medium text-red-900 mb-4">Schedule your introductory session</p>
+                      <p className="font-medium mb-4 text-red-900">
+                        {introSessionConfirmation?.status === "not_scheduled"
+                          ? "Schedule your introductory session"
+                          : "Adjust your introductory session schedule"}
+                      </p>
                       <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
-                        <DialogTrigger asChild>
-                          <Button
-                            style={{ backgroundColor: '#E63946', color: 'white' }}
-                            className="w-full"
-                            disabled={isSubmittingSession || justBooked || introSessionConfirmation?.status !== "not_scheduled"}
-                            title={
-                              introSessionConfirmation?.status !== "not_scheduled"
-                                ? "Tutor must accept assignment before booking."
-                                : undefined
-                            }
-                          >
-                            Book Introductory Session
-                          </Button>
-                        </DialogTrigger>
+                        {/* Only show the trigger button for not_scheduled, for pending_parent_confirmation the Adjust button is elsewhere */}
+                        {introSessionConfirmation?.status === "not_scheduled" && (
+                          <DialogTrigger asChild>
+                            <Button
+                              style={{ backgroundColor: '#E63946', color: 'white' }}
+                              className="w-full"
+                              disabled={isSubmittingSession || justBooked}
+                              title={undefined}
+                            >
+                              Book Introductory Session
+                            </Button>
+                          </DialogTrigger>
+                        )}
                         <DialogContent>
                           <DialogHeader>
                             <DialogTitle>Propose Session Time</DialogTitle>
@@ -1011,7 +1053,7 @@ export default function ParentGateway() {
                             </div>
                             <Button
                               onClick={handleProposeIntroSession}
-                              disabled={isSubmittingSession || justBooked || introSessionConfirmation?.status !== "not_scheduled"}
+                              disabled={isSubmittingSession || justBooked}
                               className="w-full"
                             >
                               {isSubmittingSession ? "Proposing..." : "Propose Time"}
