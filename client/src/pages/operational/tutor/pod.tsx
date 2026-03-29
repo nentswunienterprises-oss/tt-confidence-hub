@@ -375,20 +375,23 @@ export default function TutorPod() {
             </Card>
           ) : (
             <div className="grid gap-5 xl:grid-cols-2 2xl:gap-6 tutor-pod-student-cards">
-              {students.map((student: any) => (
-                <StudentCard
-                  key={student.id}
-                  student={student}
-                  setSelectedStudentId={setSelectedStudentId}
-                  setSelectedStudentName={setSelectedStudentName}
-                  setIdentitySheetOpen={setIdentitySheetOpen}
-                  setTrackingDialogOpen={setTrackingDialogOpen}
-                  setAssignmentsDialogOpen={setAssignmentsDialogOpen}
-                  setProposalOpen={setProposalOpen}
-                  setTopicConditioningDialogOpen={setTopicConditioningDialogOpen}
-                  setReportsDialogOpen={setReportsDialogOpen}
-                />
-              ))}
+              {students.map((student: any) => {
+                console.log('StudentCard student data:', student);
+                return (
+                  <StudentCard
+                    key={student.id}
+                    student={student}
+                    setSelectedStudentId={setSelectedStudentId}
+                    setSelectedStudentName={setSelectedStudentName}
+                    setIdentitySheetOpen={setIdentitySheetOpen}
+                    setTrackingDialogOpen={setTrackingDialogOpen}
+                    setAssignmentsDialogOpen={setAssignmentsDialogOpen}
+                    setProposalOpen={setProposalOpen}
+                    setTopicConditioningDialogOpen={setTopicConditioningDialogOpen}
+                    setReportsDialogOpen={setReportsDialogOpen}
+                  />
+                );
+              })}
             </div>
           )}
         </div>

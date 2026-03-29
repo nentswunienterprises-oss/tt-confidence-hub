@@ -33,6 +33,7 @@ interface EnrollmentStatus {
 }
 
 export default function ParentGateway() {
+  const [justBooked, setJustBooked] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -70,7 +71,10 @@ export default function ParentGateway() {
   });
 
   // Fetch intro session confirmation if status is assigned or awaiting_assignment
-  const { data: introSessionConfirmation } = useQuery<any>({
+  const {
+    data: introSessionConfirmation,
+    refetch: refetchIntroSessionConfirmation,
+  } = useQuery<any>({
     queryKey: ["/api/parent/intro-session-confirmation"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: !!user && (enrollmentStatus?.status === "assigned" || enrollmentStatus?.status === "awaiting_assignment"),
@@ -115,25 +119,13 @@ export default function ParentGateway() {
     return parentCode || proposal?.parentCode || null;
   }, [parentCode, proposal?.parentCode]);
 
-  // Auto-set step based on enrollment status
+  // Auto-set step based on enrollment status and intro session confirmation
   useEffect(() => {
-    console.log("🔄 [Gateway] Enrollment status effect triggered", {
-      hasEnrollmentStatus: !!enrollmentStatus,
-      status: enrollmentStatus?.status,
-      justSubmitted: justSubmittedRef.current,
-    });
-    
-    // Skip if we just submitted - let the submission handler control the step
-    if (justSubmittedRef.current) {
-      console.log("  → Skipping because justSubmitted is true");
-      return;
-    }
-    
+    // ...existing code for enrollmentStatus
+    if (justSubmittedRef.current) return;
     if (!enrollmentStatus) {
-      console.log("  → Setting step to 'loading'");
       setStep("loading");
     } else if (enrollmentStatus.status === "not_enrolled") {
-      console.log("  → Setting step to 'enrollment'");
       setStep("enrollment");
     } else if (
       enrollmentStatus.status === "awaiting_assignment" ||
@@ -143,13 +135,9 @@ export default function ParentGateway() {
       enrollmentStatus.status === "report_received" ||
       enrollmentStatus.status === "confirmed"
     ) {
-      console.log("  → Setting step to 'submitted'");
       setStep("submitted");
     } else if (enrollmentStatus.status === "awaiting_tutor_acceptance") {
-      console.log("  → Setting step to 'awaiting_tutor_acceptance'");
       setStep("awaiting_tutor_acceptance");
-    } else {
-      console.log("  → Unhandled status:", enrollmentStatus.status);
     }
   }, [enrollmentStatus, navigate]);
 
@@ -379,8 +367,10 @@ export default function ParentGateway() {
       setProposedDate(undefined);
       setProposedTime("");
 
-      // Refresh confirmation status
-      queryClient.invalidateQueries({ queryKey: ["/api/parent/intro-session-confirmation"] });
+      setJustBooked(true);
+
+      // Force refetch intro session confirmation immediately after booking
+      await refetchIntroSessionConfirmation();
     } catch (error) {
       console.error("Error proposing session:", error);
       toast({
@@ -392,6 +382,12 @@ export default function ParentGateway() {
       setIsSubmittingSession(false);
     }
   };
+  // Reset justBooked if status is still not_scheduled (e.g. booking failed or was reset)
+  useEffect(() => {
+    if (justBooked && introSessionConfirmation?.status === "not_scheduled") {
+      setTimeout(() => setJustBooked(false), 2000); // Add a short delay to avoid flicker
+    }
+  }, [introSessionConfirmation?.status, justBooked]);
 
   const handleDebugAuthInfo = async () => {
     setLoadingDebug(true);
@@ -438,6 +434,8 @@ export default function ParentGateway() {
           </CardContent>
         </Card>
       )}
+
+      // ...existing code...
 
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
@@ -966,7 +964,7 @@ export default function ParentGateway() {
                           <Button
                             style={{ backgroundColor: '#E63946', color: 'white' }}
                             className="w-full"
-                            disabled={isSubmittingSession || introSessionConfirmation?.status !== "not_scheduled"}
+                            disabled={isSubmittingSession || justBooked || introSessionConfirmation?.status !== "not_scheduled"}
                             title={
                               introSessionConfirmation?.status !== "not_scheduled"
                                 ? "Tutor must accept assignment before booking."
@@ -1013,7 +1011,7 @@ export default function ParentGateway() {
                             </div>
                             <Button
                               onClick={handleProposeIntroSession}
-                              disabled={isSubmittingSession || introSessionConfirmation?.status !== "not_scheduled"}
+                              disabled={isSubmittingSession || justBooked || introSessionConfirmation?.status !== "not_scheduled"}
                               className="w-full"
                             >
                               {isSubmittingSession ? "Proposing..." : "Propose Time"}

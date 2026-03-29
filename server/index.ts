@@ -1,3 +1,4 @@
+console.log("=== DEBUG LOG TEST: server/index.ts loaded ===", process.cwd(), import.meta.url);
 import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
