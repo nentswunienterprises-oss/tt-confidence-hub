@@ -53,7 +53,7 @@ export default function TDNoPod() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem
-                onClick={logout}
+                onClick={() => logout(user)}
                 className="cursor-pointer"
                 data-testid="button-logout"
               >
