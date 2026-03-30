@@ -451,7 +451,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => logout()}
+                  onClick={() => logout(effectiveUser)}
                   className="text-destructive gap-2 font-medium"
                   data-testid="button-logout"
                 >
