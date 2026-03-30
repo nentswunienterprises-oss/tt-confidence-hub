@@ -1,3 +1,4 @@
+
 import type { User } from "@shared/schema";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getQueryFn, clearAllCache, setCurrentUserId, getCurrentUserId, setupMultiTabSync } from "@/lib/queryClient";
@@ -5,6 +6,7 @@ import { useLocation } from "wouter";
 import { supabase } from "@/lib/supabaseClient";
 import { API_URL } from "@/lib/config";
 import { useState, useEffect, useRef } from "react";
+import { logout as roleLogout } from "@/lib/auth";
 
 export function useAuth() {
   const [, setLocation] = useLocation();
@@ -68,31 +70,9 @@ export function useAuth() {
     error: error?.message 
   });
 
-  const logout = async () => {
-    try {
-      // Call backend logout endpoint
-      await fetch(`${API_URL}/api/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-
-      // Also sign out from Supabase client
-      await supabase.auth.signOut();
-
-      // Clear stored user ID
-      setCurrentUserId(null);
-
-      // Clear ALL React Query cache (memory + localStorage) to prevent stale user data showing for next user
-      clearAllCache();
-
-      // Redirect to landing page
-      setLocation("/");
-    } catch (error) {
-      console.error("Logout error:", error);
-      // Clear cache even on error
-      setCurrentUserId(null);
-      clearAllCache();
-    }
+  const logout = () => {
+    // Use the role-based logout from @/lib/auth
+    roleLogout(user);
   };
 
   return {
