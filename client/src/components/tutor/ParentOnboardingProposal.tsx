@@ -180,7 +180,7 @@ export default function ParentOnboardingProposal({
     }
   }, [open, parentTopics]);
 
-  // Step 1 — Baseline Capture
+  // Step 1 - Baseline Capture
   const [vocabulary, setVocabulary] = useState<"strong" | "inconsistent" | "weak" | "">("");
   const [method, setMethod] = useState<"stable" | "inconsistent" | "unstable" | "">("");
   const [reason, setReason] = useState<"clear" | "partial" | "unclear" | "">("");
@@ -192,11 +192,11 @@ export default function ParentOnboardingProposal({
   >("");
   const [responsePatterns, setResponsePatterns] = useState<string[]>([]);
 
-  // Step 2 — Breakdown Patterns
+  // Step 2 - Breakdown Patterns
   const [breakdownPatterns, setBreakdownPatterns] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
 
-  // Step 3 — Phase Priority (auto, tutor can toggle)
+  // Step 3 - Phase Priority (auto, tutor can toggle)
   const autoPhases = computePhasePriority(
     vocabulary,
     reason,
@@ -316,6 +316,7 @@ export default function ParentOnboardingProposal({
       await queryClient.invalidateQueries({ queryKey: ["/api/tutor/pod"] });
       await queryClient.invalidateQueries({
         queryKey: ["/api/tutor/students", studentId, "workflow-state"],
+        refetchType: "active",
       });
       onOpenChange(false);
       resetWizard();
@@ -877,7 +878,7 @@ export default function ParentOnboardingProposal({
                 onClick={() => setShowOutput(true)}
                 className="gap-1"
               >
-                Generate Proposal <ChevronRight className="w-3 h-3" />
+                Create and Send Proposal <ChevronRight className="w-3 h-3" />
               </Button>
             )}
           </div>

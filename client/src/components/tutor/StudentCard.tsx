@@ -511,8 +511,9 @@ export function StudentCard({
           </div>
         )}
 
-        {workflow?.assignmentAccepted && workflow?.introCompleted && !workflow.identitySaved && !workflow?.proposalSent && !workflow?.proposalAccepted && (
-          <div className="pt-4 border-t border-border/60 space-y-2">
+
+        {workflow?.assignmentAccepted && workflow?.introCompleted && !workflow.proposalSent && !workflow?.proposalAccepted && (
+          <div className="pt-4 border-t border-border/60 space-y-3">
             <Button
               className="w-full"
               variant="outline"
@@ -520,51 +521,11 @@ export function StudentCard({
               onClick={() => {
                 setSelectedStudentId(student.id);
                 setSelectedStudentName(student.name);
-                setIdentitySheetOpen(true);
+                setProposalOpen(true);
               }}
             >
-              Log Identity Sheet
+              Create & Send Proposal
             </Button>
-            <p className="text-xs text-muted-foreground text-center">
-              Log student's identity sheet to unlock proposal.
-            </p>
-          </div>
-        )}
-
-        {workflow?.assignmentAccepted && workflow?.identitySaved && !workflow.proposalSent && !workflow?.proposalAccepted && (
-          <div className="pt-4 border-t border-border/60 space-y-3">
-            <div className="rounded-xl border border-primary/20 bg-muted/20 px-3 py-2 text-xs text-center text-foreground">
-              Identity sheet saved
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <Button
-                className="w-full"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSelectedStudentId(student.id);
-                  setSelectedStudentName(student.name);
-                  setIdentitySheetOpen(true);
-                }}
-              >
-                View / Edit Identity Sheet
-              </Button>
-              <Button
-                className="w-full"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSelectedStudentId(student.id);
-                  setSelectedStudentName(student.name);
-                  setProposalOpen(true);
-                }}
-              >
-                Create & Send Proposal
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground text-center">
-              Send proposal after identity sheet is saved.
-            </p>
           </div>
         )}
 
@@ -576,7 +537,7 @@ export function StudentCard({
           </div>
         )}
 
-        {workflow?.introCompleted && (
+        {workflow?.proposalAccepted && (
           <div className="pt-4 border-t border-border/60 space-y-3">
             <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Systems</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
