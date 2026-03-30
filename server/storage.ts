@@ -684,10 +684,11 @@ export class SupabaseStorage implements IStorage {
   async createStudent(student: any): Promise<Student> {
     // Bulletproof parent_id assignment with explicit logging
     let parentId: string | null = (student as any).parent_id || null;
+    let parentEnrollmentId: string | null = null;
     if (!parentId && student.parentContact) {
       const { data: parentRow, error: parentLookupError } = await supabase
         .from("parent_enrollments")
-        .select("user_id")
+        .select("user_id, id")
         .eq("parent_email", student.parentContact)
         .maybeSingle();
       if (parentLookupError) {
@@ -695,6 +696,7 @@ export class SupabaseStorage implements IStorage {
       }
       if (parentRow && parentRow.user_id) {
         parentId = parentRow.user_id;
+        parentEnrollmentId = parentRow.id || null;
       } else {
         console.error("[createStudent] No parent_enrollments row found for parentContact:", student.parentContact);
       }
@@ -702,6 +704,18 @@ export class SupabaseStorage implements IStorage {
     if (!parentId) {
       console.error("[createStudent] Failed to resolve parent_id for student:", student);
       throw new Error("Cannot create student without parent_id. Provide parent_id or valid parentContact.");
+    }
+    // Try to find parentEnrollmentId if not already set
+    if (!parentEnrollmentId && parentId && student.tutorId) {
+      const { data: enroll } = await supabase
+        .from("parent_enrollments")
+        .select("id")
+        .eq("user_id", parentId)
+        .eq("assigned_tutor_id", student.tutorId)
+        .maybeSingle();
+      if (enroll && enroll.id) {
+        parentEnrollmentId = enroll.id;
+      }
     }
     // Ensure all required fields are present
     if (!student.name || !student.grade || !student.tutorId) {
@@ -716,6 +730,7 @@ export class SupabaseStorage implements IStorage {
       concept_mastery: student.conceptMastery ?? {},
       parent_contact: student.parentContact,
       parent_id: parentId,
+      parent_enrollment_id: parentEnrollmentId,
     };
     const { data, error: insertError } = await supabase.from("students").insert(dbStudent).select().single();
     if (insertError) {

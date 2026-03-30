@@ -1,0 +1,4 @@
+# PowerShell command to check Emo's workflow state
+# Copy and paste this into your PowerShell terminal
+
+Invoke-RestMethod -Uri "http://localhost:5000/api/tutor/students/975a874e-78b7-4098-9933-bdca38f35916/workflow-state" -Headers @{Accept="application/json"}

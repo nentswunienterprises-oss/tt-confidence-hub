@@ -1,0 +1,4 @@
+# Run this command in your terminal to check Emo's workflow state
+# Replace localhost:3000 with your backend URL if different
+
+curl -X GET "http://localhost:3000/api/tutor/students/975a874e-78b7-4098-9933-bdca38f35916/workflow-state" -H "Accept: application/json"

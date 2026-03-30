@@ -1,0 +1,9 @@
+// Script: check-emo-workflow-state.http
+// Use with VS Code REST Client extension or similar tool
+
+GET http://localhost:3000/api/tutor/students/975a874e-78b7-4098-9933-bdca38f35916/workflow-state
+Accept: application/json
+
+###
+// If you use curl, run this in your terminal:
+// curl -X GET "http://localhost:3000/api/tutor/students/975a874e-78b7-4098-9933-bdca38f35916/workflow-state" -H "Accept: application/json"

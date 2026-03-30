@@ -2880,13 +2880,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
 
-        const { data: latestProposal } = await supabase
+
+        let { data: latestProposal } = await supabase
           .from("onboarding_proposals")
-          .select("sent_at, accepted_at")
+          .select("sent_at, accepted_at, enrollment_id")
           .eq("student_id", studentId)
           .eq("tutor_id", dbUser.id)
           .order("created_at", { ascending: false })
           .maybeSingle();
+
+        // Fallback: if not found, try by tutor_id + enrollment_id (pre-acceptance)
+        if (!latestProposal) {
+          // Find enrollment for this student
+          let enrollmentId = null;
+          // Prefer parent_enrollment_id if present (new field)
+          if (student.parentEnrollmentId || student.parent_enrollment_id) {
+            enrollmentId = student.parentEnrollmentId || student.parent_enrollment_id;
+          } else if (student.parentId) {
+            // Try to find enrollment by parentId and tutorId
+            const { data: enroll } = await supabase
+              .from("parent_enrollments")
+              .select("id")
+              .eq("user_id", student.parentId)
+              .eq("assigned_tutor_id", dbUser.id)
+              .maybeSingle();
+            enrollmentId = enroll?.id || null;
+          }
+          if (enrollmentId) {
+            const { data: fallbackProposal } = await supabase
+              .from("onboarding_proposals")
+              .select("sent_at, accepted_at, enrollment_id")
+              .eq("enrollment_id", enrollmentId)
+              .eq("tutor_id", dbUser.id)
+              .order("created_at", { ascending: false })
+              .maybeSingle();
+            if (fallbackProposal) latestProposal = fallbackProposal;
+          } else if (student.parentContact) {
+            // As a last resort, try to find a proposal by parent email + tutor id
+            const { data: enroll } = await supabase
+              .from("parent_enrollments")
+              .select("id")
+              .eq("parent_email", student.parentContact)
+              .eq("assigned_tutor_id", dbUser.id)
+              .maybeSingle();
+            if (enroll && enroll.id) {
+              const { data: fallbackProposal } = await supabase
+                .from("onboarding_proposals")
+                .select("sent_at, accepted_at, enrollment_id")
+                .eq("enrollment_id", enroll.id)
+                .eq("tutor_id", dbUser.id)
+                .order("created_at", { ascending: false })
+                .maybeSingle();
+              if (fallbackProposal) latestProposal = fallbackProposal;
+            }
+          }
+        }
+
+        console.log("[DEBUG] /api/tutor/students/:studentId/workflow-state", {
+          studentId,
+          tutorId: dbUser.id,
+          latestProposal
+        });
 
         const personalProfile = (student.personalProfile as any) || {};
         const workflow = personalProfile.workflow || {};
