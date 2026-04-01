@@ -84,6 +84,23 @@ export default function ProposalView({
     return "Structured Execution";
   };
 
+  const extractDiagnosisPhase = (): PhaseLabel | null => {
+    const text = proposal.justification || "";
+    const explicit = text.match(/Diagnosed at\s*(Clarity|Structured Execution|Controlled Discomfort|Time Pressure Stability)/i)?.[1];
+    if (explicit) {
+      const normalized = normalizePhaseLabel(explicit);
+      if (normalized) return normalized;
+    }
+
+    const scoredAt = text.match(/scored\s*\d+\/?\d*\s*at\s*(Clarity|Structured Execution|Controlled Discomfort|Time Pressure Stability)\s*phase/i)?.[1];
+    if (scoredAt) {
+      const normalized = normalizePhaseLabel(scoredAt);
+      if (normalized) return normalized;
+    }
+
+    return null;
+  };
+
   const extractTopicConditioning = () => {
     if (proposal.topicConditioning) {
       return {
@@ -125,58 +142,58 @@ export default function ProposalView({
   const PARENT_STATE_ENGINE: Record<PhaseLabel, Record<StabilityLabel, { status: string; meaning: string }>> = {
     Clarity: {
       Low: {
-        status: "Your child is still building a clear understanding of this topic.",
-        meaning: "They are not yet fully comfortable with the terms, steps, or logic involved.",
+        status: `${studentFirstName} did not consistently identify terms, problem type, or starting structure during diagnosis.`,
+        meaning: `${studentFirstName} needs clearer recognition before independent execution can be trained.`,
       },
       Medium: {
-        status: "Your child is beginning to understand this topic more clearly.",
-        meaning: "They can follow explanations, but still need reinforcement to apply it independently.",
+        status: `${studentFirstName} showed partial recognition of terms and structure across the diagnosis sets.`,
+        meaning: `${studentFirstName} can follow parts of the method but still needs reinforcement for consistent clarity.`,
       },
       High: {
-        status: "Your child now understands this topic clearly.",
-        meaning: "They can recognize the problem and explain the steps with confidence.",
+        status: `${studentFirstName} demonstrated clear recognition and explanation patterns in the diagnosis topic.`,
+        meaning: `${studentFirstName} is ready to begin training at the next phase after Clarity.`,
       },
     },
     "Structured Execution": {
       Low: {
-        status: "Your child is learning to apply the steps correctly.",
-        meaning: "They understand the topic but struggle to follow the method consistently on their own.",
+        status: `${studentFirstName} did not execute the method consistently without support.`,
+        meaning: `${studentFirstName} needs repetition of start behavior and step order to stabilize execution.`,
       },
       Medium: {
-        status: "Your child is becoming more consistent in solving problems.",
-        meaning: "They can follow the method in many cases, but still show occasional inconsistency.",
+        status: `${studentFirstName} executed parts of the method correctly but showed inconsistency across attempts.`,
+        meaning: `${studentFirstName} needs stronger independent repetition before phase pressure increases.`,
       },
       High: {
-        status: "Your child can now solve problems consistently in this topic.",
-        meaning: "They are able to follow the correct steps independently with minimal support.",
+        status: `${studentFirstName} maintained method execution consistently across attempts.`,
+        meaning: `${studentFirstName} is ready to begin Controlled Discomfort training.`,
       },
     },
     "Controlled Discomfort": {
       Low: {
-        status: "Your child is starting to face more challenging problems in this topic.",
-        meaning: "They can solve basic problems, but struggle when questions become less familiar.",
+        status: `${studentFirstName} destabilized when problems became less familiar or more difficult.`,
+        meaning: `${studentFirstName} needs structured exposure to difficulty while preserving method control.`,
       },
       Medium: {
-        status: "Your child is improving in handling difficult questions.",
-        meaning: "They can work through unfamiliar problems, but still show hesitation at times.",
+        status: `${studentFirstName} stayed structured in some higher-friction prompts but not consistently.`,
+        meaning: `${studentFirstName} needs more discomfort reps before timed pressure is introduced.`,
       },
       High: {
-        status: "Your child is handling difficult problems well.",
-        meaning: "They are able to stay structured and solve unfamiliar questions with stability.",
+        status: `${studentFirstName} stayed structured during challenge-heavy prompts.`,
+        meaning: `${studentFirstName} is ready to begin Time Pressure Stability training.`,
       },
     },
     "Time Pressure Stability": {
       Low: {
-        status: "Your child is learning to stay structured under time pressure.",
-        meaning: "They can solve problems, but may lose structure when working against the clock.",
+        status: `${studentFirstName} lost structure when time pressure increased.`,
+        meaning: `${studentFirstName} needs controlled timed reps to stabilize pace and method integrity.`,
       },
       Medium: {
-        status: "Your child is becoming more stable under time pressure.",
-        meaning: "They are improving their ability to complete problems within time while staying structured.",
+        status: `${studentFirstName} retained structure in parts of timed work but showed instability across attempts.`,
+        meaning: `${studentFirstName} needs continued timed conditioning for consistent performance.`,
       },
       High: {
-        status: "Your child is performing consistently under time pressure.",
-        meaning: "They can solve problems accurately and maintain structure even under time constraints.",
+        status: `${studentFirstName} maintained structured execution under timed conditions.`,
+        meaning: `${studentFirstName} can now sustain method integrity under pressure.`,
       },
     },
   };
@@ -217,17 +234,22 @@ export default function ProposalView({
   const diagnosisTopic = topicConditioning.topic || focusTopics[0] || "Current school topic";
 
   const getFocusAreaText = () => {
-    switch (topicConditioning.entryPhase || entryPoint) {
+    const trainingPhase = topicConditioning.entryPhase || entryPoint;
+    const diagnosisPhase = extractDiagnosisPhase() || normalizePhaseLabel(topicConditioning.entryPhase) || "Structured Execution";
+    const stability = normalizeStabilityLabel(topicConditioning.stability);
+    const diagnosisContext = `Diagnosis result: ${diagnosisPhase} with ${stability} stability.`;
+
+    switch (trainingPhase) {
       case "Clarity":
-        return `We will focus first on building vocabulary precision, method recognition, and reason understanding for ${studentFirstName}.`;
+        return `${diagnosisContext} Training starts at Clarity to strengthen vocabulary precision, method recognition, and reason understanding.`;
       case "Structured Execution":
-        return `We will focus first on building independent, repeatable method execution without tutor carry for ${studentFirstName}.`;
+        return `${diagnosisContext} Training starts at Structured Execution because Clarity-level recognition is present and execution consistency now needs to be stabilized.`;
       case "Controlled Discomfort":
-        return `We will focus first on helping ${studentFirstName} stay structured when difficulty increases and certainty drops.`;
+        return `${diagnosisContext} Training starts at Controlled Discomfort because baseline execution is present and ${studentFirstName} now needs stability when difficulty increases.`;
       case "Time Pressure Stability":
-        return `We will focus first on helping ${studentFirstName} maintain structure and decision quality under timed pressure.`;
+        return `${diagnosisContext} Training starts at Time Pressure Stability because method structure is present and ${studentFirstName} now needs to retain it under timed pressure.`;
       default:
-        return `We will focus first on stabilizing ${studentFirstName}'s response patterns in the current training phase.`;
+        return `${diagnosisContext} Training starts in the current phase to stabilize response patterns before progression.`;
     }
   };
 
@@ -382,7 +404,7 @@ export default function ProposalView({
         <CardContent className="pt-6">
           <h3 className="font-bold text-lg mb-2">Parent Alignment</h3>
           <p className="text-sm text-muted-foreground">
-            This training focuses on how your child responds when work becomes difficult.
+            This training focuses on how {studentFirstName} responds when work becomes difficult.
             The goal is to build structured thinking, independent execution, and stability
             under pressure.
           </p>
