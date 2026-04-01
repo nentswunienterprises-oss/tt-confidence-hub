@@ -351,10 +351,22 @@ export default function ParentDashboard() {
   const topicConditioning = extractTopicConditioning(proposal);
   const focusArea = topicConditioning.topic || splitList(proposal?.currentTopics)[0] || "Current school topic";
   const progressSignals = getProgressSignals(proposal);
-  const currentStep = getCurrentStepCopy(introSession || null, !!proposal, !!proposal?.parentCode);
+  const hasAccessCode = !!proposal?.parentCode;
+  const currentStep = getCurrentStepCopy(introSession || null, !!proposal, hasAccessCode);
   const nextSessionTime = introSession?.scheduled_time
     ? new Date(introSession.scheduled_time).toLocaleString()
     : null;
+  const introStatusesWithSchedule = new Set([
+    "pending_tutor_confirmation",
+    "pending_parent_confirmation",
+    "confirmed",
+  ]);
+  const showScheduledTime = Boolean(
+    nextSessionTime &&
+      introSession?.status &&
+      introStatusesWithSchedule.has(introSession.status) &&
+      !hasAccessCode
+  );
   const firstParentName = user?.name?.split(" ")[0] || user?.email?.split("@")[0] || "Parent";
 
   const normalizedTopicStates = (topicStatesData || [])
@@ -526,7 +538,7 @@ export default function ParentDashboard() {
             <CardContent className="space-y-2 text-sm">
               <p className="font-medium text-foreground">{currentStep.title}</p>
               <p className="text-muted-foreground leading-relaxed">{currentStep.description}</p>
-              {nextSessionTime && (
+              {showScheduledTime && (
                 <p className="text-xs text-muted-foreground">Scheduled time: {nextSessionTime}</p>
               )}
             </CardContent>
