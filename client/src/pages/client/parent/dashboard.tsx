@@ -41,7 +41,6 @@ interface IntroSessionInfo {
 
 const PHASE_SEQUENCE = ["Clarity", "Structured Execution", "Controlled Discomfort", "Time Pressure Stability"] as const;
 const STABILITY_SEQUENCE = ["Low", "Medium", "High"] as const;
-const PARENT_STAGE_SEQUENCE = ["Foundation", "Method", "Challenge", "Timed Stability"] as const;
 
 type PhaseLabel = (typeof PHASE_SEQUENCE)[number];
 type StabilityLabel = (typeof STABILITY_SEQUENCE)[number];
@@ -54,8 +53,8 @@ type ParentStateCopy = {
 
 type ParentTopicState = {
   topic: string;
-  phase: string;
-  stability: string;
+  phase: string | null;
+  stability: string | null;
   lastUpdated?: string | null;
   previousPhase?: string | null;
   previousStability?: string | null;
@@ -190,22 +189,33 @@ function normalizePhaseLabel(phase?: string | null) {
   return matched || null;
 }
 
-function normalizeStabilityLabel(stability?: string | null): StabilityLabel {
+function normalizeStabilityLabel(stability?: string | null): StabilityLabel | null {
   const v = String(stability || "").toLowerCase();
   if (v.includes("high")) return "High";
   if (v.includes("medium")) return "Medium";
-  return "Low";
+  if (v.includes("low")) return "Low";
+  return null;
 }
 
-function stabilityIndicator(stability: StabilityLabel): "Developing" | "Strengthening" | "Stable" {
+function stabilityIndicator(stability: StabilityLabel | null): "Developing" | "Strengthening" | "Stable" | "Unconfirmed" {
+  if (!stability) return "Unconfirmed";
   if (stability === "High") return "Stable";
   if (stability === "Medium") return "Strengthening";
   return "Developing";
 }
 
 function parentCopyForState(phase?: string | null, stability?: string | null): ParentStateCopy {
-  const normalizedPhase = normalizePhaseLabel(phase) || "Structured Execution";
+  const normalizedPhase = normalizePhaseLabel(phase);
   const normalizedStability = normalizeStabilityLabel(stability);
+
+  if (!normalizedPhase || !normalizedStability) {
+    return {
+      status: "This topic has been activated, but the current observed phase has not been confirmed yet.",
+      meaning: "TT has the topic in conditioning, but a session-scored phase and stability label is not yet available here.",
+      focus: "The next logged session will confirm where this topic currently sits and what needs reinforcing first.",
+    };
+  }
+
   return PARENT_STATE_ENGINE[normalizedPhase][normalizedStability];
 }
 
@@ -339,7 +349,6 @@ export default function ParentDashboard() {
   const studentName = studentInfo?.name || proposal?.student?.name || "Your child";
   const studentFirstName = studentName.trim().split(/\s+/)[0] || "Your child";
   const topicConditioning = extractTopicConditioning(proposal);
-  const activePhase = normalizePhaseLabel(topicConditioning.entryPhase);
   const focusArea = topicConditioning.topic || splitList(proposal?.currentTopics)[0] || "Current school topic";
   const progressSignals = getProgressSignals(proposal);
   const currentStep = getCurrentStepCopy(introSession || null, !!proposal, !!proposal?.parentCode);
@@ -351,7 +360,7 @@ export default function ParentDashboard() {
   const normalizedTopicStates = (topicStatesData || [])
     .map((item) => ({
       ...item,
-      phase: normalizePhaseLabel(item.phase) || "Structured Execution",
+      phase: normalizePhaseLabel(item.phase),
       stability: normalizeStabilityLabel(item.stability),
       topic: String(item.topic || "").trim(),
     }))
@@ -361,7 +370,7 @@ export default function ParentDashboard() {
   const fallbackTopicCards = topicConditioning.topic
     ? [{
         topic: topicConditioning.topic,
-        phase: normalizePhaseLabel(topicConditioning.entryPhase) || "Structured Execution",
+        phase: normalizePhaseLabel(topicConditioning.entryPhase),
         stability: normalizeStabilityLabel(topicConditioning.stability),
         lastUpdated: null,
         movement: "none" as const,
@@ -370,13 +379,6 @@ export default function ParentDashboard() {
     : [];
 
   const topicCards = normalizedTopicStates.length > 0 ? normalizedTopicStates : fallbackTopicCards;
-  const activePhaseFromTopicCards = normalizePhaseLabel(
-    topicCards.length > 0 ? String(topicCards[0].phase || "") : null
-  );
-  const activePhaseForStage = activePhaseFromTopicCards || activePhase;
-  const activeStage = activePhaseForStage
-    ? PARENT_STAGE_SEQUENCE[PHASE_SEQUENCE.indexOf(activePhaseForStage)]
-    : "Foundation";
 
   const sessionMarkers = [
     {
@@ -397,10 +399,6 @@ export default function ParentDashboard() {
     {
       label: "Topics In Conditioning",
       value: topicCards.length,
-    },
-    {
-      label: "Current Training Stage",
-      value: activeStage,
     },
   ];
 
@@ -436,7 +434,7 @@ export default function ParentDashboard() {
           <CardContent>
             {topicCards.length === 0 ? (
               <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                Topic cards appear after the first topic conditioning session is logged.
+                Topic cards appear as soon as a topic is activated or a scored session confirms its current state.
               </div>
             ) : (
               <div className="grid sm:grid-cols-2 gap-4">
@@ -450,12 +448,21 @@ export default function ParentDashboard() {
                         <p className="text-base font-semibold tracking-tight text-foreground">{row.topic}</p>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="border-primary/30 bg-background/80">
-                            {stabilityIndicator(row.stability as StabilityLabel)}
+                            {stabilityIndicator(row.stability as StabilityLabel | null)}
                           </Badge>
                           {row.bucket === "recent" && (
                             <Badge variant="secondary">Recently Trained</Badge>
                           )}
                         </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant="outline" className="border-primary/30 bg-background/80">
+                          Phase: {row.phase || "Unknown"}
+                        </Badge>
+                        <Badge variant="outline" className="border-primary/30 bg-background/80">
+                          Stability: {row.stability || "Unknown"}
+                        </Badge>
                       </div>
 
                       {hasProgressUpdate && (
@@ -489,56 +496,69 @@ export default function ParentDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="border-primary/20">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg font-semibold tracking-[-0.01em]">
-              <UserRound className="w-5 h-5" />
-              Tutor Context
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            <div>
-              <p className="text-muted-foreground">Assigned tutor</p>
-              <p className="font-semibold text-foreground">{assignedTutor?.name || "Assigned inside TT"}</p>
-            </div>
-            {assignedTutor?.bio && (
-              <p className="text-muted-foreground">{assignedTutor.bio}</p>
-            )}
-            <div className="pt-2 border-t">
-              <p className="text-muted-foreground">Parent role now</p>
-              <p className="font-medium text-foreground">Hold consistency. Do not rescue the struggle too early.</p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="space-y-4">
+          <Card className="border-primary/20">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold tracking-[-0.01em]">
+                <UserRound className="w-5 h-5" />
+                Tutor Context
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <div>
+                <p className="text-muted-foreground">Assigned tutor</p>
+                <p className="font-semibold text-foreground">{assignedTutor?.name || "Assigned inside TT"}</p>
+              </div>
+              {assignedTutor?.bio && (
+                <p className="text-muted-foreground">{assignedTutor.bio}</p>
+              )}
+              <div className="pt-2 border-t">
+                <p className="text-muted-foreground">Parent role now</p>
+                <p className="font-medium text-foreground">Hold consistency. Do not rescue the struggle too early.</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-primary/20 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg font-semibold tracking-[-0.01em]">Next System Step</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <p className="font-medium text-foreground">{currentStep.title}</p>
+              <p className="text-muted-foreground leading-relaxed">{currentStep.description}</p>
+              {nextSessionTime && (
+                <p className="text-xs text-muted-foreground">Scheduled time: {nextSessionTime}</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <Card className="border-primary/20 shadow-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg font-semibold tracking-[-0.01em]">How Training Difficulty Progresses</CardTitle>
+            <CardTitle className="text-lg font-semibold tracking-[-0.01em]">How Topic Conditioning Progresses</CardTitle>
           <CardDescription>
-            TT moves from foundation to timed performance only after consistent stability is shown.
+            Each topic can sit at a different phase. The topic cards above show the current observed phase for each topic when known.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-4 gap-3">
-            {PARENT_STAGE_SEQUENCE.map((stage, idx) => {
-              const isActive = activeStage === stage;
+            {PHASE_SEQUENCE.map((phase, idx) => {
               return (
                 <div
-                  key={stage}
-                  className={`rounded-lg border p-3 ${isActive ? "border-primary bg-primary/10 shadow-sm" : "bg-background"}`}
+                  key={phase}
+                  className="rounded-lg border p-3 bg-background"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Stage {idx + 1}</p>
-                    {isActive && <Badge className="bg-primary/90 text-primary-foreground">Current</Badge>}
+                    <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Phase {idx + 1}</p>
                   </div>
-                  <p className={`text-sm mt-2 font-medium leading-snug ${isActive ? "text-primary" : "text-foreground"}`}>{stage}</p>
+                  <p className="text-sm mt-2 font-medium leading-snug text-foreground">{phase}</p>
                 </div>
               );
             })}
           </div>
           <div className="mt-3 rounded-lg bg-muted/40 p-3 text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">Current stage:</span> {activeStage || "Building baseline"}
+            Parent view note: phase is tracked per topic, not as one global student stage.
           </div>
         </CardContent>
       </Card>
@@ -654,7 +674,7 @@ export default function ParentDashboard() {
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {trainingMarkers.map((item) => {
-                const displayValue = item.value ?? "Foundation";
+                const displayValue = item.value ?? "Unknown";
                 return (
                   <div key={item.label} className="rounded-xl border border-primary/20 bg-muted/20 px-4 py-3">
                     <p className="text-[11px] uppercase tracking-[0.07em] text-muted-foreground">{item.label}</p>

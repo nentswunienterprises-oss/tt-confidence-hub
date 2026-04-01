@@ -9313,7 +9313,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get parent's enrollment to find student
       const enrollmentWithAssignedStudent = await supabase
         .from("parent_enrollments")
-        .select("student_full_name, assigned_tutor_id, assigned_student_id, parent_email")
+        .select("student_full_name, assigned_tutor_id, assigned_student_id, parent_email, proposal_id")
         .eq("user_id", parentId)
         .maybeSingle();
 
@@ -9323,7 +9323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (enrollmentError && String(enrollmentError.message || "").includes("assigned_student_id")) {
         const enrollmentFallback = await supabase
           .from("parent_enrollments")
-          .select("student_full_name, assigned_tutor_id, parent_email")
+          .select("student_full_name, assigned_tutor_id, parent_email, proposal_id")
           .eq("user_id", parentId)
           .maybeSingle();
 
@@ -9475,7 +9475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const enrollmentWithAssignedStudent = await supabase
         .from("parent_enrollments")
-        .select("student_full_name, assigned_tutor_id, assigned_student_id, parent_email")
+        .select("student_full_name, assigned_tutor_id, assigned_student_id, parent_email, proposal_id")
         .eq("user_id", parentId)
         .maybeSingle();
 
@@ -9485,7 +9485,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (enrollmentError && String(enrollmentError.message || "").includes("assigned_student_id")) {
         const enrollmentFallback = await supabase
           .from("parent_enrollments")
-          .select("student_full_name, assigned_tutor_id, parent_email")
+          .select("student_full_name, assigned_tutor_id, parent_email, proposal_id")
           .eq("user_id", parentId)
           .maybeSingle();
 
@@ -9499,21 +9499,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "Failed to fetch enrollment" });
       }
 
-      if (!enrollment?.assigned_tutor_id || !enrollment?.student_full_name) {
-        return res.json([]);
-      }
-
-      const sessions = await getCanonicalStudentSessions({
-        tutorId: enrollment.assigned_tutor_id,
-        studentId: enrollment.assigned_student_id || null,
-        studentName: enrollment.student_full_name,
-        parentId,
-        parentContact: enrollment.parent_email || null,
-      });
-
-      if (!sessions.length) {
-        return res.json([]);
-      }
+      const sessions =
+        enrollment?.assigned_tutor_id && enrollment?.student_full_name
+          ? await getCanonicalStudentSessions({
+              tutorId: enrollment.assigned_tutor_id,
+              studentId: enrollment.assigned_student_id || null,
+              studentName: enrollment.student_full_name,
+              parentId,
+              parentContact: enrollment.parent_email || null,
+            })
+          : [];
 
       const normalizePhase = (value?: string | null) => {
         const v = String(value || "").toLowerCase();
@@ -9521,14 +9516,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (v.includes("structured")) return "Structured Execution";
         if (v.includes("discomfort")) return "Controlled Discomfort";
         if (v.includes("time") || v.includes("pressure")) return "Time Pressure Stability";
-        return "Structured Execution";
+        return null;
       };
 
       const normalizeStability = (value?: string | null) => {
         const v = String(value || "").toLowerCase();
         if (v.includes("high")) return "High";
         if (v.includes("medium")) return "Medium";
-        return "Low";
+        if (v.includes("low")) return "Low";
+        return null;
       };
 
       const sanitizeTopic = (value?: string | null) => {
@@ -9567,50 +9563,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       };
 
+      const { data: studentRecord } = enrollment?.assigned_student_id
+        ? await supabase
+            .from("students")
+            .select("concept_mastery")
+            .eq("id", enrollment.assigned_student_id)
+            .maybeSingle()
+        : { data: null };
+
+      const { data: proposal } = enrollment?.proposal_id
+        ? await supabase
+            .from("onboarding_proposals")
+            .select("current_topics, tutor_notes, justification, topic_conditioning_topic, topic_conditioning_entry_phase, topic_conditioning_stability, accepted_at, updated_at")
+            .eq("id", enrollment.proposal_id)
+            .maybeSingle()
+        : { data: null };
+
+      const byTopic = new Map<string, Array<{ phase: string | null; stability: string | null; date: string | null }>>();
+
+      const pushHistoryEntry = (
+        topic: string | null,
+        entry: { phase?: string | null; stability?: string | null; date?: string | null }
+      ) => {
+        if (!topic) return;
+        const cleanedTopic = sanitizeTopic(topic);
+        if (!cleanedTopic) return;
+        if (!byTopic.has(cleanedTopic)) byTopic.set(cleanedTopic, []);
+        byTopic.get(cleanedTopic)?.push({
+          phase: normalizePhase(entry.phase),
+          stability: normalizeStability(entry.stability),
+          date: entry.date || null,
+        });
+      };
+
+      const topicConditioningStore =
+        studentRecord?.concept_mastery && typeof studentRecord.concept_mastery === "object"
+          ? (studentRecord.concept_mastery as any).topicConditioning
+          : null;
+
+      const conceptTopics =
+        topicConditioningStore?.topics && typeof topicConditioningStore.topics === "object"
+          ? topicConditioningStore.topics
+          : {};
+
+      Object.values(conceptTopics as Record<string, any>).forEach((topicState: any) => {
+        const topic = sanitizeTopic(topicState?.topic);
+        if (!topic) return;
+
+        const history = Array.isArray(topicState?.history) ? topicState.history : [];
+        if (history.length > 0) {
+          history.forEach((entry: any) => {
+            pushHistoryEntry(topic, {
+              phase: entry?.phase,
+              stability: entry?.stability,
+              date: entry?.date || topicState?.lastUpdated || null,
+            });
+          });
+          return;
+        }
+
+        pushHistoryEntry(topic, {
+          phase: topicState?.phase,
+          stability: topicState?.stability,
+          date: topicState?.lastUpdated || null,
+        });
+      });
+
+      const proposalTopicConditioning = buildTopicConditioningMap(proposal);
+      if (proposalTopicConditioning?.topic) {
+        pushHistoryEntry(proposalTopicConditioning.topic, {
+          phase: proposalTopicConditioning.entry_phase,
+          stability: proposalTopicConditioning.stability,
+          date: proposal?.accepted_at || proposal?.updated_at || null,
+        });
+      }
+
       const observations = (sessions || [])
         .map(parseObservation)
         .filter((item: any) => !!item)
         .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-      const byTopic = new Map<string, Array<{ phase: string; stability: string; date: string }>>();
       observations.forEach((obs: any) => {
-        if (!byTopic.has(obs.topic)) byTopic.set(obs.topic, []);
-        byTopic.get(obs.topic)?.push({ phase: obs.phase, stability: obs.stability, date: obs.date });
+        pushHistoryEntry(obs.topic, { phase: obs.phase, stability: obs.stability, date: obs.date });
       });
 
       const phaseOrder = ["Clarity", "Structured Execution", "Controlled Discomfort", "Time Pressure Stability"];
-      const stabilityScore = (value: string) => (value === "Low" ? 1 : value === "Medium" ? 2 : 3);
+      const stabilityScore = (value?: string | null) => (value === "Low" ? 1 : value === "Medium" ? 2 : value === "High" ? 3 : 0);
+      const bucketRank = (value: string) => (value === "active" ? 0 : value === "recent" ? 1 : 2);
 
       const now = Date.now();
       const rows = Array.from(byTopic.entries())
         .map(([topic, history]) => {
-          const latest = history[history.length - 1];
-          const previous = history.length > 1 ? history[history.length - 2] : null;
+          const sortedHistory = [...history].sort((a, b) => {
+            const aTime = a.date ? new Date(a.date).getTime() : 0;
+            const bTime = b.date ? new Date(b.date).getTime() : 0;
+            return aTime - bTime;
+          });
 
-          const latestPhaseIdx = phaseOrder.indexOf(latest.phase);
-          const previousPhaseIdx = previous ? phaseOrder.indexOf(previous.phase) : -1;
-          const latestStabilityScore = stabilityScore(latest.stability);
+          const latest = sortedHistory[sortedHistory.length - 1];
+          const previous = sortedHistory.length > 1 ? sortedHistory[sortedHistory.length - 2] : null;
+
+          const latestPhaseIdx = latest?.phase ? phaseOrder.indexOf(latest.phase) : -1;
+          const previousPhaseIdx = previous?.phase ? phaseOrder.indexOf(previous.phase) : -1;
+          const latestStabilityScore = stabilityScore(latest?.stability);
           const previousStabilityScore = previous ? stabilityScore(previous.stability) : 0;
 
           let movement: "none" | "improved" | "regressed" | "changed" = "none";
           if (previous) {
-            if (latestPhaseIdx > previousPhaseIdx || (latestPhaseIdx === previousPhaseIdx && latestStabilityScore > previousStabilityScore)) {
+            if (
+              latestPhaseIdx >= 0 &&
+              previousPhaseIdx >= 0 &&
+              (latestPhaseIdx > previousPhaseIdx || (latestPhaseIdx === previousPhaseIdx && latestStabilityScore > previousStabilityScore))
+            ) {
               movement = "improved";
-            } else if (latestPhaseIdx < previousPhaseIdx || (latestPhaseIdx === previousPhaseIdx && latestStabilityScore < previousStabilityScore)) {
+            } else if (
+              latestPhaseIdx >= 0 &&
+              previousPhaseIdx >= 0 &&
+              (latestPhaseIdx < previousPhaseIdx || (latestPhaseIdx === previousPhaseIdx && latestStabilityScore < previousStabilityScore))
+            ) {
               movement = "regressed";
-            } else if (latest.phase !== previous.phase || latest.stability !== previous.stability) {
+            } else if (latest?.phase !== previous.phase || latest?.stability !== previous.stability) {
               movement = "changed";
             }
           }
 
-          const daysSinceUpdate = Math.floor((now - new Date(latest.date).getTime()) / (1000 * 60 * 60 * 24));
+          const latestTime = latest?.date ? new Date(latest.date).getTime() : now;
+          const daysSinceUpdate = Math.floor((now - latestTime) / (1000 * 60 * 60 * 24));
           const bucket = daysSinceUpdate <= 14 ? "active" : daysSinceUpdate <= 45 ? "recent" : "older";
 
           return {
             topic,
-            phase: latest.phase,
-            stability: latest.stability,
-            lastUpdated: latest.date,
+            phase: latest?.phase || null,
+            stability: latest?.stability || null,
+            lastUpdated: latest?.date || null,
             previousPhase: previous?.phase || null,
             previousStability: previous?.stability || null,
             movement,
@@ -9619,8 +9704,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
         .filter((row) => row.bucket !== "older")
         .sort((a, b) => {
-          if (a.bucket !== b.bucket) return a.bucket === "active" ? -1 : 1;
-          return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
+          if (a.bucket !== b.bucket) return bucketRank(a.bucket) - bucketRank(b.bucket);
+          return new Date(b.lastUpdated || 0).getTime() - new Date(a.lastUpdated || 0).getTime();
         });
 
       res.json(rows);

@@ -136,8 +136,9 @@ export default function ProposalView({
   type PhaseLabel = (typeof PHASE_SEQUENCE)[number];
   type StabilityLabel = (typeof STABILITY_SEQUENCE)[number];
 
-  const deriveTrainingEntryPhase = (diagnosisPhase: PhaseLabel, _stability: StabilityLabel): PhaseLabel => {
-    return diagnosisPhase;
+  const UNKNOWN_STATE_COPY = {
+    status: `${studentFirstName}'s diagnosis topic has been identified, but the phase label is not yet confirmed here.`,
+    meaning: `TT has the topic in scope, but the phase and stability fields need a confirmed scored label before this view can describe them precisely.`,
   };
 
   const PARENT_STATE_ENGINE: Record<PhaseLabel, Record<StabilityLabel, { status: string; meaning: string }>> = {
@@ -205,21 +206,24 @@ export default function ProposalView({
     return PHASE_SEQUENCE.find((item) => item.toLowerCase() === normalized) || null;
   };
 
-  const normalizeStabilityLabel = (stability?: string | null): StabilityLabel => {
+  const normalizeStabilityLabel = (stability?: string | null): StabilityLabel | null => {
     const value = String(stability || "").toLowerCase();
     if (value.includes("high")) return "High";
     if (value.includes("medium")) return "Medium";
-    return "Low";
+    if (value.includes("low")) return "Low";
+    return null;
   };
 
   const normalizedDiagnosisPhase =
     extractDiagnosisPhase() ||
-    normalizePhaseLabel(topicConditioning.entryPhase) ||
-    "Clarity";
+    normalizePhaseLabel(topicConditioning.entryPhase);
   const normalizedStability = normalizeStabilityLabel(topicConditioning.stability);
-  const trainingStartPhase = deriveTrainingEntryPhase(normalizedDiagnosisPhase, normalizedStability);
+  const trainingStartPhase = normalizedDiagnosisPhase;
 
-  const stateCopy = PARENT_STATE_ENGINE[trainingStartPhase][normalizedStability];
+  const stateCopy =
+    trainingStartPhase && normalizedStability
+      ? PARENT_STATE_ENGINE[trainingStartPhase][normalizedStability]
+      : UNKNOWN_STATE_COPY;
   const derivedObserved = [stateCopy.status, stateCopy.meaning];
 
   const observedResponse = [
@@ -241,6 +245,11 @@ export default function ProposalView({
     const trainingPhase = trainingStartPhase;
     const diagnosisPhase = normalizedDiagnosisPhase;
     const stability = normalizedStability;
+
+    if (!diagnosisPhase || !stability) {
+      return `The diagnosis topic has been identified, but the scored phase and stability labels are not yet available in this view. Training begins from the confirmed diagnosed phase once that label is present.`;
+    }
+
     const diagnosisContext = `Diagnosis result: ${diagnosisPhase} with ${stability} stability.`;
 
     switch (trainingPhase) {
@@ -258,6 +267,10 @@ export default function ProposalView({
   };
 
   const getFirstBreakdown = () => {
+    if (!trainingStartPhase) {
+      return `${studentFirstName} needs a confirmed phase label before this view can describe the first breakdown precisely.`;
+    }
+
     switch (trainingStartPhase) {
       case "Clarity":
         return `${studentFirstName} is not yet consistently identifying what the question is asking or what structure to use first.`;
@@ -273,6 +286,10 @@ export default function ProposalView({
   };
 
   const getFirstPriority = () => {
+    if (!trainingStartPhase) {
+      return `We will use the confirmed diagnosis result to anchor the first training priority for ${studentFirstName}.`;
+    }
+
     switch (trainingStartPhase) {
       case "Clarity":
         return `We will first help ${studentFirstName} read problems more clearly, recognise what is being asked, and identify the structure before solving.`;
@@ -322,7 +339,7 @@ export default function ProposalView({
         </CardHeader>
         <CardContent>
           <p className="text-sm text-foreground font-medium mb-2">
-            Training Starts At: {trainingStartPhase}
+            Training Starts At: {trainingStartPhase || "Unknown"}
           </p>
           <p className="text-sm text-muted-foreground">
             {getFocusAreaText()}
