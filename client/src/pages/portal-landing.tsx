@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { TerritorialTutoringLogoSVG } from "@/components/TerritorialTutoringLogoSVG";
 
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, BookOpen, Users, Zap, Check, Heart, Sparkles, Star } from "lucide-react";
+import { ArrowRight, BookOpen, Users, Zap, Check, Heart, Sparkles, Star, Instagram } from "lucide-react";
 
 function PortalLanding() {
   const navigate = useNavigate();
@@ -305,8 +305,20 @@ function PortalLanding() {
           </div>
 
           <div className="flex flex-col md:flex-row md:justify-between items-center gap-4 sm:gap-6">
-            <div className="ml-16 md:ml-0">
-              <TerritorialTutoringLogoSVG width={150} />
+            <div className="flex flex-col md:flex-row items-center gap-3 sm:gap-4">
+              <div className="translate-x-6 md:translate-x-0">
+                <TerritorialTutoringLogoSVG width={150} />
+              </div>
+              <a
+                href="https://www.instagram.com/territorialtutoring?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Territorial Tutoring on Instagram"
+                className="inline-flex items-center justify-center w-10 h-10 rounded-full transition-opacity hover:opacity-80"
+                style={{ backgroundColor: "#FFF0F0", color: "#E63946" }}
+              >
+                <Instagram className="w-5 h-5" />
+              </a>
             </div>
             <p className="text-center md:text-right text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
               © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
