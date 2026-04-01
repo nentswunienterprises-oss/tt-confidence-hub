@@ -280,18 +280,6 @@ export default function TutorSessions() {
         studentId: weeklyForm.studentId,
         weekStartDate: formatDateInput(weeklyStartDate),
         weekEndDate: formatDateInput(weeklyEndDate),
-        sessionsCompletedThisWeek: selectedWeekSessions.length,
-        mainTopicsCovered: weeklyForm.mainTopicsCovered,
-        whatImprovedThisWeek: weeklyForm.whatImproved,
-        studentResponsePatternThisWeek: weeklyForm.studentResponsePattern,
-        mainMisunderstandingThisWeek: weeklyForm.mainMisunderstanding,
-        mainCorrectionHelpedThisWeek: weeklyForm.mainCorrectionHelped,
-        bossBattleSummaryThisWeek: weeklyForm.bossBattleSummary,
-        reinforcementNextWeek: weeklyForm.reinforcementNextWeek,
-        internalWeeklyTutorNote: weeklyForm.internalTutorNote,
-        sourceSessionIds: selectedWeekSessions.map((s) => s.id),
-        sourceSessionCount: selectedWeekSessions.length,
-        bossBattlesCompletedThisWeek: selectedWeekSessions.filter((s) => !!s.bossBattlesDone).length,
       });
     },
     onSuccess: () => {
@@ -329,16 +317,6 @@ export default function TutorSessions() {
         studentId: monthlyForm.studentId,
         monthStartDate: formatDateInput(monthlyStartDate),
         monthEndDate: formatDateInput(monthlyEndDate),
-        totalSessionsCompletedThisMonth: selectedMonthSessionsCount,
-        mainAreasCoveredThisMonth: monthlyForm.mainAreasCovered,
-        strongerSkillsThisMonth: monthlyForm.strongerSkills,
-        responsePatternTrendThisMonth: monthlyForm.responsePatternTrend,
-        recurringChallengeThisMonth: monthlyForm.recurringChallenge,
-        mostEffectiveInterventionThisMonth: monthlyForm.mostEffectiveIntervention,
-        bossBattleTrendThisMonth: monthlyForm.bossBattleTrend,
-        nextMonthPriority: monthlyForm.nextMonthPriority,
-        internalMonthlyTutorNote: monthlyForm.internalTutorNote,
-        sourceWeeklyReportIds: selectedMonthWeeklyReports.map((r) => r.id),
       });
     },
     onSuccess: () => {
@@ -399,19 +377,10 @@ export default function TutorSessions() {
 
   const handleWeeklyReportSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      !weeklyForm.studentId ||
-      !weeklyForm.mainTopicsCovered.trim() ||
-      !weeklyForm.whatImproved.trim() ||
-      !weeklyForm.studentResponsePattern.trim() ||
-      !weeklyForm.mainMisunderstanding.trim() ||
-      !weeklyForm.mainCorrectionHelped.trim() ||
-      !weeklyForm.bossBattleSummary.trim() ||
-      !weeklyForm.reinforcementNextWeek.trim()
-    ) {
+    if (!weeklyForm.studentId) {
       toast({
         title: "Validation Error",
-        description: "Please complete all required weekly report fields.",
+        description: "Please select a student before generating the weekly report.",
         variant: "destructive",
       });
       return;
@@ -422,19 +391,10 @@ export default function TutorSessions() {
 
   const handleMonthlyReportSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      !monthlyForm.studentId ||
-      !monthlyForm.mainAreasCovered.trim() ||
-      !monthlyForm.strongerSkills.trim() ||
-      !monthlyForm.responsePatternTrend.trim() ||
-      !monthlyForm.recurringChallenge.trim() ||
-      !monthlyForm.mostEffectiveIntervention.trim() ||
-      !monthlyForm.bossBattleTrend.trim() ||
-      !monthlyForm.nextMonthPriority.trim()
-    ) {
+    if (!monthlyForm.studentId) {
       toast({
         title: "Validation Error",
-        description: "Please complete all required monthly report fields.",
+        description: "Please select a student before generating the monthly report.",
         variant: "destructive",
       });
       return;

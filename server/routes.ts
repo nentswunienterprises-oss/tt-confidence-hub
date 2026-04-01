@@ -520,6 +520,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 } as any);
               }
 
+              // Write diagnosis results into concept_mastery so phase/stability are
+              // immediately visible on student card and parent dashboard without
+              // waiting for a training drill to occur.
+              const conceptMastery: any =
+                student.conceptMastery && typeof student.conceptMastery === "object"
+                  ? { ...(student.conceptMastery as any) }
+                  : {};
+              const topicConditioningStore: any =
+                conceptMastery.topicConditioning && typeof conceptMastery.topicConditioning === "object"
+                  ? { ...conceptMastery.topicConditioning }
+                  : {};
+              const topicsStore: Record<string, any> =
+                topicConditioningStore.topics && typeof topicConditioningStore.topics === "object"
+                  ? { ...topicConditioningStore.topics }
+                  : {};
+
+              const existingTopicEntry =
+                topicsStore[normalizedIntroTopic] && typeof topicsStore[normalizedIntroTopic] === "object"
+                  ? topicsStore[normalizedIntroTopic]
+                  : {};
+              const existingHistory = Array.isArray(existingTopicEntry.history) ? [...existingTopicEntry.history] : [];
+              const nowIso = new Date().toISOString();
+
+              topicsStore[normalizedIntroTopic] = {
+                ...existingTopicEntry,
+                topic: normalizedIntroTopic,
+                phase: diagnosisSummary.phase,
+                stability: diagnosisSummary.stability,
+                lastUpdated: nowIso,
+                nextAction: diagnosisSummary.nextAction,
+                observationNotes: [
+                  `Intro Diagnosis Score: ${diagnosisSummary.diagnosisScore ?? ""}`,
+                  diagnosisSummary.constraint ? `Constraint: ${diagnosisSummary.constraint}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" | "),
+                history: [
+                  ...existingHistory,
+                  {
+                    date: nowIso,
+                    phase: diagnosisSummary.phase,
+                    stability: diagnosisSummary.stability,
+                    nextAction: diagnosisSummary.nextAction,
+                    observationNotes: `Intro diagnosis drill. Score: ${diagnosisSummary.diagnosisScore ?? ""}.`,
+                    structuredObservation: {
+                      drillType: "diagnosis",
+                      observedPhase: diagnosisSummary.phase,
+                      stability: diagnosisSummary.stability,
+                      constraint: diagnosisSummary.constraint,
+                      drillId: inserted.id,
+                    },
+                    drillId: inserted.id,
+                  },
+                ].slice(-60),
+              };
+
+              topicConditioningStore.topics = topicsStore;
+              topicConditioningStore.topic = normalizedIntroTopic;
+              topicConditioningStore.entry_phase = diagnosisSummary.phase;
+              topicConditioningStore.stability = diagnosisSummary.stability;
+              topicConditioningStore.lastUpdated = nowIso;
+              topicConditioningStore.lastUpdatedTopic = normalizedIntroTopic;
+              topicConditioningStore.lastUpdatedAt = nowIso;
+              conceptMastery.topicConditioning = topicConditioningStore;
+
+              await storage.updateStudent(studentId, { conceptMastery });
+
               const scoringResults = diagnosisSummary.repRows.map((row) => ({
                 set: row.set,
                 rep: row.rep,
@@ -2194,7 +2261,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   type TopicPhase = "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability";
   type TopicStability = "Low" | "Medium" | "High";
 
-  const PHASE_ORDER: TopicPhase[] = [
+  const REPORT_PHASE_ORDER: TopicPhase[] = [
     "Clarity",
     "Structured Execution",
     "Controlled Discomfort",
@@ -2767,6 +2834,690 @@ export async function registerRoutes(app: Express): Promise<Server> {
     );
   };
 
+  const normalizeReportPhase = (value: unknown): TopicPhase | null => {
+    const raw = String(value || "").toLowerCase().trim();
+    if (!raw) return null;
+    if (raw.includes("clarity")) return "Clarity";
+    if (raw.includes("structured") || raw.includes("execution")) return "Structured Execution";
+    if (raw.includes("discomfort")) return "Controlled Discomfort";
+    if (raw.includes("time") || raw.includes("pressure")) return "Time Pressure Stability";
+    return null;
+  };
+
+  const normalizeReportStability = (value: unknown): TopicStability | null => {
+    const raw = String(value || "").toLowerCase().trim();
+    if (!raw) return null;
+    if (raw.includes("high")) return "High";
+    if (raw.includes("medium")) return "Medium";
+    if (raw.includes("low")) return "Low";
+    return null;
+  };
+
+  const PHASE_ORDER: TopicPhase[] = [
+    "Clarity",
+    "Structured Execution",
+    "Controlled Discomfort",
+    "Time Pressure Stability",
+  ];
+
+  const drillPurposeByPhase = (phase: TopicPhase | null, drillType: "diagnosis" | "training") => {
+    const normalizedPhase = phase || "Clarity";
+    const behaviorByPhase: Record<TopicPhase, string> = {
+      Clarity: "recognizing terms, steps, and reasoning",
+      "Structured Execution": "following steps independently with structure",
+      "Controlled Discomfort": "staying stable when difficulty increases",
+      "Time Pressure Stability": "maintaining structure and accuracy under time pressure",
+    };
+    return {
+      drillLabel: drillType === "diagnosis" ? "Diagnosis" : "Training",
+      behavior: behaviorByPhase[normalizedPhase],
+    };
+  };
+
+  const drillTargetByPhase = (phase: TopicPhase | null) => {
+    const normalizedPhase = phase || "Clarity";
+    const targetByPhase: Record<TopicPhase, string> = {
+      Clarity: "clarifying vocabulary, method sequence, and reasoning",
+      "Structured Execution": "step-by-step execution without tutor carry",
+      "Controlled Discomfort": "holding structure under challenge and emotional load",
+      "Time Pressure Stability": "maintaining stable execution under timed pressure",
+    };
+    return targetByPhase[normalizedPhase];
+  };
+
+  const parseIsoDateSafe = (value: unknown) => {
+    const iso = String(value || "").trim();
+    if (!iso) return null;
+    const parsed = new Date(iso);
+    if (Number.isNaN(parsed.getTime())) return null;
+    return parsed;
+  };
+
+  const formatStateLabel = (phase: TopicPhase | null, stability: TopicStability | null) => {
+    if (!phase && !stability) return "Unknown";
+    if (!phase) return `Unknown (${stability || "Unknown"})`;
+    if (!stability) return `${phase} (Unknown)`;
+    return `${phase} (${stability})`;
+  };
+
+  const compareTopicStates = (
+    before: { phase: TopicPhase | null; stability: TopicStability | null } | null,
+    after: { phase: TopicPhase | null; stability: TopicStability | null } | null
+  ): "improved" | "regressed" | "remained" | "changed" => {
+    if (!before || !after) return "changed";
+
+    const beforePhaseIndex = before.phase ? REPORT_PHASE_ORDER.indexOf(before.phase) : -1;
+    const afterPhaseIndex = after.phase ? REPORT_PHASE_ORDER.indexOf(after.phase) : -1;
+    const beforeStabilityScore = before.stability ? stabilityToScore(before.stability) : 0;
+    const afterStabilityScore = after.stability ? stabilityToScore(after.stability) : 0;
+
+    if (
+      beforePhaseIndex >= 0 &&
+      afterPhaseIndex >= 0 &&
+      (afterPhaseIndex > beforePhaseIndex ||
+        (afterPhaseIndex === beforePhaseIndex && afterStabilityScore > beforeStabilityScore))
+    ) {
+      return "improved";
+    }
+
+    if (
+      beforePhaseIndex >= 0 &&
+      afterPhaseIndex >= 0 &&
+      (afterPhaseIndex < beforePhaseIndex ||
+        (afterPhaseIndex === beforePhaseIndex && afterStabilityScore < beforeStabilityScore))
+    ) {
+      return "regressed";
+    }
+
+    if (before.phase === after.phase && before.stability === after.stability) {
+      return "remained";
+    }
+
+    return "changed";
+  };
+
+  const collectTopicHistoryEntries = (student: any) => {
+    const conceptMastery =
+      student?.conceptMastery && typeof student.conceptMastery === "object"
+        ? (student.conceptMastery as any)
+        : {};
+    const topicConditioning =
+      conceptMastery.topicConditioning && typeof conceptMastery.topicConditioning === "object"
+        ? conceptMastery.topicConditioning
+        : {};
+    const topics =
+      topicConditioning.topics && typeof topicConditioning.topics === "object"
+        ? topicConditioning.topics
+        : {};
+
+    const entries: Array<{
+      topic: string;
+      date: string | null;
+      phase: TopicPhase | null;
+      stability: TopicStability | null;
+      nextAction: string | null;
+      observationNotes: string | null;
+      structuredObservation: any;
+      sessionId: string | null;
+      drillId: string | null;
+    }> = [];
+
+    Object.entries(topics as Record<string, any>).forEach(([topicKey, topicState]) => {
+      const topic = String(topicState?.topic || topicKey || "").trim();
+      if (!topic) return;
+
+      const history = Array.isArray(topicState?.history) ? topicState.history : [];
+      if (history.length === 0) {
+        entries.push({
+          topic,
+          date: String(topicState?.lastUpdated || "").trim() || null,
+          phase: normalizeReportPhase(topicState?.phase),
+          stability: normalizeReportStability(topicState?.stability),
+          nextAction: String(topicState?.nextAction || "").trim() || null,
+          observationNotes: String(topicState?.observationNotes || "").trim() || null,
+          structuredObservation: topicState?.structuredObservation || null,
+          sessionId: null,
+          drillId: null,
+        });
+        return;
+      }
+
+      history.forEach((entry: any) => {
+        entries.push({
+          topic,
+          date: String(entry?.date || topicState?.lastUpdated || "").trim() || null,
+          phase: normalizeReportPhase(entry?.phase),
+          stability: normalizeReportStability(entry?.stability),
+          nextAction: String(entry?.nextAction || topicState?.nextAction || "").trim() || null,
+          observationNotes: String(entry?.observationNotes || "").trim() || null,
+          structuredObservation: entry?.structuredObservation || null,
+          sessionId: String(entry?.sessionId || "").trim() || null,
+          drillId: String(entry?.drillId || "").trim() || null,
+        });
+      });
+    });
+
+    return entries.sort((a, b) => {
+      const aTime = parseIsoDateSafe(a.date)?.getTime() || 0;
+      const bTime = parseIsoDateSafe(b.date)?.getTime() || 0;
+      return aTime - bTime;
+    });
+  };
+
+  const classifyObservationSignal = (rawValue: unknown) => {
+    const value = String(rawValue || "").toLowerCase();
+    if (!value.trim()) return null;
+
+    if (value.includes("hesitat") || value.includes("unsure") || value.includes("delayed")) {
+      return { pattern: "hesitation", polarity: "negative" as const };
+    }
+    if (value.includes("guess") || value.includes("random")) {
+      return { pattern: "guessing", polarity: "negative" as const };
+    }
+    if (
+      value.includes("freeze") ||
+      value.includes("panic") ||
+      value.includes("collapse") ||
+      value.includes("break")
+    ) {
+      return { pattern: "breakdown under pressure", polarity: "negative" as const };
+    }
+    if (
+      value.includes("independent") ||
+      value.includes("structured") ||
+      value.includes("stable") ||
+      value.includes("maintained") ||
+      value.includes("composed") ||
+      value.includes("complete")
+    ) {
+      return { pattern: "stable execution", polarity: "positive" as const };
+    }
+    if (value.includes("improv") || value.includes("recover") || value.includes("adapt")) {
+      return { pattern: "improved independence", polarity: "positive" as const };
+    }
+
+    return null;
+  };
+
+  const aggregateObservationPattern = (observationValues: string[]) => {
+    const patternCounts = new Map<string, number>();
+    const positiveCounts = new Map<string, number>();
+    const negativeCounts = new Map<string, number>();
+
+    observationValues.forEach((value) => {
+      const classified = classifyObservationSignal(value);
+      if (!classified) return;
+      patternCounts.set(classified.pattern, (patternCounts.get(classified.pattern) || 0) + 1);
+
+      if (classified.polarity === "positive") {
+        positiveCounts.set(classified.pattern, (positiveCounts.get(classified.pattern) || 0) + 1);
+      } else {
+        negativeCounts.set(classified.pattern, (negativeCounts.get(classified.pattern) || 0) + 1);
+      }
+    });
+
+    const topFromMap = (map: Map<string, number>) => {
+      const sorted = Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+      return sorted[0]?.[0] || null;
+    };
+
+    const dominantPattern = topFromMap(patternCounts) || "mixed response patterns";
+    const strongestImprovementSignal = topFromMap(positiveCounts) || "early consistency gains";
+    const mainBreakdownSignal = topFromMap(negativeCounts) || "inconsistent execution";
+
+    const topTwoPatterns = Array.from(patternCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 2)
+      .map(([pattern]) => pattern);
+
+    return {
+      dominantPattern,
+      strongestImprovementSignal,
+      mainBreakdownSignal,
+      topTwoPatterns,
+    };
+  };
+
+  const extractObservationValuesFromSets = (sets: any[]): string[] => {
+    const values: string[] = [];
+    (sets || []).forEach((set) => {
+      const observations = Array.isArray(set?.observations) ? set.observations : [];
+      observations.forEach((rep: any) => {
+        Object.values(rep || {}).forEach((raw) => {
+          const text = String(raw || "").trim();
+          if (text) values.push(text);
+        });
+      });
+    });
+    return values;
+  };
+
+  const getDrillEventsForRange = async ({
+    studentId,
+    tutorId,
+    start,
+    end,
+  }: {
+    studentId: string;
+    tutorId: string;
+    start: Date;
+    end: Date;
+  }) => {
+    const { data, error } = await supabase
+      .from("intro_session_drills")
+      .select("id, drill, submitted_at")
+      .eq("student_id", studentId)
+      .eq("tutor_id", tutorId)
+      .gte("submitted_at", start.toISOString())
+      .lte("submitted_at", end.toISOString())
+      .order("submitted_at", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching drill events for report generation:", error);
+      return [] as any[];
+    }
+
+    return (data || [])
+      .map((row: any) => {
+        let drill: any = null;
+        try {
+          drill = typeof row.drill === "string" ? JSON.parse(row.drill) : row.drill;
+        } catch {
+          drill = null;
+        }
+        if (!drill || typeof drill !== "object") return null;
+
+        const drillType = String(drill.drillType || "diagnosis").toLowerCase() === "training" ? "training" : "diagnosis";
+        const phase = normalizeReportPhase(drill.phase || drill.summary?.phase);
+        const stability = normalizeReportStability(drill.summary?.stability);
+        const topic = String(drill.trainingTopic || drill.introTopic || drill.topic || "").trim() || "Unknown Topic";
+        const summary = drill.summary || {};
+        const score =
+          typeof summary.sessionScore === "number"
+            ? summary.sessionScore
+            : typeof summary.diagnosisScore === "number"
+            ? summary.diagnosisScore
+            : null;
+
+        return {
+          id: row.id,
+          submittedAt: row.submitted_at,
+          topic,
+          drillType,
+          phase,
+          stability,
+          score,
+          transition: String(summary.phaseDecision || "").trim() || null,
+          nextAction: String(summary.nextAction || "").trim() || null,
+          constraint: String(summary.constraint || "").trim() || null,
+          sets: Array.isArray(drill.sets) ? drill.sets : [],
+          observationValues: extractObservationValuesFromSets(Array.isArray(drill.sets) ? drill.sets : []),
+        };
+      })
+      .filter((item: any) => !!item);
+  };
+
+  const pickLatestStateAtOrBefore = (
+    entries: Array<{ date: string | null; phase: TopicPhase | null; stability: TopicStability | null; nextAction: string | null }>,
+    pivot: Date
+  ) => {
+    let latest: any = null;
+    entries.forEach((entry) => {
+      const parsed = parseIsoDateSafe(entry.date);
+      if (!parsed) return;
+      if (parsed.getTime() <= pivot.getTime()) {
+        if (!latest || parsed.getTime() > parseIsoDateSafe(latest.date)!.getTime()) {
+          latest = entry;
+        }
+      }
+    });
+    return latest;
+  };
+
+  const generateDeterministicSessionSummary = ({
+    drillEvent,
+    topicHistory,
+  }: {
+    drillEvent: any;
+    topicHistory: Array<{ date: string | null; phase: TopicPhase | null; stability: TopicStability | null; nextAction: string | null }>;
+  }) => {
+    const eventDate = parseIsoDateSafe(drillEvent.submittedAt) || new Date();
+    const beforeState = pickLatestStateAtOrBefore(topicHistory, new Date(eventDate.getTime() - 1));
+    const afterState = pickLatestStateAtOrBefore(topicHistory, eventDate) || {
+      phase: drillEvent.phase,
+      stability: drillEvent.stability,
+      nextAction: drillEvent.nextAction,
+    };
+
+    const movement = compareTopicStates(beforeState, afterState);
+    const pattern = aggregateObservationPattern(drillEvent.observationValues || []);
+    const purpose = drillPurposeByPhase(afterState?.phase || drillEvent.phase, drillEvent.drillType);
+    const sessionTarget = drillTargetByPhase(afterState?.phase || drillEvent.phase);
+    const stabilityMeaning =
+      afterState?.stability === "High"
+        ? "mostly stable in this stage"
+        : afterState?.stability === "Medium"
+        ? "inconsistent but improving"
+        : "still breaking frequently";
+
+    const movementText =
+      movement === "improved"
+        ? `improved within ${afterState?.phase || "the current stage"}`
+        : movement === "regressed"
+        ? `regressed within ${afterState?.phase || "the current stage"}`
+        : movement === "remained"
+        ? `remained in ${afterState?.phase || "the current stage"}`
+        : `updated within ${afterState?.phase || "the current stage"}`;
+
+    const nextMove =
+      afterState?.nextAction ||
+      drillEvent.nextAction ||
+      (afterState?.phase && afterState?.stability
+        ? NEXT_ACTION_ENGINE[afterState.phase][afterState.stability].primaryAction
+        : "reinforce core execution stability");
+
+    return {
+      topic: drillEvent.topic,
+      drillType: purpose.drillLabel,
+      target: sessionTarget,
+      pattern: pattern.dominantPattern,
+      score: drillEvent.score,
+      phase: afterState?.phase || drillEvent.phase || null,
+      stability: afterState?.stability || drillEvent.stability || null,
+      transition: movement,
+      nextAction: nextMove,
+      summaryText: [
+        `This session focused on ${drillEvent.topic}, targeting ${sessionTarget}.`,
+        `A ${purpose.drillLabel.toLowerCase()} drill was used to train ${purpose.behavior}.`,
+        `The student showed ${pattern.dominantPattern} during the drill.`,
+        `Based on performance, stability is now ${afterState?.stability || drillEvent.stability || "Unknown"}.`,
+        `The student ${movementText}.`,
+        `This means the student is currently ${stabilityMeaning} in this topic.`,
+        `Next session will focus on: ${nextMove}.`,
+      ].join(" "),
+    };
+  };
+
+  const generateSummaryFromTopicHistorySession = ({
+    topic,
+    current,
+    previous,
+  }: {
+    topic: string;
+    current: { phase: TopicPhase | null; stability: TopicStability | null; nextAction: string | null; structuredObservation: any };
+    previous: { phase: TopicPhase | null; stability: TopicStability | null } | null;
+  }) => {
+    const drillType =
+      String(current?.structuredObservation?.drillType || "").toLowerCase() === "diagnosis"
+        ? "diagnosis"
+        : "training";
+    const movement = compareTopicStates(previous, current);
+    const purpose = drillPurposeByPhase(current.phase, drillType);
+    const target = drillTargetByPhase(current.phase);
+    const score =
+      typeof current?.structuredObservation?.sessionScore === "number"
+        ? current.structuredObservation.sessionScore
+        : null;
+
+    const stabilityMeaning =
+      current?.stability === "High"
+        ? "mostly stable in this stage"
+        : current?.stability === "Medium"
+        ? "inconsistent but improving"
+        : "still breaking frequently";
+
+    const movementText =
+      movement === "improved"
+        ? `improved within ${current.phase || "the current stage"}`
+        : movement === "regressed"
+        ? `regressed within ${current.phase || "the current stage"}`
+        : movement === "remained"
+        ? `remained in ${current.phase || "the current stage"}`
+        : `updated within ${current.phase || "the current stage"}`;
+
+    return [
+      `This session focused on ${topic}, targeting ${target}.`,
+      `A ${purpose.drillLabel.toLowerCase()} drill was used to train ${purpose.behavior}.`,
+      `The student showed ${current?.structuredObservation?.phaseDecision || "mixed response patterns"} in the session update.`,
+      `Based on performance, stability is now ${current.stability || "Unknown"}${score === null ? "" : ` (score ${score})`}.`,
+      `The student ${movementText}.`,
+      `This means the student is currently ${stabilityMeaning} in this topic.`,
+      `Next session will focus on: ${current.nextAction || "reinforce current stage action"}.`,
+    ].join(" ");
+  };
+
+  const buildDeterministicWeeklyReport = async ({
+    tutorId,
+    student,
+    weekStart,
+    weekEnd,
+  }: {
+    tutorId: string;
+    student: any;
+    weekStart: Date;
+    weekEnd: Date;
+  }) => {
+    const historyEntries = collectTopicHistoryEntries(student);
+    const byTopic = new Map<string, any[]>();
+    historyEntries.forEach((entry) => {
+      if (!byTopic.has(entry.topic)) byTopic.set(entry.topic, []);
+      byTopic.get(entry.topic)?.push(entry);
+    });
+
+    const drillEvents = await getDrillEventsForRange({
+      tutorId,
+      studentId: student.id,
+      start: weekStart,
+      end: weekEnd,
+    });
+
+    const sessionSummaries = drillEvents.map((event) =>
+      generateDeterministicSessionSummary({
+        drillEvent: event,
+        topicHistory: byTopic.get(event.topic) || [],
+      })
+    );
+
+    const topicsWorked = Array.from(new Set(sessionSummaries.map((item) => item.topic)));
+    const topicProgressRows: Array<{ topic: string; started: string; current: string; movement: string; nextAction: string | null }> = [];
+    const movementCounters = { improved: 0, regressed: 0, remained: 0, changed: 0 };
+
+    topicsWorked.forEach((topic) => {
+      const timeline = (byTopic.get(topic) || []).sort((a, b) => {
+        const aTime = parseIsoDateSafe(a.date)?.getTime() || 0;
+        const bTime = parseIsoDateSafe(b.date)?.getTime() || 0;
+        return aTime - bTime;
+      });
+
+      const startedState =
+        pickLatestStateAtOrBefore(timeline, weekStart) ||
+        timeline.find((entry) => {
+          const parsed = parseIsoDateSafe(entry.date);
+          return !!parsed && parsed.getTime() >= weekStart.getTime() && parsed.getTime() <= weekEnd.getTime();
+        }) ||
+        null;
+
+      const currentState = pickLatestStateAtOrBefore(timeline, weekEnd) || startedState;
+      const movement = compareTopicStates(startedState, currentState);
+      movementCounters[movement] += 1;
+
+      topicProgressRows.push({
+        topic,
+        started: formatStateLabel(startedState?.phase || null, startedState?.stability || null),
+        current: formatStateLabel(currentState?.phase || null, currentState?.stability || null),
+        movement,
+        nextAction: currentState?.nextAction || null,
+      });
+    });
+
+    const allObservationValues = drillEvents.flatMap((event) => event.observationValues || []);
+    const pattern = aggregateObservationPattern(allObservationValues);
+    const nextFocusList = Array.from(
+      new Set(
+        topicProgressRows
+          .map((row) => String(row.nextAction || "").trim())
+          .filter((value) => value.length > 0)
+      )
+    ).slice(0, 3);
+
+    const improvedTopics = topicProgressRows.filter((row) => row.movement === "improved").map((row) => row.topic);
+
+    const movementSummary = [
+      movementCounters.improved ? `${movementCounters.improved} topic(s) improved` : null,
+      movementCounters.remained ? `${movementCounters.remained} topic(s) remained stable` : null,
+      movementCounters.regressed ? `${movementCounters.regressed} topic(s) regressed` : null,
+    ]
+      .filter(Boolean)
+      .join("; ");
+
+    const topicsLine = topicsWorked.length ? topicsWorked.join(", ") : "No topic updates captured this week";
+
+    return {
+      sessionsCompletedThisWeek: sessionSummaries.length,
+      mainTopicsCovered: `This week focused on: ${topicsLine}.`,
+      whatImprovedThisWeek: improvedTopics.length
+        ? `Improvement signals were strongest in: ${improvedTopics.join(", ")}.`
+        : `Most visible improvement signal: ${pattern.strongestImprovementSignal}.`,
+      studentResponsePatternThisWeek: pattern.topTwoPatterns.length
+        ? `During this week, the student typically: ${pattern.topTwoPatterns.join("; ")}.`
+        : "During this week, the student showed mixed response patterns.",
+      mainMisunderstandingThisWeek: `Main breakdown signal: ${pattern.mainBreakdownSignal}.`,
+      mainCorrectionHelpedThisWeek: movementSummary
+        ? `System movement this week: ${movementSummary}.`
+        : "System movement this week: no significant movement recorded.",
+      bossBattleSummaryThisWeek: topicProgressRows.length
+        ? topicProgressRows
+            .map((row) => `${row.topic} | Started: ${row.started} | Current: ${row.current}`)
+            .join("\n")
+        : "No topic progression rows available.",
+      reinforcementNextWeek: nextFocusList.length
+        ? `Next week will focus on: ${nextFocusList.join("; ")}.`
+        : "Next week will focus on reinforcing current stage fundamentals.",
+      sourceSessionCount: sessionSummaries.length,
+      topicProgressRows,
+      sessionSummaries,
+    };
+  };
+
+  const buildDeterministicMonthlyReport = async ({
+    tutorId,
+    student,
+    monthStart,
+    monthEnd,
+  }: {
+    tutorId: string;
+    student: any;
+    monthStart: Date;
+    monthEnd: Date;
+  }) => {
+    const historyEntries = collectTopicHistoryEntries(student);
+    const byTopic = new Map<string, any[]>();
+    historyEntries.forEach((entry) => {
+      if (!byTopic.has(entry.topic)) byTopic.set(entry.topic, []);
+      byTopic.get(entry.topic)?.push(entry);
+    });
+
+    const drillEvents = await getDrillEventsForRange({
+      tutorId,
+      studentId: student.id,
+      start: monthStart,
+      end: monthEnd,
+    });
+
+    const topicsWorked = Array.from(new Set(drillEvents.map((event) => event.topic)));
+    const topicProgressRows: Array<{ topic: string; start: string; end: string; movement: string; nextAction: string | null }> = [];
+    const movementCounters = { improved: 0, regressed: 0, remained: 0, changed: 0 };
+
+    topicsWorked.forEach((topic) => {
+      const timeline = (byTopic.get(topic) || []).sort((a, b) => {
+        const aTime = parseIsoDateSafe(a.date)?.getTime() || 0;
+        const bTime = parseIsoDateSafe(b.date)?.getTime() || 0;
+        return aTime - bTime;
+      });
+
+      const startState =
+        pickLatestStateAtOrBefore(timeline, monthStart) ||
+        timeline.find((entry) => {
+          const parsed = parseIsoDateSafe(entry.date);
+          return !!parsed && parsed.getTime() >= monthStart.getTime() && parsed.getTime() <= monthEnd.getTime();
+        }) ||
+        null;
+      const endState = pickLatestStateAtOrBefore(timeline, monthEnd) || startState;
+      const movement = compareTopicStates(startState, endState);
+      movementCounters[movement] += 1;
+
+      topicProgressRows.push({
+        topic,
+        start: formatStateLabel(startState?.phase || null, startState?.stability || null),
+        end: formatStateLabel(endState?.phase || null, endState?.stability || null),
+        movement,
+        nextAction: endState?.nextAction || null,
+      });
+    });
+
+    const allObservationValues = drillEvents.flatMap((event) => event.observationValues || []);
+    const pattern = aggregateObservationPattern(allObservationValues);
+
+    const halfPoint = monthStart.getTime() + Math.floor((monthEnd.getTime() - monthStart.getTime()) / 2);
+    const earlyPattern = aggregateObservationPattern(
+      drillEvents
+        .filter((event) => (parseIsoDateSafe(event.submittedAt)?.getTime() || 0) <= halfPoint)
+        .flatMap((event) => event.observationValues || [])
+    );
+    const latePattern = aggregateObservationPattern(
+      drillEvents
+        .filter((event) => (parseIsoDateSafe(event.submittedAt)?.getTime() || 0) > halfPoint)
+        .flatMap((event) => event.observationValues || [])
+    );
+
+    const nextMonthFocus = Array.from(
+      new Set(
+        topicProgressRows
+          .map((row) => String(row.nextAction || "").trim())
+          .filter((value) => value.length > 0)
+      )
+    ).slice(0, 4);
+
+    const strengthenedTopics = topicProgressRows
+      .filter((row) => row.movement === "improved")
+      .map((row) => row.topic);
+
+    const systemOutcome = [
+      movementCounters.improved ? `${movementCounters.improved} topic(s) moved forward` : null,
+      movementCounters.remained ? `${movementCounters.remained} topic(s) were reinforced` : null,
+      movementCounters.regressed ? `${movementCounters.regressed} topic(s) were stabilized after regression` : null,
+    ]
+      .filter(Boolean)
+      .join("; ");
+
+    const currentSnapshot = topicProgressRows
+      .map((row) => `${row.topic} - ${row.end}`)
+      .join("\n");
+
+    return {
+      totalSessionsCompletedThisMonth: drillEvents.length,
+      mainAreasCoveredThisMonth: topicsWorked.length
+        ? `This month focused on: ${topicsWorked.join(", ")}.`
+        : "This month focused on reinforcement of current active topics.",
+      strongerSkillsThisMonth: strengthenedTopics.length
+        ? `The student improved in: ${strengthenedTopics.join(", ")}.`
+        : `Strongest improvement signal this month: ${pattern.strongestImprovementSignal}.`,
+      responsePatternTrendThisMonth: `At the start of the month: ${earlyPattern.dominantPattern}. By the end of the month: ${latePattern.dominantPattern}.`,
+      recurringChallengeThisMonth: `Main recurring challenge: ${pattern.mainBreakdownSignal}.`,
+      mostEffectiveInterventionThisMonth: systemOutcome || "Most effective intervention: controlled reinforcement of current stage actions.",
+      bossBattleTrendThisMonth: topicProgressRows.length
+        ? topicProgressRows
+            .map((row) => `${row.topic} | Start: ${row.start} | End: ${row.end}`)
+            .join("\n")
+        : "No topic progression rows available.",
+      nextMonthPriority: nextMonthFocus.length
+        ? `Next month will focus on: ${nextMonthFocus.join("; ")}.`
+        : "Next month will focus on reinforcing stage stability across active topics.",
+      topicProgressRows,
+      currentStateSnapshot: currentSnapshot,
+    };
+  };
+
   const mapParentFacingReport = (report: any, tutorName?: string | null) => {
     const structured = parseStructuredReportSummary(report.summary) || {};
     const base = {
@@ -2897,6 +3648,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
           (session: any) => session.tutorId === tutorId
         );
 
+        const topicHistoryEntries = collectTopicHistoryEntries(student);
+        const sessionHistoryBySessionId = new Map<string, any>();
+        const previousBySessionId = new Map<string, any>();
+
+        topicHistoryEntries.forEach((entry, index) => {
+          if (!entry.sessionId) return;
+          const previous = index > 0 ? topicHistoryEntries[index - 1] : null;
+          sessionHistoryBySessionId.set(entry.sessionId, entry);
+          previousBySessionId.set(entry.sessionId, previous);
+        });
+
+        const enrichedSessions = sessions.map((session: any) => {
+          const historyEntry = sessionHistoryBySessionId.get(session.id);
+          const previousEntry = previousBySessionId.get(session.id);
+          if (!historyEntry) {
+            return {
+              ...session,
+              autoSummary: null,
+            };
+          }
+
+          const autoSummary = generateSummaryFromTopicHistorySession({
+            topic: historyEntry.topic,
+            current: historyEntry,
+            previous: previousEntry
+              ? { phase: previousEntry.phase, stability: previousEntry.stability }
+              : null,
+          });
+
+          return {
+            ...session,
+            autoSummary,
+            autoSummaryTopic: historyEntry.topic,
+          };
+        });
+
         const { data: reports, error: reportsError } = await supabase
           .from("parent_reports")
           .select("*")
@@ -2932,7 +3719,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }));
 
         res.json({
-          sessions,
+          sessions: enrichedSessions,
           reports: enrichedReports,
         });
       } catch (error) {
@@ -2950,25 +3737,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: Request, res: Response) => {
       try {
         const tutorId = (req as any).dbUser.id;
-        const {
-          studentId,
-          weekStartDate,
-          weekEndDate,
-          sessionsCompletedThisWeek,
-          mainTopicsCovered,
-          whatImprovedThisWeek,
-          studentResponsePatternThisWeek,
-          mainMisunderstandingThisWeek,
-          mainCorrectionHelpedThisWeek,
-          bossBattleSummaryThisWeek,
-          reinforcementNextWeek,
-          internalWeeklyTutorNote,
-          sourceSessionIds,
-          sourceSessionCount,
-          bossBattlesCompletedThisWeek,
-        } = req.body || {};
+        const { studentId, weekStartDate, weekEndDate } = req.body || {};
 
-        if (!studentId || !weekStartDate || !weekEndDate || !mainTopicsCovered || !whatImprovedThisWeek || !studentResponsePatternThisWeek || !mainMisunderstandingThisWeek || !mainCorrectionHelpedThisWeek || !bossBattleSummaryThisWeek || !reinforcementNextWeek) {
+        if (!studentId || !weekStartDate || !weekEndDate) {
           return res.status(400).json({ message: "Missing required weekly report fields" });
         }
 
@@ -2993,23 +3764,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const start = new Date(weekStartDate);
+        const end = new Date(weekEndDate);
+        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+          return res.status(400).json({ message: "Invalid weekly date range" });
+        }
+
         const weekNumber = getIsoWeekNumber(start);
+        const generated = await buildDeterministicWeeklyReport({
+          tutorId,
+          student,
+          weekStart: start,
+          weekEnd: end,
+        });
+
         const structuredData = {
-          version: "weekly-v1",
+          version: "weekly-v2-deterministic",
+          generationMode: "state-to-output",
           weekStartDate,
           weekEndDate,
-          sessionsCompletedThisWeek: Number(sessionsCompletedThisWeek || 0),
-          mainTopicsCovered,
-          whatImprovedThisWeek,
-          studentResponsePatternThisWeek,
-          mainMisunderstandingThisWeek,
-          mainCorrectionHelpedThisWeek,
-          bossBattleSummaryThisWeek,
-          reinforcementNextWeek,
-          internalWeeklyTutorNote: internalWeeklyTutorNote || "",
-          sourceSessionIds: Array.isArray(sourceSessionIds) ? sourceSessionIds : [],
-          sourceSessionCount: Number(sourceSessionCount || 0),
-          bossBattlesCompletedThisWeek: Number(bossBattlesCompletedThisWeek || 0),
+          sessionsCompletedThisWeek: generated.sessionsCompletedThisWeek,
+          mainTopicsCovered: generated.mainTopicsCovered,
+          whatImprovedThisWeek: generated.whatImprovedThisWeek,
+          studentResponsePatternThisWeek: generated.studentResponsePatternThisWeek,
+          mainMisunderstandingThisWeek: generated.mainMisunderstandingThisWeek,
+          mainCorrectionHelpedThisWeek: generated.mainCorrectionHelpedThisWeek,
+          bossBattleSummaryThisWeek: generated.bossBattleSummaryThisWeek,
+          reinforcementNextWeek: generated.reinforcementNextWeek,
+          sourceSessionIds: [],
+          sourceSessionCount: generated.sourceSessionCount,
+          bossBattlesCompletedThisWeek: 0,
+          topicProgressRows: generated.topicProgressRows,
+          sessionSummaries: generated.sessionSummaries,
         };
 
         const { data: inserted, error } = await supabase
@@ -3022,13 +3807,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             week_number: weekNumber,
             month_name: null,
             summary: JSON.stringify(structuredData),
-            topics_learned: mainTopicsCovered,
-            strengths: whatImprovedThisWeek,
-            areas_for_growth: mainMisunderstandingThisWeek,
-            boss_battles_completed: Number(bossBattlesCompletedThisWeek || 0),
-            solutions_unlocked: Number(sessionsCompletedThisWeek || 0),
+            topics_learned: generated.mainTopicsCovered,
+            strengths: generated.whatImprovedThisWeek,
+            areas_for_growth: generated.mainMisunderstandingThisWeek,
+            boss_battles_completed: 0,
+            solutions_unlocked: generated.sessionsCompletedThisWeek,
             confidence_growth: null,
-            next_steps: reinforcementNextWeek,
+            next_steps: generated.reinforcementNextWeek,
             sent_at: new Date().toISOString(),
           })
           .select("*")
@@ -3057,23 +3842,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: Request, res: Response) => {
       try {
         const tutorId = (req as any).dbUser.id;
-        const {
-          studentId,
-          monthStartDate,
-          monthEndDate,
-          totalSessionsCompletedThisMonth,
-          mainAreasCoveredThisMonth,
-          strongerSkillsThisMonth,
-          responsePatternTrendThisMonth,
-          recurringChallengeThisMonth,
-          mostEffectiveInterventionThisMonth,
-          bossBattleTrendThisMonth,
-          nextMonthPriority,
-          internalMonthlyTutorNote,
-          sourceWeeklyReportIds,
-        } = req.body || {};
+        const { studentId, monthStartDate, monthEndDate } = req.body || {};
 
-        if (!studentId || !monthStartDate || !monthEndDate || !mainAreasCoveredThisMonth || !strongerSkillsThisMonth || !responsePatternTrendThisMonth || !recurringChallengeThisMonth || !mostEffectiveInterventionThisMonth || !bossBattleTrendThisMonth || !nextMonthPriority) {
+        if (!studentId || !monthStartDate || !monthEndDate) {
           return res.status(400).json({ message: "Missing required monthly report fields" });
         }
 
@@ -3098,21 +3869,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const start = new Date(monthStartDate);
+        const end = new Date(monthEndDate);
+        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+          return res.status(400).json({ message: "Invalid monthly date range" });
+        }
+
+        const generated = await buildDeterministicMonthlyReport({
+          tutorId,
+          student,
+          monthStart: start,
+          monthEnd: end,
+        });
+
+        const { data: monthlyWeeklySources } = await supabase
+          .from("parent_reports")
+          .select("id")
+          .eq("tutor_id", tutorId)
+          .eq("student_id", studentId)
+          .eq("report_type", "weekly")
+          .gte("sent_at", start.toISOString())
+          .lte("sent_at", end.toISOString());
+
         const monthName = formatMonthName(start);
         const structuredData = {
-          version: "monthly-v1",
+          version: "monthly-v2-deterministic",
+          generationMode: "state-to-output",
           monthStartDate,
           monthEndDate,
-          totalSessionsCompletedThisMonth: Number(totalSessionsCompletedThisMonth || 0),
-          mainAreasCoveredThisMonth,
-          strongerSkillsThisMonth,
-          responsePatternTrendThisMonth,
-          recurringChallengeThisMonth,
-          mostEffectiveInterventionThisMonth,
-          bossBattleTrendThisMonth,
-          nextMonthPriority,
-          internalMonthlyTutorNote: internalMonthlyTutorNote || "",
-          sourceWeeklyReportIds: Array.isArray(sourceWeeklyReportIds) ? sourceWeeklyReportIds : [],
+          totalSessionsCompletedThisMonth: generated.totalSessionsCompletedThisMonth,
+          mainAreasCoveredThisMonth: generated.mainAreasCoveredThisMonth,
+          strongerSkillsThisMonth: generated.strongerSkillsThisMonth,
+          responsePatternTrendThisMonth: generated.responsePatternTrendThisMonth,
+          recurringChallengeThisMonth: generated.recurringChallengeThisMonth,
+          mostEffectiveInterventionThisMonth: generated.mostEffectiveInterventionThisMonth,
+          bossBattleTrendThisMonth: generated.bossBattleTrendThisMonth,
+          nextMonthPriority: generated.nextMonthPriority,
+          sourceWeeklyReportIds: (monthlyWeeklySources || []).map((row: any) => row.id),
+          topicProgressRows: generated.topicProgressRows,
+          currentStateSnapshot: generated.currentStateSnapshot,
         };
 
         const { data: inserted, error } = await supabase
@@ -3125,13 +3919,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             week_number: null,
             month_name: monthName,
             summary: JSON.stringify(structuredData),
-            topics_learned: mainAreasCoveredThisMonth,
-            strengths: strongerSkillsThisMonth,
-            areas_for_growth: recurringChallengeThisMonth,
+            topics_learned: generated.mainAreasCoveredThisMonth,
+            strengths: generated.strongerSkillsThisMonth,
+            areas_for_growth: generated.recurringChallengeThisMonth,
             boss_battles_completed: 0,
-            solutions_unlocked: Number(totalSessionsCompletedThisMonth || 0),
+            solutions_unlocked: generated.totalSessionsCompletedThisMonth,
             confidence_growth: null,
-            next_steps: nextMonthPriority,
+            next_steps: generated.nextMonthPriority,
             sent_at: new Date().toISOString(),
           })
           .select("*")

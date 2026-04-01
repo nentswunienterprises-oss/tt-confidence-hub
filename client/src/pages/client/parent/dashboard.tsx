@@ -210,8 +210,8 @@ function parentCopyForState(phase?: string | null, stability?: string | null): P
 
   if (!normalizedPhase || !normalizedStability) {
     return {
-      status: "This topic has been activated, but the current observed phase has not been confirmed yet.",
-      meaning: "TT has the topic in conditioning, but a session-scored phase and stability label is not yet available here.",
+      status: "This topic has been activated, but the current observed stage has not been confirmed yet.",
+      meaning: "TT has the topic in conditioning, but a session-scored stage and stability label is not yet available here.",
       focus: "The next logged session will confirm where this topic currently sits and what needs reinforcing first.",
     };
   }
@@ -470,7 +470,7 @@ export default function ParentDashboard() {
 
                       <div className="flex flex-wrap gap-2">
                         <Badge variant="outline" className="border-primary/30 bg-background/80">
-                          Phase: {row.phase || "Unknown"}
+                          Stage: {row.phase || "Unknown"}
                         </Badge>
                         <Badge variant="outline" className="border-primary/30 bg-background/80">
                           Stability: {row.stability || "Unknown"}
@@ -550,7 +550,7 @@ export default function ParentDashboard() {
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-semibold tracking-[-0.01em]">How Topic Conditioning Progresses</CardTitle>
           <CardDescription>
-            Each topic can sit at a different phase. The topic cards above show the current observed phase for each topic when known.
+            Each topic can sit at a different stage. The topic cards above show the current observed stage for each topic when known.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -562,7 +562,7 @@ export default function ParentDashboard() {
                   className="rounded-lg border p-3 bg-background"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Phase {idx + 1}</p>
+                    <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Stage {idx + 1}</p>
                   </div>
                   <p className="text-sm mt-2 font-medium leading-snug text-foreground">{phase}</p>
                 </div>
@@ -570,7 +570,7 @@ export default function ParentDashboard() {
             })}
           </div>
           <div className="mt-3 rounded-lg bg-muted/40 p-3 text-sm text-muted-foreground">
-            Parent view note: phase is tracked per topic, not as one global student stage.
+            Parent view note: stage is tracked per topic, not as one global student stage.
           </div>
         </CardContent>
       </Card>

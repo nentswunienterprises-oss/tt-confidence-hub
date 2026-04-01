@@ -233,7 +233,7 @@ export default function ParentProgress() {
                     )}
 
                     <div>
-                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Main Topics Covered</h4>
+                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Topics Worked On</h4>
                       <p className="text-xs sm:text-sm text-muted-foreground">{report.mainTopicsCovered || "Not provided"}</p>
                     </div>
                     <div>
@@ -241,21 +241,21 @@ export default function ParentProgress() {
                       <p className="text-xs sm:text-sm text-muted-foreground">{report.whatImproved || "Not provided"}</p>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Student Response Pattern</h4>
+                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Response Pattern</h4>
                       <p className="text-xs sm:text-sm text-muted-foreground">{report.studentResponsePattern || "Not provided"}</p>
                     </div>
                     <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
                       <div className="bg-muted/30 rounded-lg p-2 sm:p-3">
-                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Main Misunderstanding</h4>
+                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Main Breakdown</h4>
                         <p className="text-xs sm:text-sm text-muted-foreground">{report.mainMisunderstanding || "Not provided"}</p>
                       </div>
                       <div className="bg-muted/30 rounded-lg p-2 sm:p-3">
-                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Correction That Helped</h4>
+                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">System Movement</h4>
                         <p className="text-xs sm:text-sm text-muted-foreground">{report.correctionThatHelped || "Not provided"}</p>
                       </div>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Boss Battle Summary</h4>
+                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Conditioning Progress</h4>
                       <p className="text-xs sm:text-sm text-muted-foreground">{report.bossBattleSummary || "Not provided"}</p>
                     </div>
                     <div className="bg-primary/5 border border-primary/20 rounded-lg p-2 sm:p-3">
@@ -342,15 +342,15 @@ export default function ParentProgress() {
                       </div>
                     )}
                     <div>
-                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Main Areas Covered</h4>
+                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Topics Conditioned</h4>
                       <p className="text-xs sm:text-sm text-muted-foreground">{report.mainAreasCovered || "Not provided"}</p>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Skills That Became Stronger</h4>
+                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">What Became Stronger</h4>
                       <p className="text-xs sm:text-sm text-muted-foreground">{report.skillsStronger || "Not provided"}</p>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Response Pattern Trend</h4>
+                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Response Trend</h4>
                       <p className="text-xs sm:text-sm text-muted-foreground">{report.responsePatternTrend || "Not provided"}</p>
                     </div>
                     <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
@@ -359,16 +359,16 @@ export default function ParentProgress() {
                         <p className="text-xs sm:text-sm text-muted-foreground">{report.recurringChallenge || "Not provided"}</p>
                       </div>
                       <div className="bg-muted/30 rounded-lg p-2 sm:p-3">
-                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Most Effective Intervention</h4>
+                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">System Outcome</h4>
                         <p className="text-xs sm:text-sm text-muted-foreground">{report.mostEffectiveIntervention || "Not provided"}</p>
                       </div>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Boss Battle Trend</h4>
+                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Topic Progression</h4>
                       <p className="text-xs sm:text-sm text-muted-foreground">{report.bossBattleTrend || "Not provided"}</p>
                     </div>
                     <div className="bg-primary/5 border border-primary/20 rounded-lg p-2 sm:p-3">
-                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Next Month Priority</h4>
+                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Next Month Focus</h4>
                       <p className="text-xs sm:text-sm text-muted-foreground">{report.nextMonthPriority || "Not provided"}</p>
                     </div>
 
