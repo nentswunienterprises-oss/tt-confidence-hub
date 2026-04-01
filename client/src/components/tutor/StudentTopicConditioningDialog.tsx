@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getQueryFn } from "@/lib/queryClient";
 import { Target, AlertCircle, Info } from "lucide-react";
-import TutorSessionLogForm from "./TutorSessionLogForm";
+// Removed TutorSessionLogForm import (manual session logging is deprecated)
 import {
   PHASES,
   getNextActionData,
@@ -870,7 +870,7 @@ export default function StudentTopicConditioningDialog({
   ).length;
 
   const selectedRow = topics.find((row) => row.topic === selectedTopic) || prioritizedTopics[0];
-  const phaseIx = selectedRow ? phaseIndex(selectedRow.phase) : 0;
+  const phaseIx = selectedRow ? phaseIndex(selectedRow.phase) : -1;
   const guidance = selectedRow
     ? actionGuidanceFor(selectedRow.phase, selectedRow.stability) : { doItems: [], avoidItems: [] };
   const effectiveTopicForLog = topics.length > 0
@@ -986,7 +986,7 @@ export default function StudentTopicConditioningDialog({
 
               {topics.length === 0 ? (
                 <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-                  No topic observations logged yet. Use Session Log Form to add Active Topic, Phase Observed, and Stability Observed.
+                  No active topics yet. Activate a topic, then run intro/training drills to update phase and stability.
                 </div>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
@@ -1092,40 +1092,48 @@ export default function StudentTopicConditioningDialog({
             <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
               <Card className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 md:p-5 shadow-sm space-y-4">
                 <h3 className="font-semibold">Stability Tracker</h3>
-                <p className="text-sm text-muted-foreground">
-                  Stability: {selectedRow?.stability || "Low"}
-                </p>
-                <Progress value={stabilityPercent(selectedRow?.stability || "Low")} />
-                <div className="space-y-1.5">
-                  <p className="text-sm font-medium">Recent Logs (Last 3 Sessions)</p>
-                  {(selectedRow?.recentLogs || []).length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No observations recorded yet for this topic.</p>
-                  ) : (
-                    <ul className="text-sm text-muted-foreground space-y-1">
-                      {(selectedRow?.recentLogs || []).map((log) => (
-                        <li key={log}>{log}</li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="rounded-md border p-3 bg-primary/5 border-primary/20">
-                    <p className="text-xs uppercase font-semibold text-primary mb-2">Do</p>
-                    <ul className="text-sm text-foreground space-y-1">
-                      {guidance.doItems.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
+                {selectedRow ? (
+                  <>
+                    <p className="text-sm text-muted-foreground">
+                      Stability: {selectedRow.stability}
+                    </p>
+                    <Progress value={stabilityPercent(selectedRow.stability)} />
+                    <div className="space-y-1.5">
+                      <p className="text-sm font-medium">Recent Logs (Last 3 Sessions)</p>
+                      {(selectedRow.recentLogs || []).length === 0 ? (
+                        <p className="text-sm text-muted-foreground">No observations recorded yet for this topic.</p>
+                      ) : (
+                        <ul className="text-sm text-muted-foreground space-y-1">
+                          {(selectedRow.recentLogs || []).map((log) => (
+                            <li key={log}>{log}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div className="rounded-md border p-3 bg-primary/5 border-primary/20">
+                        <p className="text-xs uppercase font-semibold text-primary mb-2">Do</p>
+                        <ul className="text-sm text-foreground space-y-1">
+                          {guidance.doItems.map((item) => (
+                            <li key={item}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="rounded-md border p-3 bg-muted/50 border-muted">
+                        <p className="text-xs uppercase font-semibold text-foreground/60 mb-2">Do Not</p>
+                        <ul className="text-sm text-muted-foreground space-y-1">
+                          {guidance.avoidItems.map((item) => (
+                            <li key={item}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                    No active topics in Map yet. Stability tracking will appear after a topic is activated.
                   </div>
-                  <div className="rounded-md border p-3 bg-muted/50 border-muted">
-                    <p className="text-xs uppercase font-semibold text-foreground/60 mb-2">Do Not</p>
-                    <ul className="text-sm text-muted-foreground space-y-1">
-                      {guidance.avoidItems.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
+                )}
               </Card>
 
               <Card className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 md:p-5 shadow-sm space-y-4">
@@ -1155,7 +1163,7 @@ export default function StudentTopicConditioningDialog({
                 <div className="rounded-md border bg-muted/40 p-3 space-y-2">
                   <p className="text-sm font-medium">Recommended movement</p>
                   <p className="text-sm text-muted-foreground">
-                    System recommendation: {selectedRow ? nextMoveRecommendation(selectedRow.phase, selectedRow.stability) : "Hold current phase"}
+                    System recommendation: {selectedRow ? nextMoveRecommendation(selectedRow.phase, selectedRow.stability) : "No active topic yet"}
                   </p>
                   <p className="text-xs text-muted-foreground">Tutor approval is required before movement between phases.</p>
                 </div>
@@ -1289,247 +1297,79 @@ export default function StudentTopicConditioningDialog({
           </TabsContent>
 
           <TabsContent value="session-form" className="space-y-4 sm:space-y-6">
-            {/* Topic selector for session log */}
-            <div className="mb-3">
-              <label className="block text-xs font-semibold mb-1 text-muted-foreground">Select Topic to Log</label>
-              <select
-                className="border rounded px-2 py-1 text-sm"
-                value={activeTopicField || topics[0]?.topic || ""}
-                onChange={e => {
-                  const topic = e.target.value;
-                  setActiveTopicField(topic);
-                  // phase/stability fields now sync via useEffect
-                }}
-              >
-                {topics.map(t => (
-                  <option key={t.topic} value={t.topic}>{t.topic}</option>
-                ))}
-              </select>
+            <div className="flex justify-end mb-2">
+              <Button variant="outline" onClick={() => setActivateDialogOpen(true)}>
+                Activate Topic
+              </Button>
             </div>
-                        <div className="flex justify-end mb-2">
-                          <Button variant="outline" onClick={() => setActivateDialogOpen(true)}>
-                            Activate Topic
-                          </Button>
-                        </div>
-                        {/* Activate Topic Dialog */}
-                        <Dialog open={activateDialogOpen} onOpenChange={setActivateDialogOpen}>
-                          <DialogContent className="max-w-md">
-                            <DialogHeader>
-                              <DialogTitle>Activate New Topic</DialogTitle>
-                              <DialogDescription>
-                                Select a topic and provide a reason for activation. This will add the topic to the active list and log the reason.
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-3 mt-2">
-                              <Input
-                                placeholder="Topic name (e.g. Linear equations)"
-                                value={newTopic}
-                                onChange={e => setNewTopic(e.target.value)}
-                              />
-                              <Select value={activationReason} onValueChange={setActivationReason}>
-                                <SelectTrigger className="w-full">{activationReason || "Select reason"}</SelectTrigger>
-                                <SelectContent>
-                                  {ACTIVATION_REASONS.map(r => (
-                                    <SelectItem key={r} value={r}>{r}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              {activationReason === "Other (enter note)" && (
-                                <Textarea
-                                  placeholder="Enter activation note"
-                                  value={activationNote}
-                                  onChange={e => setActivationNote(e.target.value)}
-                                />
-                              )}
-                              {activateError && <p className="text-xs text-red-500">{activateError}</p>}
-                              <div className="flex justify-end gap-2">
-                                <Button variant="ghost" onClick={() => setActivateDialogOpen(false)}>Cancel</Button>
-                                <Button onClick={handleActivateTopic}>Activate</Button>
-                              </div>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-
-            <Card className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 md:p-5 shadow-sm space-y-4">
-
-              {topicChoices.length > 0 && (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {topicChoices.map((topic) => (
-                    <button
-                      key={`manage-topic-${topic}`}
-                      className={`rounded-md border p-3 text-left transition-colors ${
-                        activeTopicField === topic ? "border-primary bg-primary/5" : "hover:bg-muted/40"
-                      }`}
-                      onClick={() => {
-                        setActiveTopicField(topic);
-                        // phase/stability fields now sync via useEffect
-                      }}
-                    >
-                      <p className="font-medium">{topic}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {(() => {
-                          const row = topics.find((t) => t.topic === topic);
-                          return row ? `${row.phase} | ${row.stability}` : "No state yet";
-                        })()}
-                      </p>
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {topics.length > 0 ? (
-                <div className="rounded-md border bg-muted/20 p-3 text-sm">
-                  <p className="font-medium text-foreground">Selected Topic</p>
-                  <p className="text-muted-foreground mt-1 break-words">{activeTopicField || "Select a topic card above"}</p>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    This session record will update the topic conditioning map and become source evidence for weekly and monthly reports.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">First Topic</p>
+            {/* Activate Topic Dialog */}
+            <Dialog open={activateDialogOpen} onOpenChange={setActivateDialogOpen}>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Activate New Topic</DialogTitle>
+                  <DialogDescription>
+                    Select a topic and provide a reason for activation. This will add the topic to the active list and log the reason.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-3 mt-2">
                   <Input
-                    value={manualTopicField}
-                    onChange={(e) => setManualTopicField(e.target.value)}
-                    placeholder="Type first topic, e.g. Linear equations"
+                    placeholder="Topic name (e.g. Linear equations)"
+                    value={newTopic}
+                    onChange={e => setNewTopic(e.target.value)}
                   />
-                  <p className="text-xs text-muted-foreground">Use this only when the student has no topic cards yet.</p>
-                </div>
-              )}
-
-              <div className="grid md:grid-cols-3 gap-3">
-                <div className="rounded-md border bg-muted/20 p-3">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Current Phase</p>
-                  <p className="mt-1 text-sm font-medium text-foreground">{topics.find(t => t.topic === activeTopicField)?.phase || "-"}</p>
-                </div>
-                <div className="rounded-md border bg-muted/20 p-3">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Previous Stability</p>
-                  <p className="mt-1 text-sm font-medium text-foreground">{topics.find(t => t.topic === activeTopicField)?.stability || "-"}</p>
-                </div>
-                <div className="rounded-md border bg-muted/20 p-3">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Transition Strictness</p>
-                  <p className="mt-1 text-sm font-medium text-foreground">Stability-aware</p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <p className="text-sm font-medium">Phase-Specific Observation Block</p>
-
-                {(() => {
-                  // Strictly derive phase and validate
-                  const found = topics.find(t => t.topic === activeTopicField);
-                  const phase = found?.phase && PHASE_OBSERVATION_CONFIG[found.phase as PhaseLabel] ? found.phase as PhaseLabel : "Clarity";
-                  const config = PHASE_OBSERVATION_CONFIG[phase];
-                  if (!found?.phase || !PHASE_OBSERVATION_CONFIG[found.phase as PhaseLabel]) {
-                    return <div className="text-red-500 text-xs font-semibold">Phase missing or invalid for this topic. Please correct before logging.</div>;
-                  }
-                  return config.categories.map((category) => (
-                    <div key={category.key} className="space-y-2">
-                      <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">{category.label}</p>
-                      <div className="flex flex-wrap gap-2">
-                        {category.options.map((option) => (
-                          <Button
-                            key={`${category.key}-${option.label}`}
-                            type="button"
-                            variant={phaseSelections[category.key] === option.label ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => {
-                              const newSelections = { ...phaseSelections, [category.key]: option.label };
-                              setPhaseSelections(newSelections);
-                              // Persist per topic/phase
-                              const found = topics.find(t => t.topic === activeTopicField);
-                              if (found) {
-                                const phaseKey = `${found.topic}::${found.phase}`;
-                                setPhaseSelectionsMap(prev => ({ ...prev, [phaseKey]: newSelections }));
-                              }
-                            }}
-                          >
-                            {option.label}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  ));
-                })()}
-
-                <div className="space-y-2">
-                  <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">E. Tutor Intervention Used</p>
-                  <div className="flex flex-wrap gap-2">
-                    {phaseConfig.interventions.map((option) => (
-                      <Button
-                        key={option}
-                        type="button"
-                        variant={interventionUsed === option ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setInterventionUsed(option)}
-                      >
-                        {option}
-                      </Button>
-                    ))}
+                  <Select value={activationReason} onValueChange={setActivationReason}>
+                    <SelectTrigger className="w-full">{activationReason || "Select reason"}</SelectTrigger>
+                    <SelectContent>
+                      {ACTIVATION_REASONS.map(r => (
+                        <SelectItem key={r} value={r}>{r}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {activationReason === "Other (enter note)" && (
+                    <Textarea
+                      placeholder="Enter activation note"
+                      value={activationNote}
+                      onChange={e => setActivationNote(e.target.value)}
+                    />
+                  )}
+                  {activateError && <p className="text-xs text-red-500">{activateError}</p>}
+                  <div className="flex justify-end gap-2">
+                    <Button variant="ghost" onClick={() => setActivateDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={handleActivateTopic}>Activate</Button>
                   </div>
                 </div>
-              </div>
+              </DialogContent>
+            </Dialog>
 
-              <Card className="rounded-xl border border-primary/20 bg-muted/20 p-4 space-y-2">
-                <p className="text-sm font-semibold">Live Interpretation Preview</p>
-                <p className="text-sm text-muted-foreground">System Interpretation: {projectedInterpretation.tutorMeaning}</p>
-                <p className="text-sm text-muted-foreground">Decision: {phaseDecision.toUpperCase()} ({observedPhase} {"->"} {projectedPhase})</p>
-                <p className="text-sm text-muted-foreground">Updated Stability: {projectedStability}</p>
-                <p className="text-sm text-muted-foreground">Session Score: {sessionScore}</p>
-                <p className="text-sm text-muted-foreground">Next Move: {projectedInterpretation.nextAction}</p>
-                <p className="text-sm text-muted-foreground">Constraint: {livePreviewConstraint}</p>
-                <p className="text-sm text-muted-foreground">Parent Meaning: {projectedInterpretation.parentMeaning}</p>
-              </Card>
-
-              <TutorSessionLogForm
-                studentOptions={[{ id: studentId, name: studentName }]}
-                defaultStudentId={studentId}
-                lockStudent
-                submitLabel="Save Topic Session Record"
-                topicState={
-                  canSubmitStructuredRecord
-                    ? {
-                        topic: effectiveTopicForLog,
-                        phase: projectedPhase,
-                        stability: projectedStability,
-                        observationNotes: [
-                          ...phaseConfig.categories.map(
-                            (category) => `${category.label}: ${phaseSelections[category.key] || "Not selected"}`
-                          ),
-                          `Intervention Used: ${interventionUsed}`,
-                          `Session Score: ${sessionScore}`,
-                          `Phase Decision: ${phaseDecision}`,
-                          `Constraint: ${livePreviewConstraint}`,
-                        ].join(" | "),
-                        structuredObservation: {
-                          observedPhase,
-                          previousStability,
-                          categories: phaseConfig.categories.map((category) => ({
-                            key: category.key,
-                            label: category.label,
-                            value: phaseSelections[category.key] || "Not selected",
-                          })),
-                          interventionUsed,
-                          sessionScore,
-                          phaseDecision,
-                          tutorExplanation: projectedInterpretation.tutorMeaning,
-                          parentMeaning: projectedInterpretation.parentMeaning,
-                          nextAction: projectedInterpretation.nextAction,
-                          constraint: livePreviewConstraint,
-                        },
-                      }
-                    : null
-                }
-                onSuccess={() => {
-                  setPhaseSelections({});
-                  setInterventionUsed("");
-                }}
-              />
-              {!canSubmitStructuredRecord ? (
-                <p className="text-xs text-muted-foreground">
-                  Complete all observation sections before saving this topic record.
-                </p>
-              ) : null}
+            <Card className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 md:p-5 shadow-sm space-y-4">
+              {topics.length > 0 ? (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {topics.map((topic) => (
+                    <div key={topic.topic} className="rounded-md border p-3 flex flex-col gap-2 bg-muted/10">
+                      <div className="flex flex-row items-center justify-between">
+                        <div>
+                          <p className="font-medium">{topic.topic}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{topic.phase} | {topic.stability}</p>
+                        </div>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => {
+                            const topicParam = encodeURIComponent(topic.topic);
+                            const phaseParam = encodeURIComponent(topic.phase);
+                            const stabilityParam = encodeURIComponent(topic.stability);
+                            window.location.href = `/tutor/intro-session/${studentId}?mode=training&topic=${topicParam}&phase=${phaseParam}&stability=${stabilityParam}`;
+                          }}
+                        >
+                          Start Training Drill
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground">No active topics. Activate a topic to begin.</div>
+              )}
             </Card>
           </TabsContent>
         </Tabs>

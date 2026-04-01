@@ -1,0 +1,695 @@
+TT DRILL & DIAGNOSIS LIBRARY (FINAL SPEC)
+GLOBAL RULES (NON-NEGOTIABLE)
+Structure
+Diagnosis Session = 6 reps (2 sets × 3 reps)
+Training Session = 9 reps (3 sets × 3 reps)
+Observation
+Observation block fires AFTER EVERY REP
+No text input — toggles only
+Scoring
+Each field:
+weak = 0
+partial = 1
+clear = 2
+Rep Score = average of fields → rounded
+Set Score = average of rep scores → mapped:
+0–0.66 → 0
+0.67–1.33 → 1
+1.34–2 → 2
+Session Score
+Diagnosis
+Final = (Set1 × 2) + (Set2 × 2)
+Max = 8
+Training
+Final = (Set1 × 1) + (Set2 × 2) + (Set3 × 2)
+Max = 10
+Stability Mapping (ALL PHASES)
+Diagnosis
+0–3 → LOW
+4–5 → MEDIUM
+6–8 → HIGH
+Training
+0–4 → LOW
+5–7 → MEDIUM
+8–10 → HIGH
+System Law
+
+Tutor does NOT decide anything.
+System outputs next action.
+
+🔷 PHASE 1 — CLARITY (REFERENCE ONLY)
+
+LARITY (REFERENCE SPEC)
+PURPOSE
+
+Can the student see the problem clearly before solving?
+
+Clarity is NOT solving.
+
+Clarity =
+
+naming what’s there
+recognizing the method
+understanding why
+
+If this fails → everything else collapses.
+
+1. PHASE STRUCTURE
+Core Components (Fixed)
+
+These are the only things that matter in Clarity:
+
+Vocabulary (terms)
+Method (steps)
+Reason (why it works)
+Immediate Apply (can they repeat after seeing)
+2. OBSERVATION MODEL (REP LEVEL)
+
+Every rep logs these 4 fields:
+
+Vocabulary
+
+☐ cannot name
+☐ partial
+☐ clear
+
+Method
+
+☐ cannot state steps
+☐ partial
+☐ clear
+
+Reason
+
+☐ no idea
+☐ vague
+☐ clear
+
+Immediate Apply / Response
+
+☐ cannot repeat / avoids
+☐ partial
+☐ independent
+
+3. WEIGHTS (NON-NEGOTIABLE)
+
+These weights define Clarity scoring:
+
+Vocabulary = 30
+Method = 30
+Reason = 20
+Immediate Apply = 20
+
+Total = 100
+
+4. REP SCORING LOGIC
+
+Each field maps to:
+
+weak → 0.00 × weight
+partial → 0.60 × weight
+clear → 1.00 × weight
+Example Rep
+
+Vocabulary = clear → 30
+Method = partial → 18
+Reason = vague → 12
+Apply = partial → 12
+
+Rep Score = 72 / 100
+
+5. SET SCORING
+Average rep scores in the set
+Output = Set Score (0–100)
+6. SESSION SCORING
+Diagnosis
+
+(Set 1 + Set 2 averaged → normalized to 100)
+
+Training
+
+(Set 1 × 1) + (Set 2 × 2) + (Set 3 × 2)
+→ normalize to 100
+
+7. STABILITY INTERPRETATION
+IF PREVIOUS = LOW
+
+Question:
+
+Is the student still fundamentally unclear?
+
+0–49 → remain LOW
+50–69 → move to MEDIUM
+70–100 → move to HIGH only if no category = 0
+
+⚠️ Guardrail:
+
+If ANY field = 0 across session → block HIGH
+IF PREVIOUS = MEDIUM
+
+Question:
+
+Is clarity becoming consistent?
+
+0–44 → regress to LOW
+45–74 → remain MEDIUM
+75–100 → move to HIGH
+IF PREVIOUS = HIGH
+
+Question:
+
+Is clarity stable enough to move forward?
+
+0–49 → regress to MEDIUM
+50–79 → remain HIGH
+80–100 → advance to EXECUTION
+8. NEXT ACTION OUTPUT
+Clarity LOW
+Interpretation
+
+Student cannot clearly identify:
+
+terms
+method
+reasoning
+System Action
+Reinforce Vocabulary
+Reinforce Method
+Reinforce Reason
+Re-model same concept
+Immediate apply after each model
+Constraints
+❌ No Boss Battles
+❌ No time pressure
+❌ No skipping layers
+Clarity MEDIUM
+Interpretation
+
+Student partially recognizes but is inconsistent
+
+System Action
+Continue 3-Layer Lens
+Increase Apply reps
+Introduce light execution checks
+Constraints
+❌ No time pressure
+⚠️ Boss Battles not primary
+Reduce explanation, increase reps
+Clarity HIGH
+Interpretation
+
+Student clearly sees:
+
+terms
+steps
+reasoning
+System Action
+Transition to Execution drills
+Reduce modeling
+Increase independent attempts
+Constraints
+❌ Do not stay in teaching mode
+9. TRAINING DRILL STRUCTURE (REFERENCE)
+SESSION = 3 SETS (9 REPS)
+SET 1 — MODELING (2 reps)
+
+Purpose:
+Build mental map
+
+System behavior:
+
+tutor models (Vocab → Method → Reason)
+student explains back
+SET 2 — IDENTIFICATION (4 reps)
+
+Purpose:
+Recognition without solving
+
+Student must:
+
+name terms
+identify type
+state steps
+explain why
+SET 3 — LIGHT APPLY (3 reps)
+
+Purpose:
+Test clarity during solving
+
+Student:
+
+solves
+minimal guidance
+10. DIAGNOSIS DRILL (REFERENCE)
+SESSION = 6 REPS
+SET 1 — RECOGNITION (3 reps)
+
+Student does NOT solve
+Tests:
+
+vocab
+type
+steps
+SET 2 — LIGHT APPLY (3 reps)
+
+Student solves with minimal help
+Tests:
+
+start
+structure
+clarity carryover
+11. MASTER RULES
+Progression Rule
+
+Only move forward when:
+Clarity = HIGH and stable
+
+Regression Rule
+
+If score drops:
+→ move back one stability level
+
+System Rule
+
+Tutor does NOT decide next step
+System outputs next action
+
+12. WHAT THIS MEANS (REALITY)
+
+Clarity is not “understanding”.
+
+Clarity is:
+
+Recognition + articulation + repeatability
+
+If a student:
+
+can’t name it
+can’t describe steps
+can’t explain why
+
+They are still in Clarity.
+
+No matter how many answers they get right.
+
+🔶 PHASE 2 — STRUCTURED EXECUTION
+EXECUTION DIAGNOSIS DRILL
+Objective
+
+Test ability to execute known method independently.
+
+SET 1 — START + STRUCTURE (3 reps)
+Rep Instruction
+
+“Solve the problem. No help for 10 seconds.”
+
+Rep Observation Block
+
+Start behavior
+☐ avoids
+☐ delayed
+☐ immediate
+
+Step execution
+☐ random / guessing
+☐ partial steps
+☐ full structure
+
+Step order
+☐ incorrect
+☐ minor errors
+☐ correct
+
+Dependence
+☐ waits for help
+☐ asks after trying
+☐ independent
+
+SET 2 — REPEATABILITY (3 reps)
+Rep Instruction
+
+“Solve similar problem.”
+
+Rep Observation Block
+
+Consistency
+☐ breaks each time
+☐ inconsistent
+☐ stable
+
+Step recall
+☐ forgets
+☐ partial
+☐ full
+
+Error pattern
+☐ guessing
+☐ careless
+☐ structured
+
+Completion
+☐ cannot finish
+☐ partial
+☐ complete
+
+EXECUTION TRAINING DRILL
+Objective
+
+Force structured, repeatable execution.
+
+SET 1 — FORCED STRUCTURE (3 reps)
+Rep Instruction
+
+“State steps first. Then solve.”
+
+Rep Observation Block
+
+Start
+☐ delayed
+☐ hesitant
+☐ immediate
+
+Step discipline
+☐ skips
+☐ partial
+☐ full
+
+Correction response
+☐ resists
+☐ accepts
+☐ adjusts
+
+SET 2 — INDEPENDENT EXECUTION (3 reps)
+Rep Instruction
+
+“Solve independently.”
+
+Rep Observation Block
+
+Independence
+☐ needs help
+☐ light support
+☐ independent
+
+Consistency
+☐ breaks
+☐ inconsistent
+☐ stable
+
+Error handling
+☐ guesses
+☐ partial correction
+☐ structured correction
+
+SET 3 — VARIATION CONTROL (3 reps)
+Rep Instruction
+
+“Solve slightly different form.”
+
+Rep Observation Block
+
+Transfer
+☐ cannot adapt
+☐ partial
+☐ adapts
+
+Step retention
+☐ lost
+☐ partial
+☐ stable
+
+Completion
+☐ fails
+☐ partial
+☐ complete
+
+🔶 PHASE 3 — CONTROLLED DISCOMFORT
+DISCOMFORT DIAGNOSIS DRILL
+Objective
+
+Test behavior under uncertainty.
+
+SET 1 — FIRST CONTACT (3 reps)
+Rep Instruction
+
+“Try this. No help for 10 seconds.”
+
+Rep Observation Block
+
+Initial response
+☐ freeze
+☐ hesitate
+☐ attempt
+
+First step
+☐ none
+☐ prompted
+☐ independent
+
+Emotional state
+☐ panic
+☐ tension
+☐ controlled
+
+SET 2 — PRESSURE HOLD (3 reps)
+Rep Instruction
+
+“Continue. I will only confirm first step.”
+
+Rep Observation Block
+
+Persistence
+☐ gives up
+☐ short attempt
+☐ stays engaged
+
+Rescue behavior
+☐ asks immediately
+☐ asks later
+☐ no rescue
+
+Structure retention
+☐ breaks
+☐ partial
+☐ maintained
+
+DISCOMFORT TRAINING DRILL
+Objective
+
+Stabilize response under difficulty.
+
+SET 1 — CONTROLLED ENTRY (3 reps)
+Rep Instruction
+
+“Pause. Then state first step.”
+
+Rep Observation Block
+
+Start control
+☐ freeze
+☐ hesitant
+☐ controlled
+
+First-step accuracy
+☐ wrong
+☐ partial
+☐ correct
+
+SET 2 — NO RESCUE (3 reps)
+Rep Instruction
+
+“Continue. No full help.”
+
+Rep Observation Block
+
+Independence
+☐ dependent
+☐ partial
+☐ independent
+
+Stability
+☐ breaks
+☐ unstable
+☐ stable
+
+Rescue behavior
+☐ frequent
+☐ occasional
+☐ none
+
+SET 3 — REPEAT EXPOSURE (3 reps)
+Rep Instruction
+
+“Another similar difficulty.”
+
+Rep Observation Block
+
+Consistency
+☐ breaks
+☐ inconsistent
+☐ stable
+
+Recovery
+☐ collapses
+☐ partial
+☐ recovers
+
+🔶 PHASE 4 — TIME PRESSURE STABILITY
+TIME PRESSURE DIAGNOSIS DRILL
+Objective
+
+Test structure under time.
+
+SET 1 — LIGHT TIMER (3 reps)
+Rep Instruction
+
+“Solve under short timer.”
+
+Rep Observation Block
+
+Start
+☐ freeze
+☐ delayed
+☐ immediate
+
+Structure
+☐ breaks
+☐ partial
+☐ maintained
+
+Pace
+☐ panic
+☐ rushed
+☐ controlled
+
+SET 2 — CONSISTENCY (3 reps)
+Rep Instruction
+
+“Repeat under same time.”
+
+Rep Observation Block
+
+Consistency
+☐ collapses
+☐ inconsistent
+☐ stable
+
+Completion
+☐ fails
+☐ partial
+☐ complete
+
+Behavior
+☐ panic
+☐ tension
+☐ composed
+
+TIME PRESSURE TRAINING DRILL
+Objective
+
+Maintain structure under urgency.
+
+SET 1 — STRUCTURE UNDER TIMER (3 reps)
+Rep Instruction
+
+“Focus on method, not speed.”
+
+Rep Observation Block
+
+Start
+☐ panic
+☐ hesitant
+☐ controlled
+
+Structure
+☐ lost
+☐ partial
+☐ maintained
+
+SET 2 — REPEATED TIMED EXECUTION (3 reps)
+Rep Instruction
+
+“Repeat under timer.”
+
+Rep Observation Block
+
+Consistency
+☐ breaks
+☐ inconsistent
+☐ stable
+
+Pace
+☐ rushed
+☐ uneven
+☐ controlled
+
+SET 3 — FULL CONSTRAINT (3 reps)
+Rep Instruction
+
+“Solve under tighter time.”
+
+Rep Observation Block
+
+Completion
+☐ fails
+☐ partial
+☐ complete
+
+Integrity
+☐ collapses
+☐ unstable
+☐ stable
+
+🔻 SYMPTOM → DIAGNOSIS MAPPING (INTRO SESSION ENGINE)
+
+This drives which diagnosis drill loads.
+
+CLARITY
+“doesn’t understand”
+“can’t explain”
+“confused”
+“forgets concepts”
+
+→ Load: Clarity Diagnosis
+
+EXECUTION
+“knows but can’t solve”
+“makes careless mistakes”
+“needs help to start”
+“skips steps”
+
+→ Load: Execution Diagnosis
+
+DISCOMFORT
+“freezes”
+“panics”
+“gives up quickly”
+“afraid of hard questions”
+
+→ Load: Discomfort Diagnosis
+
+TIME PRESSURE
+“rushes in tests”
+“runs out of time”
+“makes mistakes under pressure”
+“panics during exams”
+
+→ Load: Time Diagnosis
+
+🔻 FINAL SYSTEM FLOW (DEV IMPLEMENTATION)
+SESSION LOOP
+Open Topic
+Load:
+Phase
+Stability
+Drill Template
+For each rep:
+show instruction
+capture observations
+compute rep score
+After set:
+compute set score
+After session:
+compute final score
+update stability
+trigger next action

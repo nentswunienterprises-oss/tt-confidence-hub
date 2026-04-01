@@ -1,17 +1,16 @@
-
-
-  // ...existing code...
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 // import { useQuery } from "@tanstack/react-query";
 import { buildTopics } from "./topicUtils";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useStudentWorkflowState, useMarkIntroCompleted, useRespondToAssignment } from "@/hooks/useStudentWorkflowState";
 import { TutorIntroSessionActions } from "./TutorIntroSessionActions";
+import { getNextActionData, interpretTopicState } from "./topicConditioningEngine";
+import { Input } from "@/components/ui/input";
 
 function splitReportedTopics(rawValue) {
   if (!rawValue || typeof rawValue !== "string") return [];
@@ -209,6 +208,11 @@ export function StudentCard({
     }).map((a) => ({ topic: a.topic, activatedAt: a.created_at }));
   }, [activationsData]);
 
+  const explicitlyActivatedTopicNames = useMemo(
+    () => new Set(activationTopics.map(({ topic }) => String(topic).trim())),
+    [activationTopics]
+  );
+
   // True if there are any persisted topics
   const hasPersistedTopics = Object.keys(persistedTopics).length > 0;
 
@@ -254,6 +258,31 @@ export function StudentCard({
     });
     return merged;
   }, [persistedTopics, student.topicConditioning, reportedTopics, studentSessions, activationTopics]);
+
+  const activatedTopics = useMemo(
+    () => allTopics.filter((topic) => explicitlyActivatedTopicNames.has(String(topic.topic).trim())),
+    [allTopics, explicitlyActivatedTopicNames]
+  );
+
+  // Helper to get system-driven outputs for a topic
+  function getSystemDrivenOutputs(topic) {
+    const entry = allTopics.find(t => t.topic === topic);
+    if (!entry) return null;
+    const intel = interpretTopicState(entry.phase, entry.stability, entry.trend);
+    const nextActions = getNextActionData(entry.phase, entry.stability).nextActions;
+    const rules = getNextActionData(entry.phase, entry.stability).rules;
+    return {
+      phase: entry.phase,
+      stability: entry.stability,
+      nextAction: intel.nextAction,
+      constraint: rules[0] || "Follow phase constraints",
+      transitionStatus: intel.transitionStatus,
+      recentLogs: entry.recentLogs,
+      timeline: entry.timeline,
+      allNextActions: nextActions,
+      allConstraints: rules,
+    };
+  }
 
   // Pick the most recently updated topic for display
   const latestEntry = allTopics
@@ -339,19 +368,77 @@ export function StudentCard({
             <p className="text-xs text-muted-foreground">
               {Math.max(0, progressTotal - sessionProgress)} sessions remaining
             </p>
-            {allTopics.length > 0 && (
+            {activatedTopics.length > 0 && (
               <div className="mt-3">
-                <div className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground mb-1">Active Topics</div>
+                <div className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground mb-1">Active Topics (System-Driven Map)</div>
                 <div className="flex flex-wrap gap-2">
-                  {allTopics.map((topic) => (
-                    <div key={topic.topic} className="rounded-lg border border-primary/20 bg-muted/30 px-3 py-1 flex flex-row items-center gap-2">
-                      <span className="font-semibold text-foreground text-xs">{topic.topic}</span>
-                      <span className="text-xs text-muted-foreground">|</span>
-                      <span className="text-xs text-foreground">{topic.phase}</span>
-                      <span className="text-xs text-muted-foreground">|</span>
-                      <span className="text-xs px-2 py-0.5 rounded-full border border-primary/20 bg-muted/40 text-foreground">{topic.stability}</span>
-                    </div>
-                  ))}
+                  {activatedTopics.map((topic) => {
+                    const sys = getSystemDrivenOutputs(topic.topic);
+                    return (
+                      <div key={topic.topic} className="rounded-lg border border-primary/20 bg-muted/30 px-3 py-2 flex flex-col gap-1 min-w-[220px]">
+                        <span className="font-semibold text-foreground text-xs break-words">{topic.topic}</span>
+                        <div className="flex flex-row flex-wrap gap-1 items-center text-xs">
+                          <span className="text-muted-foreground">Phase:</span>
+                          <span className="text-foreground font-medium">{sys?.phase}</span>
+                          <span className="text-muted-foreground">|</span>
+                          <span className="text-muted-foreground">Stability:</span>
+                          <span className="text-foreground font-medium">{sys?.stability}</span>
+                        </div>
+                        <div className="flex flex-row flex-wrap gap-1 items-center text-xs">
+                          <span className="text-muted-foreground">Next Action:</span>
+                          <span className="text-foreground font-medium">{sys?.nextAction}</span>
+                        </div>
+                        <div className="flex flex-row flex-wrap gap-1 items-center text-xs">
+                          <span className="text-muted-foreground">Constraint:</span>
+                          <span className="text-foreground">{sys?.constraint}</span>
+                        </div>
+                        <div className="flex flex-row flex-wrap gap-1 items-center text-xs">
+                          <span className="text-muted-foreground">Transition:</span>
+                          <span className="text-foreground">{sys?.transitionStatus}</span>
+                        </div>
+                        {Array.isArray(sys?.recentLogs) && sys.recentLogs.length > 0 && (
+                          <div className="mt-1">
+                            <span className="text-muted-foreground text-xs">Recent Logs:</span>
+                            <ul className="list-disc ml-4 text-xs text-muted-foreground">
+                              {sys.recentLogs.map((log, idx) => (
+                                <li key={idx}>{log}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {Array.isArray(sys?.allNextActions) && sys.allNextActions.length > 1 && (
+                          <div className="mt-1">
+                            <span className="text-muted-foreground text-xs">All Next Actions:</span>
+                            <ul className="list-disc ml-4 text-xs text-muted-foreground">
+                              {sys.allNextActions.map((a, idx) => (
+                                <li key={idx}>{a}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {Array.isArray(sys?.allConstraints) && sys.allConstraints.length > 1 && (
+                          <div className="mt-1">
+                            <span className="text-muted-foreground text-xs">All Constraints:</span>
+                            <ul className="list-disc ml-4 text-xs text-muted-foreground">
+                              {sys.allConstraints.map((c, idx) => (
+                                <li key={idx}>{c}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {Array.isArray(sys?.timeline) && sys.timeline.length > 0 && (
+                          <div className="mt-1">
+                            <span className="text-muted-foreground text-xs">Timeline:</span>
+                            <ul className="list-disc ml-4 text-xs text-muted-foreground">
+                              {sys.timeline.map((point, idx) => (
+                                <li key={idx}>{point.date} · {point.phase} · {point.stability}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -361,14 +448,14 @@ export function StudentCard({
 
         {workflowLoading && <p className="text-xs text-muted-foreground">Loading workflow...</p>}
 
-        {(topicConditioning || hasPersistedTopics || reportedTopics.length > 0) && (
+        {workflow?.proposalAccepted && activatedTopics.length > 0 && (
           <>
 
             <div className="pt-4 border-t border-border/60 space-y-3">
-            <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Topic Conditioning</p>
-            {allTopics.length > 0 ? (
+            <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Topics In Conditioning</p>
+            {activatedTopics.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {allTopics.map((topic) => (
+                {activatedTopics.map((topic) => (
                   <div key={topic.topic} className="rounded-xl border border-primary/20 bg-muted/20 px-4 py-3">
                     <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{topic.topic}</p>
                     <div className="flex flex-row items-center gap-2 mt-2">
@@ -378,22 +465,7 @@ export function StudentCard({
                   </div>
                 ))}
               </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="rounded-xl border border-primary/20 bg-muted/20 px-4 py-3">
-                  <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Topic</p>
-                  <p className="mt-2 text-sm font-medium text-foreground break-words">{displayTopic}</p>
-                </div>
-                <div className="rounded-xl border border-primary/20 bg-muted/20 px-4 py-3">
-                  <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Topic Phase</p>
-                  <p className="mt-2 text-sm font-medium text-foreground break-words">{displayPhase}</p>
-                </div>
-                <div className="rounded-xl border border-primary/20 bg-muted/20 px-4 py-3">
-                  <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Stability</p>
-                  <p className="mt-2 text-sm font-medium text-foreground">{displayStability}</p>
-                </div>
-              </div>
-            )}
+            ) : null}
             {hasTopicConditioningTimestamp && (
               <p
                 className="text-xs text-muted-foreground"
@@ -406,49 +478,6 @@ export function StudentCard({
           </>
         )}
 
-        {workflow && !workflow.introCompleted && student.parentInfo && (
-          <div className="pt-4 border-t border-border/60 space-y-3">
-            <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Pre-Session Intelligence</p>
-
-            <div className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-2">
-              <p className="text-[11px] font-medium text-foreground">Parent-Reported Topics</p>
-              {reportedTopics.length > 0 ? (
-                <ul className="text-xs text-muted-foreground space-y-1">
-                  {reportedTopics.slice(0, 4).map((topic) => (
-                    <li key={topic}>{topic}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-xs text-muted-foreground">No specific topics listed by parent.</p>
-              )}
-            </div>
-
-            <div className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-2">
-              <p className="text-[11px] font-medium text-foreground">Parent-Observed Symptoms</p>
-              {symptomSignals.length > 0 ? (
-                <div className="flex flex-wrap gap-1.5">
-                  {symptomSignals.map((symptom) => (
-                    <Badge key={symptom} variant="outline" className="text-[10px] border-primary/20 bg-background/70 text-foreground">
-                      {symptom}
-                    </Badge>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-muted-foreground">
-                  No explicit symptom keywords found. Observe freeze, rush, guess, avoid, and early help-seeking.
-                </p>
-              )}
-            </div>
-
-            <div className="rounded-xl border border-primary/20 bg-muted/20 p-3 space-y-1">
-              <p className="text-[11px] font-semibold text-foreground">Diagnostic Focus Suggestion</p>
-              <p className="text-xs text-muted-foreground">Start with: <span className="text-foreground font-medium">{suggestedTopic}</span></p>
-              <p className="text-xs text-muted-foreground">
-                Watch for: <span className="text-foreground font-medium">{suggestedSymptoms.length > 0 ? suggestedSymptoms.join(" + ") : "Freezing + early help-seeking"}</span>
-              </p>
-            </div>
-          </div>
-        )}
 
         {workflow && !workflow.assignmentAccepted && (
           <div className="pt-4 border-t border-border/60 space-y-2">
@@ -482,33 +511,15 @@ export function StudentCard({
           />
         )}
 
+
         {workflow?.assignmentAccepted && workflow?.introConfirmed && !workflow.introCompleted && (
-          <div className="pt-4 border-t border-border/60 space-y-2">
-            <Button
-              className="w-full"
-              variant="primary"
-              size="sm"
-              onClick={() => markIntroCompleted.mutate()}
-              disabled={markIntroCompleted.isPending}
-            >
-              {markIntroCompleted.isPending ? "Saving..." : "Mark Intro Session As Completed"}
-            </Button>
-            <p className="text-xs text-muted-foreground text-center">
-              Complete the intro session before logging the identity sheet.
-            </p>
-            {(workflow?.identitySaved || workflow?.proposalSent || workflow?.proposalAccepted) && (
-              <p className="text-xs text-amber-700 text-center">
-                Workflow data appears ahead of intro completion. Mark intro complete to re-sync this student flow.
-              </p>
-            )}
-            {markIntroCompleted.isError && (
-              <p className="text-xs text-red-600 text-center">
-                {markIntroCompleted.error instanceof Error
-                  ? markIntroCompleted.error.message
-                  : "Failed to mark intro session completed"}
-              </p>
-            )}
-          </div>
+          <IntroDiagnosticTopicSection
+            student={student}
+            reportedTopics={reportedTopics}
+            symptomSignals={symptomSignals}
+            suggestedTopic={suggestedTopic}
+            suggestedSymptoms={suggestedSymptoms}
+          />
         )}
 
 
@@ -607,6 +618,171 @@ export function StudentCard({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function IntroDiagnosticTopicSection({
+  student,
+  reportedTopics,
+  symptomSignals,
+  suggestedTopic,
+  suggestedSymptoms,
+}) {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [diagnosticTopic, setDiagnosticTopic] = useState("");
+  const [activationError, setActivationError] = useState("");
+  const [activatedTopic, setActivatedTopic] = useState<string | null>(null);
+
+  const storageKey = `intro-diagnostic-topic:${student.id}`;
+
+  useEffect(() => {
+    const stored = window.sessionStorage.getItem(storageKey);
+    if (stored) {
+      setActivatedTopic(stored);
+    }
+  }, [storageKey]);
+
+  const handleActivate = () => {
+    setActivationError("");
+    const nextTopic = diagnosticTopic.trim();
+    if (!nextTopic) {
+      setActivationError("Please enter a topic name to continue.");
+      return;
+    }
+    window.sessionStorage.setItem(storageKey, nextTopic);
+    setActivatedTopic(nextTopic);
+    setDiagnosticTopic("");
+    setDialogOpen(false);
+  };
+
+  if (!activatedTopic) {
+    return (
+      <div className="pt-4 border-t border-border/60 space-y-2">
+        <div className="space-y-3 mb-2">
+          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Pre-Session Intelligence</p>
+
+          <div className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-2">
+            <p className="text-[11px] font-medium text-foreground">Parent-Reported Topics</p>
+            {reportedTopics.length > 0 ? (
+              <ul className="text-xs text-muted-foreground space-y-1">
+                {reportedTopics.slice(0, 4).map((topic) => (
+                  <li key={topic}>{topic}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-xs text-muted-foreground">No specific topics listed by parent.</p>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-2">
+            <p className="text-[11px] font-medium text-foreground">Parent-Observed Symptoms</p>
+            {symptomSignals.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {symptomSignals.map((symptom) => (
+                  <Badge key={symptom} variant="outline" className="text-[10px] border-primary/20 bg-background/70 text-foreground">
+                    {symptom}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                No explicit symptom keywords found. Observe freeze, rush, guess, avoid, and early help-seeking.
+              </p>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-primary/20 bg-muted/20 p-3 space-y-1">
+            <p className="text-[11px] font-semibold text-foreground">Diagnostic Focus Suggestion</p>
+            <p className="text-xs text-muted-foreground">Start with: <span className="text-foreground font-medium">{suggestedTopic}</span></p>
+            <p className="text-xs text-muted-foreground">
+              Watch for: <span className="text-foreground font-medium">{suggestedSymptoms.length > 0 ? suggestedSymptoms.join(" + ") : "Freezing + early help-seeking"}</span>
+            </p>
+          </div>
+        </div>
+
+        <Button
+          className="w-full"
+          variant="outline"
+          size="sm"
+          onClick={() => setDialogOpen(true)}
+        >
+          Add Diagnostic Topic
+        </Button>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Diagnostic Topic</DialogTitle>
+              <DialogDescription>
+                Enter the topic you will run the intro drill on. This is required before opening the intro session.
+              </DialogDescription>
+            </DialogHeader>
+            <Input
+              value={diagnosticTopic}
+              onChange={(e) => setDiagnosticTopic(e.target.value)}
+              placeholder="e.g. Linear equations"
+            />
+            {activationError ? <p className="text-xs text-red-500 mt-1">{activationError}</p> : null}
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+              <Button onClick={handleActivate}>Use This Topic</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        <p className="text-xs text-muted-foreground text-center mt-2">
+          Intro drill topic selection is required and is only used for intro diagnosis.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="pt-4 border-t border-border/60 space-y-2">
+      <Button
+        className="w-full"
+        variant="default"
+        size="sm"
+        onClick={() => {
+          const topicParam = encodeURIComponent(activatedTopic);
+          window.location.href = `/tutor/intro-session/${student.id}?topic=${topicParam}`;
+        }}
+      >
+        Open Session
+      </Button>
+      <p className="text-xs text-muted-foreground text-center">
+        Intro Diagnostic Topic: <span className="font-semibold text-foreground">{activatedTopic}</span>
+      </p>
+      <Button
+        className="w-full"
+        variant="outline"
+        size="sm"
+        onClick={() => setDialogOpen(true)}
+      >
+        Change Diagnostic Topic
+      </Button>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change Diagnostic Topic</DialogTitle>
+            <DialogDescription>
+              Update the intro-only diagnostic topic. This does not formally activate a training topic.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            value={diagnosticTopic}
+            onChange={(e) => setDiagnosticTopic(e.target.value)}
+            placeholder="e.g. Linear equations"
+          />
+          {activationError ? <p className="text-xs text-red-500 mt-1">{activationError}</p> : null}
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleActivate}>Save Topic</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <p className="text-xs text-muted-foreground text-center">
+        Launch the structured Intro Session drill. Scoring and next actions remain system-driven.
+      </p>
     </div>
   );
 }

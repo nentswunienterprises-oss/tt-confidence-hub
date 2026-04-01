@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./pod.mobile.css";
 import { useIntroSessionStatus } from "@/hooks/useIntroSessionStatus";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -32,6 +32,36 @@ interface PodData {
   students: Student[];
 }
 
+interface PodTeamMember {
+  id: string;
+  assignmentId: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+  grade: string | null;
+  school: string | null;
+  bio: string | null;
+  profileImageUrl: string | null;
+  certificationStatus: string;
+}
+
+interface PodTeamData {
+  pod: { id: string; podName: string } | null;
+  territoryDirector: {
+    id: string;
+    name: string;
+    email: string;
+    phone: string;
+    bio: string | null;
+    profileImageUrl: string | null;
+    role: string;
+  } | null;
+  members: PodTeamMember[];
+  memberCount: number;
+  capacity: number;
+}
+
 export default function TutorPod() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
@@ -47,6 +77,8 @@ export default function TutorPod() {
   const [trackingDialogOpen, setTrackingDialogOpen] = useState(false);
   const [topicConditioningDialogOpen, setTopicConditioningDialogOpen] = useState(false);
   const [reportsDialogOpen, setReportsDialogOpen] = useState(false);
+  const [teamDialogOpen, setTeamDialogOpen] = useState(false);
+  const [selectedTeamMemberId, setSelectedTeamMemberId] = useState<string>("");
   const [studentIdentitySheets, setStudentIdentitySheets] = useState<Record<string, any>>({});
   // Force refresh - identity sheet integration
 
@@ -70,10 +102,45 @@ export default function TutorPod() {
     enabled: isAuthenticated && !authLoading,
   });
 
+  const { data: podTeamData, isLoading: podTeamLoading } = useQuery<PodTeamData>({
+    queryKey: ["/api/tutor/pod-team"],
+    enabled: isAuthenticated && !authLoading,
+  });
+
   const hasSubmittedApplication = applications && applications.length > 0;
   const hasPendingApplication = applications && applications.some((app: any) => app.status === "pending");
   const hasApprovedApplication = applications && applications.some((app: any) => app.status === "approved");
   const onboardingCompleted = applications && applications.some((app: any) => !!app.onboardingCompletedAt);
+
+  const podCapacity = podTeamData?.capacity || 12;
+  const podMemberCount = podTeamData?.memberCount || 0;
+  const teamMembers = podTeamData?.members || [];
+
+  const sortedTeamMembers = useMemo(() => {
+    return [...teamMembers].sort((a, b) => a.name.localeCompare(b.name));
+  }, [teamMembers]);
+
+  const isCurrentTutor = (member: PodTeamMember | null) => {
+    if (!member) return false;
+    const userId = String((user as any)?.id || "").trim();
+    const memberId = String(member.id || "").trim();
+    if (userId && memberId && userId === memberId) return true;
+
+    const userEmail = String((user as any)?.email || "").trim().toLowerCase();
+    const memberEmail = String(member.email || "").trim().toLowerCase();
+    return !!userEmail && !!memberEmail && userEmail === memberEmail;
+  };
+
+  useEffect(() => {
+    if (!teamDialogOpen) return;
+    if (!selectedTeamMemberId) {
+      if (podTeamData?.territoryDirector) {
+        setSelectedTeamMemberId("td");
+      } else if (sortedTeamMembers.length > 0) {
+        setSelectedTeamMemberId(sortedTeamMembers[0].id);
+      }
+    }
+  }, [teamDialogOpen, selectedTeamMemberId, sortedTeamMembers, podTeamData?.territoryDirector]);
 
   // Redirect to gateway if tutor hasn't completed onboarding (no approved application or no pod assignment)
   useEffect(() => {
@@ -240,6 +307,7 @@ export default function TutorPod() {
   const selectedStudent = (students as any[]).find((s: any) => s.id === selectedStudentId) || null;
 
   const firstName = user?.name?.split(" ")[0] || "Tutor";
+  const selectedTeamMember = sortedTeamMembers.find((m) => m.id === selectedTeamMemberId) || null;
 
   return (
     <DashboardLayout>
@@ -303,10 +371,15 @@ export default function TutorPod() {
               </div>
               <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-3">
                 <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Team Capacity</p>
-                <p className="mt-2 text-sm text-foreground">Pod Members (0/12)</p>
+                <p className="mt-2 text-sm text-foreground">Pod Members ({podMemberCount}/{podCapacity})</p>
               </div>
               <p className="text-sm text-muted-foreground">Use this to review the TD layer and the tutors operating in your pod.</p>
-              <Button className="w-full justify-start text-sm" variant="outline">
+              <Button
+                className="w-full justify-start text-sm"
+                variant="outline"
+                onClick={() => setTeamDialogOpen(true)}
+                disabled={podTeamLoading}
+              >
                 View Team
               </Button>
             </div>
@@ -483,6 +556,87 @@ export default function TutorPod() {
           topicConditioning={selectedStudent?.topicConditioning || null}
           persistedTopicStates={((selectedStudent as any)?.conceptMastery?.topicConditioning?.topics as Record<string, any>) || null}
         />
+
+        <Dialog open={teamDialogOpen} onOpenChange={setTeamDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden p-0">
+            <DialogHeader className="px-6 py-4 border-b border-border/60">
+              <DialogTitle>Pod Team Profiles</DialogTitle>
+            </DialogHeader>
+            <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] min-h-[460px]">
+              <div className="border-r border-border/60 p-4 space-y-3 overflow-y-auto">
+                {podTeamData?.territoryDirector ? (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTeamMemberId("td")}
+                    className={`w-full rounded-lg border px-3 py-2 text-left ${
+                      selectedTeamMemberId === "td" ? "border-primary bg-primary/5" : "border-border/60"
+                    }`}
+                  >
+                    <p className="text-sm font-medium text-foreground">{podTeamData.territoryDirector.name}</p>
+                    <p className="text-xs text-muted-foreground">Territory Director</p>
+                  </button>
+                ) : null}
+
+                {sortedTeamMembers.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No pod members found.</p>
+                ) : (
+                  sortedTeamMembers.map((member) => (
+                    <button
+                      key={member.id}
+                      type="button"
+                      onClick={() => setSelectedTeamMemberId(member.id)}
+                      className={`w-full rounded-lg border px-3 py-2 text-left ${
+                        selectedTeamMemberId === member.id ? "border-primary bg-primary/5" : "border-border/60"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-foreground">{member.name}</p>
+                        {isCurrentTutor(member) ? (
+                          <Badge variant="outline" className="h-5 px-1.5 text-[10px] leading-none">You</Badge>
+                        ) : null}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Tutor</p>
+                    </button>
+                  ))
+                )}
+              </div>
+
+              <div className="p-6 overflow-y-auto">
+                {selectedTeamMemberId === "td" && podTeamData?.territoryDirector ? (
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-semibold">{podTeamData.territoryDirector.name}</h3>
+                    <p className="text-sm text-muted-foreground">Role: Territory Director</p>
+                    <p className="text-sm text-muted-foreground">Email: {podTeamData.territoryDirector.email || "Not provided"}</p>
+                    <p className="text-sm text-muted-foreground">Phone: {podTeamData.territoryDirector.phone || "Not provided"}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Bio: {podTeamData.territoryDirector.bio || "No bio available."}
+                    </p>
+                  </div>
+                ) : selectedTeamMember ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-semibold">{selectedTeamMember.name}</h3>
+                      {isCurrentTutor(selectedTeamMember) ? (
+                        <Badge variant="outline" className="h-5 px-1.5 text-[10px] leading-none">You</Badge>
+                      ) : null}
+                    </div>
+                    <p className="text-sm text-muted-foreground">Role: Tutor</p>
+                    <p className="text-sm text-muted-foreground">Email: {selectedTeamMember.email || "Not provided"}</p>
+                    <p className="text-sm text-muted-foreground">Phone: {selectedTeamMember.phone || "Not provided"}</p>
+                    <p className="text-sm text-muted-foreground">School: {selectedTeamMember.school || "Not provided"}</p>
+                    <p className="text-sm text-muted-foreground">Grade: {selectedTeamMember.grade || "Not provided"}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Certification: {selectedTeamMember.certificationStatus || "pending"}
+                    </p>
+                    <p className="text-sm text-muted-foreground">Bio: {selectedTeamMember.bio || "No bio available."}</p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Select a pod member to view profile details.</p>
+                )}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );

@@ -18,6 +18,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, FileText } from "lucide-react";
 
 interface SessionRecord {
@@ -117,123 +118,137 @@ export default function StudentReportsDialog({
           </div>
         ) : (
           <div className="space-y-6 px-6 py-5">
-            <Card className="rounded-2xl border border-primary/15 bg-background p-4 md:p-5 shadow-sm space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold">Session Logs</h3>
-                <Badge variant="outline">{data?.sessions?.length || 0}</Badge>
-              </div>
-              {!data?.sessions?.length ? (
-                <p className="text-sm text-muted-foreground">No session logs found for this student.</p>
-              ) : (
-                <Accordion type="multiple" className="w-full">
-                  {data.sessions.map((session) => (
-                    <AccordionItem key={session.id} value={`session-${session.id}`}>
-                      <AccordionTrigger className="text-left">
-                        <div className="flex flex-col gap-1 min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="font-medium">{format(new Date(session.date), "MMM d, yyyy")}</span>
-                            <Badge variant="secondary">{session.duration} min</Badge>
-                          </div>
-                          {session.notes && (
-                            <p className="text-sm text-muted-foreground line-clamp-2 pr-4">{session.notes}</p>
-                          )}
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="space-y-3">
-                        <FieldRow label="Session Notes" value={session.notes} />
-                        <FieldRow label="Solution Implemented" value={session.solutionPurpose} />
-                        <FieldRow label="Vocabulary Notes" value={session.vocabularyNotes} />
-                        <FieldRow label="Method Notes" value={session.methodNotes} />
-                        <FieldRow label="Reason Notes" value={session.reasonNotes} />
-                        <FieldRow label="Student Response Tags" value={session.studentResponse} />
-                        <FieldRow label="Student Response Notes" value={session.studentResponse} />
-                        <FieldRow label="What was misunderstood?" value={session.whatMisunderstood} />
-                        <FieldRow label="What correction helped?" value={session.correctionHelped} />
-                        <FieldRow label="What needs reinforcement?" value={session.needsReinforcement} />
-                        <FieldRow label="Boss Battle Type" value={session.bossBattlesDone} />
-                        <FieldRow label="Boss Battle Outcome" value={session.bossBattlesDone} />
-                        <FieldRow label="Boss Battle Notes" value={session.bossBattlesDone} />
-                        <FieldRow label="Practice assigned" value={session.practiceProblems} />
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              )}
-            </Card>
+            <Tabs defaultValue="session-logs" className="w-full space-y-4">
+              <TabsList className="grid w-full grid-cols-3 h-auto rounded-xl border border-primary/15 bg-muted/20 p-1 gap-1">
+                <TabsTrigger value="session-logs" className="text-xs sm:text-sm py-2 px-2">Session Logs</TabsTrigger>
+                <TabsTrigger value="weekly" className="text-xs sm:text-sm py-2 px-2">Weekly Reports</TabsTrigger>
+                <TabsTrigger value="monthly" className="text-xs sm:text-sm py-2 px-2">Monthly</TabsTrigger>
+              </TabsList>
 
-            <Card className="rounded-2xl border border-primary/15 bg-background p-4 md:p-5 shadow-sm space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold">Weekly Reports</h3>
-                <Badge variant="outline">{weeklyReports.length}</Badge>
-              </div>
-              {!weeklyReports.length ? (
-                <p className="text-sm text-muted-foreground">No weekly reports created yet.</p>
-              ) : (
-                <Accordion type="multiple" className="w-full">
-                  {weeklyReports.map((report) => {
-                    const structured = report.structuredData || {};
-                    return (
-                      <AccordionItem key={report.id} value={`weekly-${report.id}`}>
-                        <AccordionTrigger className="text-left">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span>
-                              {structured.weekStartDate && structured.weekEndDate
-                                ? `${format(new Date(structured.weekStartDate), "MMM d")} - ${format(new Date(structured.weekEndDate), "MMM d, yyyy")}`
-                                : `Week ${report.weekNumber || "-"}`}
-                            </span>
-                            <Badge variant="secondary">Sent {format(new Date(report.sentAt), "MMM d")}</Badge>
-                          </div>
-                        </AccordionTrigger>
-                        <AccordionContent className="space-y-3">
-                          <FieldRow label="Main Topics Covered" value={structured.mainTopicsCovered || report.topicsLearned} />
-                          <FieldRow label="What improved this week" value={structured.whatImprovedThisWeek || report.strengths} />
-                          <FieldRow label="Student response pattern this week" value={structured.studentResponsePatternThisWeek} />
-                          <FieldRow label="Main misunderstanding this week" value={structured.mainMisunderstandingThisWeek || report.areasForGrowth} />
-                          <FieldRow label="Main correction that helped" value={structured.mainCorrectionHelpedThisWeek} />
-                          <FieldRow label="Boss Battle summary this week" value={structured.bossBattleSummaryThisWeek} />
-                          <FieldRow label="What needs reinforcement next week" value={structured.reinforcementNextWeek || report.nextSteps} />
-                        </AccordionContent>
-                      </AccordionItem>
-                    );
-                  })}
-                </Accordion>
-              )}
-            </Card>
+              <TabsContent value="session-logs" className="mt-0">
+                <Card className="rounded-2xl border border-primary/15 bg-background p-4 md:p-5 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold">Session Logs</h3>
+                    <Badge variant="outline">{data?.sessions?.length || 0}</Badge>
+                  </div>
+                  {!data?.sessions?.length ? (
+                    <p className="text-sm text-muted-foreground">No session logs found for this student.</p>
+                  ) : (
+                    <Accordion type="multiple" className="w-full">
+                      {data.sessions.map((session) => (
+                        <AccordionItem key={session.id} value={`session-${session.id}`}>
+                          <AccordionTrigger className="text-left">
+                            <div className="flex flex-col gap-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-medium">{format(new Date(session.date), "MMM d, yyyy")}</span>
+                                <Badge variant="secondary">{session.duration} min</Badge>
+                              </div>
+                              {session.notes && (
+                                <p className="text-sm text-muted-foreground line-clamp-2 pr-4">{session.notes}</p>
+                              )}
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="space-y-3">
+                            <FieldRow label="Session Notes" value={session.notes} />
+                            <FieldRow label="Solution Implemented" value={session.solutionPurpose} />
+                            <FieldRow label="Vocabulary Notes" value={session.vocabularyNotes} />
+                            <FieldRow label="Method Notes" value={session.methodNotes} />
+                            <FieldRow label="Reason Notes" value={session.reasonNotes} />
+                            <FieldRow label="Student Response Tags" value={session.studentResponse} />
+                            <FieldRow label="Student Response Notes" value={session.studentResponse} />
+                            <FieldRow label="What was misunderstood?" value={session.whatMisunderstood} />
+                            <FieldRow label="What correction helped?" value={session.correctionHelped} />
+                            <FieldRow label="What needs reinforcement?" value={session.needsReinforcement} />
+                            <FieldRow label="Boss Battle Type" value={session.bossBattlesDone} />
+                            <FieldRow label="Boss Battle Outcome" value={session.bossBattlesDone} />
+                            <FieldRow label="Boss Battle Notes" value={session.bossBattlesDone} />
+                            <FieldRow label="Practice assigned" value={session.practiceProblems} />
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  )}
+                </Card>
+              </TabsContent>
 
-            <Card className="rounded-2xl border border-primary/15 bg-background p-4 md:p-5 shadow-sm space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold">Monthly Reports</h3>
-                <Badge variant="outline">{monthlyReports.length}</Badge>
-              </div>
-              {!monthlyReports.length ? (
-                <p className="text-sm text-muted-foreground">No monthly reports created yet.</p>
-              ) : (
-                <Accordion type="multiple" className="w-full">
-                  {monthlyReports.map((report) => {
-                    const structured = report.structuredData || {};
-                    return (
-                      <AccordionItem key={report.id} value={`monthly-${report.id}`}>
-                        <AccordionTrigger className="text-left">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span>{report.monthName || "Monthly report"}</span>
-                            <Badge variant="secondary">Sent {format(new Date(report.sentAt), "MMM d")}</Badge>
-                          </div>
-                        </AccordionTrigger>
-                        <AccordionContent className="space-y-3">
-                          <FieldRow label="Main areas covered this month" value={structured.mainAreasCoveredThisMonth || report.topicsLearned} />
-                          <FieldRow label="What skills became stronger" value={structured.strongerSkillsThisMonth || report.strengths} />
-                          <FieldRow label="Response pattern trend" value={structured.responsePatternTrendThisMonth} />
-                          <FieldRow label="Recurring challenge" value={structured.recurringChallengeThisMonth || report.areasForGrowth} />
-                          <FieldRow label="Most effective intervention" value={structured.mostEffectiveInterventionThisMonth} />
-                          <FieldRow label="Boss Battle trend" value={structured.bossBattleTrendThisMonth} />
-                          <FieldRow label="Next month priority" value={structured.nextMonthPriority || report.nextSteps} />
-                        </AccordionContent>
-                      </AccordionItem>
-                    );
-                  })}
-                </Accordion>
-              )}
-            </Card>
+              <TabsContent value="weekly" className="mt-0">
+                <Card className="rounded-2xl border border-primary/15 bg-background p-4 md:p-5 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold">Weekly Reports</h3>
+                    <Badge variant="outline">{weeklyReports.length}</Badge>
+                  </div>
+                  {!weeklyReports.length ? (
+                    <p className="text-sm text-muted-foreground">No weekly reports created yet.</p>
+                  ) : (
+                    <Accordion type="multiple" className="w-full">
+                      {weeklyReports.map((report) => {
+                        const structured = report.structuredData || {};
+                        return (
+                          <AccordionItem key={report.id} value={`weekly-${report.id}`}>
+                            <AccordionTrigger className="text-left">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span>
+                                  {structured.weekStartDate && structured.weekEndDate
+                                    ? `${format(new Date(structured.weekStartDate), "MMM d")} - ${format(new Date(structured.weekEndDate), "MMM d, yyyy")}`
+                                    : `Week ${report.weekNumber || "-"}`}
+                                </span>
+                                <Badge variant="secondary">Sent {format(new Date(report.sentAt), "MMM d")}</Badge>
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="space-y-3">
+                              <FieldRow label="Main Topics Covered" value={structured.mainTopicsCovered || report.topicsLearned} />
+                              <FieldRow label="What improved this week" value={structured.whatImprovedThisWeek || report.strengths} />
+                              <FieldRow label="Student response pattern this week" value={structured.studentResponsePatternThisWeek} />
+                              <FieldRow label="Main misunderstanding this week" value={structured.mainMisunderstandingThisWeek || report.areasForGrowth} />
+                              <FieldRow label="Main correction that helped" value={structured.mainCorrectionHelpedThisWeek} />
+                              <FieldRow label="Boss Battle summary this week" value={structured.bossBattleSummaryThisWeek} />
+                              <FieldRow label="What needs reinforcement next week" value={structured.reinforcementNextWeek || report.nextSteps} />
+                            </AccordionContent>
+                          </AccordionItem>
+                        );
+                      })}
+                    </Accordion>
+                  )}
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="monthly" className="mt-0">
+                <Card className="rounded-2xl border border-primary/15 bg-background p-4 md:p-5 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold">Monthly Reports</h3>
+                    <Badge variant="outline">{monthlyReports.length}</Badge>
+                  </div>
+                  {!monthlyReports.length ? (
+                    <p className="text-sm text-muted-foreground">No monthly reports created yet.</p>
+                  ) : (
+                    <Accordion type="multiple" className="w-full">
+                      {monthlyReports.map((report) => {
+                        const structured = report.structuredData || {};
+                        return (
+                          <AccordionItem key={report.id} value={`monthly-${report.id}`}>
+                            <AccordionTrigger className="text-left">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span>{report.monthName || "Monthly report"}</span>
+                                <Badge variant="secondary">Sent {format(new Date(report.sentAt), "MMM d")}</Badge>
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="space-y-3">
+                              <FieldRow label="Main areas covered this month" value={structured.mainAreasCoveredThisMonth || report.topicsLearned} />
+                              <FieldRow label="What skills became stronger" value={structured.strongerSkillsThisMonth || report.strengths} />
+                              <FieldRow label="Response pattern trend" value={structured.responsePatternTrendThisMonth} />
+                              <FieldRow label="Recurring challenge" value={structured.recurringChallengeThisMonth || report.areasForGrowth} />
+                              <FieldRow label="Most effective intervention" value={structured.mostEffectiveInterventionThisMonth} />
+                              <FieldRow label="Boss Battle trend" value={structured.bossBattleTrendThisMonth} />
+                              <FieldRow label="Next month priority" value={structured.nextMonthPriority || report.nextSteps} />
+                            </AccordionContent>
+                          </AccordionItem>
+                        );
+                      })}
+                    </Accordion>
+                  )}
+                </Card>
+              </TabsContent>
+            </Tabs>
 
             <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-3 text-xs text-muted-foreground flex items-center gap-2">
               <Calendar className="w-3.5 h-3.5" />

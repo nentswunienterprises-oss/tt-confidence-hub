@@ -1,3 +1,29 @@
+// Returns nextAction and transitionStatus for a topic's state
+export function interpretTopicState(
+  phase: PhaseLabel,
+  stability: StabilityLabel,
+  trend?: TopicTrend
+): { nextAction: string; transitionStatus: string } {
+  const nextAction = nextActionFor(phase, stability);
+  let transitionStatus = "";
+  if (stability === "High") {
+    const idx = phaseIndex(phase);
+    if (idx === PHASES.length - 1) {
+      transitionStatus = "Maintain and transfer to new topics";
+    } else {
+      transitionStatus = `Advance to ${PHASES[idx + 1]}`;
+    }
+  } else if (stability === "Low") {
+    if (phaseIndex(phase) === 0) {
+      transitionStatus = "Hold at Clarity - reinforce foundations";
+    } else {
+      transitionStatus = `Reinforce ${PHASES[phaseIndex(phase) - 1]} - stability too low to advance`;
+    }
+  } else {
+    transitionStatus = "Hold current phase - build stability before advancing";
+  }
+  return { nextAction, transitionStatus };
+}
 export const PHASES = [
   "Clarity",
   "Structured Execution",

@@ -1,6 +1,7 @@
 console.log("=== DEBUG LOG TEST: server/routes.ts loaded ===");
 
 import type { Express, Request, Response } from "express";
+import { v4 as uuidv4 } from "uuid";
 import { existsSync } from "fs";
 import { createServer, type Server } from "http";
 import { join, resolve } from "path";
@@ -49,6 +50,571 @@ const requireRole = (roles: string[]) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
+          const normalizeIntroPhase = (value: unknown): "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability" => {
+            const v = String(value || "").toLowerCase();
+            if (v.includes("clarity")) return "Clarity";
+            if (v.includes("structured") || v.includes("execution")) return "Structured Execution";
+            if (v.includes("discomfort")) return "Controlled Discomfort";
+            if (v.includes("time") || v.includes("pressure")) return "Time Pressure Stability";
+            return "Clarity";
+          };
+
+          const normalizeIntroDrillSets = (raw: any): Array<{ setName: string; observations: Array<Record<string, string>> }> => {
+            if (Array.isArray(raw)) {
+              return raw.map((set: any) => ({
+                setName: String(set?.setName || "Set"),
+                observations: Array.isArray(set?.observations) ? set.observations : [],
+              }));
+            }
+            if (raw && Array.isArray(raw.sets)) {
+              return raw.sets.map((set: any) => ({
+                setName: String(set?.setName || "Set"),
+                observations: Array.isArray(set?.observations) ? set.observations : [],
+              }));
+            }
+            return [];
+          };
+
+          const observationLevelFor = (value: unknown): "weak" | "partial" | "clear" => {
+            const v = String(value || "").toLowerCase().trim();
+            if (!v) return "weak";
+
+            if (
+              v.includes("could not") ||
+              v.includes("cannot") ||
+              v.includes("no idea") ||
+              v.includes("avoided") ||
+              v.includes("avoid") ||
+              v.includes("guessed") ||
+              v.includes("froze") ||
+              v.includes("abandoned") ||
+              v.includes("panic-driven") ||
+              v.includes("shutdown") ||
+              v.includes("collapse") ||
+              v.includes("help immediately") ||
+              v.includes("needed tutor to carry")
+            ) {
+              return "weak";
+            }
+
+            if (
+              v.includes("clear") ||
+              v.includes("independent") ||
+              v.includes("immediate") ||
+              v.includes("correct") ||
+              v.includes("maintained") ||
+              v.includes("controlled") ||
+              v.includes("completed with structure") ||
+              v.includes("calmly") ||
+              v.includes("consisten") ||
+              v.includes("without support") ||
+              v.includes("did not seek rescue")
+            ) {
+              return "clear";
+            }
+
+            return "partial";
+          };
+
+          const weightedScoreFor = (weight: number, level: "weak" | "partial" | "clear") => {
+            if (level === "clear") return weight;
+            if (level === "partial") return Math.round(weight * 0.6);
+            return 0;
+          };
+
+          const INTRO_PHASE_WEIGHTS: Record<
+            "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability",
+            Array<{ aliases: string[]; weight: number }>
+          > = {
+            Clarity: [
+              { aliases: ["vocabulary", "vocabulary_precision"], weight: 30 },
+              { aliases: ["method", "method_recognition"], weight: 30 },
+              { aliases: ["reason", "reason_clarity"], weight: 20 },
+              { aliases: ["immediateApply", "immediate_apply_response"], weight: 20 },
+            ],
+            "Structured Execution": [
+              { aliases: ["startBehavior", "start_behavior"], weight: 25 },
+              { aliases: ["stepExecution", "step_execution"], weight: 30 },
+              { aliases: ["repeatability", "repeatability"], weight: 25 },
+              { aliases: ["independence", "independence_level"], weight: 20 },
+            ],
+            "Controlled Discomfort": [
+              { aliases: ["initialResponse", "initial_boss_response"], weight: 30 },
+              { aliases: ["firstStepControl", "first_step_control"], weight: 25 },
+              { aliases: ["discomfortTolerance", "discomfort_tolerance"], weight: 25 },
+              { aliases: ["rescueDependence", "rescue_dependence"], weight: 20 },
+            ],
+            "Time Pressure Stability": [
+              { aliases: ["startUnderTime", "start_under_time"], weight: 20 },
+              { aliases: ["structureUnderTime", "structure_under_time"], weight: 35 },
+              { aliases: ["paceControl", "pace_control"], weight: 20 },
+              { aliases: ["completionIntegrity", "completion_integrity"], weight: 25 },
+            ],
+          };
+
+          const computeIntroDiagnosisSummary = (
+            phase: "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability",
+            sets: Array<{ setName: string; observations: Array<Record<string, string>> }>
+          ) => {
+            const phaseWeights = INTRO_PHASE_WEIGHTS[phase];
+            const repRows: Array<{ set: string; rep: number; repScore: number }> = [];
+            const setScores: number[] = [];
+            let highGuardPasses = true;
+
+            const firstTwoSets = sets.slice(0, 2);
+            firstTwoSets.forEach((set) => {
+              const repScores = (set.observations || []).map((repObs, repIndex) => {
+                const score = phaseWeights.reduce((sum, field) => {
+                  const rawValue = field.aliases
+                    .map((alias) => repObs?.[alias])
+                    .find((val) => String(val || "").trim().length > 0);
+                  const level = observationLevelFor(rawValue);
+                  const fieldScore = weightedScoreFor(field.weight, level);
+                  return sum + fieldScore;
+                }, 0);
+
+                const normalizedRepScore = Math.max(0, Math.min(100, Math.round(score)));
+                repRows.push({
+                  set: set.setName,
+                  rep: repIndex + 1,
+                  repScore: normalizedRepScore,
+                });
+                return normalizedRepScore;
+              });
+
+              const setScore = repScores.length > 0
+                ? Math.round(repScores.reduce((sum, value) => sum + value, 0) / repScores.length)
+                : 0;
+              setScores.push(setScore);
+
+              if (phase === "Clarity") {
+                const repHasZeroField = (set.observations || []).some((repObs) =>
+                  phaseWeights.some((field) => {
+                    const rawValue = field.aliases
+                      .map((alias) => repObs?.[alias])
+                      .find((val) => String(val || "").trim().length > 0);
+                    return weightedScoreFor(field.weight, observationLevelFor(rawValue)) === 0;
+                  })
+                );
+                if (repHasZeroField) highGuardPasses = false;
+              }
+
+              if (phase === "Structured Execution") {
+                const repViolates = (set.observations || []).some((repObs) => {
+                  const step = String(repObs?.stepExecution || repObs?.step_execution || "").toLowerCase();
+                  const start = String(repObs?.startBehavior || repObs?.start_behavior || "").toLowerCase();
+                  return step.includes("guess") || start.includes("avoid");
+                });
+                if (repViolates) highGuardPasses = false;
+              }
+
+              if (phase === "Controlled Discomfort") {
+                const repViolates = (set.observations || []).some((repObs) => {
+                  const initial = String(repObs?.initialResponse || repObs?.initial_boss_response || "").toLowerCase();
+                  const firstStep = String(repObs?.firstStepControl || repObs?.first_step_control || "").toLowerCase();
+                  return initial.includes("avoid") || initial.includes("froze") || firstStep.includes("could not");
+                });
+                if (repViolates) highGuardPasses = false;
+              }
+
+              if (phase === "Time Pressure Stability") {
+                const repViolates = (set.observations || []).some((repObs) => {
+                  const structure = String(repObs?.structureUnderTime || repObs?.structure_under_time || "").toLowerCase();
+                  const pace = String(repObs?.paceControl || repObs?.pace_control || "").toLowerCase();
+                  return !structure.includes("maintained") || !pace.includes("controlled");
+                });
+                if (repViolates) highGuardPasses = false;
+              }
+            });
+
+            // Diagnosis sessions use Set1 x1 and Set2 x1, normalized to 0-100.
+            const diagnosisScore = Math.round(
+              setScores.length > 0
+                ? setScores.reduce((sum, setScore) => sum + setScore, 0) / setScores.length
+                : 0
+            );
+
+            let stability: "Low" | "Medium" | "High" = "Low";
+            if (diagnosisScore <= 49) stability = "Low";
+            else if (diagnosisScore <= 69) stability = "Medium";
+            else stability = highGuardPasses ? "High" : "Medium";
+
+            const nextActionConfig = (NEXT_ACTION_ENGINE as any)?.[phase]?.[stability] || null;
+
+            return {
+              phase,
+              stability,
+              diagnosisScore,
+              nextAction: nextActionConfig?.primaryAction || null,
+              constraint: nextActionConfig?.rules?.[0] || null,
+              repRows,
+              setScores,
+              highGuardPasses,
+            };
+          };
+
+          const computeTrainingSessionSummary = (
+            observedPhase: "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability",
+            previousStability: "Low" | "Medium" | "High",
+            sets: Array<{ setName: string; observations: Array<Record<string, string>> }>
+          ) => {
+            const phaseWeights = INTRO_PHASE_WEIGHTS[observedPhase];
+            const repRows: Array<{ set: string; rep: number; repScore: number }> = [];
+            const setScores: number[] = [];
+            let highGuardPasses = true;
+
+            const firstThreeSets = sets.slice(0, 3);
+            firstThreeSets.forEach((set) => {
+              const repScores = (set.observations || []).map((repObs, repIndex) => {
+                const score = phaseWeights.reduce((sum, field) => {
+                  const rawValue = field.aliases
+                    .map((alias) => repObs?.[alias])
+                    .find((val) => String(val || "").trim().length > 0);
+                  const level = observationLevelFor(rawValue);
+                  return sum + weightedScoreFor(field.weight, level);
+                }, 0);
+
+                const normalizedRepScore = Math.max(0, Math.min(100, Math.round(score)));
+                repRows.push({
+                  set: set.setName,
+                  rep: repIndex + 1,
+                  repScore: normalizedRepScore,
+                });
+                return normalizedRepScore;
+              });
+
+              const setScore = repScores.length > 0
+                ? Math.round(repScores.reduce((sum, value) => sum + value, 0) / repScores.length)
+                : 0;
+              setScores.push(setScore);
+
+              if (observedPhase === "Clarity") {
+                const repHasZeroField = (set.observations || []).some((repObs) =>
+                  phaseWeights.some((field) => {
+                    const rawValue = field.aliases
+                      .map((alias) => repObs?.[alias])
+                      .find((val) => String(val || "").trim().length > 0);
+                    return weightedScoreFor(field.weight, observationLevelFor(rawValue)) === 0;
+                  })
+                );
+                if (repHasZeroField) highGuardPasses = false;
+              }
+
+              if (observedPhase === "Structured Execution") {
+                const repViolates = (set.observations || []).some((repObs) => {
+                  const step = String(repObs?.stepExecution || repObs?.step_execution || "").toLowerCase();
+                  const start = String(repObs?.startBehavior || repObs?.start_behavior || "").toLowerCase();
+                  return step.includes("guess") || start.includes("avoid");
+                });
+                if (repViolates) highGuardPasses = false;
+              }
+
+              if (observedPhase === "Controlled Discomfort") {
+                const repViolates = (set.observations || []).some((repObs) => {
+                  const initial = String(repObs?.initialResponse || repObs?.initial_boss_response || "").toLowerCase();
+                  const firstStep = String(repObs?.firstStepControl || repObs?.first_step_control || "").toLowerCase();
+                  return initial.includes("avoid") || initial.includes("froze") || firstStep.includes("could not");
+                });
+                if (repViolates) highGuardPasses = false;
+              }
+
+              if (observedPhase === "Time Pressure Stability") {
+                const repViolates = (set.observations || []).some((repObs) => {
+                  const structure = String(repObs?.structureUnderTime || repObs?.structure_under_time || "").toLowerCase();
+                  const pace = String(repObs?.paceControl || repObs?.pace_control || "").toLowerCase();
+                  return !structure.includes("maintained") || !pace.includes("controlled");
+                });
+                if (repViolates) highGuardPasses = false;
+              }
+            });
+
+            const setWeights = [1, 2, 2];
+            const weighted = setScores.reduce(
+              (acc, score, idx) => {
+                const w = setWeights[idx] || 1;
+                return {
+                  sum: acc.sum + score * w,
+                  weight: acc.weight + w,
+                };
+              },
+              { sum: 0, weight: 0 }
+            );
+
+            const sessionScore = weighted.weight > 0
+              ? Math.round(weighted.sum / weighted.weight)
+              : 0;
+
+            let projectedStability: "Low" | "Medium" | "High" = previousStability;
+            let advanceReady = false;
+
+            if (previousStability === "Low") {
+              if (sessionScore <= 49) projectedStability = "Low";
+              else if (sessionScore <= 69) projectedStability = "Medium";
+              else projectedStability = highGuardPasses ? "High" : "Medium";
+            }
+
+            if (previousStability === "Medium") {
+              if (sessionScore <= 44) projectedStability = "Low";
+              else if (sessionScore <= 74) projectedStability = "Medium";
+              else projectedStability = "High";
+            }
+
+            if (previousStability === "High") {
+              if (sessionScore <= 49) projectedStability = "Medium";
+              else if (sessionScore <= 79) projectedStability = "High";
+              else {
+                projectedStability = "High";
+                advanceReady = true;
+              }
+            }
+
+            const nextActionConfig = (NEXT_ACTION_ENGINE as any)?.[observedPhase]?.[projectedStability] || null;
+            const projectedPhase = advanceReady && nextActionConfig?.advanceTo
+              ? nextActionConfig.advanceTo
+              : observedPhase;
+
+            const stabilityScore = (value: "Low" | "Medium" | "High") => (value === "Low" ? 1 : value === "Medium" ? 2 : 3);
+            const phaseDecision: "remain" | "advance" | "regress" =
+              projectedPhase !== observedPhase
+                ? "advance"
+                : stabilityScore(projectedStability) < stabilityScore(previousStability)
+                ? "regress"
+                : "remain";
+
+            const projectedConfig = (NEXT_ACTION_ENGINE as any)?.[projectedPhase]?.[projectedStability] || null;
+
+            return {
+              observedPhase,
+              previousStability,
+              phase: projectedPhase,
+              stability: projectedStability,
+              phaseDecision,
+              sessionScore,
+              nextAction: projectedConfig?.primaryAction || null,
+              constraint: projectedConfig?.rules?.[0] || null,
+              repRows,
+              setScores,
+              highGuardPasses,
+            };
+          };
+
+          // Tutor submits intro session drill results
+          app.post("/api/tutor/intro-session-drill", isAuthenticated, requireRole(["tutor"]), async (req: Request, res: Response) => {
+            try {
+              const tutorId = (req as any).dbUser.id;
+              const { studentId, drill, introTopic, phase: rawPhase } = req.body;
+              const drillSets = normalizeIntroDrillSets(drill);
+              const drillPhase = normalizeIntroPhase(rawPhase || "Clarity");
+              const normalizedIntroTopic = String(introTopic || "").trim();
+
+              if (!studentId || drillSets.length === 0) {
+                return res.status(400).json({ message: "Missing or invalid studentId or drill data" });
+              }
+              if (!normalizedIntroTopic) {
+                return res.status(400).json({ message: "Diagnostic topic is required before intro drill submission" });
+              }
+              // Validate student ownership
+              const student = await storage.getStudent(studentId);
+              if (!student || student.tutorId !== tutorId) {
+                return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
+              }
+
+              const diagnosisSummary = computeIntroDiagnosisSummary(drillPhase, drillSets);
+
+              // Store drill results in intro_session_drills table
+              const id = uuidv4();
+              const { data: inserted, error } = await supabase
+                .from("intro_session_drills")
+                .insert({
+                  id,
+                  student_id: studentId,
+                  tutor_id: tutorId,
+                  drill: JSON.stringify({
+                    introTopic: normalizedIntroTopic,
+                    phase: drillPhase,
+                    drillType: "diagnosis",
+                    sets: drillSets,
+                    summary: diagnosisSummary,
+                  }),
+                  submitted_at: new Date().toISOString(),
+                })
+                .select()
+                .single();
+              if (error) {
+                console.error("Error inserting intro session drill:", error);
+                return res.status(500).json({ message: "Failed to store drill results" });
+              }
+              const scoringResults = diagnosisSummary.repRows.map((row) => ({
+                set: row.set,
+                rep: row.rep,
+                score: row.repScore,
+                sessionScore: row.repScore,
+                phase: diagnosisSummary.phase,
+                stability: diagnosisSummary.stability,
+                nextAction: diagnosisSummary.nextAction,
+                constraint: diagnosisSummary.constraint,
+              }));
+
+              res.json({
+                success: true,
+                id: inserted.id,
+                introTopic: normalizedIntroTopic,
+                scoring: scoringResults,
+                summary: diagnosisSummary,
+              });
+            } catch (err) {
+              console.error("Exception in intro session drill submission:", err);
+              res.status(500).json({ message: "Internal server error" });
+            }
+          });
+
+          app.post("/api/tutor/training-session-drill", isAuthenticated, requireRole(["tutor"]), async (req: Request, res: Response) => {
+            try {
+              const tutorId = (req as any).dbUser.id;
+              const { studentId, trainingTopic, drill, phase: rawPhase, previousStability: rawPreviousStability } = req.body;
+              const drillSets = normalizeIntroDrillSets(drill);
+              const observedPhase = normalizeIntroPhase(rawPhase || "Structured Execution");
+              const normalizedTopic = String(trainingTopic || "").trim();
+
+              if (!studentId || drillSets.length === 0) {
+                return res.status(400).json({ message: "Missing or invalid studentId or drill data" });
+              }
+              if (!normalizedTopic) {
+                return res.status(400).json({ message: "Training topic is required before training drill submission" });
+              }
+
+              const student = await storage.getStudent(studentId);
+              if (!student || student.tutorId !== tutorId) {
+                return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
+              }
+
+              const conceptMastery: any =
+                student.conceptMastery && typeof student.conceptMastery === "object"
+                  ? { ...(student.conceptMastery as any) }
+                  : {};
+              const topicConditioningStore: any =
+                conceptMastery.topicConditioning && typeof conceptMastery.topicConditioning === "object"
+                  ? { ...conceptMastery.topicConditioning }
+                  : {};
+              const topicsStore: Record<string, any> =
+                topicConditioningStore.topics && typeof topicConditioningStore.topics === "object"
+                  ? { ...topicConditioningStore.topics }
+                  : {};
+
+              const existing = topicsStore[normalizedTopic] && typeof topicsStore[normalizedTopic] === "object"
+                ? topicsStore[normalizedTopic]
+                : {};
+
+              const previousStability = normalizeStability(
+                existing?.stability || rawPreviousStability || "Low"
+              );
+              const effectivePhase = normalizePhase(existing?.phase || observedPhase);
+
+              const trainingSummary = computeTrainingSessionSummary(
+                effectivePhase,
+                previousStability,
+                drillSets
+              );
+
+              const id = uuidv4();
+              const { data: inserted, error } = await supabase
+                .from("intro_session_drills")
+                .insert({
+                  id,
+                  student_id: studentId,
+                  tutor_id: tutorId,
+                  drill: JSON.stringify({
+                    trainingTopic: normalizedTopic,
+                    phase: trainingSummary.observedPhase,
+                    previousStability: trainingSummary.previousStability,
+                    drillType: "training",
+                    sets: drillSets,
+                    summary: trainingSummary,
+                  }),
+                  submitted_at: new Date().toISOString(),
+                })
+                .select()
+                .single();
+
+              if (error) {
+                console.error("Error inserting training session drill:", error);
+                return res.status(500).json({ message: "Failed to store training drill results" });
+              }
+
+              const nowIso = new Date().toISOString();
+              const existingHistory = Array.isArray(existing.history) ? [...existing.history] : [];
+              const updatedEntry = {
+                ...existing,
+                topic: normalizedTopic,
+                phase: trainingSummary.phase,
+                stability: trainingSummary.stability,
+                lastUpdated: nowIso,
+                nextAction: trainingSummary.nextAction,
+                observationNotes: [
+                  `Training Drill Session Score: ${trainingSummary.sessionScore}`,
+                  `Decision: ${trainingSummary.phaseDecision.toUpperCase()}`,
+                  trainingSummary.constraint ? `Constraint: ${trainingSummary.constraint}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" | "),
+                history: [
+                  ...existingHistory,
+                  {
+                    date: nowIso,
+                    phase: trainingSummary.phase,
+                    stability: trainingSummary.stability,
+                    nextAction: trainingSummary.nextAction,
+                    observationNotes: `Training drill update. Session Score ${trainingSummary.sessionScore}.`,
+                    structuredObservation: {
+                      drillType: "training",
+                      observedPhase: trainingSummary.observedPhase,
+                      previousStability: trainingSummary.previousStability,
+                      phaseDecision: trainingSummary.phaseDecision,
+                      sessionScore: trainingSummary.sessionScore,
+                      nextAction: trainingSummary.nextAction,
+                      constraint: trainingSummary.constraint,
+                    },
+                    drillId: inserted.id,
+                  },
+                ].slice(-60),
+              };
+
+              topicsStore[normalizedTopic] = updatedEntry;
+              topicConditioningStore.topics = topicsStore;
+              topicConditioningStore.topic = normalizedTopic;
+              topicConditioningStore.entry_phase = trainingSummary.phase;
+              topicConditioningStore.stability = trainingSummary.stability;
+              topicConditioningStore.lastUpdated = nowIso;
+              topicConditioningStore.lastUpdatedTopic = normalizedTopic;
+              topicConditioningStore.lastUpdatedAt = nowIso;
+              conceptMastery.topicConditioning = topicConditioningStore;
+
+              await storage.updateStudent(studentId, { conceptMastery });
+
+              const scoringResults = trainingSummary.repRows.map((row) => ({
+                set: row.set,
+                rep: row.rep,
+                score: row.repScore,
+                sessionScore: trainingSummary.sessionScore,
+                phase: trainingSummary.phase,
+                stability: trainingSummary.stability,
+                phaseDecision: trainingSummary.phaseDecision,
+                nextAction: trainingSummary.nextAction,
+                constraint: trainingSummary.constraint,
+              }));
+
+              res.json({
+                success: true,
+                id: inserted.id,
+                trainingTopic: normalizedTopic,
+                scoring: scoringResults,
+                summary: trainingSummary,
+              });
+            } catch (err) {
+              console.error("Exception in training session drill submission:", err);
+              res.status(500).json({ message: "Internal server error" });
+            }
+          });
         // Tutor: Get all topic activations for a student
         app.get("/api/tutor/students/:studentId/topic-conditioning-activations", isAuthenticated, requireRole(["tutor"]), async (req: Request, res: Response) => {
           try {
@@ -1312,6 +1878,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  app.get(
+    "/api/tutor/pod-team",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const tutorId = (req as any).dbUser.id;
+        const assignment = await storage.getTutorAssignment(tutorId);
+
+        if (!assignment) {
+          return res.json({
+            pod: null,
+            territoryDirector: null,
+            members: [],
+            memberCount: 0,
+            capacity: 12,
+          });
+        }
+
+        const assignments = await storage.getTutorAssignmentsByPod(assignment.podId);
+        const members = await Promise.all(
+          assignments.map(async (podAssignment: any) => {
+            const tutor = await storage.getUser(podAssignment.tutorId);
+            return {
+              id: podAssignment.tutorId,
+              assignmentId: podAssignment.id,
+              name: tutor?.name || "Unknown Tutor",
+              email: tutor?.email || "",
+              phone: tutor?.phone || "",
+              role: tutor?.role || "tutor",
+              grade: tutor?.grade || null,
+              school: tutor?.school || null,
+              bio: tutor?.bio || null,
+              profileImageUrl: tutor?.profileImageUrl || null,
+              certificationStatus: podAssignment.certificationStatus || "pending",
+            };
+          })
+        );
+
+        const tdUser = assignment.pod.tdId
+          ? await storage.getUser(assignment.pod.tdId)
+          : null;
+
+        return res.json({
+          pod: {
+            id: assignment.pod.id,
+            podName: assignment.pod.podName,
+          },
+          territoryDirector: tdUser
+            ? {
+                id: tdUser.id,
+                name: tdUser.name,
+                email: tdUser.email,
+                phone: tdUser.phone || "",
+                bio: tdUser.bio || null,
+                profileImageUrl: tdUser.profileImageUrl || null,
+                role: tdUser.role || "td",
+              }
+            : null,
+          members,
+          memberCount: members.length,
+          capacity: 12,
+        });
+      } catch (error) {
+        console.error("Error fetching pod team:", error);
+        return res.status(500).json({ message: "Failed to fetch pod team" });
+      }
+    }
+  );
+
   // Backfill students from assigned parent_enrollments for the authenticated tutor
   // Useful in split deployments if automatic creation didn't run
   app.post(
@@ -1496,112 +2132,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "Time Pressure Stability": "Student can solve, but urgency still tests structure retention.",
   };
 
-  const OBSERVATION_SCORES: Record<TopicPhase, Record<string, Record<string, number>>> = {
+  const PHASE_FIELD_WEIGHTS: Record<TopicPhase, Record<string, number>> = {
     Clarity: {
-      vocabulary_precision: {
-        "Correctly named key terms without help": 30,
-        "Named some terms but needed prompting": 20,
-        "Used vague language often": 10,
-        "Could not identify key terms": 0,
-      },
-      method_recognition: {
-        "Identified full method correctly": 30,
-        "Identified method partially": 18,
-        "Confused the method sequence": 8,
-        "Could not identify what to do": 0,
-      },
-      reason_clarity: {
-        "Explained why the method works clearly": 20,
-        "Gave partial reason": 12,
-        "Knew steps but not why": 6,
-        "Could not explain why at all": 0,
-      },
-      immediate_apply_response: {
-        "Repeated modeled process independently": 20,
-        "Repeated with minor prompting": 14,
-        "Repeated with heavy prompting": 6,
-        "Could not repeat after modeling": 0,
-      },
+      vocabulary_precision: 30,
+      method_recognition: 30,
+      reason_clarity: 20,
+      immediate_apply_response: 20,
     },
     "Structured Execution": {
-      start_behavior: {
-        "Started immediately": 25,
-        "Delayed briefly but started alone": 18,
-        "Needed prompting to start": 8,
-        "Avoided / waited for help": 0,
-      },
-      step_execution: {
-        "Followed all steps in correct order": 30,
-        "Minor step skips": 20,
-        "Frequent step skips": 8,
-        "Guessed instead of following steps": 0,
-      },
-      repeatability: {
-        "Consistent across all problems": 25,
-        "Mostly consistent": 18,
-        "Inconsistent from problem to problem": 8,
-        "Could not sustain method": 0,
-      },
-      independence_level: {
-        "Executed without support": 20,
-        "Needed light reminders": 14,
-        "Needed repeated guidance": 6,
-        "Could not continue without being carried": 0,
-      },
+      start_behavior: 25,
+      step_execution: 30,
+      repeatability: 25,
+      independence_level: 20,
     },
     "Controlled Discomfort": {
-      initial_boss_response: {
-        "Calmly attempted": 30,
-        "Hesitated but attempted": 20,
-        "Froze before starting": 8,
-        "Asked for help immediately": 6,
-        "Rushed into random attempt": 5,
-      },
-      first_step_control: {
-        "Identified first step independently": 25,
-        "Identified first step after pause": 18,
-        "Needed prompting to identify first step": 8,
-        "Could not identify first step": 0,
-      },
-      discomfort_tolerance: {
-        "Stayed inside difficulty without collapse": 25,
-        "Showed tension but continued": 18,
-        "Broke structure under difficulty": 8,
-        "Avoided the problem": 0,
-      },
-      rescue_dependence: {
-        "Did not seek rescue": 20,
-        "Sought reassurance only": 14,
-        "Asked for help early": 6,
-        "Needed tutor to carry response": 0,
-      },
+      initial_boss_response: 30,
+      first_step_control: 25,
+      discomfort_tolerance: 25,
+      rescue_dependence: 20,
     },
     "Time Pressure Stability": {
-      start_under_time: {
-        "Started calmly": 20,
-        "Slight delay but started": 14,
-        "Started with visible panic": 6,
-        "Froze under timer": 0,
-      },
-      structure_under_time: {
-        "Maintained full method": 35,
-        "Minor loss of structure": 24,
-        "Frequent loss of steps": 10,
-        "Abandoned process": 0,
-      },
-      pace_control: {
-        "Controlled pace": 20,
-        "Slight rush": 14,
-        "Significant rushing": 6,
-        "Panic-driven speed / shutdown": 0,
-      },
-      completion_integrity: {
-        "Completed with structure": 25,
-        "Completed with instability": 16,
-        "Partial completion due to breakdown": 8,
-        "Could not complete due to collapse": 0,
-      },
+      start_under_time: 20,
+      structure_under_time: 35,
+      pace_control: 20,
+      completion_integrity: 25,
     },
+  };
+
+  const normalizeObservationLevel = (value: unknown): "weak" | "partial" | "clear" => {
+    const v = String(value || "").toLowerCase().trim();
+    if (!v) return "weak";
+
+    if (
+      v.includes("could not") ||
+      v.includes("cannot") ||
+      v.includes("no idea") ||
+      v.includes("avoid") ||
+      v.includes("guess") ||
+      v.includes("froze") ||
+      v.includes("abandoned") ||
+      v.includes("panic-driven") ||
+      v.includes("shutdown") ||
+      v.includes("collapse") ||
+      v.includes("needed tutor to carry")
+    ) {
+      return "weak";
+    }
+
+    if (
+      v.includes("clear") ||
+      v.includes("independent") ||
+      v.includes("maintained") ||
+      v.includes("controlled") ||
+      v.includes("completed with structure") ||
+      v.includes("calmly") ||
+      v.includes("consisten") ||
+      v.includes("without support") ||
+      v.includes("did not seek rescue")
+    ) {
+      return "clear";
+    }
+
+    return "partial";
+  };
+
+  const weightedFieldContribution = (weight: number, level: "weak" | "partial" | "clear") => {
+    if (level === "clear") return weight;
+    if (level === "partial") return Math.round(weight * 0.6);
+    return 0;
   };
 
   const STABILITY_THRESHOLDS = {
@@ -1640,17 +2238,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (key && value) byKey.set(key, value);
     }
 
-    const scoreMap = OBSERVATION_SCORES[observedPhase] || {};
+    const scoreMap = PHASE_FIELD_WEIGHTS[observedPhase] || {};
     let sessionScore = 0;
-    Object.entries(scoreMap).forEach(([key, options]) => {
+    Object.entries(scoreMap).forEach(([key, weight]) => {
       const selected = byKey.get(key) || "";
-      sessionScore += options[selected] ?? 0;
+      const level = normalizeObservationLevel(selected);
+      sessionScore += weightedFieldContribution(weight, level);
     });
     sessionScore = Math.max(0, Math.min(100, sessionScore));
 
     let highGatePasses = true;
     if (observedPhase === "Clarity") {
-      highGatePasses = [...byKey.values()].every((value) => !value.toLowerCase().includes("could not"));
+      highGatePasses = Object.keys(scoreMap).every((key) => {
+        const selected = byKey.get(key) || "";
+        const level = normalizeObservationLevel(selected);
+        return weightedFieldContribution(scoreMap[key], level) > 0;
+      });
     }
     if (observedPhase === "Structured Execution") {
       const step = (byKey.get("step_execution") || "").toLowerCase();
@@ -6953,6 +7556,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
+      // Tie proposal generation to latest intro drill result for this tutor+student.
+      const { data: latestIntroDrill, error: introDrillError } = await supabase
+        .from("intro_session_drills")
+        .select("id, drill, submitted_at")
+        .eq("student_id", studentId)
+        .eq("tutor_id", tutorId)
+        .order("submitted_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (introDrillError) {
+        console.error("Error fetching latest intro drill for proposal:", introDrillError);
+        return res.status(500).json({ message: "Failed to validate intro drill before proposal" });
+      }
+
+      if (!latestIntroDrill?.drill) {
+        return res.status(400).json({ message: "Complete intro drill before generating proposal" });
+      }
+
+      let parsedIntro: any = null;
+      try {
+        parsedIntro = typeof latestIntroDrill.drill === "string"
+          ? JSON.parse(latestIntroDrill.drill)
+          : latestIntroDrill.drill;
+      } catch {
+        parsedIntro = null;
+      }
+
+      const introTopicFromDrill = String(parsedIntro?.introTopic || "").trim();
+      const introSummary = parsedIntro?.summary || null;
+      const drillPhase = normalizePhase(introSummary?.phase || parsedIntro?.phase || "Clarity");
+      const drillStability = normalizeStability(introSummary?.stability || "Low");
+      const drillNextAction = introSummary?.nextAction || NEXT_ACTION_ENGINE[drillPhase][drillStability].primaryAction;
+      const drillConstraint = introSummary?.constraint || NEXT_ACTION_ENGINE[drillPhase][drillStability].rules[0] || null;
+
+      if (!introTopicFromDrill) {
+        return res.status(400).json({
+          message: "Intro drill diagnostic topic is missing. Re-run intro session with Add Diagnostic Topic before generating proposal",
+        });
+      }
+
+      const resolvedCurrentTopics = Array.from(
+        new Set([
+          ...(Array.isArray(currentTopics) ? currentTopics : []),
+          introTopicFromDrill,
+        ].map((item) => String(item || "").trim()).filter(Boolean))
+      );
+
+      const systemLinkedTutorNotes = [
+        String(tutorNotes || "").trim(),
+        "",
+        "[System Intro Drill Link]",
+        `Intro Topic: ${introTopicFromDrill}`,
+        `Phase: ${drillPhase}`,
+        `Stability: ${drillStability}`,
+        `Next Action: ${drillNextAction}`,
+        drillConstraint ? `Constraint: ${drillConstraint}` : null,
+      ]
+        .filter(Boolean)
+        .join("\n");
+
       // Find the enrollment record for this student
       let actualEnrollmentId = enrollmentId;
       if (!actualEnrollmentId) {
@@ -6987,13 +7651,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           confidence_killers: confidenceKillers,
           pressure_response: pressureResponse,
           growth_drivers: growthDrivers,
-          current_topics: currentTopics,
-          topic_conditioning_topic: topicConditioningTopic,
-          topic_conditioning_entry_phase: topicConditioningEntryPhase,
-          topic_conditioning_stability: topicConditioningStability,
+          current_topics: resolvedCurrentTopics,
+          topic_conditioning_topic: introTopicFromDrill,
+          topic_conditioning_entry_phase: drillPhase,
+          topic_conditioning_stability: drillStability,
           immediate_struggles: immediateStruggles,
           gaps_identified: gapsIdentified,
-          tutor_notes: tutorNotes,
+          tutor_notes: systemLinkedTutorNotes,
           future_identity: futureIdentity,
           want_to_remembered: wantToRemembered,
           hidden_motivations: hiddenMotivations,
@@ -7237,10 +7901,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "No pending proposal found" });
       }
 
-      // Get proposal details to get student and pod info
+      // Get proposal details to get student and topic conditioning info
       const { data: proposal } = await supabase
         .from("onboarding_proposals")
-        .select("student_id, tutor_id")
+        .select("student_id, tutor_id, topic_conditioning_topic, topic_conditioning_entry_phase, topic_conditioning_stability")
         .eq("id", enrollment.proposal_id)
         .maybeSingle();
 
@@ -7299,6 +7963,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
           updated_at: new Date().toISOString(),
         })
         .eq("id", enrollment.proposal_id);
+
+      // Auto-activate the proposal topic for Topic Management/Map only after parent accepts.
+      const acceptedTopic = String(proposal?.topic_conditioning_topic || "").trim();
+      const acceptedPhase = normalizePhase(proposal?.topic_conditioning_entry_phase || "Clarity");
+      const acceptedStability = normalizeStability(proposal?.topic_conditioning_stability || "Low");
+
+      if (proposal?.student_id && proposal?.tutor_id && acceptedTopic) {
+        const activationReason = [
+          "Auto-activated from accepted proposal",
+          `Phase ${acceptedPhase}`,
+          `Stability ${acceptedStability}`,
+        ].join(" | ");
+
+        const { data: existingActivation } = await supabase
+          .from("topic_conditioning_activations")
+          .select("id")
+          .eq("student_id", proposal.student_id)
+          .eq("topic", acceptedTopic)
+          .limit(1)
+          .maybeSingle();
+
+        if (!existingActivation) {
+          const { error: activationInsertError } = await supabase
+            .from("topic_conditioning_activations")
+            .insert({
+              student_id: proposal.student_id,
+              tutor_id: proposal.tutor_id,
+              topic: acceptedTopic,
+              reason: activationReason,
+            });
+
+          if (activationInsertError) {
+            console.error("Error auto-activating accepted proposal topic:", activationInsertError);
+          }
+        }
+
+        const { data: studentForConcept } = await supabase
+          .from("students")
+          .select("id, concept_mastery")
+          .eq("id", proposal.student_id)
+          .maybeSingle();
+
+        if (studentForConcept) {
+          const nowIso = new Date().toISOString();
+          const currentConceptMastery =
+            studentForConcept.concept_mastery && typeof studentForConcept.concept_mastery === "object"
+              ? studentForConcept.concept_mastery
+              : {};
+
+          const topicConditioning =
+            currentConceptMastery.topicConditioning && typeof currentConceptMastery.topicConditioning === "object"
+              ? currentConceptMastery.topicConditioning
+              : {};
+
+          const topics =
+            topicConditioning.topics && typeof topicConditioning.topics === "object"
+              ? { ...topicConditioning.topics }
+              : {};
+
+          const key = acceptedTopic;
+          const existingTopicState = topics[key] && typeof topics[key] === "object" ? topics[key] : {};
+          const existingHistory = Array.isArray(existingTopicState.history) ? existingTopicState.history : [];
+
+          topics[key] = {
+            ...existingTopicState,
+            topic: acceptedTopic,
+            phase: acceptedPhase,
+            stability: acceptedStability,
+            lastUpdated: nowIso,
+            observationNotes: "Auto-activated from accepted proposal after intro drill diagnosis.",
+            history: [
+              ...existingHistory,
+              {
+                date: nowIso,
+                phase: acceptedPhase,
+                stability: acceptedStability,
+                nextAction: NEXT_ACTION_ENGINE[acceptedPhase][acceptedStability].primaryAction,
+                observationNotes: "Auto-activated from accepted proposal.",
+              },
+            ],
+          };
+
+          const mergedConceptMastery = {
+            ...currentConceptMastery,
+            topicConditioning: {
+              ...topicConditioning,
+              topic: acceptedTopic,
+              entry_phase: acceptedPhase,
+              stability: acceptedStability,
+              lastUpdated: nowIso,
+              topics,
+            },
+          };
+
+          const { error: conceptUpdateError } = await supabase
+            .from("students")
+            .update({ concept_mastery: mergedConceptMastery })
+            .eq("id", proposal.student_id);
+
+          if (conceptUpdateError) {
+            console.error("Error updating concept mastery after proposal acceptance:", conceptUpdateError);
+          }
+        }
+      }
 
       // Check if this parent came from an affiliate (has a lead record)
       const { data: lead } = await supabase
