@@ -665,19 +665,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
               if (!student || student.tutorId !== tutorId) {
                 return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
               }
+
               const { data, error } = await supabase
                 .from("intro_session_drills")
                 .select("id, drill, submitted_at")
                 .eq("student_id", studentId)
                 .order("submitted_at", { ascending: false })
-                .limit(1)
-                .single();
-              if (error || !data) {
+                .limit(20);
+
+              if (error || !data || data.length === 0) {
                 return res.status(404).json({ message: "No intro drill found for this student" });
               }
-              const drillObj = data.drill && typeof data.drill === 'object' ? data.drill : JSON.parse(typeof data.drill === 'string' ? data.drill : '{}');
+
+              let latestDiagnosis: any = null;
+              for (const row of data) {
+                let parsed: any = null;
+                try {
+                  parsed = row.drill && typeof row.drill === "object"
+                    ? row.drill
+                    : JSON.parse(typeof row.drill === "string" ? row.drill : "{}");
+                } catch {
+                  parsed = null;
+                }
+                if ((parsed?.drillType || "diagnosis") === "diagnosis") {
+                  latestDiagnosis = { row, parsed };
+                  break;
+                }
+              }
+
+              if (!latestDiagnosis) {
+                return res.status(404).json({ message: "No intro diagnosis drill found for this student" });
+              }
+
+              const drillObj = latestDiagnosis.parsed;
               res.json({
-                id: data.id,
+                id: latestDiagnosis.row.id,
                 topic: drillObj.introTopic || drillObj.topic,
                 entry_phase: drillObj.phase || drillObj.summary?.phase,
                 phaseObserved: drillObj.phase || drillObj.summary?.phase,
@@ -685,7 +707,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 stabilityObserved: drillObj.summary?.stability || "Low",
                 drillType: drillObj.drillType,
                 summary: drillObj.summary,
-                submitted_at: data.submitted_at,
+                submitted_at: latestDiagnosis.row.submitted_at,
               });
             } catch (err) {
               console.error("Exception in latest intro drill fetch:", err);
@@ -1773,7 +1795,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const noteText = String(proposal.tutor_notes || "");
     const justificationText = String(proposal.justification || "");
 
-    const phaseFromNotes = noteText.match(/Entry Phase:\s*([^\n\r]+)/i)?.[1]?.trim();
+    const phaseFromNotes =
+      noteText.match(/Training Entry Phase:\s*([^\n\r]+)/i)?.[1]?.trim() ||
+      noteText.match(/Entry Phase:\s*([^\n\r]+)/i)?.[1]?.trim();
     const phaseFromJustification = justificationText.match(/Entry phase\s*([^|\.]+)/i)?.[1]?.trim();
     const stabilityFromNotes = noteText.match(/Stability:\s*([^\n\r]+)/i)?.[1]?.trim();
     const stabilityFromJustification = justificationText.match(/Stability\s*([^|\.]+)/i)?.[1]?.trim();
@@ -2278,6 +2302,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (v.includes("high")) return "High";
     if (v.includes("medium")) return "Medium";
     return "Low";
+  };
+
+  const deriveTrainingEntryPhase = (
+    diagnosisPhase: TopicPhase,
+    stability: TopicStability,
+  ): TopicPhase => {
+    if (stability !== "High") return diagnosisPhase;
+    if (diagnosisPhase === "Clarity") return "Structured Execution";
+    if (diagnosisPhase === "Structured Execution") return "Controlled Discomfort";
+    if (diagnosisPhase === "Controlled Discomfort") return "Time Pressure Stability";
+    return "Time Pressure Stability";
   };
 
   const stabilityToScore = (stability: TopicStability) => (stability === "Low" ? 1 : stability === "Medium" ? 2 : 3);
@@ -7639,37 +7674,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Tie proposal generation to latest intro drill result for this tutor+student.
-      const { data: latestIntroDrill, error: introDrillError } = await supabase
+      const { data: latestIntroDrills, error: introDrillError } = await supabase
         .from("intro_session_drills")
         .select("id, drill, submitted_at")
         .eq("student_id", studentId)
         .eq("tutor_id", tutorId)
         .order("submitted_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .limit(20);
 
       if (introDrillError) {
         console.error("Error fetching latest intro drill for proposal:", introDrillError);
         return res.status(500).json({ message: "Failed to validate intro drill before proposal" });
       }
 
-      if (!latestIntroDrill?.drill) {
+      if (!latestIntroDrills || latestIntroDrills.length === 0) {
         return res.status(400).json({ message: "Complete intro drill before generating proposal" });
       }
 
+      let latestIntroDrill: any = null;
       let parsedIntro: any = null;
-      try {
-        parsedIntro = typeof latestIntroDrill.drill === "string"
-          ? JSON.parse(latestIntroDrill.drill)
-          : latestIntroDrill.drill;
-      } catch {
-        parsedIntro = null;
+      for (const row of latestIntroDrills) {
+        let parsed: any = null;
+        try {
+          parsed = typeof row.drill === "string" ? JSON.parse(row.drill) : row.drill;
+        } catch {
+          parsed = null;
+        }
+        if ((parsed?.drillType || "diagnosis") === "diagnosis") {
+          latestIntroDrill = row;
+          parsedIntro = parsed;
+          break;
+        }
+      }
+
+      if (!latestIntroDrill || !parsedIntro) {
+        return res.status(400).json({ message: "Complete intro diagnosis drill before generating proposal" });
       }
 
       const introTopicFromDrill = String(parsedIntro?.introTopic || "").trim();
       const introSummary = parsedIntro?.summary || null;
       const drillPhase = normalizePhase(introSummary?.phase || parsedIntro?.phase || "Clarity");
       const drillStability = normalizeStability(introSummary?.stability || "Low");
+      const trainingEntryPhase = deriveTrainingEntryPhase(drillPhase, drillStability);
       const drillNextAction = introSummary?.nextAction || NEXT_ACTION_ENGINE[drillPhase][drillStability].primaryAction;
       const drillConstraint = introSummary?.constraint || NEXT_ACTION_ENGINE[drillPhase][drillStability].rules[0] || null;
 
@@ -7691,7 +7737,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "",
         "[System Intro Drill Link]",
         `Intro Topic: ${introTopicFromDrill}`,
-        `Phase: ${drillPhase}`,
+        `Diagnosis Phase: ${drillPhase}`,
+        `Training Entry Phase: ${trainingEntryPhase}`,
         `Stability: ${drillStability}`,
         `Next Action: ${drillNextAction}`,
         drillConstraint ? `Constraint: ${drillConstraint}` : null,
@@ -7724,6 +7771,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      if (!actualEnrollmentId) {
+        return res.status(400).json({
+          message: "No linked enrollment found for this student+tutor. Accept assignment and confirm intro before sending proposal.",
+        });
+      }
+
       // Create proposal
       const { data: proposalData, error } = await supabase
         .from("onboarding_proposals")
@@ -7739,7 +7792,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           growth_drivers: growthDrivers,
           current_topics: resolvedCurrentTopics,
           topic_conditioning_topic: introTopicFromDrill,
-          topic_conditioning_entry_phase: drillPhase,
+          topic_conditioning_entry_phase: trainingEntryPhase,
           topic_conditioning_stability: drillStability,
           immediate_struggles: immediateStruggles,
           gaps_identified: gapsIdentified,

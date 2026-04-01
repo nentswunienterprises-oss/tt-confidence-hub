@@ -69,23 +69,20 @@ export default function ProposalView({
       .filter(Boolean);
   };
 
-  const extractEntryPoint = (): string => {
-    const justification = proposal.justification || "";
-    const match = justification.match(/sequence:\s*([^,\.]+)\s*first/i);
-    if (match?.[1]) return match[1].trim();
-
-    const immediate = (proposal.immediateStruggles || "").toLowerCase();
-    if (immediate.includes("vocabulary") || immediate.includes("reason")) return "Clarity";
-    if (immediate.includes("method") || immediate.includes("skip") || immediate.includes("tutor")) {
-      return "Structured Execution";
-    }
-    if (immediate.includes("freeze")) return "Controlled Discomfort";
-    if (immediate.includes("rush") || immediate.includes("time")) return "Time Pressure Stability";
-    return "Structured Execution";
-  };
-
   const extractDiagnosisPhase = (): PhaseLabel | null => {
-    const text = proposal.justification || "";
+    const text = [proposal.tutorNotes || "", proposal.justification || ""].join("\n");
+    const fromNotes = text.match(/Diagnosis Phase:\s*(Clarity|Structured Execution|Controlled Discomfort|Time Pressure Stability)/i)?.[1];
+    if (fromNotes) {
+      const normalized = normalizePhaseLabel(fromNotes);
+      if (normalized) return normalized;
+    }
+
+    const legacyFromNotes = text.match(/\nPhase:\s*(Clarity|Structured Execution|Controlled Discomfort|Time Pressure Stability)/i)?.[1];
+    if (legacyFromNotes) {
+      const normalized = normalizePhaseLabel(legacyFromNotes);
+      if (normalized) return normalized;
+    }
+
     const explicit = text.match(/Diagnosed at\s*(Clarity|Structured Execution|Controlled Discomfort|Time Pressure Stability)/i)?.[1];
     if (explicit) {
       const normalized = normalizePhaseLabel(explicit);
@@ -138,6 +135,14 @@ export default function ProposalView({
   const STABILITY_SEQUENCE = ["Low", "Medium", "High"] as const;
   type PhaseLabel = (typeof PHASE_SEQUENCE)[number];
   type StabilityLabel = (typeof STABILITY_SEQUENCE)[number];
+
+  const deriveTrainingEntryPhase = (diagnosisPhase: PhaseLabel, stability: StabilityLabel): PhaseLabel => {
+    if (stability !== "High") return diagnosisPhase;
+    if (diagnosisPhase === "Clarity") return "Structured Execution";
+    if (diagnosisPhase === "Structured Execution") return "Controlled Discomfort";
+    if (diagnosisPhase === "Controlled Discomfort") return "Time Pressure Stability";
+    return "Time Pressure Stability";
+  };
 
   const PARENT_STATE_ENGINE: Record<PhaseLabel, Record<StabilityLabel, { status: string; meaning: string }>> = {
     Clarity: {
@@ -211,10 +216,14 @@ export default function ProposalView({
     return "Low";
   };
 
-  const stateCopy = PARENT_STATE_ENGINE[normalizePhaseLabel(topicConditioning.entryPhase) || "Structured Execution"][
-    normalizeStabilityLabel(topicConditioning.stability)
-  ];
+  const normalizedDiagnosisPhase =
+    extractDiagnosisPhase() ||
+    normalizePhaseLabel(topicConditioning.entryPhase) ||
+    "Clarity";
   const normalizedStability = normalizeStabilityLabel(topicConditioning.stability);
+  const trainingStartPhase = deriveTrainingEntryPhase(normalizedDiagnosisPhase, normalizedStability);
+
+  const stateCopy = PARENT_STATE_ENGINE[trainingStartPhase][normalizedStability];
   const derivedObserved = [stateCopy.status, stateCopy.meaning];
 
   const observedResponse = [
@@ -230,13 +239,12 @@ export default function ProposalView({
     .flatMap((item) => splitList(item));
 
   const expectedChanges = splitList(proposal.childWillWin);
-  const entryPoint = extractEntryPoint();
   const diagnosisTopic = topicConditioning.topic || focusTopics[0] || "Current school topic";
 
   const getFocusAreaText = () => {
-    const trainingPhase = topicConditioning.entryPhase || entryPoint;
-    const diagnosisPhase = extractDiagnosisPhase() || normalizePhaseLabel(topicConditioning.entryPhase) || "Structured Execution";
-    const stability = normalizeStabilityLabel(topicConditioning.stability);
+    const trainingPhase = trainingStartPhase;
+    const diagnosisPhase = normalizedDiagnosisPhase;
+    const stability = normalizedStability;
     const diagnosisContext = `Diagnosis result: ${diagnosisPhase} with ${stability} stability.`;
 
     switch (trainingPhase) {
@@ -254,7 +262,7 @@ export default function ProposalView({
   };
 
   const getFirstBreakdown = () => {
-    switch (topicConditioning.entryPhase || entryPoint) {
+    switch (trainingStartPhase) {
       case "Clarity":
         return `${studentFirstName} is not yet consistently identifying what the question is asking or what structure to use first.`;
       case "Structured Execution":
@@ -269,7 +277,7 @@ export default function ProposalView({
   };
 
   const getFirstPriority = () => {
-    switch (topicConditioning.entryPhase || entryPoint) {
+    switch (trainingStartPhase) {
       case "Clarity":
         return `We will first help ${studentFirstName} read problems more clearly, recognise what is being asked, and identify the structure before solving.`;
       case "Structured Execution":
@@ -318,7 +326,7 @@ export default function ProposalView({
         </CardHeader>
         <CardContent>
           <p className="text-sm text-foreground font-medium mb-2">
-            Training Starts At: {topicConditioning.entryPhase || entryPoint}
+            Training Starts At: {trainingStartPhase}
           </p>
           <p className="text-sm text-muted-foreground">
             {getFocusAreaText()}
