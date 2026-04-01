@@ -1242,6 +1242,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from("parent_enrollments")
         .select("*")
         .eq("user_id", userId)
+        .order("updated_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (enrollmentError || !enrollmentData) {
@@ -7904,6 +7906,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from("parent_enrollments")
          .select("id, proposal_id, status, assigned_tutor_id")
         .eq("user_id", parentId)
+        .order("updated_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
 
         // Also fetch math_struggle_areas to fix stale currentTopics in proposals
@@ -7911,6 +7915,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from("parent_enrollments")
           .select("math_struggle_areas")
           .eq("user_id", parentId)
+          .order("updated_at", { ascending: false })
+          .limit(1)
           .maybeSingle();
 
       console.log("📋 Enrollment data:", enrollment, "Error:", enrollmentError);
@@ -9318,6 +9324,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from("parent_enrollments")
         .select("student_full_name, assigned_tutor_id, assigned_student_id, parent_email")
         .eq("user_id", parentId)
+        .order("updated_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       let enrollment: any = enrollmentWithAssignedStudent.data || null;
@@ -9328,6 +9336,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from("parent_enrollments")
           .select("student_full_name, assigned_tutor_id, parent_email")
           .eq("user_id", parentId)
+          .order("updated_at", { ascending: false })
+          .limit(1)
           .maybeSingle();
 
         enrollment = enrollmentFallback.data
@@ -9480,6 +9490,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from("parent_enrollments")
         .select("student_full_name, assigned_tutor_id, assigned_student_id, parent_email")
         .eq("user_id", parentId)
+        .order("updated_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       let enrollment: any = enrollmentWithAssignedStudent.data || null;
@@ -9490,6 +9502,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from("parent_enrollments")
           .select("student_full_name, assigned_tutor_id, parent_email")
           .eq("user_id", parentId)
+          .order("updated_at", { ascending: false })
+          .limit(1)
           .maybeSingle();
 
         enrollment = enrollmentFallback.data
