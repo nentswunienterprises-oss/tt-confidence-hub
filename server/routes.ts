@@ -444,6 +444,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 console.error("Error inserting intro session drill:", error);
                 return res.status(500).json({ message: "Failed to store drill results" });
               }
+
+              // Mark intro completed on successful diagnosis drill submission.
+              const existingProfile = (student.personalProfile as any) || {};
+              const existingWorkflow = (existingProfile.workflow as any) || {};
+              if (!existingWorkflow.introCompletedAt) {
+                await storage.updateStudent(studentId, {
+                  personalProfile: {
+                    ...existingProfile,
+                    workflow: {
+                      ...existingWorkflow,
+                      introCompletedAt: new Date().toISOString(),
+                    },
+                  },
+                } as any);
+              }
+
               const scoringResults = diagnosisSummary.repRows.map((row) => ({
                 set: row.set,
                 rep: row.rep,
@@ -637,7 +653,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
             res.status(500).json({ message: "Internal server error" });
           }
         });
-    // Tutor: Activate a topic for a student
+
+          app.get("/api/tutor/students/:studentId/latest-intro-drill", isAuthenticated, requireRole(["tutor"]), async (req: Request, res: Response) => {
+            try {
+              const { studentId } = req.params;
+              const tutorId = (req as any).dbUser.id;
+              if (!studentId) {
+                return res.status(400).json({ message: "Missing studentId" });
+              }
+              const student = await storage.getStudent(studentId);
+              if (!student || student.tutorId !== tutorId) {
+                return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
+              }
+              const { data, error } = await supabase
+                .from("intro_session_drills")
+                .select("id, drill, submitted_at")
+                .eq("student_id", studentId)
+                .order("submitted_at", { ascending: false })
+                .limit(1)
+                .single();
+              if (error || !data) {
+                return res.status(404).json({ message: "No intro drill found for this student" });
+              }
+              const drillObj = data.drill && typeof data.drill === 'object' ? data.drill : JSON.parse(typeof data.drill === 'string' ? data.drill : '{}');
+              res.json({
+                id: data.id,
+                topic: drillObj.introTopic || drillObj.topic,
+                entry_phase: drillObj.phase || drillObj.summary?.phase,
+                phaseObserved: drillObj.phase || drillObj.summary?.phase,
+                stability: drillObj.summary?.stability || "Low",
+                stabilityObserved: drillObj.summary?.stability || "Low",
+                drillType: drillObj.drillType,
+                summary: drillObj.summary,
+                submitted_at: data.submitted_at,
+              });
+            } catch (err) {
+              console.error("Exception in latest intro drill fetch:", err);
+              res.status(500).json({ message: "Internal server error" });
+            }
+          });
+
+      // Tutor: Activate a topic for a student
     app.post("/api/tutor/students/:studentId/topic-conditioning", isAuthenticated, requireRole(["tutor"]), async (req: Request, res: Response) => {
       try {
         const { studentId } = req.params;
@@ -3491,6 +3547,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .eq("tutor_id", dbUser.id)
           .order("created_at", { ascending: false })
           .maybeSingle();
+        
+        // Backfill signal: if an intro diagnosis drill exists, treat intro as completed.
+        const { data: latestIntroDrillRow } = await supabase
+          .from("intro_session_drills")
+          .select("drill, submitted_at")
+          .eq("student_id", studentId)
+          .eq("tutor_id", dbUser.id)
+          .order("submitted_at", { ascending: false })
+          .maybeSingle();
+        
+        const latestIntroDrillPayload =
+          typeof latestIntroDrillRow?.drill === "string"
+            ? (() => {
+                try {
+                  return JSON.parse(latestIntroDrillRow.drill);
+                } catch {
+                  return null;
+                }
+              })()
+            : latestIntroDrillRow?.drill || null;
+        
+        const hasCompletedIntroDrill = !!(
+          latestIntroDrillPayload &&
+          (latestIntroDrillPayload.drillType === "diagnosis" || !latestIntroDrillPayload.drillType)
+        );
 
         // Fallback: if not found, try by tutor_id + enrollment_id (pre-acceptance)
         if (!latestProposal) {
@@ -3550,6 +3631,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const inferredIntroCompleted = !!(
           workflow.introCompletedAt ||
+          hasCompletedIntroDrill ||
           student.identitySheetCompletedAt ||
           latestProposal?.sent_at ||
           latestProposal?.accepted_at

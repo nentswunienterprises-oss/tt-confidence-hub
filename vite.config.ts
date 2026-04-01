@@ -42,6 +42,7 @@ export default defineConfig({
   resolve: {
     // Prefer TypeScript sources over legacy JSX twins when imports omit extensions.
     extensions: [".tsx", ".ts", ".jsx", ".js", ".mjs", ".json"],
+    dedupe: ["react", "react-dom"],
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
       "@shared": path.resolve(import.meta.dirname, "shared"),

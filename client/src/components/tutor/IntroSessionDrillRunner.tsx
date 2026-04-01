@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import axios from "axios";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 type PhaseLabel = "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability";
 type DrillMode = "diagnosis" | "training";
@@ -59,6 +59,7 @@ function buildDrillStructure(mode: DrillMode, phase: PhaseLabel) {
 export default function IntroSessionDrillRunner() {
   const { studentId } = useParams();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [currentSet, setCurrentSet] = useState(0);
   const [currentRep, setCurrentRep] = useState(0);
   const [observations, setObservations] = useState<any>({});
@@ -80,8 +81,28 @@ export default function IntroSessionDrillRunner() {
   const hasIntroTopic = !!introTopic;
 
   const set = drillStructure[currentSet];
+  const isFirstRep = currentRep === 0;
+  const isFirstSet = currentSet === 0;
   const isLastRep = currentRep === set.reps - 1;
   const isLastSet = currentSet === drillStructure.length - 1;
+
+  const handleExitToPod = () => {
+    navigate("/tutor/pod");
+  };
+
+  const handleBackStep = () => {
+    if (submitting || submitSuccess) return;
+    if (!isFirstRep) {
+      setCurrentRep((r) => r - 1);
+      return;
+    }
+    if (!isFirstSet) {
+      const previousSetIndex = currentSet - 1;
+      const previousSet = drillStructure[previousSetIndex];
+      setCurrentSet(previousSetIndex);
+      setCurrentRep(previousSet.reps - 1);
+    }
+  };
 
   const handleObservation = (field: string, value: string) => {
     setObservations((prev: any) => ({
@@ -143,6 +164,15 @@ export default function IntroSessionDrillRunner() {
 
   return (
     <div className="max-w-xl mx-auto p-6">
+      <div className="mb-4 flex justify-end">
+        <button
+          type="button"
+          className="px-3 py-2 rounded border bg-background"
+          onClick={handleExitToPod}
+        >
+          Exit to Pod
+        </button>
+      </div>
       {submitSuccess && (
         <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded text-green-900">
           Drill submitted successfully! Observations have been sent for automated scoring.
@@ -255,6 +285,16 @@ export default function IntroSessionDrillRunner() {
         ))}
       </form>
       <div className="mt-6 flex justify-end">
+        {!submitSuccess && (
+          <button
+            type="button"
+            className="mr-2 px-4 py-2 rounded border bg-background disabled:opacity-60"
+            onClick={handleBackStep}
+            disabled={submitting || (isFirstSet && isFirstRep)}
+          >
+            Back
+          </button>
+        )}
         <button
           type="button"
           className="px-4 py-2 rounded bg-primary text-white disabled:opacity-60"
@@ -268,6 +308,26 @@ export default function IntroSessionDrillRunner() {
             : "Next"}
         </button>
       </div>
+      {submitSuccess && (
+        <div className="mt-4 flex flex-wrap gap-2 justify-end">
+          <button
+            type="button"
+            className="px-4 py-2 rounded border bg-background"
+            onClick={handleExitToPod}
+          >
+            Back to Pod
+          </button>
+          {drillMode === "diagnosis" && (
+            <button
+              type="button"
+              className="px-4 py-2 rounded bg-primary text-white"
+              onClick={handleExitToPod}
+            >
+              Continue to Proposal
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
