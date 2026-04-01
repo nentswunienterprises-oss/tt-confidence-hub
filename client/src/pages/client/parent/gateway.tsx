@@ -944,7 +944,7 @@ export default function ParentGateway() {
                               if (session?.access_token) {
                                 headers["Authorization"] = `Bearer ${session.access_token}`;
                               }
-                              const response = await fetch(`${API_URL}/api/parent/intro-session/confirm`, {
+                              const response = await fetch(`${API_URL}/api/parent/intro-session-confirm`, {
                                 method: "POST",
                                 headers,
                                 credentials: "include",

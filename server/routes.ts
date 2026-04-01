@@ -876,7 +876,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 // ...existing signup logic...
               });
             // Parent confirms intro session
-            app.post("/api/parent/intro-session-confirm", isAuthenticated, async (req: Request, res: Response) => {
+            app.post(["/api/parent/intro-session-confirm", "/api/parent/intro-session/confirm"], isAuthenticated, async (req: Request, res: Response) => {
               try {
                 const userId = (req as any).dbUser.id;
                 const { sessionId } = req.body;
