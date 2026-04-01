@@ -129,17 +129,8 @@ export default function ParentOnboardingProposal({
       const recommendedPlan = `${trainingEntryPhase} phase conditioning on ${topic || "primary diagnostic topic"} (entry stability: ${stability}). Diagnosed at ${diagnosisPhase} — training starts at ${trainingEntryPhase}. System-generated from intro drill.`;
       const justification = `Intro drill scored ${drillData?.summary?.diagnosisScore ?? "-"}/100 at ${diagnosisPhase} phase. Stability: ${stability}. Training entry phase resolved to ${trainingEntryPhase}. Next action: ${drillData?.summary?.nextAction || "Continue phase work"}.`;
 
-      // Extract enrollmentId from studentProfile
-      const enrollmentId = studentProfile?.parentEnrollmentId || studentProfile?.parent_enrollment_id;
-      if (!enrollmentId) {
-        toast({
-          title: "Missing Enrollment ID",
-          description: "Could not find an enrollment ID for this student. Please check the student's enrollment.",
-          variant: "destructive",
-        });
-        setSending(false);
-        return;
-      }
+      // Enrollment can be null at proposal creation time; it is linked after parent acceptance.
+      const enrollmentId = studentProfile?.parentEnrollmentId || studentProfile?.parent_enrollment_id || null;
       const response = await fetch(`${API_URL}/api/tutor/proposal`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
