@@ -197,6 +197,7 @@ export default function ProposalView({
   const stateCopy = PARENT_STATE_ENGINE[normalizePhaseLabel(topicConditioning.entryPhase) || "Structured Execution"][
     normalizeStabilityLabel(topicConditioning.stability)
   ];
+  const normalizedStability = normalizeStabilityLabel(topicConditioning.stability);
   const derivedObserved = [stateCopy.status, stateCopy.meaning];
 
   const observedResponse = [
@@ -213,7 +214,22 @@ export default function ProposalView({
 
   const expectedChanges = splitList(proposal.childWillWin);
   const entryPoint = extractEntryPoint();
-  const focusArea = topicConditioning.topic || focusTopics[0] || "Current school topic";
+  const diagnosisTopic = topicConditioning.topic || focusTopics[0] || "Current school topic";
+
+  const getFocusAreaText = () => {
+    switch (topicConditioning.entryPhase || entryPoint) {
+      case "Clarity":
+        return `We will focus first on building vocabulary precision, method recognition, and reason understanding for ${studentFirstName}.`;
+      case "Structured Execution":
+        return `We will focus first on building independent, repeatable method execution without tutor carry for ${studentFirstName}.`;
+      case "Controlled Discomfort":
+        return `We will focus first on helping ${studentFirstName} stay structured when difficulty increases and certainty drops.`;
+      case "Time Pressure Stability":
+        return `We will focus first on helping ${studentFirstName} maintain structure and decision quality under timed pressure.`;
+      default:
+        return `We will focus first on stabilizing ${studentFirstName}'s response patterns in the current training phase.`;
+    }
+  };
 
   const getFirstBreakdown = () => {
     switch (topicConditioning.entryPhase || entryPoint) {
@@ -265,23 +281,39 @@ export default function ProposalView({
 
       <Card>
         <CardHeader>
-          <CardTitle>Focus</CardTitle>
+          <CardTitle>Diagnosis Context</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            We will start in <span className="text-foreground font-medium">{focusArea}</span>. It gives us the clearest view of how {studentFirstName} responds when the work pushes back.
+            Diagnosis ran on: <span className="text-foreground font-medium">{diagnosisTopic}</span>
           </p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Where {studentFirstName} Currently Gets Stuck</CardTitle>
+          <CardTitle>Focus Area</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">{getFirstBreakdown()}</p>
+          <p className="text-sm text-foreground font-medium mb-2">
+            Training Starts At: {topicConditioning.entryPhase || entryPoint}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {getFocusAreaText()}
+          </p>
         </CardContent>
       </Card>
+
+      {normalizedStability !== "High" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Where {studentFirstName} Currently Gets Stuck</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">{getFirstBreakdown()}</p>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

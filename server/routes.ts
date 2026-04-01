@@ -876,7 +876,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 // ...existing signup logic...
               });
             // Parent confirms intro session
-            app.post(["/api/parent/intro-session-confirm", "/api/parent/intro-session/confirm"], isAuthenticated, async (req: Request, res: Response) => {
+            app.post("/api/parent/intro-session-confirm", isAuthenticated, async (req: Request, res: Response) => {
               try {
                 const userId = (req as any).dbUser.id;
                 const { sessionId } = req.body;
@@ -938,7 +938,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 const endDateTime = new Date(new Date(startDateTime).getTime() + 60 * 60 * 1000).toISOString();
 
                 // Import and call createIntroSessionEvent
-                const { createIntroSessionEvent } = await import("../../create-intro-session.js");
+                const { createIntroSessionEvent } = await import("../create-intro-session.js");
                 try {
                   await createIntroSessionEvent({
                     summary,
@@ -1242,8 +1242,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from("parent_enrollments")
         .select("*")
         .eq("user_id", userId)
-        .order("updated_at", { ascending: false })
-        .limit(1)
         .maybeSingle();
 
       if (enrollmentError || !enrollmentData) {
@@ -1380,30 +1378,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json({ status: "not_scheduled" });
         }
 
-        let introCompleted = false;
-        if (enrollmentData.assigned_student_id) {
-          const assignedStudent = await storage.getStudent(enrollmentData.assigned_student_id);
-          const workflow = (assignedStudent?.personalProfile as any)?.workflow || {};
-          introCompleted = !!workflow.introCompletedAt;
-        }
-
-        // Prefer explicit confirmation flags; fallback to persisted status.
-        let effectiveStatus = session.status;
-        if (!session.tutor_confirmed) {
-          effectiveStatus = "pending_tutor_confirmation";
-        } else if (!session.parent_confirmed) {
-          effectiveStatus = "pending_parent_confirmation";
-        } else if (session.status === "completed") {
-          effectiveStatus = "confirmed";
-        }
-
+        // Always use the actual session.status for the response
         const responseObj = {
           id: session.id,
-          status: effectiveStatus,
+          status: session.status,
           scheduled_time: session.scheduled_time,
           parent_confirmed: session.parent_confirmed,
           tutor_confirmed: session.tutor_confirmed,
-          introCompleted,
           debug: {
             parent_id: session.parent_id,
             tutor_id: session.tutor_id,
@@ -1413,6 +1394,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
         console.log("[DEBUG] /api/parent/intro-session-confirmation response:", responseObj);
         return res.json(responseObj);
+
+        let introCompleted = false;
+        if (enrollmentData.assigned_student_id) {
+          const assignedStudent = await storage.getStudent(enrollmentData.assigned_student_id);
+          const workflow = (assignedStudent?.personalProfile as any)?.workflow || {};
+          introCompleted = !!workflow.introCompletedAt;
+        }
+
+        // Always include id in response
+        if (!session.tutor_confirmed) {
+          return res.json({
+            id: session.id,
+            status: "pending_tutor_confirmation",
+            scheduled_time: session.scheduled_time,
+            introCompleted,
+          });
+        }
+        if (!session.parent_confirmed) {
+          return res.json({
+            id: session.id,
+            status: "pending_parent_confirmation",
+            scheduled_time: session.scheduled_time,
+            introCompleted,
+          });
+        }
+        return res.json({
+          id: session.id,
+          status: "confirmed",
+          scheduled_time: session.scheduled_time,
+          introCompleted,
+        });
       } catch (error) {
         console.error("Error in intro-session-confirmation:", error);
         res.status(500).json({ status: "error", message: "Failed to fetch intro session confirmation status" });
@@ -1477,7 +1489,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/assign-role", async (req: Request, res: Response) => {
     try {
       const permission = roleAuthorizationSchema.parse(req.body);
-      await storage.addRolePermission(permission);
+      await storage.addRolePermission(permission as any);
       res.json({ success: true, permission });
     } catch (error) {
       console.error("Error assigning role:", error);
@@ -1504,7 +1516,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Fetch sessions
           const sessions = await storage.getSessionsByTutor(tutorId);
           // Fetch academic profile (verification status)
-          const profile = await storage.getAcademicProfile(tutorId);
+          const profile = (await storage.getAcademicProfile(tutorId)) as any;
           // Fetch province (assuming it's in dbUser or profile)
           const province = dbUser?.province || profile?.province || null;
           // Role
@@ -1537,7 +1549,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               (docStatus) => docStatus === "pending_review" || docStatus === "approved" || docStatus === "rejected"
             );
             const allSequentialDocumentsApproved = Object.values(documentsStatus).every((docStatus) => docStatus === "approved");
-            let status = latestApp.status;
+            let status: string = latestApp.status as string;
             const isUnder18 = latestApp.age < 18;
             if (allSequentialDocumentsApproved) {
               status = "confirmed";
@@ -3512,7 +3524,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Fallback: look for intro sessions stored with parent_id only (student_id is null)
         if (!introSession) {
-          const parentId = student.parentId || (() => null)();
+          const parentId = (student as any).parentId || (() => null)();
           if (parentId) {
             const { data: introByParent } = await supabase
               .from("scheduled_sessions")
@@ -3566,14 +3578,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Find enrollment for this student
           let enrollmentId = null;
           // Prefer parent_enrollment_id if present (new field)
-          if (student.parentEnrollmentId || student.parent_enrollment_id) {
-            enrollmentId = student.parentEnrollmentId || student.parent_enrollment_id;
-          } else if (student.parentId) {
+          if ((student as any).parentEnrollmentId || (student as any).parent_enrollment_id) {
+            enrollmentId = (student as any).parentEnrollmentId || (student as any).parent_enrollment_id;
+          } else if ((student as any).parentId) {
             // Try to find enrollment by parentId and tutorId
             const { data: enroll } = await supabase
               .from("parent_enrollments")
               .select("id")
-              .eq("user_id", student.parentId)
+              .eq("user_id", (student as any).parentId)
               .eq("assigned_tutor_id", dbUser.id)
               .maybeSingle();
             enrollmentId = enroll?.id || null;
@@ -3895,7 +3907,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from("scheduled_sessions")
           .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, created_at, updated_at")
           .eq("tutor_id", tutorId)
-          .eq("parent_id", student.parentId)
+          .eq("parent_id", (student as any).parentId)
           .eq("type", "intro")
           .order("created_at", { ascending: false });
 
@@ -4053,7 +4065,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const weekStartDate = new Date(data.weekStartDate);
 
         // Use Drizzle ORM insert for weeklyCheckIns
-        await storage.db.insert(storage.weeklyCheckIns).values({
+        await (storage.db as any).insert(storage.weeklyCheckIns).values({
           tutorId,
           podId: data.podId,
           weekStartDate,
@@ -4087,7 +4099,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Use Drizzle ORM select for weeklyCheckIns
-        const checkIns = await storage.db
+        const checkIns = await (storage.db as any)
           .select()
           .from(storage.weeklyCheckIns)
           .where((wci) => wci.tutorId === tutorId && wci.podId === podId)
@@ -4223,7 +4235,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const allCheckIns = [];
         for (const pod of pods) {
-          const checkIns = await storage.db.query.weeklyCheckIns.findMany({
+          const checkIns = await (storage.db as any).query.weeklyCheckIns.findMany({
             where: (wci, { eq }) => eq(wci.podId, pod.id),
             orderBy: (wci, { desc }) => desc(wci.weekStartDate),
           });
@@ -4276,7 +4288,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         for (const pod of pods) {
           // Get recent check-ins for this pod
-          const checkIns = await storage.db.query.weeklyCheckIns.findMany({
+          const checkIns = await (storage.db as any).query.weeklyCheckIns.findMany({
             where: (wci, { eq }) => eq(wci.podId, pod.id),
             orderBy: (wci, { desc }) => desc(wci.weekStartDate),
             limit: 10,
@@ -7213,7 +7225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: Request, res: Response) => {
       try {
         const affiliateId = (req.session as any).userId;
-        const parsed = insertAffiliateReflectionSchema.parse(req.body);
+        const parsed = insertAffiliateReflectionSchema.parse(req.body) as any;
         const reflectionText = parsed.reflectionText || parsed.reflection_text;
         const result = await storage.saveAffiliateReflection(affiliateId, reflectionText);
         res.json(result);
@@ -7310,7 +7322,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       let status = enrollmentData.status || "not_enrolled";
-      let resolvedProposalId: string | null = enrollmentData.proposal_id || null;
 
       // Auto-correct: if status is 'awaiting_tutor_acceptance', check if tutor has accepted
       if (status === "awaiting_tutor_acceptance" && enrollmentData.assigned_tutor_id) {
@@ -7325,75 +7336,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (assignmentAccepted) {
           status = "assigned";
         }
-      }
-
-      // Self-heal: detect proposal even when parent_enrollments.proposal_id/status did not get updated.
-      if (!resolvedProposalId && enrollmentData.id) {
-        const { data: byEnrollment } = await supabase
-          .from("onboarding_proposals")
-          .select("id")
-          .eq("enrollment_id", enrollmentData.id)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        resolvedProposalId = byEnrollment?.id || null;
-      }
-
-      if (!resolvedProposalId && enrollmentData.assigned_student_id) {
-        const { data: byAssignedStudent } = await supabase
-          .from("onboarding_proposals")
-          .select("id")
-          .eq("student_id", enrollmentData.assigned_student_id)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        resolvedProposalId = byAssignedStudent?.id || null;
-      }
-
-      if (!resolvedProposalId) {
-        const { data: parentStudents } = await supabase
-          .from("students")
-          .select("id")
-          .eq("parent_id", userId)
-          .limit(20);
-
-        const studentIds = (parentStudents || []).map((s: any) => s.id).filter(Boolean);
-        if (studentIds.length > 0) {
-          let byParentStudentQuery = supabase
-            .from("onboarding_proposals")
-            .select("id")
-            .in("student_id", studentIds)
-            .order("created_at", { ascending: false })
-            .limit(1);
-
-          if (enrollmentData.assigned_tutor_id) {
-            byParentStudentQuery = byParentStudentQuery.eq("tutor_id", enrollmentData.assigned_tutor_id);
-          }
-
-          const { data: byParentStudent } = await byParentStudentQuery.maybeSingle();
-          resolvedProposalId = byParentStudent?.id || null;
-        }
-      }
-
-      if (resolvedProposalId && ["awaiting_tutor_acceptance", "assigned"].includes(status)) {
-        status = "proposal_sent";
-      }
-
-      if (enrollmentData.id && (status !== enrollmentData.status || (!enrollmentData.proposal_id && resolvedProposalId))) {
-        const enrollmentPatch: any = { updated_at: new Date().toISOString() };
-        if (!enrollmentData.proposal_id && resolvedProposalId) {
-          enrollmentPatch.proposal_id = resolvedProposalId;
-        }
-        if (status !== enrollmentData.status) {
-          enrollmentPatch.status = status;
-          if (status === "proposal_sent") {
-            enrollmentPatch.proposal_sent_at = new Date().toISOString();
-          }
-        }
-        await supabase
-          .from("parent_enrollments")
-          .update(enrollmentPatch)
-          .eq("id", enrollmentData.id);
       }
 
       res.json({
@@ -7904,10 +7846,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get parent's enrollment
       const { data: enrollment, error: enrollmentError } = await supabase
         .from("parent_enrollments")
-         .select("id, proposal_id, status, assigned_tutor_id")
+        .select("id, proposal_id, status")
         .eq("user_id", parentId)
-        .order("updated_at", { ascending: false })
-        .limit(1)
         .maybeSingle();
 
         // Also fetch math_struggle_areas to fix stale currentTopics in proposals
@@ -7915,8 +7855,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from("parent_enrollments")
           .select("math_struggle_areas")
           .eq("user_id", parentId)
-          .order("updated_at", { ascending: false })
-          .limit(1)
           .maybeSingle();
 
       console.log("📋 Enrollment data:", enrollment, "Error:", enrollmentError);
@@ -7931,76 +7869,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "No enrollment found" });
       }
 
-      let resolvedProposalId = enrollment.proposal_id || null;
-
-      if (!resolvedProposalId && enrollment.id) {
-        const { data: proposalByEnrollment } = await supabase
-          .from("onboarding_proposals")
-          .select("id")
-          .eq("enrollment_id", enrollment.id)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        resolvedProposalId = proposalByEnrollment?.id || null;
-      }
-
-      if (!resolvedProposalId) {
-        const studentIds: string[] = [];
-
-        const { data: parentStudents } = await supabase
-          .from("students")
-          .select("id")
-          .eq("parent_id", parentId)
-          .limit(20);
-        
-        for (const student of parentStudents || []) {
-          if (student?.id && !studentIds.includes(student.id)) {
-            studentIds.push(student.id);
-          }
-        }
-
-        if (studentIds.length > 0) {
-          let proposalByStudentQuery = supabase
-            .from("onboarding_proposals")
-            .select("id")
-            .in("student_id", studentIds)
-            .order("created_at", { ascending: false })
-            .limit(1);
-
-          if (enrollment.assigned_tutor_id) {
-            proposalByStudentQuery = proposalByStudentQuery.eq("tutor_id", enrollment.assigned_tutor_id);
-          }
-
-          const { data: proposalByStudent } = await proposalByStudentQuery.maybeSingle();
-          resolvedProposalId = proposalByStudent?.id || null;
-        }
-      }
-
-      if (!resolvedProposalId) {
-        console.log("No proposal found for parent via enrollment or student fallbacks");
+      if (!enrollment.proposal_id) {
+        console.log("No proposal_id in enrollment");
         return res.status(404).json({ message: "No proposal found" });
-      }
-
-      if (enrollment.id && (!enrollment.proposal_id || enrollment.status === "assigned" || enrollment.status === "awaiting_tutor_acceptance")) {
-        const patch: any = {
-          proposal_id: resolvedProposalId,
-          updated_at: new Date().toISOString(),
-        };
-        if (["assigned", "awaiting_tutor_acceptance"].includes(enrollment.status)) {
-          patch.status = "proposal_sent";
-          patch.proposal_sent_at = new Date().toISOString();
-        }
-        await supabase
-          .from("parent_enrollments")
-          .update(patch)
-          .eq("id", enrollment.id);
       }
 
       // Get the proposal
       const { data: proposal, error } = await supabase
         .from("onboarding_proposals")
         .select("*")
-        .eq("id", resolvedProposalId)
+        .eq("id", enrollment.proposal_id)
         .single();
 
       console.log("📋 Proposal data:", proposal, "Error:", error);
@@ -8564,7 +8442,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from("scheduled_sessions")
           .select("id")
           .eq("parent_id", req.body.parentId || null)
-          .eq("tutor_id", proposal.tutor_id)
+          .eq("tutor_id", (proposal as any).tutor_id)
           .is("student_id", null)
           .eq("type", "intro");
         if (sessionFetchError) {
@@ -9324,8 +9202,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from("parent_enrollments")
         .select("student_full_name, assigned_tutor_id, assigned_student_id, parent_email")
         .eq("user_id", parentId)
-        .order("updated_at", { ascending: false })
-        .limit(1)
         .maybeSingle();
 
       let enrollment: any = enrollmentWithAssignedStudent.data || null;
@@ -9336,8 +9212,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from("parent_enrollments")
           .select("student_full_name, assigned_tutor_id, parent_email")
           .eq("user_id", parentId)
-          .order("updated_at", { ascending: false })
-          .limit(1)
           .maybeSingle();
 
         enrollment = enrollmentFallback.data
@@ -9490,8 +9364,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from("parent_enrollments")
         .select("student_full_name, assigned_tutor_id, assigned_student_id, parent_email")
         .eq("user_id", parentId)
-        .order("updated_at", { ascending: false })
-        .limit(1)
         .maybeSingle();
 
       let enrollment: any = enrollmentWithAssignedStudent.data || null;
@@ -9502,8 +9374,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from("parent_enrollments")
           .select("student_full_name, assigned_tutor_id, parent_email")
           .eq("user_id", parentId)
-          .order("updated_at", { ascending: false })
-          .limit(1)
           .maybeSingle();
 
         enrollment = enrollmentFallback.data
@@ -9742,4 +9612,3 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   return httpServer;
 }
-
