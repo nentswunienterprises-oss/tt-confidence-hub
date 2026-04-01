@@ -7902,7 +7902,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get parent's enrollment
       const { data: enrollment, error: enrollmentError } = await supabase
         .from("parent_enrollments")
-        .select("id, proposal_id, status, assigned_tutor_id, assigned_student_id, student_id")
+         .select("id, proposal_id, status, assigned_tutor_id")
         .eq("user_id", parentId)
         .maybeSingle();
 
@@ -7939,14 +7939,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!resolvedProposalId) {
-        const studentIds = [enrollment.assigned_student_id, enrollment.student_id].filter(Boolean) as string[];
+        const studentIds: string[] = [];
 
         const { data: parentStudents } = await supabase
           .from("students")
           .select("id")
           .eq("parent_id", parentId)
           .limit(20);
-
+        
         for (const student of parentStudents || []) {
           if (student?.id && !studentIds.includes(student.id)) {
             studentIds.push(student.id);
@@ -9728,3 +9728,4 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   return httpServer;
 }
+
