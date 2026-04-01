@@ -953,6 +953,8 @@ export default function ParentGateway() {
                               if (!response.ok) throw new Error("Failed to confirm session");
                               toast({ title: "Session Confirmed", description: "Your session is now confirmed." });
                               await refetchIntroSessionConfirmation();
+                              // Also refetch enrollment status in case proposal was sent
+                              await queryClient.invalidateQueries({ queryKey: ["/api/parent/enrollment-status"] });
                             } catch (error) {
                               toast({ title: "Error", description: "Failed to confirm session. Please try again.", variant: "destructive" });
                             } finally {

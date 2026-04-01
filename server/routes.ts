@@ -1339,7 +1339,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Get parent's enrollment to find assigned tutor
         const { data: enrollmentData, error: enrollmentError } = await supabase
           .from("parent_enrollments")
-          .select("assigned_tutor_id, status, user_id")
+          .select("assigned_tutor_id, assigned_student_id, status, user_id")
           .eq("user_id", userId)
           .maybeSingle();
         console.log("[DEBUG] /api/parent/intro-session-confirmation enrollmentData:", enrollmentData, "enrollmentError:", enrollmentError);
@@ -1378,13 +1378,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json({ status: "not_scheduled" });
         }
 
-        // Always use the actual session.status for the response
+        let introCompleted = false;
+        if (enrollmentData.assigned_student_id) {
+          const assignedStudent = await storage.getStudent(enrollmentData.assigned_student_id);
+          const workflow = (assignedStudent?.personalProfile as any)?.workflow || {};
+          introCompleted = !!workflow.introCompletedAt;
+        }
+
+        // Prefer explicit confirmation flags; fallback to persisted status.
+        let effectiveStatus = session.status;
+        if (!session.tutor_confirmed) {
+          effectiveStatus = "pending_tutor_confirmation";
+        } else if (!session.parent_confirmed) {
+          effectiveStatus = "pending_parent_confirmation";
+        } else if (session.status === "completed") {
+          effectiveStatus = "confirmed";
+        }
+
         const responseObj = {
           id: session.id,
-          status: session.status,
+          status: effectiveStatus,
           scheduled_time: session.scheduled_time,
           parent_confirmed: session.parent_confirmed,
           tutor_confirmed: session.tutor_confirmed,
+          introCompleted,
           debug: {
             parent_id: session.parent_id,
             tutor_id: session.tutor_id,
@@ -1394,37 +1411,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
         console.log("[DEBUG] /api/parent/intro-session-confirmation response:", responseObj);
         return res.json(responseObj);
-
-        let introCompleted = false;
-        if (enrollmentData.assigned_student_id) {
-          const assignedStudent = await storage.getStudent(enrollmentData.assigned_student_id);
-          const workflow = (assignedStudent?.personalProfile as any)?.workflow || {};
-          introCompleted = !!workflow.introCompletedAt;
-        }
-
-        // Always include id in response
-        if (!session.tutor_confirmed) {
-          return res.json({
-            id: session.id,
-            status: "pending_tutor_confirmation",
-            scheduled_time: session.scheduled_time,
-            introCompleted,
-          });
-        }
-        if (!session.parent_confirmed) {
-          return res.json({
-            id: session.id,
-            status: "pending_parent_confirmation",
-            scheduled_time: session.scheduled_time,
-            introCompleted,
-          });
-        }
-        return res.json({
-          id: session.id,
-          status: "confirmed",
-          scheduled_time: session.scheduled_time,
-          introCompleted,
-        });
       } catch (error) {
         console.error("Error in intro-session-confirmation:", error);
         res.status(500).json({ status: "error", message: "Failed to fetch intro session confirmation status" });
@@ -7322,6 +7308,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       let status = enrollmentData.status || "not_enrolled";
+      let resolvedProposalId: string | null = enrollmentData.proposal_id || null;
 
       // Auto-correct: if status is 'awaiting_tutor_acceptance', check if tutor has accepted
       if (status === "awaiting_tutor_acceptance" && enrollmentData.assigned_tutor_id) {
@@ -7336,6 +7323,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (assignmentAccepted) {
           status = "assigned";
         }
+      }
+
+      // Self-heal: detect proposal even when parent_enrollments.proposal_id/status did not get updated.
+      if (!resolvedProposalId && enrollmentData.id) {
+        const { data: byEnrollment } = await supabase
+          .from("onboarding_proposals")
+          .select("id")
+          .eq("enrollment_id", enrollmentData.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        resolvedProposalId = byEnrollment?.id || null;
+      }
+
+      if (!resolvedProposalId && enrollmentData.assigned_student_id) {
+        const { data: byAssignedStudent } = await supabase
+          .from("onboarding_proposals")
+          .select("id")
+          .eq("student_id", enrollmentData.assigned_student_id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        resolvedProposalId = byAssignedStudent?.id || null;
+      }
+
+      if (!resolvedProposalId) {
+        const { data: parentStudents } = await supabase
+          .from("students")
+          .select("id")
+          .eq("parent_id", userId)
+          .limit(20);
+
+        const studentIds = (parentStudents || []).map((s: any) => s.id).filter(Boolean);
+        if (studentIds.length > 0) {
+          let byParentStudentQuery = supabase
+            .from("onboarding_proposals")
+            .select("id")
+            .in("student_id", studentIds)
+            .order("created_at", { ascending: false })
+            .limit(1);
+
+          if (enrollmentData.assigned_tutor_id) {
+            byParentStudentQuery = byParentStudentQuery.eq("tutor_id", enrollmentData.assigned_tutor_id);
+          }
+
+          const { data: byParentStudent } = await byParentStudentQuery.maybeSingle();
+          resolvedProposalId = byParentStudent?.id || null;
+        }
+      }
+
+      if (resolvedProposalId && ["awaiting_tutor_acceptance", "assigned"].includes(status)) {
+        status = "proposal_sent";
+      }
+
+      if (enrollmentData.id && (status !== enrollmentData.status || (!enrollmentData.proposal_id && resolvedProposalId))) {
+        const enrollmentPatch: any = { updated_at: new Date().toISOString() };
+        if (!enrollmentData.proposal_id && resolvedProposalId) {
+          enrollmentPatch.proposal_id = resolvedProposalId;
+        }
+        if (status !== enrollmentData.status) {
+          enrollmentPatch.status = status;
+          if (status === "proposal_sent") {
+            enrollmentPatch.proposal_sent_at = new Date().toISOString();
+          }
+        }
+        await supabase
+          .from("parent_enrollments")
+          .update(enrollmentPatch)
+          .eq("id", enrollmentData.id);
       }
 
       res.json({
@@ -7846,7 +7902,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get parent's enrollment
       const { data: enrollment, error: enrollmentError } = await supabase
         .from("parent_enrollments")
-        .select("id, proposal_id, status")
+        .select("id, proposal_id, status, assigned_tutor_id, assigned_student_id, student_id")
         .eq("user_id", parentId)
         .maybeSingle();
 
@@ -7869,16 +7925,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "No enrollment found" });
       }
 
-      if (!enrollment.proposal_id) {
-        console.log("No proposal_id in enrollment");
+      let resolvedProposalId = enrollment.proposal_id || null;
+
+      if (!resolvedProposalId && enrollment.id) {
+        const { data: proposalByEnrollment } = await supabase
+          .from("onboarding_proposals")
+          .select("id")
+          .eq("enrollment_id", enrollment.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        resolvedProposalId = proposalByEnrollment?.id || null;
+      }
+
+      if (!resolvedProposalId) {
+        const studentIds = [enrollment.assigned_student_id, enrollment.student_id].filter(Boolean) as string[];
+
+        const { data: parentStudents } = await supabase
+          .from("students")
+          .select("id")
+          .eq("parent_id", parentId)
+          .limit(20);
+
+        for (const student of parentStudents || []) {
+          if (student?.id && !studentIds.includes(student.id)) {
+            studentIds.push(student.id);
+          }
+        }
+
+        if (studentIds.length > 0) {
+          let proposalByStudentQuery = supabase
+            .from("onboarding_proposals")
+            .select("id")
+            .in("student_id", studentIds)
+            .order("created_at", { ascending: false })
+            .limit(1);
+
+          if (enrollment.assigned_tutor_id) {
+            proposalByStudentQuery = proposalByStudentQuery.eq("tutor_id", enrollment.assigned_tutor_id);
+          }
+
+          const { data: proposalByStudent } = await proposalByStudentQuery.maybeSingle();
+          resolvedProposalId = proposalByStudent?.id || null;
+        }
+      }
+
+      if (!resolvedProposalId) {
+        console.log("No proposal found for parent via enrollment or student fallbacks");
         return res.status(404).json({ message: "No proposal found" });
+      }
+
+      if (enrollment.id && (!enrollment.proposal_id || enrollment.status === "assigned" || enrollment.status === "awaiting_tutor_acceptance")) {
+        const patch: any = {
+          proposal_id: resolvedProposalId,
+          updated_at: new Date().toISOString(),
+        };
+        if (["assigned", "awaiting_tutor_acceptance"].includes(enrollment.status)) {
+          patch.status = "proposal_sent";
+          patch.proposal_sent_at = new Date().toISOString();
+        }
+        await supabase
+          .from("parent_enrollments")
+          .update(patch)
+          .eq("id", enrollment.id);
       }
 
       // Get the proposal
       const { data: proposal, error } = await supabase
         .from("onboarding_proposals")
         .select("*")
-        .eq("id", enrollment.proposal_id)
+        .eq("id", resolvedProposalId)
         .single();
 
       console.log("📋 Proposal data:", proposal, "Error:", error);
