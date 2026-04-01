@@ -117,11 +117,87 @@ export default function ProposalView({
 
   const topicConditioning = extractTopicConditioning();
 
-  const derivedObserved = [
-    topicConditioning.topic ? `Diagnostic topic: ${topicConditioning.topic}` : null,
-    topicConditioning.entryPhase ? `Observed entry phase: ${topicConditioning.entryPhase}` : null,
-    topicConditioning.stability ? `Observed stability: ${topicConditioning.stability}` : null,
-  ].filter(Boolean) as string[];
+  const PHASE_SEQUENCE = ["Clarity", "Structured Execution", "Controlled Discomfort", "Time Pressure Stability"] as const;
+  const STABILITY_SEQUENCE = ["Low", "Medium", "High"] as const;
+  type PhaseLabel = (typeof PHASE_SEQUENCE)[number];
+  type StabilityLabel = (typeof STABILITY_SEQUENCE)[number];
+
+  const PARENT_STATE_ENGINE: Record<PhaseLabel, Record<StabilityLabel, { status: string; meaning: string }>> = {
+    Clarity: {
+      Low: {
+        status: "Your child is still building a clear understanding of this topic.",
+        meaning: "They are not yet fully comfortable with the terms, steps, or logic involved.",
+      },
+      Medium: {
+        status: "Your child is beginning to understand this topic more clearly.",
+        meaning: "They can follow explanations, but still need reinforcement to apply it independently.",
+      },
+      High: {
+        status: "Your child now understands this topic clearly.",
+        meaning: "They can recognize the problem and explain the steps with confidence.",
+      },
+    },
+    "Structured Execution": {
+      Low: {
+        status: "Your child is learning to apply the steps correctly.",
+        meaning: "They understand the topic but struggle to follow the method consistently on their own.",
+      },
+      Medium: {
+        status: "Your child is becoming more consistent in solving problems.",
+        meaning: "They can follow the method in many cases, but still show occasional inconsistency.",
+      },
+      High: {
+        status: "Your child can now solve problems consistently in this topic.",
+        meaning: "They are able to follow the correct steps independently with minimal support.",
+      },
+    },
+    "Controlled Discomfort": {
+      Low: {
+        status: "Your child is starting to face more challenging problems in this topic.",
+        meaning: "They can solve basic problems, but struggle when questions become less familiar.",
+      },
+      Medium: {
+        status: "Your child is improving in handling difficult questions.",
+        meaning: "They can work through unfamiliar problems, but still show hesitation at times.",
+      },
+      High: {
+        status: "Your child is handling difficult problems well.",
+        meaning: "They are able to stay structured and solve unfamiliar questions with stability.",
+      },
+    },
+    "Time Pressure Stability": {
+      Low: {
+        status: "Your child is learning to stay structured under time pressure.",
+        meaning: "They can solve problems, but may lose structure when working against the clock.",
+      },
+      Medium: {
+        status: "Your child is becoming more stable under time pressure.",
+        meaning: "They are improving their ability to complete problems within time while staying structured.",
+      },
+      High: {
+        status: "Your child is performing consistently under time pressure.",
+        meaning: "They can solve problems accurately and maintain structure even under time constraints.",
+      },
+    },
+  };
+
+  const normalizePhaseLabel = (phase?: string | null): PhaseLabel | null => {
+    if (!phase) return null;
+    const normalized = phase.trim().toLowerCase();
+    return PHASE_SEQUENCE.find((item) => item.toLowerCase() === normalized) || null;
+  };
+
+  const normalizeStabilityLabel = (stability?: string | null): StabilityLabel => {
+    const value = String(stability || "").toLowerCase();
+    if (value.includes("high")) return "High";
+    if (value.includes("medium")) return "Medium";
+    return "Low";
+  };
+
+  const stateCopy = PARENT_STATE_ENGINE[normalizePhaseLabel(topicConditioning.entryPhase) || "Structured Execution"][
+    normalizeStabilityLabel(topicConditioning.stability)
+  ];
+  const derivedObserved = [stateCopy.status, stateCopy.meaning];
 
   const observedResponse = [
     proposal.mathRelationship,
