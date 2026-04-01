@@ -114,18 +114,29 @@ export default function ProposalView({
     proposal.currentTopics && proposal.currentTopics.trim() !== "" && proposal.currentTopics !== placeholderTopic
       ? splitList(proposal.currentTopics)
       : splitList(proposal.immediateStruggles);
+
+  const topicConditioning = extractTopicConditioning();
+
+  const derivedObserved = [
+    topicConditioning.topic ? `Diagnostic topic: ${topicConditioning.topic}` : null,
+    topicConditioning.entryPhase ? `Observed entry phase: ${topicConditioning.entryPhase}` : null,
+    topicConditioning.stability ? `Observed stability: ${topicConditioning.stability}` : null,
+  ].filter(Boolean) as string[];
+
   const observedResponse = [
     proposal.mathRelationship,
     proposal.pressureResponse,
     proposal.confidenceKillers,
     proposal.confidenceTriggers,
+    proposal.immediateStruggles,
+    proposal.gapsIdentified,
+    ...derivedObserved,
   ]
     .filter(Boolean)
     .flatMap((item) => splitList(item));
 
   const expectedChanges = splitList(proposal.childWillWin);
   const entryPoint = extractEntryPoint();
-  const topicConditioning = extractTopicConditioning();
   const focusArea = topicConditioning.topic || focusTopics[0] || "Current school topic";
 
   const getFirstBreakdown = () => {
