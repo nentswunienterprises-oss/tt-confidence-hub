@@ -8077,13 +8077,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Update enrollment status to session_booked (ready to book first session)
-
-      // Update enrollment status to proposal_sent (not session_booked)
+      // Move to post-accept state so parent code and next-step UI unlock immediately.
       const { error: updateError } = await supabase
         .from("parent_enrollments")
         .update({
-          status: "proposal_sent",
+          status: "session_booked",
           updated_at: new Date().toISOString(),
         })
         .eq("id", enrollment.id);
