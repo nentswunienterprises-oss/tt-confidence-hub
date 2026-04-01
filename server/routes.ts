@@ -7702,21 +7702,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Find the enrollment record for this student
       let actualEnrollmentId = enrollmentId;
       if (!actualEnrollmentId) {
-        const { data: student } = await supabase
-          .from("students")
-          .select("name")
-          .eq("id", studentId)
-          .single();
+        // Prefer assigned_student_id (canonical), then fallback to legacy student_id.
+        const { data: enrollmentByAssignedStudent } = await supabase
+          .from("parent_enrollments")
+          .select("id")
+          .eq("assigned_student_id", studentId)
+          .eq("assigned_tutor_id", tutorId)
+          .maybeSingle();
 
-        if (student) {
-          const { data: enrollment } = await supabase
+        actualEnrollmentId = enrollmentByAssignedStudent?.id || null;
+
+        if (!actualEnrollmentId) {
+          const { data: enrollmentByLegacyStudentId } = await supabase
             .from("parent_enrollments")
             .select("id")
+            .eq("student_id", studentId)
             .eq("assigned_tutor_id", tutorId)
-            .eq("student_full_name", student.name)
             .maybeSingle();
-          
-          actualEnrollmentId = enrollment?.id;
+
+          actualEnrollmentId = enrollmentByLegacyStudentId?.id || null;
         }
       }
 
@@ -8040,6 +8044,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await supabase
         .from("onboarding_proposals")
         .update({
+          enrollment_id: enrollment.id,
           accepted_at: new Date().toISOString(),
           parent_code: parentCode,
           updated_at: new Date().toISOString(),

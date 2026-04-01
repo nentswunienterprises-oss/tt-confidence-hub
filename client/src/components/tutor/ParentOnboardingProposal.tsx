@@ -35,7 +35,7 @@ export default function ParentOnboardingProposal({
   const [sending, setSending] = useState(false);
 
   // Fetch latest intro drill
-  const { data: drillData, isLoading: drillLoading, error: drillError } = useQuery({
+  const { data: drillDataRaw, isLoading: drillLoading, error: drillError } = useQuery({
     queryKey: ["/api/tutor/students", studentId, "latest-intro-drill"],
     queryFn: async () => {
       const res = await apiRequest("GET", `/api/tutor/students/${studentId}/latest-intro-drill`);
@@ -44,32 +44,66 @@ export default function ParentOnboardingProposal({
     enabled: open && !!studentId,
   });
 
-  // Helper to get parent-facing interpretation
-  const getParentFacingBreakdown = (phase: string) => {
-    switch (phase) {
+  // Fetch student profile to get enrollmentId
+  const { data: studentProfileRaw } = useQuery({
+    queryKey: ["/api/tutor/students", studentId, "profile"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", `/api/tutor/students/${studentId}/profile`);
+      return res.json();
+    },
+    enabled: open && !!studentId,
+  });
+
+  // Use 'as any' for property access (for now)
+  const drillData = drillDataRaw as any;
+  const studentProfile = studentProfileRaw as any;
+
+  // Derive training entry phase from diagnosis result.
+  // If stability is High, the student has passed that phase — training starts at the next phase.
+  const deriveTrainingEntryPhase = (diagnosisPhase: string, stability: string): string => {
+    if (stability !== "High") return diagnosisPhase;
+    const advance: Record<string, string> = {
+      "Clarity": "Structured Execution",
+      "Structured Execution": "Controlled Discomfort",
+      "Controlled Discomfort": "Time Pressure Stability",
+      "Time Pressure Stability": "Time Pressure Stability", // already at peak
+    };
+    return advance[diagnosisPhase] || diagnosisPhase;
+  };
+
+  // Parent-facing breakdown: describes what the student needs to build at training entry phase
+  const getParentFacingBreakdown = (trainingPhase: string, diagnosisPhase: string, stability: string) => {
+    if (stability === "High" && diagnosisPhase === trainingPhase) {
+      // Already at peak phase with High stability — strong result
+      return `${studentFirstName} showed strong, consistent performance across the diagnostic. Training will maintain and extend this at the same level.`;
+    }
+    switch (trainingPhase) {
       case "Clarity":
         return `${studentFirstName} is not yet consistently identifying what the problem is asking or what method to use first.`;
       case "Structured Execution":
-        return `${studentFirstName} can begin work, but does not yet apply a stable method consistently without support.`;
+        return `${studentFirstName} understands the topic but does not yet apply a stable method consistently without support.`;
       case "Controlled Discomfort":
-        return `${studentFirstName} becomes less stable when the work feels unfamiliar or more difficult.`;
+        return `${studentFirstName} can execute reliably in familiar conditions but becomes less stable when the work pushes back.`;
       case "Time Pressure Stability":
-        return `${studentFirstName} loses structure when working under time pressure.`;
+        return `${studentFirstName} can execute the method but loses structure when time pressure is introduced.`;
       default:
         return `${studentFirstName} needs a more stable starting structure.`;
     }
   };
 
-  const getParentFacingPriority = (phase: string) => {
-    switch (phase) {
+  const getParentFacingPriority = (trainingPhase: string, diagnosisPhase: string, stability: string) => {
+    if (stability === "High" && diagnosisPhase === trainingPhase) {
+      return `Training will continue at the ${trainingPhase} level, building consistency and extending readiness for the next challenge tier.`;
+    }
+    switch (trainingPhase) {
       case "Clarity":
         return `We will first help ${studentFirstName} read problems more clearly, recognise what is being asked, and name the structure before solving.`;
       case "Structured Execution":
-        return `We will first train ${studentFirstName} to start earlier and follow a repeatable method without waiting to be carried through each step.`;
+        return `We will train ${studentFirstName} to start independently and follow a repeatable method without being carried through each step.`;
       case "Controlled Discomfort":
-        return `We will first train ${studentFirstName} to stay calm and structured when questions become less familiar or more demanding.`;
+        return `We will train ${studentFirstName} to stay calm and structured when questions become less familiar or more demanding.`;
       case "Time Pressure Stability":
-        return `We will first train ${studentFirstName} to keep the same structure and decision-making even when time pressure increases.`;
+        return `We will train ${studentFirstName} to keep the same structure and decision-making even when time pressure increases.`;
       default:
         return `We will first strengthen ${studentFirstName}'s consistency before adding more difficulty.`;
     }
@@ -87,14 +121,39 @@ export default function ParentOnboardingProposal({
 
     setSending(true);
     try {
+      const diagnosisPhase = drillData?.summary?.phase || drillData?.phase || "Clarity";
+      const stability = drillData?.summary?.stability || drillData?.stability || "Low";
+      const topic = drillData?.introTopic || drillData?.topic || drillData?.summary?.topic || "";
+      const trainingEntryPhase = deriveTrainingEntryPhase(diagnosisPhase, stability);
+
+      const recommendedPlan = `${trainingEntryPhase} phase conditioning on ${topic || "primary diagnostic topic"} (entry stability: ${stability}). Diagnosed at ${diagnosisPhase} — training starts at ${trainingEntryPhase}. System-generated from intro drill.`;
+      const justification = `Intro drill scored ${drillData?.summary?.diagnosisScore ?? "-"}/100 at ${diagnosisPhase} phase. Stability: ${stability}. Training entry phase resolved to ${trainingEntryPhase}. Next action: ${drillData?.summary?.nextAction || "Continue phase work"}.`;
+
+      // Extract enrollmentId from studentProfile
+      const enrollmentId = studentProfile?.parentEnrollmentId || studentProfile?.parent_enrollment_id;
+      if (!enrollmentId) {
+        toast({
+          title: "Missing Enrollment ID",
+          description: "Could not find an enrollment ID for this student. Please check the student's enrollment.",
+          variant: "destructive",
+        });
+        setSending(false);
+        return;
+      }
       const response = await fetch(`${API_URL}/api/tutor/proposal`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
           studentId,
+          enrollmentId,
           autoGeneratedFromIntroDrill: true,
           introDrillId: drillData.id,
+          recommendedPlan,
+          justification,
+          topicConditioningTopic: topic,
+          topicConditioningEntryPhase: trainingEntryPhase,
+          topicConditioningStability: stability,
         }),
       });
 
@@ -172,11 +231,12 @@ export default function ParentOnboardingProposal({
     );
   }
 
-  const phase = drillData.phaseObserved || drillData.entry_phase || "Clarity";
-  const stability = drillData.stabilityObserved || drillData.stability || "Low";
-  const topic = drillData.topic || "Current class topic";
-  const breakdown = getParentFacingBreakdown(phase);
-  const priority = getParentFacingPriority(phase);
+  const diagnosisPhase = drillData?.summary?.phase || drillData?.phase || drillData?.phaseObserved || "Clarity";
+  const stability = drillData?.summary?.stability || drillData?.stability || drillData?.stabilityObserved || "Low";
+  const topic = drillData?.introTopic || drillData?.topic || "Current class topic";
+  const trainingEntryPhase = deriveTrainingEntryPhase(diagnosisPhase, stability);
+  const breakdown = getParentFacingBreakdown(trainingEntryPhase, diagnosisPhase, stability);
+  const priority = getParentFacingPriority(trainingEntryPhase, diagnosisPhase, stability);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -189,6 +249,9 @@ export default function ParentOnboardingProposal({
           <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
             <h3 className="font-bold text-sm text-center mb-0.5">Training Proposal Ready</h3>
             <p className="text-xs text-center text-muted-foreground">{studentName}</p>
+            <p className="text-[11px] text-center text-muted-foreground mt-1">
+              Diagnosis ran on: <span className="font-medium text-foreground">{topic}</span>
+            </p>
           </div>
 
           <Card>
@@ -198,22 +261,33 @@ export default function ParentOnboardingProposal({
               </CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-4">
-              <p className="text-xs text-muted-foreground">
-                We will start in <span className="text-foreground font-medium">{topic}</span>. It gives us the clearest view of how {studentFirstName} responds when the work pushes back.
-              </p>
+              {trainingEntryPhase === "Clarity" && (
+                <p className="text-xs text-muted-foreground">Training will begin at the <span className="text-foreground font-medium">Clarity</span> level - building vocabulary, method recognition, and reason understanding before execution is introduced.</p>
+              )}
+              {trainingEntryPhase === "Structured Execution" && (
+                <p className="text-xs text-muted-foreground">Training will begin at the <span className="text-foreground font-medium">Structured Execution</span> level - building an independent, repeatable method without tutor carry.</p>
+              )}
+              {trainingEntryPhase === "Controlled Discomfort" && (
+                <p className="text-xs text-muted-foreground">Training will begin at the <span className="text-foreground font-medium">Controlled Discomfort</span> level - introducing difficulty and unfamiliar problems while maintaining structure.</p>
+              )}
+              {trainingEntryPhase === "Time Pressure Stability" && (
+                <p className="text-xs text-muted-foreground">Training will begin at the <span className="text-foreground font-medium">Time Pressure Stability</span> level - maintaining full method and structure under timed conditions.</p>
+              )}
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-2 pt-4 px-4">
-              <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Where {studentFirstName} Currently Gets Stuck
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="px-4 pb-4">
-              <p className="text-xs text-muted-foreground">{breakdown}</p>
-            </CardContent>
-          </Card>
+          {stability !== "High" && (
+            <Card>
+              <CardHeader className="pb-2 pt-4 px-4">
+                <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Where {studentFirstName} Currently Gets Stuck
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 pb-4">
+                <p className="text-xs text-muted-foreground">{breakdown}</p>
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader className="pb-2 pt-4 px-4">
@@ -239,8 +313,12 @@ export default function ParentOnboardingProposal({
                   <p className="text-xs font-medium text-foreground">{topic}</p>
                 </div>
                 <div className="rounded-md border bg-muted/50 p-2">
-                  <p className="text-[10px] uppercase text-muted-foreground mb-1">Entry Phase</p>
-                  <p className="text-xs font-medium text-foreground">{phase}</p>
+                  <p className="text-[10px] uppercase text-muted-foreground mb-1">Diagnosis Phase</p>
+                  <p className="text-xs font-medium text-foreground">{diagnosisPhase}</p>
+                </div>
+                <div className="rounded-md border bg-muted/50 p-2">
+                  <p className="text-[10px] uppercase text-muted-foreground mb-1">Training Starts At</p>
+                  <p className="text-xs font-medium text-foreground">{trainingEntryPhase}</p>
                 </div>
                 <div className="rounded-md border bg-muted/50 p-2">
                   <p className="text-[10px] uppercase text-muted-foreground mb-1">Stability</p>
@@ -270,7 +348,7 @@ export default function ParentOnboardingProposal({
           <Card>
             <CardHeader className="pb-2 pt-4 px-4">
               <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                How You Will Know It Is Improving
+                How We Will Know It Is Improving
               </CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-4">
@@ -286,10 +364,10 @@ export default function ParentOnboardingProposal({
           <Card>
             <CardContent className="px-4 py-3 space-y-2">
               <p className="text-xs text-muted-foreground">
-                <strong className="text-foreground">Important Note</strong> — This training focuses on how the student responds under difficulty, not only on correct answers.
+                <strong className="text-foreground">Important Note</strong> - This training focuses on how the student responds under difficulty, not only on correct answers.
               </p>
               <p className="text-xs text-muted-foreground">
-                <strong className="text-foreground">Commitment</strong> — Consistency and active participation are required. Cadence is fixed at 2 sessions per week (8 sessions per month). Students are expected to attempt before receiving guidance.
+                <strong className="text-foreground">Commitment</strong> - Consistency and active participation are required. Cadence is fixed at 2 sessions per week (8 sessions per month). Students are expected to attempt before receiving guidance.
               </p>
             </CardContent>
           </Card>

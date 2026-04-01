@@ -887,7 +887,6 @@ export const insertParentEnrollmentSchema = createInsertSchema(parentEnrollments
 export const onboardingProposals = pgTable("onboarding_proposals", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   enrollmentId: varchar("enrollment_id")
-    .notNull()
     .references(() => parentEnrollments.id),
   tutorId: varchar("tutor_id")
     .notNull()
