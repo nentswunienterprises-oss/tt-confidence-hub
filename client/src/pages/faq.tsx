@@ -169,7 +169,7 @@ const faqs = [
     question: "How do you measure progress if it’s not just about marks?",
     answer: (
       <>
-        <p>Marks are tracked -0.02em but they’re lagging indicators.</p>
+        <p>Marks are tracked but they are basic indicators.</p>
         <p>We track:</p>
         <ul>
           <li>response speed under uncertainty</li>
@@ -286,8 +286,8 @@ export default function FAQPage() {
       <h2 className="text-2xl font-semibold mb-8 text-center">Frequently Asked Questions</h2>
       <div className="space-y-6">
         {faqs.map((faq, idx) => (
-          <details key={idx} className="bg-white rounded shadow p-4">
-            <summary className="font-semibold cursor-pointer text-lg mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500">{faq.question}</summary>
+          <details key={idx} className="bg-white rounded shadow p-4 border-0 outline-none">
+            <summary className="font-semibold cursor-pointer text-lg mb-2 focus:outline-none focus:ring-0 focus:border-transparent">{faq.question}</summary>
             <div className="mt-2 text-gray-700 text-base">{faq.answer}</div>
           </details>
         ))}
