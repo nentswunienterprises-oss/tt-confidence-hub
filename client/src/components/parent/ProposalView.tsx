@@ -136,12 +136,8 @@ export default function ProposalView({
   type PhaseLabel = (typeof PHASE_SEQUENCE)[number];
   type StabilityLabel = (typeof STABILITY_SEQUENCE)[number];
 
-  const deriveTrainingEntryPhase = (diagnosisPhase: PhaseLabel, stability: StabilityLabel): PhaseLabel => {
-    if (stability !== "High") return diagnosisPhase;
-    if (diagnosisPhase === "Clarity") return "Structured Execution";
-    if (diagnosisPhase === "Structured Execution") return "Controlled Discomfort";
-    if (diagnosisPhase === "Controlled Discomfort") return "Time Pressure Stability";
-    return "Time Pressure Stability";
+  const deriveTrainingEntryPhase = (diagnosisPhase: PhaseLabel, _stability: StabilityLabel): PhaseLabel => {
+    return diagnosisPhase;
   };
 
   const PARENT_STATE_ENGINE: Record<PhaseLabel, Record<StabilityLabel, { status: string; meaning: string }>> = {
@@ -156,7 +152,7 @@ export default function ProposalView({
       },
       High: {
         status: `${studentFirstName} demonstrated clear recognition and explanation patterns in the diagnosis topic.`,
-        meaning: `${studentFirstName} is ready to begin training at the next phase after Clarity.`,
+        meaning: `${studentFirstName} begins training in Clarity with system scoring determining remain, regress, or advance.`,
       },
     },
     "Structured Execution": {
@@ -170,7 +166,7 @@ export default function ProposalView({
       },
       High: {
         status: `${studentFirstName} maintained method execution consistently across attempts.`,
-        meaning: `${studentFirstName} is ready to begin Controlled Discomfort training.`,
+        meaning: `${studentFirstName} begins training in Structured Execution with transitions handled by session scoring.`,
       },
     },
     "Controlled Discomfort": {
@@ -184,7 +180,7 @@ export default function ProposalView({
       },
       High: {
         status: `${studentFirstName} stayed structured during challenge-heavy prompts.`,
-        meaning: `${studentFirstName} is ready to begin Time Pressure Stability training.`,
+        meaning: `${studentFirstName} begins training in Controlled Discomfort with transitions handled by session scoring.`,
       },
     },
     "Time Pressure Stability": {

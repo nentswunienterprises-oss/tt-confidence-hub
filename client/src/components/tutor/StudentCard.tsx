@@ -9,7 +9,6 @@ import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useStudentWorkflowState, useMarkIntroCompleted, useRespondToAssignment } from "@/hooks/useStudentWorkflowState";
 import { TutorIntroSessionActions } from "./TutorIntroSessionActions";
-import { getNextActionData, interpretTopicState } from "./topicConditioningEngine";
 import { Input } from "@/components/ui/input";
 
 function splitReportedTopics(rawValue) {
@@ -259,30 +258,33 @@ export function StudentCard({
     return merged;
   }, [persistedTopics, student.topicConditioning, reportedTopics, studentSessions, activationTopics]);
 
-  const activatedTopics = useMemo(
-    () => allTopics.filter((topic) => explicitlyActivatedTopicNames.has(String(topic.topic).trim())),
-    [allTopics, explicitlyActivatedTopicNames]
-  );
+  const topicsInConditioning = useMemo(() => {
+    const byTopic = new Map<string, { topic: string; phase: string; stability: string }>();
 
-  // Helper to get system-driven outputs for a topic
-  function getSystemDrivenOutputs(topic) {
-    const entry = allTopics.find(t => t.topic === topic);
-    if (!entry) return null;
-    const intel = interpretTopicState(entry.phase, entry.stability, entry.trend);
-    const nextActions = getNextActionData(entry.phase, entry.stability).nextActions;
-    const rules = getNextActionData(entry.phase, entry.stability).rules;
-    return {
-      phase: entry.phase,
-      stability: entry.stability,
-      nextAction: intel.nextAction,
-      constraint: rules[0] || "Follow phase constraints",
-      transitionStatus: intel.transitionStatus,
-      recentLogs: entry.recentLogs,
-      timeline: entry.timeline,
-      allNextActions: nextActions,
-      allConstraints: rules,
-    };
-  }
+    allTopics.forEach((entry) => {
+      const topic = String(entry?.topic || "").trim();
+      if (!topic) return;
+      byTopic.set(topic, {
+        topic,
+        phase: normalizePhaseLabel(entry.phase) || "Structured Execution",
+        stability: normalizeStabilityLabel(entry.stability) || "Low",
+      });
+    });
+
+    const proposalTopics = Object.values(student.topicConditioning?.topics || {}) as Array<any>;
+    proposalTopics.forEach((entry) => {
+      const topic = String(entry?.topic || "").trim();
+      if (!topic) return;
+      if (byTopic.has(topic)) return;
+      byTopic.set(topic, {
+        topic,
+        phase: normalizePhaseLabel(entry?.phase || student.topicConditioning?.entry_phase) || "Structured Execution",
+        stability: normalizeStabilityLabel(entry?.stability || student.topicConditioning?.stability) || "Low",
+      });
+    });
+
+    return Array.from(byTopic.values());
+  }, [allTopics, student.topicConditioning]);
 
   // Pick the most recently updated topic for display
   const latestEntry = allTopics
@@ -368,99 +370,25 @@ export function StudentCard({
             <p className="text-xs text-muted-foreground">
               {Math.max(0, progressTotal - sessionProgress)} sessions remaining
             </p>
-            {activatedTopics.length > 0 && (
-              <div className="mt-3">
-                <div className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground mb-1">Active Topics (System-Driven Map)</div>
-                <div className="flex flex-wrap gap-2">
-                  {activatedTopics.map((topic) => {
-                    const sys = getSystemDrivenOutputs(topic.topic);
-                    return (
-                      <div key={topic.topic} className="rounded-lg border border-primary/20 bg-muted/30 px-3 py-2 flex flex-col gap-1 min-w-[220px]">
-                        <span className="font-semibold text-foreground text-xs break-words">{topic.topic}</span>
-                        <div className="flex flex-row flex-wrap gap-1 items-center text-xs">
-                          <span className="text-muted-foreground">Phase:</span>
-                          <span className="text-foreground font-medium">{sys?.phase}</span>
-                          <span className="text-muted-foreground">|</span>
-                          <span className="text-muted-foreground">Stability:</span>
-                          <span className="text-foreground font-medium">{sys?.stability}</span>
-                        </div>
-                        <div className="flex flex-row flex-wrap gap-1 items-center text-xs">
-                          <span className="text-muted-foreground">Next Action:</span>
-                          <span className="text-foreground font-medium">{sys?.nextAction}</span>
-                        </div>
-                        <div className="flex flex-row flex-wrap gap-1 items-center text-xs">
-                          <span className="text-muted-foreground">Constraint:</span>
-                          <span className="text-foreground">{sys?.constraint}</span>
-                        </div>
-                        <div className="flex flex-row flex-wrap gap-1 items-center text-xs">
-                          <span className="text-muted-foreground">Transition:</span>
-                          <span className="text-foreground">{sys?.transitionStatus}</span>
-                        </div>
-                        {Array.isArray(sys?.recentLogs) && sys.recentLogs.length > 0 && (
-                          <div className="mt-1">
-                            <span className="text-muted-foreground text-xs">Recent Logs:</span>
-                            <ul className="list-disc ml-4 text-xs text-muted-foreground">
-                              {sys.recentLogs.map((log, idx) => (
-                                <li key={idx}>{log}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                        {Array.isArray(sys?.allNextActions) && sys.allNextActions.length > 1 && (
-                          <div className="mt-1">
-                            <span className="text-muted-foreground text-xs">All Next Actions:</span>
-                            <ul className="list-disc ml-4 text-xs text-muted-foreground">
-                              {sys.allNextActions.map((a, idx) => (
-                                <li key={idx}>{a}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                        {Array.isArray(sys?.allConstraints) && sys.allConstraints.length > 1 && (
-                          <div className="mt-1">
-                            <span className="text-muted-foreground text-xs">All Constraints:</span>
-                            <ul className="list-disc ml-4 text-xs text-muted-foreground">
-                              {sys.allConstraints.map((c, idx) => (
-                                <li key={idx}>{c}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                        {Array.isArray(sys?.timeline) && sys.timeline.length > 0 && (
-                          <div className="mt-1">
-                            <span className="text-muted-foreground text-xs">Timeline:</span>
-                            <ul className="list-disc ml-4 text-xs text-muted-foreground">
-                              {sys.timeline.map((point, idx) => (
-                                <li key={idx}>{point.date} · {point.phase} · {point.stability}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
             {/* --- END TOPIC SUMMARY ROW --- */}
           </div>
         )}
 
         {workflowLoading && <p className="text-xs text-muted-foreground">Loading workflow...</p>}
 
-        {workflow?.proposalAccepted && activatedTopics.length > 0 && (
+        {workflow?.proposalAccepted && topicsInConditioning.length > 0 && (
           <>
 
             <div className="pt-4 border-t border-border/60 space-y-3">
             <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Topics In Conditioning</p>
-            {activatedTopics.length > 0 ? (
+            {topicsInConditioning.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {activatedTopics.map((topic) => (
+                {topicsInConditioning.map((topic) => (
                   <div key={topic.topic} className="rounded-xl border border-primary/20 bg-muted/20 px-4 py-3">
                     <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{topic.topic}</p>
                     <div className="flex flex-row items-center gap-2 mt-2">
-                      <span className="text-sm font-medium text-foreground">{normalizePhaseLabel(topic.phase)}</span>
-                      <span className="text-xs px-2 py-0.5 rounded-full border border-primary/20 bg-muted/40 text-foreground">{normalizeStabilityLabel(topic.stability)}</span>
+                      <span className="text-sm font-medium text-foreground">{topic.phase}</span>
+                      <span className="text-xs px-2 py-0.5 rounded-full border border-primary/20 bg-muted/40 text-foreground">{topic.stability}</span>
                     </div>
                   </div>
                 ))}

@@ -58,24 +58,15 @@ export default function ParentOnboardingProposal({
   const drillData = drillDataRaw as any;
   const studentProfile = studentProfileRaw as any;
 
-  // Derive training entry phase from diagnosis result.
-  // If stability is High, the student has passed that phase — training starts at the next phase.
-  const deriveTrainingEntryPhase = (diagnosisPhase: string, stability: string): string => {
-    if (stability !== "High") return diagnosisPhase;
-    const advance: Record<string, string> = {
-      "Clarity": "Structured Execution",
-      "Structured Execution": "Controlled Discomfort",
-      "Controlled Discomfort": "Time Pressure Stability",
-      "Time Pressure Stability": "Time Pressure Stability", // already at peak
-    };
-    return advance[diagnosisPhase] || diagnosisPhase;
+  // Core scoring model: diagnosis classifies entry phase/stability only.
+  const deriveTrainingEntryPhase = (diagnosisPhase: string, _stability: string): string => {
+    return diagnosisPhase;
   };
 
   // Parent-facing breakdown: describes what the student needs to build at training entry phase
   const getParentFacingBreakdown = (trainingPhase: string, diagnosisPhase: string, stability: string) => {
     if (stability === "High" && diagnosisPhase === trainingPhase) {
-      // Already at peak phase with High stability — strong result
-      return `${studentFirstName} showed strong, consistent performance across the diagnostic. Training will maintain and extend this at the same level.`;
+      return `${studentFirstName} showed strong, consistent performance in ${diagnosisPhase}. Training begins in the same phase to confirm stability and progress decisions through training sessions.`;
     }
     switch (trainingPhase) {
       case "Clarity":
@@ -93,7 +84,7 @@ export default function ParentOnboardingProposal({
 
   const getParentFacingPriority = (trainingPhase: string, diagnosisPhase: string, stability: string) => {
     if (stability === "High" && diagnosisPhase === trainingPhase) {
-      return `Training will continue at the ${trainingPhase} level, building consistency and extending readiness for the next challenge tier.`;
+      return `Training will start at ${trainingPhase} and use session scoring to determine whether to remain, regress, or advance.`;
     }
     switch (trainingPhase) {
       case "Clarity":

@@ -4,31 +4,228 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 type PhaseLabel = "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability";
 type DrillMode = "diagnosis" | "training";
+type ObservationField = { key: string; label: string; options: string[] };
+type DrillSetConfig = { setName: string; reps: number; observationBlock: ObservationField[] };
 
-const PHASE_OBSERVATION_BLOCKS: Record<PhaseLabel, Array<{ key: string; label: string; options: string[] }>> = {
+const DIAGNOSIS_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
   Clarity: [
-    { key: "vocabulary", label: "Vocabulary", options: ["cannot name", "partial", "clear"] },
-    { key: "method", label: "Method", options: ["cannot state steps", "partial", "clear"] },
-    { key: "reason", label: "Reason", options: ["no idea", "vague", "clear"] },
-    { key: "immediateApply", label: "Immediate Apply / Response", options: ["cannot repeat / avoids", "partial", "independent"] },
+    {
+      setName: "Recognition Probe",
+      reps: 3,
+      observationBlock: [
+        { key: "vocabulary", label: "Vocabulary", options: ["cannot name", "partial", "clear"] },
+        { key: "method", label: "Type + Method Recognition", options: ["wrong", "hesitant", "correct"] },
+        { key: "reason", label: "Step Awareness", options: ["none", "partial", "clear"] },
+        { key: "immediateApply", label: "Response Behavior", options: ["avoids", "unsure", "engages"] },
+      ],
+    },
+    {
+      setName: "Light Apply Probe",
+      reps: 3,
+      observationBlock: [
+        { key: "vocabulary", label: "Vocabulary Usage", options: ["incorrect", "partial", "correct"] },
+        { key: "method", label: "Step Execution", options: ["random", "partial", "structured"] },
+        { key: "reason", label: "Reason Awareness", options: ["none", "weak", "present"] },
+        { key: "immediateApply", label: "Start Behavior", options: ["cannot start", "delayed", "starts"] },
+      ],
+    },
   ],
   "Structured Execution": [
-    { key: "startBehavior", label: "Start Behavior", options: ["avoids / waits", "partial", "clear"] },
-    { key: "stepExecution", label: "Step Execution", options: ["guessed instead of steps", "partial", "clear"] },
-    { key: "repeatability", label: "Repeatability", options: ["inconsistent", "partial", "consistent"] },
-    { key: "independence", label: "Independence", options: ["needed repeated guidance", "partial", "without support"] },
+    {
+      setName: "Start + Structure",
+      reps: 3,
+      observationBlock: [
+        { key: "startBehavior", label: "Start Behavior", options: ["avoids", "delayed", "immediate"] },
+        { key: "stepExecution", label: "Step Execution", options: ["random / guessing", "partial steps", "full structure"] },
+        { key: "repeatability", label: "Step Order", options: ["incorrect", "minor errors", "correct"] },
+        { key: "independence", label: "Dependence", options: ["waits for help", "asks after trying", "independent"] },
+      ],
+    },
+    {
+      setName: "Repeatability",
+      reps: 3,
+      observationBlock: [
+        { key: "repeatability", label: "Consistency", options: ["breaks each time", "inconsistent", "stable"] },
+        { key: "stepExecution", label: "Step Recall", options: ["forgets", "partial", "full"] },
+        { key: "independence", label: "Error Pattern", options: ["guessing", "careless", "structured"] },
+        { key: "startBehavior", label: "Completion", options: ["cannot finish", "partial", "complete"] },
+      ],
+    },
   ],
   "Controlled Discomfort": [
-    { key: "initialResponse", label: "Initial Boss-Battle Response", options: ["froze / avoided", "partial", "calmly attempted"] },
-    { key: "firstStepControl", label: "First-Step Control", options: ["could not identify", "partial", "clear"] },
-    { key: "discomfortTolerance", label: "Discomfort Tolerance", options: ["collapsed", "partial", "clear"] },
-    { key: "rescueDependence", label: "Rescue Dependence", options: ["needed tutor to carry", "partial", "did not seek rescue"] },
+    {
+      setName: "First Contact",
+      reps: 3,
+      observationBlock: [
+        { key: "initialResponse", label: "Initial Response", options: ["freeze", "hesitate", "attempt"] },
+        { key: "firstStepControl", label: "First Step", options: ["none", "prompted", "independent"] },
+        { key: "discomfortTolerance", label: "Emotional State", options: ["panic", "tension", "controlled"] },
+        { key: "rescueDependence", label: "Rescue Behavior", options: ["asks immediately", "asks later", "no rescue"] },
+      ],
+    },
+    {
+      setName: "Pressure Hold",
+      reps: 3,
+      observationBlock: [
+        { key: "discomfortTolerance", label: "Persistence", options: ["gives up", "short attempt", "stays engaged"] },
+        { key: "rescueDependence", label: "Rescue Behavior", options: ["asks immediately", "asks later", "no rescue"] },
+        { key: "firstStepControl", label: "Structure Retention", options: ["breaks", "partial", "maintained"] },
+        { key: "initialResponse", label: "Recovery", options: ["collapses", "partial", "recovers"] },
+      ],
+    },
   ],
   "Time Pressure Stability": [
-    { key: "startUnderTime", label: "Start Under Time", options: ["froze under timer", "partial", "clear"] },
-    { key: "structureUnderTime", label: "Structure Under Time", options: ["abandoned process", "partial", "maintained"] },
-    { key: "paceControl", label: "Pace Control", options: ["panic-driven", "partial", "controlled"] },
-    { key: "completionIntegrity", label: "Completion Integrity", options: ["collapse", "partial", "completed with structure"] },
+    {
+      setName: "Light Timer",
+      reps: 3,
+      observationBlock: [
+        { key: "startUnderTime", label: "Start", options: ["freeze", "delayed", "immediate"] },
+        { key: "structureUnderTime", label: "Structure", options: ["breaks", "partial", "maintained"] },
+        { key: "paceControl", label: "Pace", options: ["panic", "rushed", "controlled"] },
+        { key: "completionIntegrity", label: "Completion", options: ["fails", "partial", "complete"] },
+      ],
+    },
+    {
+      setName: "Consistency",
+      reps: 3,
+      observationBlock: [
+        { key: "completionIntegrity", label: "Consistency", options: ["collapses", "inconsistent", "stable"] },
+        { key: "startUnderTime", label: "Behavior", options: ["panic", "tension", "composed"] },
+        { key: "structureUnderTime", label: "Structure", options: ["breaks", "partial", "maintained"] },
+        { key: "paceControl", label: "Pace", options: ["rushed", "uneven", "controlled"] },
+      ],
+    },
+  ],
+};
+
+const TRAINING_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
+  Clarity: [
+    {
+      setName: "Modeling",
+      reps: 3,
+      observationBlock: [
+        { key: "vocabulary", label: "Vocabulary", options: ["cannot name", "partial", "clear"] },
+        { key: "method", label: "Method", options: ["cannot state steps", "partial", "clear"] },
+        { key: "reason", label: "Reason", options: ["no idea", "vague", "clear"] },
+        { key: "immediateApply", label: "Immediate Apply / Response", options: ["cannot repeat / avoids", "partial", "independent"] },
+      ],
+    },
+    {
+      setName: "Identification",
+      reps: 3,
+      observationBlock: [
+        { key: "vocabulary", label: "Vocabulary", options: ["cannot name", "partial", "clear"] },
+        { key: "method", label: "Method", options: ["cannot state steps", "partial", "clear"] },
+        { key: "reason", label: "Reason", options: ["no idea", "vague", "clear"] },
+        { key: "immediateApply", label: "Immediate Apply / Response", options: ["cannot repeat / avoids", "partial", "independent"] },
+      ],
+    },
+    {
+      setName: "Light Apply",
+      reps: 3,
+      observationBlock: [
+        { key: "vocabulary", label: "Vocabulary", options: ["cannot name", "partial", "clear"] },
+        { key: "method", label: "Method", options: ["cannot state steps", "partial", "clear"] },
+        { key: "reason", label: "Reason", options: ["no idea", "vague", "clear"] },
+        { key: "immediateApply", label: "Immediate Apply / Response", options: ["cannot repeat / avoids", "partial", "independent"] },
+      ],
+    },
+  ],
+  "Structured Execution": [
+    {
+      setName: "Forced Structure",
+      reps: 3,
+      observationBlock: [
+        { key: "startBehavior", label: "Start", options: ["delayed", "hesitant", "immediate"] },
+        { key: "stepExecution", label: "Step Discipline", options: ["skips", "partial", "full"] },
+        { key: "repeatability", label: "Correction Response", options: ["resists", "accepts", "adjusts"] },
+        { key: "independence", label: "Independence", options: ["needs help", "light support", "independent"] },
+      ],
+    },
+    {
+      setName: "Independent Execution",
+      reps: 3,
+      observationBlock: [
+        { key: "independence", label: "Independence", options: ["needs help", "light support", "independent"] },
+        { key: "repeatability", label: "Consistency", options: ["breaks", "inconsistent", "stable"] },
+        { key: "stepExecution", label: "Error Handling", options: ["guesses", "partial correction", "structured correction"] },
+        { key: "startBehavior", label: "Start", options: ["delayed", "hesitant", "immediate"] },
+      ],
+    },
+    {
+      setName: "Variation Control",
+      reps: 3,
+      observationBlock: [
+        { key: "stepExecution", label: "Transfer", options: ["cannot adapt", "partial", "adapts"] },
+        { key: "repeatability", label: "Step Retention", options: ["lost", "partial", "stable"] },
+        { key: "independence", label: "Completion", options: ["fails", "partial", "complete"] },
+        { key: "startBehavior", label: "Start", options: ["delayed", "hesitant", "immediate"] },
+      ],
+    },
+  ],
+  "Controlled Discomfort": [
+    {
+      setName: "Controlled Entry",
+      reps: 3,
+      observationBlock: [
+        { key: "initialResponse", label: "Start Control", options: ["freeze", "hesitant", "controlled"] },
+        { key: "firstStepControl", label: "First-Step Accuracy", options: ["wrong", "partial", "correct"] },
+        { key: "discomfortTolerance", label: "Stability", options: ["breaks", "unstable", "stable"] },
+        { key: "rescueDependence", label: "Rescue Behavior", options: ["frequent", "occasional", "none"] },
+      ],
+    },
+    {
+      setName: "No Rescue",
+      reps: 3,
+      observationBlock: [
+        { key: "rescueDependence", label: "Independence", options: ["dependent", "partial", "independent"] },
+        { key: "discomfortTolerance", label: "Stability", options: ["breaks", "unstable", "stable"] },
+        { key: "initialResponse", label: "Recovery", options: ["collapses", "partial", "recovers"] },
+        { key: "firstStepControl", label: "First-Step Control", options: ["none", "prompted", "independent"] },
+      ],
+    },
+    {
+      setName: "Repeat Exposure",
+      reps: 3,
+      observationBlock: [
+        { key: "discomfortTolerance", label: "Consistency", options: ["breaks", "inconsistent", "stable"] },
+        { key: "initialResponse", label: "Recovery", options: ["collapses", "partial", "recovers"] },
+        { key: "rescueDependence", label: "Rescue Behavior", options: ["frequent", "occasional", "none"] },
+        { key: "firstStepControl", label: "First-Step Control", options: ["none", "prompted", "independent"] },
+      ],
+    },
+  ],
+  "Time Pressure Stability": [
+    {
+      setName: "Structure Under Timer",
+      reps: 3,
+      observationBlock: [
+        { key: "startUnderTime", label: "Start", options: ["panic", "hesitant", "controlled"] },
+        { key: "structureUnderTime", label: "Structure", options: ["lost", "partial", "maintained"] },
+        { key: "paceControl", label: "Pace", options: ["rushed", "uneven", "controlled"] },
+        { key: "completionIntegrity", label: "Completion", options: ["fails", "partial", "complete"] },
+      ],
+    },
+    {
+      setName: "Repeated Timed Execution",
+      reps: 3,
+      observationBlock: [
+        { key: "completionIntegrity", label: "Consistency", options: ["breaks", "inconsistent", "stable"] },
+        { key: "paceControl", label: "Pace", options: ["rushed", "uneven", "controlled"] },
+        { key: "structureUnderTime", label: "Structure", options: ["lost", "partial", "maintained"] },
+        { key: "startUnderTime", label: "Start", options: ["panic", "hesitant", "controlled"] },
+      ],
+    },
+    {
+      setName: "Full Constraint",
+      reps: 3,
+      observationBlock: [
+        { key: "completionIntegrity", label: "Completion", options: ["fails", "partial", "complete"] },
+        { key: "structureUnderTime", label: "Integrity", options: ["collapses", "unstable", "stable"] },
+        { key: "paceControl", label: "Pace", options: ["rushed", "uneven", "controlled"] },
+        { key: "startUnderTime", label: "Start", options: ["panic", "hesitant", "controlled"] },
+      ],
+    },
   ],
 };
 
@@ -42,18 +239,7 @@ function normalizePhase(value: string | null): PhaseLabel {
 }
 
 function buildDrillStructure(mode: DrillMode, phase: PhaseLabel) {
-  const block = PHASE_OBSERVATION_BLOCKS[phase];
-  if (mode === "training") {
-    return [
-      { setName: "Set 1", reps: 3, observationBlock: block },
-      { setName: "Set 2", reps: 3, observationBlock: block },
-      { setName: "Set 3", reps: 3, observationBlock: block },
-    ];
-  }
-  return [
-    { setName: "Recognition Probe", reps: 3, observationBlock: block },
-    { setName: "Light Apply Probe", reps: 3, observationBlock: block },
-  ];
+  return mode === "training" ? TRAINING_SETS_BY_PHASE[phase] : DIAGNOSIS_SETS_BY_PHASE[phase];
 }
 
 export default function IntroSessionDrillRunner() {
@@ -105,15 +291,42 @@ export default function IntroSessionDrillRunner() {
   };
 
   const handleObservation = (field: string, value: string) => {
+    setSubmitError(null);
     setObservations((prev: any) => ({
       ...prev,
       [`set${currentSet}_rep${currentRep}_${field}`]: value,
     }));
   };
 
+  const getMissingFieldsForRep = (setIndex: number, repIndex: number) => {
+    const repSet = drillStructure[setIndex];
+    return repSet.observationBlock.filter(
+      (field) => !String(observations[`set${setIndex}_rep${repIndex}_${field.key}`] || "").trim()
+    );
+  };
+
+  const getFirstMissingRep = () => {
+    for (let setIndex = 0; setIndex < drillStructure.length; setIndex++) {
+      const repSet = drillStructure[setIndex];
+      for (let repIndex = 0; repIndex < repSet.reps; repIndex++) {
+        const missing = getMissingFieldsForRep(setIndex, repIndex);
+        if (missing.length > 0) {
+          return { setIndex, repIndex, label: missing[0].label };
+        }
+      }
+    }
+    return null;
+  };
+
   const handleNext = async () => {
     if (!hasIntroTopic) {
       setSubmitError("Diagnostic topic is required. Please return and set Add Diagnostic Topic first.");
+      return;
+    }
+
+    const missingCurrent = getMissingFieldsForRep(currentSet, currentRep);
+    if (missingCurrent.length > 0) {
+      setSubmitError(`Complete all observation toggles before continuing. Missing: ${missingCurrent.map((field) => field.label).join(", ")}.`);
       return;
     }
 
@@ -129,6 +342,17 @@ export default function IntroSessionDrillRunner() {
       setSubmitSuccess(false);
       setScoring(null);
       try {
+        const firstMissing = getFirstMissingRep();
+        if (firstMissing) {
+          setCurrentSet(firstMissing.setIndex);
+          setCurrentRep(firstMissing.repIndex);
+          setSubmitError(
+            `Set ${firstMissing.setIndex + 1}, Rep ${firstMissing.repIndex + 1} is incomplete. Missing: ${firstMissing.label}.`
+          );
+          setSubmitting(false);
+          return;
+        }
+
         const payload = {
           studentId,
           introTopic,

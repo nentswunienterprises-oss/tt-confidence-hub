@@ -75,18 +75,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return [];
           };
 
+          const validateDrillStructure = (
+            mode: "diagnosis" | "training",
+            phase: "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability",
+            sets: Array<{ setName: string; observations: Array<Record<string, string>> }>
+          ): string | null => {
+            const expectedSetCount = mode === "diagnosis" ? 2 : 3;
+            if (sets.length !== expectedSetCount) {
+              return `${mode} drill must include exactly ${expectedSetCount} sets`;
+            }
+
+            const phaseFields = INTRO_PHASE_WEIGHTS[phase] || [];
+            for (let setIndex = 0; setIndex < sets.length; setIndex += 1) {
+              const set = sets[setIndex];
+              const observations = Array.isArray(set?.observations) ? set.observations : [];
+              if (observations.length !== 3) {
+                return `Set ${setIndex + 1} must include exactly 3 reps`;
+              }
+
+              for (let repIndex = 0; repIndex < observations.length; repIndex += 1) {
+                const rep = observations[repIndex] || {};
+                for (const field of phaseFields) {
+                  const hasValue = field.aliases.some((alias) => String(rep?.[alias] || "").trim().length > 0);
+                  if (!hasValue) {
+                    return `Set ${setIndex + 1}, rep ${repIndex + 1} is missing required observation value`;
+                  }
+                }
+              }
+            }
+
+            return null;
+          };
+
           const observationLevelFor = (value: unknown): "weak" | "partial" | "clear" => {
             const v = String(value || "").toLowerCase().trim();
             if (!v) return "weak";
 
             if (
+              v.includes("freeze") ||
               v.includes("could not") ||
               v.includes("cannot") ||
               v.includes("no idea") ||
               v.includes("avoided") ||
               v.includes("avoid") ||
+              v.includes("random") ||
+              v.includes("guess") ||
               v.includes("guessed") ||
               v.includes("froze") ||
+              v.includes("wrong") ||
+              v.includes("fails") ||
+              v.includes("cannot finish") ||
+              v.includes("collapse") ||
+              v.includes("collapses") ||
+              v.includes("breaks") ||
+              v.includes("lost") ||
+              v.includes("panic") ||
               v.includes("abandoned") ||
               v.includes("panic-driven") ||
               v.includes("shutdown") ||
@@ -102,6 +145,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
               v.includes("independent") ||
               v.includes("immediate") ||
               v.includes("correct") ||
+              v.includes("engages") ||
+              v.includes("starts") ||
+              v.includes("present") ||
+              v.includes("structured") ||
+              v.includes("full") ||
+              v.includes("complete") ||
+              v.includes("adapts") ||
+              v.includes("stable") ||
+              v.includes("recovers") ||
+              v.includes("composed") ||
+              v.includes("no rescue") ||
               v.includes("maintained") ||
               v.includes("controlled") ||
               v.includes("completed with structure") ||
@@ -413,6 +467,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               if (!normalizedIntroTopic) {
                 return res.status(400).json({ message: "Diagnostic topic is required before intro drill submission" });
               }
+
+              const drillValidationError = validateDrillStructure("diagnosis", drillPhase, drillSets);
+              if (drillValidationError) {
+                return res.status(400).json({ message: drillValidationError });
+              }
+
               // Validate student ownership
               const student = await storage.getStudent(studentId);
               if (!student || student.tutorId !== tutorId) {
@@ -497,6 +557,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
               if (!normalizedTopic) {
                 return res.status(400).json({ message: "Training topic is required before training drill submission" });
+              }
+
+              const drillValidationError = validateDrillStructure("training", observedPhase, drillSets);
+              if (drillValidationError) {
+                return res.status(400).json({ message: drillValidationError });
               }
 
               const student = await storage.getStudent(studentId);
@@ -2306,13 +2371,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const deriveTrainingEntryPhase = (
     diagnosisPhase: TopicPhase,
-    stability: TopicStability,
+    _stability: TopicStability,
   ): TopicPhase => {
-    if (stability !== "High") return diagnosisPhase;
-    if (diagnosisPhase === "Clarity") return "Structured Execution";
-    if (diagnosisPhase === "Structured Execution") return "Controlled Discomfort";
-    if (diagnosisPhase === "Controlled Discomfort") return "Time Pressure Stability";
-    return "Time Pressure Stability";
+    // Core model source of truth: diagnosis classifies entry phase/stability only.
+    return diagnosisPhase;
   };
 
   const stabilityToScore = (stability: TopicStability) => (stability === "Low" ? 1 : stability === "Medium" ? 2 : 3);
