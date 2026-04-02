@@ -664,10 +664,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 ? topicsStore[normalizedTopic]
                 : {};
 
+              // Use explicit drill context first, then fall back to persisted topic state.
+              // This keeps scoring behavior aligned with the drill the tutor is actually running.
               const previousStability = normalizeStability(
-                existing?.stability || rawPreviousStability || "Low"
+                rawPreviousStability || existing?.stability || "Low"
               );
-              const effectivePhase = normalizePhase(existing?.phase || observedPhase);
+              const effectivePhase = normalizePhase(observedPhase || existing?.phase || "Structured Execution");
 
               const trainingSummary = computeTrainingSessionSummary(
                 effectivePhase,

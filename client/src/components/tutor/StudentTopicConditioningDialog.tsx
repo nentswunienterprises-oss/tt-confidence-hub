@@ -49,6 +49,8 @@ type TopicRow = {
   topic: string;
   phase: PhaseLabel;
   stability: StabilityLabel;
+  hasObservedState: boolean;
+  stateSource: "observed" | "seeded" | "activated";
   lastSession: string;
   trend: TopicTrend;
   entryDiagnosis: string;
@@ -444,6 +446,91 @@ function actionGuidanceFor(phase: PhaseLabel, stability: StabilityLabel): { doIt
   return { doItems: data.nextActions, avoidItems: data.rules };
 }
 
+function tutorPrepPlanFor(
+  phase: PhaseLabel,
+  stability: StabilityLabel,
+  hasObservedState: boolean,
+): {
+  sessionType: "Diagnosis" | "Training";
+  setPlans: Array<{ label: string; problems: number; difficulty: string }>;
+  prepNotes: string[];
+} {
+  if (!hasObservedState) {
+    return {
+      sessionType: "Diagnosis",
+      setPlans: [
+        { label: "Set 1: Recognition Probe", problems: 3, difficulty: "Foundational" },
+        { label: "Set 2: Light Apply Probe", problems: 3, difficulty: "Foundational" },
+      ],
+      prepNotes: [
+        "Prepare 6 total problems (2 sets x 3 reps).",
+        "Use foundational versions only; no time pressure.",
+        "Goal is classification, not progression teaching.",
+      ],
+    };
+  }
+
+  if (phase === "Clarity") {
+    const drillDifficulty = stability === "Low" ? "Foundational" : stability === "Medium" ? "Foundational to light transfer" : "Light transfer";
+    return {
+      sessionType: "Training",
+      setPlans: [
+        { label: "Set 1: Modeling", problems: 1, difficulty: "Tutor model only" },
+        { label: "Set 2: Identification", problems: 3, difficulty: drillDifficulty },
+        { label: "Set 3: Light Apply", problems: 3, difficulty: drillDifficulty },
+      ],
+      prepNotes: [
+        "Set 1 is teaching only; no scored observations.",
+        "Prepare 7 total problems (1 model + 6 drill reps).",
+        "No boss battles and no timed pressure in Clarity.",
+      ],
+    };
+  }
+
+  if (phase === "Structured Execution") {
+    return {
+      sessionType: "Training",
+      setPlans: [
+        { label: "Set 1", problems: 3, difficulty: "Base structure" },
+        { label: "Set 2", problems: 3, difficulty: "Base to moderate" },
+        { label: "Set 3", problems: 3, difficulty: "Moderate" },
+      ],
+      prepNotes: [
+        "Prepare 9 total problems (3 sets x 3 reps).",
+        "Focus on independent starts and full step sequence.",
+      ],
+    };
+  }
+
+  if (phase === "Controlled Discomfort") {
+    return {
+      sessionType: "Training",
+      setPlans: [
+        { label: "Set 1", problems: 3, difficulty: "Moderate with novelty" },
+        { label: "Set 2", problems: 3, difficulty: "Moderate to hard" },
+        { label: "Set 3", problems: 3, difficulty: "Hard (controlled)" },
+      ],
+      prepNotes: [
+        "Prepare 9 total problems with controlled challenge increase.",
+        "No rescue beyond first-step guidance.",
+      ],
+    };
+  }
+
+  return {
+    sessionType: "Training",
+    setPlans: [
+      { label: "Set 1", problems: 3, difficulty: "Timed-light" },
+      { label: "Set 2", problems: 3, difficulty: "Timed-moderate" },
+      { label: "Set 3", problems: 3, difficulty: "Timed-stability" },
+    ],
+    prepNotes: [
+      "Prepare 9 total timed problems.",
+      "Keep pressure controlled; preserve structure over speed.",
+    ],
+  };
+}
+
 function stabilityPercent(stability: StabilityLabel): number {
   if (stability === "High") return 90;
   if (stability === "Medium") return 64;
@@ -577,6 +664,7 @@ function buildTopics(
   byTopic.forEach((entry, topic) => {
     const history = entry.history;
     const latest = history[history.length - 1];
+    const hasObservedState = history.length > 0;
     const phase = latest?.phase || entry.seeded?.phase || "Structured Execution";
     const stability = latest?.stability || entry.seeded?.stability || "Low";
     const lastSessionDate = latest?.date;
@@ -598,6 +686,8 @@ function buildTopics(
       topic,
       phase,
       stability,
+      hasObservedState,
+      stateSource: hasObservedState ? "observed" : "seeded",
       lastSession: formatLastUpdatedLabel(lastSessionDate),
       trend: trendFromHistory(history.map((h) => h.stability)),
       entryDiagnosis:
@@ -769,6 +859,8 @@ export default function StudentTopicConditioningDialog({
             topic,
             phase: "Clarity",
             stability: "Low",
+            hasObservedState: false,
+            stateSource: "activated",
             lastSession: activatedAt ? formatLastUpdatedLabel(activatedAt) : "Activated",
             trend: "Stable",
             entryDiagnosis: "Activated by tutor.",
@@ -870,15 +962,20 @@ export default function StudentTopicConditioningDialog({
   ).length;
 
   const selectedRow = topics.find((row) => row.topic === selectedTopic) || prioritizedTopics[0];
-  const phaseIx = selectedRow ? phaseIndex(selectedRow.phase) : -1;
-  const guidance = selectedRow
+  const hasObservedSelection = !!selectedRow?.hasObservedState;
+  const phaseIx = selectedRow && hasObservedSelection ? phaseIndex(selectedRow.phase) : -1;
+  const guidance = selectedRow && hasObservedSelection
     ? actionGuidanceFor(selectedRow.phase, selectedRow.stability) : { doItems: [], avoidItems: [] };
   const effectiveTopicForLog = topics.length > 0
     ? activeTopicField || selectedRow?.topic || ""
     : sanitizeTopic(manualTopicField) || "";
 
-  const selectedInterpretation = selectedRow
+  const selectedInterpretation = selectedRow && hasObservedSelection
     ? interpretTopicState(selectedRow.phase, selectedRow.stability)
+    : null;
+
+  const prepPlan = selectedRow
+    ? tutorPrepPlanFor(selectedRow.phase, selectedRow.stability, hasObservedSelection)
     : null;
 
   // Always use selectedRow for observedPhase and previousStability, fallback to safe defaults
@@ -981,7 +1078,7 @@ export default function StudentTopicConditioningDialog({
                 <Badge variant="outline" className="w-full sm:w-fit max-w-full break-all">Student ID: {studentId || "-"}</Badge>
               </div>
               <p className="text-xs text-muted-foreground">
-                Select a topic to drive the Stability Tracker and Phase Progression panels below.
+                Select a topic to review observed state and next-session preparation. Activated topics stay Unknown until a scored drill/session is logged.
               </p>
 
               {topics.length === 0 ? (
@@ -1006,32 +1103,36 @@ export default function StudentTopicConditioningDialog({
                         <p className="text-base font-semibold break-words">{row.topic}</p>
 
                         <p className="text-sm font-semibold text-foreground">
-                          {row.phase} · {row.stability} Stability
+                          {row.hasObservedState ? `${row.phase} · ${row.stability} Stability` : "Observed State: Unknown"}
                         </p>
 
-                        <div className="flex flex-wrap gap-1.5">
-                          {PHASES.map((phase) => {
-                            const stepIndex = phaseIndex(phase);
-                            const currentIndex = phaseIndex(row.phase);
-                            const done = stepIndex < currentIndex;
-                            const active = stepIndex === currentIndex;
-                            const label = done ? `✓ ${phase}` : active ? `ACTIVE ${phase}` : `Locked ${phase}`;
-                            return (
-                              <span
-                                key={`${row.topic}-${phase}`}
-                                className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-[0.06em] ${
-                                  done
-                                    ? "border-muted text-foreground/60 bg-muted/40"
-                                    : active
-                                    ? "border-primary/30 bg-primary/10 text-foreground"
-                                    : "border-muted text-muted-foreground bg-muted/20"
-                                }`}
-                              >
-                                {label}
-                              </span>
-                            );
-                          })}
-                        </div>
+                        {row.hasObservedState ? (
+                          <div className="flex flex-wrap gap-1.5">
+                            {PHASES.map((phase) => {
+                              const stepIndex = phaseIndex(phase);
+                              const currentIndex = phaseIndex(row.phase);
+                              const done = stepIndex < currentIndex;
+                              const active = stepIndex === currentIndex;
+                              const label = done ? `✓ ${phase}` : active ? `ACTIVE ${phase}` : `Locked ${phase}`;
+                              return (
+                                <span
+                                  key={`${row.topic}-${phase}`}
+                                  className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-[0.06em] ${
+                                    done
+                                      ? "border-muted text-foreground/60 bg-muted/40"
+                                      : active
+                                      ? "border-primary/30 bg-primary/10 text-foreground"
+                                      : "border-muted text-muted-foreground bg-muted/20"
+                                  }`}
+                                >
+                                  {label}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-muted-foreground">No observed phase progression yet. Run diagnosis/training to establish first state.</p>
+                        )}
 
                         <div className="space-y-1">
                           <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">State Progression Timeline</p>
@@ -1052,33 +1153,38 @@ export default function StudentTopicConditioningDialog({
                         </div>
 
                         <p className="text-sm text-muted-foreground">
-                          <span className="font-medium text-foreground">Tutor Meaning:</span> {topicIntel.tutorMeaning}
+                          <span className="font-medium text-foreground">Tutor Meaning:</span> {row.hasObservedState ? topicIntel.tutorMeaning : "Topic is active but not yet observed in a scored drill/session."}
                         </p>
 
                         <p className="text-sm text-foreground font-medium">
-                          Next Move: {topicIntel.nextAction}
+                          Next Move: {row.hasObservedState ? topicIntel.nextAction : "Run diagnosis or first scored training drill"}
                         </p>
 
                         <p className="text-sm text-muted-foreground">
-                          Constraint: {topicIntel.rules[0] || "Follow phase constraints"}
+                          Constraint: {row.hasObservedState ? (topicIntel.rules[0] || "Follow phase constraints") : "Do not assume phase or stability before first observed state."}
                         </p>
 
                         <div className="flex flex-wrap items-center gap-2">
                           <Badge variant="outline" className="border-primary/20 bg-muted/20 text-foreground">
-                            {topicIntel.transitionStatus}
+                            {row.hasObservedState ? topicIntel.transitionStatus : "Awaiting Observation"}
                           </Badge>
-                          <Badge className={stabilityTone(row.stability)}>
-                            <span
-                              className={`inline-block w-2 h-2 rounded-full mr-1.5 ${
-                                row.stability === "High"
-                                  ? "bg-green-500"
-                                  : row.stability === "Medium"
-                                  ? "bg-amber-500"
-                                  : "bg-red-400"
-                              }`}
-                            />
-                            {row.stability}
+                          <Badge variant="outline" className="border-primary/20 bg-muted/20 text-foreground">
+                            {row.stateSource === "activated" ? "Activated" : row.stateSource === "seeded" ? "Seeded" : "Observed"}
                           </Badge>
+                          {row.hasObservedState && (
+                            <Badge className={stabilityTone(row.stability)}>
+                              <span
+                                className={`inline-block w-2 h-2 rounded-full mr-1.5 ${
+                                  row.stability === "High"
+                                    ? "bg-green-500"
+                                    : row.stability === "Medium"
+                                    ? "bg-amber-500"
+                                    : "bg-red-400"
+                                }`}
+                              />
+                              {row.stability}
+                            </Badge>
+                          )}
                         </div>
                       </button>
                     );
@@ -1139,31 +1245,37 @@ export default function StudentTopicConditioningDialog({
               <Card className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 md:p-5 shadow-sm space-y-4">
                 <h3 className="font-semibold">Phase Progression</h3>
                 <p className="text-sm text-muted-foreground">Clarity to Structured Execution to Controlled Discomfort to Time Pressure Stability</p>
-                <div className="flex flex-wrap gap-2">
-                  {PHASES.map((phase, idx) => {
-                    const state = idx < phaseIx ? "completed" : idx === phaseIx ? "current" : "locked";
-                    return (
-                      <Badge
-                        key={phase}
-                        variant="outline"
-                        className={
-                          state === "completed"
-                            ? "bg-muted/60 border-muted text-foreground/50 text-[11px] sm:text-xs whitespace-normal"
-                            : state === "current"
-                            ? "bg-primary/10 border-primary/30 text-foreground font-medium text-[11px] sm:text-xs whitespace-normal"
-                            : "bg-muted/30 border-muted text-muted-foreground text-[11px] sm:text-xs whitespace-normal"
-                        }
-                      >
-                        {phase}
-                      </Badge>
-                    );
-                  })}
-                </div>
+                {hasObservedSelection ? (
+                  <div className="flex flex-wrap gap-2">
+                    {PHASES.map((phase, idx) => {
+                      const state = idx < phaseIx ? "completed" : idx === phaseIx ? "current" : "locked";
+                      return (
+                        <Badge
+                          key={phase}
+                          variant="outline"
+                          className={
+                            state === "completed"
+                              ? "bg-muted/60 border-muted text-foreground/50 text-[11px] sm:text-xs whitespace-normal"
+                              : state === "current"
+                              ? "bg-primary/10 border-primary/30 text-foreground font-medium text-[11px] sm:text-xs whitespace-normal"
+                              : "bg-muted/30 border-muted text-muted-foreground text-[11px] sm:text-xs whitespace-normal"
+                          }
+                        >
+                          {phase}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
+                    Observed phase is Unknown for this topic. Progression tracking unlocks after first scored observation.
+                  </div>
+                )}
 
                 <div className="rounded-md border bg-muted/40 p-3 space-y-2">
                   <p className="text-sm font-medium">Recommended movement</p>
                   <p className="text-sm text-muted-foreground">
-                    System recommendation: {selectedRow ? nextMoveRecommendation(selectedRow.phase, selectedRow.stability) : "No active topic yet"}
+                    System recommendation: {selectedRow ? (hasObservedSelection ? nextMoveRecommendation(selectedRow.phase, selectedRow.stability) : "No recommendation until observed state exists") : "No active topic yet"}
                   </p>
                   <p className="text-xs text-muted-foreground">Tutor approval is required before movement between phases.</p>
                 </div>
@@ -1172,25 +1284,31 @@ export default function StudentTopicConditioningDialog({
                   <p className="text-sm font-medium">NEXT ACTION</p>
                   {selectedRow ? (
                     <>
-                      <ul className="text-sm text-muted-foreground space-y-1">
-                        {getNextActionData(selectedRow.phase, selectedRow.stability).nextActions.map((a) => (
-                          <li key={a} className="flex items-start gap-1.5">
-                            <span className="mt-0.5 shrink-0 text-foreground/40">›</span>
-                            <span>{a}</span>
-                          </li>
-                        ))}
-                      </ul>
-                      <div>
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Rules</p>
-                        <ul className="text-xs text-muted-foreground space-y-0.5">
-                          {getNextActionData(selectedRow.phase, selectedRow.stability).rules.map((r) => (
-                            <li key={r} className="flex items-start gap-1.5">
-                              <span className="shrink-0 text-foreground/40">—</span>
-                              <span>{r}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                      {hasObservedSelection ? (
+                        <>
+                          <ul className="text-sm text-muted-foreground space-y-1">
+                            {getNextActionData(selectedRow.phase, selectedRow.stability).nextActions.map((a) => (
+                              <li key={a} className="flex items-start gap-1.5">
+                                <span className="mt-0.5 shrink-0 text-foreground/40">›</span>
+                                <span>{a}</span>
+                              </li>
+                            ))}
+                          </ul>
+                          <div>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Rules</p>
+                            <ul className="text-xs text-muted-foreground space-y-0.5">
+                              {getNextActionData(selectedRow.phase, selectedRow.stability).rules.map((r) => (
+                                <li key={r} className="flex items-start gap-1.5">
+                                  <span className="shrink-0 text-foreground/40">—</span>
+                                  <span>{r}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">Run a diagnosis or first scored training drill to generate deterministic next actions.</p>
+                      )}
                     </>
                   ) : (
                     <p className="text-sm text-muted-foreground">Select a topic to see engine output.</p>
@@ -1238,45 +1356,43 @@ export default function StudentTopicConditioningDialog({
                 <div className="grid lg:grid-cols-2 gap-4">
                   <div className="space-y-2 text-sm">
                     <p><span className="font-medium">Topic Name:</span> {selectedRow.topic}</p>
-                    <p><span className="font-medium">Current Phase:</span> {selectedRow.phase}</p>
-                    <p><span className="font-medium">Current Stability:</span> {selectedRow.stability}</p>
+                    <p><span className="font-medium">Current Phase:</span> {hasObservedSelection ? selectedRow.phase : "Unknown"}</p>
+                    <p><span className="font-medium">Current Stability:</span> {hasObservedSelection ? selectedRow.stability : "Unknown"}</p>
                     <p><span className="font-medium">Trend:</span> {selectedRow.trend}</p>
-                    <p><span className="font-medium">Transition Status:</span> {selectedInterpretation?.transitionStatus || "Reinforce"}</p>
-                    <p><span className="font-medium">Tutor Meaning:</span> {selectedInterpretation?.tutorMeaning}</p>
-                    <p><span className="font-medium">Parent Meaning:</span> {selectedInterpretation?.parentMeaning}</p>
-                    <p><span className="font-medium">Direction:</span> {selectedInterpretation?.direction}</p>
-                    <p><span className="font-medium">Constraint:</span> {selectedInterpretation?.rules[0] || "Follow phase constraints"}</p>
+                    <p><span className="font-medium">Transition Status:</span> {selectedInterpretation?.transitionStatus || "Awaiting Observation"}</p>
+                    <p><span className="font-medium">Tutor Meaning:</span> {selectedInterpretation?.tutorMeaning || "Topic is active but not yet observed."}</p>
+                    <p><span className="font-medium">Parent Meaning:</span> {selectedInterpretation?.parentMeaning || "Observed state will appear after first scored drill/session."}</p>
+                    <p><span className="font-medium">Direction:</span> {selectedInterpretation?.direction || "Run diagnosis first"}</p>
+                    <p><span className="font-medium">Constraint:</span> {selectedInterpretation?.rules[0] || "Do not infer phase movement without observations."}</p>
                     <p><span className="font-medium">Entry Diagnosis:</span> {selectedRow.entryDiagnosis}</p>
                   </div>
-                  <div className="rounded-md border border-primary/30 bg-primary/5 p-3 space-y-2">
-                    <p className="text-sm font-medium">Next Tutor Move</p>
-                    <ul className="text-sm text-muted-foreground space-y-1">
-                      {getNextActionData(selectedRow.phase, selectedRow.stability).nextActions.map((a) => (
-                        <li key={a} className="flex items-start gap-1.5">
-                          <span className="mt-0.5 shrink-0 text-foreground/40">›</span>
-                          <span>{a}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    {getNextActionData(selectedRow.phase, selectedRow.stability).advanceTo && (
-                      <p className="text-xs font-medium text-primary">
-                        Advance condition met - recommend move to {getNextActionData(selectedRow.phase, selectedRow.stability).advanceTo}
-                      </p>
+                  <div className="rounded-md border border-primary/30 bg-primary/5 p-3 space-y-3">
+                    <p className="text-sm font-medium">Tutor Prep For Next Session</p>
+                    {prepPlan && (
+                      <>
+                        <p className="text-xs text-muted-foreground">Session type: {prepPlan.sessionType}</p>
+                        <div className="space-y-1.5">
+                          {prepPlan.setPlans.map((setPlan) => (
+                            <div key={`${selectedRow.topic}-${setPlan.label}`} className="rounded border border-primary/20 bg-background/70 px-2 py-1.5 text-xs">
+                              <p className="font-medium text-foreground">{setPlan.label}</p>
+                              <p className="text-muted-foreground">Problems: {setPlan.problems}</p>
+                              <p className="text-muted-foreground">Difficulty: {setPlan.difficulty}</p>
+                            </div>
+                          ))}
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Prep Rules</p>
+                          <ul className="text-xs text-muted-foreground space-y-0.5">
+                            {prepPlan.prepNotes.map((note) => (
+                              <li key={note} className="flex items-start gap-1.5">
+                                <span className="shrink-0 text-foreground/40">—</span>
+                                <span>{note}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </>
                     )}
-                    <p className="text-xs text-muted-foreground border-t pt-2">Tutor approves all phase movement. System flags - tutor decides.</p>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setActiveTopicField(selectedRow.topic);
-                        setPhaseObservedField(selectedRow.phase);
-                        setStabilityObservedField(selectedRow.stability);
-                        setActiveTab("session-form");
-                      }}
-                    >
-                      Log update for this topic
-                    </Button>
                   </div>
                 </div>
 
