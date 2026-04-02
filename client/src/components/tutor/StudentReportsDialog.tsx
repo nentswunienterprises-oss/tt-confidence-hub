@@ -21,6 +21,26 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, FileText } from "lucide-react";
 
+function getSessionDayLabel(value: string): string {
+  const sessionDate = new Date(value);
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfSessionDay = new Date(
+    sessionDate.getFullYear(),
+    sessionDate.getMonth(),
+    sessionDate.getDate()
+  );
+  const diffMs = startOfToday.getTime() - startOfSessionDay.getTime();
+  const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays >= 2 && diffDays <= 4) {
+    return sessionDate.toLocaleDateString("en-US", { weekday: "long" });
+  }
+  return format(sessionDate, "MMM d, yyyy");
+}
+
 interface SessionRecord {
   id: string;
   date: string;
@@ -213,8 +233,7 @@ export default function StudentReportsDialog({
                           <AccordionTrigger className="text-left">
                             <div className="flex flex-col gap-1 min-w-0">
                               <div className="flex flex-wrap items-center gap-2">
-                                <span className="font-medium">{format(new Date(session.date), "MMM d, yyyy")}</span>
-                                <Badge variant="secondary">{session.duration} min</Badge>
+                                <span className="font-medium">{getSessionDayLabel(session.date)}</span>
                               </div>
                               {getSessionPreview(session) && (
                                 <p className="text-sm text-muted-foreground line-clamp-2 pr-4">{getSessionPreview(session)}</p>
