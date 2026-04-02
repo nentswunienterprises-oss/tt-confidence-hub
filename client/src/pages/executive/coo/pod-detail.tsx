@@ -508,11 +508,6 @@ export default function PodDetail() {
                                 certificationStatus={assignment.certification_status || "pending"}
                                 studentCount={assignment.student_count || 0}
                                 getCertificationColor={getCertificationColor}
-                                onViewIdentitySheet={(studentId, studentName) => {
-                                  setSelectedStudentId(studentId);
-                                  setSelectedStudentName(studentName);
-                                  setIdentitySheetOpen(true);
-                                }}
                                 onViewTrackingSystems={(studentId, studentName) => {
                                   setSelectedStudentId(studentId);
                                   setSelectedStudentName(studentName);
@@ -523,11 +518,6 @@ export default function PodDetail() {
                                   setSelectedStudentName(student.name);
                                   setSelectedStudentRecord(student);
                                   setTopicConditioningDialogOpen(true);
-                                }}
-                                onViewAssignments={(studentId, studentName) => {
-                                  setSelectedStudentId(studentId);
-                                  setSelectedStudentName(studentName);
-                                  setAssignmentsDialogOpen(true);
                                 }}
                               />
                             )}
@@ -690,10 +680,8 @@ interface TutorStudentsSectionProps {
   certificationStatus: string;
   studentCount: number;
   getCertificationColor: (status: string) => string;
-  onViewIdentitySheet: (studentId: string, studentName: string) => void;
   onViewTrackingSystems: (studentId: string, studentName: string) => void;
   onViewTopicConditioning: (student: any) => void;
-  onViewAssignments: (studentId: string, studentName: string) => void;
 }
 
 function TutorStudentsSection({
@@ -702,10 +690,8 @@ function TutorStudentsSection({
   certificationStatus,
   studentCount,
   getCertificationColor,
-  onViewIdentitySheet,
   onViewTrackingSystems,
   onViewTopicConditioning,
-  onViewAssignments,
 }: TutorStudentsSectionProps) {
   const { data: students, isLoading } = useQuery<any[]>({
     queryKey: [`/api/coo/tutors/${tutorId}/students`],
@@ -772,7 +758,7 @@ function TutorStudentsSection({
                       </div>
                       {student.sessionProgress !== undefined && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          Sessions: {student.sessionProgress || 0}/16
+                          Sessions this cycle: {((student.sessionProgress || 0) % 8) || (student.sessionProgress % 8 === 0 && student.sessionProgress > 0 ? 8 : 0)}/8
                         </p>
                       )}
                     </div>
@@ -780,15 +766,6 @@ function TutorStudentsSection({
 
                   {/* Action Buttons */}
                   <div className="flex flex-wrap gap-2 mt-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs h-7"
-                      onClick={() => onViewIdentitySheet(student.id, student.name)}
-                    >
-                      <FileText className="w-3 h-3 mr-1.5" />
-                      Identity Sheet
-                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
@@ -806,15 +783,6 @@ function TutorStudentsSection({
                     >
                       <Calendar className="w-3 h-3 mr-1.5" />
                       View Tracking Systems
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs h-7"
-                      onClick={() => onViewAssignments(student.id, student.name)}
-                    >
-                      <FileText className="w-3 h-3 mr-1.5" />
-                      Assignments
                     </Button>
                   </div>
                 </div>
