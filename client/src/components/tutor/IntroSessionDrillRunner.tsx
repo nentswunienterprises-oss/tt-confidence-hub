@@ -706,30 +706,48 @@ export default function IntroSessionDrillRunner() {
             </div>
 
             {/* Direction card */}
-            <div className="border rounded overflow-hidden">
-              <div className="bg-muted px-4 py-2">
-                <span className="font-semibold text-sm">System Direction</span>
-              </div>
-              <div className="px-4 py-3 space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Phase</span>
-                  <span className="font-medium">{lastRow?.phase}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Stability</span>
-                  <span className={`font-bold ${stabilityColor}`}>{lastRow?.stability}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Next Move</span>
-                  <span className={`font-semibold ${decisionColor}`}>{lastRow?.nextAction}</span>
-                </div>
-                {lastRow?.constraint && (
-                  <div className="mt-2 pt-2 border-t text-xs text-muted-foreground">
-                    Constraint: {lastRow.constraint}
+            {(() => {
+              const prevStab = drillMode === "training" ? previousStability : null;
+              const newStab = lastRow?.stability;
+              const newPhase = lastRow?.phase;
+              const phaseChanged = newPhase && phase && newPhase !== phase;
+              const stabilityChanged = prevStab && newStab && newStab !== prevStab;
+              const sessionResultLabel = phaseChanged
+                ? `Phase advanced to ${newPhase} at ${newStab} stability`
+                : stabilityChanged
+                ? `Stability updated: ${prevStab} → ${newStab} within ${phase}`
+                : `Stability held at ${newStab} within ${phase}`;
+              return (
+                <div className="border rounded overflow-hidden">
+                  <div className="bg-muted px-4 py-2">
+                    <span className="font-semibold text-sm">System Direction</span>
                   </div>
-                )}
-              </div>
-            </div>
+                  <div className="px-4 py-3 space-y-3 text-sm">
+                    <div>
+                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">This Session Result</p>
+                      <p className={`font-semibold ${stabilityColor}`}>{sessionResultLabel}</p>
+                    </div>
+                    <div className="flex justify-between items-center pt-1 border-t">
+                      <span className="text-muted-foreground">Phase</span>
+                      <span className="font-medium">{newPhase}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Stability</span>
+                      <span className={`font-bold ${stabilityColor}`}>{newStab}</span>
+                    </div>
+                    <div className="pt-2 border-t">
+                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Tutor Action — Next Session</p>
+                      <p className="font-semibold text-blue-700">{lastRow?.nextAction}</p>
+                    </div>
+                    {lastRow?.constraint && (
+                      <div className="mt-1 pt-2 border-t text-xs text-muted-foreground">
+                        Constraint: {lastRow.constraint}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         );
       })()}

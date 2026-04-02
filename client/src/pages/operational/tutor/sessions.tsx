@@ -566,21 +566,24 @@ export default function TutorSessions() {
                                 </p>
                               </div>
                             </AccordionTrigger>
-                            <AccordionContent className="space-y-3 text-sm">
-                              <p><span className="font-medium">Session Notes:</span> {session.notes || "Not recorded"}</p>
-                              <p><span className="font-medium">Solution Implemented:</span> {(session as any).solutionPurpose || "Not recorded"}</p>
-                              <p><span className="font-medium">Vocabulary Notes:</span> {session.vocabularyNotes || "Not recorded"}</p>
-                              <p><span className="font-medium">Method Notes:</span> {session.methodNotes || "Not recorded"}</p>
-                              <p><span className="font-medium">Reason Notes:</span> {session.reasonNotes || "Not recorded"}</p>
-                              <p><span className="font-medium">Student Response Tags:</span> {(session as any).studentResponseTags || session.studentResponse || "Not recorded"}</p>
-                              <p><span className="font-medium">Student Response Notes:</span> {session.studentResponse || "Not recorded"}</p>
-                              <p><span className="font-medium">What was misunderstood?</span> {(session as any).whatMisunderstood || "Not recorded"}</p>
-                              <p><span className="font-medium">What correction helped?</span> {(session as any).correctionHelped || "Not recorded"}</p>
-                              <p><span className="font-medium">What needs reinforcement?</span> {(session as any).needsReinforcement || "Not recorded"}</p>
-                              <p><span className="font-medium">Boss Battle Type:</span> {(session as any).bossBattleType || session.bossBattlesDone || "Not recorded"}</p>
-                              <p><span className="font-medium">Boss Battle Outcome:</span> {(session as any).bossBattleOutcome || "Not recorded"}</p>
-                              <p><span className="font-medium">Boss Battle Notes:</span> {session.bossBattlesDone || "Not recorded"}</p>
-                              <p><span className="font-medium">Practice assigned:</span> {session.practiceProblems || "Not recorded"}</p>
+                            <AccordionContent className="space-y-2 text-sm">
+                              {[
+                                { label: "Session Summary", value: session.notes },
+                                { label: "Vocabulary Notes", value: session.vocabularyNotes },
+                                { label: "Method Notes", value: session.methodNotes },
+                                { label: "Reason Notes", value: session.reasonNotes },
+                                { label: "Student Response", value: session.studentResponse },
+                                { label: "Boss Battle", value: session.bossBattlesDone },
+                                { label: "Practice Assigned", value: session.practiceProblems },
+                                { label: "What Was Misunderstood", value: (session as any).whatMisunderstood },
+                                { label: "What Correction Helped", value: (session as any).correctionHelped },
+                                { label: "What Needs Reinforcement", value: (session as any).needsReinforcement },
+                              ]
+                                .filter((f) => !!f.value && String(f.value).trim().length > 0)
+                                .map((f) => (
+                                  <p key={f.label}><span className="font-medium">{f.label}:</span> {f.value}</p>
+                                ))
+                              }
                             </AccordionContent>
                           </AccordionItem>
                         ))}

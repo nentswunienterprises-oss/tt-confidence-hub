@@ -415,11 +415,27 @@ function interpretTopicState(phase: PhaseLabel, stability: StabilityLabel, trend
   const nextAction = nextActionFor(phase, stability);
   const rules = getNextActionData(phase, stability).rules;
 
-  const tutorMeaningByPhase: Record<PhaseLabel, string> = {
-    Clarity: "Student still needs foundational clarity before independent execution.",
-    "Structured Execution": "Student can begin but still needs consistency without tutor carry.",
-    "Controlled Discomfort": "Student executes, but destabilizes when challenge spikes.",
-    "Time Pressure Stability": "Student can solve, but urgency still tests structure retention.",
+  const tutorMeaningByPhase: Record<PhaseLabel, Record<StabilityLabel, string>> = {
+    Clarity: {
+      Low: "Student still needs foundational clarity before independent execution.",
+      Medium: "Student grasps concepts but needs more practice for consistency.",
+      High: "Student has clear understanding and is ready for structured execution practice.",
+    },
+    "Structured Execution": {
+      Low: "Student can follow steps but needs consistency and independence building.",
+      Medium: "Student executes steps mostly independently but struggles with consistency.",
+      High: "Student executes steps independently and is ready to build resilience under difficulty.",
+    },
+    "Controlled Discomfort": {
+      Low: "Student struggles under difficulty but is building stability.",
+      Medium: "Student handles difficulty with improving stability and consistency.",
+      High: "Student handles difficulty with stability and is ready for time-pressure training.",
+    },
+    "Time Pressure Stability": {
+      Low: "Student needs to maintain structure and speed consistency under time.",
+      Medium: "Student handles time pressure mostly but needs refinement.",
+      High: "Student is stable under time pressure and maintains execution quality.",
+    },
   };
 
   // Use 'Their child...' phrasing for parent UI (Map view)
@@ -436,7 +452,7 @@ function interpretTopicState(phase: PhaseLabel, stability: StabilityLabel, trend
     nextAction,
     rules,
     transitionStatus,
-    tutorMeaning: tutorMeaningByPhase[phase],
+    tutorMeaning: tutorMeaningByPhase[phase][stability],
     parentMeaning: parentMeaningByPhase[phase],
     direction: `${nextAction}`,
   };
