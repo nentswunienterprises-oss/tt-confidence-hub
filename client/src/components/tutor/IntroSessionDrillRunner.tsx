@@ -625,9 +625,22 @@ export default function IntroSessionDrillRunner() {
         // Invalidate relevant caches so updated status/stage/state appear immediately
         const queryClient = (window as any).__queryClient;
         if (queryClient) {
-          await queryClient.invalidateQueries({ queryKey: ["tutor", "gateway"] });
-          await queryClient.invalidateQueries({ queryKey: ["student", studentId] });
-          await queryClient.invalidateQueries({ queryKey: ["reports"] });
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ["/api/tutor/pod"] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/tutor/sessions"] }),
+            queryClient.invalidateQueries({ queryKey: [`/api/tutor/students/${studentId}/reports-center`] }),
+            queryClient.invalidateQueries({ queryKey: [`/api/tutor/students/${studentId}/assignments`] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/parent/reports"] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/parent/dashboard-student"] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/parent/dashboard-topic-states"] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/parent/assigned-tutor"] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/parent/intro-session"] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/parent/proposal"] }),
+          ]);
+          await Promise.all([
+            queryClient.refetchQueries({ queryKey: ["/api/tutor/pod"] }),
+            queryClient.refetchQueries({ queryKey: [`/api/tutor/students/${studentId}/reports-center`] }),
+          ]);
         }
         
         setSubmitSuccess(true);

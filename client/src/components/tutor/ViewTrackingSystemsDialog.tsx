@@ -1,4 +1,4 @@
-﻿import { useMemo } from "react";
+﻿import { useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
 import {
@@ -37,6 +37,16 @@ interface SessionRecord {
   id: string;
   date: string;
   duration: number;
+  deterministicLog?: {
+    topicFocus: string;
+    whatWasTrained: string;
+    behaviorSummary: string;
+    performanceResult: string;
+    stateMovement: string;
+    whatThisMeans: string;
+    nextMove: string;
+    summaryText: string;
+  } | null;
   notes?: string | null;
   vocabularyNotes?: string | null;
   methodNotes?: string | null;
@@ -99,11 +109,22 @@ export default function ViewTrackingSystemsDialog({
   studentId,
   studentName,
 }: ViewTrackingSystemsDialogProps) {
-  const { data: reportsCenter, isLoading: reportsLoading } = useQuery<ReportsCenterData>({
+  const { data: reportsCenter, isLoading: reportsLoading, refetch: refetchReports } = useQuery<ReportsCenterData>({
     queryKey: [`/api/tutor/students/${studentId}/reports-center`],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: open && !!studentId,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
+
+  useEffect(() => {
+    if (open && studentId) {
+      void refetchReports();
+    }
+  }, [open, studentId, refetchReports]);
 
   const { data: assignments, isLoading: assignmentsLoading } = useQuery<Assignment[]>({
     queryKey: [`/api/tutor/students/${studentId}/assignments`],
@@ -173,23 +194,37 @@ export default function ViewTrackingSystemsDialog({
                                 <span className="font-medium">{formatDate(session.date, true)}</span>
                                 <Badge variant="secondary">{session.duration} min</Badge>
                               </div>
-                              {session.notes && (
-                                <p className="text-sm text-muted-foreground line-clamp-2 pr-4">{session.notes}</p>
+                              {(session.deterministicLog?.summaryText || session.notes) && (
+                                <p className="text-sm text-muted-foreground line-clamp-2 pr-4">{session.deterministicLog?.summaryText || session.notes}</p>
                               )}
                             </div>
                           </AccordionTrigger>
                           <AccordionContent className="space-y-3">
-                            <FieldRow label="Session Notes" value={session.notes} />
-                            <FieldRow label="Solution Implemented" value={session.solutionPurpose} />
-                            <FieldRow label="Vocabulary Notes" value={session.vocabularyNotes} />
-                            <FieldRow label="Method Notes" value={session.methodNotes} />
-                            <FieldRow label="Reason Notes" value={session.reasonNotes} />
-                            <FieldRow label="Student Response" value={session.studentResponse} />
-                            <FieldRow label="What was misunderstood?" value={session.whatMisunderstood} />
-                            <FieldRow label="What correction helped?" value={session.correctionHelped} />
-                            <FieldRow label="What needs reinforcement?" value={session.needsReinforcement} />
-                            <FieldRow label="Boss Battle" value={session.bossBattlesDone} />
-                            <FieldRow label="Practice assigned" value={session.practiceProblems} />
+                            {session.deterministicLog ? (
+                              <div className="space-y-3 rounded-xl border border-primary/15 bg-background p-4">
+                                <FieldRow label="Topic + Focus" value={session.deterministicLog.topicFocus} />
+                                <FieldRow label="What Was Trained" value={session.deterministicLog.whatWasTrained} />
+                                <FieldRow label="What Happened" value={session.deterministicLog.behaviorSummary} />
+                                <FieldRow label="Performance Result" value={session.deterministicLog.performanceResult} />
+                                <FieldRow label="State Movement" value={session.deterministicLog.stateMovement} />
+                                <FieldRow label="What This Means" value={session.deterministicLog.whatThisMeans} />
+                                <FieldRow label="Next Move" value={session.deterministicLog.nextMove} />
+                              </div>
+                            ) : (
+                              <>
+                                <FieldRow label="Session Notes" value={session.notes} />
+                                <FieldRow label="Solution Implemented" value={session.solutionPurpose} />
+                                <FieldRow label="Vocabulary Notes" value={session.vocabularyNotes} />
+                                <FieldRow label="Method Notes" value={session.methodNotes} />
+                                <FieldRow label="Reason Notes" value={session.reasonNotes} />
+                                <FieldRow label="Student Response" value={session.studentResponse} />
+                                <FieldRow label="What was misunderstood?" value={session.whatMisunderstood} />
+                                <FieldRow label="What correction helped?" value={session.correctionHelped} />
+                                <FieldRow label="What needs reinforcement?" value={session.needsReinforcement} />
+                                <FieldRow label="Boss Battle" value={session.bossBattlesDone} />
+                                <FieldRow label="Practice assigned" value={session.practiceProblems} />
+                              </>
+                            )}
                           </AccordionContent>
                         </AccordionItem>
                       ))}

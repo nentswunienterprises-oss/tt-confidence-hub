@@ -27,6 +27,21 @@ interface SessionRecord {
   duration: number;
   autoSummary?: string | null;
   autoSummaryTopic?: string | null;
+  deterministicLog?: {
+    topicFocus: string;
+    whatWasTrained: string;
+    behaviorSummary: string;
+    performanceResult: string;
+    stateMovement: string;
+    whatThisMeans: string;
+    nextMove: string;
+    summaryText: string;
+    drillLabel?: string | null;
+    score?: number | null;
+    stability?: string | null;
+    constraint?: string | null;
+    practiceAssigned?: string | null;
+  } | null;
   notes?: string | null;
   vocabularyNotes?: string | null;
   methodNotes?: string | null;
@@ -71,6 +86,42 @@ function FieldRow({ label, value }: { label: string; value?: string | null }) {
     <div className="grid grid-cols-1 md:grid-cols-[210px_1fr] gap-2 md:gap-3 text-sm">
       <p className="font-medium text-foreground">{label}</p>
       <p className="text-muted-foreground whitespace-pre-wrap">{value.trim()}</p>
+    </div>
+  );
+}
+
+function DeterministicSessionLog({ session }: { session: SessionRecord }) {
+  const log = session.deterministicLog;
+  if (!log) return null;
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Card className="rounded-xl border border-primary/15 bg-muted/20 p-3 shadow-none">
+          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Drill</p>
+          <p className="mt-1 font-medium">{log.drillLabel || "Session Drill"}</p>
+        </Card>
+        <Card className="rounded-xl border border-primary/15 bg-muted/20 p-3 shadow-none">
+          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Session Score</p>
+          <p className="mt-1 font-medium">{typeof log.score === "number" ? `${log.score}/100` : "Not scored"}</p>
+        </Card>
+        <Card className="rounded-xl border border-primary/15 bg-muted/20 p-3 shadow-none">
+          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">State</p>
+          <p className="mt-1 font-medium">{log.stability || "Unknown"}</p>
+        </Card>
+      </div>
+
+      <div className="space-y-3 rounded-xl border border-primary/15 bg-background p-4">
+        <FieldRow label="Topic + Focus" value={log.topicFocus} />
+        <FieldRow label="What Was Trained" value={log.whatWasTrained} />
+        <FieldRow label="What Happened" value={log.behaviorSummary} />
+        <FieldRow label="Performance Result" value={log.performanceResult} />
+        <FieldRow label="State Movement" value={log.stateMovement} />
+        <FieldRow label="What This Means" value={log.whatThisMeans} />
+        <FieldRow label="Next Move" value={log.nextMove} />
+        <FieldRow label="Constraint" value={log.constraint} />
+        <FieldRow label="Tutor Prep For Next Session" value={log.practiceAssigned} />
+      </div>
     </div>
   );
 }
@@ -157,25 +208,29 @@ export default function StudentReportsDialog({
                                 <span className="font-medium">{format(new Date(session.date), "MMM d, yyyy")}</span>
                                 <Badge variant="secondary">{session.duration} min</Badge>
                               </div>
-                              {(session.autoSummary || session.notes) && (
-                                <p className="text-sm text-muted-foreground line-clamp-2 pr-4">{session.autoSummary || session.notes}</p>
+                              {(session.deterministicLog?.summaryText || session.autoSummary || session.notes) && (
+                                <p className="text-sm text-muted-foreground line-clamp-2 pr-4">{session.deterministicLog?.summaryText || session.autoSummary || session.notes}</p>
                               )}
                             </div>
                           </AccordionTrigger>
                           <AccordionContent className="space-y-3">
-                            <FieldRow label="Auto Session Summary" value={session.autoSummary} />
-                            <FieldRow label="Auto Summary Topic" value={session.autoSummaryTopic} />
-                            <FieldRow label="Session Notes" value={session.notes} />
-                            <FieldRow label="Solution Implemented" value={session.solutionPurpose} />
-                            <FieldRow label="Vocabulary Notes" value={session.vocabularyNotes} />
-                            <FieldRow label="Method Notes" value={session.methodNotes} />
-                            <FieldRow label="Reason Notes" value={session.reasonNotes} />
-                            <FieldRow label="Student Response" value={session.studentResponse} />
-                            <FieldRow label="What was misunderstood?" value={session.whatMisunderstood} />
-                            <FieldRow label="What correction helped?" value={session.correctionHelped} />
-                            <FieldRow label="What needs reinforcement?" value={session.needsReinforcement} />
-                            <FieldRow label="Boss Battle" value={session.bossBattlesDone} />
-                            <FieldRow label="Practice assigned" value={session.practiceProblems} />
+                            {session.deterministicLog ? (
+                              <DeterministicSessionLog session={session} />
+                            ) : (
+                              <>
+                                <FieldRow label="Session Notes" value={session.notes} />
+                                <FieldRow label="Solution Implemented" value={session.solutionPurpose} />
+                                <FieldRow label="Vocabulary Notes" value={session.vocabularyNotes} />
+                                <FieldRow label="Method Notes" value={session.methodNotes} />
+                                <FieldRow label="Reason Notes" value={session.reasonNotes} />
+                                <FieldRow label="Student Response" value={session.studentResponse} />
+                                <FieldRow label="What was misunderstood?" value={session.whatMisunderstood} />
+                                <FieldRow label="What correction helped?" value={session.correctionHelped} />
+                                <FieldRow label="What needs reinforcement?" value={session.needsReinforcement} />
+                                <FieldRow label="Boss Battle" value={session.bossBattlesDone} />
+                                <FieldRow label="Practice assigned" value={session.practiceProblems} />
+                              </>
+                            )}
                           </AccordionContent>
                         </AccordionItem>
                       ))}

@@ -3536,6 +3536,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     ].join(" ");
   };
 
+  const stabilityMeaningForReport = (stability: TopicStability | null) => {
+    if (stability === "High Maintenance") return "stable enough to hold this stage and prove readiness for phase progression";
+    if (stability === "High") return "mostly stable in this stage";
+    if (stability === "Medium") return "inconsistent but improving";
+    return "still breaking frequently";
+  };
+
+  const buildDeterministicSessionLogView = ({
+    session,
+    topic,
+    current,
+    previous,
+  }: {
+    session: any;
+    topic: string;
+    current: { phase: TopicPhase | null; stability: TopicStability | null; nextAction: string | null; structuredObservation: any };
+    previous: { phase: TopicPhase | null; stability: TopicStability | null } | null;
+  }) => {
+    const drillType =
+      String(current?.structuredObservation?.drillType || "").toLowerCase() === "diagnosis"
+        ? "diagnosis"
+        : "training";
+    const purpose = drillPurposeByPhase(current.phase, drillType);
+    const target = drillTargetByPhase(current.phase);
+    const movement = compareTopicStates(previous, current);
+    const score =
+      typeof current?.structuredObservation?.sessionScore === "number"
+        ? current.structuredObservation.sessionScore
+        : null;
+    const dominantPattern =
+      String(current?.structuredObservation?.dominantPattern || "").trim() ||
+      String(current?.structuredObservation?.phaseDecision || "").trim() ||
+      "mixed response patterns";
+    const movementText =
+      movement === "improved"
+        ? `improved within ${current.phase || "the current stage"}`
+        : movement === "regressed"
+        ? `regressed within ${current.phase || "the current stage"}`
+        : movement === "remained"
+        ? `remained in ${current.phase || "the current stage"}`
+        : `updated within ${current.phase || "the current stage"}`;
+    const nextFocus = current.nextAction || "reinforce current stage action";
+
+    return {
+      topic,
+      drillLabel: purpose.drillLabel,
+      target,
+      behavior: purpose.behavior,
+      pattern: dominantPattern,
+      score,
+      phase: current.phase,
+      stability: current.stability,
+      transition: movement,
+      constraint: String(current?.structuredObservation?.constraint || "").trim() || null,
+      practiceAssigned: session.practiceProblems || null,
+      topicFocus: `This session focused on ${topic}, targeting ${target}.`,
+      whatWasTrained: `A ${purpose.drillLabel.toLowerCase()} drill was used to train ${purpose.behavior}.`,
+      behaviorSummary: `The student showed ${dominantPattern} during the drill.`,
+      performanceResult: `Based on performance, stability is now ${current.stability || "Unknown"}${score === null ? "" : ` (${score}/100)`}.`,
+      stateMovement: `The student ${movementText}.`,
+      whatThisMeans: `This means the student is currently ${stabilityMeaningForReport(current.stability)} in this topic.`,
+      nextMove: `Next session will focus on ${nextFocus}.`,
+      summaryText: [
+        `This session focused on ${topic}, targeting ${target}.`,
+        `A ${purpose.drillLabel.toLowerCase()} drill was used to train ${purpose.behavior}.`,
+        `The student showed ${dominantPattern} during the drill.`,
+        `Based on performance, stability is now ${current.stability || "Unknown"}${score === null ? "" : ` (${score}/100)`}.`,
+        `The student ${movementText}.`,
+        `This means the student is currently ${stabilityMeaningForReport(current.stability)} in this topic.`,
+        `Next session will focus on ${nextFocus}.`,
+      ].join(" "),
+    };
+  };
+
   const buildDeterministicWeeklyReport = async ({
     tutorId,
     student,
@@ -3916,8 +3990,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return {
               ...session,
               autoSummary: null,
+              deterministicLog: null,
             };
           }
+
+          const deterministicLog = buildDeterministicSessionLogView({
+            session,
+            topic: historyEntry.topic,
+            current: historyEntry,
+            previous: previousEntry
+              ? { phase: previousEntry.phase, stability: previousEntry.stability }
+              : null,
+          });
 
           const autoSummary = generateSummaryFromTopicHistorySession({
             topic: historyEntry.topic,
@@ -3929,8 +4013,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           return {
             ...session,
-            autoSummary,
+            autoSummary: deterministicLog.summaryText || autoSummary,
             autoSummaryTopic: historyEntry.topic,
+            deterministicLog,
           };
         });
 

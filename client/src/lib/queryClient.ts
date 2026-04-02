@@ -83,6 +83,7 @@ export async function apiRequest(
     headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
+    cache: "no-store",
   });
 
   await throwIfResNotOk(res);
@@ -111,6 +112,7 @@ export const getQueryFn: <T>(options: {
     const fetchOptions: RequestInit = {
       headers,
       credentials: "include", // Always include credentials for cookies
+      cache: "no-store",
     };
     
     const url = queryKey.join("/") as string;
