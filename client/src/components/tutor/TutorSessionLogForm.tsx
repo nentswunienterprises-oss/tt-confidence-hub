@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getNextActionData } from "./topicConditioningEngine";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -92,20 +93,12 @@ function initialFormData(studentId = ""): SessionFormData {
 }
 
 function nextActionFor(phase: string, stability: string): string {
-  const p = String(phase || "");
-  const s = String(stability || "");
-  if (p === "Clarity" && s === "Low") return "Reinforce Vocabulary, Method & Reason (3 Layer Lens)";
-  if (p === "Clarity" && s === "Medium") return "Continue 3-Layer Lens";
-  if (p === "Clarity" && s === "High") return "Transition to Structured Execution";
-  if (p === "Structured Execution" && s === "Low") return "Run strict Model → Apply → Guide loops";
-  if (p === "Structured Execution" && s === "Medium") return "Increase independent problem volume";
-  if (p === "Structured Execution" && s === "High") return "Transition to Controlled Discomfort";
-  if (p === "Controlled Discomfort" && s === "Low") return "Introduce Boss Battles carefully";
-  if (p === "Controlled Discomfort" && s === "Medium") return "Increase frequency of Boss Battles";
-  if (p === "Controlled Discomfort" && s === "High") return "Transition to Time Pressure Stability";
-  if (p === "Time Pressure Stability" && s === "Low") return "Introduce short timed problems";
-  if (p === "Time Pressure Stability" && s === "Medium") return "Increase timed repetitions";
-  return "Maintain with mixed practice";
+  const validPhases = ["Clarity", "Structured Execution", "Controlled Discomfort", "Time Pressure Stability"] as const;
+  const validStabilities = ["Low", "Medium", "High", "High Maintenance"] as const;
+  const p = validPhases.find(v => v === phase);
+  const s = validStabilities.find(v => v === stability);
+  if (!p || !s) return "Maintain with mixed practice";
+  return getNextActionData(p, s).primaryAction;
 }
 
 export default function TutorSessionLogForm({
