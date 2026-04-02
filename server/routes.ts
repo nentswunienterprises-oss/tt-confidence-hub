@@ -1727,11 +1727,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("[DEBUG] /api/parent/intro-session-confirmation session:", session, "sessionError:", sessionError);
 
         if (sessionError || !session) {
-          // If we can't find a session, just check if the enrollment is assigned
+          // No intro session exists yet: parent should be able to book immediately once assigned.
           if (enrollmentData.status === "assigned") {
-            console.log("[DEBUG] /api/parent/intro-session-confirmation response: awaiting_tutor_acceptance (no session found, but assigned)");
+            console.log("[DEBUG] /api/parent/intro-session-confirmation response: not_scheduled (no session found, assigned)");
             return res.json({
-              status: "awaiting_tutor_acceptance",
+              status: "not_scheduled",
               introCompleted: false,
             });
           }
