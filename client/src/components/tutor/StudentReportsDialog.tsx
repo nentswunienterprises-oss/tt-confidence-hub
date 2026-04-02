@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns/format";
 import { getQueryFn } from "@/lib/queryClient";
@@ -66,10 +66,11 @@ interface StudentReportsDialogProps {
 }
 
 function FieldRow({ label, value }: { label: string; value?: string | null }) {
+  if (!value?.trim()) return null;
   return (
     <div className="grid grid-cols-1 md:grid-cols-[210px_1fr] gap-2 md:gap-3 text-sm">
       <p className="font-medium text-foreground">{label}</p>
-      <p className="text-muted-foreground whitespace-pre-wrap">{value?.trim() ? value : "Not recorded"}</p>
+      <p className="text-muted-foreground whitespace-pre-wrap">{value.trim()}</p>
     </div>
   );
 }
@@ -80,11 +81,22 @@ export default function StudentReportsDialog({
   studentId,
   studentName,
 }: StudentReportsDialogProps) {
-  const { data, isLoading } = useQuery<ReportsCenterData>({
+  const { data, isLoading, refetch } = useQuery<ReportsCenterData>({
     queryKey: [`/api/tutor/students/${studentId}/reports-center`],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: open && !!studentId,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
+
+  useEffect(() => {
+    if (open && studentId) {
+      void refetch();
+    }
+  }, [open, studentId, refetch]);
 
   const weeklyReports = useMemo(
     () => (data?.reports || []).filter((r) => r.reportType === "weekly"),
@@ -145,8 +157,8 @@ export default function StudentReportsDialog({
                                 <span className="font-medium">{format(new Date(session.date), "MMM d, yyyy")}</span>
                                 <Badge variant="secondary">{session.duration} min</Badge>
                               </div>
-                              {session.notes && (
-                                <p className="text-sm text-muted-foreground line-clamp-2 pr-4">{session.notes}</p>
+                              {(session.autoSummary || session.notes) && (
+                                <p className="text-sm text-muted-foreground line-clamp-2 pr-4">{session.autoSummary || session.notes}</p>
                               )}
                             </div>
                           </AccordionTrigger>
@@ -158,14 +170,11 @@ export default function StudentReportsDialog({
                             <FieldRow label="Vocabulary Notes" value={session.vocabularyNotes} />
                             <FieldRow label="Method Notes" value={session.methodNotes} />
                             <FieldRow label="Reason Notes" value={session.reasonNotes} />
-                            <FieldRow label="Student Response Tags" value={session.studentResponse} />
-                            <FieldRow label="Student Response Notes" value={session.studentResponse} />
+                            <FieldRow label="Student Response" value={session.studentResponse} />
                             <FieldRow label="What was misunderstood?" value={session.whatMisunderstood} />
                             <FieldRow label="What correction helped?" value={session.correctionHelped} />
                             <FieldRow label="What needs reinforcement?" value={session.needsReinforcement} />
-                            <FieldRow label="Boss Battle Type" value={session.bossBattlesDone} />
-                            <FieldRow label="Boss Battle Outcome" value={session.bossBattlesDone} />
-                            <FieldRow label="Boss Battle Notes" value={session.bossBattlesDone} />
+                            <FieldRow label="Boss Battle" value={session.bossBattlesDone} />
                             <FieldRow label="Practice assigned" value={session.practiceProblems} />
                           </AccordionContent>
                         </AccordionItem>

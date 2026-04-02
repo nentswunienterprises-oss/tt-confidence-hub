@@ -281,6 +281,11 @@ export default function ParentDashboard() {
     queryKey: ["/api/parent/proposal"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchInterval: 10000,
   });
 
   const { data: stats, isLoading: statsLoading, error: statsError } = useQuery<StudentStats>({
@@ -297,24 +302,42 @@ export default function ParentDashboard() {
     queryKey: ["/api/parent/student-info"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchInterval: 10000,
   });
 
   const { data: assignedTutor } = useQuery<TutorInfo | null>({
     queryKey: ["/api/parent/assigned-tutor"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchInterval: 10000,
   });
 
   const { data: introSession } = useQuery<IntroSessionInfo | null>({
     queryKey: ["/api/parent/intro-session-confirmation"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchInterval: 10000,
   });
 
   const { data: topicStatesData } = useQuery<ParentTopicState[]>({
     queryKey: ["/api/parent/topic-conditioning-states"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnReconnect: true,
     refetchInterval: (query) => (query.state.error ? false : 15000),
     refetchOnWindowFocus: true,
   });

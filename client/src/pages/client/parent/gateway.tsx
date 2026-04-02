@@ -61,6 +61,11 @@ export default function ParentGateway() {
     queryKey: ["/api/parent/enrollment-status"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: !!user,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchInterval: 10000,
   });
 
   // Fetch assigned tutor if status is assigned
@@ -68,6 +73,11 @@ export default function ParentGateway() {
     queryKey: ["/api/parent/assigned-tutor"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: !!user && (enrollmentStatus?.status === "assigned" || enrollmentStatus?.status === "proposal_sent"),
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchInterval: 10000,
   });
 
   // Fetch intro session confirmation if status is assigned or awaiting_assignment
@@ -78,6 +88,10 @@ export default function ParentGateway() {
     queryKey: ["/api/parent/intro-session-confirmation"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: !!user && (enrollmentStatus?.status === "assigned" || enrollmentStatus?.status === "awaiting_assignment"),
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
     refetchInterval: 10000, // Poll every 10s for status updates
   });
 
@@ -111,6 +125,11 @@ export default function ParentGateway() {
       return data;
     },
     enabled: !!user && !!enrollmentStatus,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchInterval: 10000,
     retry: false, // Don't retry on 404
   });
 
