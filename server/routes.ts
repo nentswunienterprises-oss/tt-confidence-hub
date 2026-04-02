@@ -3826,20 +3826,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     const allObservationValues = drillEvents.flatMap((event) => event.observationValues || []);
     const pattern = aggregateObservationPattern(allObservationValues);
-    const nextFocusList = Array.from(
-      new Set(
-        topicProgressRows
-          .map((row) => String(row.nextAction || "").trim())
-          .filter((value) => value.length > 0)
-      )
-    ).slice(0, 3);
+    const nextFocusList = topicProgressRows
+      .map((row) => {
+        const action = String(row.nextAction || "").trim();
+        if (!action) return null;
+        return `${row.topic}: ${action}`;
+      })
+      .filter((value): value is string => !!value)
+      .slice(0, 6);
 
     const improvedTopics = topicProgressRows.filter((row) => row.movement === "improved").map((row) => row.topic);
 
     const movementSummary = [
-      movementCounters.improved ? `${movementCounters.improved} topic(s) improved` : null,
-      movementCounters.remained ? `${movementCounters.remained} topic(s) remained stable` : null,
-      movementCounters.regressed ? `${movementCounters.regressed} topic(s) regressed` : null,
+      movementCounters.improved
+        ? `${movementCounters.improved} ${movementCounters.improved === 1 ? "topic" : "topics"} improved`
+        : null,
+      movementCounters.remained
+        ? `${movementCounters.remained} ${movementCounters.remained === 1 ? "topic" : "topics"} remained stable`
+        : null,
+      movementCounters.regressed
+        ? `${movementCounters.regressed} ${movementCounters.regressed === 1 ? "topic" : "topics"} regressed`
+        : null,
     ]
       .filter(Boolean)
       .join("; ");
@@ -3853,7 +3860,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? `Improvement signals were strongest in: ${improvedTopics.join(", ")}.`
         : `Most visible improvement signal: ${pattern.strongestImprovementSignal}.`,
       studentResponsePatternThisWeek: pattern.topTwoPatterns.length
-        ? `During this week, the student typically: ${pattern.topTwoPatterns.join("; ")}.`
+        ? `During this week, the student typically had: ${pattern.topTwoPatterns.join("; ")}.`
         : "During this week, the student showed mixed response patterns.",
       mainMisunderstandingThisWeek: `Main breakdown signal: ${pattern.mainBreakdownSignal}.`,
       mainCorrectionHelpedThisWeek: movementSummary
@@ -3957,9 +3964,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .map((row) => row.topic);
 
     const systemOutcome = [
-      movementCounters.improved ? `${movementCounters.improved} topic(s) moved forward` : null,
-      movementCounters.remained ? `${movementCounters.remained} topic(s) were reinforced` : null,
-      movementCounters.regressed ? `${movementCounters.regressed} topic(s) were stabilized after regression` : null,
+      movementCounters.improved
+        ? `${movementCounters.improved} ${movementCounters.improved === 1 ? "topic" : "topics"} moved forward`
+        : null,
+      movementCounters.remained
+        ? `${movementCounters.remained} ${movementCounters.remained === 1 ? "topic" : "topics"} were reinforced`
+        : null,
+      movementCounters.regressed
+        ? `${movementCounters.regressed} ${movementCounters.regressed === 1 ? "topic" : "topics"} were stabilized after regression`
+        : null,
     ]
       .filter(Boolean)
       .join("; ");

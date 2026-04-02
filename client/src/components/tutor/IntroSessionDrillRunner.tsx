@@ -654,11 +654,11 @@ export default function IntroSessionDrillRunner() {
   };
 
   return (
-    <div className="max-w-xl mx-auto p-6">
-      <div className="mb-4 flex justify-end">
+    <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-4">
+      <div className="mb-2 flex justify-end">
         <button
           type="button"
-          className="px-3 py-2 rounded border bg-background"
+          className="px-3 py-2 rounded-md border border-primary/20 bg-background hover:bg-primary/5"
           onClick={handleExitToPod}
         >
           Exit to Pod
@@ -689,7 +689,7 @@ export default function IntroSessionDrillRunner() {
           : "text-blue-700";
         return (
           <div className="mb-6 space-y-4">
-            <div className="p-3 bg-green-50 border border-green-200 rounded text-green-900 font-medium">
+            <div className="p-3 rounded-md border border-primary/25 bg-primary/10 text-foreground font-medium">
               Drill submitted. Scoring complete.
             </div>
 
@@ -701,8 +701,8 @@ export default function IntroSessionDrillRunner() {
               const setMaxPoints = setMeta?.setMaxPoints ?? 0;
               const setPercent = setMeta?.setScore ?? Math.round(rows.reduce((sum, r) => sum + (r.score ?? 0), 0) / rows.length);
               return (
-                <div key={setName} className="border rounded overflow-hidden">
-                  <div className="bg-muted px-4 py-2 flex justify-between items-center">
+                <div key={setName} className="rounded-xl border border-primary/15 bg-background overflow-hidden">
+                  <div className="bg-primary/5 px-4 py-2 flex justify-between items-center">
                     <span className="font-semibold text-sm">{setName}</span>
                     <span className="text-sm text-muted-foreground">
                       Set Total: <strong>{setPoints}/{setMaxPoints || 100}</strong>
@@ -711,7 +711,7 @@ export default function IntroSessionDrillRunner() {
                   </div>
                   <div className="divide-y">
                     {rows.map((row, i) => (
-                      <div key={i} className="px-4 py-2 flex justify-between items-center text-sm">
+                      <div key={i} className="px-4 py-2 flex justify-between items-center text-sm bg-background">
                         <span className="text-muted-foreground">Rep {row.rep}</span>
                         <span className={`font-medium ${
                           row.score >= 70 ? "text-green-700" : row.score >= 45 ? "text-yellow-700" : "text-red-700"
@@ -724,7 +724,7 @@ export default function IntroSessionDrillRunner() {
             })}
 
             {/* Session total */}
-            <div className="border rounded px-4 py-3 flex justify-between items-center">
+            <div className="rounded-xl border border-primary/15 bg-background px-4 py-3 flex justify-between items-center">
               <span className="font-semibold">Session Total</span>
               <span className={`text-lg font-bold ${
                 sessionScore >= 70 ? "text-green-700" : sessionScore >= 45 ? "text-yellow-700" : "text-red-700"
@@ -744,8 +744,8 @@ export default function IntroSessionDrillRunner() {
                 ? `Stability updated: ${prevStab} → ${newStab} within ${phase}`
                 : `Stability held at ${newStab} within ${phase}`;
               return (
-                <div className="border rounded overflow-hidden">
-                  <div className="bg-muted px-4 py-2">
+                <div className="rounded-xl border border-primary/15 bg-background overflow-hidden">
+                  <div className="bg-primary/5 px-4 py-2">
                     <span className="font-semibold text-sm">System Direction</span>
                   </div>
                   <div className="px-4 py-3 space-y-3 text-sm">
@@ -778,12 +778,12 @@ export default function IntroSessionDrillRunner() {
         );
       })()}
       {submitSuccess && (!scoring || scoring.length === 0) && (
-        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded text-green-900">
+        <div className="mb-4 p-3 rounded-md border border-primary/25 bg-primary/10 text-foreground">
           Drill submitted successfully.
         </div>
       )}
       {submitError && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-900">
+        <div className="mb-4 p-3 rounded-md border border-destructive/30 bg-destructive/10 text-destructive">
           {submitError}
         </div>
       )}
@@ -797,14 +797,14 @@ export default function IntroSessionDrillRunner() {
         {hasIntroTopic ? introTopic : "Not set"}
       </p>
       {!hasIntroTopic && (
-        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded text-amber-900 text-sm">
+        <div className="mb-4 p-3 rounded-md border border-primary/20 bg-primary/5 text-sm">
           No diagnostic topic was provided. Go back to the student card and use Add Diagnostic Topic before opening the intro session.
         </div>
       )}
       {drillMode === "diagnosis" && (
-      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
+      <div className="mb-4 p-3 rounded-md border border-primary/20 bg-primary/5">
         <p className="font-semibold mb-1">Instructions:</p>
-        <ul className="list-disc pl-5 text-sm text-blue-900 space-y-1">
+        <ul className="list-disc pl-5 text-sm text-foreground/90 space-y-1">
           <li>
             This drill is for system-driven diagnostics. Follow the structure exactly.
           </li>
@@ -818,21 +818,21 @@ export default function IntroSessionDrillRunner() {
       <p className="mb-4 text-muted-foreground">Student ID: {studentId}</p>
 
       {/* Phase-level context bar — stays constant throughout the drill */}
-      <div className="mb-4 p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm">
-        <div className="font-semibold text-slate-700 mb-1">Phase: {phase}</div>
-        <div className="text-slate-600 text-xs mb-2">{PHASE_CONTEXT[phase].purpose}</div>
+      <div className="mb-4 p-3 rounded-xl border border-primary/20 bg-primary/5 text-sm">
+        <div className="font-semibold text-foreground mb-1">Phase: {phase}</div>
+        <div className="text-muted-foreground text-xs mb-2">{PHASE_CONTEXT[phase].purpose}</div>
         <div className="flex flex-wrap gap-1">
           {PHASE_CONTEXT[phase].constraints.map((c, i) => (
-            <span key={i} className="px-2 py-0.5 bg-red-50 border border-red-200 text-red-800 rounded text-xs font-medium">✕ {c}</span>
+            <span key={i} className="px-2 py-0.5 bg-background border border-primary/20 text-foreground rounded text-xs font-medium">✕ {c}</span>
           ))}
         </div>
       </div>
 
       {/* Modeling session callout - shown only for Clarity Training Set 1 */}
       {set.isModelingSet && (
-        <div className="mb-4 p-4 bg-amber-50 border-l-4 border-amber-500 rounded-lg">
-          <div className="font-bold text-amber-900 text-sm mb-1">MODELING STEP</div>
-          <div className="text-amber-800 text-xs leading-relaxed">
+        <div className="mb-4 p-4 rounded-xl border border-primary/25 bg-primary/10">
+          <div className="font-bold text-foreground text-sm mb-1">MODELING STEP</div>
+          <div className="text-muted-foreground text-xs leading-relaxed">
             Tutor teaches first. Student does <strong>NOT</strong> solve yet.<br />
             Run <strong>Vocabulary → Method → Reason</strong>, then ask the student to explain back.<br />
             Sets 2 and 3 are the scored drill sets.
@@ -841,28 +841,28 @@ export default function IntroSessionDrillRunner() {
       )}
 
       {/* Set context block — purpose, rep instruction, active rules */}
-      <div className="mb-4 p-3 bg-white border rounded-lg shadow-sm">
+      <div className="mb-4 p-3 rounded-xl border border-primary/15 bg-background shadow-sm">
         <div className="flex items-center justify-between mb-2">
           <div className="font-semibold text-sm flex items-center gap-2">
             Set {currentSet + 1} / {drillStructure.length}: {set.setName}
           </div>
           <div className="text-sm font-medium text-muted-foreground">{isModelingSet ? "Pre-Drill Step" : `Rep ${currentRep + 1} / ${set.reps}`}</div>
         </div>
-        <div className="text-xs text-slate-500 mb-3">{set.purpose}</div>
-        <div className="p-2 bg-blue-50 border border-blue-200 rounded mb-3">
-          <div className="text-xs font-semibold text-blue-700 mb-0.5">→ Rep instruction</div>
-          <div className="text-sm text-blue-900 font-medium">{set.repInstruction}</div>
+        <div className="text-xs text-muted-foreground mb-3">{set.purpose}</div>
+        <div className="p-2 rounded-md border border-primary/20 bg-primary/5 mb-3">
+          <div className="text-xs font-semibold text-primary mb-0.5">→ Rep instruction</div>
+          <div className="text-sm text-foreground font-medium">{set.repInstruction}</div>
         </div>
         <div className="flex flex-wrap gap-1">
           {set.activeRules.map((rule, i) => (
-            <span key={i} className="px-2 py-0.5 bg-gray-100 border border-gray-200 text-gray-700 rounded text-xs">{rule}</span>
+            <span key={i} className="px-2 py-0.5 bg-background border border-primary/15 text-muted-foreground rounded text-xs">{rule}</span>
           ))}
         </div>
       </div>
 
       <form className="space-y-4">
         {getObservationBlockForRep(set, currentRep).length === 0 && (
-          <div className="p-3 bg-amber-50 border border-amber-200 rounded text-amber-900 text-sm">
+          <div className="p-3 rounded-md border border-primary/20 bg-primary/5 text-sm">
             No observations are captured for this step. Continue when pre-drill teaching is complete.
           </div>
         )}
@@ -874,7 +874,7 @@ export default function IntroSessionDrillRunner() {
                 <button
                   type="button"
                   key={option}
-                  className={`px-3 py-1 rounded border ${observations[`set${currentSet}_rep${currentRep}_${obs.key}`] === option ? "bg-primary text-white" : "bg-muted"}`}
+                  className={`px-3 py-1 rounded-md border transition-colors ${observations[`set${currentSet}_rep${currentRep}_${obs.key}`] === option ? "bg-primary text-primary-foreground border-primary" : "bg-background border-primary/20 hover:bg-primary/5"}`}
                   onClick={() => handleObservation(obs.key, option)}
                 >
                   {option}
@@ -888,7 +888,7 @@ export default function IntroSessionDrillRunner() {
         {!submitSuccess && (
           <button
             type="button"
-            className="mr-2 px-4 py-2 rounded border bg-background disabled:opacity-60"
+            className="mr-2 px-4 py-2 rounded-md border border-primary/20 bg-background hover:bg-primary/5 disabled:opacity-60"
             onClick={handleBackStep}
             disabled={submitting || (isFirstSet && isFirstRep)}
           >
@@ -897,8 +897,8 @@ export default function IntroSessionDrillRunner() {
         )}
         <button
           type="button"
-          className={`px-4 py-2 rounded text-white disabled:opacity-60 ${
-            submitSuccess ? "bg-green-600 cursor-default" : "bg-primary"
+            className={`px-4 py-2 rounded-md text-primary-foreground disabled:opacity-60 ${
+            submitSuccess ? "bg-green-600 cursor-default" : "bg-primary hover:bg-primary/90"
           }`}
           onClick={handleNext}
           disabled={submitting || submitSuccess || !hasIntroTopic}
@@ -918,7 +918,7 @@ export default function IntroSessionDrillRunner() {
         <div className="mt-4 flex flex-wrap gap-2 justify-end">
           <button
             type="button"
-            className="px-4 py-2 rounded border bg-background"
+            className="px-4 py-2 rounded-md border border-primary/20 bg-background hover:bg-primary/5"
             onClick={handleExitToPod}
           >
             Back to Pod
