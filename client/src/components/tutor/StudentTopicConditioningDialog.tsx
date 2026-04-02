@@ -451,16 +451,19 @@ function tutorPrepPlanFor(
   stability: StabilityLabel,
   hasObservedState: boolean,
 ): {
-  drillType: "Diagnosis Drill" | "Training Drill";
+  drillType: string;
   setPlans: Array<{ label: string; problems: number; difficulty: string }>;
   prepNotes: string[];
 } {
+  const baseDifficulty = "Simple/Normal (same level)";
+  const drillType = `${phase} Drill`;
+
   if (!hasObservedState) {
     return {
-      drillType: "Diagnosis Drill",
+      drillType,
       setPlans: [
-        { label: "Set 1: Recognition Probe", problems: 3, difficulty: "Simple" },
-        { label: "Set 2: Light Apply Probe", problems: 3, difficulty: "Normal" },
+        { label: "Set 1: Recognition Probe", problems: 3, difficulty: baseDifficulty },
+        { label: "Set 2: Light Apply Probe", problems: 3, difficulty: baseDifficulty },
       ],
       prepNotes: [
         "Prepare 6 total problems (2 sets x 3 reps).",
@@ -472,11 +475,11 @@ function tutorPrepPlanFor(
 
   if (phase === "Clarity") {
     return {
-      drillType: "Training Drill",
+      drillType,
       setPlans: [
-        { label: "Set 1: Modeling", problems: 2, difficulty: "Simple" },
-        { label: "Set 2: Identification", problems: 3, difficulty: "Simple" },
-        { label: "Set 3: Light Apply", problems: 3, difficulty: "Normal" },
+        { label: "Set 1: Modeling", problems: 2, difficulty: baseDifficulty },
+        { label: "Set 2: Identification", problems: 3, difficulty: baseDifficulty },
+        { label: "Set 3: Light Apply", problems: 3, difficulty: baseDifficulty },
       ],
       prepNotes: [
         "Set 1 is teaching only; no scored observations.",
@@ -488,11 +491,11 @@ function tutorPrepPlanFor(
 
   if (phase === "Structured Execution") {
     return {
-      drillType: "Training Drill",
+      drillType,
       setPlans: [
-        { label: "Set 1", problems: 3, difficulty: "Simple" },
-        { label: "Set 2", problems: 3, difficulty: "Normal" },
-        { label: "Set 3", problems: 3, difficulty: "Normal" },
+        { label: "Set 1", problems: 3, difficulty: baseDifficulty },
+        { label: "Set 2", problems: 3, difficulty: baseDifficulty },
+        { label: "Set 3", problems: 3, difficulty: baseDifficulty },
       ],
       prepNotes: [
         "Prepare 9 total problems (3 sets x 3 reps).",
@@ -504,11 +507,11 @@ function tutorPrepPlanFor(
   if (phase === "Controlled Discomfort") {
     const highIntensity = stability === "Medium" || stability === "High";
     return {
-      drillType: "Training Drill",
+      drillType,
       setPlans: [
-        { label: "Set 1", problems: 3, difficulty: highIntensity ? "Hard" : "Simple" },
-        { label: "Set 2", problems: 3, difficulty: highIntensity ? "Challenging (but solvable)" : "Normal" },
-        { label: "Set 3", problems: 3, difficulty: highIntensity ? "Challenging (but solvable)" : "Normal" },
+        { label: "Set 1", problems: 3, difficulty: highIntensity ? "Hard" : baseDifficulty },
+        { label: "Set 2", problems: 3, difficulty: highIntensity ? "Challenging (but solvable)" : baseDifficulty },
+        { label: "Set 3", problems: 3, difficulty: highIntensity ? "Challenging (but solvable)" : baseDifficulty },
       ],
       prepNotes: [
         "Prepare 9 total problems with controlled challenge increase.",
@@ -518,18 +521,18 @@ function tutorPrepPlanFor(
   }
 
   return {
-    drillType: "Training Drill",
+    drillType,
     setPlans: [
-      { label: "Set 1", problems: 3, difficulty: stability === "Low" ? "Simple" : "Hard" },
+      { label: "Set 1", problems: 3, difficulty: stability === "Low" ? baseDifficulty : "Hard" },
       {
         label: "Set 2",
         problems: 3,
-        difficulty: stability === "Low" ? "Normal" : "Challenging (but solvable)",
+        difficulty: stability === "Low" ? baseDifficulty : "Challenging (but solvable)",
       },
       {
         label: "Set 3",
         problems: 3,
-        difficulty: stability === "Low" ? "Normal" : "Challenging (but solvable)",
+        difficulty: stability === "Low" ? baseDifficulty : "Challenging (but solvable)",
       },
     ],
     prepNotes: [
@@ -1097,6 +1100,7 @@ export default function StudentTopicConditioningDialog({
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
                   {prioritizedTopics.map((row) => {
                     const topicIntel = interpretTopicState(row.phase, row.stability, row.trend);
+                    const rowPrepPlan = tutorPrepPlanFor(row.phase, row.stability, row.hasObservedState);
                     return (
                       <button
                         key={`topic-card-${row.topic}`}
@@ -1171,6 +1175,18 @@ export default function StudentTopicConditioningDialog({
                         <p className="text-sm text-muted-foreground">
                           Constraint: {row.hasObservedState ? (topicIntel.rules[0] || "Follow phase constraints") : "Do not assume phase or stability before first observed state."}
                         </p>
+
+                        <div className="rounded-md border border-primary/20 bg-primary/5 p-2.5 space-y-1.5">
+                          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Tutor Prep</p>
+                          <p className="text-xs text-foreground/80">{rowPrepPlan.drillType}</p>
+                          <div className="space-y-1">
+                            {rowPrepPlan.setPlans.map((setPlan) => (
+                              <p key={`${row.topic}-${setPlan.label}`} className="text-xs text-muted-foreground">
+                                {setPlan.label}: {setPlan.problems} problems · {setPlan.difficulty}
+                              </p>
+                            ))}
+                          </div>
+                        </div>
 
                         <div className="flex flex-wrap items-center gap-2">
                           <Badge variant="outline" className="border-primary/20 bg-muted/20 text-foreground">
