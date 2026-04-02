@@ -1567,7 +1567,7 @@ export default function StudentTopicConditioningDialog({
                 if (!open) setPendingTrainingDrill(null);
               }}
             >
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="w-[calc(100vw-1rem)] sm:w-full sm:max-w-2xl max-h-[88vh] overflow-y-auto p-4 sm:p-6">
                 <DialogHeader>
                   <DialogTitle>Training Drill Instructions</DialogTitle>
                   <DialogDescription>
@@ -1606,8 +1606,9 @@ export default function StudentTopicConditioningDialog({
                   </div>
                 ) : null}
 
-                <div className="mt-2 flex justify-end gap-2">
+                <div className="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                   <Button
+                    className="w-full sm:w-auto"
                     variant="outline"
                     onClick={() => {
                       setTrainingDrillModalOpen(false);
@@ -1616,7 +1617,7 @@ export default function StudentTopicConditioningDialog({
                   >
                     Cancel
                   </Button>
-                  <Button onClick={handleStartTrainingDrill} disabled={!pendingTrainingDrill}>
+                  <Button className="w-full sm:w-auto" onClick={handleStartTrainingDrill} disabled={!pendingTrainingDrill}>
                     Enter Drill
                   </Button>
                 </div>
