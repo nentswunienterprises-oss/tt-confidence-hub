@@ -2476,7 +2476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, { primaryAction: string; rules: string[]; advanceTo?: TopicPhase }>> = {
     Clarity: {
       Low: {
-        primaryAction: "Reinforce Vocabulary",
+        primaryAction: "Reinforcing Vocabulary, Method, & Reason (3 Layers)",
         rules: ["No Boss Battles", "No time pressure", "No skipping layers"],
       },
       Medium: {
@@ -3459,12 +3459,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? `remained in ${afterState?.phase || "the current stage"}`
         : `updated within ${afterState?.phase || "the current stage"}`;
 
-    const nextMove =
+    const nextMove = normalizeReportNextAction(
       afterState?.nextAction ||
       drillEvent.nextAction ||
       (afterState?.phase && afterState?.stability
         ? NEXT_ACTION_ENGINE[afterState.phase][afterState.stability].primaryAction
-        : "reinforce core execution stability");
+        : "reinforce core execution stability")
+    );
 
     return {
       topic: drillEvent.topic,
@@ -3483,7 +3484,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `Based on performance, stability is now ${afterState?.stability || drillEvent.stability || "Unknown"}.`,
         `The student ${movementText}.`,
         `This means the student is currently ${stabilityMeaning} in this topic.`,
-        `Next session will focus on: ${nextMove}.`,
+        `Next session will focus on ${nextMove}.`,
       ].join(" "),
     };
   };
@@ -3532,7 +3533,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       `Based on performance, stability is now ${current.stability || "Unknown"}${score === null ? "" : ` (score ${score})`}.`,
       `The student ${movementText}.`,
       `This means the student is currently ${stabilityMeaning} in this topic.`,
-      `Next session will focus on: ${current.nextAction || "reinforce current stage action"}.`,
+      `Next session will focus on ${normalizeReportNextAction(current.nextAction)}.`,
     ].join(" ");
   };
 
@@ -3541,6 +3542,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (stability === "High") return "mostly stable in this stage";
     if (stability === "Medium") return "inconsistent but improving";
     return "still breaking frequently";
+  };
+
+  const normalizeReportNextAction = (value: string | null | undefined) => {
+    const raw = String(value || "").trim();
+    if (!raw) return "reinforce current stage action";
+    if (raw === "Reinforce Vocabulary") return "Reinforcing Vocabulary, Method, & Reason (3 Layers)";
+    if (raw === "Reinforce Vocabulary, Method & Reason (3 Layer Lens)") {
+      return "Reinforcing Vocabulary, Method, & Reason (3 Layers)";
+    }
+    return raw;
   };
 
   const buildDeterministicSessionLogView = ({
@@ -3577,7 +3588,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         : movement === "remained"
         ? `remained in ${current.phase || "the current stage"}`
         : `updated within ${current.phase || "the current stage"}`;
-    const nextFocus = current.nextAction || "reinforce current stage action";
+    const nextFocus = normalizeReportNextAction(current.nextAction);
 
     return {
       topic,

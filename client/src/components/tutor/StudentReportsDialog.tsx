@@ -126,6 +126,14 @@ function DeterministicSessionLog({ session }: { session: SessionRecord }) {
   );
 }
 
+function getSessionPreview(session: SessionRecord) {
+  if (session.deterministicLog) {
+    const log = session.deterministicLog;
+    return [log.whatWasTrained, log.behaviorSummary, log.performanceResult].filter(Boolean).join(" ");
+  }
+  return session.autoSummary || session.notes || "";
+}
+
 export default function StudentReportsDialog({
   open,
   onOpenChange,
@@ -208,8 +216,8 @@ export default function StudentReportsDialog({
                                 <span className="font-medium">{format(new Date(session.date), "MMM d, yyyy")}</span>
                                 <Badge variant="secondary">{session.duration} min</Badge>
                               </div>
-                              {(session.deterministicLog?.summaryText || session.autoSummary || session.notes) && (
-                                <p className="text-sm text-muted-foreground line-clamp-2 pr-4">{session.deterministicLog?.summaryText || session.autoSummary || session.notes}</p>
+                              {getSessionPreview(session) && (
+                                <p className="text-sm text-muted-foreground line-clamp-2 pr-4">{getSessionPreview(session)}</p>
                               )}
                             </div>
                           </AccordionTrigger>

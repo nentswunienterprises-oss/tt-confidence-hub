@@ -103,6 +103,14 @@ function FieldRow({ label, value }: { label: string; value?: string | null }) {
   );
 }
 
+function getSessionPreview(session: SessionRecord) {
+  if (session.deterministicLog) {
+    const log = session.deterministicLog;
+    return [log.whatWasTrained, log.behaviorSummary, log.performanceResult].filter(Boolean).join(" ");
+  }
+  return session.notes || "";
+}
+
 export default function ViewTrackingSystemsDialog({
   open,
   onOpenChange,
@@ -194,8 +202,8 @@ export default function ViewTrackingSystemsDialog({
                                 <span className="font-medium">{formatDate(session.date, true)}</span>
                                 <Badge variant="secondary">{session.duration} min</Badge>
                               </div>
-                              {(session.deterministicLog?.summaryText || session.notes) && (
-                                <p className="text-sm text-muted-foreground line-clamp-2 pr-4">{session.deterministicLog?.summaryText || session.notes}</p>
+                              {getSessionPreview(session) && (
+                                <p className="text-sm text-muted-foreground line-clamp-2 pr-4">{getSessionPreview(session)}</p>
                               )}
                             </div>
                           </AccordionTrigger>
