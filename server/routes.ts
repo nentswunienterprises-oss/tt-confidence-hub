@@ -2494,11 +2494,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "Time Pressure Stability": "Your child is strengthening performance under time pressure.",
   };
 
-  const TUTOR_MEANING_BY_PHASE: Record<TopicPhase, string> = {
-    Clarity: "Student still needs foundational clarity before independent execution.",
-    "Structured Execution": "Student can begin but still needs consistency without tutor carry.",
-    "Controlled Discomfort": "Student executes, but destabilizes when challenge spikes.",
-    "Time Pressure Stability": "Student can solve, but urgency still tests structure retention.",
+  const TUTOR_MEANING_BY_PHASE: Record<TopicPhase, Record<string, string>> = {
+    Clarity: {
+      Low: "Student still needs foundational clarity before independent execution.",
+      Medium: "Student grasps concepts but needs more practice for consistency.",
+      High: "Student has clear understanding and is ready for structured execution practice.",
+    },
+    "Structured Execution": {
+      Low: "Student can follow steps but needs consistency and independence building.",
+      Medium: "Student executes steps mostly independently but struggles with consistency.",
+      High: "Student executes steps independently and is ready to build resilience.",
+    },
+    "Controlled Discomfort": {
+      Low: "Student struggles under difficulty but is building stability.",
+      Medium: "Student handles difficulty with improving stability and consistency.",
+      High: "Student handles difficulty with stability and is ready for time-pressure training.",
+    },
+    "Time Pressure Stability": {
+      Low: "Student needs to maintain structure and speed consistency.",
+      Medium: "Student handles time pressure mostly but needs refinement.",
+      High: "Student is stable under time pressure and maintains execution quality.",
+    },
   };
 
   const PHASE_FIELD_WEIGHTS: Record<TopicPhase, Record<string, number>> = {
@@ -2688,7 +2704,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       phaseDecision,
       nextAction: NEXT_ACTION_ENGINE[projectedPhase][projectedStability].primaryAction,
       constraint: NEXT_ACTION_ENGINE[projectedPhase][projectedStability].rules[0] || null,
-      tutorMeaning: TUTOR_MEANING_BY_PHASE[projectedPhase],
+      tutorMeaning: TUTOR_MEANING_BY_PHASE[projectedPhase][projectedStability],
       parentMeaning: PARENT_MEANING_BY_PHASE[projectedPhase],
     };
   };
