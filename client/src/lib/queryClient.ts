@@ -156,3 +156,8 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
+// Expose queryClient globally for use in components that can't easily access it
+if (typeof window !== 'undefined') {
+  (window as any).__queryClient = queryClient;
+}

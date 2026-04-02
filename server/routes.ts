@@ -735,12 +735,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 ? topicsStore[normalizedTopic]
                 : {};
 
-              // Use explicit drill context first, then fall back to persisted topic state.
-              // This keeps scoring behavior aligned with the drill the tutor is actually running.
+              // Priority: explicit drill context > stored topic state.
+              // If rawPreviousStability is missing AND no stored state exists, default to Low.
+              // Never fall back to stored state if drill explicitly provides context.
               const previousStability = normalizeStability(
-                rawPreviousStability || existing?.stability || "Low"
+                rawPreviousStability ? rawPreviousStability : (existing?.stability || "Low")
               );
-              const effectivePhase = normalizePhase(observedPhase || existing?.phase || "Structured Execution");
+              const effectivePhase = normalizePhase(
+                observedPhase ? observedPhase : (existing?.phase || "Clarity")
+              );
 
               const trainingSummary = computeTrainingSessionSummary(
                 effectivePhase,
@@ -793,12 +796,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 "Controlled Discomfort": "holding structure under challenge and emotional load",
                 "Time Pressure Stability": "maintaining stable execution under timed pressure",
               };
+              // For deterministic session logs: only report phase if a phase transition occurred
               const movementText =
                 trainingSummary.phaseDecision === "advance"
-                  ? `improved within ${trainingSummary.phase}`
+                  ? `advanced to ${trainingSummary.phase}`
                   : trainingSummary.phaseDecision === "regress"
-                  ? `regressed within ${trainingSummary.phase}`
-                  : `remained in ${trainingSummary.phase}`;
+                  ? `regressed to ${trainingSummary.phase}`
+                  : `stability update in ${trainingSummary.phase}`;
               const stabilityMeaning =
                 trainingSummary.stability === "High"
                   ? "mostly stable in this stage"

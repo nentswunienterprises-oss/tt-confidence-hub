@@ -621,6 +621,15 @@ export default function IntroSessionDrillRunner() {
           ? "/api/tutor/training-session-drill"
           : "/api/tutor/intro-session-drill";
         const res = await axios.post(endpoint, payload);
+        
+        // Invalidate relevant caches so updated status/stage/state appear immediately
+        const queryClient = (window as any).__queryClient;
+        if (queryClient) {
+          await queryClient.invalidateQueries({ queryKey: ["tutor", "gateway"] });
+          await queryClient.invalidateQueries({ queryKey: ["student", studentId] });
+          await queryClient.invalidateQueries({ queryKey: ["reports"] });
+        }
+        
         setSubmitSuccess(true);
         setScoring(res.data?.scoring || null);
       } catch (err: any) {
