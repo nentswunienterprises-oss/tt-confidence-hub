@@ -704,6 +704,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 // Log but don't fail - drill results still stored
               }
 
+              // Non-blocking auto-report trigger
+              maybeAutoGenerateReports({ tutorId, studentId, parentId: student ? ((student as any).parentId || null) : null }).catch(() => {});
+
               const scoringResults = diagnosisSummary.repRows.map((row) => {
                 const setMeta = diagnosisSummary.setBreakdown?.find((set: any) => set.setName === row.set);
                 return {
@@ -936,6 +939,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 console.error("Error creating tutoring session record for training drill:", sessionError);
                 // Log but don't fail - drill results still stored
               }
+
+              // Non-blocking auto-report trigger
+              maybeAutoGenerateReports({ tutorId, studentId, parentId: student ? ((student as any).parentId || null) : null }).catch(() => {});
 
               const scoringResults = trainingSummary.repRows.map((row) => {
                 const setMeta = trainingSummary.setBreakdown?.find((set: any) => set.setName === row.set);
@@ -3621,6 +3627,129 @@ export async function registerRoutes(app: Express): Promise<Server> {
     };
   };
 
+  // Auto-trigger weekly/monthly reports after drill session creation (non-blocking)
+  const maybeAutoGenerateReports = async ({
+    tutorId,
+    studentId,
+    parentId,
+  }: {
+    tutorId: string;
+    studentId: string;
+    parentId: string | null;
+  }) => {
+    if (!parentId) return;
+    try {
+      const { count } = await supabase
+        .from("tutoring_sessions")
+        .select("id", { count: "exact", head: true })
+        .eq("tutor_id", tutorId)
+        .eq("student_id", studentId);
+      const sessionCount = count || 0;
+
+      const student = await storage.getStudent(studentId);
+      if (!student) return;
+
+      // Every 2 sessions → weekly report
+      if (sessionCount > 0 && sessionCount % 2 === 0) {
+        const weekEnd = new Date();
+        const weekStart = new Date(weekEnd);
+        weekStart.setDate(weekStart.getDate() - 7);
+        try {
+          const generated = await buildDeterministicWeeklyReport({ tutorId, student, weekStart, weekEnd });
+          const getIsoWeekNum = (d: Date) => {
+            const tmp = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            tmp.setUTCDate(tmp.getUTCDate() + 4 - (tmp.getUTCDay() || 7));
+            const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
+            return Math.ceil((((tmp.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+          };
+          const structuredData = {
+            version: "weekly-v2-deterministic",
+            generationMode: "auto-session-trigger",
+            weekStartDate: weekStart.toISOString(),
+            weekEndDate: weekEnd.toISOString(),
+            sessionsCompletedThisWeek: generated.sessionsCompletedThisWeek,
+            mainTopicsCovered: generated.mainTopicsCovered,
+            whatImprovedThisWeek: generated.whatImprovedThisWeek,
+            studentResponsePatternThisWeek: generated.studentResponsePatternThisWeek,
+            mainMisunderstandingThisWeek: generated.mainMisunderstandingThisWeek,
+            mainCorrectionHelpedThisWeek: generated.mainCorrectionHelpedThisWeek,
+            bossBattleSummaryThisWeek: generated.bossBattleSummaryThisWeek,
+            reinforcementNextWeek: generated.reinforcementNextWeek,
+            sourceSessionCount: generated.sourceSessionCount,
+            topicProgressRows: generated.topicProgressRows,
+            sessionSummaries: generated.sessionSummaries,
+          };
+          await supabase.from("parent_reports").insert({
+            tutor_id: tutorId,
+            student_id: studentId,
+            parent_id: parentId,
+            report_type: "weekly",
+            week_number: getIsoWeekNum(weekStart),
+            month_name: null,
+            summary: JSON.stringify(structuredData),
+            topics_learned: generated.mainTopicsCovered,
+            strengths: generated.whatImprovedThisWeek,
+            areas_for_growth: generated.mainMisunderstandingThisWeek,
+            boss_battles_completed: 0,
+            solutions_unlocked: generated.sessionsCompletedThisWeek,
+            confidence_growth: null,
+            next_steps: generated.reinforcementNextWeek,
+            sent_at: new Date().toISOString(),
+          });
+        } catch (e) {
+          console.error("Auto weekly report generation failed:", e);
+        }
+      }
+
+      // Every 8 sessions → monthly report
+      if (sessionCount > 0 && sessionCount % 8 === 0) {
+        const monthEnd = new Date();
+        const monthStart = new Date(monthEnd.getFullYear(), monthEnd.getMonth(), 1);
+        try {
+          const generated = await buildDeterministicMonthlyReport({ tutorId, student, monthStart, monthEnd });
+          const monthLabel = monthStart.toLocaleString("default", { month: "long", year: "numeric" });
+          const structuredData = {
+            version: "monthly-v2-deterministic",
+            generationMode: "auto-session-trigger",
+            monthStartDate: monthStart.toISOString(),
+            monthEndDate: monthEnd.toISOString(),
+            totalSessionsCompletedThisMonth: generated.totalSessionsCompletedThisMonth,
+            mainAreasCoveredThisMonth: generated.mainAreasCoveredThisMonth,
+            strongerSkillsThisMonth: generated.strongerSkillsThisMonth,
+            responsePatternTrendThisMonth: generated.responsePatternTrendThisMonth,
+            recurringChallengeThisMonth: generated.recurringChallengeThisMonth,
+            mostEffectiveInterventionThisMonth: generated.mostEffectiveInterventionThisMonth,
+            bossBattleTrendThisMonth: generated.bossBattleTrendThisMonth,
+            nextMonthPriority: generated.nextMonthPriority,
+            topicProgressRows: generated.topicProgressRows,
+            currentStateSnapshot: generated.currentStateSnapshot,
+          };
+          await supabase.from("parent_reports").insert({
+            tutor_id: tutorId,
+            student_id: studentId,
+            parent_id: parentId,
+            report_type: "monthly",
+            week_number: null,
+            month_name: monthLabel,
+            summary: JSON.stringify(structuredData),
+            topics_learned: generated.mainAreasCoveredThisMonth,
+            strengths: generated.strongerSkillsThisMonth,
+            areas_for_growth: generated.recurringChallengeThisMonth,
+            boss_battles_completed: 0,
+            solutions_unlocked: generated.totalSessionsCompletedThisMonth,
+            confidence_growth: null,
+            next_steps: generated.nextMonthPriority,
+            sent_at: new Date().toISOString(),
+          });
+        } catch (e) {
+          console.error("Auto monthly report generation failed:", e);
+        }
+      }
+    } catch (e) {
+      console.error("Auto report trigger error:", e);
+    }
+  };
+
   const buildDeterministicWeeklyReport = async ({
     tutorId,
     student,
@@ -3884,6 +4013,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         correctionThatHelped: structured.mainCorrectionHelpedThisWeek || "",
         bossBattleSummary: structured.bossBattleSummaryThisWeek || "",
         nextFocus: structured.reinforcementNextWeek || report.next_steps || "",
+        topicProgressRows: Array.isArray(structured.topicProgressRows) ? structured.topicProgressRows : [],
       };
     }
 
@@ -3905,6 +4035,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       mostEffectiveIntervention: structured.mostEffectiveInterventionThisMonth || "",
       bossBattleTrend: structured.bossBattleTrendThisMonth || "",
       nextMonthPriority: structured.nextMonthPriority || report.next_steps || "",
+      topicProgressRows: Array.isArray(structured.topicProgressRows) ? structured.topicProgressRows : [],
+      currentStateSnapshot: Array.isArray(structured.currentStateSnapshot) ? structured.currentStateSnapshot : [],
     };
   };
 
@@ -10844,7 +10976,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             bucket,
           };
         })
-        .filter((row) => row.bucket !== "older")
         .sort((a, b) => {
           if (a.bucket !== b.bucket) return bucketRank(a.bucket) - bucketRank(b.bucket);
           return new Date(b.lastUpdated || 0).getTime() - new Date(a.lastUpdated || 0).getTime();

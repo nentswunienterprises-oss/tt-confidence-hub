@@ -49,6 +49,9 @@ interface ParentReport {
   bossBattleTrend?: string;
   nextMonthPriority?: string;
 
+  topicProgressRows?: Array<{ topic: string; started?: string; start?: string; current?: string; end?: string; movement: string; nextAction?: string | null }>;
+  currentStateSnapshot?: Array<{ topic: string; phase: string; stability: string }>;
+
   parentFeedback?: string;
   parentFeedbackAt?: string;
   sentAt: string;
@@ -263,6 +266,39 @@ export default function ParentProgress() {
                       <p className="text-xs sm:text-sm text-muted-foreground">{report.nextFocus || "Not provided"}</p>
                     </div>
 
+                    {/* Topic Conditioning Progress Table */}
+                    {report.topicProgressRows && report.topicProgressRows.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Conditioning Progress</h4>
+                        <div className="rounded-lg border overflow-hidden">
+                          <table className="w-full text-xs sm:text-sm">
+                            <thead className="bg-muted/40">
+                              <tr>
+                                <th className="text-left px-2 sm:px-3 py-1.5 font-medium">Topic</th>
+                                <th className="text-left px-2 sm:px-3 py-1.5 font-medium">Started</th>
+                                <th className="text-left px-2 sm:px-3 py-1.5 font-medium">Current</th>
+                                <th className="text-left px-2 sm:px-3 py-1.5 font-medium hidden sm:table-cell">Next Focus</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {report.topicProgressRows.map((row, i) => (
+                                <tr key={i} className="border-t">
+                                  <td className="px-2 sm:px-3 py-1.5 font-medium">{row.topic}</td>
+                                  <td className="px-2 sm:px-3 py-1.5 text-muted-foreground">{row.started || row.start || "—"}</td>
+                                  <td className="px-2 sm:px-3 py-1.5">
+                                    <span className={row.movement === "improved" ? "text-green-700 font-medium" : row.movement === "regressed" ? "text-red-600 font-medium" : "text-muted-foreground"}>
+                                      {row.current || row.end || "—"}
+                                    </span>
+                                  </td>
+                                  <td className="px-2 sm:px-3 py-1.5 text-muted-foreground hidden sm:table-cell">{row.nextAction || "—"}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Parent Feedback Display */}
                     {report.parentFeedback && (
                       <div className="bg-muted/50 rounded-lg p-2 sm:p-3 border-l-2 border-l-primary">
@@ -371,6 +407,51 @@ export default function ParentProgress() {
                       <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Next Month Focus</h4>
                       <p className="text-xs sm:text-sm text-muted-foreground">{report.nextMonthPriority || "Not provided"}</p>
                     </div>
+
+                    {/* Topic Conditioning Progress Table */}
+                    {report.topicProgressRows && report.topicProgressRows.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Topic Progression</h4>
+                        <div className="rounded-lg border overflow-hidden">
+                          <table className="w-full text-xs sm:text-sm">
+                            <thead className="bg-muted/40">
+                              <tr>
+                                <th className="text-left px-2 sm:px-3 py-1.5 font-medium">Topic</th>
+                                <th className="text-left px-2 sm:px-3 py-1.5 font-medium">Start of Month</th>
+                                <th className="text-left px-2 sm:px-3 py-1.5 font-medium">End of Month</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {report.topicProgressRows.map((row, i) => (
+                                <tr key={i} className="border-t">
+                                  <td className="px-2 sm:px-3 py-1.5 font-medium">{row.topic}</td>
+                                  <td className="px-2 sm:px-3 py-1.5 text-muted-foreground">{row.started || row.start || "—"}</td>
+                                  <td className="px-2 sm:px-3 py-1.5">
+                                    <span className={row.movement === "improved" ? "text-green-700 font-medium" : row.movement === "regressed" ? "text-red-600 font-medium" : "text-muted-foreground"}>
+                                      {row.current || row.end || "—"}
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Current State Snapshot */}
+                    {report.currentStateSnapshot && report.currentStateSnapshot.length > 0 && (
+                      <div className="bg-muted/20 rounded-lg p-2 sm:p-3">
+                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Current Conditioning State</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {report.currentStateSnapshot.map((snap, i) => (
+                            <span key={i} className="text-xs bg-background border rounded px-2 py-1">
+                              {snap.topic} — {snap.phase} ({snap.stability})
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {report.parentFeedback && (
                       <div className="bg-muted/50 rounded-lg p-2 sm:p-3 border-l-2 border-l-primary">

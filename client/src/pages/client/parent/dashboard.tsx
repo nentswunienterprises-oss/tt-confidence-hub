@@ -420,19 +420,23 @@ export default function ParentDashboard() {
       stability: normalizeStabilityLabel(item.stability),
       topic: String(item.topic || "").trim(),
     }))
-    .filter((item) => item.topic.length > 0)
-    .slice(0, 6);
+    .filter((item) => item.topic.length > 0);
 
-  const fallbackTopicCards = topicConditioning.topic
-    ? [{
-        topic: topicConditioning.topic,
-        phase: normalizePhaseLabel(topicConditioning.entryPhase),
-        stability: normalizeStabilityLabel(topicConditioning.stability),
-        lastUpdated: null,
-        movement: "none" as const,
-        bucket: "active" as const,
-      }]
-    : [];
+  const fallbackTopics = Array.from(
+    new Set([
+      topicConditioning.topic,
+      ...splitList(proposal?.currentTopics),
+    ].map((value) => String(value || "").trim()).filter(Boolean))
+  );
+
+  const fallbackTopicCards = fallbackTopics.map((topic) => ({
+    topic,
+    phase: normalizePhaseLabel(topicConditioning.entryPhase),
+    stability: normalizeStabilityLabel(topicConditioning.stability),
+    lastUpdated: null,
+    movement: "none" as const,
+    bucket: "active" as const,
+  }));
 
   const topicCards = normalizedTopicStates.length > 0 ? normalizedTopicStates : fallbackTopicCards;
 
