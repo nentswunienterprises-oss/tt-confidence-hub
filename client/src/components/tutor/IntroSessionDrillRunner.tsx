@@ -749,7 +749,7 @@ export default function IntroSessionDrillRunner() {
                       <span className={`font-bold ${stabilityColor}`}>{newStab}</span>
                     </div>
                     <div className="pt-2 border-t">
-                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Tutor Action — Next Session</p>
+                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Next Session Focus</p>
                       <p className="font-semibold text-blue-700">{lastRow?.nextAction}</p>
                     </div>
                     {lastRow?.constraint && (

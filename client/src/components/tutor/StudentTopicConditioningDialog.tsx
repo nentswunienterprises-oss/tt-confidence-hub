@@ -413,7 +413,7 @@ function deriveTransitionStatus(phase: PhaseLabel, stability: StabilityLabel, tr
   const advanceTo = getNextActionData(phase, stability).advanceTo;
   if (trend === "Regressing") return "Regressed" as const;
   if (phase === "Time Pressure Stability" && stability === "High Maintenance") return "Transfer Ready" as const;
-  if (stability === "High Maintenance" && advanceTo) return "Ready to Advance" as const;
+    if (stability === "High Maintenance" && advanceTo) return "Advance Threshold Met" as const;
   if (stability === "High Maintenance") return "Maintain" as const;
   if (stability === "High") return "Maintenance Check" as const;
   if (stability === "Medium") return "Building" as const;
