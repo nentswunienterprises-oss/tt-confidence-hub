@@ -118,6 +118,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const v = String(value || "").toLowerCase().trim();
             if (!v) return "weak";
 
+            // Guard against substring collisions before broad keyword checks.
+            // Example: "inconsistent" previously matched "consisten" and was scored as clear.
+            if (v.includes("inconsistent")) return "partial";
+
             if (
               v.includes("freeze") ||
               v.includes("could not") ||
@@ -142,7 +146,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
               v.includes("shutdown") ||
               v.includes("collapse") ||
               v.includes("help immediately") ||
-              v.includes("needed tutor to carry")
+              v.includes("needed tutor to carry") ||
+              v.includes("missing") ||
+              v.includes("none") ||
+              v.includes("absent") ||
+              v.includes("incorrect") ||
+              v.includes("skips") ||
+              v.includes("hesitant") ||
+              v.includes("delayed") ||
+              v.includes("unsure") ||
+              v.includes("weak")
             ) {
               return "weak";
             }

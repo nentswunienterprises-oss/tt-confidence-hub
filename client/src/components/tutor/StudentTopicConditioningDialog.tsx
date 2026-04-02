@@ -1104,9 +1104,11 @@ export default function StudentTopicConditioningDialog({
     : null;
 
   const studentNameHasGrade = /\bgrade\b/i.test(studentName || "");
+  const normalizedGradeRaw = (studentGrade || "-").toString().trim();
+  const normalizedGradeValue = normalizedGradeRaw.replace(/^grade\s*/i, "").trim() || "-";
   const studentBadgeLabel = studentNameHasGrade
     ? studentName || "-"
-    : `${studentName || "-"} • Grade ${studentGrade || "-"}`;
+    : `${studentName || "-"} • Grade ${normalizedGradeValue}`;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
