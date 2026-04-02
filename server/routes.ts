@@ -566,6 +566,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   : {};
               const existingHistory = Array.isArray(existingTopicEntry.history) ? [...existingTopicEntry.history] : [];
               const nowIso = new Date().toISOString();
+              const sessionId = uuidv4();
+              const observationValues = drillSets.flatMap((set: any) =>
+                (Array.isArray(set?.observations) ? set.observations : []).flatMap((rep: any) =>
+                  Object.values(rep || {}).map((value) => String(value || "").trim()).filter(Boolean)
+                )
+              );
+              const pattern = aggregateObservationPattern(observationValues);
+              const movementText = "updated within the current stage";
+              const behaviorByPhase: Record<TopicPhase, string> = {
+                Clarity: "recognizing terms, steps, and reasoning",
+                "Structured Execution": "following steps independently with structure",
+                "Controlled Discomfort": "staying stable when difficulty increases",
+                "Time Pressure Stability": "maintaining structure and accuracy under time pressure",
+              };
+              const targetByPhase: Record<TopicPhase, string> = {
+                Clarity: "clarifying vocabulary, method sequence, and reasoning",
+                "Structured Execution": "step-by-step execution without tutor carry",
+                "Controlled Discomfort": "holding structure under challenge and emotional load",
+                "Time Pressure Stability": "maintaining stable execution under timed pressure",
+              };
 
               topicsStore[normalizedIntroTopic] = {
                 ...existingTopicEntry,
@@ -593,8 +613,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       observedPhase: diagnosisSummary.phase,
                       stability: diagnosisSummary.stability,
                       constraint: diagnosisSummary.constraint,
+                      dominantPattern: pattern.dominantPattern,
+                      strongestImprovementSignal: pattern.strongestImprovementSignal,
+                      mainBreakdownSignal: pattern.mainBreakdownSignal,
                       drillId: inserted.id,
                     },
+                    sessionId,
                     drillId: inserted.id,
                   },
                 ].slice(-60),
@@ -611,30 +635,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
               await storage.updateStudent(studentId, { conceptMastery });
 
-              // Create a tutoring_sessions record so drill appears in Reports Center
+              // Create a tutoring_sessions record using deterministic report template fields
               const sessionSummaryText = [
-                `[Diagnosis Drill] ${normalizedIntroTopic}`,
-                `Phase: ${diagnosisSummary.phase}`,
-                `Stability: ${diagnosisSummary.stability}`,
-                `Score: ${diagnosisSummary.diagnosisScore ?? 0}`,
-                diagnosisSummary.constraint ? `Constraint: ${diagnosisSummary.constraint}` : null,
-              ]
-                .filter(Boolean)
-                .join(" | ");
+                `This session focused on ${normalizedIntroTopic}, targeting ${targetByPhase[diagnosisSummary.phase]}.`,
+                `A diagnosis drill was used to train ${behaviorByPhase[diagnosisSummary.phase]}.`,
+                `The student showed ${pattern.dominantPattern} during the drill.`,
+                `Based on performance, stability is now ${diagnosisSummary.stability}.`,
+                `The student ${movementText}.`,
+                `This means the student is currently still building stability in this topic.`,
+                `Next session will focus on: ${diagnosisSummary.nextAction}.`,
+              ].join(" ");
 
               const { error: sessionError } = await supabase
                 .from("tutoring_sessions")
                 .insert({
-                  id: uuidv4(),
+                  id: sessionId,
                   tutor_id: tutorId,
                   student_id: studentId,
                   date: new Date().toISOString(),
                   duration: 30, // Estimated
                   notes: sessionSummaryText,
-                  vocabulary_notes: `Topic: ${normalizedIntroTopic}. Phase detected as ${diagnosisSummary.phase}.`,
-                  method_notes: `Drill type: Diagnosis. Sets: ${drillSets.length}. Reps per set: 3.`,
-                  reason_notes: `Next Action: ${diagnosisSummary.nextAction}`,
-                  student_response: `Student responses captured across ${drillSets.length} sets`,
+                  vocabulary_notes: `Topic + Focus: ${normalizedIntroTopic} | ${targetByPhase[diagnosisSummary.phase]}.`,
+                  method_notes: `What Was Trained: ${behaviorByPhase[diagnosisSummary.phase]}. Drill: Diagnosis.`,
+                  reason_notes: `System Decision: ${diagnosisSummary.phase} (${diagnosisSummary.stability}). Next Move: ${diagnosisSummary.nextAction}.`,
+                  student_response: `Response Pattern: ${pattern.dominantPattern}. Improvement Signal: ${pattern.strongestImprovementSignal}. Breakdown Signal: ${pattern.mainBreakdownSignal}.`,
+                  boss_battles_done: diagnosisSummary.constraint || "No boss battle pressure in this stage",
+                  practice_problems: `Prepare ${drillSets.length * 3} diagnosis probes for next session progression checks.`,
                   created_at: new Date().toISOString(),
                 });
 
@@ -748,6 +774,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
 
               const nowIso = new Date().toISOString();
+              const sessionId = uuidv4();
+              const observationValues = drillSets.flatMap((set: any) =>
+                (Array.isArray(set?.observations) ? set.observations : []).flatMap((rep: any) =>
+                  Object.values(rep || {}).map((value) => String(value || "").trim()).filter(Boolean)
+                )
+              );
+              const pattern = aggregateObservationPattern(observationValues);
+              const behaviorByPhase: Record<TopicPhase, string> = {
+                Clarity: "recognizing terms, steps, and reasoning",
+                "Structured Execution": "following steps independently with structure",
+                "Controlled Discomfort": "staying stable when difficulty increases",
+                "Time Pressure Stability": "maintaining structure and accuracy under time pressure",
+              };
+              const targetByPhase: Record<TopicPhase, string> = {
+                Clarity: "clarifying vocabulary, method sequence, and reasoning",
+                "Structured Execution": "step-by-step execution without tutor carry",
+                "Controlled Discomfort": "holding structure under challenge and emotional load",
+                "Time Pressure Stability": "maintaining stable execution under timed pressure",
+              };
+              const movementText =
+                trainingSummary.phaseDecision === "advance"
+                  ? `improved within ${trainingSummary.phase}`
+                  : trainingSummary.phaseDecision === "regress"
+                  ? `regressed within ${trainingSummary.phase}`
+                  : `remained in ${trainingSummary.phase}`;
+              const stabilityMeaning =
+                trainingSummary.stability === "High"
+                  ? "mostly stable in this stage"
+                  : trainingSummary.stability === "Medium"
+                  ? "inconsistent but improving"
+                  : "still breaking frequently";
               const existingHistory = Array.isArray(existing.history) ? [...existing.history] : [];
               const updatedEntry = {
                 ...existing,
@@ -779,7 +836,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       sessionScore: trainingSummary.sessionScore,
                       nextAction: trainingSummary.nextAction,
                       constraint: trainingSummary.constraint,
+                      dominantPattern: pattern.dominantPattern,
+                      strongestImprovementSignal: pattern.strongestImprovementSignal,
+                      mainBreakdownSignal: pattern.mainBreakdownSignal,
                     },
+                    sessionId,
                     drillId: inserted.id,
                   },
                 ].slice(-60),
@@ -797,31 +858,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
               await storage.updateStudent(studentId, { conceptMastery });
 
-              // Create a tutoring_sessions record so drill appears in Reports Center
+              // Create a tutoring_sessions record using deterministic report template fields
               const sessionSummaryText = [
-                `[Training Drill] ${normalizedTopic}`,
-                `Phase: ${trainingSummary.phase}`,
-                `Stability: ${trainingSummary.stability}`,
-                `Decision: ${trainingSummary.phaseDecision.toUpperCase()}`,
-                `Score: ${trainingSummary.sessionScore ?? 0}`,
-                trainingSummary.constraint ? `Constraint: ${trainingSummary.constraint}` : null,
-              ]
-                .filter(Boolean)
-                .join(" | ");
+                `This session focused on ${normalizedTopic}, targeting ${targetByPhase[trainingSummary.phase]}.`,
+                `A training drill was used to train ${behaviorByPhase[trainingSummary.phase]}.`,
+                `The student showed ${pattern.dominantPattern} during the drill.`,
+                `Based on performance, stability is now ${trainingSummary.stability}.`,
+                `The student ${movementText}.`,
+                `This means the student is currently ${stabilityMeaning} in this topic.`,
+                `Next session will focus on: ${trainingSummary.nextAction}.`,
+              ].join(" ");
 
               const { error: sessionError } = await supabase
                 .from("tutoring_sessions")
                 .insert({
-                  id: uuidv4(),
+                  id: sessionId,
                   tutor_id: tutorId,
                   student_id: studentId,
                   date: new Date().toISOString(),
                   duration: 40, // Estimated for training
                   notes: sessionSummaryText,
-                  vocabulary_notes: `Topic: ${normalizedTopic}. Observed at ${trainingSummary.observedPhase}.`,
-                  method_notes: `Drill type: Training. Previous Stability: ${trainingSummary.previousStability}. Sets: ${drillSets.length}.`,
-                  reason_notes: `Next Action: ${trainingSummary.nextAction}`,
-                  student_response: `Student responses captured across ${drillSets.length} sets`,
+                  vocabulary_notes: `Topic + Focus: ${normalizedTopic} | ${targetByPhase[trainingSummary.phase]}.`,
+                  method_notes: `What Was Trained: ${behaviorByPhase[trainingSummary.phase]}. Drill: Training (${trainingSummary.phase}).`,
+                  reason_notes: `System Decision: ${trainingSummary.phaseDecision.toUpperCase()} | ${trainingSummary.phase} (${trainingSummary.stability}). Next Move: ${trainingSummary.nextAction}.`,
+                  student_response: `Response Pattern: ${pattern.dominantPattern}. Improvement Signal: ${pattern.strongestImprovementSignal}. Breakdown Signal: ${pattern.mainBreakdownSignal}.`,
+                  boss_battles_done: trainingSummary.constraint || "Not introduced in this stage",
+                  practice_problems: `Prepare ${drillSets.length * 3} problems across ${drillSets.length} sets for the next ${trainingSummary.phase} training cycle.`,
                   created_at: new Date().toISOString(),
                 });
 
