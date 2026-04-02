@@ -83,6 +83,7 @@ interface ViewTrackingSystemsDialogProps {
   onOpenChange: (open: boolean) => void;
   studentId: string;
   studentName: string;
+  apiBasePath?: string;
 }
 
 function formatDate(value: string | Date, withYear = true): string {
@@ -136,9 +137,10 @@ export default function ViewTrackingSystemsDialog({
   onOpenChange,
   studentId,
   studentName,
+  apiBasePath = "/api/tutor",
 }: ViewTrackingSystemsDialogProps) {
   const { data: reportsCenter, isLoading: reportsLoading, refetch: refetchReports } = useQuery<ReportsCenterData>({
-    queryKey: [`/api/tutor/students/${studentId}/reports-center`],
+    queryKey: [`${apiBasePath}/students/${studentId}/reports-center`],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: open && !!studentId,
     staleTime: 0,
@@ -155,7 +157,7 @@ export default function ViewTrackingSystemsDialog({
   }, [open, studentId, refetchReports]);
 
   const { data: assignments, isLoading: assignmentsLoading } = useQuery<Assignment[]>({
-    queryKey: [`/api/tutor/students/${studentId}/assignments`],
+    queryKey: [`${apiBasePath}/students/${studentId}/assignments`],
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: open && !!studentId,
   });

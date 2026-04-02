@@ -338,6 +338,9 @@ interface StudentTopicConditioningDialogProps {
   studentId: string;
   studentName: string;
   studentGrade?: string | null;
+  readOnly?: boolean;
+  mapOnly?: boolean;
+  apiBasePath?: string;
   parentTopics?: string | null;
   topicConditioning?: TopicConditioningMap | null;
   persistedTopicStates?: Record<
@@ -787,37 +790,43 @@ export default function StudentTopicConditioningDialog({
   studentId,
   studentName,
   studentGrade,
+  readOnly = false,
+  mapOnly = false,
+  apiBasePath = "/api/tutor",
   parentTopics,
   topicConditioning,
   persistedTopicStates,
 }: StudentTopicConditioningDialogProps) {
   // Fetch topic activations for this student (must be inside component to access studentId)
   const { data: activationsData, refetch: refetchActivations } = useQuery({
-    queryKey: ["/api/tutor/students", studentId, "topic-conditioning-activations"],
+    queryKey: [apiBasePath, "students", studentId, "topic-conditioning-activations"],
     queryFn: async () => {
       const res = await apiRequest(
         "GET",
-        `/api/tutor/students/${studentId}/topic-conditioning-activations`
+        `${apiBasePath}/students/${studentId}/topic-conditioning-activations`
       );
       return res.json();
     },
-    enabled: !!studentId,
+    enabled: !!studentId && !readOnly,
   });
   const queryClient = useQueryClient();
   // Mutation to add topic
   const addTopicMutation = useMutation({
     mutationFn: async ({ topic, reason }: { topic: string; reason: string }) => {
+      if (readOnly) {
+        throw new Error("Topic activation is disabled in read-only mode.");
+      }
 
       const res = await apiRequest(
         "POST",
-        `/api/tutor/students/${studentId}/topic-conditioning`,
+        `${apiBasePath}/students/${studentId}/topic-conditioning`,
         { topic, reason }
       );
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tutor/pod"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tutor/students", studentId, "workflow-state"] });
+      queryClient.invalidateQueries({ queryKey: [apiBasePath, "pod"] });
+      queryClient.invalidateQueries({ queryKey: [apiBasePath, "students", studentId, "workflow-state"] });
     },
   });
   // Activation reasons for dropdown
@@ -895,9 +904,9 @@ export default function StudentTopicConditioningDialog({
     window.location.href = `/tutor/intro-session/${studentId}?mode=training&topic=${topicParam}&phase=${phaseParam}&stability=${stabilityParam}`;
   };
   const { data: sessions } = useQuery<TutorSessionRecord[]>({
-    queryKey: ["/api/tutor/sessions"],
+    queryKey: [apiBasePath, "sessions"],
     queryFn: getQueryFn({ on401: "throw" }),
-    enabled: open && !!studentId,
+    enabled: open && !!studentId && !readOnly,
   });
 
   const studentSessions = useMemo(
@@ -1142,6 +1151,8 @@ export default function StudentTopicConditioningDialog({
     ? tutorPrepPlanFor(pendingTrainingDrill.phase, pendingTrainingDrill.stability, true)
     : null;
 
+  const showTopicManagement = !readOnly && !mapOnly;
+
   const studentNameHasGrade = /\bgrade\b/i.test(studentName || "");
   const normalizedGradeRaw = (studentGrade || "-").toString().trim();
   const normalizedGradeValue = normalizedGradeRaw.replace(/^grade\s*/i, "").trim() || "-";
@@ -1155,9 +1166,11 @@ export default function StudentTopicConditioningDialog({
         <DialogHeader />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full overflow-x-hidden">
-          <TabsList className="flex w-full flex-row sm:grid sm:grid-cols-2 h-auto rounded-xl border border-primary/15 bg-muted/20 p-1 gap-1">
+          <TabsList className={`flex w-full flex-row sm:grid h-auto rounded-xl border border-primary/15 bg-muted/20 p-1 gap-1 ${showTopicManagement ? "sm:grid-cols-2" : "sm:grid-cols-1"}`}>
             <TabsTrigger value="dashboard" className="flex-1 h-auto whitespace-normal text-xs sm:text-sm py-2 px-2">Map</TabsTrigger>
-            <TabsTrigger value="session-form" className="flex-1 h-auto whitespace-normal text-xs sm:text-sm py-2 px-2">Topic Management</TabsTrigger>
+            {showTopicManagement ? (
+              <TabsTrigger value="session-form" className="flex-1 h-auto whitespace-normal text-xs sm:text-sm py-2 px-2">Topic Management</TabsTrigger>
+            ) : null}
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-4 sm:space-y-6 overflow-x-hidden">
@@ -1530,6 +1543,7 @@ export default function StudentTopicConditioningDialog({
             )}
           </TabsContent>
 
+          {showTopicManagement ? (
           <TabsContent value="session-form" className="space-y-4 sm:space-y-6">
             <div className="flex justify-end mb-2">
               <Button variant="outline" onClick={() => setActivateDialogOpen(true)}>
@@ -1665,6 +1679,7 @@ export default function StudentTopicConditioningDialog({
               </DialogContent>
             </Dialog>
           </TabsContent>
+          ) : null}
         </Tabs>
       </DialogContent>
     </Dialog>

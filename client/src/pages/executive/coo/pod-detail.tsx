@@ -49,6 +49,7 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import StudentIdentitySheet from "@/components/tutor/StudentIdentitySheet";
 import ViewAssignmentsDialog from "@/components/tutor/ViewAssignmentsDialog";
 import ViewTrackingSystemsDialog from "@/components/tutor/ViewTrackingSystemsDialog";
+import StudentTopicConditioningDialog from "@/components/tutor/StudentTopicConditioningDialog";
 import type { Pod, User } from "@shared/schema";
 
 export default function PodDetail() {
@@ -65,8 +66,10 @@ export default function PodDetail() {
   const [identitySheetOpen, setIdentitySheetOpen] = useState(false);
   const [assignmentsDialogOpen, setAssignmentsDialogOpen] = useState(false);
   const [trackingDialogOpen, setTrackingDialogOpen] = useState(false);
+  const [topicConditioningDialogOpen, setTopicConditioningDialogOpen] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string>("");
   const [selectedStudentName, setSelectedStudentName] = useState<string>("");
+  const [selectedStudentRecord, setSelectedStudentRecord] = useState<any | null>(null);
 
   if (!podId) {
     navigate("/coo/pods");
@@ -515,6 +518,12 @@ export default function PodDetail() {
                                   setSelectedStudentName(studentName);
                                   setTrackingDialogOpen(true);
                                 }}
+                                onViewTopicConditioning={(student) => {
+                                  setSelectedStudentId(student.id);
+                                  setSelectedStudentName(student.name);
+                                  setSelectedStudentRecord(student);
+                                  setTopicConditioningDialogOpen(true);
+                                }}
                                 onViewAssignments={(studentId, studentName) => {
                                   setSelectedStudentId(studentId);
                                   setSelectedStudentName(studentName);
@@ -643,6 +652,33 @@ export default function PodDetail() {
         studentName={selectedStudentName}
         apiBasePath="/api/coo"
       />
+
+      <StudentTopicConditioningDialog
+        open={topicConditioningDialogOpen}
+        onOpenChange={setTopicConditioningDialogOpen}
+        studentId={selectedStudentId}
+        studentName={selectedStudentName}
+        studentGrade={(selectedStudentRecord?.grade as string) || null}
+        parentTopics={
+          (selectedStudentRecord?.parentInfo?.response_topics as string) ||
+          (selectedStudentRecord?.parentInfo?.math_struggle_areas as string) ||
+          (selectedStudentRecord?.struggleAreas as string) ||
+          null
+        }
+        topicConditioning={
+          selectedStudentRecord?.topicConditioning ||
+          selectedStudentRecord?.topic_conditioning ||
+          null
+        }
+        persistedTopicStates={
+          selectedStudentRecord?.conceptMastery?.topicConditioning?.topics ||
+          selectedStudentRecord?.concept_mastery?.topicConditioning?.topics ||
+          null
+        }
+        readOnly={true}
+        mapOnly={true}
+        apiBasePath="/api/coo"
+      />
     </DashboardLayout>
   );
 }
@@ -656,6 +692,7 @@ interface TutorStudentsSectionProps {
   getCertificationColor: (status: string) => string;
   onViewIdentitySheet: (studentId: string, studentName: string) => void;
   onViewTrackingSystems: (studentId: string, studentName: string) => void;
+  onViewTopicConditioning: (student: any) => void;
   onViewAssignments: (studentId: string, studentName: string) => void;
 }
 
@@ -667,6 +704,7 @@ function TutorStudentsSection({
   getCertificationColor,
   onViewIdentitySheet,
   onViewTrackingSystems,
+  onViewTopicConditioning,
   onViewAssignments,
 }: TutorStudentsSectionProps) {
   const { data: students, isLoading } = useQuery<any[]>({
@@ -755,10 +793,19 @@ function TutorStudentsSection({
                       variant="outline"
                       size="sm"
                       className="text-xs h-7"
+                      onClick={() => onViewTopicConditioning(student)}
+                    >
+                      <Settings className="w-3 h-3 mr-1.5" />
+                      Topic Conditioning
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-7"
                       onClick={() => onViewTrackingSystems(student.id, student.name)}
                     >
                       <Calendar className="w-3 h-3 mr-1.5" />
-                      Tracking
+                      View Tracking Systems
                     </Button>
                     <Button
                       variant="outline"

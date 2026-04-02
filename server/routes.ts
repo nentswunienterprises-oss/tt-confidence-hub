@@ -4230,6 +4230,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  // Reports center data per student for COO (read-only mirror)
+  app.get(
+    "/api/coo/students/:studentId/reports-center",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { studentId } = req.params;
+
+        const student = await storage.getStudent(studentId);
+        if (!student) {
+          return res.status(404).json({ message: "Student not found" });
+        }
+
+        const sessions = await storage.getSessionsByStudent(studentId);
+
+        const topicHistoryEntries = collectTopicHistoryEntries(student);
+        const sessionHistoryBySessionId = new Map<string, any>();
+        const previousBySessionId = new Map<string, any>();
+
+        topicHistoryEntries.forEach((entry, index) => {
+          if (!entry.sessionId) return;
+          const previous = index > 0 ? topicHistoryEntries[index - 1] : null;
+          sessionHistoryBySessionId.set(entry.sessionId, entry);
+          previousBySessionId.set(entry.sessionId, previous);
+        });
+
+        const enrichedSessions = sessions.map((session: any) => {
+          const historyEntry = sessionHistoryBySessionId.get(session.id);
+          const previousEntry = previousBySessionId.get(session.id);
+          if (!historyEntry) {
+            return {
+              ...session,
+              autoSummary: null,
+              deterministicLog: null,
+            };
+          }
+
+          const deterministicLog = buildDeterministicSessionLogView({
+            session,
+            topic: historyEntry.topic,
+            current: historyEntry,
+            previous: previousEntry
+              ? { phase: previousEntry.phase, stability: previousEntry.stability }
+              : null,
+          });
+
+          const autoSummary = generateSummaryFromTopicHistorySession({
+            topic: historyEntry.topic,
+            current: historyEntry,
+            previous: previousEntry
+              ? { phase: previousEntry.phase, stability: previousEntry.stability }
+              : null,
+          });
+
+          return {
+            ...session,
+            autoSummary: deterministicLog.summaryText || autoSummary,
+            autoSummaryTopic: historyEntry.topic,
+            deterministicLog,
+          };
+        });
+
+        const { data: reports, error: reportsError } = await supabase
+          .from("parent_reports")
+          .select("*")
+          .eq("student_id", studentId)
+          .order("sent_at", { ascending: false });
+
+        if (reportsError) {
+          throw reportsError;
+        }
+
+        const enrichedReports = (reports || []).map((report: any) => ({
+          id: report.id,
+          tutorId: report.tutor_id,
+          studentId: report.student_id,
+          parentId: report.parent_id,
+          reportType: report.report_type,
+          weekNumber: report.week_number,
+          monthName: report.month_name,
+          summary: report.summary,
+          topicsLearned: report.topics_learned,
+          strengths: report.strengths,
+          areasForGrowth: report.areas_for_growth,
+          bossBattlesCompleted: report.boss_battles_completed,
+          solutionsUnlocked: report.solutions_unlocked,
+          confidenceGrowth: report.confidence_growth,
+          nextSteps: report.next_steps,
+          parentFeedback: report.parent_feedback,
+          parentFeedbackAt: report.parent_feedback_at,
+          sentAt: report.sent_at,
+          createdAt: report.created_at,
+          structuredData: parseStructuredReportSummary(report.summary),
+        }));
+
+        res.json({
+          sessions: enrichedSessions,
+          reports: enrichedReports,
+        });
+      } catch (error) {
+        console.error("Error fetching COO reports center data:", error);
+        res.status(500).json({ message: "Failed to fetch reports center data" });
+      }
+    },
+  );
+
   // Create weekly parent report
   app.post(
     "/api/tutor/reports/weekly",
