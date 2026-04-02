@@ -611,6 +611,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
               await storage.updateStudent(studentId, { conceptMastery });
 
+              // Create a tutoring_sessions record so drill appears in Reports Center
+              const sessionSummaryText = [
+                `[Diagnosis Drill] ${normalizedIntroTopic}`,
+                `Phase: ${diagnosisSummary.phase}`,
+                `Stability: ${diagnosisSummary.stability}`,
+                `Score: ${diagnosisSummary.diagnosisScore ?? 0}`,
+                diagnosisSummary.constraint ? `Constraint: ${diagnosisSummary.constraint}` : null,
+              ]
+                .filter(Boolean)
+                .join(" | ");
+
+              const { error: sessionError } = await supabase
+                .from("tutoring_sessions")
+                .insert({
+                  id: uuidv4(),
+                  tutor_id: tutorId,
+                  student_id: studentId,
+                  date: new Date().toISOString(),
+                  duration: 30, // Estimated
+                  notes: sessionSummaryText,
+                  vocabulary_notes: `Topic: ${normalizedIntroTopic}. Phase detected as ${diagnosisSummary.phase}.`,
+                  method_notes: `Drill type: Diagnosis. Sets: ${drillSets.length}. Reps per set: 3.`,
+                  reason_notes: `Next Action: ${diagnosisSummary.nextAction}`,
+                  student_response: `Student responses captured across ${drillSets.length} sets`,
+                  created_at: new Date().toISOString(),
+                });
+
+              if (sessionError) {
+                console.error("Error creating tutoring session record for diagnosis drill:", sessionError);
+                // Log but don't fail - drill results still stored
+              }
+
               const scoringResults = diagnosisSummary.repRows.map((row) => ({
                 set: row.set,
                 rep: row.rep,
@@ -764,6 +796,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
               conceptMastery.topicConditioning = topicConditioningStore;
 
               await storage.updateStudent(studentId, { conceptMastery });
+
+              // Create a tutoring_sessions record so drill appears in Reports Center
+              const sessionSummaryText = [
+                `[Training Drill] ${normalizedTopic}`,
+                `Phase: ${trainingSummary.phase}`,
+                `Stability: ${trainingSummary.stability}`,
+                `Decision: ${trainingSummary.phaseDecision.toUpperCase()}`,
+                `Score: ${trainingSummary.sessionScore ?? 0}`,
+                trainingSummary.constraint ? `Constraint: ${trainingSummary.constraint}` : null,
+              ]
+                .filter(Boolean)
+                .join(" | ");
+
+              const { error: sessionError } = await supabase
+                .from("tutoring_sessions")
+                .insert({
+                  id: uuidv4(),
+                  tutor_id: tutorId,
+                  student_id: studentId,
+                  date: new Date().toISOString(),
+                  duration: 40, // Estimated for training
+                  notes: sessionSummaryText,
+                  vocabulary_notes: `Topic: ${normalizedTopic}. Observed at ${trainingSummary.observedPhase}.`,
+                  method_notes: `Drill type: Training. Previous Stability: ${trainingSummary.previousStability}. Sets: ${drillSets.length}.`,
+                  reason_notes: `Next Action: ${trainingSummary.nextAction}`,
+                  student_response: `Student responses captured across ${drillSets.length} sets`,
+                  created_at: new Date().toISOString(),
+                });
+
+              if (sessionError) {
+                console.error("Error creating tutoring session record for training drill:", sessionError);
+                // Log but don't fail - drill results still stored
+              }
 
               const scoringResults = trainingSummary.repRows.map((row) => ({
                 set: row.set,
