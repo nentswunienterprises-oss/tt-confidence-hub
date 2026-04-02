@@ -704,9 +704,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 // Log but don't fail - drill results still stored
               }
 
-              // Non-blocking auto-report trigger
-              maybeAutoGenerateReports({ tutorId, studentId, parentId: student ? ((student as any).parentId || null) : null }).catch(() => {});
-
               const scoringResults = diagnosisSummary.repRows.map((row) => {
                 const setMeta = diagnosisSummary.setBreakdown?.find((set: any) => set.setName === row.set);
                 return {
@@ -3635,22 +3632,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }: {
     tutorId: string;
     studentId: string;
-    parentId: string | null;
+    parentId?: string | null;
   }) => {
-    if (!parentId) return;
     try {
-      const { count } = await supabase
-        .from("tutoring_sessions")
-        .select("id", { count: "exact", head: true })
+      const { data: drillRows, error: drillError } = await supabase
+        .from("intro_session_drills")
+        .select("drill")
         .eq("tutor_id", tutorId)
         .eq("student_id", studentId);
-      const sessionCount = count || 0;
+
+      if (drillError) {
+        console.error("Failed to load drill rows for auto report trigger:", drillError);
+        return;
+      }
+
+      const trainingSessionCount = (drillRows || []).reduce((total: number, row: any) => {
+        try {
+          const parsed = typeof row?.drill === "string" ? JSON.parse(row.drill) : row?.drill;
+          const drillType = String(parsed?.drillType || "").toLowerCase();
+          return drillType === "training" ? total + 1 : total;
+        } catch {
+          return total;
+        }
+      }, 0);
 
       const student = await storage.getStudent(studentId);
       if (!student) return;
 
-      // Every 2 sessions → weekly report
-      if (sessionCount > 0 && sessionCount % 2 === 0) {
+      // Every 2 TRAINING sessions -> weekly report
+      if (trainingSessionCount > 0 && trainingSessionCount % 2 === 0) {
         const weekEnd = new Date();
         const weekStart = new Date(weekEnd);
         weekStart.setDate(weekStart.getDate() - 7);
@@ -3682,7 +3692,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await supabase.from("parent_reports").insert({
             tutor_id: tutorId,
             student_id: studentId,
-            parent_id: parentId,
+            parent_id: parentId || null,
             report_type: "weekly",
             week_number: getIsoWeekNum(weekStart),
             month_name: null,
@@ -3701,8 +3711,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Every 8 sessions → monthly report
-      if (sessionCount > 0 && sessionCount % 8 === 0) {
+      // Every 8 TRAINING sessions -> monthly report
+      if (trainingSessionCount > 0 && trainingSessionCount % 8 === 0) {
         const monthEnd = new Date();
         const monthStart = new Date(monthEnd.getFullYear(), monthEnd.getMonth(), 1);
         try {
@@ -3727,7 +3737,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await supabase.from("parent_reports").insert({
             tutor_id: tutorId,
             student_id: studentId,
-            parent_id: parentId,
+            parent_id: parentId || null,
             report_type: "monthly",
             week_number: null,
             month_name: monthLabel,
@@ -3768,12 +3778,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       byTopic.get(entry.topic)?.push(entry);
     });
 
-    const drillEvents = await getDrillEventsForRange({
+    const drillEvents = (await getDrillEventsForRange({
       tutorId,
       studentId: student.id,
       start: weekStart,
       end: weekEnd,
-    });
+    })).filter((event) => event.drillType === "training");
 
     const sessionSummaries = drillEvents.map((event) =>
       generateDeterministicSessionSummary({
@@ -3881,12 +3891,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       byTopic.get(entry.topic)?.push(entry);
     });
 
-    const drillEvents = await getDrillEventsForRange({
+    const drillEvents = (await getDrillEventsForRange({
       tutorId,
       studentId: student.id,
       start: monthStart,
       end: monthEnd,
-    });
+    })).filter((event) => event.drillType === "training");
 
     const topicsWorked = Array.from(new Set(drillEvents.map((event) => event.topic)));
     const topicProgressRows: Array<{ topic: string; start: string; end: string; movement: string; nextAction: string | null }> = [];
