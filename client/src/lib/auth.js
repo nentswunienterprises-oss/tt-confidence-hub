@@ -36,12 +36,34 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import { supabase } from "./supabaseClient";
 import { apiRequest, clearAllCache } from "./queryClient";
-export function logout() {
+
+function getLogoutRedirect(user) {
+    var pathname = window.location.pathname || "";
+    if ((user === null || user === void 0 ? void 0 : user.role) === "tutor") {
+        return "/operational/signup?role=tutor";
+    }
+    if ((user === null || user === void 0 ? void 0 : user.role) === "td") {
+        return "/operational/signup?role=tutor";
+    }
+    if ((user === null || user === void 0 ? void 0 : user.role) === "coo" || (user === null || user === void 0 ? void 0 : user.role) === "hr" || (user === null || user === void 0 ? void 0 : user.role) === "ceo" || (user === null || user === void 0 ? void 0 : user.role) === "executive") {
+        return "/executive";
+    }
+    if (pathname.startsWith("/executive")) {
+        return "/executive";
+    }
+    if (pathname.startsWith("/operational")) {
+        return "/operational/signup?role=tutor";
+    }
+    return "/portal-landing";
+}
+
+export function logout(user) {
     return __awaiter(this, void 0, void 0, function () {
-        var error_1;
+        var redirectPath, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
+                    redirectPath = getLogoutRedirect(user);
                     _a.trys.push([0, 3, , 4]);
                     // Call backend logout endpoint
                     return [4 /*yield*/, apiRequest("POST", "/api/auth/logout")];
@@ -55,16 +77,13 @@ export function logout() {
                     _a.sent();
                     // Clear ALL React Query cache (memory + localStorage) to prevent stale user data
                     clearAllCache();
-                    // Redirect to home
-                    window.location.href = "/";
+                    window.location.href = redirectPath;
                     return [3 /*break*/, 4];
                 case 3:
                     error_1 = _a.sent();
                     console.error("Logout error:", error_1);
-                    // Clear cache even on error
                     clearAllCache();
-                    // Force redirect even on error
-                    window.location.href = "/";
+                    window.location.href = redirectPath;
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
             }

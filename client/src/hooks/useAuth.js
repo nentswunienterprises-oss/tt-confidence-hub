@@ -40,6 +40,7 @@ import { useLocation } from "wouter";
 import { supabase } from "@/lib/supabaseClient";
 import { API_URL } from "@/lib/config";
 import { useState, useEffect, useRef } from "react";
+import { logout as roleLogout } from "@/lib/auth";
 export function useAuth() {
     var _this = this;
     var _a = useLocation(), setLocation = _a[1];
@@ -95,43 +96,9 @@ export function useAuth() {
         supabaseReady: supabaseReady,
         error: error === null || error === void 0 ? void 0 : error.message
     });
-    var logout = function () { return __awaiter(_this, void 0, void 0, function () {
-        var error_1;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    _a.trys.push([0, 3, , 4]);
-                    // Call backend logout endpoint
-                    return [4 /*yield*/, fetch("".concat(API_URL, "/api/auth/logout"), {
-                            method: "POST",
-                            credentials: "include",
-                        })];
-                case 1:
-                    // Call backend logout endpoint
-                    _a.sent();
-                    // Also sign out from Supabase client
-                    return [4 /*yield*/, supabase.auth.signOut()];
-                case 2:
-                    // Also sign out from Supabase client
-                    _a.sent();
-                    // Clear stored user ID
-                    setCurrentUserId(null);
-                    // Clear ALL React Query cache (memory + localStorage) to prevent stale user data showing for next user
-                    clearAllCache();
-                    // Redirect to landing page
-                    setLocation("/");
-                    return [3 /*break*/, 4];
-                case 3:
-                    error_1 = _a.sent();
-                    console.error("Logout error:", error_1);
-                    // Clear cache even on error
-                    setCurrentUserId(null);
-                    clearAllCache();
-                    return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
-            }
-        });
-    }); };
+    var logout = function () {
+        roleLogout(user);
+    };
     return {
         user: user || undefined,
         isLoading: userLoading || !supabaseReady,
