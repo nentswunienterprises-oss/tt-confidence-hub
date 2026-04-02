@@ -332,6 +332,7 @@ interface StudentTopicConditioningDialogProps {
   onOpenChange: (open: boolean) => void;
   studentId: string;
   studentName: string;
+  studentGrade?: string | null;
   parentTopics?: string | null;
   topicConditioning?: TopicConditioningMap | null;
   persistedTopicStates?: Record<
@@ -752,6 +753,7 @@ export default function StudentTopicConditioningDialog({
   onOpenChange,
   studentId,
   studentName,
+  studentGrade,
   parentTopics,
   topicConditioning,
   persistedTopicStates,
@@ -1089,7 +1091,9 @@ export default function StudentTopicConditioningDialog({
 
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <h3 className="font-semibold">Active Conditioning Map</h3>
-                <Badge variant="outline" className="w-full sm:w-fit max-w-full break-all">Student ID: {studentId || "-"}</Badge>
+                <Badge variant="outline" className="w-full sm:w-fit max-w-full break-all">
+                  {studentName || "-"} • Grade {studentGrade || "-"}
+                </Badge>
               </div>
               <p className="text-xs text-muted-foreground">
                 Select a topic to review observed state and next-session preparation. Activated topics stay Unknown until a scored drill/session is logged.

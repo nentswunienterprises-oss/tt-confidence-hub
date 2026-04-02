@@ -488,11 +488,13 @@ export default function IntroSessionDrillRunner() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [scoring, setScoring] = useState<any[] | null>(null);
+  const [showTrainingIntroModal, setShowTrainingIntroModal] = useState(false);
 
   const drillMode: DrillMode = searchParams.get("mode") === "training" ? "training" : "diagnosis";
   const phase = normalizePhase(searchParams.get("phase"));
   const drillStructure = useMemo(() => buildDrillStructure(drillMode, phase), [drillMode, phase]);
   const previousStability = String(searchParams.get("stability") || "").trim() || null;
+  const [drillStarted, setDrillStarted] = useState(drillMode !== "training");
 
   const introTopic = useMemo(() => {
     const raw = searchParams.get("topic") || "";
@@ -510,6 +512,20 @@ export default function IntroSessionDrillRunner() {
 
   const handleExitToPod = () => {
     navigate("/tutor/pod");
+  };
+
+  const openTrainingInstructions = () => {
+    if (!hasIntroTopic) {
+      setSubmitError("Diagnostic topic is required. Please return and set Add Diagnostic Topic first.");
+      return;
+    }
+    setSubmitError(null);
+    setShowTrainingIntroModal(true);
+  };
+
+  const beginTrainingDrill = () => {
+    setShowTrainingIntroModal(false);
+    setDrillStarted(true);
   };
 
   const handleBackStep = () => {
@@ -631,6 +647,94 @@ export default function IntroSessionDrillRunner() {
     }
   };
 
+  if (drillMode === "training" && !drillStarted) {
+    return (
+      <div className="max-w-xl mx-auto p-6">
+        <div className="mb-4 flex justify-end">
+          <button
+            type="button"
+            className="px-3 py-2 rounded border bg-background"
+            onClick={handleExitToPod}
+          >
+            Exit to Pod
+          </button>
+        </div>
+
+        <div className="border rounded-lg p-5 bg-white shadow-sm">
+          <h2 className="text-2xl font-bold mb-2">Training Drill - {phase}</h2>
+          <p className="mb-2 text-sm">
+            <span className="font-semibold">Diagnostic Topic:</span>{" "}
+            {hasIntroTopic ? introTopic : "Not set"}
+          </p>
+          <p className="mb-4 text-muted-foreground text-sm">Student ID: {studentId}</p>
+          {!hasIntroTopic && (
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded text-amber-900 text-sm">
+              No diagnostic topic was provided. Go back to the student card and use Add Diagnostic Topic before opening the intro session.
+            </div>
+          )}
+          {submitError && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-900 text-sm">
+              {submitError}
+            </div>
+          )}
+          <button
+            type="button"
+            className="px-4 py-2 rounded bg-primary text-white disabled:opacity-60"
+            onClick={openTrainingInstructions}
+            disabled={!hasIntroTopic}
+          >
+            Start Training Drill
+          </button>
+        </div>
+
+        {showTrainingIntroModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="w-full max-w-2xl rounded-lg border bg-white p-5 shadow-xl">
+              <div className="mb-4 flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="text-lg font-semibold">Training Drill Instructions</h3>
+                  <p className="text-sm text-muted-foreground">{phase} Drill · Topic: {introTopic}</p>
+                </div>
+                <button
+                  type="button"
+                  className="px-2 py-1 rounded border bg-background text-sm"
+                  onClick={() => setShowTrainingIntroModal(false)}
+                >
+                  Close
+                </button>
+              </div>
+
+              <ul className="list-disc pl-5 text-sm space-y-1">
+                <li>This drill is for system-driven training progression. Follow the structure exactly.</li>
+                <li><strong>Before you begin:</strong> Prepare <span className="font-semibold">3 distinct problems</span> for each drill set. In Clarity training, Set 1 is modeling-only (single step), then Sets 2 and 3 run full reps.</li>
+                <li>For each set and rep, present the prepared problem, observe the student, and select the option that best matches their behavior for each field.</li>
+                <li>You cannot skip steps or edit outside the drill structure. Complete each observation in order.</li>
+                <li>When finished, observations are scored and the topic state map updates automatically.</li>
+              </ul>
+
+              <div className="mt-5 flex justify-end gap-2">
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded border bg-background"
+                  onClick={() => setShowTrainingIntroModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded bg-primary text-white"
+                  onClick={beginTrainingDrill}
+                >
+                  Begin Drill
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-xl mx-auto p-6">
       <div className="mb-4 flex justify-end">
@@ -713,6 +817,7 @@ export default function IntroSessionDrillRunner() {
           No diagnostic topic was provided. Go back to the student card and use Add Diagnostic Topic before opening the intro session.
         </div>
       )}
+      {drillMode === "diagnosis" && (
       <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
         <p className="font-semibold mb-1">Instructions:</p>
         <ul className="list-disc pl-5 text-sm text-blue-900 space-y-1">
@@ -731,6 +836,7 @@ export default function IntroSessionDrillRunner() {
           </li>
         </ul>
       </div>
+      )}
       <p className="mb-4 text-muted-foreground">Student ID: {studentId}</p>
 
       {/* Phase-level context bar — stays constant throughout the drill */}
