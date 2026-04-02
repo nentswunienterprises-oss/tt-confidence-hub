@@ -814,6 +814,8 @@ export default function IntroSessionDrillRunner() {
             ? "Submitting..."
             : isLastSet && isLastRep
             ? "Submit Drill"
+            : set.isModelingSet && isLastRep
+            ? "Start Drilling"
             : "Next"}
         </button>
       </div>
