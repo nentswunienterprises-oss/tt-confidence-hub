@@ -651,56 +651,91 @@ export default function IntroSessionDrillRunner() {
           Exit to Pod
         </button>
       </div>
-      {submitSuccess && (
+      {submitSuccess && scoring && scoring.length > 0 && (() => {
+        // Group rows by set name
+        const setGroups: Record<string, typeof scoring> = {};
+        scoring.forEach((row) => {
+          if (!setGroups[row.set]) setGroups[row.set] = [];
+          setGroups[row.set].push(row);
+        });
+        const setNames = Object.keys(setGroups);
+        const sessionScore = scoring[scoring.length - 1]?.sessionScore ?? 0;
+        const lastRow = scoring[scoring.length - 1];
+        const stabilityColor = lastRow?.stability === "High" ? "text-green-700" : lastRow?.stability === "Medium" ? "text-yellow-700" : "text-red-700";
+        const decisionColor = lastRow?.nextAction?.toLowerCase().includes("transition") || lastRow?.nextAction?.toLowerCase().includes("advance")
+          ? "text-green-700"
+          : lastRow?.nextAction?.toLowerCase().includes("regress")
+          ? "text-red-700"
+          : "text-blue-700";
+        return (
+          <div className="mb-6 space-y-4">
+            <div className="p-3 bg-green-50 border border-green-200 rounded text-green-900 font-medium">
+              Drill submitted. Scoring complete.
+            </div>
+
+            {/* Per-set scoring */}
+            {setNames.map((setName) => {
+              const rows = setGroups[setName];
+              const setTotal = Math.round(rows.reduce((sum, r) => sum + (r.score ?? 0), 0) / rows.length);
+              return (
+                <div key={setName} className="border rounded overflow-hidden">
+                  <div className="bg-muted px-4 py-2 flex justify-between items-center">
+                    <span className="font-semibold text-sm">{setName}</span>
+                    <span className="text-sm text-muted-foreground">Set Total: <strong>{setTotal}</strong>/100</span>
+                  </div>
+                  <div className="divide-y">
+                    {rows.map((row, i) => (
+                      <div key={i} className="px-4 py-2 flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">Rep {row.rep}</span>
+                        <span className={`font-medium ${
+                          row.score >= 70 ? "text-green-700" : row.score >= 45 ? "text-yellow-700" : "text-red-700"
+                        }`}>{row.score}/100</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Session total */}
+            <div className="border rounded px-4 py-3 flex justify-between items-center">
+              <span className="font-semibold">Session Total</span>
+              <span className={`text-lg font-bold ${
+                sessionScore >= 70 ? "text-green-700" : sessionScore >= 45 ? "text-yellow-700" : "text-red-700"
+              }`}>{sessionScore}/100</span>
+            </div>
+
+            {/* Direction card */}
+            <div className="border rounded overflow-hidden">
+              <div className="bg-muted px-4 py-2">
+                <span className="font-semibold text-sm">System Direction</span>
+              </div>
+              <div className="px-4 py-3 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Phase</span>
+                  <span className="font-medium">{lastRow?.phase}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Stability</span>
+                  <span className={`font-bold ${stabilityColor}`}>{lastRow?.stability}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Next Move</span>
+                  <span className={`font-semibold ${decisionColor}`}>{lastRow?.nextAction}</span>
+                </div>
+                {lastRow?.constraint && (
+                  <div className="mt-2 pt-2 border-t text-xs text-muted-foreground">
+                    Constraint: {lastRow.constraint}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+      {submitSuccess && (!scoring || scoring.length === 0) && (
         <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded text-green-900">
-          Drill submitted successfully! Observations have been sent for automated scoring.
-        </div>
-      )}
-      {scoring && scoring.length > 0 && (
-        <div className="mb-6">
-          <h3 className="font-semibold mb-2">System Scoring Results</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full border text-sm">
-              <thead>
-                <tr className="bg-muted">
-                  <th className="px-2 py-1 border">Set</th>
-                  <th className="px-2 py-1 border">Rep</th>
-                  <th className="px-2 py-1 border">Score</th>
-                  <th className="px-2 py-1 border">Session Score</th>
-                  <th className="px-2 py-1 border">Phase</th>
-                  <th className="px-2 py-1 border">Stability</th>
-                  <th className="px-2 py-1 border">Next Action</th>
-                  <th className="px-2 py-1 border">Constraint</th>
-                </tr>
-              </thead>
-              <tbody>
-                {scoring.map((row, i) => (
-                  <tr key={i} className="even:bg-gray-50">
-                    <td className="px-2 py-1 border">{row.set}</td>
-                    <td className="px-2 py-1 border">{row.rep}</td>
-                    <td className="px-2 py-1 border">{row.score}</td>
-                    <td className="px-2 py-1 border">{row.sessionScore}</td>
-                    <td className="px-2 py-1 border">{row.phase}</td>
-                    <td className="px-2 py-1 border">{row.stability}</td>
-                    <td className="px-2 py-1 border">{row.nextAction}</td>
-                    <td className="px-2 py-1 border">{row.constraint}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {/* Show summary of last scoring result */}
-          <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded">
-            <div className="font-semibold mb-1">System Interpretation:</div>
-            <div>
-              <strong>Phase:</strong> {scoring[scoring.length - 1]?.phase} &nbsp;|
-              <strong> Stability:</strong> {scoring[scoring.length - 1]?.stability} &nbsp;|
-              <strong> Next Action:</strong> {scoring[scoring.length - 1]?.nextAction}
-            </div>
-            <div className="mt-1 text-sm text-muted-foreground">
-              <strong>Constraint:</strong> {scoring[scoring.length - 1]?.constraint}
-            </div>
-          </div>
+          Drill submitted successfully.
         </div>
       )}
       {submitError && (
@@ -818,11 +853,15 @@ export default function IntroSessionDrillRunner() {
         )}
         <button
           type="button"
-          className="px-4 py-2 rounded bg-primary text-white disabled:opacity-60"
+          className={`px-4 py-2 rounded text-white disabled:opacity-60 ${
+            submitSuccess ? "bg-green-600 cursor-default" : "bg-primary"
+          }`}
           onClick={handleNext}
           disabled={submitting || submitSuccess || !hasIntroTopic}
         >
-          {submitting
+          {submitSuccess
+            ? "Submitted"
+            : submitting
             ? "Submitting..."
             : isLastSet && isLastRep
             ? "Submit Drill"
