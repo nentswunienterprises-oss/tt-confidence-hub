@@ -50,19 +50,19 @@ const DIAGNOSIS_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
       activeRules: ["Student does not solve", "Recognition only — no execution", "No hints or steps from tutor"],
       repObservationBlocks: [
         [
-          { key: "vocabulary", label: "Vocabulary (Rep 1 — Cold Name)", options: ["cannot name", "partial", "clear"] },
+          { key: "vocabulary", label: "Vocabulary (Rep 1 - Cold Name)", options: ["cannot name", "partial", "clear"] },
           { key: "method", label: "Type Recognition (Rep 1)", options: ["wrong", "hesitant", "correct"] },
           { key: "reason", label: "Step Awareness (Rep 1)", options: ["none", "partial", "clear"] },
           { key: "immediateApply", label: "First Response (Rep 1)", options: ["avoids", "unsure", "engages"] },
         ],
         [
-          { key: "vocabulary", label: "Vocabulary (Rep 2 — Second Look)", options: ["cannot name", "partial", "clear"] },
+          { key: "vocabulary", label: "Vocabulary (Rep 2 - Second Look)", options: ["cannot name", "partial", "clear"] },
           { key: "method", label: "Method Recognition (Rep 2)", options: ["wrong", "hesitant", "correct"] },
           { key: "reason", label: "Can They State Steps? (Rep 2)", options: ["none", "partial", "clear"] },
           { key: "immediateApply", label: "Willingness to Try (Rep 2)", options: ["avoids", "unsure", "engages"] },
         ],
         [
-          { key: "vocabulary", label: "Vocabulary (Rep 3 — Confirm)", options: ["cannot name", "partial", "clear"] },
+          { key: "vocabulary", label: "Vocabulary (Rep 3 - Confirm)", options: ["cannot name", "partial", "clear"] },
           { key: "method", label: "Method Recall (Rep 3)", options: ["wrong", "hesitant", "correct"] },
           { key: "reason", label: "Can They Explain Why? (Rep 3)", options: ["none", "partial", "clear"] },
           { key: "immediateApply", label: "Confidence Signal (Rep 3)", options: ["avoids", "unsure", "engages"] },
@@ -77,19 +77,19 @@ const DIAGNOSIS_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
       activeRules: ["Minimal guidance only", "No step-by-step help", "Observe independent start and execution"],
       repObservationBlocks: [
         [
-          { key: "vocabulary", label: "Vocabulary in Context (Rep 1 — First Attempt)", options: ["incorrect", "partial", "correct"] },
+          { key: "vocabulary", label: "Vocabulary in Context (Rep 1 - First Attempt)", options: ["incorrect", "partial", "correct"] },
           { key: "method", label: "Step Execution (Rep 1)", options: ["random", "partial", "structured"] },
           { key: "reason", label: "Reason Awareness (Rep 1)", options: ["none", "weak", "present"] },
           { key: "immediateApply", label: "Start Behavior (Rep 1)", options: ["cannot start", "delayed", "starts"] },
         ],
         [
-          { key: "vocabulary", label: "Vocabulary in Context (Rep 2 — With Feedback)", options: ["incorrect", "partial", "correct"] },
+          { key: "vocabulary", label: "Vocabulary in Context (Rep 2 - With Feedback)", options: ["incorrect", "partial", "correct"] },
           { key: "method", label: "Step Discipline (Rep 2)", options: ["random", "partial", "structured"] },
           { key: "reason", label: "Reason Application (Rep 2)", options: ["none", "weak", "present"] },
           { key: "immediateApply", label: "Adjustment to Feedback (Rep 2)", options: ["cannot start", "delayed", "starts"] },
         ],
         [
-          { key: "vocabulary", label: "Vocabulary (Rep 3 — Independence Check)", options: ["incorrect", "partial", "correct"] },
+          { key: "vocabulary", label: "Vocabulary in Context (Rep 3 - Independence Check)", options: ["incorrect", "partial", "correct"] },
           { key: "method", label: "Step Consistency (Rep 3)", options: ["random", "partial", "structured"] },
           { key: "reason", label: "Reason Retention (Rep 3)", options: ["none", "weak", "present"] },
           { key: "immediateApply", label: "Independent Start (Rep 3)", options: ["cannot start", "delayed", "starts"] },
@@ -103,7 +103,7 @@ const DIAGNOSIS_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
       reps: 3,
       purpose: "Test ability to execute from a cold start with no assistance. Observe whether structure exists from the first move.",
       repInstruction: "Solve the problem. No help for 10 seconds.",
-      activeRules: ["No help for 10 seconds", "Observe cold start behavior", "Record exactly what happens — no prompting"],
+      activeRules: ["No help for 10 seconds", "Observe cold start behavior", "Record exactly what happens - no prompting"],
       repObservationBlocks: [
         [
           { key: "startBehavior", label: "Cold Start (Rep 1)", options: ["avoids", "delayed", "immediate"] },
@@ -130,22 +130,22 @@ const DIAGNOSIS_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
       reps: 3,
       purpose: "Test whether execution holds across similar problems without breaking down.",
       repInstruction: "Solve similar problem.",
-      activeRules: ["Similar problem — same method", "No step-by-step guidance", "Observe consistency across reps"],
+      activeRules: ["Similar problem - same method", "No step-by-step guidance", "Observe consistency across reps"],
       repObservationBlocks: [
         [
-          { key: "repeatability", label: "First Repeat — Consistency (Rep 1)", options: ["breaks each time", "inconsistent", "stable"] },
+          { key: "repeatability", label: "First Repeat - Consistency (Rep 1)", options: ["breaks each time", "inconsistent", "stable"] },
           { key: "stepExecution", label: "Step Recall (Rep 1)", options: ["forgets", "partial", "full"] },
           { key: "independence", label: "Error Type (Rep 1)", options: ["guessing", "careless", "structured"] },
           { key: "startBehavior", label: "Completion (Rep 1)", options: ["cannot finish", "partial", "complete"] },
         ],
         [
-          { key: "repeatability", label: "Second Repeat — Pattern (Rep 2)", options: ["breaks each time", "inconsistent", "stable"] },
+          { key: "repeatability", label: "Second Repeat - Pattern (Rep 2)", options: ["breaks each time", "inconsistent", "stable"] },
           { key: "stepExecution", label: "Step Retention (Rep 2)", options: ["forgets", "partial", "full"] },
           { key: "independence", label: "Self-Correction (Rep 2)", options: ["guessing", "careless", "structured"] },
           { key: "startBehavior", label: "Completion (Rep 2)", options: ["cannot finish", "partial", "complete"] },
         ],
         [
-          { key: "repeatability", label: "Third Repeat — Final Stability (Rep 3)", options: ["breaks each time", "inconsistent", "stable"] },
+          { key: "repeatability", label: "Third Repeat - Final Stability (Rep 3)", options: ["breaks each time", "inconsistent", "stable"] },
           { key: "stepExecution", label: "Step Reliability (Rep 3)", options: ["forgets", "partial", "full"] },
           { key: "independence", label: "Independence Signal (Rep 3)", options: ["guessing", "careless", "structured"] },
           { key: "startBehavior", label: "Completion (Rep 3)", options: ["cannot finish", "partial", "complete"] },
@@ -159,10 +159,10 @@ const DIAGNOSIS_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
       reps: 3,
       purpose: "Test initial response to difficulty under a no-help condition. What does the student do first?",
       repInstruction: "Try this. No help for 10 seconds.",
-      activeRules: ["No help for 10 seconds", "Hold the discomfort window", "Do not rescue — observe"],
+      activeRules: ["No help for 10 seconds", "Hold the discomfort window", "Do not rescue - observe"],
       repObservationBlocks: [
         [
-          { key: "initialResponse", label: "Immediate Reaction (Rep 1 — Cold Contact)", options: ["freeze", "hesitate", "attempt"] },
+          { key: "initialResponse", label: "Immediate Reaction (Rep 1 - Cold Contact)", options: ["freeze", "hesitate", "attempt"] },
           { key: "firstStepControl", label: "First Step Without Prompt (Rep 1)", options: ["none", "prompted", "independent"] },
           { key: "discomfortTolerance", label: "Emotional State (Rep 1)", options: ["panic", "tension", "controlled"] },
           { key: "rescueDependence", label: "Rescue Seeking (Rep 1)", options: ["asks immediately", "asks later", "no rescue"] },
@@ -186,7 +186,7 @@ const DIAGNOSIS_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
       reps: 3,
       purpose: "Test sustained engagement under difficulty. Can the student persist without rescue?",
       repInstruction: "Continue. I will only confirm the first step.",
-      activeRules: ["One-step confirmation only", "No rescue allowed", "Hold pressure — do not relieve it"],
+      activeRules: ["One-step confirmation only", "No rescue allowed", "Hold pressure - do not relieve it"],
       repObservationBlocks: [
         [
           { key: "discomfortTolerance", label: "Sustained Engagement (Rep 1)", options: ["gives up", "short attempt", "stays engaged"] },
@@ -201,7 +201,7 @@ const DIAGNOSIS_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
           { key: "initialResponse", label: "Composed or Reactive? (Rep 2)", options: ["collapses", "partial", "recovers"] },
         ],
         [
-          { key: "discomfortTolerance", label: "Final Hold — Stability (Rep 3)", options: ["gives up", "short attempt", "stays engaged"] },
+          { key: "discomfortTolerance", label: "Final Hold - Stability (Rep 3)", options: ["gives up", "short attempt", "stays engaged"] },
           { key: "rescueDependence", label: "Final Rescue Check (Rep 3)", options: ["asks immediately", "asks later", "no rescue"] },
           { key: "firstStepControl", label: "Structure Under Max Pressure (Rep 3)", options: ["breaks", "partial", "maintained"] },
           { key: "initialResponse", label: "Final Recovery (Rep 3)", options: ["collapses", "partial", "recovers"] },
@@ -215,22 +215,22 @@ const DIAGNOSIS_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
       reps: 3,
       purpose: "Test structure and start behavior under a timer. First exposure to time constraint.",
       repInstruction: "Solve under short timer.",
-      activeRules: ["Timer is active", "Observe structure — not just speed", "Record panic vs controlled response"],
+      activeRules: ["Timer is active", "Observe structure - not just speed", "Record panic vs controlled response"],
       repObservationBlocks: [
         [
-          { key: "startUnderTime", label: "First Time Exposure — Start (Rep 1)", options: ["freeze", "delayed", "immediate"] },
+          { key: "startUnderTime", label: "First Time Exposure - Start (Rep 1)", options: ["freeze", "delayed", "immediate"] },
           { key: "structureUnderTime", label: "Structure on First Timer (Rep 1)", options: ["breaks", "partial", "maintained"] },
           { key: "paceControl", label: "Pace Reaction (Rep 1)", options: ["panic", "rushed", "controlled"] },
           { key: "completionIntegrity", label: "Completion Under Time (Rep 1)", options: ["fails", "partial", "complete"] },
         ],
         [
-          { key: "startUnderTime", label: "Start — Adjusted? (Rep 2)", options: ["freeze", "delayed", "immediate"] },
+          { key: "startUnderTime", label: "Start - Adjusted? (Rep 2)", options: ["freeze", "delayed", "immediate"] },
           { key: "structureUnderTime", label: "Structure Mid-Timer (Rep 2)", options: ["breaks", "partial", "maintained"] },
           { key: "paceControl", label: "Pace Regulation (Rep 2)", options: ["panic", "rushed", "controlled"] },
           { key: "completionIntegrity", label: "Completion Quality (Rep 2)", options: ["fails", "partial", "complete"] },
         ],
         [
-          { key: "startUnderTime", label: "Start — Consistent? (Rep 3)", options: ["freeze", "delayed", "immediate"] },
+          { key: "startUnderTime", label: "Start - Consistent? (Rep 3)", options: ["freeze", "delayed", "immediate"] },
           { key: "structureUnderTime", label: "Structure Integrity (Rep 3)", options: ["breaks", "partial", "maintained"] },
           { key: "paceControl", label: "Final Pace Control (Rep 3)", options: ["panic", "rushed", "controlled"] },
           { key: "completionIntegrity", label: "Final Completion (Rep 3)", options: ["fails", "partial", "complete"] },
@@ -242,22 +242,22 @@ const DIAGNOSIS_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
       reps: 3,
       purpose: "Test whether structure holds across repeated timed attempts. Look for drift.",
       repInstruction: "Repeat under same time constraint.",
-      activeRules: ["Same timer", "Observe drift and consistency", "Behavioral pattern — not just completion"],
+      activeRules: ["Same timer", "Observe drift and consistency", "Behavioral pattern - not just completion"],
       repObservationBlocks: [
         [
-          { key: "completionIntegrity", label: "Repeat 1 — Consistency Signal", options: ["collapses", "inconsistent", "stable"] },
+          { key: "completionIntegrity", label: "Repeat 1 - Consistency Signal", options: ["collapses", "inconsistent", "stable"] },
           { key: "startUnderTime", label: "Behavior Pattern (Rep 1)", options: ["panic", "tension", "composed"] },
           { key: "structureUnderTime", label: "Structure Repeat 1", options: ["breaks", "partial", "maintained"] },
           { key: "paceControl", label: "Pace Pattern (Rep 1)", options: ["rushed", "uneven", "controlled"] },
         ],
         [
-          { key: "completionIntegrity", label: "Repeat 2 — Holding? (Rep 2)", options: ["collapses", "inconsistent", "stable"] },
+          { key: "completionIntegrity", label: "Repeat 2 - Holding? (Rep 2)", options: ["collapses", "inconsistent", "stable"] },
           { key: "startUnderTime", label: "Behavioral Drift (Rep 2)", options: ["panic", "tension", "composed"] },
           { key: "structureUnderTime", label: "Structure Stability (Rep 2)", options: ["breaks", "partial", "maintained"] },
           { key: "paceControl", label: "Pace Discipline (Rep 2)", options: ["rushed", "uneven", "controlled"] },
         ],
         [
-          { key: "completionIntegrity", label: "Repeat 3 — Final Stability (Rep 3)", options: ["collapses", "inconsistent", "stable"] },
+          { key: "completionIntegrity", label: "Repeat 3 - Final Stability (Rep 3)", options: ["collapses", "inconsistent", "stable"] },
           { key: "startUnderTime", label: "Final Behavior (Rep 3)", options: ["panic", "tension", "composed"] },
           { key: "structureUnderTime", label: "Final Structure (Rep 3)", options: ["breaks", "partial", "maintained"] },
           { key: "paceControl", label: "Final Pace (Rep 3)", options: ["rushed", "uneven", "controlled"] },
@@ -272,10 +272,10 @@ const TRAINING_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
     {
       setName: "Modeling",
       reps: 3,
-      purpose: "Build the mental map. Tutor models Vocab → Method → Reason. Student explains back. This is TEACHING — not drilling.",
+      purpose: "Build the mental map. Tutor models Vocab → Method → Reason. Student explains back. This is TEACHING - not drilling.",
       repInstruction: "Model the problem step-by-step: name the vocabulary, demonstrate the method, explain the reason it works. After each model, ask student to explain back in their own words.",
       isModelingSet: true,
-      activeRules: ["Tutor models — student does NOT solve", "Vocab → Method → Reason sequence", "Ask student to explain back after each model"],
+      activeRules: ["Tutor models - student does NOT solve", "Vocab → Method → Reason sequence", "Ask student to explain back after each model"],
       repObservationBlocks: [
         [
           { key: "vocabulary", label: "Vocabulary Recognition (Rep 1)", options: ["cannot name", "partial", "clear"] },
@@ -384,7 +384,7 @@ const TRAINING_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
       reps: 3,
       purpose: "Test transfer. Student adapts to a slightly different form using the same method. Method must survive variation.",
       repInstruction: "Solve slightly different form.",
-      activeRules: ["Same method — different form", "Test transfer not memorization", "No hints on what changed"],
+      activeRules: ["Same method - different form", "Test transfer not memorization", "No hints on what changed"],
       observationBlock: [
         { key: "stepExecution", label: "Transfer", options: ["cannot adapt", "partial", "adapts"] },
         { key: "repeatability", label: "Step Retention", options: ["lost", "partial", "stable"] },
@@ -412,7 +412,7 @@ const TRAINING_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
       reps: 3,
       purpose: "Build independence under difficulty. No rescue under any circumstance.",
       repInstruction: "Continue. No full help.",
-      activeRules: ["No rescue allowed", "Hold the hold — do not relieve", "Observe rescue-seeking pattern"],
+      activeRules: ["No rescue allowed", "Hold the hold - do not relieve", "Observe rescue-seeking pattern"],
       observationBlock: [
         { key: "rescueDependence", label: "Independence", options: ["dependent", "partial", "independent"] },
         { key: "discomfortTolerance", label: "Stability", options: ["breaks", "unstable", "stable"] },
@@ -423,9 +423,9 @@ const TRAINING_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
     {
       setName: "Repeat Exposure",
       reps: 3,
-      purpose: "Repeat exposure to build tolerance. Same difficulty level. The target is stability — not just survival.",
+      purpose: "Repeat exposure to build tolerance. Same difficulty level. The target is stability - not just survival.",
       repInstruction: "Another similar difficulty.",
-      activeRules: ["Same difficulty level", "Repeat exposure — build tolerance", "Observe consistency of response"],
+      activeRules: ["Same difficulty level", "Repeat exposure - build tolerance", "Observe consistency of response"],
       observationBlock: [
         { key: "discomfortTolerance", label: "Consistency", options: ["breaks", "inconsistent", "stable"] },
         { key: "initialResponse", label: "Recovery", options: ["collapses", "partial", "recovers"] },
@@ -438,9 +438,9 @@ const TRAINING_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
     {
       setName: "Structure Under Timer",
       reps: 3,
-      purpose: "Build structured execution under a timer. Method is priority — speed is secondary.",
+      purpose: "Build structured execution under a timer. Method is priority - speed is secondary.",
       repInstruction: "Focus on method, not speed.",
-      activeRules: ["Timer active", "Method priority — not speed", "Structure must be maintained throughout"],
+      activeRules: ["Timer active", "Method priority - not speed", "Structure must be maintained throughout"],
       observationBlock: [
         { key: "startUnderTime", label: "Start", options: ["panic", "hesitant", "controlled"] },
         { key: "structureUnderTime", label: "Structure", options: ["lost", "partial", "maintained"] },
@@ -451,9 +451,9 @@ const TRAINING_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
     {
       setName: "Repeated Timed Execution",
       reps: 3,
-      purpose: "Build consistency under repeated timed execution. Same constraint — look for drift.",
+      purpose: "Build consistency under repeated timed execution. Same constraint - look for drift.",
       repInstruction: "Repeat under timer.",
-      activeRules: ["Same timer constraint", "Build consistency — not just completion", "Observe pace regulation"],
+      activeRules: ["Same timer constraint", "Build consistency - not just completion", "Observe pace regulation"],
       observationBlock: [
         { key: "completionIntegrity", label: "Consistency", options: ["breaks", "inconsistent", "stable"] },
         { key: "paceControl", label: "Pace", options: ["rushed", "uneven", "controlled"] },
@@ -464,9 +464,9 @@ const TRAINING_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
     {
       setName: "Full Constraint",
       reps: 3,
-      purpose: "Full constraint drill. Tighter time — structure and completion integrity both tested.",
+      purpose: "Full constraint drill. Tighter time - structure and completion integrity both tested.",
       repInstruction: "Solve under tighter time.",
-      activeRules: ["Tighter timer", "Full constraint — no relief", "Structure + completion both required"],
+      activeRules: ["Tighter timer", "Full constraint - no relief", "Structure + completion both required"],
       observationBlock: [
         { key: "completionIntegrity", label: "Completion", options: ["fails", "partial", "complete"] },
         { key: "structureUnderTime", label: "Integrity", options: ["collapses", "unstable", "stable"] },
@@ -754,10 +754,10 @@ export default function IntroSessionDrillRunner() {
         </div>
       </div>
 
-      {/* Modeling session callout — shown only for Clarity Training Set 1 */}
+      {/* Modeling session callout - shown only for Clarity Training Set 1 */}
       {set.isModelingSet && (
         <div className="mb-4 p-4 bg-amber-50 border-l-4 border-amber-500 rounded-lg">
-          <div className="font-bold text-amber-900 text-sm mb-1">⬛ MODELING SESSION — Teaching before the drill</div>
+          <div className="font-bold text-amber-900 text-sm mb-1">⬛ MODELING SESSION - Teaching before the drill</div>
           <div className="text-amber-800 text-xs leading-relaxed">
             You model. Student does <strong>NOT</strong> solve yet. This set is Pre-Drill teaching.<br />
             Sequence: <strong>Vocabulary → Method → Reason</strong>. Ask student to explain back after each model.<br />
