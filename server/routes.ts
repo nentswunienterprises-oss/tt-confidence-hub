@@ -93,6 +93,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 return `Set ${setIndex + 1} must include exactly 3 reps`;
               }
 
+              const isClarityModelingSet =
+                mode === "training" && phase === "Clarity" && setIndex === 0;
+              if (isClarityModelingSet) {
+                // Clarity Set 1 is modeling-only (teaching), so no observation fields are required.
+                continue;
+              }
+
               for (let repIndex = 0; repIndex < observations.length; repIndex += 1) {
                 const rep = observations[repIndex] || {};
                 for (const field of phaseFields) {
@@ -317,8 +324,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const setScores: number[] = [];
             let highGuardPasses = true;
 
-            const firstThreeSets = sets.slice(0, 3);
-            firstThreeSets.forEach((set) => {
+            const scoredSets =
+              observedPhase === "Clarity"
+                ? sets.slice(1, 3)
+                : sets.slice(0, 3);
+
+            scoredSets.forEach((set) => {
               const repScores = (set.observations || []).map((repObs, repIndex) => {
                 const score = phaseWeights.reduce((sum, field) => {
                   const rawValue = field.aliases
@@ -382,7 +393,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
             });
 
-            const setWeights = [1, 2, 2];
+            const setWeights = observedPhase === "Clarity" ? [2, 2] : [1, 2, 2];
             const weighted = setScores.reduce(
               (acc, score, idx) => {
                 const w = setWeights[idx] || 1;

@@ -276,26 +276,6 @@ const TRAINING_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
       repInstruction: "Model the problem step-by-step: name the vocabulary, demonstrate the method, explain the reason it works. After each model, ask student to explain back in their own words.",
       isModelingSet: true,
       activeRules: ["Tutor models - student does NOT solve", "Vocab → Method → Reason sequence", "Ask student to explain back after each model"],
-      repObservationBlocks: [
-        [
-          { key: "vocabulary", label: "Vocabulary Recognition (Rep 1)", options: ["cannot name", "partial", "clear"] },
-          { key: "method", label: "Method Awareness (Rep 1)", options: ["cannot state steps", "incomplete steps", "clear steps"] },
-          { key: "reason", label: "Reason Awareness (Rep 1)", options: ["no idea why", "vague", "clear logic"] },
-          { key: "immediateApply", label: "Engagement (Rep 1)", options: ["passive", "following", "actively tracking"] },
-        ],
-        [
-          { key: "vocabulary", label: "Vocabulary Recognition (Rep 2)", options: ["cannot name", "partial", "clear"] },
-          { key: "method", label: "Method Awareness (Rep 2)", options: ["cannot state steps", "incomplete steps", "clear steps"] },
-          { key: "reason", label: "Reason Awareness (Rep 2)", options: ["no idea why", "vague", "clear logic"] },
-          { key: "immediateApply", label: "Explain-Back Response (Rep 2)", options: ["cannot repeat / avoids", "partial", "independent"] },
-        ],
-        [
-          { key: "vocabulary", label: "Vocabulary Recognition (Rep 3)", options: ["cannot name", "partial", "clear"] },
-          { key: "method", label: "Method Awareness (Rep 3)", options: ["cannot state steps", "incomplete steps", "clear steps"] },
-          { key: "reason", label: "Reason Awareness (Rep 3)", options: ["no idea why", "vague", "clear logic"] },
-          { key: "immediateApply", label: "Immediate Apply Readiness (Rep 3)", options: ["cannot repeat / avoids", "partial", "independent"] },
-        ],
-      ],
     },
     {
       setName: "Identification",
@@ -790,6 +770,11 @@ export default function IntroSessionDrillRunner() {
       </div>
 
       <form className="space-y-4">
+        {getObservationBlockForRep(set, currentRep).length === 0 && (
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded text-amber-900 text-sm">
+            Modeling rep: no observations are captured for this set. Continue when the modeling step is complete.
+          </div>
+        )}
         {getObservationBlockForRep(set, currentRep).map((obs) => (
           <div key={obs.key}>
             <label className="block font-medium mb-1">{obs.label}</label>
