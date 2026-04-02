@@ -1,7 +1,21 @@
 import { supabase } from "./supabaseClient";
 import { apiRequest, clearAllCache } from "./queryClient";
 
+function getLogoutRedirect(user) {
+  if (user?.role === "tutor") {
+    return "/operational/signup?role=tutor";
+  }
+
+  if (user?.role === "coo" || user?.role === "hr" || user?.role === "ceo") {
+    return "/executive";
+  }
+
+  return "/portal-landing";
+}
+
 export async function logout(user) {
+  const redirectPath = getLogoutRedirect(user);
+
   try {
     // Call backend logout endpoint
     await apiRequest("POST", "/api/auth/logout");
@@ -10,20 +24,10 @@ export async function logout(user) {
     // Clear ALL React Query cache (memory + localStorage) to prevent stale user data
     clearAllCache();
 
-    // Determine redirect based on role
-    if (user?.role === "tutor") {
-      window.location.href = "/operational/signup?role=tutor";
-    } else if (user?.role === "coo" || user?.role === "hr") {
-      window.location.href = "/executive/signup";
-    } else if (user?.role === "ceo") {
-      window.location.href = "/executive";
-    } else {
-      window.location.href = "/portal-landing";
-    }
+    window.location.href = redirectPath;
   } catch (error) {
     console.error("Logout error:", error);
     clearAllCache();
-    // Fallback: send to portal-landing
-    window.location.href = "/portal-landing";
+    window.location.href = redirectPath;
   }
 }
