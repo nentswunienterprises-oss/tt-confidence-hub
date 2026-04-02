@@ -18,20 +18,20 @@ type DrillSetConfig = {
 
 const PHASE_CONTEXT: Record<PhaseLabel, { purpose: string; constraints: string[] }> = {
   Clarity: {
-    purpose: "Can the student see the problem clearly before solving? Clarity = naming what's there, recognizing the method, understanding why. If this fails — everything else collapses.",
+    purpose: "Can the student see the problem clearly before solving? Clarity = naming what's there, recognizing the method, understanding why. If this fails - everything else collapses.",
     constraints: ["No Boss Battles", "No time pressure", "No skipping layers"],
   },
   "Structured Execution": {
-    purpose: "Test and build ability to execute the known method independently. Student knows — now prove they can do it alone, repeatably.",
+    purpose: "Test and build ability to execute the known method independently. Student knows - now prove they can do it alone, repeatably.",
     constraints: ["State steps before solving", "No guessing tolerated", "No skipping steps"],
   },
   "Controlled Discomfort": {
-    purpose: "Test and stabilize behavior under uncertainty and difficulty. Does the student persist — or shut down?",
+    purpose: "Test and stabilize behavior under uncertainty and difficulty. Does the student persist - or shut down?",
     constraints: ["No full rescue", "Hold discomfort window", "One-step confirmation max"],
   },
   "Time Pressure Stability": {
-    purpose: "Maintain method structure under urgency. Structure is the target — speed is secondary.",
-    constraints: ["Method over speed", "Timer is active", "Structured response required — no panic tolerance"],
+    purpose: "Maintain method structure under urgency. Structure is the target - speed is secondary.",
+    constraints: ["Method over speed", "Timer is active", "Structured response required - no panic tolerance"],
   },
 };
 
@@ -47,7 +47,7 @@ const DIAGNOSIS_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
       reps: 3,
       purpose: "Student does NOT solve. Tests vocabulary, type recognition, and step awareness only.",
       repInstruction: "Show the problem. Ask student to name terms, identify type, and state the steps. Do not let them solve.",
-      activeRules: ["Student does not solve", "Recognition only — no execution", "No hints or steps from tutor"],
+      activeRules: ["Student does not solve", "Recognition only - no execution", "No hints or steps from tutor"],
       repObservationBlocks: [
         [
           { key: "vocabulary", label: "Vocabulary (Rep 1 - Cold Name)", options: ["cannot name", "partial", "clear"] },
@@ -731,7 +731,7 @@ export default function IntroSessionDrillRunner() {
               ? "This drill is for system-driven training progression. Follow the structure exactly."
               : "This drill is for system-driven diagnostics. Follow the structure exactly."}
           </li>
-          <li><strong>Before you begin:</strong> Prepare <span className="font-semibold">3 distinct problems</span> for each set (e.g., Recognition Probe, Light Apply Probe). You will need one unique problem per rep, per set. Do not repeat problems within a set.</li>
+          <li><strong>Before you begin:</strong> Prepare <span className="font-semibold">3 distinct problems</span> for each set. You will need one unique problem per rep, per set. Do not repeat problems within a set.</li>
           <li>For each set and rep, present the prepared problem, observe the student, and select the option that best matches their behavior for each field.</li>
           <li>You cannot skip steps or edit outside the drill structure. Complete each observation in order.</li>
           <li>
