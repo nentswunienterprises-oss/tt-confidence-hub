@@ -898,7 +898,7 @@ export default function IntroSessionDrillRunner() {
         <button
           type="button"
             className={`px-4 py-2 rounded-md text-primary-foreground disabled:opacity-60 ${
-            submitSuccess ? "bg-green-600 cursor-default" : "bg-primary hover:bg-primary/90"
+            submitSuccess ? "bg-primary cursor-default" : "bg-primary hover:bg-primary/90"
           }`}
           onClick={handleNext}
           disabled={submitting || submitSuccess || !hasIntroTopic}
