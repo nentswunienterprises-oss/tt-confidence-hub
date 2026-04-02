@@ -306,7 +306,7 @@ function PortalLanding() {
 
           <div className="flex flex-col md:flex-row md:justify-between items-center gap-4 sm:gap-6">
             <div className="flex flex-col md:flex-row items-center gap-3 sm:gap-4">
-              <div className="translate-x-6 md:translate-x-0">
+              <div className="translate-x-[1.75rem] md:translate-x-0">
                 <TerritorialTutoringLogoSVG width={150} />
               </div>
               <a
