@@ -271,7 +271,7 @@ const TRAINING_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
   Clarity: [
     {
       setName: "Modeling",
-      reps: 3,
+      reps: 1,
       purpose: "Build the mental map. Tutor models Vocab → Method → Reason. Student explains back. This is TEACHING - not drilling.",
       repInstruction: "Model the problem step-by-step: name the vocabulary, demonstrate the method, explain the reason it works. After each model, ask student to explain back in their own words.",
       isModelingSet: true,
@@ -502,6 +502,7 @@ export default function IntroSessionDrillRunner() {
   const hasIntroTopic = !!introTopic;
 
   const set = drillStructure[currentSet];
+  const isModelingSet = !!set.isModelingSet;
   const isFirstRep = currentRep === 0;
   const isFirstSet = currentSet === 0;
   const isLastRep = currentRep === set.reps - 1;
@@ -554,6 +555,13 @@ export default function IntroSessionDrillRunner() {
     return null;
   };
 
+  const getSubmissionRepCount = (setConfig: DrillSetConfig, setIndex: number) => {
+    if (drillMode === "training" && phase === "Clarity" && setConfig.isModelingSet && setIndex === 0) {
+      return 3;
+    }
+    return setConfig.reps;
+  };
+
   const handleNext = async () => {
     if (!hasIntroTopic) {
       setSubmitError("Diagnostic topic is required. Please return and set Add Diagnostic Topic first.");
@@ -598,8 +606,8 @@ export default function IntroSessionDrillRunner() {
           drillType: drillMode,
           drill: drillStructure.map((set, setIdx) => ({
             setName: set.setName,
-            reps: set.reps,
-            observations: Array.from({ length: set.reps }).map((_, repIdx) => {
+            reps: getSubmissionRepCount(set, setIdx),
+            observations: Array.from({ length: getSubmissionRepCount(set, setIdx) }).map((_, repIdx) => {
               const obs: Record<string, string> = {};
               const observationBlock = getObservationBlockForRep(set, repIdx);
               observationBlock.forEach((block) => {
@@ -711,7 +719,7 @@ export default function IntroSessionDrillRunner() {
               ? "This drill is for system-driven training progression. Follow the structure exactly."
               : "This drill is for system-driven diagnostics. Follow the structure exactly."}
           </li>
-          <li><strong>Before you begin:</strong> Prepare <span className="font-semibold">3 distinct problems</span> for each set. You will need one unique problem per rep, per set. Do not repeat problems within a set.</li>
+          <li><strong>Before you begin:</strong> Prepare <span className="font-semibold">3 distinct problems</span> for each drill set. In Clarity training, Set 1 is modeling-only (single step), then Sets 2 and 3 run full reps.</li>
           <li>For each set and rep, present the prepared problem, observe the student, and select the option that best matches their behavior for each field.</li>
           <li>You cannot skip steps or edit outside the drill structure. Complete each observation in order.</li>
           <li>
@@ -755,7 +763,7 @@ export default function IntroSessionDrillRunner() {
               <span className="px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-xs border border-amber-200">Modeling</span>
             )}
           </div>
-          <div className="text-sm font-medium text-muted-foreground">Rep {currentRep + 1} / {set.reps}</div>
+          <div className="text-sm font-medium text-muted-foreground">{isModelingSet ? "Modeling Step" : `Rep ${currentRep + 1} / ${set.reps}`}</div>
         </div>
         <div className="text-xs text-slate-500 mb-3">{set.purpose}</div>
         <div className="p-2 bg-blue-50 border border-blue-200 rounded mb-3">
@@ -772,7 +780,7 @@ export default function IntroSessionDrillRunner() {
       <form className="space-y-4">
         {getObservationBlockForRep(set, currentRep).length === 0 && (
           <div className="p-3 bg-amber-50 border border-amber-200 rounded text-amber-900 text-sm">
-            Modeling rep: no observations are captured for this set. Continue when the modeling step is complete.
+            Modeling step: no observations are captured for this set. Continue when the modeling step is complete.
           </div>
         )}
         {getObservationBlockForRep(set, currentRep).map((obs) => (
