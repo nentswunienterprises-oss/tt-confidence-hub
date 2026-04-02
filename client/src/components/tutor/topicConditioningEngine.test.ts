@@ -30,7 +30,8 @@ describe("topicConditioningEngine", () => {
   });
 
   it("recommends movement logic", () => {
-    assert.equal(nextMoveRecommendation("Clarity", "High"), "Advance to Structured Execution");
+    assert.equal(nextMoveRecommendation("Clarity", "High"), "Run High Maintenance check before advancing");
+    assert.equal(nextMoveRecommendation("Clarity", "High Maintenance"), "Advance to Structured Execution");
     assert.equal(nextMoveRecommendation("Controlled Discomfort", "Low").includes("Reinforce Structured Execution"), true);
   });
 

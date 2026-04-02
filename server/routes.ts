@@ -196,6 +196,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return 0;
           };
 
+          const getSetPointCaps = (
+            mode: "diagnosis" | "training",
+            phase: "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability",
+            scoredSetCount: number
+          ): number[] => {
+            if (scoredSetCount <= 0) return [];
+            if (scoredSetCount === 2) return [50, 50];
+            if (scoredSetCount === 3) return [34, 33, 33];
+
+            // Generic fallback for unexpected set counts: distribute to exactly 100 points.
+            const base = Math.floor(100 / scoredSetCount);
+            const remainder = 100 - base * scoredSetCount;
+            return Array.from({ length: scoredSetCount }).map((_, idx) =>
+              idx < remainder ? base + 1 : base
+            );
+          };
+
           const INTRO_PHASE_WEIGHTS: Record<
             "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability",
             Array<{ aliases: string[]; weight: number }>
@@ -233,6 +250,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const phaseWeights = INTRO_PHASE_WEIGHTS[phase];
             const repRows: Array<{ set: string; rep: number; repScore: number }> = [];
             const setScores: number[] = [];
+            const setNames: string[] = [];
             let highGuardPasses = true;
 
             const firstTwoSets = sets.slice(0, 2);
@@ -260,6 +278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 ? Math.round(repScores.reduce((sum, value) => sum + value, 0) / repScores.length)
                 : 0;
               setScores.push(setScore);
+              setNames.push(set.setName);
 
               if (phase === "Clarity") {
                 const repHasZeroField = (set.observations || []).some((repObs) =>
@@ -301,12 +320,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
             });
 
-            // Diagnosis sessions use Set1 x1 and Set2 x1, normalized to 0-100.
-            const diagnosisScore = Math.round(
-              setScores.length > 0
-                ? setScores.reduce((sum, setScore) => sum + setScore, 0) / setScores.length
-                : 0
-            );
+            // Additive scoring model: each scored set contributes fixed points, total out of 100.
+            const setPointCaps = getSetPointCaps("diagnosis", phase, setScores.length);
+            const setBreakdown = setScores.map((setScore, idx) => {
+              const setMaxPoints = setPointCaps[idx] || 0;
+              const setPoints = Math.round((setScore * setMaxPoints) / 100);
+              return {
+                setName: setNames[idx] || `Set ${idx + 1}`,
+                setScore,
+                setPoints,
+                setMaxPoints,
+              };
+            });
+            const diagnosisScore = setBreakdown.reduce((sum, row) => sum + row.setPoints, 0);
 
             let stability: "Low" | "Medium" | "High" = "Low";
             if (diagnosisScore <= 49) stability = "Low";
@@ -323,18 +349,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
               constraint: nextActionConfig?.rules?.[0] || null,
               repRows,
               setScores,
+              setBreakdown,
               highGuardPasses,
             };
           };
 
           const computeTrainingSessionSummary = (
             observedPhase: "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability",
-            previousStability: "Low" | "Medium" | "High",
+            previousStability: "Low" | "Medium" | "High" | "High Maintenance",
             sets: Array<{ setName: string; observations: Array<Record<string, string>> }>
           ) => {
             const phaseWeights = INTRO_PHASE_WEIGHTS[observedPhase];
             const repRows: Array<{ set: string; rep: number; repScore: number }> = [];
             const setScores: number[] = [];
+            const setNames: string[] = [];
             let highGuardPasses = true;
 
             const scoredSets =
@@ -365,6 +393,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 ? Math.round(repScores.reduce((sum, value) => sum + value, 0) / repScores.length)
                 : 0;
               setScores.push(setScore);
+              setNames.push(set.setName);
 
               if (observedPhase === "Clarity") {
                 const repHasZeroField = (set.observations || []).some((repObs) =>
@@ -406,42 +435,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
             });
 
-            const setWeights = observedPhase === "Clarity" ? [2, 2] : [1, 2, 2];
-            const weighted = setScores.reduce(
-              (acc, score, idx) => {
-                const w = setWeights[idx] || 1;
-                return {
-                  sum: acc.sum + score * w,
-                  weight: acc.weight + w,
-                };
-              },
-              { sum: 0, weight: 0 }
-            );
+            // Additive scoring model: each scored set contributes fixed points, total out of 100.
+            const setPointCaps = getSetPointCaps("training", observedPhase, setScores.length);
+            const setBreakdown = setScores.map((setScore, idx) => {
+              const setMaxPoints = setPointCaps[idx] || 0;
+              const setPoints = Math.round((setScore * setMaxPoints) / 100);
+              return {
+                setName: setNames[idx] || `Set ${idx + 1}`,
+                setScore,
+                setPoints,
+                setMaxPoints,
+              };
+            });
+            const sessionScore = setBreakdown.reduce((sum, row) => sum + row.setPoints, 0);
 
-            const sessionScore = weighted.weight > 0
-              ? Math.round(weighted.sum / weighted.weight)
-              : 0;
-
-            let projectedStability: "Low" | "Medium" | "High" = previousStability;
+            let projectedStability: "Low" | "Medium" | "High" | "High Maintenance" = previousStability;
             let advanceReady = false;
 
             if (previousStability === "Low") {
               if (sessionScore <= 49) projectedStability = "Low";
-              else if (sessionScore <= 69) projectedStability = "Medium";
+              else if (sessionScore <= 79) projectedStability = "Medium";
               else projectedStability = highGuardPasses ? "High" : "Medium";
             }
 
             if (previousStability === "Medium") {
               if (sessionScore <= 44) projectedStability = "Low";
-              else if (sessionScore <= 74) projectedStability = "Medium";
+              else if (sessionScore <= 79) projectedStability = "Medium";
               else projectedStability = "High";
             }
 
             if (previousStability === "High") {
               if (sessionScore <= 49) projectedStability = "Medium";
-              else if (sessionScore <= 79) projectedStability = "High";
+              else if (sessionScore <= 84) projectedStability = "High";
+              else projectedStability = "High Maintenance";
+            }
+
+            if (previousStability === "High Maintenance") {
+              if (sessionScore < 60) projectedStability = "High";
+              else if (sessionScore <= 84) projectedStability = "High Maintenance";
               else {
-                projectedStability = "High";
+                projectedStability = "High Maintenance";
                 advanceReady = true;
               }
             }
@@ -451,7 +484,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ? nextActionConfig.advanceTo
               : observedPhase;
 
-            const stabilityScore = (value: "Low" | "Medium" | "High") => (value === "Low" ? 1 : value === "Medium" ? 2 : 3);
+            const stabilityScore = (value: "Low" | "Medium" | "High" | "High Maintenance") =>
+              value === "Low" ? 1 : value === "Medium" ? 2 : value === "High" ? 3 : 4;
             const phaseDecision: "remain" | "advance" | "regress" =
               projectedPhase !== observedPhase
                 ? "advance"
@@ -472,6 +506,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               constraint: projectedConfig?.rules?.[0] || null,
               repRows,
               setScores,
+              setBreakdown,
               highGuardPasses,
             };
           };
@@ -669,16 +704,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 // Log but don't fail - drill results still stored
               }
 
-              const scoringResults = diagnosisSummary.repRows.map((row) => ({
-                set: row.set,
-                rep: row.rep,
-                score: row.repScore,
-                sessionScore: row.repScore,
-                phase: diagnosisSummary.phase,
-                stability: diagnosisSummary.stability,
-                nextAction: diagnosisSummary.nextAction,
-                constraint: diagnosisSummary.constraint,
-              }));
+              const scoringResults = diagnosisSummary.repRows.map((row) => {
+                const setMeta = diagnosisSummary.setBreakdown?.find((set: any) => set.setName === row.set);
+                return {
+                  set: row.set,
+                  rep: row.rep,
+                  score: row.repScore,
+                  setScore: setMeta?.setScore ?? null,
+                  setPoints: setMeta?.setPoints ?? null,
+                  setMaxPoints: setMeta?.setMaxPoints ?? null,
+                  sessionScore: diagnosisSummary.diagnosisScore,
+                  phase: diagnosisSummary.phase,
+                  stability: diagnosisSummary.stability,
+                  nextAction: diagnosisSummary.nextAction,
+                  constraint: diagnosisSummary.constraint,
+                };
+              });
 
               res.json({
                 success: true,
@@ -896,17 +937,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 // Log but don't fail - drill results still stored
               }
 
-              const scoringResults = trainingSummary.repRows.map((row) => ({
-                set: row.set,
-                rep: row.rep,
-                score: row.repScore,
-                sessionScore: trainingSummary.sessionScore,
-                phase: trainingSummary.phase,
-                stability: trainingSummary.stability,
-                phaseDecision: trainingSummary.phaseDecision,
-                nextAction: trainingSummary.nextAction,
-                constraint: trainingSummary.constraint,
-              }));
+              const scoringResults = trainingSummary.repRows.map((row) => {
+                const setMeta = trainingSummary.setBreakdown?.find((set: any) => set.setName === row.set);
+                return {
+                  set: row.set,
+                  rep: row.rep,
+                  score: row.repScore,
+                  setScore: setMeta?.setScore ?? null,
+                  setPoints: setMeta?.setPoints ?? null,
+                  setMaxPoints: setMeta?.setMaxPoints ?? null,
+                  sessionScore: trainingSummary.sessionScore,
+                  phase: trainingSummary.phase,
+                  stability: trainingSummary.stability,
+                  phaseDecision: trainingSummary.phaseDecision,
+                  nextAction: trainingSummary.nextAction,
+                  constraint: trainingSummary.constraint,
+                };
+              });
 
               res.json({
                 success: true,
@@ -2067,6 +2114,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const normalizeStability = (raw: string | null | undefined) => {
       const value = String(raw || "").trim().toLowerCase();
       if (!value) return null;
+      if (value.includes("high maintenance") || value.includes("maintenance")) return "High Maintenance";
       if (value.includes("high")) return "High";
       if (value.includes("medium")) return "Medium";
       if (value.includes("low")) return "Low";
@@ -2416,7 +2464,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   type TopicPhase = "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability";
-  type TopicStability = "Low" | "Medium" | "High";
+  type TopicStability = "Low" | "Medium" | "High" | "High Maintenance";
 
   const REPORT_PHASE_ORDER: TopicPhase[] = [
     "Clarity",
@@ -2436,6 +2484,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rules: ["No time pressure", "Boss Battles not primary"],
       },
       High: {
+        primaryAction: "Run High Maintenance check in Clarity",
+        rules: ["Do not phase advance yet", "Confirm repeatable clarity stability"],
+      },
+      "High Maintenance": {
         primaryAction: "Transition to Structured Execution",
         rules: ["Do not stay in teaching mode"],
         advanceTo: "Structured Execution",
@@ -2451,6 +2503,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rules: ["Do not rush to time pressure"],
       },
       High: {
+        primaryAction: "Run High Maintenance check in Structured Execution",
+        rules: ["Do not phase advance yet", "Confirm repeatable execution stability"],
+      },
+      "High Maintenance": {
         primaryAction: "Transition to Controlled Discomfort",
         rules: ["Do not keep repeating basic problems"],
         advanceTo: "Controlled Discomfort",
@@ -2466,6 +2522,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rules: ["Do not remove difficulty", "Do not over-guide"],
       },
       High: {
+        primaryAction: "Run High Maintenance check in Controlled Discomfort",
+        rules: ["Do not phase advance yet", "Confirm sustained discomfort stability"],
+      },
+      "High Maintenance": {
         primaryAction: "Transition to Time Pressure Stability",
         rules: ["Do not stay in comfort zone"],
         advanceTo: "Time Pressure Stability",
@@ -2481,6 +2541,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rules: ["Do not sacrifice structure for speed"],
       },
       High: {
+        primaryAction: "Run High Maintenance check under time pressure",
+        rules: ["Do not declare transfer yet", "Confirm sustained timed stability"],
+      },
+      "High Maintenance": {
         primaryAction: "Maintain with mixed practice",
         rules: ["Do not over-train the same pattern"],
       },
@@ -2499,21 +2563,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       Low: "Student still needs foundational clarity before independent execution.",
       Medium: "Student grasps concepts but needs more practice for consistency.",
       High: "Student has clear understanding and is ready for structured execution practice.",
+      "High Maintenance": "Student sustained high Clarity and is ready to progress into Structured Execution.",
     },
     "Structured Execution": {
       Low: "Student can follow steps but needs consistency and independence building.",
       Medium: "Student executes steps mostly independently but struggles with consistency.",
       High: "Student executes steps independently and is ready to build resilience.",
+      "High Maintenance": "Student sustained high execution and is ready to progress into Controlled Discomfort.",
     },
     "Controlled Discomfort": {
       Low: "Student struggles under difficulty but is building stability.",
       Medium: "Student handles difficulty with improving stability and consistency.",
       High: "Student handles difficulty with stability and is ready for time-pressure training.",
+      "High Maintenance": "Student sustained high discomfort control and is ready to progress into Time Pressure Stability.",
     },
     "Time Pressure Stability": {
       Low: "Student needs to maintain structure and speed consistency.",
       Medium: "Student handles time pressure mostly but needs refinement.",
       High: "Student is stable under time pressure and maintains execution quality.",
+      "High Maintenance": "Student sustained high time-pressure stability and is ready for mixed transfer work.",
     },
   };
 
@@ -2588,9 +2656,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   const STABILITY_THRESHOLDS = {
-    low: { remainMax: 49, mediumMax: 69, highMin: 70 },
-    medium: { regressMax: 44, remainMax: 74, highMin: 75 },
-    high: { regressMax: 49, remainMax: 79, advanceReadyMin: 80 },
+    low: { remainMax: 49, mediumMax: 79, highMin: 80 },
+    medium: { regressMax: 44, remainMax: 79, highMin: 80 },
+    high: { regressMax: 49, remainMax: 84, advanceReadyMin: 85 },
+    maintenance: { regressMax: 59, highMax: 84, advanceReadyMin: 85 },
   };
 
   const normalizePhase = (value: unknown): TopicPhase => {
@@ -2604,6 +2673,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const normalizeStability = (value: unknown): TopicStability => {
     const v = String(value || "").toLowerCase();
+    if (v.includes("high maintenance") || v.includes("maintenance")) return "High Maintenance";
     if (v.includes("high")) return "High";
     if (v.includes("medium")) return "Medium";
     return "Low";
@@ -2617,7 +2687,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return diagnosisPhase;
   };
 
-  const stabilityToScore = (stability: TopicStability) => (stability === "Low" ? 1 : stability === "Medium" ? 2 : 3);
+  const stabilityToScore = (stability: TopicStability) =>
+    stability === "Low" ? 1 : stability === "Medium" ? 2 : stability === "High" ? 3 : 4;
 
   const inferTopicStateFromObservation = (
     observedPhase: TopicPhase,
@@ -2682,8 +2753,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (previousStability === "High") {
       if (sessionScore <= STABILITY_THRESHOLDS.high.regressMax) projectedStability = "Medium";
       else if (sessionScore <= STABILITY_THRESHOLDS.high.remainMax) projectedStability = "High";
+      else projectedStability = "High Maintenance";
+    }
+
+    if (previousStability === "High Maintenance") {
+      if (sessionScore <= STABILITY_THRESHOLDS.maintenance.regressMax) projectedStability = "High";
+      else if (sessionScore <= STABILITY_THRESHOLDS.maintenance.highMax) projectedStability = "High Maintenance";
       else {
-        projectedStability = "High";
+        projectedStability = "High Maintenance";
         advanceReady = true;
       }
     }
@@ -10190,6 +10267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const normalizeStability = (value?: string | null) => {
         const v = String(value || "").toLowerCase();
+        if (v.includes("high maintenance") || v.includes("maintenance")) return "High Maintenance";
         if (v.includes("high")) return "High";
         if (v.includes("medium")) return "Medium";
         return "Low";
@@ -10488,6 +10566,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const normalizeStability = (value?: string | null) => {
         const v = String(value || "").toLowerCase();
+        if (v.includes("high maintenance") || v.includes("maintenance")) return "High Maintenance";
         if (v.includes("high")) return "High";
         if (v.includes("medium")) return "Medium";
         if (v.includes("low")) return "Low";

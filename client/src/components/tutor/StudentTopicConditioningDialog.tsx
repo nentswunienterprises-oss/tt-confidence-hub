@@ -74,6 +74,7 @@ type StabilityThresholds = {
   low: { remainMax: number; mediumMax: number; highMin: number };
   medium: { regressMax: number; remainMax: number; highMin: number };
   high: { regressMax: number; remainMax: number; advanceReadyMin: number };
+  maintenance: { regressMax: number; highMax: number; advanceReadyMin: number };
 };
 
 const PHASE_OBSERVATION_CONFIG: Record<
@@ -135,9 +136,10 @@ const PHASE_OBSERVATION_CONFIG: Record<
       "Increased apply repetition",
     ],
     thresholds: {
-      low: { remainMax: 49, mediumMax: 69, highMin: 70 },
-      medium: { regressMax: 44, remainMax: 74, highMin: 75 },
-      high: { regressMax: 49, remainMax: 79, advanceReadyMin: 80 },
+      low: { remainMax: 49, mediumMax: 79, highMin: 80 },
+      medium: { regressMax: 44, remainMax: 79, highMin: 80 },
+      high: { regressMax: 49, remainMax: 84, advanceReadyMin: 85 },
+      maintenance: { regressMax: 59, highMax: 84, advanceReadyMin: 85 },
     },
     highGate: (selections) => !Object.values(selections).some((value) => {
       if (!value) return true;
@@ -194,9 +196,10 @@ const PHASE_OBSERVATION_CONFIG: Record<
       "Re-modeled method",
     ],
     thresholds: {
-      low: { remainMax: 49, mediumMax: 69, highMin: 70 },
-      medium: { regressMax: 44, remainMax: 74, highMin: 75 },
-      high: { regressMax: 49, remainMax: 79, advanceReadyMin: 80 },
+      low: { remainMax: 49, mediumMax: 79, highMin: 80 },
+      medium: { regressMax: 44, remainMax: 79, highMin: 80 },
+      high: { regressMax: 49, remainMax: 84, advanceReadyMin: 85 },
+      maintenance: { regressMax: 59, highMax: 84, advanceReadyMin: 85 },
     },
     highGate: (selections) => {
       const step = selections.step_execution || "";
@@ -255,9 +258,10 @@ const PHASE_OBSERVATION_CONFIG: Record<
       "Debriefed response pattern",
     ],
     thresholds: {
-      low: { remainMax: 49, mediumMax: 69, highMin: 70 },
-      medium: { regressMax: 44, remainMax: 74, highMin: 75 },
-      high: { regressMax: 49, remainMax: 79, advanceReadyMin: 80 },
+      low: { remainMax: 49, mediumMax: 79, highMin: 80 },
+      medium: { regressMax: 44, remainMax: 79, highMin: 80 },
+      high: { regressMax: 49, remainMax: 84, advanceReadyMin: 85 },
+      maintenance: { regressMax: 59, highMax: 84, advanceReadyMin: 85 },
     },
     highGate: (selections) => {
       const initial = selections.initial_boss_response || "";
@@ -315,9 +319,10 @@ const PHASE_OBSERVATION_CONFIG: Record<
       "Reduced time intensity appropriately",
     ],
     thresholds: {
-      low: { remainMax: 49, mediumMax: 69, highMin: 70 },
-      medium: { regressMax: 44, remainMax: 74, highMin: 75 },
-      high: { regressMax: 49, remainMax: 79, advanceReadyMin: 80 },
+      low: { remainMax: 49, mediumMax: 79, highMin: 80 },
+      medium: { regressMax: 44, remainMax: 79, highMin: 80 },
+      high: { regressMax: 49, remainMax: 84, advanceReadyMin: 85 },
+      maintenance: { regressMax: 59, highMax: 84, advanceReadyMin: 85 },
     },
     highGate: (selections) => {
       const structure = selections.structure_under_time || "";
@@ -373,6 +378,7 @@ export function normalizePhase(value?: string | null): PhaseLabel {
 
 export function normalizeStability(value?: string | null): StabilityLabel {
   const v = String(value || "").toLowerCase();
+  if (v.includes("high maintenance") || v.includes("maintenance")) return "High Maintenance";
   if (v.includes("high")) return "High";
   if (v.includes("medium")) return "Medium";
   return "Low";
@@ -390,12 +396,14 @@ function clamp(min: number, value: number, max: number): number {
 }
 
 function stabilityToScore(stability: StabilityLabel): number {
+  if (stability === "High Maintenance") return 4;
   if (stability === "High") return 3;
   if (stability === "Medium") return 2;
   return 1;
 }
 
 function scoreToStability(score: number): StabilityLabel {
+  if (score >= 4) return "High Maintenance";
   if (score >= 3) return "High";
   if (score === 2) return "Medium";
   return "Low";
@@ -404,9 +412,10 @@ function scoreToStability(score: number): StabilityLabel {
 function deriveTransitionStatus(phase: PhaseLabel, stability: StabilityLabel, trend?: TopicTrend) {
   const advanceTo = getNextActionData(phase, stability).advanceTo;
   if (trend === "Regressing") return "Regressed" as const;
-  if (phase === "Time Pressure Stability" && stability === "High") return "Transfer Ready" as const;
-  if (stability === "High" && advanceTo) return "Ready to Advance" as const;
-  if (stability === "High") return "Maintain" as const;
+  if (phase === "Time Pressure Stability" && stability === "High Maintenance") return "Transfer Ready" as const;
+  if (stability === "High Maintenance" && advanceTo) return "Ready to Advance" as const;
+  if (stability === "High Maintenance") return "Maintain" as const;
+  if (stability === "High") return "Maintenance Check" as const;
   if (stability === "Medium") return "Building" as const;
   return "Reinforce" as const;
 }
@@ -420,21 +429,25 @@ function interpretTopicState(phase: PhaseLabel, stability: StabilityLabel, trend
       Low: "Student still needs foundational clarity before independent execution.",
       Medium: "Student grasps concepts but needs more practice for consistency.",
       High: "Student has clear understanding and is ready for structured execution practice.",
+      "High Maintenance": "Student sustained high Clarity and is now ready to progress into Structured Execution.",
     },
     "Structured Execution": {
       Low: "Student can follow steps but needs consistency and independence building.",
       Medium: "Student executes steps mostly independently but struggles with consistency.",
       High: "Student executes steps independently and is ready to build resilience under difficulty.",
+      "High Maintenance": "Student sustained high execution consistency and is ready to progress into Controlled Discomfort.",
     },
     "Controlled Discomfort": {
       Low: "Student struggles under difficulty but is building stability.",
       Medium: "Student handles difficulty with improving stability and consistency.",
       High: "Student handles difficulty with stability and is ready for time-pressure training.",
+      "High Maintenance": "Student sustained high discomfort control and is ready to progress into Time Pressure Stability.",
     },
     "Time Pressure Stability": {
       Low: "Student needs to maintain structure and speed consistency under time.",
       Medium: "Student handles time pressure mostly but needs refinement.",
       High: "Student is stable under time pressure and maintains execution quality.",
+      "High Maintenance": "Student sustained high time-pressure stability and is ready for mixed transfer work.",
     },
   };
 
@@ -525,7 +538,8 @@ function tutorPrepPlanFor(
   }
 
   if (phase === "Controlled Discomfort") {
-    const highIntensity = stability === "Medium" || stability === "High";
+    const highIntensity =
+      stability === "Medium" || stability === "High" || stability === "High Maintenance";
     return {
       drillType,
       setPlans: [
@@ -540,19 +554,20 @@ function tutorPrepPlanFor(
     };
   }
 
+  const timedIntensity = stability === "High" || stability === "High Maintenance";
   return {
     drillType,
     setPlans: [
-      { label: "Set 1", problems: 3, difficulty: stability === "Low" ? baseDifficulty : "Hard" },
+      { label: "Set 1", problems: 3, difficulty: timedIntensity ? "Hard" : baseDifficulty },
       {
         label: "Set 2",
         problems: 3,
-        difficulty: stability === "Low" ? baseDifficulty : "Challenging (but solvable)",
+        difficulty: timedIntensity ? "Challenging (but solvable)" : baseDifficulty,
       },
       {
         label: "Set 3",
         problems: 3,
-        difficulty: stability === "Low" ? baseDifficulty : "Challenging (but solvable)",
+        difficulty: timedIntensity ? "Challenging (but solvable)" : baseDifficulty,
       },
     ],
     prepNotes: [
@@ -563,12 +578,14 @@ function tutorPrepPlanFor(
 }
 
 function stabilityPercent(stability: StabilityLabel): number {
+  if (stability === "High Maintenance") return 100;
   if (stability === "High") return 90;
   if (stability === "Medium") return 64;
   return 32;
 }
 
 function stabilityTone(stability: StabilityLabel): string {
+  if (stability === "High Maintenance") return "bg-blue-50 text-blue-700 border-blue-200";
   if (stability === "High") return "bg-green-50 text-green-700 border-green-200";
   if (stability === "Medium") return "bg-amber-50 text-amber-700 border-amber-200";
   return "bg-red-50 text-red-600 border-red-200";
@@ -1007,7 +1024,7 @@ export default function StudentTopicConditioningDialog({
 
   const attentionQueue = useMemo(() => {
     const needsAttention = prioritizedTopics.filter(
-      (row) => row.stability !== "High" || row.trend === "Regressing",
+      (row) => (row.stability !== "High" && row.stability !== "High Maintenance") || row.trend === "Regressing",
     );
     return (needsAttention.length > 0 ? needsAttention : prioritizedTopics).slice(0, 3);
   }, [prioritizedTopics]);
@@ -1069,8 +1086,14 @@ export default function StudentTopicConditioningDialog({
   if (previousStability === "High") {
     if (sessionScore <= phaseConfig.thresholds.high.regressMax) projectedStability = "Medium";
     else if (sessionScore <= phaseConfig.thresholds.high.remainMax) projectedStability = "High";
+    else projectedStability = "High Maintenance";
+  }
+
+  if (previousStability === "High Maintenance") {
+    if (sessionScore <= phaseConfig.thresholds.maintenance.regressMax) projectedStability = "High";
+    else if (sessionScore <= phaseConfig.thresholds.maintenance.highMax) projectedStability = "High Maintenance";
     else {
-      projectedStability = "High";
+      projectedStability = "High Maintenance";
       advanceReady = true;
     }
   }
@@ -1268,7 +1291,9 @@ export default function StudentTopicConditioningDialog({
                             <Badge className={stabilityTone(row.stability)}>
                               <span
                                 className={`inline-block w-2 h-2 rounded-full mr-1.5 ${
-                                  row.stability === "High"
+                                  row.stability === "High Maintenance"
+                                    ? "bg-blue-500"
+                                    : row.stability === "High"
                                     ? "bg-green-500"
                                     : row.stability === "Medium"
                                     ? "bg-amber-500"

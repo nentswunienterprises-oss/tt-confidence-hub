@@ -132,7 +132,7 @@ export default function ProposalView({
   const topicConditioning = extractTopicConditioning();
 
   const PHASE_SEQUENCE = ["Clarity", "Structured Execution", "Controlled Discomfort", "Time Pressure Stability"] as const;
-  const STABILITY_SEQUENCE = ["Low", "Medium", "High"] as const;
+  const STABILITY_SEQUENCE = ["Low", "Medium", "High", "High Maintenance"] as const;
   type PhaseLabel = (typeof PHASE_SEQUENCE)[number];
   type StabilityLabel = (typeof STABILITY_SEQUENCE)[number];
 
@@ -155,6 +155,10 @@ export default function ProposalView({
         status: `${studentFirstName} demonstrated clear recognition and explanation patterns in the diagnosis topic.`,
         meaning: `${studentFirstName} begins training in Clarity with system scoring determining remain, regress, or advance.`,
       },
+      "High Maintenance": {
+        status: `${studentFirstName} sustained high Clarity performance across repeated checks.`,
+        meaning: `${studentFirstName} is now ready to transition into Structured Execution training.`,
+      },
     },
     "Structured Execution": {
       Low: {
@@ -168,6 +172,10 @@ export default function ProposalView({
       High: {
         status: `${studentFirstName} maintained method execution consistently across attempts.`,
         meaning: `${studentFirstName} begins training in Structured Execution with transitions handled by session scoring.`,
+      },
+      "High Maintenance": {
+        status: `${studentFirstName} sustained high Structured Execution consistency across repeated checks.`,
+        meaning: `${studentFirstName} is now ready to transition into Controlled Discomfort training.`,
       },
     },
     "Controlled Discomfort": {
@@ -183,6 +191,10 @@ export default function ProposalView({
         status: `${studentFirstName} stayed structured during challenge-heavy prompts.`,
         meaning: `${studentFirstName} begins training in Controlled Discomfort with transitions handled by session scoring.`,
       },
+      "High Maintenance": {
+        status: `${studentFirstName} sustained high Controlled Discomfort stability across repeated checks.`,
+        meaning: `${studentFirstName} is now ready to transition into Time Pressure Stability training.`,
+      },
     },
     "Time Pressure Stability": {
       Low: {
@@ -197,6 +209,10 @@ export default function ProposalView({
         status: `${studentFirstName} maintained structured execution under timed conditions.`,
         meaning: `${studentFirstName} can now sustain method integrity under pressure.`,
       },
+      "High Maintenance": {
+        status: `${studentFirstName} sustained high time-pressure stability across repeated checks.`,
+        meaning: `${studentFirstName} is now ready for maintenance and transfer-focused practice.`,
+      },
     },
   };
 
@@ -208,6 +224,7 @@ export default function ProposalView({
 
   const normalizeStabilityLabel = (stability?: string | null): StabilityLabel | null => {
     const value = String(stability || "").toLowerCase();
+    if (value.includes("high maintenance") || value.includes("maintenance")) return "High Maintenance";
     if (value.includes("high")) return "High";
     if (value.includes("medium")) return "Medium";
     if (value.includes("low")) return "Low";

@@ -661,7 +661,14 @@ export default function IntroSessionDrillRunner() {
         const setNames = Object.keys(setGroups);
         const sessionScore = scoring[scoring.length - 1]?.sessionScore ?? 0;
         const lastRow = scoring[scoring.length - 1];
-        const stabilityColor = lastRow?.stability === "High" ? "text-green-700" : lastRow?.stability === "Medium" ? "text-yellow-700" : "text-red-700";
+        const stabilityColor =
+          lastRow?.stability === "High Maintenance"
+            ? "text-blue-700"
+            : lastRow?.stability === "High"
+            ? "text-green-700"
+            : lastRow?.stability === "Medium"
+            ? "text-yellow-700"
+            : "text-red-700";
         const decisionColor = lastRow?.nextAction?.toLowerCase().includes("transition") || lastRow?.nextAction?.toLowerCase().includes("advance")
           ? "text-green-700"
           : lastRow?.nextAction?.toLowerCase().includes("regress")
@@ -676,12 +683,18 @@ export default function IntroSessionDrillRunner() {
             {/* Per-set scoring */}
             {setNames.map((setName) => {
               const rows = setGroups[setName];
-              const setTotal = Math.round(rows.reduce((sum, r) => sum + (r.score ?? 0), 0) / rows.length);
+              const setMeta = rows.find((r) => typeof r.setPoints === "number" && typeof r.setMaxPoints === "number");
+              const setPoints = setMeta?.setPoints ?? 0;
+              const setMaxPoints = setMeta?.setMaxPoints ?? 0;
+              const setPercent = setMeta?.setScore ?? Math.round(rows.reduce((sum, r) => sum + (r.score ?? 0), 0) / rows.length);
               return (
                 <div key={setName} className="border rounded overflow-hidden">
                   <div className="bg-muted px-4 py-2 flex justify-between items-center">
                     <span className="font-semibold text-sm">{setName}</span>
-                    <span className="text-sm text-muted-foreground">Set Total: <strong>{setTotal}</strong>/100</span>
+                    <span className="text-sm text-muted-foreground">
+                      Set Total: <strong>{setPoints}/{setMaxPoints || 100}</strong>
+                      <span className="ml-2 text-xs">({setPercent}%)</span>
+                    </span>
                   </div>
                   <div className="divide-y">
                     {rows.map((row, i) => (

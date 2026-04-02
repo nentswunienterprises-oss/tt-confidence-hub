@@ -30,6 +30,7 @@ function normalizePhaseLabel(rawValue) {
 
 function normalizeStabilityLabel(rawValue) {
   const value = String(rawValue || "").toLowerCase();
+  if (value.includes("high maintenance") || value.includes("maintenance")) return "High Maintenance";
   if (value.includes("high")) return "High";
   if (value.includes("medium")) return "Medium";
   if (value.includes("low")) return "Low";

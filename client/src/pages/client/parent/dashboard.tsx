@@ -40,7 +40,7 @@ interface IntroSessionInfo {
 }
 
 const PHASE_SEQUENCE = ["Clarity", "Structured Execution", "Controlled Discomfort", "Time Pressure Stability"] as const;
-const STABILITY_SEQUENCE = ["Low", "Medium", "High"] as const;
+const STABILITY_SEQUENCE = ["Low", "Medium", "High", "High Maintenance"] as const;
 
 type PhaseLabel = (typeof PHASE_SEQUENCE)[number];
 type StabilityLabel = (typeof STABILITY_SEQUENCE)[number];
@@ -79,6 +79,11 @@ const PARENT_STATE_ENGINE: Record<PhaseLabel, Record<StabilityLabel, ParentState
       meaning: "They can recognize the problem and explain the steps with confidence.",
       focus: "We are moving into independent problem-solving to build execution.",
     },
+    "High Maintenance": {
+      status: "Your child has sustained strong clarity in this topic.",
+      meaning: "They have held high performance consistently and are ready for progression decisions.",
+      focus: "We are now transitioning into Structured Execution training.",
+    },
   },
   "Structured Execution": {
     Low: {
@@ -95,6 +100,11 @@ const PARENT_STATE_ENGINE: Record<PhaseLabel, Record<StabilityLabel, ParentState
       status: "Your child can now solve problems consistently in this topic.",
       meaning: "They are able to follow the correct steps independently with minimal support.",
       focus: "We are introducing more challenging questions to strengthen their response under difficulty.",
+    },
+    "High Maintenance": {
+      status: "Your child has sustained strong execution consistency in this topic.",
+      meaning: "They have held high execution quality across sessions and are ready for progression decisions.",
+      focus: "We are now transitioning into Controlled Discomfort training.",
     },
   },
   "Controlled Discomfort": {
@@ -113,6 +123,11 @@ const PARENT_STATE_ENGINE: Record<PhaseLabel, Record<StabilityLabel, ParentState
       meaning: "They are able to stay structured and solve unfamiliar questions with stability.",
       focus: "We are preparing them to perform under time pressure.",
     },
+    "High Maintenance": {
+      status: "Your child has sustained strong performance under challenge in this topic.",
+      meaning: "They have held high stability in difficult work and are ready for progression decisions.",
+      focus: "We are now transitioning into Time Pressure Stability training.",
+    },
   },
   "Time Pressure Stability": {
     Low: {
@@ -129,6 +144,11 @@ const PARENT_STATE_ENGINE: Record<PhaseLabel, Record<StabilityLabel, ParentState
       status: "Your child is performing consistently under time pressure.",
       meaning: "They can solve problems accurately and maintain structure even under time constraints.",
       focus: "We are maintaining performance and preparing them to transfer this skill to new topics.",
+    },
+    "High Maintenance": {
+      status: "Your child has sustained top stability under time pressure.",
+      meaning: "They consistently maintain structure and accuracy under timed conditions.",
+      focus: "We are maintaining performance and expanding transfer across related topics.",
     },
   },
 };
@@ -191,6 +211,7 @@ function normalizePhaseLabel(phase?: string | null) {
 
 function normalizeStabilityLabel(stability?: string | null): StabilityLabel | null {
   const v = String(stability || "").toLowerCase();
+  if (v.includes("high maintenance") || v.includes("maintenance")) return "High Maintenance";
   if (v.includes("high")) return "High";
   if (v.includes("medium")) return "Medium";
   if (v.includes("low")) return "Low";
@@ -199,7 +220,7 @@ function normalizeStabilityLabel(stability?: string | null): StabilityLabel | nu
 
 function stabilityIndicator(stability: StabilityLabel | null): "Developing" | "Strengthening" | "Stable" | "Unconfirmed" {
   if (!stability) return "Unconfirmed";
-  if (stability === "High") return "Stable";
+  if (stability === "High" || stability === "High Maintenance") return "Stable";
   if (stability === "Medium") return "Strengthening";
   return "Developing";
 }
