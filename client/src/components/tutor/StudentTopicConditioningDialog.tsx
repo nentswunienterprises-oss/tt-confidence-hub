@@ -455,7 +455,7 @@ function tutorPrepPlanFor(
   setPlans: Array<{ label: string; problems: number; difficulty: string }>;
   prepNotes: string[];
 } {
-  const baseDifficulty = "Simple/Normal (same level)";
+  const baseDifficulty = "Simple/Normal";
   const drillType = `${phase} Drill`;
 
   if (!hasObservedState) {
@@ -467,8 +467,9 @@ function tutorPrepPlanFor(
       ],
       prepNotes: [
         "Prepare 6 total problems (2 sets x 3 reps).",
-        "Use foundational versions only; no time pressure.",
+        "Use simple/normal versions only; no time pressure.",
         "Goal is classification, not progression teaching.",
+        "Difficulty guidance: keep all problems at Simple/Normal level.",
       ],
     };
   }
@@ -485,6 +486,7 @@ function tutorPrepPlanFor(
         "Set 1 is teaching only; no scored observations.",
         "Prepare 8 total problems (2 model + 6 drill reps).",
         "No boss battles and no timed pressure in Clarity.",
+        "Difficulty guidance: keep all problems at Simple/Normal level.",
       ],
     };
   }
@@ -500,6 +502,7 @@ function tutorPrepPlanFor(
       prepNotes: [
         "Prepare 9 total problems (3 sets x 3 reps).",
         "Focus on independent starts and full step sequence.",
+        "Difficulty guidance: keep all problems at Simple/Normal level.",
       ],
     };
   }
@@ -1177,7 +1180,7 @@ export default function StudentTopicConditioningDialog({
                         </p>
 
                         <div className="rounded-md border border-primary/20 bg-primary/5 p-2.5 space-y-1.5">
-                          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Tutor Prep</p>
+                          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Tutor Prep For Next Session</p>
                           <p className="text-xs text-foreground/80">{rowPrepPlan.drillType}</p>
                           <div className="space-y-1">
                             {rowPrepPlan.setPlans.map((setPlan) => (
@@ -1185,6 +1188,17 @@ export default function StudentTopicConditioningDialog({
                                 {setPlan.label}: {setPlan.problems} problems · {setPlan.difficulty}
                               </p>
                             ))}
+                          </div>
+                          <div className="pt-1">
+                            <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Prep Rules</p>
+                            <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">
+                              {rowPrepPlan.prepNotes.map((note) => (
+                                <li key={`${row.topic}-prep-note-${note}`} className="flex items-start gap-1.5">
+                                  <span className="mt-0.5 shrink-0 text-foreground/40">•</span>
+                                  <span>{note}</span>
+                                </li>
+                              ))}
+                            </ul>
                           </div>
                         </div>
 
