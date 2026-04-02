@@ -657,6 +657,7 @@ export default function IntroSessionDrillRunner() {
                   <th className="px-2 py-1 border">Set</th>
                   <th className="px-2 py-1 border">Rep</th>
                   <th className="px-2 py-1 border">Score</th>
+                  <th className="px-2 py-1 border">Session Score</th>
                   <th className="px-2 py-1 border">Phase</th>
                   <th className="px-2 py-1 border">Stability</th>
                   <th className="px-2 py-1 border">Next Action</th>
@@ -668,6 +669,7 @@ export default function IntroSessionDrillRunner() {
                   <tr key={i} className="even:bg-gray-50">
                     <td className="px-2 py-1 border">{row.set}</td>
                     <td className="px-2 py-1 border">{row.rep}</td>
+                    <td className="px-2 py-1 border">{row.score}</td>
                     <td className="px-2 py-1 border">{row.sessionScore}</td>
                     <td className="px-2 py-1 border">{row.phase}</td>
                     <td className="px-2 py-1 border">{row.stability}</td>
