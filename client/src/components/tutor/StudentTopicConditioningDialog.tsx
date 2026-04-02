@@ -802,6 +802,12 @@ export default function StudentTopicConditioningDialog({
   const [activationReason, setActivationReason] = useState("");
   const [activationNote, setActivationNote] = useState("");
   const [activateError, setActivateError] = useState("");
+  const [trainingDrillModalOpen, setTrainingDrillModalOpen] = useState(false);
+  const [pendingTrainingDrill, setPendingTrainingDrill] = useState<{
+    topic: string;
+    phase: PhaseLabel;
+    stability: StabilityLabel;
+  } | null>(null);
 
   // Add topic handler
   const handleActivateTopic = async () => {
@@ -836,6 +842,24 @@ export default function StudentTopicConditioningDialog({
       }
       alert("Topic activation failed: " + (err?.message || JSON.stringify(err)));
     }
+  };
+
+  const handleOpenTrainingDrillModal = (topic: TopicRow) => {
+    setPendingTrainingDrill({
+      topic: topic.topic,
+      phase: topic.phase,
+      stability: topic.stability,
+    });
+    setTrainingDrillModalOpen(true);
+  };
+
+  const handleStartTrainingDrill = () => {
+    if (!pendingTrainingDrill) return;
+    const topicParam = encodeURIComponent(pendingTrainingDrill.topic);
+    const phaseParam = encodeURIComponent(pendingTrainingDrill.phase);
+    const stabilityParam = encodeURIComponent(pendingTrainingDrill.stability);
+    setTrainingDrillModalOpen(false);
+    window.location.href = `/tutor/intro-session/${studentId}?mode=training&topic=${topicParam}&phase=${phaseParam}&stability=${stabilityParam}`;
   };
   const { data: sessions } = useQuery<TutorSessionRecord[]>({
     queryKey: ["/api/tutor/sessions"],
@@ -1512,12 +1536,7 @@ export default function StudentTopicConditioningDialog({
                         <Button
                           variant="secondary"
                           size="sm"
-                          onClick={() => {
-                            const topicParam = encodeURIComponent(topic.topic);
-                            const phaseParam = encodeURIComponent(topic.phase);
-                            const stabilityParam = encodeURIComponent(topic.stability);
-                            window.location.href = `/tutor/intro-session/${studentId}?mode=training&topic=${topicParam}&phase=${phaseParam}&stability=${stabilityParam}`;
-                          }}
+                          onClick={() => handleOpenTrainingDrillModal(topic)}
                         >
                           Start Training Drill
                         </Button>
@@ -1529,6 +1548,48 @@ export default function StudentTopicConditioningDialog({
                 <div className="text-sm text-muted-foreground">No active topics. Activate a topic to begin.</div>
               )}
             </Card>
+
+            <Dialog
+              open={trainingDrillModalOpen}
+              onOpenChange={(open) => {
+                setTrainingDrillModalOpen(open);
+                if (!open) setPendingTrainingDrill(null);
+              }}
+            >
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Training Drill Instructions</DialogTitle>
+                  <DialogDescription>
+                    {pendingTrainingDrill
+                      ? `${pendingTrainingDrill.phase} Drill · Topic: ${pendingTrainingDrill.topic}`
+                      : "Review drill requirements before you begin."}
+                  </DialogDescription>
+                </DialogHeader>
+
+                <ul className="list-disc pl-5 text-sm space-y-1">
+                  <li>This drill is for system-driven training progression. Follow the structure exactly.</li>
+                  <li><strong>Before you begin:</strong> Prepare <span className="font-semibold">3 distinct problems</span> for each drill set. In Clarity training, Set 1 is modeling-only (single step), then Sets 2 and 3 run full reps.</li>
+                  <li>For each set and rep, present the prepared problem, observe the student, and select the option that best matches their behavior for each field.</li>
+                  <li>You cannot skip steps or edit outside the drill structure. Complete each observation in order.</li>
+                  <li>When finished, observations are scored and the topic state map updates automatically.</li>
+                </ul>
+
+                <div className="mt-2 flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setTrainingDrillModalOpen(false);
+                      setPendingTrainingDrill(null);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button onClick={handleStartTrainingDrill} disabled={!pendingTrainingDrill}>
+                    Enter Drill
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </TabsContent>
         </Tabs>
       </DialogContent>
