@@ -16,7 +16,7 @@ export default function ExecutiveLanding() {
       id: "coo",
       title: "Chief Operating Officer",
       shortTitle: "COO",
-      description: "Manage day-to-day operations, pods, tutor assignments, and broadcast communications",
+      description: "Lead Territorial Tutoring operations across pods, tutor deployment, and system execution quality",
       icon: Building2,
       features: [
         "Pod Management & Assignments",
@@ -30,7 +30,7 @@ export default function ExecutiveLanding() {
       id: "hr",
       title: "Head of Human Resources",
       shortTitle: "HR",
-      description: "Oversee staffing, track metrics, manage personnel updates, and HR analytics",
+      description: "Own recruitment, people performance, role health, and staffing continuity across the company",
       icon: Users,
       features: [
         "Staff Management",
@@ -44,7 +44,7 @@ export default function ExecutiveLanding() {
       id: "ceo",
       title: "Chief Executive Officer",
       shortTitle: "CEO",
-      description: "View executive dashboard, strategic insights, and business intelligence",
+      description: "Steer strategic direction with full-system visibility across growth, operations, and outcomes",
       icon: TrendingUp,
       features: [
         "Executive Dashboard",
@@ -106,7 +106,7 @@ export default function ExecutiveLanding() {
         <div className="text-center max-w-3xl mx-auto space-y-5 sm:space-y-8">
           <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
             <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
-              Leadership & Operations
+              Territorial Tutoring Leadership System
             </span>
           </div>
           
@@ -117,7 +117,7 @@ export default function ExecutiveLanding() {
           </h1>
           
           <p className="text-base sm:text-lg md:text-xl leading-relaxed" style={{ color: "#5A5A5A" }}>
-            Executive access to operations, analytics, and strategic insights. Manage the Confidence Pod system with role-based dashboards.
+            Run the Territorial Tutoring operating system with role-based control over pods, tutor performance, parent experience, and growth execution.
           </p>
 
           <Button
@@ -126,7 +126,7 @@ export default function ExecutiveLanding() {
             style={{ backgroundColor: "#E63946", color: "white" }}
             onClick={() => navigate("/executive/signup")}
           >
-            Access Leadership Portal
+            Access Executive Command
             <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
           </Button>
         </div>
@@ -137,10 +137,10 @@ export default function ExecutiveLanding() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6" style={{ color: "white" }}>
-              Choose Your Role
+              Select Executive Access
             </h2>
             <p className="text-sm sm:text-lg" style={{ color: "#A0A0A0" }}>
-              Select your leadership position to access your dashboard
+              Enter the control surface for your executive function
             </p>
           </div>
 
@@ -205,7 +205,7 @@ export default function ExecutiveLanding() {
             </div>
             <div className="flex items-center gap-2 text-center md:text-right" style={{ color: "#5A5A5A" }}>
               <Shield className="w-4 h-4 hidden sm:block" />
-              <span className="text-xs sm:text-sm">Executive Portal secured with role-based access control</span>
+              <span className="text-xs sm:text-sm">Executive command environment secured with role-based access control</span>
             </div>
           </div>
         </div>

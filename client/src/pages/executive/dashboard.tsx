@@ -51,7 +51,7 @@ export default function ExecutiveDashboard() {
                 {getRoleTitle()} Dashboard
               </h1>
               <p className="text-gray-600 mt-1">
-                Welcome, {user?.name || user?.email}
+                Territorial Tutoring Executive Command • {user?.name || user?.email}
               </p>
             </div>
             <button
@@ -81,10 +81,10 @@ export default function ExecutiveDashboard() {
               Overview
             </h3>
             <p className="text-gray-600 mb-4">
-              View key metrics and operational insights
+              Monitor live operational health, pod momentum, and execution KPIs
             </p>
             <button className="text-[#E63946] hover:text-[#1A1A1A] font-semibold">
-              View Details →
+              Open Overview →
             </button>
           </div>
 
@@ -94,10 +94,10 @@ export default function ExecutiveDashboard() {
               Team Management
             </h3>
             <p className="text-gray-600 mb-4">
-              Manage team members and assignments
+              Direct tutor and leadership capacity across the Territorial network
             </p>
             <button className="text-[#E63946] hover:text-[#1A1A1A] font-semibold">
-              Manage Team →
+              Open Team Control →
             </button>
           </div>
 
@@ -107,10 +107,10 @@ export default function ExecutiveDashboard() {
               Reports
             </h3>
             <p className="text-gray-600 mb-4">
-              Access and generate reports
+              Review deterministic TT reporting across sessions, weekly cycles, and monthly outcomes
             </p>
             <button className="text-[#E63946] hover:text-[#1A1A1A] font-semibold">
-              View Reports →
+              Open Reports →
             </button>
           </div>
         </div>
