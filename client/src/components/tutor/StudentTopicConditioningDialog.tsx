@@ -1099,6 +1099,15 @@ export default function StudentTopicConditioningDialog({
     configForValidation.categories.every((category) => !!phaseSelections[category.key] && configForValidation.categories.some(c => c.key === category.key)) &&
     !!interventionUsed;
 
+  const pendingTrainingPrepPlan = pendingTrainingDrill
+    ? tutorPrepPlanFor(pendingTrainingDrill.phase, pendingTrainingDrill.stability, true)
+    : null;
+
+  const studentNameHasGrade = /\bgrade\b/i.test(studentName || "");
+  const studentBadgeLabel = studentNameHasGrade
+    ? studentName || "-"
+    : `${studentName || "-"} • Grade ${studentGrade || "-"}`;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100vw-0.5rem)] sm:w-full sm:max-w-7xl max-h-[92vh] overflow-y-auto overflow-x-hidden rounded-2xl border border-primary/15 bg-background p-2 shadow-sm sm:p-6">
@@ -1116,7 +1125,7 @@ export default function StudentTopicConditioningDialog({
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <h3 className="font-semibold">Active Conditioning Map</h3>
                 <Badge variant="outline" className="w-full sm:w-fit max-w-full break-all">
-                  {studentName || "-"} • Grade {studentGrade || "-"}
+                  {studentBadgeLabel}
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground">
@@ -1568,11 +1577,32 @@ export default function StudentTopicConditioningDialog({
 
                 <ul className="list-disc pl-5 text-sm space-y-1">
                   <li>This drill is for system-driven training progression. Follow the structure exactly.</li>
-                  <li><strong>Before you begin:</strong> Prepare <span className="font-semibold">3 distinct problems</span> for each drill set. In Clarity training, Set 1 is modeling-only (single step), then Sets 2 and 3 run full reps.</li>
+                  <li>
+                    <strong>Before you begin:</strong>{" "}
+                    {pendingTrainingPrepPlan
+                      ? `Prepare ${pendingTrainingPrepPlan.setPlans.reduce((sum, setPlan) => sum + setPlan.problems, 0)} total problems using this drill structure.`
+                      : "Prepare all required problems for the selected drill structure."}
+                  </li>
+                  {pendingTrainingPrepPlan?.setPlans.map((setPlan) => (
+                    <li key={`training-modal-set-${setPlan.label}`}>
+                      {setPlan.label}: {setPlan.problems} problems · {setPlan.difficulty}
+                    </li>
+                  ))}
                   <li>For each set and rep, present the prepared problem, observe the student, and select the option that best matches their behavior for each field.</li>
                   <li>You cannot skip steps or edit outside the drill structure. Complete each observation in order.</li>
                   <li>When finished, observations are scored and the topic state map updates automatically.</li>
                 </ul>
+
+                {pendingTrainingPrepPlan?.prepNotes?.length ? (
+                  <div className="rounded-md border border-primary/20 bg-primary/5 p-3">
+                    <p className="text-xs font-medium uppercase tracking-[0.06em] text-muted-foreground">Prep Rules</p>
+                    <ul className="mt-2 list-disc pl-5 text-sm space-y-1">
+                      {pendingTrainingPrepPlan.prepNotes.map((note) => (
+                        <li key={`training-modal-rule-${note}`}>{note}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
 
                 <div className="mt-2 flex justify-end gap-2">
                   <Button
