@@ -8715,18 +8715,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let status = enrollmentData.status || "not_enrolled";
 
-      // Auto-correct: if status is 'awaiting_tutor_acceptance', check if tutor has accepted
+      // Auto-correct: if status is 'awaiting_tutor_acceptance', check if tutor has accepted.
+      // Some enrollments are missing assigned_student_id, so include a fallback by tutor+student name.
       if (status === "awaiting_tutor_acceptance" && enrollmentData.assigned_tutor_id) {
-        // Try to find the assigned student and check workflow
         let assignmentAccepted = false;
+
         if (enrollmentData.assigned_student_id) {
           const assignedStudent = await storage.getStudent(enrollmentData.assigned_student_id);
           const assignedWorkflow = ((assignedStudent?.personalProfile as any) || {}).workflow || {};
           assignmentAccepted = !!assignedWorkflow.assignmentAcceptedAt;
         }
-        // If accepted, override status
+
+        if (!assignmentAccepted && enrollmentData.student_full_name) {
+          const tutorStudents = await storage.getStudentsByTutor(enrollmentData.assigned_tutor_id);
+          const normalize = (value?: string | null) =>
+            String(value || "")
+              .trim()
+              .toLowerCase()
+              .replace(/\s+/g, " ");
+
+          const targetName = normalize(enrollmentData.student_full_name);
+          const matchedStudent = tutorStudents.find((student: any) => normalize(student?.name) === targetName);
+          const matchedWorkflow = ((matchedStudent?.personalProfile as any) || {}).workflow || {};
+          assignmentAccepted = !!matchedWorkflow.assignmentAcceptedAt;
+        }
+
         if (assignmentAccepted) {
           status = "assigned";
+          await supabase
+            .from("parent_enrollments")
+            .update({ status: "assigned", current_step: "assigned", updated_at: new Date().toISOString() })
+            .eq("id", enrollmentData.id);
         }
       }
 
