@@ -140,7 +140,6 @@ export default function ParentGateway() {
 
   // Auto-set step based on enrollment status and intro session confirmation
   useEffect(() => {
-    // ...existing code for enrollmentStatus
     if (justSubmittedRef.current) return;
     if (!enrollmentStatus) {
       setStep("loading");
@@ -434,28 +433,6 @@ export default function ParentGateway() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#FFF5ED" }}>
-      {/* Awaiting Tutor Acceptance State */}
-      {step === "awaiting_tutor_acceptance" && (
-        <Card className="text-center border-0 shadow-lg my-8" style={{ backgroundColor: "white" }}>
-          <CardHeader className="p-3 sm:p-6">
-            <CardTitle className="flex items-center justify-center gap-2 text-sm sm:text-lg" style={{ color: "#E63946" }}>
-              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: "#E63946" }} />
-              Tutor Assignment Pending Acceptance
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="font-medium text-yellow-900">Your tutor has been assigned and is reviewing this assignment.</p>
-              <p className="text-sm text-yellow-700 mt-2">
-                Intro session booking will unlock once your tutor accepts the assignment. Please check back soon.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      // ...existing code...
-
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
@@ -489,9 +466,9 @@ export default function ParentGateway() {
         <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 flex justify-center">
           <div className="flex items-center justify-between w-full max-w-2xl overflow-x-auto">
             {[
-              { label: "Applied", status: step === "enrollment" || step === "submitted" },
-              { label: "Review", status: enrollmentStatus?.status === "awaiting_assignment" || enrollmentStatus?.status === "assigned" || enrollmentStatus?.status === "proposal_sent" || enrollmentStatus?.status === "session_booked" || enrollmentStatus?.status === "report_received" || enrollmentStatus?.status === "confirmed" },
-              { label: "Assigned", status: enrollmentStatus?.status === "assigned" || enrollmentStatus?.status === "proposal_sent" || enrollmentStatus?.status === "session_booked" || enrollmentStatus?.status === "report_received" || enrollmentStatus?.status === "confirmed" },
+              { label: "Applied", status: step === "enrollment" || step === "submitted" || step === "awaiting_tutor_acceptance" },
+              { label: "Review", status: enrollmentStatus?.status === "awaiting_assignment" || enrollmentStatus?.status === "awaiting_tutor_acceptance" || enrollmentStatus?.status === "assigned" || enrollmentStatus?.status === "proposal_sent" || enrollmentStatus?.status === "session_booked" || enrollmentStatus?.status === "report_received" || enrollmentStatus?.status === "confirmed" },
+              { label: "Assigned", status: enrollmentStatus?.status === "awaiting_tutor_acceptance" || enrollmentStatus?.status === "assigned" || enrollmentStatus?.status === "proposal_sent" || enrollmentStatus?.status === "session_booked" || enrollmentStatus?.status === "report_received" || enrollmentStatus?.status === "confirmed" },
               { label: "Active", status: enrollmentStatus?.status === "confirmed" },
             ].map((item, idx, arr) => (
               <div key={item.label} className="flex items-center flex-1 min-w-0">
@@ -525,6 +502,26 @@ export default function ParentGateway() {
       </div>
 
       <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-2xl">
+        {/* Awaiting Tutor Acceptance */}
+        {step === "awaiting_tutor_acceptance" && (
+          <Card className="border-0 shadow-lg" style={{ backgroundColor: "white" }}>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg" style={{ color: "#E63946" }}>
+                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: "#E63946" }} />
+                Tutor Assignment Pending Acceptance
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 px-4 sm:px-6 pb-4 sm:pb-6">
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="font-medium text-yellow-900">Your tutor has been assigned and is reviewing this assignment.</p>
+                <p className="text-sm text-yellow-700 mt-2">
+                  Intro session booking unlocks as soon as your tutor accepts. We will update this page automatically.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Enrollment Form */}
         {step === "enrollment" && (
           <Card className="border-0 shadow-lg" style={{ backgroundColor: "white" }}>
