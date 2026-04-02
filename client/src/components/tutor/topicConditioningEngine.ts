@@ -45,9 +45,9 @@ export type NextActionData = {
 export const NEXT_ACTION_ENGINE: Record<PhaseLabel, Record<StabilityLabel, NextActionData>> = {
   Clarity: {
     Low: {
-      primaryAction: "Reinforce Vocabulary",
+      primaryAction: "Reinforce Vocabulary, Method & Reason (3 Layer Lens)",
       nextActions: [
-        "Reinforce Vocabulary",
+        "Reinforce Vocabulary, Method & Reason (3 Layer Lens)",
         "Reinforce Method (step sequence)",
         "Reinforce Reason (why it works)",
         "Re-model same concept",

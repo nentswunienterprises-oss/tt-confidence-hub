@@ -25,7 +25,7 @@ describe("topicConditioningEngine", () => {
   });
 
   it("returns next action from engine", () => {
-    assert.equal(nextActionFor("Clarity", "Low"), "Reinforce Vocabulary");
+    assert.equal(nextActionFor("Clarity", "Low"), "Reinforce Vocabulary, Method & Reason (3 Layer Lens)");
     assert.equal(getNextActionData("Structured Execution", "High").advanceTo, "Controlled Discomfort");
   });
 

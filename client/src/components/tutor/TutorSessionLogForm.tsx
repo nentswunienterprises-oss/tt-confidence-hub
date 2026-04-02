@@ -94,7 +94,7 @@ function initialFormData(studentId = ""): SessionFormData {
 function nextActionFor(phase: string, stability: string): string {
   const p = String(phase || "");
   const s = String(stability || "");
-  if (p === "Clarity" && s === "Low") return "Reinforce Vocabulary";
+  if (p === "Clarity" && s === "Low") return "Reinforce Vocabulary, Method & Reason (3 Layer Lens)";
   if (p === "Clarity" && s === "Medium") return "Continue 3-Layer Lens";
   if (p === "Clarity" && s === "High") return "Transition to Structured Execution";
   if (p === "Structured Execution" && s === "Low") return "Run strict Model → Apply → Guide loops";
