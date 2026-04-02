@@ -108,15 +108,13 @@ export function StudentCard({
   // ...existing code...
   // State for assignment modal
   const [assignmentModalOpen, setAssignmentModalOpen] = useState(false);
-  const sessionProgress = student.sessionProgress || 0;
-  // Determine onboarding type (pilot or commercial) from parentInfo if available
-  const onboardingType = student.parentInfo?.onboarding_type || 'commercial';
-  let progressLabel = 'Program Progress';
-  let progressTotal = 8;
-  if (onboardingType === 'pilot') {
-    progressLabel = 'Trial Progress';
-    progressTotal = 9;
-  }
+  const completedSessions = Math.max(0, Number(student.sessionProgress || 0));
+  const progressLabel = 'Program Progress';
+  const progressTotal = 8;
+  const sessionProgress =
+    completedSessions > 0 ? (((completedSessions - 1) % progressTotal) + 1) : 0;
+  const sessionsRemaining =
+    sessionProgress === 0 ? progressTotal : Math.max(0, progressTotal - sessionProgress);
   const initials = student.name
     .split(" ")
     .map((n) => n[0])
@@ -369,7 +367,7 @@ export function StudentCard({
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              {Math.max(0, progressTotal - sessionProgress)} sessions remaining
+              {sessionsRemaining} sessions remaining
             </p>
             {/* --- END TOPIC SUMMARY ROW --- */}
           </div>
