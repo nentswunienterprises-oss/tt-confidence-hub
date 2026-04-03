@@ -8,6 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Loader2, User, Phone, MapPin, BookOpen, Users, GraduationCap, CheckCircle2, Clock, XCircle } from "lucide-react";
+
+interface TrafficStats {
+  totalApplications: number;
+  pendingApplications: number;
+  approvedTutors: number;
+  availableForPods: number;
+  totalEnrollments: number;
+  studentEnrollments: number;
+}
 import { format } from "date-fns";
 import AssignTutorModal from "@/components/executive/AssignTutorModal";
 import type { TutorApplication } from "@shared/schema";
@@ -38,6 +47,15 @@ export default function ExecutiveHRTraffic() {
   const [assignTutorOpen, setAssignTutorOpen] = useState(false);
   const [selectedEnrollmentId, setSelectedEnrollmentId] = useState<string>("");
   const [selectedApplication, setSelectedApplication] = useState<TutorApplication | null>(null);
+
+  // Fetch traffic stats
+  const { data: stats, isLoading: statsLoading } = useQuery<TrafficStats>({
+    queryKey: ["/api/hr/stats"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    enabled: isAuthenticated && !!user,
+    refetchInterval: 10000,
+    refetchIntervalInBackground: true,
+  });
 
   // Fetch all parent enrollments - refetch every 5 seconds
   const { data: enrollments = [], isLoading: enrollmentsLoading } = useQuery<ParentEnrollment[]>({
@@ -191,6 +209,52 @@ export default function ExecutiveHRTraffic() {
       <div>
         <h1 className="text-3xl font-bold">Traffic</h1>
         <p className="text-muted-foreground">Manage tutor applications and parent enrollments</p>
+      </div>
+
+      {/* Stats Bar */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <Card className="p-4">
+          <p className="text-xs text-muted-foreground mb-2">Tutor Applications</p>
+          <div className="flex items-center gap-3">
+            <div className="text-center flex-1">
+              <p className="text-2xl font-bold">{statsLoading ? "-" : stats?.totalApplications ?? 0}</p>
+              <p className="text-xs text-muted-foreground">Total</p>
+            </div>
+            <div className="w-px h-8 bg-border" />
+            <div className="text-center flex-1">
+              <p className="text-2xl font-bold">{statsLoading ? "-" : stats?.pendingApplications ?? 0}</p>
+              <p className="text-xs text-muted-foreground">Pending</p>
+            </div>
+          </div>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs text-muted-foreground mb-2">Approved Tutors</p>
+          <div className="flex items-center gap-3">
+            <div className="text-center flex-1">
+              <p className="text-2xl font-bold">{statsLoading ? "-" : stats?.approvedTutors ?? 0}</p>
+              <p className="text-xs text-muted-foreground">Total</p>
+            </div>
+            <div className="w-px h-8 bg-border" />
+            <div className="text-center flex-1">
+              <p className="text-2xl font-bold">{statsLoading ? "-" : stats?.availableForPods ?? 0}</p>
+              <p className="text-xs text-muted-foreground">Available</p>
+            </div>
+          </div>
+        </Card>
+        <Card className="p-4 col-span-2 md:col-span-1">
+          <p className="text-xs text-muted-foreground mb-2">Student Enrollments</p>
+          <div className="flex items-center gap-3">
+            <div className="text-center flex-1">
+              <p className="text-2xl font-bold">{statsLoading ? "-" : stats?.totalEnrollments ?? 0}</p>
+              <p className="text-xs text-muted-foreground">Total</p>
+            </div>
+            <div className="w-px h-8 bg-border" />
+            <div className="text-center flex-1">
+              <p className="text-2xl font-bold">{statsLoading ? "-" : stats?.studentEnrollments ?? 0}</p>
+              <p className="text-xs text-muted-foreground">This Month</p>
+            </div>
+          </div>
+        </Card>
       </div>
 
       <Tabs defaultValue="tutor-applications" className="w-full">
