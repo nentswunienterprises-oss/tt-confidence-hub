@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Loader2, User, Phone, MapPin, BookOpen, Users, GraduationCap, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { Loader2, User, Phone, MapPin, BookOpen, Users, GraduationCap, CheckCircle2, Clock, XCircle, FileCheck } from "lucide-react";
 
 interface TrafficStats {
   totalApplications: number;
@@ -47,6 +47,7 @@ export default function ExecutiveHRTraffic() {
   const [assignTutorOpen, setAssignTutorOpen] = useState(false);
   const [selectedEnrollmentId, setSelectedEnrollmentId] = useState<string>("");
   const [selectedApplication, setSelectedApplication] = useState<TutorApplication | null>(null);
+  const [tutorAppSubTab, setTutorAppSubTab] = useState("pending");
 
   // Fetch traffic stats
   const { data: stats, isLoading: statsLoading } = useQuery<TrafficStats>({
@@ -271,25 +272,36 @@ export default function ExecutiveHRTraffic() {
         </TabsList>
 
         {/* Tutor Applications Tab */}
-        <TabsContent value="tutor-applications" className="space-y-6">
+        <TabsContent value="tutor-applications" className="space-y-4">
           {applicationsLoading ? (
             <Card className="p-12 text-center">
               <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-muted-foreground" />
               <p className="text-muted-foreground">Loading applications...</p>
             </Card>
-          ) : applications.length === 0 ? (
-            <Card className="p-12 text-center">
-              <p className="text-muted-foreground text-lg">No tutor applications yet</p>
-            </Card>
           ) : (
-            <>
-              {/* Pending Applications */}
-              {pendingApplications.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-yellow-500" />
-                    <h2 className="text-xl font-semibold">Pending ({pendingApplications.length})</h2>
-                  </div>
+            <Tabs value={tutorAppSubTab} onValueChange={setTutorAppSubTab} className="w-full">
+              <TabsList className="flex w-full overflow-x-auto h-auto rounded-xl border border-primary/15 bg-muted/20 p-1 gap-1">
+                <TabsTrigger value="pending" className="flex-1 gap-1.5 text-xs sm:text-sm py-2">
+                  <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                  Pending ({pendingApplications.length})
+                </TabsTrigger>
+                <TabsTrigger value="approved" className="flex-1 gap-1.5 text-xs sm:text-sm py-2">
+                  <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                  Approved ({approvedApplications.length})
+                </TabsTrigger>
+                <TabsTrigger value="rejected" className="flex-1 gap-1.5 text-xs sm:text-sm py-2">
+                  <XCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                  Rejected ({rejectedApplications.length})
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="pending" className="space-y-4 mt-4">
+                {pendingApplications.length === 0 ? (
+                  <Card className="p-12 text-center">
+                    <Clock className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                    <p className="text-muted-foreground">No pending applications</p>
+                  </Card>
+                ) : (
                   <div className="grid gap-4">
                     {pendingApplications.map((application: any) => (
                       <TutorApplicationCard
@@ -299,16 +311,16 @@ export default function ExecutiveHRTraffic() {
                       />
                     ))}
                   </div>
-                </div>
-              )}
+                )}
+              </TabsContent>
 
-              {/* Approved Applications */}
-              {approvedApplications.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-green-500" />
-                    <h2 className="text-xl font-semibold">Approved ({approvedApplications.length})</h2>
-                  </div>
+              <TabsContent value="approved" className="space-y-4 mt-4">
+                {approvedApplications.length === 0 ? (
+                  <Card className="p-12 text-center">
+                    <CheckCircle2 className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                    <p className="text-muted-foreground">No approved applications</p>
+                  </Card>
+                ) : (
                   <div className="grid gap-4">
                     {approvedApplications.map((application: any) => (
                       <TutorApplicationCard
@@ -318,16 +330,16 @@ export default function ExecutiveHRTraffic() {
                       />
                     ))}
                   </div>
-                </div>
-              )}
+                )}
+              </TabsContent>
 
-              {/* Rejected Applications */}
-              {rejectedApplications.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <XCircle className="w-5 h-5 text-red-500" />
-                    <h2 className="text-xl font-semibold">Rejected ({rejectedApplications.length})</h2>
-                  </div>
+              <TabsContent value="rejected" className="space-y-4 mt-4">
+                {rejectedApplications.length === 0 ? (
+                  <Card className="p-12 text-center">
+                    <XCircle className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                    <p className="text-muted-foreground">No rejected applications</p>
+                  </Card>
+                ) : (
                   <div className="grid gap-4">
                     {rejectedApplications.map((application: any) => (
                       <TutorApplicationCard
@@ -337,9 +349,9 @@ export default function ExecutiveHRTraffic() {
                       />
                     ))}
                   </div>
-                </div>
-              )}
-            </>
+                )}
+              </TabsContent>
+            </Tabs>
           )}
         </TabsContent>
 
