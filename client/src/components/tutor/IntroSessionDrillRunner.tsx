@@ -501,6 +501,11 @@ export default function IntroSessionDrillRunner() {
 
   const hasIntroTopic = !!introTopic;
 
+  const studentName = useMemo(() => {
+    const cached = (window as any).__queryClient?.getQueryData(["/api/tutor/students"]) as any[] | undefined;
+    return cached?.find((s: any) => String(s.id) === String(studentId))?.name || null;
+  }, [studentId]);
+
   const set = drillStructure[currentSet];
   const isModelingSet = !!set.isModelingSet;
   const isFirstRep = currentRep === 0;
@@ -812,10 +817,10 @@ export default function IntroSessionDrillRunner() {
         </ul>
       </div>
       )}
-      <p className="mb-4 text-muted-foreground">Student ID: {studentId}</p>
+      <p className="mb-4 text-muted-foreground">{studentName || studentId}</p>
 
       {/* Phase-level context bar — shown only on set 1 */}
-      {isFirstSet && <div className="mb-4 p-3 rounded-xl border border-primary/20 bg-primary/5 text-sm">
+      {isFirstSet && isFirstRep && <div className="mb-4 p-3 rounded-xl border border-primary/20 bg-primary/5 text-sm">
         <div className="font-semibold text-foreground mb-1">Phase: {phase}</div>
         <div className="text-muted-foreground text-xs mb-2">{PHASE_CONTEXT[phase].purpose}</div>
         <div className="flex flex-wrap gap-1">
