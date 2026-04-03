@@ -814,8 +814,8 @@ export default function IntroSessionDrillRunner() {
       )}
       <p className="mb-4 text-muted-foreground">Student ID: {studentId}</p>
 
-      {/* Phase-level context bar — stays constant throughout the drill */}
-      <div className="mb-4 p-3 rounded-xl border border-primary/20 bg-primary/5 text-sm">
+      {/* Phase-level context bar — shown only on set 1 */}
+      {isFirstSet && <div className="mb-4 p-3 rounded-xl border border-primary/20 bg-primary/5 text-sm">
         <div className="font-semibold text-foreground mb-1">Phase: {phase}</div>
         <div className="text-muted-foreground text-xs mb-2">{PHASE_CONTEXT[phase].purpose}</div>
         <div className="flex flex-wrap gap-1">
@@ -823,7 +823,7 @@ export default function IntroSessionDrillRunner() {
             <span key={i} className="px-2 py-0.5 bg-background border border-primary/20 text-foreground rounded text-xs font-medium">✕ {c}</span>
           ))}
         </div>
-      </div>
+      </div>}
 
       {/* Modeling session callout - shown only for Clarity Training Set 1 */}
       {set.isModelingSet && (
