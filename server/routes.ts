@@ -89,6 +89,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             for (let setIndex = 0; setIndex < sets.length; setIndex += 1) {
               const set = sets[setIndex];
               const observations = Array.isArray(set?.observations) ? set.observations : [];
+
+              const isClarityModelingSet =
+                mode === "training" &&
+                phase === "Clarity" &&
+                setIndex === 0;
+
+              // Clarity training Set 1 is modeling-only. It is non-scored and has no required observations.
+              if (isClarityModelingSet) {
+                continue;
+              }
+
               if (observations.length !== 3) {
                 return `Set ${setIndex + 1} must include exactly 3 reps`;
               }
@@ -317,8 +328,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const setScores: number[] = [];
             let highGuardPasses = true;
 
-            const firstThreeSets = sets.slice(0, 3);
-            firstThreeSets.forEach((set) => {
+            const scoredSets =
+              observedPhase === "Clarity"
+                ? sets.slice(1, 3)
+                : sets.slice(0, 3);
+
+            scoredSets.forEach((set) => {
               const repScores = (set.observations || []).map((repObs, repIndex) => {
                 const score = phaseWeights.reduce((sum, field) => {
                   const rawValue = field.aliases
@@ -382,7 +397,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
             });
 
-            const setWeights = [1, 2, 2];
+            const setWeights = observedPhase === "Clarity" ? [2, 2] : [1, 2, 2];
             const weighted = setScores.reduce(
               (acc, score, idx) => {
                 const w = setWeights[idx] || 1;

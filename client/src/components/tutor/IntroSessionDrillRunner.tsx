@@ -555,10 +555,7 @@ export default function IntroSessionDrillRunner() {
     return null;
   };
 
-  const getSubmissionRepCount = (setConfig: DrillSetConfig, setIndex: number) => {
-    if (drillMode === "training" && phase === "Clarity" && setConfig.isModelingSet && setIndex === 0) {
-      return 3;
-    }
+  const getSubmissionRepCount = (setConfig: DrillSetConfig) => {
     return setConfig.reps;
   };
 
@@ -606,8 +603,8 @@ export default function IntroSessionDrillRunner() {
           drillType: drillMode,
           drill: drillStructure.map((set, setIdx) => ({
             setName: set.setName,
-            reps: getSubmissionRepCount(set, setIdx),
-            observations: Array.from({ length: getSubmissionRepCount(set, setIdx) }).map((_, repIdx) => {
+            reps: getSubmissionRepCount(set),
+            observations: Array.from({ length: getSubmissionRepCount(set) }).map((_, repIdx) => {
               const obs: Record<string, string> = {};
               const observationBlock = getObservationBlockForRep(set, repIdx);
               observationBlock.forEach((block) => {
