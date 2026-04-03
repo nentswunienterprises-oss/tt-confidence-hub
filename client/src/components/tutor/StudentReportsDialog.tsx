@@ -110,6 +110,14 @@ function FieldRow({ label, value }: { label: string; value?: string | null }) {
   );
 }
 
+function getTopicFocusDisplay(log: NonNullable<SessionRecord["deterministicLog"]>): string {
+  const summaryText = log.summaryText?.trim();
+  if (summaryText && /^this session\b/i.test(summaryText)) {
+    return summaryText;
+  }
+  return log.topicFocus;
+}
+
 function DeterministicSessionLog({ session }: { session: SessionRecord }) {
   const log = session.deterministicLog;
   if (!log) return null;
@@ -132,7 +140,7 @@ function DeterministicSessionLog({ session }: { session: SessionRecord }) {
       </div>
 
       <div className="space-y-3 rounded-xl border border-primary/15 bg-background p-4">
-        <FieldRow label="Topic + Focus" value={log.topicFocus} />
+        <FieldRow label="Topic + Focus" value={getTopicFocusDisplay(log)} />
         <FieldRow label="What Was Trained" value={log.whatWasTrained} />
         <FieldRow label="What Happened" value={log.behaviorSummary} />
         <FieldRow label="Performance Result" value={log.performanceResult} />
