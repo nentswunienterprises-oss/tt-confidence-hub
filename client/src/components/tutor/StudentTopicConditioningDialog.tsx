@@ -1075,15 +1075,13 @@ export default function StudentTopicConditioningDialog({
     100
   );
 
-  const highGatePasses = phaseConfig.highGate(phaseSelections);
-
   let projectedStability: StabilityLabel = previousStability;
   let advanceReady = false;
 
   if (previousStability === "Low") {
     if (sessionScore <= phaseConfig.thresholds.low.remainMax) projectedStability = "Low";
     else if (sessionScore <= phaseConfig.thresholds.low.mediumMax) projectedStability = "Medium";
-    else projectedStability = highGatePasses ? "High" : "Medium";
+    else projectedStability = "High";
   }
 
   if (previousStability === "Medium") {
@@ -1109,22 +1107,13 @@ export default function StudentTopicConditioningDialog({
 
   const nextPhase = getNextActionData(observedPhase, projectedStability).advanceTo;
   const projectedPhase: PhaseLabel =
-    advanceReady && !!nextPhase
+    previousStability === "High Maintenance" && advanceReady && !!nextPhase
       ? (nextPhase as PhaseLabel)
       : observedPhase;
 
   let phaseDecision: "remain" | "advance" | "regress" | "improve" = "remain";
   if (projectedPhase !== observedPhase) {
     phaseDecision = "advance";
-  } else if (observedPhase === "Clarity") {
-    // For Clarity, never show regress, show improve/remain only
-    if (stabilityToScore(projectedStability) > stabilityToScore(previousStability)) {
-      phaseDecision = "improve";
-    } else if (stabilityToScore(projectedStability) < stabilityToScore(previousStability)) {
-      phaseDecision = "remain"; // Never regress in Clarity
-    } else {
-      phaseDecision = "remain";
-    }
   } else {
     if (stabilityToScore(projectedStability) < stabilityToScore(previousStability)) {
       phaseDecision = "regress";
