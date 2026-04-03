@@ -467,6 +467,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
             };
           };
 
+          const mapDrillRowToDeterministicSession = (row: any) => {
+            let parsed: any = null;
+            try {
+              parsed = row?.drill && typeof row.drill === "object"
+                ? row.drill
+                : JSON.parse(typeof row?.drill === "string" ? row.drill : "{}");
+            } catch {
+              parsed = null;
+            }
+
+            if (!parsed || typeof parsed !== "object") return null;
+
+            const drillType = String(parsed.drillType || "diagnosis").toLowerCase() === "training"
+              ? "training"
+              : "diagnosis";
+
+            if (drillType === "diagnosis") {
+              const topic = String(parsed.introTopic || parsed.trainingTopic || "").trim();
+              const diagnosisPhase = normalizeIntroPhase(parsed.phase || parsed.summary?.phase || "Clarity");
+              const stability = normalizeStability(parsed.summary?.stability || "Low");
+              const diagnosisScore = Number(parsed.summary?.diagnosisScore ?? 0);
+              const trainingEntryPhase = deriveTrainingEntryPhase(normalizePhase(diagnosisPhase), stability);
+              const nextAction = String(
+                parsed.summary?.nextAction ||
+                NEXT_ACTION_ENGINE[normalizePhase(diagnosisPhase)]?.[stability]?.primaryAction ||
+                ""
+              ).trim();
+              const constraint = String(
+                parsed.summary?.constraint ||
+                NEXT_ACTION_ENGINE[normalizePhase(diagnosisPhase)]?.[stability]?.rules?.[0] ||
+                ""
+              ).trim() || null;
+
+              return {
+                id: row.id,
+                date: row.submitted_at,
+                duration: 0,
+                deterministicLog: {
+                  topicFocus: `${topic} | Intro diagnosis on ${diagnosisPhase}`,
+                  whatWasTrained: `Diagnosis drill completed for ${topic} in ${diagnosisPhase}.`,
+                  behaviorSummary: `${topic} was diagnosed at ${diagnosisPhase} with ${stability} stability.`,
+                  performanceResult: `Diagnosis score: ${diagnosisScore}/100.`,
+                  stateMovement:
+                    trainingEntryPhase === normalizePhase(diagnosisPhase)
+                      ? `Training starts in ${trainingEntryPhase}.`
+                      : `Training starts in ${trainingEntryPhase} because ${diagnosisPhase} was passed at High stability.`,
+                  whatThisMeans: TUTOR_MEANING_BY_PHASE[trainingEntryPhase],
+                  nextMove: nextAction,
+                  summaryText: `${topic} diagnosed at ${diagnosisPhase} with ${stability} stability. Training starts in ${trainingEntryPhase}.`,
+                  drillLabel: `Intro Diagnosis (${diagnosisPhase})`,
+                  score: diagnosisScore,
+                  stability,
+                  constraint,
+                  practiceAssigned: `Prepare the next ${trainingEntryPhase} drill cycle for ${topic}.`,
+                },
+              };
+            }
+
+            const topic = String(parsed.trainingTopic || parsed.introTopic || "").trim();
+            const observedPhase = normalizeIntroPhase(parsed.phase || parsed.summary?.observedPhase || "Structured Execution");
+            const resultingPhase = normalizePhase(parsed.summary?.phase || observedPhase);
+            const stability = normalizeStability(parsed.summary?.stability || "Low");
+            const sessionScore = Number(parsed.summary?.sessionScore ?? 0);
+            const phaseDecision = String(parsed.summary?.phaseDecision || "remain").toLowerCase();
+            const nextAction = String(
+              parsed.summary?.nextAction ||
+              NEXT_ACTION_ENGINE[resultingPhase]?.[stability]?.primaryAction ||
+              ""
+            ).trim();
+            const constraint = String(
+              parsed.summary?.constraint ||
+              NEXT_ACTION_ENGINE[resultingPhase]?.[stability]?.rules?.[0] ||
+              ""
+            ).trim() || null;
+
+            return {
+              id: row.id,
+              date: row.submitted_at,
+              duration: 0,
+              deterministicLog: {
+                topicFocus: `${topic} | ${observedPhase} training drill`,
+                whatWasTrained: `Training drill completed for ${topic} in ${observedPhase}.`,
+                behaviorSummary: `${topic} finished with ${stability} stability and a ${phaseDecision} decision.`,
+                performanceResult: `Session score: ${sessionScore}/100.`,
+                stateMovement:
+                  resultingPhase === normalizePhase(observedPhase)
+                    ? `Remain in ${resultingPhase}.`
+                    : `${observedPhase} advanced to ${resultingPhase}.`,
+                whatThisMeans: TUTOR_MEANING_BY_PHASE[resultingPhase],
+                nextMove: nextAction,
+                summaryText: `${topic} training drill scored ${sessionScore}/100 and resolved to ${resultingPhase} with ${stability} stability.`,
+                drillLabel: `Training Drill (${observedPhase})`,
+                score: sessionScore,
+                stability,
+                constraint,
+                practiceAssigned: `Prepare the next ${resultingPhase} drill cycle for ${topic}.`,
+              },
+            };
+          };
+
           // Tutor submits intro session drill results
           app.post("/api/tutor/intro-session-drill", isAuthenticated, requireRole(["tutor"]), async (req: Request, res: Response) => {
             try {
@@ -2908,10 +3008,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Unauthorized" });
         }
 
-        const sessions = (await storage.getSessionsByStudent(studentId))
-          .filter((session: any) => session.tutorId === tutorId)
-          // Reports Center is deterministic drill-native only.
-          .filter((session: any) => !!session?.deterministicLog);
+        const { data: drillRows, error: drillRowsError } = await supabase
+          .from("intro_session_drills")
+          .select("id, student_id, tutor_id, drill, submitted_at")
+          .eq("student_id", studentId)
+          .eq("tutor_id", tutorId)
+          .order("submitted_at", { ascending: false });
+
+        if (drillRowsError) {
+          throw drillRowsError;
+        }
+
+        const sessions = (drillRows || [])
+          .map(mapDrillRowToDeterministicSession)
+          .filter(Boolean);
 
         const { data: reports, error: reportsError } = await supabase
           .from("parent_reports")
