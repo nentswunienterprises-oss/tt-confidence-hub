@@ -1,6 +1,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { TTLogo } from "@/components/TTLogo";
 import { TerritorialTutoringLogoSVG } from "@/components/TerritorialTutoringLogoSVG";
 
 import { useNavigate } from "react-router-dom";
@@ -48,7 +49,9 @@ function PortalLanding() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
-          <TerritorialTutoringLogoSVG width={190} />
+          <div className="flex-shrink-0">
+            <TerritorialTutoringLogoSVG width={150} />
+          </div>
 
           <div className="hidden md:block">
             <span className="text-2xl lg:text-4xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
@@ -306,8 +309,8 @@ function PortalLanding() {
 
           <div className="flex flex-col md:flex-row md:justify-between items-center gap-4 sm:gap-6">
             <div className="flex flex-col md:flex-row items-center gap-3 sm:gap-4">
-              <div className="translate-x-[1.75rem] md:translate-x-0">
-                <TerritorialTutoringLogoSVG width={150} />
+                <div>
+                  <TTLogo size="md" />
               </div>
               <a
                 href="https://www.instagram.com/territorialtutoring?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="

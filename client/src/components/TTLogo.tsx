@@ -1,36 +1,46 @@
 export function TTLogo({ size = "xl" }: { size?: "sm" | "md" | "lg" | "xl" }) {
   // Responsive font sizes using clamp
   const sizeMap = {
-    sm: "clamp(12px, 3vw, 16px)",
-    md: "clamp(14px, 3.5vw, 19px)", // slightly smaller than before
-    lg: "clamp(20px, 6vw, 32px)",
-    xl: "clamp(28px, 8vw, 48px)",
+    sm: "clamp(10px, 2.2vw, 12px)",
+    md: "clamp(12px, 2.8vw, 14px)",
+    lg: "clamp(14px, 3.2vw, 16px)",
+    xl: "clamp(24px, 7vw, 40px)",
   };
   const text = sizeMap[size];
-  // To align 'TUTORING' under the 'E' in 'TERRITORIAL',
-  // we measure the width of 'T' and add a left margin to 'TUTORING'.
-  // We'll use a span for the first letter and the rest for the offset.
+
   return (
     <div
       style={{
         display: "inline-block",
-        lineHeight: 1,
+        lineHeight: 1.05,
         fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont',
         position: "relative",
       }}
     >
-      <div style={{ display: "flex", flexDirection: "row", alignItems: "flex-end" }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
         <span
           style={{
             fontSize: text,
-            fontWeight: 600, // Inter SemiBold
+            fontWeight: 600,
             color: "#222",
-            letterSpacing: "0.02em", // +2% tracking
+            letterSpacing: "0.02em",
             textTransform: "uppercase",
-            wordBreak: "break-word",
+            whiteSpace: "nowrap",
           }}
         >
-          T
+          THE
+        </span>
+        <span
+          style={{
+            fontSize: text,
+            fontWeight: 700,
+            color: "#E63946",
+            letterSpacing: "normal",
+            textTransform: "uppercase",
+            whiteSpace: "nowrap",
+          }}
+        >
+          RESPONSE
         </span>
         <span
           style={{
@@ -39,28 +49,10 @@ export function TTLogo({ size = "xl" }: { size?: "sm" | "md" | "lg" | "xl" }) {
             color: "#222",
             letterSpacing: "0.02em",
             textTransform: "uppercase",
-            wordBreak: "break-word",
+            whiteSpace: "nowrap",
           }}
         >
-          ERRITORIAL
-        </span>
-      </div>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-        }}
-      >
-        <span style={{
-          fontSize: text,
-          fontWeight: 700, // Inter Bold
-          color: "#E63946",
-          letterSpacing: "normal", // 0% tracking
-          textTransform: "uppercase",
-          marginLeft: `calc(1ch + 0.02em)`, // offset for 'T' and tracking
-          wordBreak: "break-word",
-        }}>
-          TUTORING
+          HUB
         </span>
       </div>
     </div>
