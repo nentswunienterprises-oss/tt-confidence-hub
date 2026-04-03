@@ -62,6 +62,18 @@ interface ReportRecord {
 
 const formatDateInput = (date: Date) => format(date, "yyyy-MM-dd");
 
+const parseBossBattleCount = (rawValue: unknown) => {
+  const text = String(rawValue || "").trim();
+  if (!text) return 0;
+
+  const numericMatches = text.match(/\d+/g);
+  if (numericMatches && numericMatches.length > 0) {
+    return numericMatches.reduce((sum, value) => sum + Number(value || 0), 0);
+  }
+
+  return 1;
+};
+
 const initialSessionFormData = {
   studentId: "",
   duration: "120",
@@ -276,10 +288,29 @@ export default function TutorSessions() {
 
   const createWeeklyReport = useMutation({
     mutationFn: async () => {
+      const sourceSessionIds = selectedWeekSessions.map((session) => session.id);
+      const sourceSessionCount = selectedWeekSessions.length;
+      const bossBattlesCompletedThisWeek = selectedWeekSessions.reduce(
+        (sum, session: any) => sum + parseBossBattleCount(session?.bossBattlesDone),
+        0
+      );
+
       await apiRequest("POST", "/api/tutor/reports/weekly", {
         studentId: weeklyForm.studentId,
         weekStartDate: formatDateInput(weeklyStartDate),
         weekEndDate: formatDateInput(weeklyEndDate),
+        sessionsCompletedThisWeek: sourceSessionCount,
+        mainTopicsCovered: weeklyForm.mainTopicsCovered,
+        whatImprovedThisWeek: weeklyForm.whatImproved,
+        studentResponsePatternThisWeek: weeklyForm.studentResponsePattern,
+        mainMisunderstandingThisWeek: weeklyForm.mainMisunderstanding,
+        mainCorrectionHelpedThisWeek: weeklyForm.mainCorrectionHelped,
+        bossBattleSummaryThisWeek: weeklyForm.bossBattleSummary,
+        reinforcementNextWeek: weeklyForm.reinforcementNextWeek,
+        internalWeeklyTutorNote: weeklyForm.internalTutorNote,
+        sourceSessionIds,
+        sourceSessionCount,
+        bossBattlesCompletedThisWeek,
       });
     },
     onSuccess: () => {
@@ -313,10 +344,21 @@ export default function TutorSessions() {
 
   const createMonthlyReport = useMutation({
     mutationFn: async () => {
+      const sourceWeeklyReportIds = selectedMonthWeeklyReports.map((report) => report.id);
       await apiRequest("POST", "/api/tutor/reports/monthly", {
         studentId: monthlyForm.studentId,
         monthStartDate: formatDateInput(monthlyStartDate),
         monthEndDate: formatDateInput(monthlyEndDate),
+        totalSessionsCompletedThisMonth: selectedMonthSessionsCount,
+        mainAreasCoveredThisMonth: monthlyForm.mainAreasCovered,
+        strongerSkillsThisMonth: monthlyForm.strongerSkills,
+        responsePatternTrendThisMonth: monthlyForm.responsePatternTrend,
+        recurringChallengeThisMonth: monthlyForm.recurringChallenge,
+        mostEffectiveInterventionThisMonth: monthlyForm.mostEffectiveIntervention,
+        bossBattleTrendThisMonth: monthlyForm.bossBattleTrend,
+        nextMonthPriority: monthlyForm.nextMonthPriority,
+        internalMonthlyTutorNote: monthlyForm.internalTutorNote,
+        sourceWeeklyReportIds,
       });
     },
     onSuccess: () => {

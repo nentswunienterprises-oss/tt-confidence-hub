@@ -2893,9 +2893,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Unauthorized" });
         }
 
-        const sessions = (await storage.getSessionsByStudent(studentId)).filter(
-          (session: any) => session.tutorId === tutorId
-        );
+        const sessions = (await storage.getSessionsByStudent(studentId))
+          .filter((session: any) => session.tutorId === tutorId)
+          // Reports Center is deterministic drill-native only.
+          .filter((session: any) => !!session?.deterministicLog);
 
         const { data: reports, error: reportsError } = await supabase
           .from("parent_reports")

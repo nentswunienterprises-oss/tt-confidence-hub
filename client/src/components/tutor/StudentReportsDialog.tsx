@@ -151,7 +151,7 @@ function getSessionPreview(session: SessionRecord) {
     const log = session.deterministicLog;
     return [log.whatWasTrained, log.behaviorSummary, log.performanceResult].filter(Boolean).join(" ");
   }
-  return session.autoSummary || session.notes || "";
+  return "";
 }
 
 export default function StudentReportsDialog({
@@ -241,23 +241,7 @@ export default function StudentReportsDialog({
                             </div>
                           </AccordionTrigger>
                           <AccordionContent className="space-y-3">
-                            {session.deterministicLog ? (
-                              <DeterministicSessionLog session={session} />
-                            ) : (
-                              <>
-                                <FieldRow label="Session Notes" value={session.notes} />
-                                <FieldRow label="Solution Implemented" value={session.solutionPurpose} />
-                                <FieldRow label="Vocabulary Notes" value={session.vocabularyNotes} />
-                                <FieldRow label="Method Notes" value={session.methodNotes} />
-                                <FieldRow label="Reason Notes" value={session.reasonNotes} />
-                                <FieldRow label="Student Response" value={session.studentResponse} />
-                                <FieldRow label="What was misunderstood?" value={session.whatMisunderstood} />
-                                <FieldRow label="What correction helped?" value={session.correctionHelped} />
-                                <FieldRow label="What needs reinforcement?" value={session.needsReinforcement} />
-                                <FieldRow label="Boss Battle" value={session.bossBattlesDone} />
-                                <FieldRow label="Practice assigned" value={session.practiceProblems} />
-                              </>
-                            )}
+                            <DeterministicSessionLog session={session} />
                           </AccordionContent>
                         </AccordionItem>
                       ))}
