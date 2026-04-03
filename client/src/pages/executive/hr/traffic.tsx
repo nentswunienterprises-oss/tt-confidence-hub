@@ -58,11 +58,27 @@ export default function ExecutiveHRTraffic() {
     refetchInterval: 10000,
   });
 
+  const normalizeStatus = (value: unknown) => String(value || "").toLowerCase().trim();
+  const hasAnyDocUrl = (doc: any) =>
+    !!(
+      doc?.file_url_agreement ||
+      doc?.file_url_consent ||
+      doc?.fileUrlAgreement ||
+      doc?.fileUrlConsent
+    );
+
   const pendingVerificationTutors = tutorVerificationData.filter(
-    (t) => t.verificationDoc && t.verificationDoc.status === "pending"
+    (t) => {
+      const status = normalizeStatus(t?.verificationDoc?.status);
+      return !!t.verificationDoc && status === "pending";
+    }
   );
   const verifiedDocTutors = tutorVerificationData.filter(
-    (t) => t.verificationDoc && t.verificationDoc.status === "verified"
+    (t) => {
+      const status = normalizeStatus(t?.verificationDoc?.status);
+      const isVerified = status === "verified" || t?.user?.isVerified === true;
+      return isVerified && hasAnyDocUrl(t?.verificationDoc);
+    }
   );
 
   const handleVerifyTutor = async (userId: string) => {

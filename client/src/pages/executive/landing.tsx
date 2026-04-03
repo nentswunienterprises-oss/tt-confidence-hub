@@ -113,7 +113,7 @@ export default function ExecutiveLanding() {
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight" style={{ color: "#1A1A1A" }}>
             Lead 
             <br />
-            <span style={{ color: "#E63946" }}>Execution</span>
+            <span style={{ color: "#E63946" }}>Execution.</span>
           </h1>
           
           <p className="text-base sm:text-lg md:text-xl leading-relaxed" style={{ color: "#5A5A5A" }}>

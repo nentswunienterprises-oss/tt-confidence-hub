@@ -132,13 +132,12 @@ export default function ProposalView({
   const topicConditioning = extractTopicConditioning();
 
   const PHASE_SEQUENCE = ["Clarity", "Structured Execution", "Controlled Discomfort", "Time Pressure Stability"] as const;
-  const STABILITY_SEQUENCE = ["Low", "Medium", "High", "High Maintenance"] as const;
+  const STABILITY_SEQUENCE = ["Low", "Medium", "High"] as const;
   type PhaseLabel = (typeof PHASE_SEQUENCE)[number];
   type StabilityLabel = (typeof STABILITY_SEQUENCE)[number];
 
-  const UNKNOWN_STATE_COPY = {
-    status: `${studentFirstName}'s diagnosis topic has been identified, but the phase label is not yet confirmed here.`,
-    meaning: `TT has the topic in scope, but the phase and stability fields need a confirmed scored label before this view can describe them precisely.`,
+  const deriveTrainingEntryPhase = (diagnosisPhase: PhaseLabel, _stability: StabilityLabel): PhaseLabel => {
+    return diagnosisPhase;
   };
 
   const PARENT_STATE_ENGINE: Record<PhaseLabel, Record<StabilityLabel, { status: string; meaning: string }>> = {
@@ -155,10 +154,6 @@ export default function ProposalView({
         status: `${studentFirstName} demonstrated clear recognition and explanation patterns in the diagnosis topic.`,
         meaning: `${studentFirstName} begins training in Clarity with system scoring determining remain, regress, or advance.`,
       },
-      "High Maintenance": {
-        status: `${studentFirstName} sustained high Clarity performance across repeated checks.`,
-        meaning: `${studentFirstName} is now ready to transition into Structured Execution training.`,
-      },
     },
     "Structured Execution": {
       Low: {
@@ -172,10 +167,6 @@ export default function ProposalView({
       High: {
         status: `${studentFirstName} maintained method execution consistently across attempts.`,
         meaning: `${studentFirstName} begins training in Structured Execution with transitions handled by session scoring.`,
-      },
-      "High Maintenance": {
-        status: `${studentFirstName} sustained high Structured Execution consistency across repeated checks.`,
-        meaning: `${studentFirstName} is now ready to transition into Controlled Discomfort training.`,
       },
     },
     "Controlled Discomfort": {
@@ -191,10 +182,6 @@ export default function ProposalView({
         status: `${studentFirstName} stayed structured during challenge-heavy prompts.`,
         meaning: `${studentFirstName} begins training in Controlled Discomfort with transitions handled by session scoring.`,
       },
-      "High Maintenance": {
-        status: `${studentFirstName} sustained high Controlled Discomfort stability across repeated checks.`,
-        meaning: `${studentFirstName} is now ready to transition into Time Pressure Stability training.`,
-      },
     },
     "Time Pressure Stability": {
       Low: {
@@ -209,10 +196,6 @@ export default function ProposalView({
         status: `${studentFirstName} maintained structured execution under timed conditions.`,
         meaning: `${studentFirstName} can now sustain method integrity under pressure.`,
       },
-      "High Maintenance": {
-        status: `${studentFirstName} sustained high time-pressure stability across repeated checks.`,
-        meaning: `${studentFirstName} is now ready for maintenance and transfer-focused practice.`,
-      },
     },
   };
 
@@ -222,25 +205,21 @@ export default function ProposalView({
     return PHASE_SEQUENCE.find((item) => item.toLowerCase() === normalized) || null;
   };
 
-  const normalizeStabilityLabel = (stability?: string | null): StabilityLabel | null => {
+  const normalizeStabilityLabel = (stability?: string | null): StabilityLabel => {
     const value = String(stability || "").toLowerCase();
-    if (value.includes("high maintenance") || value.includes("maintenance")) return "High Maintenance";
     if (value.includes("high")) return "High";
     if (value.includes("medium")) return "Medium";
-    if (value.includes("low")) return "Low";
-    return null;
+    return "Low";
   };
 
   const normalizedDiagnosisPhase =
     extractDiagnosisPhase() ||
-    normalizePhaseLabel(topicConditioning.entryPhase);
+    normalizePhaseLabel(topicConditioning.entryPhase) ||
+    "Clarity";
   const normalizedStability = normalizeStabilityLabel(topicConditioning.stability);
-  const trainingStartPhase = normalizedDiagnosisPhase;
+  const trainingStartPhase = deriveTrainingEntryPhase(normalizedDiagnosisPhase, normalizedStability);
 
-  const stateCopy =
-    trainingStartPhase && normalizedStability
-      ? PARENT_STATE_ENGINE[trainingStartPhase][normalizedStability]
-      : UNKNOWN_STATE_COPY;
+  const stateCopy = PARENT_STATE_ENGINE[trainingStartPhase][normalizedStability];
   const derivedObserved = [stateCopy.status, stateCopy.meaning];
 
   const observedResponse = [
@@ -262,11 +241,6 @@ export default function ProposalView({
     const trainingPhase = trainingStartPhase;
     const diagnosisPhase = normalizedDiagnosisPhase;
     const stability = normalizedStability;
-
-    if (!diagnosisPhase || !stability) {
-      return `The diagnosis topic has been identified, but the scored phase and stability labels are not yet available in this view. Training begins from the confirmed diagnosed phase once that label is present.`;
-    }
-
     const diagnosisContext = `Diagnosis result: ${diagnosisPhase} with ${stability} stability.`;
 
     switch (trainingPhase) {
@@ -284,10 +258,6 @@ export default function ProposalView({
   };
 
   const getFirstBreakdown = () => {
-    if (!trainingStartPhase) {
-      return `${studentFirstName} needs a confirmed phase label before this view can describe the first breakdown precisely.`;
-    }
-
     switch (trainingStartPhase) {
       case "Clarity":
         return `${studentFirstName} is not yet consistently identifying what the question is asking or what structure to use first.`;
@@ -303,10 +273,6 @@ export default function ProposalView({
   };
 
   const getFirstPriority = () => {
-    if (!trainingStartPhase) {
-      return `We will use the confirmed diagnosis result to anchor the first training priority for ${studentFirstName}.`;
-    }
-
     switch (trainingStartPhase) {
       case "Clarity":
         return `We will first help ${studentFirstName} read problems more clearly, recognise what is being asked, and identify the structure before solving.`;
@@ -356,7 +322,7 @@ export default function ProposalView({
         </CardHeader>
         <CardContent>
           <p className="text-sm text-foreground font-medium mb-2">
-            Training Starts At: {trainingStartPhase || "Unknown"}
+            Training Starts At: {trainingStartPhase}
           </p>
           <p className="text-sm text-muted-foreground">
             {getFocusAreaText()}
