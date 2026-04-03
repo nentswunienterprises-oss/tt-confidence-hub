@@ -129,7 +129,7 @@ function getSessionPreview(session: SessionRecord) {
     const log = session.deterministicLog;
     return [log.whatWasTrained, log.behaviorSummary, log.performanceResult].filter(Boolean).join(" ");
   }
-  return session.notes || "";
+  return "";
 }
 
 export default function ViewTrackingSystemsDialog({
@@ -246,21 +246,7 @@ export default function ViewTrackingSystemsDialog({
                                   <FieldRow label="What This Means" value={session.deterministicLog.whatThisMeans} />
                                   <FieldRow label="Next Drill" value={session.deterministicLog.nextMove} />
                                 </div>
-                              ) : (
-                                <>
-                                  <FieldRow label="Session Notes" value={session.notes} />
-                                  <FieldRow label="Solution Implemented" value={session.solutionPurpose} />
-                                  <FieldRow label="Vocabulary Notes" value={session.vocabularyNotes} />
-                                  <FieldRow label="Method Notes" value={session.methodNotes} />
-                                  <FieldRow label="Reason Notes" value={session.reasonNotes} />
-                                  <FieldRow label="Student Response" value={session.studentResponse} />
-                                  <FieldRow label="What was misunderstood?" value={session.whatMisunderstood} />
-                                  <FieldRow label="What correction helped?" value={session.correctionHelped} />
-                                  <FieldRow label="What needs reinforcement?" value={session.needsReinforcement} />
-                                  <FieldRow label="Boss Battle" value={session.bossBattlesDone} />
-                                  <FieldRow label="Practice assigned" value={session.practiceProblems} />
-                                </>
-                              )}
+                              ) : null}
                             </AccordionContent>
                           </AccordionItem>
                         ))}
@@ -294,13 +280,13 @@ export default function ViewTrackingSystemsDialog({
                                 </div>
                               </AccordionTrigger>
                               <AccordionContent className="space-y-3">
-                                <FieldRow label="Main Topics Covered" value={structured.mainTopicsCovered || report.topicsLearned} />
-                                <FieldRow label="What improved this week" value={structured.whatImprovedThisWeek || report.strengths} />
-                                <FieldRow label="Student response pattern this week" value={structured.studentResponsePatternThisWeek} />
-                                <FieldRow label="Main misunderstanding this week" value={structured.mainMisunderstandingThisWeek || report.areasForGrowth} />
-                                <FieldRow label="Main correction that helped" value={structured.mainCorrectionHelpedThisWeek} />
-                                <FieldRow label="Boss Battle summary this week" value={structured.bossBattleSummaryThisWeek} />
-                                <FieldRow label="What needs reinforcement next week" value={structured.reinforcementNextWeek || report.nextSteps} />
+                                <FieldRow label="Topics Worked On" value={structured.mainTopicsCovered || report.topicsLearned} />
+                                <FieldRow label="Conditioning Progress" value={structured.bossBattleSummaryThisWeek} />
+                                <FieldRow label="What Improved" value={structured.whatImprovedThisWeek || report.strengths} />
+                                <FieldRow label="Response Pattern" value={structured.studentResponsePatternThisWeek} />
+                                <FieldRow label="Main Breakdown" value={structured.mainMisunderstandingThisWeek || report.areasForGrowth} />
+                                <FieldRow label="System Movement" value={structured.mainCorrectionHelpedThisWeek} />
+                                <FieldRow label="Next Focus" value={structured.reinforcementNextWeek || report.nextSteps} />
                               </AccordionContent>
                             </AccordionItem>
                           );
@@ -331,13 +317,13 @@ export default function ViewTrackingSystemsDialog({
                                 </div>
                               </AccordionTrigger>
                               <AccordionContent className="space-y-3">
-                                <FieldRow label="Main areas covered this month" value={structured.mainAreasCoveredThisMonth || report.topicsLearned} />
-                                <FieldRow label="What skills became stronger" value={structured.strongerSkillsThisMonth || report.strengths} />
-                                <FieldRow label="Response pattern trend" value={structured.responsePatternTrendThisMonth} />
-                                <FieldRow label="Recurring challenge" value={structured.recurringChallengeThisMonth || report.areasForGrowth} />
-                                <FieldRow label="Most effective intervention" value={structured.mostEffectiveInterventionThisMonth} />
-                                <FieldRow label="Boss Battle trend" value={structured.bossBattleTrendThisMonth} />
-                                <FieldRow label="Next month priority" value={structured.nextMonthPriority || report.nextSteps} />
+                                <FieldRow label="Topics Conditioned" value={structured.mainAreasCoveredThisMonth || report.topicsLearned} />
+                                <FieldRow label="Topic Progression" value={structured.bossBattleTrendThisMonth} />
+                                <FieldRow label="What Became Stronger" value={structured.strongerSkillsThisMonth || report.strengths} />
+                                <FieldRow label="Response Trend" value={structured.responsePatternTrendThisMonth} />
+                                <FieldRow label="Recurring Challenge" value={structured.recurringChallengeThisMonth || report.areasForGrowth} />
+                                <FieldRow label="System Outcome" value={structured.mostEffectiveInterventionThisMonth} />
+                                <FieldRow label="Next Month Focus" value={structured.nextMonthPriority || report.nextSteps} />
                               </AccordionContent>
                             </AccordionItem>
                           );

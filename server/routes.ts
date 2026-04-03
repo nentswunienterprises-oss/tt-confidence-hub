@@ -505,17 +505,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 date: row.submitted_at,
                 duration: 0,
                 deterministicLog: {
-                  topicFocus: `${topic} | Intro diagnosis on ${diagnosisPhase}`,
-                  whatWasTrained: `Diagnosis drill completed for ${topic} in ${diagnosisPhase}.`,
-                  behaviorSummary: `${topic} was diagnosed at ${diagnosisPhase} with ${stability} stability.`,
-                  performanceResult: `Diagnosis score: ${diagnosisScore}/100.`,
+                  topicFocus: `This session focused on ${topic}, targeting baseline diagnosis in ${diagnosisPhase}.`,
+                  whatWasTrained: `A diagnosis drill was used to identify ${DRILL_PURPOSE_BY_PHASE[diagnosisPhase] || "phase-specific response patterns"}.`,
+                  behaviorSummary: `The student showed ${stability === "High" ? "stable execution" : stability === "Medium" ? "partial consistency" : "frequent instability"} during diagnosis.`,
+                  performanceResult: `Based on performance, stability is now ${stability} (${diagnosisScore}/100).`,
                   stateMovement:
                     trainingEntryPhase === normalizePhase(diagnosisPhase)
-                      ? `Training starts in ${trainingEntryPhase}.`
-                      : `Training starts in ${trainingEntryPhase} because ${diagnosisPhase} was passed at High stability.`,
+                      ? `The student remained in ${trainingEntryPhase} for training entry.`
+                      : `The student advanced to ${trainingEntryPhase} for training entry.`,
                   whatThisMeans: TUTOR_MEANING_BY_PHASE[trainingEntryPhase],
                   nextMove: nextAction,
-                  summaryText: `${topic} diagnosed at ${diagnosisPhase} with ${stability} stability. Training starts in ${trainingEntryPhase}.`,
+                  summaryText: `This session focused on ${topic}, targeting baseline diagnosis in ${diagnosisPhase}.`,
                   drillLabel: `Intro Diagnosis (${diagnosisPhase})`,
                   score: diagnosisScore,
                   stability,
@@ -547,17 +547,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
               date: row.submitted_at,
               duration: 0,
               deterministicLog: {
-                topicFocus: `${topic} | ${observedPhase} training drill`,
-                whatWasTrained: `Training drill completed for ${topic} in ${observedPhase}.`,
-                behaviorSummary: `${topic} finished with ${stability} stability and a ${phaseDecision} decision.`,
-                performanceResult: `Session score: ${sessionScore}/100.`,
+                topicFocus: `This session focused on ${topic}, targeting ${DRILL_PURPOSE_BY_PHASE[observedPhase] || "phase-specific execution"}.`,
+                whatWasTrained: `A training drill was used to train ${DRILL_PURPOSE_BY_PHASE[observedPhase] || "phase-specific behavior"}.`,
+                behaviorSummary: `The student showed ${phaseDecision === "advance" ? "improved independence" : stability === "High" ? "stable execution" : stability === "Medium" ? "inconsistent execution" : "breakdown under pressure"} during the drill.`,
+                performanceResult: `Based on performance, stability is now ${stability} (${sessionScore}/100).`,
                 stateMovement:
                   resultingPhase === normalizePhase(observedPhase)
-                    ? `Remain in ${resultingPhase}.`
+                    ? `The student remained in ${resultingPhase}.`
                     : `${observedPhase} advanced to ${resultingPhase}.`,
                 whatThisMeans: TUTOR_MEANING_BY_PHASE[resultingPhase],
                 nextMove: nextAction,
-                summaryText: `${topic} training drill scored ${sessionScore}/100 and resolved to ${resultingPhase} with ${stability} stability.`,
+                summaryText: `This session focused on ${topic}, targeting ${DRILL_PURPOSE_BY_PHASE[observedPhase] || "phase-specific execution"}.`,
                 drillLabel: `Training Drill (${observedPhase})`,
                 score: sessionScore,
                 stability,
@@ -612,6 +612,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .map(mapDrillRowToDeterministicSession)
               .filter((session: any) => !!session?.deterministicLog);
 
+            const parsedByRowId = drillRows.reduce((acc: Record<string, any>, row: any) => {
+              try {
+                const parsed = row?.drill && typeof row.drill === "object"
+                  ? row.drill
+                  : JSON.parse(typeof row?.drill === "string" ? row.drill : "{}");
+                acc[String(row.id)] = parsed;
+              } catch {
+                acc[String(row.id)] = null;
+              }
+              return acc;
+            }, {});
+
             if (!deterministicSessions.length) return null;
 
             const sorted = [...deterministicSessions].sort(
@@ -626,9 +638,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             sorted.forEach((session) => {
               const log = session.deterministicLog;
-              const focus = String(log.topicFocus || "");
-              const topic = focus.split("|")[0]?.trim() || "Unknown topic";
-              const state = `${String(log.drillLabel || "").replace(/\s*Drill.*/i, "")} (${String(log.stability || "Unknown")})`;
+              const parsed: any = parsedByRowId[String(session.id)] || null;
+              const rawTopic = String(parsed?.introTopic || parsed?.trainingTopic || "").trim();
+              const topic = rawTopic || "Unknown topic";
+              const phase = normalizePhase(parsed?.summary?.phase || parsed?.phase || "Clarity");
+              const state = `${phase} (${String(log.stability || "Unknown")})`;
 
               if (!topicSnapshots[topic]) {
                 topicSnapshots[topic] = { start: state, current: state };
@@ -669,13 +683,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
               weekStartDate: new Date(startDate).toISOString().slice(0, 10),
               weekEndDate: new Date(endDate).toISOString().slice(0, 10),
               sessionsCompletedThisWeek: sorted.length,
-              mainTopicsCovered: topics.join(", "),
-              whatImprovedThisWeek: `Average session score was ${avgScore}/100. Strongest improvement signal: ${improvementSignal}.`,
-              studentResponsePatternThisWeek: `Dominant response pattern: ${dominantBehavior}.`,
-              mainMisunderstandingThisWeek: `Main breakdown signal: ${breakdownSignal}.`,
-              mainCorrectionHelpedThisWeek: `System movement this week: ${stateMovements.slice(-3).join(" | ") || "Reinforced current phase."}`,
+              mainTopicsCovered: `This week focused on: ${topics.join(", ")}.`,
+              whatImprovedThisWeek: `The student is becoming more consistent in ${improvementSignal}.`,
+              studentResponsePatternThisWeek: `During this week, the student typically: ${Array.from(new Set(behaviorSignals)).slice(0, 2).join("; ") || dominantBehavior}.`,
+              mainMisunderstandingThisWeek: `The main challenge this week was ${breakdownSignal}.`,
+              mainCorrectionHelpedThisWeek: `Across sessions, the system: ${stateMovements.slice(-3).join(" | ") || "remained in phase."}`,
               bossBattleSummaryThisWeek: conditioningProgress,
-              reinforcementNextWeek: nextFocus,
+              reinforcementNextWeek: `Next week will focus on: ${nextFocus}.`,
               internalWeeklyTutorNote: "",
               sourceSessionIds: sorted.map((session) => session.id),
               sourceSessionCount: sorted.length,
@@ -708,13 +722,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
               strongerSkillsThisMonth: weeklyLike.whatImprovedThisWeek,
               responsePatternTrendThisMonth: weeklyLike.studentResponsePatternThisWeek,
               recurringChallengeThisMonth: weeklyLike.mainMisunderstandingThisWeek,
-              mostEffectiveInterventionThisMonth: weeklyLike.mainCorrectionHelpedThisWeek,
+              mostEffectiveInterventionThisMonth: `Over the month, the system: ${weeklyLike.mainCorrectionHelpedThisWeek.replace(/^Across sessions, the system:\s*/i, "")}`,
               bossBattleTrendThisMonth: weeklyLike.bossBattleSummaryThisWeek,
-              nextMonthPriority: weeklyLike.reinforcementNextWeek,
+              nextMonthPriority: weeklyLike.reinforcementNextWeek.replace(/^Next week/i, "Next month"),
               internalMonthlyTutorNote: "",
               sourceWeeklyReportIds: [],
             };
           };
+
 
           const insertWeeklyReport = async ({
             tutorId,
@@ -3179,21 +3194,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   const hydrateStudentsWithSessionProgress = async (tutorId: string, students: any[]) => {
-    return Promise.all(
-      students.map(async (student) => {
-        const sessions = await getCanonicalStudentSessions({
-          tutorId,
-          studentId: student.id,
-          studentName: student.name,
-          parentId: student.parentId || student.parent_id || null,
-          parentContact: student.parentContact || student.parent_contact || null,
-        });
-        return {
-          ...student,
-          sessionProgress: sessions.length,
-        };
-      })
-    );
+    const studentIds = students.map((student) => student.id).filter(Boolean);
+    const drillCounts: Record<string, number> = {};
+
+    if (studentIds.length > 0) {
+      const { data: drills } = await supabase
+        .from("intro_session_drills")
+        .select("student_id")
+        .eq("tutor_id", tutorId)
+        .in("student_id", studentIds);
+
+      (drills || []).forEach((row: any) => {
+        const id = String(row.student_id || "");
+        if (!id) return;
+        drillCounts[id] = (drillCounts[id] || 0) + 1;
+      });
+    }
+
+    return students.map((student) => ({
+      ...student,
+      sessionProgress: drillCounts[String(student.id)] || 0,
+    }));
   };
 
   const mapParentFacingReport = (report: any, tutorName?: string | null) => {
