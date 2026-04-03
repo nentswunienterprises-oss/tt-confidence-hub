@@ -392,6 +392,7 @@ function Router() {
 
       {/* COO Routes */}
       <Route path="/executive/coo/dashboard" element={<ExecutiveCOODashboard />} />
+      <Route path="/executive/coo/traffic" element={<DashboardLayout><ExecutiveHRTraffic /></DashboardLayout>} />
       <Route path="/executive/coo/applications" element={<DashboardLayout><ExecutiveCOODashboard /></DashboardLayout>} />
       <Route path="/executive/coo/pods" element={<DashboardLayout><ExecutiveCOODashboard /></DashboardLayout>} />
       <Route path="/executive/coo/broadcast" element={<DashboardLayout><ExecutiveCOODashboard /></DashboardLayout>} />
@@ -433,6 +434,7 @@ function Router() {
 
       {/* Legacy COO Routes */}
       <Route path="/coo/dashboard" element={<COODashboard />} />
+      <Route path="/coo/traffic" element={<DashboardLayout><ExecutiveHRTraffic /></DashboardLayout>} />
       <Route path="/coo/applications" element={<COOApplications />} />
       <Route path="/coo/tutor-applications" element={<COOTutorApplications />} />
       <Route path="/coo/pods" element={<COOPods />} />

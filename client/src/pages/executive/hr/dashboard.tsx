@@ -116,19 +116,19 @@ export default function HRDashboard() {
         {/* Key Functions */}
         <div className="grid md:grid-cols-2 gap-6">
           <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Traffic</h2>
+            <h2 className="text-lg font-semibold mb-4">Applications</h2>
             <p className="text-sm text-muted-foreground mb-4">
-              Manage tutor applications and parent enrollments
+              Review tutor applications and HR operational updates
             </p>
-            <Button className="w-full" onClick={() => navigate("/executive/hr/traffic")}>View Traffic</Button>
+            <Button className="w-full" onClick={() => navigate("/executive/hr/applications")}>View Applications</Button>
           </Card>
 
           <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Pod Assignments</h2>
+            <h2 className="text-lg font-semibold mb-4">Traffic Ownership</h2>
             <p className="text-sm text-muted-foreground mb-4">
-              Assign approved tutors to pods and manage placements
+              Parent assignment and full traffic control are now managed in COO Traffic.
             </p>
-            <Button className="w-full" variant="outline">Manage Assignments</Button>
+            <Button className="w-full" variant="outline" disabled>Moved to COO</Button>
           </Card>
         </div>
 

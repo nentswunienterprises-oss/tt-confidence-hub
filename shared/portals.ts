@@ -123,7 +123,7 @@ export const ROLE_NAVIGATION: Record<
   // Executive Portal - COO
   coo: [
     { label: "Dashboard", path: "/executive/coo/dashboard" },
-    { label: "Tutor Applications", path: "/executive/coo/applications" },
+    { label: "Traffic", path: "/executive/coo/traffic" },
     { label: "Pods", path: "/executive/coo/pods" },
     { label: "Broadcast", path: "/executive/coo/broadcast" },
   ],
@@ -131,7 +131,6 @@ export const ROLE_NAVIGATION: Record<
   // Executive Portal - HR
   hr: [
     { label: "Dashboard", path: "/executive/hr/dashboard" },
-    { label: "Traffic", path: "/executive/hr/traffic" },
     { label: "Brain", path: "/executive/hr/brain" },
     { label: "Disputes", path: "/executive/hr/disputes" },
     { label: "Updates", path: "/executive/hr/updates" },

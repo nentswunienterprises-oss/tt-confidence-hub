@@ -190,7 +190,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const cooNav: NavItem[] = [
     { label: "Dashboard", path: "/coo/dashboard", icon: <Home className="w-5 h-5" /> },
-    { label: "Tutor Applications", path: "/coo/tutor-applications", icon: <FileCheck className="w-5 h-5" /> },
+    { label: "Traffic", path: "/coo/traffic", icon: <Users className="w-5 h-5" /> },
     { label: "Pods", path: "/coo/pods", icon: <FolderKanban className="w-5 h-5" /> },
     { label: "Broadcast", path: "/coo/broadcast", icon: <MessageSquare className="w-5 h-5" /> },
   ];
