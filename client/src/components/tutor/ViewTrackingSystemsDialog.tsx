@@ -238,13 +238,13 @@ export default function ViewTrackingSystemsDialog({
                             <AccordionContent className="space-y-3">
                               {session.deterministicLog ? (
                                 <div className="space-y-3 rounded-xl border border-primary/15 bg-background p-4">
-                                  <FieldRow label="Topic + Focus" value={session.deterministicLog.topicFocus} />
+                                  <FieldRow label="Session Summary" value={session.deterministicLog.summaryText || session.deterministicLog.topicFocus} />
                                   <FieldRow label="What Was Trained" value={session.deterministicLog.whatWasTrained} />
-                                  <FieldRow label="What Happened" value={session.deterministicLog.behaviorSummary} />
+                                  <FieldRow label="Observed Response" value={session.deterministicLog.behaviorSummary} />
                                   <FieldRow label="Performance Result" value={session.deterministicLog.performanceResult} />
-                                  <FieldRow label="State Movement" value={session.deterministicLog.stateMovement} />
+                                  <FieldRow label="State Update" value={session.deterministicLog.stateMovement} />
                                   <FieldRow label="What This Means" value={session.deterministicLog.whatThisMeans} />
-                                  <FieldRow label="Next Move" value={session.deterministicLog.nextMove} />
+                                  <FieldRow label="Next Drill" value={session.deterministicLog.nextMove} />
                                 </div>
                               ) : (
                                 <>
