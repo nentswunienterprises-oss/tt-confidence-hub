@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Loader2, User, Phone, MapPin, BookOpen, Users, GraduationCap, CheckCircle2, Clock, XCircle, FileCheck } from "lucide-react";
+import { Loader2, User, Phone, MapPin, BookOpen, Users, GraduationCap, CheckCircle2, Clock, XCircle, FileCheck, ShieldCheck, FileText } from "lucide-react";
 
 interface TrafficStats {
   totalApplications: number;
@@ -48,6 +48,44 @@ export default function ExecutiveHRTraffic() {
   const [selectedEnrollmentId, setSelectedEnrollmentId] = useState<string>("");
   const [selectedApplication, setSelectedApplication] = useState<TutorApplication | null>(null);
   const [tutorAppSubTab, setTutorAppSubTab] = useState("pending");
+  const [verifyingTutorId, setVerifyingTutorId] = useState<string | null>(null);
+  const [rejectingTutorId, setRejectingTutorId] = useState<string | null>(null);
+  // Fetch tutor verification docs (from /api/coo/applications)
+  const { data: tutorVerificationData = [], refetch: refetchVerificationData } = useQuery<{ user: any; verificationDoc: any }[]>({
+    queryKey: ["/api/coo/applications"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    enabled: isAuthenticated && !!user,
+    refetchInterval: 10000,
+  });
+
+  const pendingVerificationTutors = tutorVerificationData.filter(
+    (t) => t.verificationDoc && t.verificationDoc.status === "pending"
+  );
+  const verifiedDocTutors = tutorVerificationData.filter(
+    (t) => t.verificationDoc && t.verificationDoc.status === "verified"
+  );
+
+  const handleVerifyTutor = async (userId: string) => {
+    setVerifyingTutorId(userId);
+    try {
+      await fetch(`/api/coo/verify-tutor/${userId}`, { method: "POST", credentials: "include" });
+      refetchVerificationData();
+      queryClient.invalidateQueries({ queryKey: ["/api/hr/stats"] });
+    } finally {
+      setVerifyingTutorId(null);
+    }
+  };
+
+  const handleRejectTutor = async (userId: string) => {
+    setRejectingTutorId(userId);
+    try {
+      await fetch(`/api/coo/reject-tutor/${userId}`, { method: "POST", credentials: "include" });
+      refetchVerificationData();
+    } finally {
+      setRejectingTutorId(null);
+    }
+  };
+
 
   // Fetch traffic stats
   const { data: stats, isLoading: statsLoading } = useQuery<TrafficStats>({
@@ -293,6 +331,14 @@ export default function ExecutiveHRTraffic() {
                   <XCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   Rejected ({rejectedApplications.length})
                 </TabsTrigger>
+                  <TabsTrigger value="verification" className="flex-1 gap-1.5 text-xs sm:text-sm py-2">
+                    <FileCheck className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    Verification ({pendingVerificationTutors.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="verified-docs" className="flex-1 gap-1.5 text-xs sm:text-sm py-2">
+                    <ShieldCheck className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    Verified Docs ({verifiedDocTutors.length})
+                  </TabsTrigger>
               </TabsList>
 
               <TabsContent value="pending" className="space-y-4 mt-4">
@@ -351,6 +397,160 @@ export default function ExecutiveHRTraffic() {
                   </div>
                 )}
               </TabsContent>
+
+                <TabsContent value="verification" className="space-y-4 mt-4">
+                  {pendingVerificationTutors.length === 0 ? (
+                    <Card className="p-12 text-center">
+                      <FileCheck className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                      <p className="text-muted-foreground">No documents pending verification</p>
+                    </Card>
+                  ) : (
+                    <div className="grid gap-4">
+                      {pendingVerificationTutors.map(({ user: t, verificationDoc }) => (
+                        <Card key={t.id}>
+                          <CardHeader>
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <CardTitle className="text-base">{t.full_names || t.fullNames || t.username}</CardTitle>
+                                <CardDescription>{t.email}</CardDescription>
+                              </div>
+                              <Badge className="bg-yellow-100 text-yellow-800">Pending Review</Badge>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="grid gap-3">
+                              {verificationDoc.file_url_agreement && (
+                                <div className="flex items-center justify-between rounded-lg border p-3">
+                                  <div className="flex items-center gap-2">
+                                    <FileText className="w-4 h-4 text-muted-foreground" />
+                                    <span className="text-sm font-medium">Trial Agreement</span>
+                                  </div>
+                                  <a
+                                    href={verificationDoc.file_url_agreement}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-primary underline"
+                                  >
+                                    View Document
+                                  </a>
+                                </div>
+                              )}
+                              {verificationDoc.file_url_consent && (
+                                <div className="flex items-center justify-between rounded-lg border p-3">
+                                  <div className="flex items-center gap-2">
+                                    <FileText className="w-4 h-4 text-muted-foreground" />
+                                    <span className="text-sm font-medium">Parent Consent</span>
+                                  </div>
+                                  <a
+                                    href={verificationDoc.file_url_consent}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-primary underline"
+                                  >
+                                    View Document
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex gap-2 pt-2">
+                              <Button
+                                size="sm"
+                                className="flex-1"
+                                disabled={verifyingTutorId === t.id}
+                                onClick={() => handleVerifyTutor(t.id)}
+                              >
+                                {verifyingTutorId === t.id ? (
+                                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                ) : (
+                                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                                )}
+                                Approve & Verify
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex-1 text-red-600 border-red-200 hover:bg-red-50"
+                                disabled={rejectingTutorId === t.id}
+                                onClick={() => handleRejectTutor(t.id)}
+                              >
+                                {rejectingTutorId === t.id ? (
+                                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                ) : (
+                                  <XCircle className="w-4 h-4 mr-2" />
+                                )}
+                                Reject
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="verified-docs" className="space-y-4 mt-4">
+                  {verifiedDocTutors.length === 0 ? (
+                    <Card className="p-12 text-center">
+                      <ShieldCheck className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                      <p className="text-muted-foreground">No verified docs yet</p>
+                    </Card>
+                  ) : (
+                    <div className="grid gap-4">
+                      {verifiedDocTutors.map(({ user: t, verificationDoc }) => (
+                        <Card key={t.id}>
+                          <CardHeader>
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <CardTitle className="text-base">{t.full_names || t.fullNames || t.username}</CardTitle>
+                                <CardDescription>{t.email}</CardDescription>
+                              </div>
+                              <Badge className="bg-green-100 text-green-800">Verified</Badge>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            {verificationDoc.file_url_agreement && (
+                              <div className="flex items-center justify-between rounded-lg border p-3">
+                                <div className="flex items-center gap-2">
+                                  <FileText className="w-4 h-4 text-muted-foreground" />
+                                  <span className="text-sm font-medium">Trial Agreement</span>
+                                </div>
+                                <a
+                                  href={verificationDoc.file_url_agreement}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-primary underline"
+                                >
+                                  View Document
+                                </a>
+                              </div>
+                            )}
+                            {verificationDoc.file_url_consent && (
+                              <div className="flex items-center justify-between rounded-lg border p-3">
+                                <div className="flex items-center gap-2">
+                                  <FileText className="w-4 h-4 text-muted-foreground" />
+                                  <span className="text-sm font-medium">Parent Consent</span>
+                                </div>
+                                <a
+                                  href={verificationDoc.file_url_consent}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-primary underline"
+                                >
+                                  View Document
+                                </a>
+                              </div>
+                            )}
+                            {verificationDoc.updated_at && (
+                              <p className="text-xs text-muted-foreground">
+                                Verified on {format(new Date(verificationDoc.updated_at), "PPP")}
+                              </p>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
             </Tabs>
           )}
         </TabsContent>
