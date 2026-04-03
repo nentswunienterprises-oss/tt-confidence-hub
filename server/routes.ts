@@ -567,6 +567,308 @@ export async function registerRoutes(app: Express): Promise<Server> {
             };
           };
 
+          const DRILL_PURPOSE_BY_PHASE: Record<string, string> = {
+            Clarity: "recognizing terms, steps, and reasoning",
+            "Structured Execution": "following steps independently",
+            "Controlled Discomfort": "staying stable under difficulty",
+            "Time Pressure Stability": "maintaining structure under time",
+          };
+
+          const normalizeBehaviorSignal = (text: string) => {
+            const value = String(text || "").toLowerCase();
+            if (/hesitat|delay/.test(value)) return "hesitation";
+            if (/guess/.test(value)) return "guessing";
+            if (/pressure|collapse|breakdown|panic/.test(value)) return "breakdown under pressure";
+            if (/independent|improv/.test(value)) return "improved independence";
+            if (/stable|consistent/.test(value)) return "stable execution";
+            return "mixed response";
+          };
+
+          const summarizeTopSignal = (signals: string[]) => {
+            if (!signals.length) return "mixed response";
+            const counts: Record<string, number> = {};
+            for (const signal of signals) {
+              counts[signal] = (counts[signal] || 0) + 1;
+            }
+            return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+          };
+
+          const resolveParentIdForStudent = async (student: any, tutorId: string) => {
+            let parentId = (student as any)?.parentId || (student as any)?.parent_id || null;
+            if (parentId) return parentId;
+
+            const { data: enrollment } = await supabase
+              .from("enrollments")
+              .select("parent_id")
+              .eq("assigned_tutor_id", tutorId)
+              .eq("student_id", student.id)
+              .maybeSingle();
+
+            return enrollment?.parent_id || null;
+          };
+
+          const createWeeklyStructuredDataFromDrills = (drillRows: any[]) => {
+            const deterministicSessions = drillRows
+              .map(mapDrillRowToDeterministicSession)
+              .filter((session: any) => !!session?.deterministicLog);
+
+            if (!deterministicSessions.length) return null;
+
+            const sorted = [...deterministicSessions].sort(
+              (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+            );
+
+            const topicSnapshots: Record<string, { start: string; current: string }> = {};
+            const behaviorSignals: string[] = [];
+            const nextMoves: string[] = [];
+            const stateMovements: string[] = [];
+            const scores: number[] = [];
+
+            sorted.forEach((session) => {
+              const log = session.deterministicLog;
+              const focus = String(log.topicFocus || "");
+              const topic = focus.split("|")[0]?.trim() || "Unknown topic";
+              const state = `${String(log.drillLabel || "").replace(/\s*Drill.*/i, "")} (${String(log.stability || "Unknown")})`;
+
+              if (!topicSnapshots[topic]) {
+                topicSnapshots[topic] = { start: state, current: state };
+              } else {
+                topicSnapshots[topic] = { ...topicSnapshots[topic], current: state };
+              }
+
+              behaviorSignals.push(normalizeBehaviorSignal(String(log.behaviorSummary || "")));
+              if (log.nextMove) nextMoves.push(String(log.nextMove));
+              if (log.stateMovement) stateMovements.push(String(log.stateMovement));
+              if (typeof log.score === "number" && Number.isFinite(log.score)) scores.push(log.score);
+            });
+
+            const topics = Object.keys(topicSnapshots);
+            const improvementSignal = summarizeTopSignal(behaviorSignals.filter((s) => /improved|stable/.test(s)));
+            const breakdownSignal = summarizeTopSignal(behaviorSignals.filter((s) => /hesitation|guessing|breakdown/.test(s)));
+            const dominantBehavior = summarizeTopSignal(behaviorSignals);
+            const avgScore = scores.length > 0
+              ? Math.round(scores.reduce((sum, value) => sum + value, 0) / scores.length)
+              : 0;
+
+            const conditioningProgress = Object.entries(topicSnapshots)
+              .map(([topic, snapshot]) => `${topic}\nStarted: ${snapshot.start}\nCurrent: ${snapshot.current}`)
+              .join("\n\n");
+
+            const startDate = sorted[0].date;
+            const endDate = sorted[sorted.length - 1].date;
+
+            const nextFocus = nextMoves.length > 0
+              ? Object.keys(nextMoves.reduce((acc: Record<string, true>, move) => {
+                  acc[move] = true;
+                  return acc;
+                }, {})).slice(0, 2).join(" | ")
+              : "Reinforce current phase constraints and continue drill sequence.";
+
+            return {
+              version: "weekly-v2-auto",
+              weekStartDate: new Date(startDate).toISOString().slice(0, 10),
+              weekEndDate: new Date(endDate).toISOString().slice(0, 10),
+              sessionsCompletedThisWeek: sorted.length,
+              mainTopicsCovered: topics.join(", "),
+              whatImprovedThisWeek: `Average session score was ${avgScore}/100. Strongest improvement signal: ${improvementSignal}.`,
+              studentResponsePatternThisWeek: `Dominant response pattern: ${dominantBehavior}.`,
+              mainMisunderstandingThisWeek: `Main breakdown signal: ${breakdownSignal}.`,
+              mainCorrectionHelpedThisWeek: `System movement this week: ${stateMovements.slice(-3).join(" | ") || "Reinforced current phase."}`,
+              bossBattleSummaryThisWeek: conditioningProgress,
+              reinforcementNextWeek: nextFocus,
+              internalWeeklyTutorNote: "",
+              sourceSessionIds: sorted.map((session) => session.id),
+              sourceSessionCount: sorted.length,
+              bossBattlesCompletedThisWeek: 0,
+              stateSnapshot: sorted.map((session) => ({
+                topic: String(session.deterministicLog.topicFocus || "").split("|")[0]?.trim() || "Unknown topic",
+                phase: String(session.deterministicLog.drillLabel || "").replace(/\s*Drill.*/i, ""),
+                stability: session.deterministicLog.stability || "Unknown",
+                score: session.deterministicLog.score || 0,
+                transition: session.deterministicLog.stateMovement || "",
+                nextMove: session.deterministicLog.nextMove || "",
+              })),
+            };
+          };
+
+          const createMonthlyStructuredDataFromDrills = (drillRows: any[]) => {
+            const weeklyLike = createWeeklyStructuredDataFromDrills(drillRows);
+            if (!weeklyLike) return null;
+
+            const monthStart = weeklyLike.weekStartDate;
+            const monthEnd = weeklyLike.weekEndDate;
+            const sessionsCompleted = Number(weeklyLike.sessionsCompletedThisWeek || 0);
+
+            return {
+              version: "monthly-v2-auto",
+              monthStartDate: monthStart,
+              monthEndDate: monthEnd,
+              totalSessionsCompletedThisMonth: sessionsCompleted,
+              mainAreasCoveredThisMonth: weeklyLike.mainTopicsCovered,
+              strongerSkillsThisMonth: weeklyLike.whatImprovedThisWeek,
+              responsePatternTrendThisMonth: weeklyLike.studentResponsePatternThisWeek,
+              recurringChallengeThisMonth: weeklyLike.mainMisunderstandingThisWeek,
+              mostEffectiveInterventionThisMonth: weeklyLike.mainCorrectionHelpedThisWeek,
+              bossBattleTrendThisMonth: weeklyLike.bossBattleSummaryThisWeek,
+              nextMonthPriority: weeklyLike.reinforcementNextWeek,
+              internalMonthlyTutorNote: "",
+              sourceWeeklyReportIds: [],
+            };
+          };
+
+          const insertWeeklyReport = async ({
+            tutorId,
+            studentId,
+            parentId,
+            structuredData,
+          }: {
+            tutorId: string;
+            studentId: string;
+            parentId: string;
+            structuredData: any;
+          }) => {
+            const weekNumber = getIsoWeekNumber(new Date(structuredData.weekStartDate));
+
+            const { data, error } = await supabase
+              .from("parent_reports")
+              .insert({
+                tutor_id: tutorId,
+                student_id: studentId,
+                parent_id: parentId,
+                report_type: "weekly",
+                week_number: weekNumber,
+                month_name: null,
+                summary: JSON.stringify(structuredData),
+                topics_learned: structuredData.mainTopicsCovered,
+                strengths: structuredData.whatImprovedThisWeek,
+                areas_for_growth: structuredData.mainMisunderstandingThisWeek,
+                boss_battles_completed: Number(structuredData.bossBattlesCompletedThisWeek || 0),
+                solutions_unlocked: Number(structuredData.sessionsCompletedThisWeek || 0),
+                confidence_growth: null,
+                next_steps: structuredData.reinforcementNextWeek,
+                sent_at: new Date().toISOString(),
+              })
+              .select("id")
+              .single();
+
+            if (error) throw error;
+            return data;
+          };
+
+          const insertMonthlyReport = async ({
+            tutorId,
+            studentId,
+            parentId,
+            structuredData,
+          }: {
+            tutorId: string;
+            studentId: string;
+            parentId: string;
+            structuredData: any;
+          }) => {
+            const monthName = formatMonthName(new Date(structuredData.monthStartDate));
+
+            const { data, error } = await supabase
+              .from("parent_reports")
+              .insert({
+                tutor_id: tutorId,
+                student_id: studentId,
+                parent_id: parentId,
+                report_type: "monthly",
+                week_number: null,
+                month_name: monthName,
+                summary: JSON.stringify(structuredData),
+                topics_learned: structuredData.mainAreasCoveredThisMonth,
+                strengths: structuredData.strongerSkillsThisMonth,
+                areas_for_growth: structuredData.recurringChallengeThisMonth,
+                boss_battles_completed: 0,
+                solutions_unlocked: Number(structuredData.totalSessionsCompletedThisMonth || 0),
+                confidence_growth: null,
+                next_steps: structuredData.nextMonthPriority,
+                sent_at: new Date().toISOString(),
+              })
+              .select("id")
+              .single();
+
+            if (error) throw error;
+            return data;
+          };
+
+          const maybeAutoSendDeterministicReports = async (studentId: string, tutorId: string) => {
+            const student = await storage.getStudent(studentId);
+            if (!student || student.tutorId !== tutorId) return;
+
+            const parentId = await resolveParentIdForStudent(student, tutorId);
+            if (!parentId) return;
+
+            const { data: drillRows, error: drillRowsError } = await supabase
+              .from("intro_session_drills")
+              .select("id, drill, submitted_at")
+              .eq("student_id", studentId)
+              .eq("tutor_id", tutorId)
+              .order("submitted_at", { ascending: true });
+
+            if (drillRowsError || !drillRows || drillRows.length === 0) return;
+
+            const { data: latestWeekly } = await supabase
+              .from("parent_reports")
+              .select("sent_at")
+              .eq("student_id", studentId)
+              .eq("tutor_id", tutorId)
+              .eq("report_type", "weekly")
+              .order("sent_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            const { data: latestMonthly } = await supabase
+              .from("parent_reports")
+              .select("sent_at")
+              .eq("student_id", studentId)
+              .eq("tutor_id", tutorId)
+              .eq("report_type", "monthly")
+              .order("sent_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            const weeklyBaseline = latestWeekly?.sent_at ? new Date(latestWeekly.sent_at).getTime() : 0;
+            const monthlyBaseline = latestMonthly?.sent_at ? new Date(latestMonthly.sent_at).getTime() : 0;
+
+            const weeklyPending = drillRows.filter(
+              (row: any) => new Date(row.submitted_at).getTime() > weeklyBaseline
+            );
+            const monthlyPending = drillRows.filter(
+              (row: any) => new Date(row.submitted_at).getTime() > monthlyBaseline
+            );
+
+            if (weeklyPending.length >= 2) {
+              const weeklyChunks: any[][] = [];
+              for (let i = 0; i + 1 < weeklyPending.length; i += 2) {
+                weeklyChunks.push(weeklyPending.slice(i, i + 2));
+              }
+
+              for (const chunk of weeklyChunks) {
+                const structuredData = createWeeklyStructuredDataFromDrills(chunk);
+                if (structuredData) {
+                  await insertWeeklyReport({ tutorId, studentId, parentId, structuredData });
+                }
+              }
+            }
+
+            if (monthlyPending.length >= 8) {
+              const monthlyChunks: any[][] = [];
+              for (let i = 0; i + 7 < monthlyPending.length; i += 8) {
+                monthlyChunks.push(monthlyPending.slice(i, i + 8));
+              }
+
+              for (const chunk of monthlyChunks) {
+                const structuredData = createMonthlyStructuredDataFromDrills(chunk);
+                if (structuredData) {
+                  await insertMonthlyReport({ tutorId, studentId, parentId, structuredData });
+                }
+              }
+            }
+          };
+
           // Tutor submits intro session drill results
           app.post("/api/tutor/intro-session-drill", isAuthenticated, requireRole(["tutor"]), async (req: Request, res: Response) => {
             try {
@@ -645,6 +947,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 nextAction: diagnosisSummary.nextAction,
                 constraint: diagnosisSummary.constraint,
               }));
+
+              try {
+                await maybeAutoSendDeterministicReports(studentId, tutorId);
+              } catch (autoReportError) {
+                console.error("Auto report generation failed after intro drill:", autoReportError);
+              }
 
               res.json({
                 success: true,
@@ -798,6 +1106,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 nextAction: trainingSummary.nextAction,
                 constraint: trainingSummary.constraint,
               }));
+
+              try {
+                await maybeAutoSendDeterministicReports(studentId, tutorId);
+              } catch (autoReportError) {
+                console.error("Auto report generation failed after training drill:", autoReportError);
+              }
 
               res.json({
                 success: true,
@@ -3076,26 +3390,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: Request, res: Response) => {
       try {
         const tutorId = (req as any).dbUser.id;
-        const {
-          studentId,
-          weekStartDate,
-          weekEndDate,
-          sessionsCompletedThisWeek,
-          mainTopicsCovered,
-          whatImprovedThisWeek,
-          studentResponsePatternThisWeek,
-          mainMisunderstandingThisWeek,
-          mainCorrectionHelpedThisWeek,
-          bossBattleSummaryThisWeek,
-          reinforcementNextWeek,
-          internalWeeklyTutorNote,
-          sourceSessionIds,
-          sourceSessionCount,
-          bossBattlesCompletedThisWeek,
-        } = req.body || {};
+        const { studentId, weekStartDate, weekEndDate, internalWeeklyTutorNote } = req.body || {};
 
-        if (!studentId || !weekStartDate || !weekEndDate || !mainTopicsCovered || !whatImprovedThisWeek || !studentResponsePatternThisWeek || !mainMisunderstandingThisWeek || !mainCorrectionHelpedThisWeek || !bossBattleSummaryThisWeek || !reinforcementNextWeek) {
-          return res.status(400).json({ message: "Missing required weekly report fields" });
+        if (!studentId) {
+          return res.status(400).json({ message: "Missing required studentId" });
         }
 
         const student = await storage.getStudent(studentId);
@@ -3103,66 +3401,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Unauthorized" });
         }
 
-        let parentId = (student as any).parentId || null;
-        if (!parentId) {
-          const { data: enrollment } = await supabase
-            .from("enrollments")
-            .select("parent_id")
-            .eq("assigned_tutor_id", tutorId)
-            .eq("student_full_name", student.name)
-            .maybeSingle();
-          parentId = enrollment?.parent_id || null;
-        }
+        const parentId = await resolveParentIdForStudent(student, tutorId);
 
         if (!parentId) {
           return res.status(400).json({ message: "Unable to resolve parent for this student" });
         }
 
-        const start = new Date(weekStartDate);
-        const weekNumber = getIsoWeekNumber(start);
-        const structuredData = {
-          version: "weekly-v1",
-          weekStartDate,
-          weekEndDate,
-          sessionsCompletedThisWeek: Number(sessionsCompletedThisWeek || 0),
-          mainTopicsCovered,
-          whatImprovedThisWeek,
-          studentResponsePatternThisWeek,
-          mainMisunderstandingThisWeek,
-          mainCorrectionHelpedThisWeek,
-          bossBattleSummaryThisWeek,
-          reinforcementNextWeek,
-          internalWeeklyTutorNote: internalWeeklyTutorNote || "",
-          sourceSessionIds: Array.isArray(sourceSessionIds) ? sourceSessionIds : [],
-          sourceSessionCount: Number(sourceSessionCount || 0),
-          bossBattlesCompletedThisWeek: Number(bossBattlesCompletedThisWeek || 0),
-        };
+        let drillQuery = supabase
+          .from("intro_session_drills")
+          .select("id, drill, submitted_at")
+          .eq("student_id", studentId)
+          .eq("tutor_id", tutorId)
+          .order("submitted_at", { ascending: true });
 
-        const { data: inserted, error } = await supabase
-          .from("parent_reports")
-          .insert({
-            tutor_id: tutorId,
-            student_id: studentId,
-            parent_id: parentId,
-            report_type: "weekly",
-            week_number: weekNumber,
-            month_name: null,
-            summary: JSON.stringify(structuredData),
-            topics_learned: mainTopicsCovered,
-            strengths: whatImprovedThisWeek,
-            areas_for_growth: mainMisunderstandingThisWeek,
-            boss_battles_completed: Number(bossBattlesCompletedThisWeek || 0),
-            solutions_unlocked: Number(sessionsCompletedThisWeek || 0),
-            confidence_growth: null,
-            next_steps: reinforcementNextWeek,
-            sent_at: new Date().toISOString(),
-          })
-          .select("*")
-          .single();
-
-        if (error) {
-          throw error;
+        if (weekStartDate) {
+          drillQuery = drillQuery.gte("submitted_at", `${weekStartDate}T00:00:00.000Z`);
         }
+        if (weekEndDate) {
+          drillQuery = drillQuery.lte("submitted_at", `${weekEndDate}T23:59:59.999Z`);
+        }
+
+        const { data: drillRows, error: drillRowsError } = await drillQuery;
+        if (drillRowsError) throw drillRowsError;
+
+        if (!drillRows || drillRows.length === 0) {
+          return res.status(400).json({ message: "No drill sessions found for the selected week range" });
+        }
+
+        const structuredData = createWeeklyStructuredDataFromDrills(drillRows);
+        if (!structuredData) {
+          return res.status(400).json({ message: "Unable to generate weekly report from drill data" });
+        }
+        structuredData.internalWeeklyTutorNote = String(internalWeeklyTutorNote || "");
+
+        const inserted = await insertWeeklyReport({
+          tutorId,
+          studentId,
+          parentId,
+          structuredData,
+        });
 
         res.json({
           ...inserted,
@@ -3183,24 +3460,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: Request, res: Response) => {
       try {
         const tutorId = (req as any).dbUser.id;
-        const {
-          studentId,
-          monthStartDate,
-          monthEndDate,
-          totalSessionsCompletedThisMonth,
-          mainAreasCoveredThisMonth,
-          strongerSkillsThisMonth,
-          responsePatternTrendThisMonth,
-          recurringChallengeThisMonth,
-          mostEffectiveInterventionThisMonth,
-          bossBattleTrendThisMonth,
-          nextMonthPriority,
-          internalMonthlyTutorNote,
-          sourceWeeklyReportIds,
-        } = req.body || {};
+        const { studentId, monthStartDate, monthEndDate, internalMonthlyTutorNote } = req.body || {};
 
-        if (!studentId || !monthStartDate || !monthEndDate || !mainAreasCoveredThisMonth || !strongerSkillsThisMonth || !responsePatternTrendThisMonth || !recurringChallengeThisMonth || !mostEffectiveInterventionThisMonth || !bossBattleTrendThisMonth || !nextMonthPriority) {
-          return res.status(400).json({ message: "Missing required monthly report fields" });
+        if (!studentId) {
+          return res.status(400).json({ message: "Missing required studentId" });
         }
 
         const student = await storage.getStudent(studentId);
@@ -3208,64 +3471,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Unauthorized" });
         }
 
-        let parentId = (student as any).parentId || null;
-        if (!parentId) {
-          const { data: enrollment } = await supabase
-            .from("enrollments")
-            .select("parent_id")
-            .eq("assigned_tutor_id", tutorId)
-            .eq("student_full_name", student.name)
-            .maybeSingle();
-          parentId = enrollment?.parent_id || null;
-        }
+        const parentId = await resolveParentIdForStudent(student, tutorId);
 
         if (!parentId) {
           return res.status(400).json({ message: "Unable to resolve parent for this student" });
         }
 
-        const start = new Date(monthStartDate);
-        const monthName = formatMonthName(start);
-        const structuredData = {
-          version: "monthly-v1",
-          monthStartDate,
-          monthEndDate,
-          totalSessionsCompletedThisMonth: Number(totalSessionsCompletedThisMonth || 0),
-          mainAreasCoveredThisMonth,
-          strongerSkillsThisMonth,
-          responsePatternTrendThisMonth,
-          recurringChallengeThisMonth,
-          mostEffectiveInterventionThisMonth,
-          bossBattleTrendThisMonth,
-          nextMonthPriority,
-          internalMonthlyTutorNote: internalMonthlyTutorNote || "",
-          sourceWeeklyReportIds: Array.isArray(sourceWeeklyReportIds) ? sourceWeeklyReportIds : [],
-        };
+        let drillQuery = supabase
+          .from("intro_session_drills")
+          .select("id, drill, submitted_at")
+          .eq("student_id", studentId)
+          .eq("tutor_id", tutorId)
+          .order("submitted_at", { ascending: true });
 
-        const { data: inserted, error } = await supabase
-          .from("parent_reports")
-          .insert({
-            tutor_id: tutorId,
-            student_id: studentId,
-            parent_id: parentId,
-            report_type: "monthly",
-            week_number: null,
-            month_name: monthName,
-            summary: JSON.stringify(structuredData),
-            topics_learned: mainAreasCoveredThisMonth,
-            strengths: strongerSkillsThisMonth,
-            areas_for_growth: recurringChallengeThisMonth,
-            boss_battles_completed: 0,
-            solutions_unlocked: Number(totalSessionsCompletedThisMonth || 0),
-            confidence_growth: null,
-            next_steps: nextMonthPriority,
-            sent_at: new Date().toISOString(),
-          })
-          .select("*")
-          .single();
-
-        if (error) {
-          throw error;
+        if (monthStartDate) {
+          drillQuery = drillQuery.gte("submitted_at", `${monthStartDate}T00:00:00.000Z`);
         }
+        if (monthEndDate) {
+          drillQuery = drillQuery.lte("submitted_at", `${monthEndDate}T23:59:59.999Z`);
+        }
+
+        const { data: drillRows, error: drillRowsError } = await drillQuery;
+        if (drillRowsError) throw drillRowsError;
+
+        if (!drillRows || drillRows.length === 0) {
+          return res.status(400).json({ message: "No drill sessions found for the selected month range" });
+        }
+
+        const structuredData = createMonthlyStructuredDataFromDrills(drillRows);
+        if (!structuredData) {
+          return res.status(400).json({ message: "Unable to generate monthly report from drill data" });
+        }
+        structuredData.internalMonthlyTutorNote = String(internalMonthlyTutorNote || "");
+
+        const inserted = await insertMonthlyReport({
+          tutorId,
+          studentId,
+          parentId,
+          structuredData,
+        });
 
         res.json({
           ...inserted,
