@@ -675,11 +675,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const startDate = sorted[0].date;
             const endDate = sorted[sorted.length - 1].date;
 
-            const nextFocus = nextMoves.length > 0
-              ? Object.keys(nextMoves.reduce((acc: Record<string, true>, move) => {
-                  acc[move] = true;
-                  return acc;
-                }, {})).slice(0, 2).join(" | ")
+            const nextFocusCandidates = Object.values(nextMoveByTopic)
+              .filter((value) => String(value || "").trim().length > 0);
+            const nextFocus = nextFocusCandidates.length > 0
+              ? Array.from(new Set(nextFocusCandidates)).slice(0, 2).join(" | ")
               : "Reinforce current phase constraints and continue drill sequence.";
 
             return {
@@ -691,7 +690,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               whatImprovedThisWeek: `The student is becoming more consistent in ${improvementSignal}.`,
               studentResponsePatternThisWeek: `During this week, the student typically had: ${Array.from(new Set(behaviorSignals)).slice(0, 2).join("; ") || dominantBehavior}.`,
               mainMisunderstandingThisWeek: `The main challenge this week was ${breakdownSignal}.`,
-              mainCorrectionHelpedThisWeek: `Across sessions, the system: ${stateMovements.slice(-3).join(" | ") || "remained in phase."}`,
+              mainCorrectionHelpedThisWeek: `Across sessions, the system: ${stateMovementsWithTopic.slice(-3).join(" | ") || "remained in phase."}`,
               bossBattleSummaryThisWeek: conditioningProgress,
               reinforcementNextWeek: `Next week will focus on: ${nextFocus}.`,
               internalWeeklyTutorNote: "",
@@ -734,8 +733,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             const topicSnapshots: Record<string, { start: string; current: string }> = {};
             const behaviorSignals: string[] = [];
-            const nextMoves: string[] = [];
-            const stateMovements: string[] = [];
+            const nextMoveByTopic: Record<string, string> = {};
+            const stateMovementsWithTopic: string[] = [];
             const scores: number[] = [];
 
             sorted.forEach((session) => {
@@ -753,8 +752,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
 
               behaviorSignals.push(normalizeBehaviorSignal(String(log.behaviorSummary || "")));
-              if (log.nextMove) nextMoves.push(String(log.nextMove));
-              if (log.stateMovement) stateMovements.push(String(log.stateMovement));
+              if (log.nextMove) {
+                nextMoveByTopic[topic] = String(log.nextMove);
+              }
+              if (log.stateMovement) {
+                stateMovementsWithTopic.push(`${topic}: ${String(log.stateMovement)}`);
+              }
               if (typeof log.score === "number" && Number.isFinite(log.score)) scores.push(log.score);
             });
 
