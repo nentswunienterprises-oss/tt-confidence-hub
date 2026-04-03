@@ -429,8 +429,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
 
             if (previousStability === "High") {
-              if (sessionScore <= 49) projectedStability = "Medium";
-              else if (sessionScore <= 79) projectedStability = "High";
+              if (sessionScore <= 69) projectedStability = "Medium";
+              else if (sessionScore <= 89) projectedStability = "High";
               else {
                 projectedStability = "High";
                 advanceReady = true;
@@ -695,8 +695,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               sourceSessionCount: sorted.length,
               bossBattlesCompletedThisWeek: 0,
               stateSnapshot: sorted.map((session) => ({
-                topic: String(session.deterministicLog.topicFocus || "").split("|")[0]?.trim() || "Unknown topic",
-                phase: String(session.deterministicLog.drillLabel || "").replace(/\s*Drill.*/i, ""),
+                topic: String(parsedByRowId[String(session.id)]?.introTopic || parsedByRowId[String(session.id)]?.trainingTopic || "").trim() || "Unknown topic",
+                phase: normalizePhase(parsedByRowId[String(session.id)]?.summary?.phase || parsedByRowId[String(session.id)]?.phase || "Clarity"),
                 stability: session.deterministicLog.stability || "Unknown",
                 score: session.deterministicLog.score || 0,
                 transition: session.deterministicLog.stateMovement || "",
@@ -706,25 +706,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
 
           const createMonthlyStructuredDataFromDrills = (drillRows: any[]) => {
-            const weeklyLike = createWeeklyStructuredDataFromDrills(drillRows);
-            if (!weeklyLike) return null;
+            const deterministicSessions = drillRows
+              .map(mapDrillRowToDeterministicSession)
+              .filter((session: any) => !!session?.deterministicLog);
 
-            const monthStart = weeklyLike.weekStartDate;
-            const monthEnd = weeklyLike.weekEndDate;
-            const sessionsCompleted = Number(weeklyLike.sessionsCompletedThisWeek || 0);
+            const parsedByRowId = drillRows.reduce((acc: Record<string, any>, row: any) => {
+              try {
+                const parsed = row?.drill && typeof row.drill === "object"
+                  ? row.drill
+                  : JSON.parse(typeof row?.drill === "string" ? row.drill : "{}");
+                acc[String(row.id)] = parsed;
+              } catch {
+                acc[String(row.id)] = null;
+              }
+              return acc;
+            }, {});
+
+            if (!deterministicSessions.length) return null;
+
+            const sorted = [...deterministicSessions].sort(
+              (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+            );
+
+            const topicSnapshots: Record<string, { start: string; current: string }> = {};
+            const behaviorSignals: string[] = [];
+            const nextMoves: string[] = [];
+            const stateMovements: string[] = [];
+            const scores: number[] = [];
+
+            sorted.forEach((session) => {
+              const log = session.deterministicLog;
+              const parsed: any = parsedByRowId[String(session.id)] || null;
+              const rawTopic = String(parsed?.introTopic || parsed?.trainingTopic || "").trim();
+              const topic = rawTopic || "Unknown topic";
+              const phase = normalizePhase(parsed?.summary?.phase || parsed?.phase || "Clarity");
+              const state = `${phase} (${String(log.stability || "Unknown")})`;
+
+              if (!topicSnapshots[topic]) {
+                topicSnapshots[topic] = { start: state, current: state };
+              } else {
+                topicSnapshots[topic] = { ...topicSnapshots[topic], current: state };
+              }
+
+              behaviorSignals.push(normalizeBehaviorSignal(String(log.behaviorSummary || "")));
+              if (log.nextMove) nextMoves.push(String(log.nextMove));
+              if (log.stateMovement) stateMovements.push(String(log.stateMovement));
+              if (typeof log.score === "number" && Number.isFinite(log.score)) scores.push(log.score);
+            });
+
+            const topics = Object.keys(topicSnapshots);
+            const improvementSignal = summarizeTopSignal(behaviorSignals.filter((s) => /improved|stable/.test(s)));
+            const breakdownSignal = summarizeTopSignal(behaviorSignals.filter((s) => /hesitation|guessing|breakdown/.test(s)));
+            const dominantBehavior = summarizeTopSignal(behaviorSignals);
+            const avgScore = scores.length > 0
+              ? Math.round(scores.reduce((sum, value) => sum + value, 0) / scores.length)
+              : 0;
+
+            const topicProgression = Object.entries(topicSnapshots)
+              .map(([topic, snapshot]) => `${topic}\nStart: ${snapshot.start}\nEnd: ${snapshot.current}`)
+              .join("\n\n");
+
+            const startDate = sorted[0].date;
+            const endDate = sorted[sorted.length - 1].date;
+
+            const nextFocus = nextMoves.length > 0
+              ? Object.keys(nextMoves.reduce((acc: Record<string, true>, move) => {
+                  acc[move] = true;
+                  return acc;
+                }, {})).slice(0, 3).join(" | ")
+              : "Reinforce current phase constraints and continue drill sequence.";
 
             return {
               version: "monthly-v2-auto",
-              monthStartDate: monthStart,
-              monthEndDate: monthEnd,
-              totalSessionsCompletedThisMonth: sessionsCompleted,
-              mainAreasCoveredThisMonth: weeklyLike.mainTopicsCovered,
-              strongerSkillsThisMonth: weeklyLike.whatImprovedThisWeek,
-              responsePatternTrendThisMonth: weeklyLike.studentResponsePatternThisWeek,
-              recurringChallengeThisMonth: weeklyLike.mainMisunderstandingThisWeek,
-              mostEffectiveInterventionThisMonth: `Over the month, the system: ${weeklyLike.mainCorrectionHelpedThisWeek.replace(/^Across sessions, the system:\s*/i, "")}`,
-              bossBattleTrendThisMonth: weeklyLike.bossBattleSummaryThisWeek,
-              nextMonthPriority: weeklyLike.reinforcementNextWeek.replace(/^Next week/i, "Next month"),
+              monthStartDate: new Date(startDate).toISOString().slice(0, 10),
+              monthEndDate: new Date(endDate).toISOString().slice(0, 10),
+              totalSessionsCompletedThisMonth: sorted.length,
+              mainAreasCoveredThisMonth: `This month focused on: ${topics.join(", ")}.`,
+              strongerSkillsThisMonth: `The student has improved in ${improvementSignal}. Average session score this month: ${avgScore}/100.`,
+              responsePatternTrendThisMonth: `Across the month, the student typically showed: ${Array.from(new Set(behaviorSignals)).slice(0, 2).join("; ") || dominantBehavior}.`,
+              recurringChallengeThisMonth: `The main recurring challenge this month was ${breakdownSignal}.`,
+              mostEffectiveInterventionThisMonth: `Over the month, the system: ${stateMovements.slice(-4).join(" | ") || "reinforced weak areas and maintained phase stability."}`,
+              bossBattleTrendThisMonth: topicProgression,
+              nextMonthPriority: `Next month will focus on: ${nextFocus}.`,
               internalMonthlyTutorNote: "",
               sourceWeeklyReportIds: [],
             };

@@ -694,9 +694,9 @@ export default function IntroSessionDrillRunner() {
             {setNames.map((setName) => {
               const rows = setGroups[setName];
               const setMeta = rows.find((r) => typeof r.setPoints === "number" && typeof r.setMaxPoints === "number");
-              const setPoints = setMeta?.setPoints ?? 0;
-              const setMaxPoints = setMeta?.setMaxPoints ?? 0;
               const setPercent = setMeta?.setScore ?? Math.round(rows.reduce((sum, r) => sum + (r.score ?? 0), 0) / rows.length);
+              const setPoints = setMeta?.setPoints ?? setPercent;
+              const setMaxPoints = setMeta?.setMaxPoints ?? 100;
               return (
                 <div key={setName} className="rounded-xl border border-primary/15 bg-background overflow-hidden">
                   <div className="bg-primary/5 px-4 py-2 flex justify-between items-center">
