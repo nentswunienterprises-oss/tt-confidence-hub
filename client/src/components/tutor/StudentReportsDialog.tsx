@@ -140,15 +140,14 @@ function DeterministicSessionLog({ session }: { session: SessionRecord }) {
       </div>
 
       <div className="space-y-3 rounded-xl border border-primary/15 bg-background p-4">
-        <FieldRow label="Topic + Focus" value={getTopicFocusDisplay(log)} />
+        <FieldRow label="Session Summary" value={getTopicFocusDisplay(log)} />
         <FieldRow label="What Was Trained" value={log.whatWasTrained} />
-        <FieldRow label="What Happened" value={log.behaviorSummary} />
+        <FieldRow label="Observed Response" value={log.behaviorSummary} />
         <FieldRow label="Performance Result" value={log.performanceResult} />
-        <FieldRow label="State Movement" value={log.stateMovement} />
+        <FieldRow label="State Update" value={log.stateMovement} />
         <FieldRow label="What This Means" value={log.whatThisMeans} />
-        <FieldRow label="Next Move" value={log.nextMove} />
+        <FieldRow label="Next Drill" value={log.nextMove} />
         <FieldRow label="Constraint" value={log.constraint} />
-        <FieldRow label="Tutor Prep For Next Session" value={log.practiceAssigned} />
       </div>
     </div>
   );
