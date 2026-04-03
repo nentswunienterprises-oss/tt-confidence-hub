@@ -6077,7 +6077,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get(
     "/api/hr/stats",
     isAuthenticated,
-    requireRole(["hr"]),
+    requireRole(["hr", "coo"]),
     async (req: Request, res: Response) => {
       try {
         // Get all tutor applications
