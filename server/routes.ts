@@ -733,8 +733,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             const topicSnapshots: Record<string, { start: string; current: string }> = {};
             const behaviorSignals: string[] = [];
-            const nextMoveByTopic: Record<string, string> = {};
-            const stateMovementsWithTopic: string[] = [];
             const scores: number[] = [];
 
             sorted.forEach((session) => {
@@ -752,12 +750,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
 
               behaviorSignals.push(normalizeBehaviorSignal(String(log.behaviorSummary || "")));
-              if (log.nextMove) {
-                nextMoveByTopic[topic] = String(log.nextMove);
-              }
-              if (log.stateMovement) {
-                stateMovementsWithTopic.push(`${topic}: ${String(log.stateMovement)}`);
-              }
               if (typeof log.score === "number" && Number.isFinite(log.score)) scores.push(log.score);
             });
 
@@ -776,15 +768,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const startDate = sorted[0].date;
             const endDate = sorted[sorted.length - 1].date;
 
-            const latestTopicMovements = Array.from(new Set(stateMovementsWithTopic)).slice(-4);
+            const monthlyStateSummaryByTopic = Object.entries(topicSnapshots)
+              .map(([topic, snapshot]) => {
+                const currentPhase = String(snapshot.current || "Clarity").split(" (")[0] || "Clarity";
+                return `The student remained in ${currentPhase} in ${topic}.`;
+              })
+              .slice(0, 4);
 
-            const nextFocusByTopic = Object.entries(nextMoveByTopic)
-              .map(([topic, move]) => `${topic}: ${move}`)
+            const nextFocusByTopic = topics
+              .map((topic) => `Maintaining with mixed practice in ${topic}`)
               .slice(0, 3);
 
             const nextFocus = nextFocusByTopic.length > 0
               ? nextFocusByTopic.join(" | ")
-              : "Reinforce current phase constraints and continue drill sequence.";
+              : "Maintaining with mixed practice in current topics";
 
             return {
               version: "monthly-v2-auto",
@@ -795,7 +792,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               strongerSkillsThisMonth: `The student has improved in ${improvementSignal}. Average session score this month: ${avgScore}/100.`,
               responsePatternTrendThisMonth: `Across the month, the student typically showed: ${Array.from(new Set(behaviorSignals)).slice(0, 2).join("; ") || dominantBehavior}.`,
               recurringChallengeThisMonth: `The main recurring challenge this month was ${breakdownSignal}.`,
-              mostEffectiveInterventionThisMonth: `Over the month, the system: ${latestTopicMovements.join(" | ") || "reinforced weak areas and maintained phase stability."}`,
+              mostEffectiveInterventionThisMonth: `Over the month: ${monthlyStateSummaryByTopic.join(" | ") || "The student remained in Structured Execution in current topics."}`,
               bossBattleTrendThisMonth: topicProgression,
               nextMonthPriority: `Next month will focus on: ${nextFocus}.`,
               internalMonthlyTutorNote: "",
