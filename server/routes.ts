@@ -685,7 +685,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               sessionsCompletedThisWeek: sorted.length,
               mainTopicsCovered: `This week focused on: ${topics.join(", ")}.`,
               whatImprovedThisWeek: `The student is becoming more consistent in ${improvementSignal}.`,
-              studentResponsePatternThisWeek: `During this week, the student typically: ${Array.from(new Set(behaviorSignals)).slice(0, 2).join("; ") || dominantBehavior}.`,
+              studentResponsePatternThisWeek: `During this week, the student typically had: ${Array.from(new Set(behaviorSignals)).slice(0, 2).join("; ") || dominantBehavior}.`,
               mainMisunderstandingThisWeek: `The main challenge this week was ${breakdownSignal}.`,
               mainCorrectionHelpedThisWeek: `Across sessions, the system: ${stateMovements.slice(-3).join(" | ") || "remained in phase."}`,
               bossBattleSummaryThisWeek: conditioningProgress,
