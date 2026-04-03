@@ -632,8 +632,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             const topicSnapshots: Record<string, { start: string; current: string }> = {};
             const behaviorSignals: string[] = [];
-            const nextMoves: string[] = [];
-            const stateMovements: string[] = [];
+            const nextMoveByTopic: Record<string, string> = {};
+            const stateMovementsWithTopic: string[] = [];
             const scores: number[] = [];
 
             sorted.forEach((session) => {
@@ -651,8 +651,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
 
               behaviorSignals.push(normalizeBehaviorSignal(String(log.behaviorSummary || "")));
-              if (log.nextMove) nextMoves.push(String(log.nextMove));
-              if (log.stateMovement) stateMovements.push(String(log.stateMovement));
+              if (log.nextMove) {
+                nextMoveByTopic[topic] = String(log.nextMove);
+              }
+              if (log.stateMovement) {
+                stateMovementsWithTopic.push(`${topic}: ${String(log.stateMovement)}`);
+              }
               if (typeof log.score === "number" && Number.isFinite(log.score)) scores.push(log.score);
             });
 
@@ -769,11 +773,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const startDate = sorted[0].date;
             const endDate = sorted[sorted.length - 1].date;
 
-            const nextFocus = nextMoves.length > 0
-              ? Object.keys(nextMoves.reduce((acc: Record<string, true>, move) => {
-                  acc[move] = true;
-                  return acc;
-                }, {})).slice(0, 3).join(" | ")
+            const latestTopicMovements = Array.from(new Set(stateMovementsWithTopic)).slice(-4);
+
+            const nextFocusByTopic = Object.entries(nextMoveByTopic)
+              .map(([topic, move]) => `${topic}: ${move}`)
+              .slice(0, 3);
+
+            const nextFocus = nextFocusByTopic.length > 0
+              ? nextFocusByTopic.join(" | ")
               : "Reinforce current phase constraints and continue drill sequence.";
 
             return {
@@ -785,7 +792,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               strongerSkillsThisMonth: `The student has improved in ${improvementSignal}. Average session score this month: ${avgScore}/100.`,
               responsePatternTrendThisMonth: `Across the month, the student typically showed: ${Array.from(new Set(behaviorSignals)).slice(0, 2).join("; ") || dominantBehavior}.`,
               recurringChallengeThisMonth: `The main recurring challenge this month was ${breakdownSignal}.`,
-              mostEffectiveInterventionThisMonth: `Over the month, the system: ${stateMovements.slice(-4).join(" | ") || "reinforced weak areas and maintained phase stability."}`,
+              mostEffectiveInterventionThisMonth: `Over the month, the system: ${latestTopicMovements.join(" | ") || "reinforced weak areas and maintained phase stability."}`,
               bossBattleTrendThisMonth: topicProgression,
               nextMonthPriority: `Next month will focus on: ${nextFocus}.`,
               internalMonthlyTutorNote: "",
