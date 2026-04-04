@@ -1519,12 +1519,12 @@ export default function StudentTopicConditioningDialog({
                         </Button>
                       </div>
                       <div className="w-full flex flex-col gap-2">
-                        <div className="bg-background rounded px-2 py-1 border border-primary/10">
-                          <span className="font-semibold text-foreground text-xs">Description:</span>
-                          <span className="ml-1 text-muted-foreground text-[11px]">{desc?.replace('Description: ', '')}</span>
-                        </div>
                         {isPhaseExpanded && (
                           <>
+                            <div className="bg-background rounded px-2 py-1 border border-primary/10">
+                              <span className="font-semibold text-foreground text-xs">Description:</span>
+                              <span className="ml-1 text-muted-foreground text-[11px]">{desc?.replace('Description: ', '')}</span>
+                            </div>
                             <div className="bg-background rounded px-2 py-1 border border-primary/10">
                               <span className="font-semibold text-foreground text-xs">Tool:</span>
                               <span className="ml-1 text-muted-foreground text-[11px]">{tool?.replace('Tool: ', '')}</span>
