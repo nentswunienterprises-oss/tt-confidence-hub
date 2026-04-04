@@ -402,11 +402,11 @@ export default function ExecutiveHRTraffic() {
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="tutor-applications" className="gap-2">
             <GraduationCap className="w-4 h-4" />
-            Tutor Applications ({applications.length})
+            Tutor Applications
           </TabsTrigger>
           <TabsTrigger value="parent-enrollments" className="gap-2">
             <Users className="w-4 h-4" />
-            Parent Enrollments ({enrollments.length})
+            Parent Enrollments
           </TabsTrigger>
         </TabsList>
 
