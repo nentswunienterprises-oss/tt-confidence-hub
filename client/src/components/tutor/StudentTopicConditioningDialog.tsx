@@ -1279,14 +1279,23 @@ export default function StudentTopicConditioningDialog({
                           <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">State Progression Timeline</p>
                           {(row.timeline || []).length > 0 ? (
                             <div className="flex flex-wrap gap-1.5">
-                              {row.timeline.slice(-6).map((point) => (
+                              {row.timeline.slice(-6).reverse().map((point, index) => {
+                                const sessionLabel = index === 0
+                                  ? "Last session"
+                                  : index === 1
+                                  ? "2nd last session"
+                                  : index === 2
+                                  ? "3rd last session"
+                                  : `${index + 1}th last session`;
+                                return (
                                 <span
-                                  key={`${row.topic}-${point.date}-${point.phase}`}
+                                  key={`${row.topic}-${point.date}-${point.phase}-${index}`}
                                   className="rounded-md border border-border/60 bg-muted/20 px-2 py-0.5 text-[11px] text-muted-foreground"
                                 >
-                                  {point.date} · {point.phase} · {point.stability}
+                                  {sessionLabel} · {point.phase} · {point.stability}
                                 </span>
-                              ))}
+                                );
+                              })}
                             </div>
                           ) : (
                             <p className="text-xs text-muted-foreground">No timeline events yet.</p>
