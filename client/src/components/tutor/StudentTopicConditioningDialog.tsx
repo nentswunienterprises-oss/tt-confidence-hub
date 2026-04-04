@@ -23,7 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getQueryFn } from "@/lib/queryClient";
-import { Target, AlertCircle, Info } from "lucide-react";
+import { Target, AlertCircle, Info, ChevronDown } from "lucide-react";
 // Removed TutorSessionLogForm import (manual session logging is deprecated)
 import {
   PHASES,
@@ -966,6 +966,7 @@ export default function StudentTopicConditioningDialog({
   const [phaseSelections, setPhaseSelections] = useState<Record<string, string>>({});
   const [interventionUsed, setInterventionUsed] = useState("");
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (topics.length === 0) return;
@@ -1149,6 +1150,18 @@ export default function StudentTopicConditioningDialog({
     ? studentName || "-"
     : `${studentName || "-"} • Grade ${normalizedGradeValue}`;
 
+  const toggleTopicExpanded = (topic: string) => {
+    setExpandedTopics((prev) => {
+      const next = new Set(prev);
+      if (next.has(topic)) {
+        next.delete(topic);
+      } else {
+        next.add(topic);
+      }
+      return next;
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100vw-0.5rem)] sm:w-full sm:max-w-7xl max-h-[92vh] overflow-y-auto overflow-x-hidden rounded-2xl border border-primary/15 bg-background p-2 shadow-sm sm:p-6">
@@ -1184,22 +1197,45 @@ export default function StudentTopicConditioningDialog({
                   {prioritizedTopics.map((row) => {
                     const topicIntel = interpretTopicState(row.phase, row.stability, row.trend);
                     const rowPrepPlan = tutorPrepPlanFor(row.phase, row.stability, row.hasObservedState);
+                    const isExpanded = expandedTopics.has(row.topic);
+                    const phaseLabel = row.hasObservedState ? row.phase : "Unknown";
+                    const stabilityLabel = row.hasObservedState ? row.stability : "Unknown";
                     return (
-                      <button
+                      <div
                         key={`topic-card-${row.topic}`}
-                        type="button"
                         className={`w-full rounded-xl border p-4 text-left transition-colors space-y-3 ${
                           selectedRow?.topic === row.topic
                             ? "border-primary bg-primary/5"
                             : "hover:bg-muted/40"
                         }`}
-                        onClick={() => setSelectedTopic(row.topic)}
                       >
-                        <p className="text-base font-semibold break-words">{row.topic}</p>
+                        <div className="flex items-start justify-between gap-3">
+                          <button
+                            type="button"
+                            className="flex-1 text-left space-y-1"
+                            onClick={() => setSelectedTopic(row.topic)}
+                          >
+                            <p className="text-base font-semibold break-words">{row.topic}</p>
+                            <p className="text-sm text-muted-foreground">Phase: <span className="font-medium text-foreground">{phaseLabel}</span></p>
+                            <p className="text-sm text-muted-foreground">Stability: <span className="font-medium text-foreground">{stabilityLabel}</span></p>
+                          </button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-2 shrink-0"
+                            onClick={() => {
+                              setSelectedTopic(row.topic);
+                              toggleTopicExpanded(row.topic);
+                            }}
+                          >
+                            <span className="text-xs mr-1">{isExpanded ? "Hide" : "Expand"}</span>
+                            <ChevronDown className={`w-4 h-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                          </Button>
+                        </div>
 
-                        <p className="text-sm font-semibold text-foreground">
-                          {row.hasObservedState ? `${row.phase} · ${row.stability} Stability` : "Observed State: Unknown"}
-                        </p>
+                        {!isExpanded ? null : (
+                          <>
 
                         {row.hasObservedState ? (
                           <div className="flex flex-wrap gap-1.5">
@@ -1306,7 +1342,9 @@ export default function StudentTopicConditioningDialog({
                             </Badge>
                           )}
                         </div>
-                      </button>
+                          </>
+                        )}
+                      </div>
                     );
                   })}
                 </div>
