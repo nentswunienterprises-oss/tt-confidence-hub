@@ -799,12 +799,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const weeklyBreakdownClause = breakdownSignal === "no recurring breakdown signal detected"
               ? "inconsistent sessions"
               : `${breakdownSignal} sessions`;
+            const weeklySignalsText = weeklyTopSignals.join("; ") || dominantBehavior;
+            const weeklyHasBreakdownSignal = /breakdown/.test(weeklySignalsText.toLowerCase());
+            const weeklyHasStableSignal = /stable/.test(weeklySignalsText.toLowerCase());
 
             const weeklyResponsePatternNarrative = regressedTopics.length > 0
               ? `The student showed ${weeklyTopSignals.length > 0 ? weeklyTopSignals.join(" and ") : "stable execution"}, but ${weeklyBreakdownClause} prevented maintaining the previous level in ${regressedTopics.slice(0, 2).join(", ")}.`
               : improvedTopics.length > 0
-              ? `During this week, the student typically had: ${weeklyTopSignals.join("; ") || dominantBehavior}. These patterns supported level gains in ${improvedTopics.slice(0, 2).join(", ")}.`
-              : `During this week, the student typically had: ${weeklyTopSignals.join("; ") || dominantBehavior}. Performance remained stable with no level change.`;
+              ? weeklyHasBreakdownSignal && weeklyHasStableSignal
+                ? `During this week, the student showed mixed responses (${weeklySignalsText}), but the overall trend improved in ${improvedTopics.slice(0, 2).join(", ")}.`
+                : `During this week, the student typically had: ${weeklySignalsText}. These patterns supported level gains in ${improvedTopics.slice(0, 2).join(", ")}.`
+              : `During this week, the student typically had: ${weeklySignalsText}. Performance remained stable with no level change.`;
 
             const weeklyVolatilityLine = `Intra-week volatility: ${upshiftCount} upshift(s), ${downshiftCount} downshift(s), ${heldCount} held session(s).`;
 
@@ -1011,12 +1016,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const monthlyBreakdownClause = breakdownSignal === "no recurring breakdown signal detected"
               ? "inconsistent sessions"
               : `${breakdownSignal} sessions`;
+            const monthlySignalsText = monthlyTopSignals.join("; ") || dominantBehavior;
+            const monthlyHasBreakdownSignal = /breakdown/.test(monthlySignalsText.toLowerCase());
+            const monthlyHasStableSignal = /stable/.test(monthlySignalsText.toLowerCase());
 
             const monthlyResponsePatternNarrative = regressedTopics.length > 0
               ? `Across the month, the student typically showed ${monthlyTopSignals.length > 0 ? monthlyTopSignals.join(" and ") : "stable performance"}, but ${monthlyBreakdownClause} prevented maintaining the previous level in ${regressedTopics.slice(0, 2).join(", ")}.`
               : improvedTopics.length > 0
-              ? `Across the month, the student typically showed: ${monthlyTopSignals.join("; ") || dominantBehavior}. These patterns supported level gains in ${improvedTopics.slice(0, 2).join(", ")}.`
-              : `Across the month, the student typically showed: ${monthlyTopSignals.join("; ") || dominantBehavior}. Performance remained stable with no level gain.`;
+              ? monthlyHasBreakdownSignal && monthlyHasStableSignal
+                ? `Across the month, the student showed mixed responses (${monthlySignalsText}), but the overall trend improved in ${improvedTopics.slice(0, 2).join(", ")}.`
+                : `Across the month, the student typically showed: ${monthlySignalsText}. These patterns supported level gains in ${improvedTopics.slice(0, 2).join(", ")}.`
+              : `Across the month, the student typically showed: ${monthlySignalsText}. Performance remained stable with no level gain.`;
 
             const monthlyVolatilityLine = `Intra-month volatility: ${upshiftCount} upshift(s), ${downshiftCount} downshift(s), ${heldCount} held session(s).`;
 
