@@ -151,6 +151,12 @@ function formatMovementSummary(value?: string | null): string {
   return sections.length > 0 ? sections.join("\n\n") : stripped;
 }
 
+function formatWeeklyNextFocus(value?: string | null): string {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  return text.replace(/\bRun\s+/g, "Running ");
+}
+
 function FieldRow({ label, value }: { label: string; value?: string | null }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-[210px_1fr] gap-2 md:gap-3 text-sm">
@@ -323,7 +329,7 @@ export default function ViewTrackingSystemsDialog({
                                 <FieldRow label="Response Pattern" value={structured.studentResponsePatternThisWeek} />
                                 <FieldRow label="Main Breakdown" value={structured.mainMisunderstandingThisWeek || report.areasForGrowth} />
                                 <FieldRow label="Movement Summary" value={formatMovementSummary(structured.mainCorrectionHelpedThisWeek)} />
-                                <FieldRow label="Next Focus" value={structured.reinforcementNextWeek || report.nextSteps} />
+                                <FieldRow label="Next Focus" value={formatWeeklyNextFocus(structured.reinforcementNextWeek || report.nextSteps)} />
                               </AccordionContent>
                             </AccordionItem>
                           );

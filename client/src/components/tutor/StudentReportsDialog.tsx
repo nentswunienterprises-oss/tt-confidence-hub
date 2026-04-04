@@ -73,6 +73,12 @@ function formatMovementSummary(value?: string | null): string {
   return sections.length > 0 ? sections.join("\n\n") : stripped;
 }
 
+function formatWeeklyNextFocus(value?: string | null): string {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  return text.replace(/\bRun\s+/g, "Running ");
+}
+
 interface SessionRecord {
   id: string;
   date: string;
@@ -321,7 +327,7 @@ export default function StudentReportsDialog({
                               <FieldRow label="Main Breakdown" value={structured.mainMisunderstandingThisWeek || report.areasForGrowth} />
                               <FieldRow label="Movement Summary" value={formatMovementSummary(structured.mainCorrectionHelpedThisWeek)} />
                               <FieldRow label="Conditioning Progress" value={structured.bossBattleSummaryThisWeek} />
-                              <FieldRow label="Next Focus" value={structured.reinforcementNextWeek || report.nextSteps} />
+                              <FieldRow label="Next Focus" value={formatWeeklyNextFocus(structured.reinforcementNextWeek || report.nextSteps)} />
                             </AccordionContent>
                           </AccordionItem>
                         );
