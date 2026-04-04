@@ -649,10 +649,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
               (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
             );
 
-            const topicSnapshots: Record<string, { start: string; current: string }> = {};
+            const phaseRank = (phase: string) => {
+              if (phase === "Clarity") return 0;
+              if (phase === "Structured Execution") return 1;
+              if (phase === "Controlled Discomfort") return 2;
+              if (phase === "Time Pressure Stability") return 3;
+              return -1;
+            };
+            const stabilityRank = (stability: string) => {
+              if (stability === "Low") return 0;
+              if (stability === "Medium") return 1;
+              if (stability === "High") return 2;
+              if (stability === "High Maintenance") return 3;
+              return -1;
+            };
+            const formatState = (state: { phase: string; stability: string }) => `${state.phase} (${state.stability})`;
+            const scoreState = (state: { phase: string; stability: string }) =>
+              phaseRank(state.phase) * 10 + stabilityRank(state.stability);
+
+            const topicSnapshots: Record<string, {
+              start: { phase: string; stability: string };
+              current: { phase: string; stability: string };
+            }> = {};
             const behaviorSignals: string[] = [];
             const nextMoveByTopic: Record<string, string> = {};
-            const stateMovementsWithTopic: string[] = [];
             const scores: number[] = [];
 
             sorted.forEach((session) => {
@@ -661,7 +681,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const rawTopic = String(parsed?.introTopic || parsed?.trainingTopic || "").trim();
               const topic = rawTopic || "Unknown topic";
               const phase = normalizePhase(parsed?.summary?.phase || parsed?.phase || "Clarity");
-              const state = `${phase} (${String(log.stability || "Unknown")})`;
+              const state = {
+                phase,
+                stability: String(log.stability || "Unknown"),
+              };
 
               if (!topicSnapshots[topic]) {
                 topicSnapshots[topic] = { start: state, current: state };
@@ -673,22 +696,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
               if (log.nextMove) {
                 nextMoveByTopic[topic] = String(log.nextMove);
               }
-              if (log.stateMovement) {
-                stateMovementsWithTopic.push(`${topic}: ${String(log.stateMovement)}`);
-              }
               if (typeof log.score === "number" && Number.isFinite(log.score)) scores.push(log.score);
             });
 
             const topics = Object.keys(topicSnapshots);
-            const improvementSignal = summarizeTopSignal(behaviorSignals.filter((s) => /improved|stable/.test(s)));
             const breakdownSignal = summarizeTopSignal(behaviorSignals.filter((s) => /hesitation|guessing|breakdown/.test(s)));
             const dominantBehavior = summarizeTopSignal(behaviorSignals);
             const avgScore = scores.length > 0
               ? Math.round(scores.reduce((sum, value) => sum + value, 0) / scores.length)
               : 0;
 
+            const topicMovements = Object.entries(topicSnapshots).map(([topic, snapshot]) => {
+              const startScore = scoreState(snapshot.start);
+              const currentScore = scoreState(snapshot.current);
+              const trend = currentScore > startScore ? "improved" : currentScore < startScore ? "regressed" : "held";
+              return { topic, snapshot, trend };
+            });
+            const improvedTopics = topicMovements.filter((entry) => entry.trend === "improved").map((entry) => entry.topic);
+            const regressedTopics = topicMovements.filter((entry) => entry.trend === "regressed").map((entry) => entry.topic);
+            const heldTopics = topicMovements.filter((entry) => entry.trend === "held").map((entry) => entry.topic);
+
+            const movementLines = topicMovements.map(({ topic, snapshot, trend }) => {
+              if (trend === "improved") {
+                return `${topic}: The student moved from ${formatState(snapshot.start)} to ${formatState(snapshot.current)}.`;
+              }
+              if (trend === "regressed") {
+                return `${topic}: The student regressed from ${formatState(snapshot.start)} to ${formatState(snapshot.current)}.`;
+              }
+              return `${topic}: The student remained at ${formatState(snapshot.current)}.`;
+            });
+
+            const weeklyImprovementNarrative = improvedTopics.length > 0
+              ? `The student showed level gains in ${improvedTopics.slice(0, 3).join(", ")}.`
+              : regressedTopics.length > 0
+              ? `No level gains this week. The student regressed in ${regressedTopics.slice(0, 3).join(", ")}.`
+              : `No level change this week. The student remained at the same conditioning level in current topics.`;
+
+            const weeklyChallengeNarrative = regressedTopics.length > 0
+              ? `The main challenge this week was level regression in ${regressedTopics.slice(0, 2).join(", ")}${breakdownSignal ? ` with ${breakdownSignal}` : ""}.`
+              : `The main challenge this week was ${breakdownSignal}.`;
+
             const conditioningProgress = Object.entries(topicSnapshots)
-              .map(([topic, snapshot]) => `${topic}\nStarted: ${snapshot.start}\nCurrent: ${snapshot.current}`)
+              .map(([topic, snapshot]) => `${topic}\nStarted: ${formatState(snapshot.start)}\nCurrent: ${formatState(snapshot.current)}`)
               .join("\n\n");
 
             const startDate = sorted[0].date;
@@ -706,10 +755,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
               weekEndDate: new Date(endDate).toISOString().slice(0, 10),
               sessionsCompletedThisWeek: sorted.length,
               mainTopicsCovered: `This week focused on: ${topics.join(", ")}.`,
-              whatImprovedThisWeek: `The student is becoming more consistent in ${improvementSignal}.`,
+              whatImprovedThisWeek: weeklyImprovementNarrative,
               studentResponsePatternThisWeek: `During this week, the student typically had: ${Array.from(new Set(behaviorSignals)).slice(0, 2).join("; ") || dominantBehavior}.`,
-              mainMisunderstandingThisWeek: `The main challenge this week was ${breakdownSignal}.`,
-              mainCorrectionHelpedThisWeek: `Across sessions, the system: ${stateMovementsWithTopic.slice(-3).join(" | ") || "remained in phase."}`,
+              mainMisunderstandingThisWeek: weeklyChallengeNarrative,
+              mainCorrectionHelpedThisWeek: `Across sessions, the system: ${movementLines.slice(0, 4).join(" | ") || "remained in phase."}`,
               bossBattleSummaryThisWeek: conditioningProgress,
               reinforcementNextWeek: `Next week will focus on: ${nextFocus}.`,
               internalWeeklyTutorNote: "",
@@ -750,7 +799,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
               (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
             );
 
-            const topicSnapshots: Record<string, { start: string; current: string }> = {};
+            const phaseRank = (phase: string) => {
+              if (phase === "Clarity") return 0;
+              if (phase === "Structured Execution") return 1;
+              if (phase === "Controlled Discomfort") return 2;
+              if (phase === "Time Pressure Stability") return 3;
+              return -1;
+            };
+            const stabilityRank = (stability: string) => {
+              if (stability === "Low") return 0;
+              if (stability === "Medium") return 1;
+              if (stability === "High") return 2;
+              if (stability === "High Maintenance") return 3;
+              return -1;
+            };
+            const formatState = (state: { phase: string; stability: string }) => `${state.phase} (${state.stability})`;
+            const scoreState = (state: { phase: string; stability: string }) =>
+              phaseRank(state.phase) * 10 + stabilityRank(state.stability);
+
+            const topicSnapshots: Record<string, {
+              start: { phase: string; stability: string };
+              current: { phase: string; stability: string };
+            }> = {};
             const behaviorSignals: string[] = [];
             const nextMoveByTopic: Record<string, string> = {};
             const scores: number[] = [];
@@ -761,7 +831,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const rawTopic = String(parsed?.introTopic || parsed?.trainingTopic || "").trim();
               const topic = rawTopic || "Unknown topic";
               const phase = normalizePhase(parsed?.summary?.phase || parsed?.phase || "Clarity");
-              const state = `${phase} (${String(log.stability || "Unknown")})`;
+              const state = {
+                phase,
+                stability: String(log.stability || "Unknown"),
+              };
 
               if (!topicSnapshots[topic]) {
                 topicSnapshots[topic] = { start: state, current: state };
@@ -777,15 +850,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
 
             const topics = Object.keys(topicSnapshots);
-            const improvementSignal = summarizeTopSignal(behaviorSignals.filter((s) => /improved|stable/.test(s)));
             const breakdownSignal = summarizeTopSignal(behaviorSignals.filter((s) => /hesitation|guessing|breakdown/.test(s)));
             const dominantBehavior = summarizeTopSignal(behaviorSignals);
             const avgScore = scores.length > 0
               ? Math.round(scores.reduce((sum, value) => sum + value, 0) / scores.length)
               : 0;
 
+            const topicMovements = Object.entries(topicSnapshots).map(([topic, snapshot]) => {
+              const startScore = scoreState(snapshot.start);
+              const currentScore = scoreState(snapshot.current);
+              const trend = currentScore > startScore ? "improved" : currentScore < startScore ? "regressed" : "held";
+              return { topic, snapshot, trend };
+            });
+            const improvedTopics = topicMovements.filter((entry) => entry.trend === "improved").map((entry) => entry.topic);
+            const regressedTopics = topicMovements.filter((entry) => entry.trend === "regressed").map((entry) => entry.topic);
+            const heldTopics = topicMovements.filter((entry) => entry.trend === "held").map((entry) => entry.topic);
+
             const topicProgression = Object.entries(topicSnapshots)
-              .map(([topic, snapshot]) => `${topic}\nStart: ${snapshot.start}\nEnd: ${snapshot.current}`)
+              .map(([topic, snapshot]) => `${topic}\nStart: ${formatState(snapshot.start)}\nEnd: ${formatState(snapshot.current)}`)
               .join("\n\n");
 
             const startDate = sorted[0].date;
@@ -793,16 +875,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             const monthlyStateSummaryByTopic = Object.entries(topicSnapshots)
               .map(([topic, snapshot]) => {
-                return `${topic}: ${snapshot.start} -> ${snapshot.current}.`;
+                const startScore = scoreState(snapshot.start);
+                const currentScore = scoreState(snapshot.current);
+                if (currentScore > startScore) {
+                  return `${topic}: improved from ${formatState(snapshot.start)} to ${formatState(snapshot.current)}.`;
+                }
+                if (currentScore < startScore) {
+                  return `${topic}: regressed from ${formatState(snapshot.start)} to ${formatState(snapshot.current)}.`;
+                }
+                return `${topic}: remained at ${formatState(snapshot.current)}.`;
               })
               .slice(0, 4);
 
             const nextFocusByTopic = topics
               .map((topic) => {
-                const nextMove = String(nextMoveByTopic[topic] || "").trim();
-                return nextMove.length > 0
-                  ? `${topic}: ${nextMove}`
-                  : `${topic}: Maintaining with mixed practice`;
+                const movement = topicMovements.find((entry) => entry.topic === topic);
+                if (movement?.trend === "regressed") {
+                  return `Rebuilding stability in ${topic}`;
+                }
+                return `Maintaining with mixed practice in ${topic}`;
               })
               .slice(0, 3);
 
@@ -810,15 +901,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ? nextFocusByTopic.join(" | ")
               : "Maintaining with mixed practice in current topics";
 
+            const strongerSkillsNarrative = improvedTopics.length > 0
+              ? `The student strengthened ${improvedTopics.length} topic(s) this month (${improvedTopics.slice(0, 3).join(", ")}). Average session score this month: ${avgScore}/100.`
+              : regressedTopics.length > 0 && heldTopics.length === 0
+              ? `No level gains this month. The student regressed in ${regressedTopics.slice(0, 3).join(", ")}. Average session score this month: ${avgScore}/100.`
+              : regressedTopics.length > 0
+              ? `This month was mixed: improved in ${improvedTopics.length} topic(s), regressed in ${regressedTopics.length}, and held in ${heldTopics.length}. Average session score this month: ${avgScore}/100.`
+              : `No level increase this month. The student maintained the same level across current topics. Average session score this month: ${avgScore}/100.`;
+
+            const recurringChallengeNarrative = regressedTopics.length > 0
+              ? `The main recurring challenge this month was regression in ${regressedTopics.slice(0, 2).join(", ")}${breakdownSignal ? ` with ${breakdownSignal}` : ""}.`
+              : `The main recurring challenge this month was ${breakdownSignal}.`;
+
             return {
               version: "monthly-v2-auto",
               monthStartDate: new Date(startDate).toISOString().slice(0, 10),
               monthEndDate: new Date(endDate).toISOString().slice(0, 10),
               totalSessionsCompletedThisMonth: sorted.length,
               mainAreasCoveredThisMonth: `This month focused on: ${topics.join(", ")}.`,
-              strongerSkillsThisMonth: `The student has improved in ${improvementSignal}. Average session score this month: ${avgScore}/100.`,
+              strongerSkillsThisMonth: strongerSkillsNarrative,
               responsePatternTrendThisMonth: `Across the month, the student typically showed: ${Array.from(new Set(behaviorSignals)).slice(0, 2).join("; ") || dominantBehavior}.`,
-              recurringChallengeThisMonth: `The main recurring challenge this month was ${breakdownSignal}.`,
+              recurringChallengeThisMonth: recurringChallengeNarrative,
               mostEffectiveInterventionThisMonth: `Over the month: ${monthlyStateSummaryByTopic.join(" | ") || "Current topics: Clarity (Low) -> Clarity (Low)."}`,
               bossBattleTrendThisMonth: topicProgression,
               nextMonthPriority: `Next month will focus on: ${nextFocus}.`,
