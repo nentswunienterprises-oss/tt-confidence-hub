@@ -968,6 +968,7 @@ export default function StudentTopicConditioningDialog({
   const [activeTab, setActiveTab] = useState("dashboard");
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
   const [showFullSelectedTimeline, setShowFullSelectedTimeline] = useState(false);
+  const [expandedPhaseDefinitions, setExpandedPhaseDefinitions] = useState<Set<PhaseLabel>>(new Set());
 
   useEffect(() => {
     if (topics.length === 0) return;
@@ -987,6 +988,7 @@ export default function StudentTopicConditioningDialog({
     // Set phase and stability fields to match first topic
     setPhaseObservedField(topics[0]?.phase || normalizePhase(topicConditioning?.entry_phase));
     setStabilityObservedField(topics[0]?.stability || normalizeStability(topicConditioning?.stability));
+    setExpandedPhaseDefinitions(new Set());
   }, [open, topics, parentTopics, topicConditioning]);
 
   // When selectedTopic changes (Map tab), sync phase and stability fields
@@ -1493,22 +1495,46 @@ export default function StudentTopicConditioningDialog({
                   // Split the definition into Description, Tool, Question
                   const [desc, tool, question] = phaseDefinition[phase].split(/\n\n/);
                   const phaseNumber = PHASES.indexOf(phase) + 1;
+                  const isPhaseExpanded = expandedPhaseDefinitions.has(phase);
                   return (
                     <div key={phase} className="rounded-md border p-3 flex flex-col items-start gap-2 bg-muted/10">
-                      <p className="font-medium text-sm mb-1">{phaseNumber}. {phase}</p>
+                      <div className="w-full flex items-center justify-between gap-2">
+                        <p className="font-medium text-sm">{phaseNumber}. {phase}</p>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-xs"
+                          onClick={() =>
+                            setExpandedPhaseDefinitions((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(phase)) next.delete(phase);
+                              else next.add(phase);
+                              return next;
+                            })
+                          }
+                        >
+                          {isPhaseExpanded ? "Collapse" : "Expand"}
+                          <ChevronDown className={`w-3.5 h-3.5 ml-1 transition-transform ${isPhaseExpanded ? "rotate-180" : ""}`} />
+                        </Button>
+                      </div>
                       <div className="w-full flex flex-col gap-2">
                         <div className="bg-background rounded px-2 py-1 border border-primary/10">
                           <span className="font-semibold text-foreground text-xs">Description:</span>
                           <span className="ml-1 text-muted-foreground text-[11px]">{desc?.replace('Description: ', '')}</span>
                         </div>
-                        <div className="bg-background rounded px-2 py-1 border border-primary/10">
-                          <span className="font-semibold text-foreground text-xs">Tool:</span>
-                          <span className="ml-1 text-muted-foreground text-[11px]">{tool?.replace('Tool: ', '')}</span>
-                        </div>
-                        <div className="bg-background rounded px-2 py-1 border border-primary/10">
-                          <span className="font-semibold text-foreground text-xs">Question:</span>
-                          <span className="ml-1 text-muted-foreground text-[11px]">{question?.replace('Question: ', '')}</span>
-                        </div>
+                        {isPhaseExpanded && (
+                          <>
+                            <div className="bg-background rounded px-2 py-1 border border-primary/10">
+                              <span className="font-semibold text-foreground text-xs">Tool:</span>
+                              <span className="ml-1 text-muted-foreground text-[11px]">{tool?.replace('Tool: ', '')}</span>
+                            </div>
+                            <div className="bg-background rounded px-2 py-1 border border-primary/10">
+                              <span className="font-semibold text-foreground text-xs">Question:</span>
+                              <span className="ml-1 text-muted-foreground text-[11px]">{question?.replace('Question: ', '')}</span>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   );
