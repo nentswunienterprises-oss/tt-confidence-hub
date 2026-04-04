@@ -772,9 +772,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const regressedTopics = topicMovements.filter((entry) => entry.trend === "regressed").map((entry) => entry.topic);
             const heldTopics = topicMovements.filter((entry) => entry.trend === "held").map((entry) => entry.topic);
 
-            const movementLines = topicMovements.map(({ topic, snapshot }) => {
-              return `The student moved from ${formatState(snapshot.start)} to ${formatState(snapshot.current)} in ${topic}.`;
-            });
+            const movementLines = topicMovements
+              .filter(({ trend }) => trend !== "held")
+              .map(({ topic, snapshot }) => {
+                return `The student moved from ${formatState(snapshot.start)} to ${formatState(snapshot.current)} in ${topic}.`;
+              });
 
             const weeklyImprovementNarrative = improvedTopics.length > 0 && regressedTopics.length > 0
               ? `This week was mixed: improved in ${naturalJoin(improvedTopics.slice(0, 3))}, with regression in ${naturalJoin(regressedTopics.slice(0, 3))}.`
@@ -787,7 +789,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const weeklyChallengeNarrative = regressedTopics.length > 0
               ? `The main challenge this week was level regression in ${regressedTopics.slice(0, 2).join(", ")}${breakdownSignal ? ` with ${breakdownSignal}` : ""}.`
               : breakdownSignal === "no recurring breakdown signal detected"
-              ? "No major recurring breakdown signal was detected this week."
+              ? "No recurring breakdown signal was detected this week."
               : `The main challenge this week was ${breakdownSignal}.`;
 
             const weeklyBreakdownClause = breakdownSignal === "no recurring breakdown signal detected"
@@ -829,7 +831,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               whatImprovedThisWeek: weeklyImprovementNarrative,
               studentResponsePatternThisWeek: weeklyResponsePatternNarrative,
               mainMisunderstandingThisWeek: weeklyChallengeNarrative,
-              mainCorrectionHelpedThisWeek: `Topic Movement Summary: ${movementLines.slice(0, 4).join(" ") || "The student remained in phase."} ${weeklyVolatilityLine}`,
+              mainCorrectionHelpedThisWeek: `${movementLines.slice(0, 4).join(" ") || "The student remained in phase."} ${weeklyVolatilityLine}`,
               bossBattleSummaryThisWeek: conditioningProgress,
               reinforcementNextWeek: `Next week will focus on: ${nextFocus}.`,
               internalWeeklyTutorNote: "",
@@ -965,8 +967,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             const monthlyStateSummaryByTopic = Object.entries(topicSnapshots)
               .map(([topic, snapshot]) => {
+                const movement = topicMovements.find((m) => m.topic === topic);
+                if (movement?.trend === "held") return null;
                 return `The student moved from ${formatState(snapshot.start)} to ${formatState(snapshot.current)} in ${topic}.`;
               })
+              .filter((line): line is string => line !== null)
               .slice(0, 4);
 
             const nextFocusByTopic = topics
@@ -996,7 +1001,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const recurringChallengeNarrative = regressedTopics.length > 0
               ? `The main recurring challenge this month was regression in ${regressedTopics.slice(0, 2).join(", ")}${breakdownSignal ? ` with ${breakdownSignal}` : ""}.`
               : breakdownSignal === "no recurring breakdown signal detected"
-              ? "No major recurring breakdown signal was detected this month."
+              ? "No recurring breakdown signal was detected this month."
               : `The main recurring challenge this month was ${breakdownSignal}.`;
 
             const monthlyBreakdownClause = breakdownSignal === "no recurring breakdown signal detected"
@@ -1025,7 +1030,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               strongerSkillsThisMonth: strongerSkillsNarrative,
               responsePatternTrendThisMonth: monthlyResponsePatternNarrative,
               recurringChallengeThisMonth: recurringChallengeNarrative,
-              mostEffectiveInterventionThisMonth: `Topic Movement Summary: ${monthlyStateSummaryByTopic.join(" ") || "Current topics remained stable."} ${monthlyVolatilityLine}`,
+              mostEffectiveInterventionThisMonth: `${monthlyStateSummaryByTopic.join(" ") || "Current topics remained stable."} ${monthlyVolatilityLine}`,
               bossBattleTrendThisMonth: topicProgression,
               nextMonthPriority: `Next month will focus on: ${nextFocus}.`,
               internalMonthlyTutorNote: "",
