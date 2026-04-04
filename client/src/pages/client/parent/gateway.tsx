@@ -80,14 +80,20 @@ export default function ParentGateway() {
     refetchInterval: 10000,
   });
 
-  // Fetch intro session confirmation if status is assigned or awaiting_assignment
+  // Fetch intro session confirmation if status is assigned, awaiting assignment, or awaiting tutor acceptance
   const {
     data: introSessionConfirmation,
     refetch: refetchIntroSessionConfirmation,
   } = useQuery<any>({
     queryKey: ["/api/parent/intro-session-confirmation"],
     queryFn: getQueryFn({ on401: "returnNull" }),
-    enabled: !!user && (enrollmentStatus?.status === "assigned" || enrollmentStatus?.status === "awaiting_assignment"),
+    enabled:
+      !!user &&
+      (
+        enrollmentStatus?.status === "assigned" ||
+        enrollmentStatus?.status === "awaiting_assignment" ||
+        enrollmentStatus?.status === "awaiting_tutor_acceptance"
+      ),
     staleTime: 0,
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
@@ -1021,8 +1027,7 @@ export default function ParentGateway() {
                           : "Adjust your introductory session schedule"}
                       </p>
                       <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
-                        {/* Only show the trigger button for not_scheduled, for pending_parent_confirmation the Adjust button is elsewhere */}
-                        {introSessionConfirmation?.status === "not_scheduled" && (
+                        {(introSessionConfirmation?.status === "not_scheduled" || introSessionConfirmation?.status === "pending_parent_confirmation") && (
                           <DialogTrigger asChild>
                             <Button
                               style={{ backgroundColor: '#E63946', color: 'white' }}
@@ -1030,7 +1035,9 @@ export default function ParentGateway() {
                               disabled={isSubmittingSession || justBooked}
                               title={undefined}
                             >
-                              Book Introductory Session
+                              {introSessionConfirmation?.status === "not_scheduled"
+                                ? "Book Introductory Session"
+                                : "Adjust Schedule"}
                             </Button>
                           </DialogTrigger>
                         )}
