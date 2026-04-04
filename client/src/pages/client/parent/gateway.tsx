@@ -1019,24 +1019,16 @@ export default function ParentGateway() {
                     </div>
                   )}
 
-                  {/* Show booking dialog for assigned / not_scheduled and pending_parent_confirmation */}
-                  {(
-                    (!introSessionConfirmation && enrollmentStatus.status === "assigned") ||
-                    introSessionConfirmation?.status === "not_scheduled" ||
-                    introSessionConfirmation?.status === "pending_parent_confirmation"
-                  ) && (
+                  {/* Show booking dialog for not_scheduled and pending_parent_confirmation */}
+                  {(introSessionConfirmation?.status === "not_scheduled" || introSessionConfirmation?.status === "pending_parent_confirmation") && (
                     <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                       <p className="font-medium mb-4 text-red-900">
-                        {(!introSessionConfirmation && enrollmentStatus.status === "assigned") || introSessionConfirmation?.status === "not_scheduled"
+                        {introSessionConfirmation?.status === "not_scheduled"
                           ? "Schedule your introductory session"
                           : "Adjust your introductory session schedule"}
                       </p>
                       <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
-                        {(
-                          (!introSessionConfirmation && enrollmentStatus.status === "assigned") ||
-                          introSessionConfirmation?.status === "not_scheduled" ||
-                          introSessionConfirmation?.status === "pending_parent_confirmation"
-                        ) && (
+                        {(introSessionConfirmation?.status === "not_scheduled" || introSessionConfirmation?.status === "pending_parent_confirmation") && (
                           <DialogTrigger asChild>
                             <Button
                               style={{ backgroundColor: '#E63946', color: 'white' }}
@@ -1044,7 +1036,7 @@ export default function ParentGateway() {
                               disabled={isSubmittingSession || justBooked}
                               title={undefined}
                             >
-                              {(!introSessionConfirmation && enrollmentStatus.status === "assigned") || introSessionConfirmation?.status === "not_scheduled"
+                              {introSessionConfirmation?.status === "not_scheduled"
                                 ? "Book Introductory Session"
                                 : "Adjust Schedule"}
                             </Button>
