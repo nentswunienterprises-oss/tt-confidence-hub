@@ -115,6 +115,16 @@ function getSessionDayLabel(value: string): string {
   return formatDate(sessionDate, true);
 }
 
+function getSessionTimeLabel(value: string): string {
+  const sessionDate = new Date(value);
+  if (Number.isNaN(sessionDate.getTime())) return "Time unavailable";
+  return sessionDate.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
 function FieldRow({ label, value }: { label: string; value?: string | null }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-[210px_1fr] gap-2 md:gap-3 text-sm">
@@ -229,6 +239,7 @@ export default function ViewTrackingSystemsDialog({
                               <div className="flex flex-col gap-1 min-w-0">
                                 <div className="flex flex-wrap items-center gap-2">
                                   <span className="font-medium">{getSessionDayLabel(session.date)}</span>
+                                  <span className="text-xs text-muted-foreground">{getSessionTimeLabel(session.date)}</span>
                                 </div>
                                 {getSessionPreview(session) && (
                                   <p className="text-sm text-muted-foreground line-clamp-2 pr-4">{getSessionPreview(session)}</p>
@@ -236,6 +247,7 @@ export default function ViewTrackingSystemsDialog({
                               </div>
                             </AccordionTrigger>
                             <AccordionContent className="space-y-3">
+                              <FieldRow label="Session Time" value={getSessionTimeLabel(session.date)} />
                               {session.deterministicLog ? (
                                 <div className="space-y-3 rounded-xl border border-primary/15 bg-background p-4">
                                   <FieldRow label="Session Summary" value={session.deterministicLog.summaryText || session.deterministicLog.topicFocus} />
