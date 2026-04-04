@@ -296,12 +296,14 @@ export default function TutorPod() {
 
   const { assignment, students } = podData;
   const totalSessions = students.reduce((sum: number, s: any) => sum + (s.sessionProgress || 0), 0);
+  const sessionsRemainingForStudent = (student: any) => {
+    const progressTotal = student.parentInfo?.onboarding_type === 'pilot' ? 9 : 8;
+    const completed = Math.max(0, Number(student.sessionProgress || 0));
+    const cycleProgress = completed > 0 ? (((completed - 1) % progressTotal) + 1) : 0;
+    return cycleProgress === 0 ? progressTotal : Math.max(0, progressTotal - cycleProgress);
+  };
   const remainingSessions = students.reduce((sum: number, s: any) => {
-    const progressTotal = s.parentInfo?.onboarding_type === 'pilot' ? 9 : 8;
-    return sum + Math.max(0, progressTotal - (s.sessionProgress || 0));
-  }, 0);
-  const maxSessions = students.reduce((sum: number, s: any) => {
-    return sum + (s.parentInfo?.onboarding_type === 'pilot' ? 9 : 8);
+    return sum + sessionsRemainingForStudent(s);
   }, 0);
   const studentsImpacted = students.filter((s: any) => s.sessionProgress > 0).length;
   const selectedStudent = (students as any[]).find((s: any) => s.id === selectedStudentId) || null;
