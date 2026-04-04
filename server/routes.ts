@@ -5563,15 +5563,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const { tutorId } = req.params;
         console.log("📚 COO requesting students for tutor:", tutorId);
+
+        let { data: assignedEnrollments } = await supabase
+          .from("parent_enrollments")
+          .select("id, user_id, student_full_name, assigned_student_id, status")
+          .eq("assigned_tutor_id", tutorId)
+          .in("status", ["assigned", "proposal_sent", "session_booked", "report_received", "confirmed"]);
+
+        // Backward-compatible fallback if assigned_student_id is missing in older DB variants
+        if (!assignedEnrollments) {
+          const fallback = await supabase
+            .from("parent_enrollments")
+            .select("id, user_id, student_full_name, status")
+            .eq("assigned_tutor_id", tutorId)
+            .in("status", ["assigned", "proposal_sent", "session_booked", "report_received", "confirmed"]);
+          assignedEnrollments = fallback.data as any;
+        }
+
         const students = await hydrateStudentsWithSessionProgress(
           tutorId,
           await storage.getStudentsByTutor(tutorId)
         );
+
+        const assignedEnrollmentByStudentId = new Set(
+          (assignedEnrollments || [])
+            .map((e: any) => e.assigned_student_id)
+            .filter((v: any) => !!v)
+            .map((v: any) => String(v))
+        );
+        const assignedEnrollmentByParentId = new Set(
+          (assignedEnrollments || [])
+            .map((e: any) => e.user_id)
+            .filter((v: any) => !!v)
+            .map((v: any) => String(v))
+        );
+        const assignedEnrollmentByStudentName = new Set(
+          (assignedEnrollments || [])
+            .map((e: any) => e.student_full_name)
+            .filter((v: any) => !!v)
+            .map((v: any) => String(v).trim().toLowerCase())
+        );
+
+        const activeStudents = students.filter((student: any) => {
+          const studentId = String(student.id || "");
+          const parentId = String((student as any).parentId || "");
+          const studentName = String(student.name || "").trim().toLowerCase();
+
+          return (
+            assignedEnrollmentByStudentId.has(studentId) ||
+            (!!parentId && assignedEnrollmentByParentId.has(parentId)) ||
+            (!!studentName && assignedEnrollmentByStudentName.has(studentName))
+          );
+        });
+
         console.log(
           "📚 Found students:",
-          students.map((s) => ({ id: s.id, name: s.name, sessionProgress: s.sessionProgress }))
+          activeStudents.map((s) => ({ id: s.id, name: s.name, sessionProgress: s.sessionProgress }))
         );
-        res.json(students);
+        res.json(activeStudents);
       } catch (error) {
         console.error("Error fetching tutor students:", error);
         res.status(500).json({ message: "Failed to fetch tutor students" });
