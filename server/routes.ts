@@ -1211,7 +1211,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 set: row.set,
                 rep: row.rep,
                 score: row.repScore,
-                sessionScore: row.repScore,
+                sessionScore: diagnosisSummary.diagnosisScore,
                 phase: diagnosisSummary.phase,
                 stability: diagnosisSummary.stability,
                 nextAction: diagnosisSummary.nextAction,
