@@ -967,7 +967,7 @@ export default function StudentTopicConditioningDialog({
   const [interventionUsed, setInterventionUsed] = useState("");
   const [activeTab, setActiveTab] = useState("dashboard");
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
-  const [expandedTimelines, setExpandedTimelines] = useState<Set<string>>(new Set());
+  const [selectedTimelineExpanded, setSelectedTimelineExpanded] = useState(false);
 
   useEffect(() => {
     if (topics.length === 0) return;
@@ -997,6 +997,10 @@ export default function StudentTopicConditioningDialog({
       setStabilityObservedField(found.stability);
     }
   }, [selectedTopic, topics]);
+
+  useEffect(() => {
+    setSelectedTimelineExpanded(false);
+  }, [selectedTopic]);
 
   // When activeTopicField changes (Topic Management tab), sync phase and stability fields
   useEffect(() => {
@@ -1061,6 +1065,11 @@ export default function StudentTopicConditioningDialog({
   const prepPlan = selectedRow
     ? tutorPrepPlanFor(selectedRow.phase, selectedRow.stability, hasObservedSelection)
     : null;
+  const selectedTimelineEntries = selectedRow?.timeline || [];
+  const selectedVisibleTimeline = selectedTimelineExpanded
+    ? selectedTimelineEntries
+    : selectedTimelineEntries.slice(-6);
+  const selectedHiddenTimelineCount = Math.max(0, selectedTimelineEntries.length - selectedVisibleTimeline.length);
 
   // Always use selectedRow for observedPhase and previousStability, fallback to safe defaults
   const observedPhase = (selectedRow && selectedRow.phase ? selectedRow.phase : "Clarity") as PhaseLabel;
@@ -1163,18 +1172,6 @@ export default function StudentTopicConditioningDialog({
     });
   };
 
-  const toggleTimelineExpanded = (topic: string) => {
-    setExpandedTimelines((prev) => {
-      const next = new Set(prev);
-      if (next.has(topic)) {
-        next.delete(topic);
-      } else {
-        next.add(topic);
-      }
-      return next;
-    });
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100vw-0.5rem)] sm:w-full sm:max-w-7xl max-h-[92vh] overflow-y-auto overflow-x-hidden rounded-2xl border border-primary/15 bg-background p-2 shadow-sm sm:p-6">
@@ -1211,12 +1208,9 @@ export default function StudentTopicConditioningDialog({
                     const topicIntel = interpretTopicState(row.phase, row.stability, row.trend);
                     const rowPrepPlan = tutorPrepPlanFor(row.phase, row.stability, row.hasObservedState);
                     const isExpanded = expandedTopics.has(row.topic);
-                    const isTimelineExpanded = expandedTimelines.has(row.topic);
                     const phaseLabel = row.hasObservedState ? row.phase : "Unknown";
                     const stabilityLabel = row.hasObservedState ? row.stability : "Unknown";
                     const timelineEntries = row.timeline || [];
-                    const visibleTimeline = isTimelineExpanded ? timelineEntries : timelineEntries.slice(-6);
-                    const hiddenTimelineCount = Math.max(0, timelineEntries.length - visibleTimeline.length);
                     return (
                       <div
                         key={`topic-card-${row.topic}`}
@@ -1287,7 +1281,7 @@ export default function StudentTopicConditioningDialog({
                           {timelineEntries.length > 0 ? (
                             <div className="space-y-2">
                               <div className="flex flex-wrap gap-1.5">
-                              {visibleTimeline.map((point) => (
+                              {timelineEntries.map((point) => (
                                 <span
                                   key={`${row.topic}-${point.date}-${point.phase}`}
                                   className="rounded-md border border-border/60 bg-muted/20 px-2 py-0.5 text-[11px] text-muted-foreground"
@@ -1296,19 +1290,6 @@ export default function StudentTopicConditioningDialog({
                                 </span>
                               ))}
                               </div>
-                              {timelineEntries.length > 6 ? (
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-7 px-2 text-xs"
-                                  onClick={() => toggleTimelineExpanded(row.topic)}
-                                >
-                                  {isTimelineExpanded
-                                    ? "Show latest 6"
-                                    : `Show older ${hiddenTimelineCount}`}
-                                </Button>
-                              ) : null}
                             </div>
                           ) : (
                             <p className="text-xs text-muted-foreground">No timeline events yet.</p>
@@ -1589,13 +1570,26 @@ export default function StudentTopicConditioningDialog({
                 <div className="space-y-2">
                   <p className="font-medium text-sm">Topic Progress Timeline</p>
                   <div className="rounded-md border p-2 space-y-2">
-                    {(selectedRow.timeline || []).map((point) => (
+                    {selectedVisibleTimeline.map((point) => (
                       <div key={`${point.date}-${point.phase}`} className="rounded-md border bg-muted/20 px-3 py-2 text-sm">
                         <p><span className="font-medium">Date:</span> {point.date}</p>
                         <p><span className="font-medium">Phase:</span> {point.phase}</p>
                         <p><span className="font-medium">Stability:</span> {point.stability}</p>
                       </div>
                     ))}
+                    {selectedTimelineEntries.length > 6 ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs"
+                        onClick={() => setSelectedTimelineExpanded((prev) => !prev)}
+                      >
+                        {selectedTimelineExpanded
+                          ? "Show latest 6"
+                          : `Show older ${selectedHiddenTimelineCount}`}
+                      </Button>
+                    ) : null}
                   </div>
                 </div>
               </Card>
