@@ -25,7 +25,7 @@ export const STABILITY_THRESHOLDS = {
 export const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, NextActionData>> = {
   Clarity: {
     Low: {
-      primaryAction: "Reinforce Vocabulary, Method & Reason (3 Layer Lens)",
+      primaryAction: "Run Clarity drill",
       rules: ["No Boss Battles", "No time pressure", "No skipping layers"],
       nextActions: [
         "Reinforce Vocabulary, Method & Reason (3 Layer Lens)",
@@ -36,7 +36,7 @@ export const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, NextA
       ],
     },
     Medium: {
-      primaryAction: "Continue 3-Layer Lens",
+      primaryAction: "Run Clarity drill",
       rules: ["No Boss Battles as primary", "No time pressure", "Reduce explanation, increase execution"],
       nextActions: [
         "Continue 3-Layer Lens",
@@ -45,7 +45,7 @@ export const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, NextA
       ],
     },
     High: {
-      primaryAction: "Run High Maintenance check in Clarity",
+      primaryAction: "Run Clarity High Maintenance drill",
       rules: ["Do NOT phase advance yet", "Prove repeatable stability first"],
       nextActions: [
         "Run High Maintenance check in Clarity",
@@ -55,7 +55,7 @@ export const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, NextA
       ],
     },
     "High Maintenance": {
-      primaryAction: "Transition to Structured Execution",
+      primaryAction: "Run Structured Execution drill",
       rules: ["Do NOT stay in teaching mode", "Move forward"],
       nextActions: [
         "Transition to Structured Execution",
@@ -67,7 +67,7 @@ export const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, NextA
   },
   "Structured Execution": {
     Low: {
-      primaryAction: "Run strict Model -> Apply -> Guide loops",
+      primaryAction: "Run Structured Execution drill",
       rules: ["No time pressure", "Boss Battles only if student can start", "No over-explaining"],
       nextActions: [
         "Run strict Model -> Apply -> Guide loops",
@@ -77,7 +77,7 @@ export const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, NextA
       ],
     },
     Medium: {
-      primaryAction: "Increase independent problem volume",
+      primaryAction: "Run Structured Execution drill",
       rules: ["Do not rush to time pressure", "Still reinforce structure every time"],
       nextActions: [
         "Increase independent problem volume",
@@ -87,7 +87,7 @@ export const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, NextA
       ],
     },
     High: {
-      primaryAction: "Run High Maintenance check in Structured Execution",
+      primaryAction: "Run Structured Execution High Maintenance drill",
       rules: ["Do NOT phase advance yet", "Prove repeatable stability first"],
       nextActions: [
         "Run High Maintenance check in Structured Execution",
@@ -96,7 +96,7 @@ export const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, NextA
       ],
     },
     "High Maintenance": {
-      primaryAction: "Transition to Controlled Discomfort",
+      primaryAction: "Run Controlled Discomfort drill",
       rules: ["Do NOT keep repeating basic problems", "Move forward"],
       nextActions: [
         "Transition to Controlled Discomfort",
@@ -108,7 +108,7 @@ export const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, NextA
   },
   "Controlled Discomfort": {
     Low: {
-      primaryAction: "Introduce Boss Battles carefully",
+      primaryAction: "Run Controlled Discomfort drill",
       rules: ["No rescuing", "No full explanations mid-struggle", "No time pressure yet"],
       nextActions: [
         "Introduce Boss Battles carefully",
@@ -118,7 +118,7 @@ export const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, NextA
       ],
     },
     Medium: {
-      primaryAction: "Increase frequency of Boss Battles",
+      primaryAction: "Run Controlled Discomfort drill",
       rules: ["Do not remove difficulty", "Do not over-guide"],
       nextActions: [
         "Increase frequency of Boss Battles",
@@ -128,7 +128,7 @@ export const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, NextA
       ],
     },
     High: {
-      primaryAction: "Run High Maintenance check in Controlled Discomfort",
+      primaryAction: "Run Controlled Discomfort High Maintenance drill",
       rules: ["Do NOT phase advance yet", "Prove repeatable stability first"],
       nextActions: [
         "Run High Maintenance check in Controlled Discomfort",
@@ -137,7 +137,7 @@ export const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, NextA
       ],
     },
     "High Maintenance": {
-      primaryAction: "Transition to Time Pressure Stability",
+      primaryAction: "Run Time Pressure Stability drill",
       rules: ["Do NOT stay in comfort zone", "Move forward"],
       nextActions: [
         "Transition to Time Pressure Stability",
@@ -149,7 +149,7 @@ export const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, NextA
   },
   "Time Pressure Stability": {
     Low: {
-      primaryAction: "Introduce short timed problems",
+      primaryAction: "Run Time Pressure Stability drill",
       rules: ["Do not push speed", "Do not increase time pressure aggressively"],
       nextActions: [
         "Introduce short timed problems",
@@ -159,7 +159,7 @@ export const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, NextA
       ],
     },
     Medium: {
-      primaryAction: "Increase timed repetitions",
+      primaryAction: "Run Time Pressure Stability drill",
       rules: ["Do not sacrifice structure for speed", "Maintain method discipline"],
       nextActions: [
         "Increase timed repetitions",
@@ -168,7 +168,7 @@ export const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, NextA
       ],
     },
     High: {
-      primaryAction: "Run High Maintenance check under time pressure",
+      primaryAction: "Run Time Pressure Stability High Maintenance drill",
       rules: ["Do NOT declare transfer yet", "Confirm sustained stability first"],
       nextActions: [
         "Run High Maintenance check under time pressure",
@@ -177,7 +177,7 @@ export const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, NextA
       ],
     },
     "High Maintenance": {
-      primaryAction: "Maintain with mixed practice",
+      primaryAction: "Run Time Pressure Stability maintenance drill",
       rules: ["Do not over-train same pattern", "Begin cross-topic conditioning"],
       nextActions: [
         "Maintain with mixed practice",

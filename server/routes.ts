@@ -331,7 +331,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const computeTrainingSessionSummary = (
             observedPhase: "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability",
             previousStability: "Low" | "Medium" | "High" | "High Maintenance",
-            sets: Array<{ setName: string; observations: Array<Record<string, string>> }>
+            sets: Array<{ setName: string; observations: Array<Record<string, string>> }>,
+            priorConsecutiveLows = 0
           ) => {
             const phaseWeights = INTRO_PHASE_WEIGHTS[observedPhase];
             const repRows: Array<{ set: string; rep: number; repScore: number }> = [];
@@ -455,15 +456,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             const nextActionConfig = (NEXT_ACTION_ENGINE as any)?.[observedPhase]?.[projectedStability] || null;
             const canProgressPhase = previousStability === "High Maintenance" && advanceReady;
+            const lowStreakAfterSession = projectedStability === "Low"
+              ? priorConsecutiveLows + 1
+              : 0;
+            const observedPhaseIndex = PHASES.indexOf(observedPhase as any);
+            const regressedPhase = observedPhaseIndex > 0
+              ? (PHASES[observedPhaseIndex - 1] as any)
+              : observedPhase;
+            const shouldRegressPhase = lowStreakAfterSession >= 3 && observedPhase !== "Clarity";
+
             const projectedPhase = canProgressPhase && nextActionConfig?.advanceTo
               ? nextActionConfig.advanceTo
+              : shouldRegressPhase
+              ? regressedPhase
               : observedPhase;
 
             const stabilityScore = (value: "Low" | "Medium" | "High" | "High Maintenance") =>
               value === "Low" ? 1 : value === "Medium" ? 2 : value === "High" ? 3 : 4;
             const phaseDecision: "remain" | "advance" | "regress" =
               projectedPhase !== observedPhase
-                ? "advance"
+                ? (shouldRegressPhase ? "regress" : "advance")
                 : stabilityScore(projectedStability) < stabilityScore(previousStability)
                 ? "regress"
                 : "remain";
@@ -482,6 +494,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               repRows,
               setScores,
               highGuardPasses,
+              lowStreakAfterSession,
             };
           };
 
@@ -1283,11 +1296,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 existing?.stability || rawPreviousStability || "Low"
               );
               const effectivePhase = normalizePhase(existing?.phase || observedPhase);
+              const existingHistory = Array.isArray(existing.history) ? [...existing.history] : [];
+              let priorConsecutiveLows = 0;
+              if (existingHistory.length > 0) {
+                for (let idx = existingHistory.length - 1; idx >= 0; idx -= 1) {
+                  const entryStability = normalizeStability(existingHistory[idx]?.stability || "");
+                  if (entryStability === "Low") {
+                    priorConsecutiveLows += 1;
+                  } else {
+                    break;
+                  }
+                }
+              } else if (previousStability === "Low") {
+                priorConsecutiveLows = 1;
+              }
 
               const trainingSummary = computeTrainingSessionSummary(
                 effectivePhase,
                 previousStability,
-                drillSets
+                drillSets,
+                priorConsecutiveLows
               );
 
               const id = uuidv4();
@@ -1316,7 +1344,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
 
               const nowIso = new Date().toISOString();
-              const existingHistory = Array.isArray(existing.history) ? [...existing.history] : [];
               const updatedEntry = {
                 ...existing,
                 topic: normalizedTopic,
