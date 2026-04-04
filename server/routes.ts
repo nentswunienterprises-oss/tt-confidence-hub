@@ -811,7 +811,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 : `During this week, the student typically had: ${weeklySignalsText}. These patterns supported level gains in ${improvedTopics.slice(0, 2).join(", ")}.`
               : `During this week, the student typically had: ${weeklySignalsText}. Performance remained stable with no level change.`;
 
-            const weeklyVolatilityLine = `Intra-week volatility: ${upshiftCount} upshift(s), ${downshiftCount} downshift(s), ${heldCount} held session(s).`;
+            const weeklyVolatilityLine = `Intra-week volatility: ${upshiftCount} ${upshiftCount === 1 ? "upshift" : "upshifts"}, ${downshiftCount} ${downshiftCount === 1 ? "downshift" : "downshifts"}, ${heldCount} ${heldCount === 1 ? "held session" : "held sessions"}.`;
 
             const conditioningProgress = Object.entries(topicSnapshots)
               .map(([topic, snapshot]) => `${topic}\nStarted: ${formatState(snapshot.start)}\nCurrent: ${formatState(snapshot.current)}`)
@@ -998,13 +998,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
               : "Maintaining with mixed practice in current topics";
 
             const strongerSkillsNarrative = improvedTopics.length > 0 && regressedTopics.length > 0
-              ? `This month was mixed: improved in ${improvedTopics.length} topic(s) (${naturalJoin(improvedTopics.slice(0, 3))}), regressed in ${regressedTopics.length}, and held in ${heldTopics.length}. Average session score this month: ${avgScore}/100.`
+              ? `This month was mixed: improved in ${improvedTopics.length} ${improvedTopics.length === 1 ? "topic" : "topics"} (${naturalJoin(improvedTopics.slice(0, 3))}), regressed in ${regressedTopics.length}, and held in ${heldTopics.length}. Average session score this month: ${avgScore}/100.`
               : improvedTopics.length > 0
-              ? `The student strengthened ${improvedTopics.length} topic(s) this month (${improvedTopics.slice(0, 3).join(", ")}). Average session score this month: ${avgScore}/100.`
+              ? `The student strengthened ${improvedTopics.length} ${improvedTopics.length === 1 ? "topic" : "topics"} this month (${improvedTopics.slice(0, 3).join(", ")}). Average session score this month: ${avgScore}/100.`
               : regressedTopics.length > 0 && heldTopics.length === 0
               ? `No level gains this month. The student regressed in ${regressedTopics.slice(0, 3).join(", ")}. Average session score this month: ${avgScore}/100.`
               : regressedTopics.length > 0
-              ? `This month showed pressure points: regression in ${regressedTopics.length} topic(s) and stability in ${heldTopics.length}. Average session score this month: ${avgScore}/100.`
+              ? `This month showed pressure points: regression in ${regressedTopics.length} ${regressedTopics.length === 1 ? "topic" : "topics"} and stability in ${heldTopics.length}. Average session score this month: ${avgScore}/100.`
               : `No level increase this month. The student maintained the same level across current topics. Average session score this month: ${avgScore}/100.`;
 
             const recurringChallengeNarrative = regressedTopics.length > 0
@@ -1028,7 +1028,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 : `Across the month, the student typically showed: ${monthlySignalsText}. These patterns supported level gains in ${improvedTopics.slice(0, 2).join(", ")}.`
               : `Across the month, the student typically showed: ${monthlySignalsText}. Performance remained stable with no level gain.`;
 
-            const monthlyVolatilityLine = `Intra-month volatility: ${upshiftCount} upshift(s), ${downshiftCount} downshift(s), ${heldCount} held session(s).`;
+            const monthlyVolatilityLine = `Intra-month volatility: ${upshiftCount} ${upshiftCount === 1 ? "upshift" : "upshifts"}, ${downshiftCount} ${downshiftCount === 1 ? "downshift" : "downshifts"}, ${heldCount} ${heldCount === 1 ? "held session" : "held sessions"}.`;
 
             return {
               version: "monthly-v2-auto",
