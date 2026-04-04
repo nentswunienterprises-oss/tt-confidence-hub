@@ -663,10 +663,6 @@ export default function ExecutiveHRTraffic() {
               <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-muted-foreground" />
               <p className="text-muted-foreground">Loading enrollments...</p>
             </Card>
-          ) : enrollments.length === 0 ? (
-            <Card className="p-12 text-center">
-              <p className="text-muted-foreground text-lg">No enrollments yet</p>
-            </Card>
           ) : (
             <Tabs value={parentSubTab} onValueChange={setParentSubTab} className="w-full">
               <TabsList className="flex w-full overflow-x-auto h-auto rounded-xl border border-primary/15 bg-muted/20 p-1 gap-1">
@@ -687,7 +683,9 @@ export default function ExecutiveHRTraffic() {
               <TabsContent value="awaiting" className="space-y-4 mt-4">
                 {awaitingAssignment.length === 0 ? (
                   <Card className="p-10 text-center">
-                    <p className="text-muted-foreground">No parents awaiting assignment.</p>
+                    <p className="text-muted-foreground">
+                      {enrollments.length === 0 ? "No enrollments yet." : "No parents awaiting assignment."}
+                    </p>
                   </Card>
                 ) : (
                   <div className="grid gap-4">

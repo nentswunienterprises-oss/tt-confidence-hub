@@ -6651,11 +6651,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["coo"]),
     async (req: Request, res: Response) => {
       try {
-        // Direct select with all enrollment fields - prefer direct query to avoid RPC/RLS mismatches
-        const { data, error } = await supabase
+        // Try full projection first; fall back if some optional columns are not present in older DBs.
+        let { data, error } = await supabase
           .from("parent_enrollments")
           .select("id, user_id, parent_full_name, parent_phone, parent_email, parent_city, student_full_name, student_grade, school_name, math_struggle_areas, previous_tutoring, confidence_level, internet_access, parent_motivation, status, current_step, assigned_tutor_id, assigned_student_id, created_at, updated_at")
           .order("created_at", { ascending: false });
+
+        if (error) {
+          const message = String((error as any)?.message || "").toLowerCase();
+          const missingOptionalColumn =
+            message.includes("assigned_student_id") ||
+            message.includes("current_step");
+
+          if (missingOptionalColumn) {
+            const fallback = await supabase
+              .from("parent_enrollments")
+              .select("id, user_id, parent_full_name, parent_phone, parent_email, parent_city, student_full_name, student_grade, school_name, math_struggle_areas, previous_tutoring, confidence_level, internet_access, parent_motivation, status, assigned_tutor_id, created_at, updated_at")
+              .order("created_at", { ascending: false });
+
+            data = fallback.data as any;
+            error = fallback.error as any;
+          }
+        }
 
         if (error) {
           console.error("Error selecting parent_enrollments:", error.message);
@@ -6828,11 +6845,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const { enrollmentId } = req.params;
 
-        const { data: enrollment, error: enrollmentError } = await supabase
+        let { data: enrollment, error: enrollmentError } = await supabase
           .from("parent_enrollments")
           .select("id, user_id, student_full_name, assigned_tutor_id, assigned_student_id, status")
           .eq("id", enrollmentId)
           .maybeSingle();
+
+        if (enrollmentError) {
+          const message = String((enrollmentError as any)?.message || "").toLowerCase();
+          if (message.includes("assigned_student_id")) {
+            const fallback = await supabase
+              .from("parent_enrollments")
+              .select("id, user_id, student_full_name, assigned_tutor_id, status")
+              .eq("id", enrollmentId)
+              .maybeSingle();
+            enrollment = fallback.data as any;
+            enrollmentError = fallback.error as any;
+          }
+        }
 
         if (enrollmentError) {
           return res.status(500).json({ message: "Failed to fetch enrollment" });
