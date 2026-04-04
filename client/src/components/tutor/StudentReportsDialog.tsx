@@ -41,6 +41,12 @@ function getSessionDayLabel(value: string): string {
   return format(sessionDate, "MMM d, yyyy");
 }
 
+function getSessionTimeLabel(value: string): string {
+  const sessionDate = new Date(value);
+  if (Number.isNaN(sessionDate.getTime())) return "Time unavailable";
+  return format(sessionDate, "h:mm a");
+}
+
 interface SessionRecord {
   id: string;
   date: string;
@@ -241,6 +247,7 @@ export default function StudentReportsDialog({
                             <div className="flex flex-col gap-1 min-w-0">
                               <div className="flex flex-wrap items-center gap-2">
                                 <span className="font-medium">{getSessionDayLabel(session.date)}</span>
+                                <span className="text-xs text-muted-foreground">{getSessionTimeLabel(session.date)}</span>
                               </div>
                               {getSessionPreview(session) && (
                                 <p className="text-sm text-muted-foreground line-clamp-2 pr-4">{getSessionPreview(session)}</p>
