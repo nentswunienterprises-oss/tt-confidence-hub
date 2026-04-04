@@ -2590,7 +2590,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from("parent_enrollments")
           .select("*")
           .eq("assigned_tutor_id", tutorId)
-          .in("status", ["assigned", "proposal_sent", "session_booked", "report_received", "confirmed"]);
+          .in("status", ["awaiting_tutor_acceptance", "assigned", "proposal_sent", "session_booked", "report_received", "confirmed"]);
         
         // For each enrollment, check if a student exists, if not create one
         if (assignedEnrollments && assignedEnrollments.length > 0) {
@@ -5543,7 +5543,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from("parent_enrollments")
           .select("id, user_id, student_full_name, assigned_student_id, status")
           .eq("assigned_tutor_id", tutorId)
-          .in("status", ["assigned", "proposal_sent", "session_booked", "report_received", "confirmed"]);
+          .in("status", ["awaiting_tutor_acceptance", "assigned", "proposal_sent", "session_booked", "report_received", "confirmed"]);
 
         // Backward-compatible fallback if assigned_student_id is missing in older DB variants
         if (!assignedEnrollments) {
@@ -5551,7 +5551,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .from("parent_enrollments")
             .select("id, user_id, student_full_name, status")
             .eq("assigned_tutor_id", tutorId)
-            .in("status", ["assigned", "proposal_sent", "session_booked", "report_received", "confirmed"]);
+            .in("status", ["awaiting_tutor_acceptance", "assigned", "proposal_sent", "session_booked", "report_received", "confirmed"]);
           assignedEnrollments = fallback.data as any;
         }
 
