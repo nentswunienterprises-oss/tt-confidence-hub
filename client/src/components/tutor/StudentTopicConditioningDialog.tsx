@@ -967,6 +967,7 @@ export default function StudentTopicConditioningDialog({
   const [interventionUsed, setInterventionUsed] = useState("");
   const [activeTab, setActiveTab] = useState("dashboard");
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
+  const [expandedTimelines, setExpandedTimelines] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (topics.length === 0) return;
@@ -1162,6 +1163,18 @@ export default function StudentTopicConditioningDialog({
     });
   };
 
+  const toggleTimelineExpanded = (topic: string) => {
+    setExpandedTimelines((prev) => {
+      const next = new Set(prev);
+      if (next.has(topic)) {
+        next.delete(topic);
+      } else {
+        next.add(topic);
+      }
+      return next;
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100vw-0.5rem)] sm:w-full sm:max-w-7xl max-h-[92vh] overflow-y-auto overflow-x-hidden rounded-2xl border border-primary/15 bg-background p-2 shadow-sm sm:p-6">
@@ -1198,8 +1211,12 @@ export default function StudentTopicConditioningDialog({
                     const topicIntel = interpretTopicState(row.phase, row.stability, row.trend);
                     const rowPrepPlan = tutorPrepPlanFor(row.phase, row.stability, row.hasObservedState);
                     const isExpanded = expandedTopics.has(row.topic);
+                    const isTimelineExpanded = expandedTimelines.has(row.topic);
                     const phaseLabel = row.hasObservedState ? row.phase : "Unknown";
                     const stabilityLabel = row.hasObservedState ? row.stability : "Unknown";
+                    const timelineEntries = row.timeline || [];
+                    const visibleTimeline = isTimelineExpanded ? timelineEntries : timelineEntries.slice(-6);
+                    const hiddenTimelineCount = Math.max(0, timelineEntries.length - visibleTimeline.length);
                     return (
                       <div
                         key={`topic-card-${row.topic}`}
@@ -1267,9 +1284,10 @@ export default function StudentTopicConditioningDialog({
 
                         <div className="space-y-1">
                           <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">State Progression Timeline</p>
-                          {(row.timeline || []).length > 0 ? (
-                            <div className="flex flex-wrap gap-1.5">
-                              {row.timeline.slice(-6).map((point) => (
+                          {timelineEntries.length > 0 ? (
+                            <div className="space-y-2">
+                              <div className="flex flex-wrap gap-1.5">
+                              {visibleTimeline.map((point) => (
                                 <span
                                   key={`${row.topic}-${point.date}-${point.phase}`}
                                   className="rounded-md border border-border/60 bg-muted/20 px-2 py-0.5 text-[11px] text-muted-foreground"
@@ -1277,6 +1295,20 @@ export default function StudentTopicConditioningDialog({
                                   {point.date} · {point.phase} · {point.stability}
                                 </span>
                               ))}
+                              </div>
+                              {timelineEntries.length > 6 ? (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 px-2 text-xs"
+                                  onClick={() => toggleTimelineExpanded(row.topic)}
+                                >
+                                  {isTimelineExpanded
+                                    ? "Show latest 6"
+                                    : `Show older ${hiddenTimelineCount}`}
+                                </Button>
+                              ) : null}
                             </div>
                           ) : (
                             <p className="text-xs text-muted-foreground">No timeline events yet.</p>
