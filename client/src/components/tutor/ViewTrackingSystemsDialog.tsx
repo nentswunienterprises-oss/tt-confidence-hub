@@ -134,7 +134,7 @@ function formatMovementSummary(value?: string | null): string {
     .replace(/^Across this week, the system:\s*/i, "")
     .trim();
 
-  const normalized = stripped.replace(/Intra-(week|month) volatility:/i, "||VOL||");
+  const normalized = stripped.replace(/- volatility:/i, "||VOL||");
   const [movementPart, volatilityPart] = normalized.split("||VOL||");
   const movementLines = (movementPart || "")
     .split("|")
