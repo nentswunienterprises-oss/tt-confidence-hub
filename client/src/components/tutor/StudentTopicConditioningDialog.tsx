@@ -1062,7 +1062,10 @@ export default function StudentTopicConditioningDialog({
   const prepPlan = selectedRow
     ? tutorPrepPlanFor(selectedRow.phase, selectedRow.stability, hasObservedSelection)
     : null;
-  const selectedTimeline = selectedRow?.timeline || [];
+  const selectedTimeline = (selectedRow?.timeline || []).map((point, index) => ({
+    ...point,
+    _renderKey: `${selectedRow?.topic || "topic"}-${point.date}-${point.phase}-${point.stability}-${index}`,
+  }));
   const hasOlderSelectedTimeline = selectedTimeline.length > 6;
   const selectedTimelineToRender = showFullSelectedTimeline ? selectedTimeline : selectedTimeline.slice(-6);
 
@@ -1561,9 +1564,12 @@ export default function StudentTopicConditioningDialog({
 
                 <div className="space-y-2">
                   <p className="font-medium text-sm">Topic Progress Timeline</p>
-                  <div className="rounded-md border p-2 space-y-2">
+                  <div
+                    key={`${selectedRow?.topic || "topic"}-${showFullSelectedTimeline ? "full" : "latest"}`}
+                    className="rounded-md border p-2 space-y-2"
+                  >
                     {selectedTimelineToRender.map((point) => (
-                      <div key={`${point.date}-${point.phase}`} className="rounded-md border bg-muted/20 px-3 py-2 text-sm">
+                      <div key={point._renderKey} className="rounded-md border bg-muted/20 px-3 py-2 text-sm">
                         <p><span className="font-medium">Date:</span> {point.date}</p>
                         <p><span className="font-medium">Phase:</span> {point.phase}</p>
                         <p><span className="font-medium">Stability:</span> {point.stability}</p>
