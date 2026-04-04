@@ -584,8 +584,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   behaviorSummary: `The student showed ${phaseDecision === "advance" ? "improved independence" : stability === "High" || stability === "High Maintenance" ? "stable execution" : stability === "Medium" ? "inconsistent execution" : "breakdown under pressure"} during the drill.`,
                 performanceResult: `Based on performance, stability is now ${stability} (${sessionScore}/100).`,
                 stateMovement:
-                  resultingPhase === normalizePhase(observedPhase)
-                    ? `The student moved from ${observedPhase} (${previousStability}) to ${resultingPhase} (${stability}).`
+                  resultingPhase === normalizePhase(observedPhase) && stability === previousStability
+                    ? `The student remained at ${resultingPhase} (${stability}).`
+                    : phaseDecision === "regress"
+                    ? `The student regressed from ${observedPhase} (${previousStability}) to ${resultingPhase} (${stability}).`
                     : `The student moved from ${observedPhase} (${previousStability}) to ${resultingPhase} (${stability}).`,
                 whatThisMeans: TUTOR_MEANING_BY_PHASE[resultingPhase],
                 nextMove: nextAction,
@@ -636,6 +638,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .slice(0, Math.max(1, limit))
               .map(([signal]) => signal);
           };
+
+          const naturalJoin = (items: string[]) => {
+            const clean = items.map((item) => String(item || "").trim()).filter(Boolean);
+            if (clean.length === 0) return "";
+            if (clean.length === 1) return clean[0];
+            if (clean.length === 2) return `${clean[0]} and ${clean[1]}`;
+            return `${clean.slice(0, -1).join(", ")}, and ${clean[clean.length - 1]}`;
+          };
+
+          const toGerundAction = (text: string) => String(text || "").replace(/^Run\s+/i, "Running ");
 
           const resolveParentIdForStudent = async (student: any, tutorId: string) => {
             let parentId = (student as any)?.parentId || (student as any)?.parent_id || null;
@@ -702,6 +714,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             let upshiftCount = 0;
             let downshiftCount = 0;
             let heldCount = 0;
+            const lastStateByTopic: Record<string, { phase: string; stability: string }> = {};
+            const lastStateByTopic: Record<string, { phase: string; stability: string }> = {};
 
             sorted.forEach((session) => {
               const log = session.deterministicLog;
@@ -724,14 +738,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
               if (log.nextMove) {
                 nextMoveByTopic[topic] = String(log.nextMove);
               }
-              const movementText = String(log.stateMovement || "").toLowerCase();
-              if (/regress|drop|decreas/.test(movementText)) {
-                downshiftCount += 1;
-              } else if (/remain|held|unchanged/.test(movementText)) {
-                heldCount += 1;
-              } else if (/move|advance|improv|increase|shift/.test(movementText)) {
-                upshiftCount += 1;
+              const previousState = lastStateByTopic[topic];
+              if (previousState) {
+                const previousScore = scoreState(previousState);
+                const currentScore = scoreState(state);
+                if (previousScore >= 0 && currentScore >= 0) {
+                  if (currentScore > previousScore) upshiftCount += 1;
+                  else if (currentScore < previousScore) downshiftCount += 1;
+                  else heldCount += 1;
+                }
               }
+              lastStateByTopic[topic] = state;
               if (typeof log.score === "number" && Number.isFinite(log.score)) scores.push(log.score);
             });
 
@@ -763,7 +780,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               return `${topic}: The student remained at ${formatState(snapshot.current)}.`;
             });
 
-            const weeklyImprovementNarrative = improvedTopics.length > 0
+            const weeklyImprovementNarrative = improvedTopics.length > 0 && regressedTopics.length > 0
+              ? `This week was mixed: improved in ${naturalJoin(improvedTopics.slice(0, 3))}, with regression in ${naturalJoin(regressedTopics.slice(0, 3))}.`
+              : improvedTopics.length > 0
               ? `The student showed level gains in ${improvedTopics.slice(0, 3).join(", ")}.`
               : regressedTopics.length > 0
               ? `No level gains this week. The student regressed in ${regressedTopics.slice(0, 3).join(", ")}.`
@@ -771,10 +790,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             const weeklyChallengeNarrative = regressedTopics.length > 0
               ? `The main challenge this week was level regression in ${regressedTopics.slice(0, 2).join(", ")}${breakdownSignal ? ` with ${breakdownSignal}` : ""}.`
+              : breakdownSignal === "no recurring breakdown signal detected"
+              ? "No major recurring breakdown signal was detected this week."
               : `The main challenge this week was ${breakdownSignal}.`;
 
+            const weeklyBreakdownClause = breakdownSignal === "no recurring breakdown signal detected"
+              ? "inconsistent sessions"
+              : `${breakdownSignal} sessions`;
+
             const weeklyResponsePatternNarrative = regressedTopics.length > 0
-              ? `The student showed ${weeklyTopSignals.length > 0 ? weeklyTopSignals.join(" and ") : "stable execution"}, but ${breakdownSignal} sessions prevented maintaining the previous level in ${regressedTopics.slice(0, 2).join(", ")}.`
+              ? `The student showed ${weeklyTopSignals.length > 0 ? weeklyTopSignals.join(" and ") : "stable execution"}, but ${weeklyBreakdownClause} prevented maintaining the previous level in ${regressedTopics.slice(0, 2).join(", ")}.`
               : improvedTopics.length > 0
               ? `During this week, the student typically had: ${weeklyTopSignals.join("; ") || dominantBehavior}. These patterns supported level gains in ${improvedTopics.slice(0, 2).join(", ")}.`
               : `During this week, the student typically had: ${weeklyTopSignals.join("; ") || dominantBehavior}. Performance remained stable with no level change.`;
@@ -791,7 +816,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const nextFocusCandidates = Object.values(nextMoveByTopic)
               .filter((value) => String(value || "").trim().length > 0);
             const nextFocus = nextFocusCandidates.length > 0
-              ? Array.from(new Set(nextFocusCandidates)).slice(0, 2).join(" | ")
+              ? naturalJoin(Array.from(new Set(nextFocusCandidates)).slice(0, 2).map(toGerundAction))
               : "Reinforce current phase constraints and continue drill sequence.";
 
             return {
@@ -803,7 +828,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               whatImprovedThisWeek: weeklyImprovementNarrative,
               studentResponsePatternThisWeek: weeklyResponsePatternNarrative,
               mainMisunderstandingThisWeek: weeklyChallengeNarrative,
-              mainCorrectionHelpedThisWeek: `Across sessions, the system: ${movementLines.slice(0, 4).join(" | ") || "remained in phase."} ${weeklyVolatilityLine}`,
+              mainCorrectionHelpedThisWeek: `Topic movement: ${movementLines.slice(0, 4).join(" ") || "The student remained in phase."} ${weeklyVolatilityLine}`,
               bossBattleSummaryThisWeek: conditioningProgress,
               reinforcementNextWeek: `Next week will focus on: ${nextFocus}.`,
               internalWeeklyTutorNote: "",
@@ -894,14 +919,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
               if (log.nextMove) {
                 nextMoveByTopic[topic] = String(log.nextMove);
               }
-              const movementText = String(log.stateMovement || "").toLowerCase();
-              if (/regress|drop|decreas/.test(movementText)) {
-                downshiftCount += 1;
-              } else if (/remain|held|unchanged/.test(movementText)) {
-                heldCount += 1;
-              } else if (/move|advance|improv|increase|shift/.test(movementText)) {
-                upshiftCount += 1;
+              const previousState = lastStateByTopic[topic];
+              if (previousState) {
+                const previousScore = scoreState(previousState);
+                const currentScore = scoreState(state);
+                if (previousScore >= 0 && currentScore >= 0) {
+                  if (currentScore > previousScore) upshiftCount += 1;
+                  else if (currentScore < previousScore) downshiftCount += 1;
+                  else heldCount += 1;
+                }
               }
+              lastStateByTopic[topic] = state;
               if (typeof log.score === "number" && Number.isFinite(log.score)) scores.push(log.score);
             });
 
@@ -958,23 +986,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .slice(0, 3);
 
             const nextFocus = nextFocusByTopic.length > 0
-              ? nextFocusByTopic.join(" | ")
+              ? naturalJoin(nextFocusByTopic)
               : "Maintaining with mixed practice in current topics";
 
-            const strongerSkillsNarrative = improvedTopics.length > 0
+            const strongerSkillsNarrative = improvedTopics.length > 0 && regressedTopics.length > 0
+              ? `This month was mixed: improved in ${improvedTopics.length} topic(s) (${naturalJoin(improvedTopics.slice(0, 3))}), regressed in ${regressedTopics.length}, and held in ${heldTopics.length}. Average session score this month: ${avgScore}/100.`
+              : improvedTopics.length > 0
               ? `The student strengthened ${improvedTopics.length} topic(s) this month (${improvedTopics.slice(0, 3).join(", ")}). Average session score this month: ${avgScore}/100.`
               : regressedTopics.length > 0 && heldTopics.length === 0
               ? `No level gains this month. The student regressed in ${regressedTopics.slice(0, 3).join(", ")}. Average session score this month: ${avgScore}/100.`
               : regressedTopics.length > 0
-              ? `This month was mixed: improved in ${improvedTopics.length} topic(s), regressed in ${regressedTopics.length}, and held in ${heldTopics.length}. Average session score this month: ${avgScore}/100.`
+              ? `This month showed pressure points: regression in ${regressedTopics.length} topic(s) and stability in ${heldTopics.length}. Average session score this month: ${avgScore}/100.`
               : `No level increase this month. The student maintained the same level across current topics. Average session score this month: ${avgScore}/100.`;
 
             const recurringChallengeNarrative = regressedTopics.length > 0
               ? `The main recurring challenge this month was regression in ${regressedTopics.slice(0, 2).join(", ")}${breakdownSignal ? ` with ${breakdownSignal}` : ""}.`
+              : breakdownSignal === "no recurring breakdown signal detected"
+              ? "No major recurring breakdown signal was detected this month."
               : `The main recurring challenge this month was ${breakdownSignal}.`;
 
+            const monthlyBreakdownClause = breakdownSignal === "no recurring breakdown signal detected"
+              ? "inconsistent sessions"
+              : `${breakdownSignal} sessions`;
+
             const monthlyResponsePatternNarrative = regressedTopics.length > 0
-              ? `Across the month, the student typically showed ${monthlyTopSignals.length > 0 ? monthlyTopSignals.join(" and ") : "stable performance"}, but ${breakdownSignal} sessions prevented maintaining the previous level in ${regressedTopics.slice(0, 2).join(", ")}.`
+              ? `Across the month, the student typically showed ${monthlyTopSignals.length > 0 ? monthlyTopSignals.join(" and ") : "stable performance"}, but ${monthlyBreakdownClause} prevented maintaining the previous level in ${regressedTopics.slice(0, 2).join(", ")}.`
               : improvedTopics.length > 0
               ? `Across the month, the student typically showed: ${monthlyTopSignals.join("; ") || dominantBehavior}. These patterns supported level gains in ${improvedTopics.slice(0, 2).join(", ")}.`
               : `Across the month, the student typically showed: ${monthlyTopSignals.join("; ") || dominantBehavior}. Performance remained stable with no level gain.`;
@@ -990,7 +1026,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               strongerSkillsThisMonth: strongerSkillsNarrative,
               responsePatternTrendThisMonth: monthlyResponsePatternNarrative,
               recurringChallengeThisMonth: recurringChallengeNarrative,
-              mostEffectiveInterventionThisMonth: `Over the month: ${monthlyStateSummaryByTopic.join(" | ") || "Current topics: Clarity (Low) -> Clarity (Low)."} ${monthlyVolatilityLine}`,
+              mostEffectiveInterventionThisMonth: `Movement summary: ${monthlyStateSummaryByTopic.join(" ") || "Current topics remained stable."} ${monthlyVolatilityLine}`,
               bossBattleTrendThisMonth: topicProgression,
               nextMonthPriority: `Next month will focus on: ${nextFocus}.`,
               internalMonthlyTutorNote: "",
