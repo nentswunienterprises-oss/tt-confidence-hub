@@ -209,8 +209,8 @@ export default function AboutTT() {
             </ul>
             <p></p>
 
-            <h3>Level 3 - The Emotional State (NOT CONFIDENCE)</h3>
-            <p>TT does not sell confidence.</p>
+            <h3>Level 3 - The Emotional State</h3>
+            <p>TT does not chase confidence.</p>
             <p>TT produces:</p>
             <ul>
               <li>Cognitive stability under uncertainty</li>
@@ -222,7 +222,7 @@ export default function AboutTT() {
               <li>Non-panicked</li>
               <li>Neutral</li>
             </ul>
-            <p>Confidence is an indicator, not the offer.</p>
+            <p>Confidence is an indicator, not our focus.</p>
 
             <h3>Level 4 - The Behavior Change</h3>
             <p></p>
