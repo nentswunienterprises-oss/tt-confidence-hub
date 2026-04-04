@@ -640,6 +640,19 @@ export function formatLastUpdatedLabel(dateText?: string): string {
   });
 }
 
+function formatSessionDateTimeLabel(dateText?: string): string {
+  if (!dateText) return "Time unavailable";
+  const date = new Date(dateText);
+  if (Number.isNaN(date.getTime())) return "Time unavailable";
+  return date.toLocaleString("en-US", {
+    day: "2-digit",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
 function buildTopics(
   parentTopics: string | null | undefined,
   map: TopicConditioningMap | null | undefined,
@@ -732,7 +745,7 @@ function buildTopics(
       .reverse()
       .map((h, index) => {
         const label = stabilityLabels[index] || `Session ${index + 1}`;
-        return `${label}: ${h.stability} stability`;
+        return `${label} (${formatSessionDateTimeLabel(h.date)}): ${h.stability} stability`;
       });
 
     rows.push({
