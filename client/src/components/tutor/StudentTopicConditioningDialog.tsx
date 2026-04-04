@@ -713,7 +713,9 @@ function buildTopics(
   const rows: TopicRow[] = [];
 
   byTopic.forEach((entry, topic) => {
-    const history = entry.history;
+    const history = [...entry.history].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+    );
     const latest = history[history.length - 1];
     const hasObservedState = history.length > 0;
     const phase = latest?.phase || entry.seeded?.phase || "Structured Execution";
@@ -1604,11 +1606,11 @@ export default function StudentTopicConditioningDialog({
                     key={`${selectedRow?.topic || "topic"}-${showFullSelectedTimeline ? "full" : "latest"}`}
                     className="rounded-md border p-2 space-y-2"
                   >
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex flex-col items-start gap-1.5">
                       {selectedTimelineBadges.map((point, index) => (
                         <span
                           key={point._renderKey}
-                          className="rounded-md border border-border/60 bg-muted/20 px-2 py-0.5 text-[11px] text-muted-foreground"
+                          className="inline-flex rounded-md border border-border/60 bg-muted/20 px-2 py-0.5 text-[11px] text-muted-foreground"
                         >
                           {toRelativeSessionLabel(index)} · {point.phase} · {point.stability}
                         </span>
