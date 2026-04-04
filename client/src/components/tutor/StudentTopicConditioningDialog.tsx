@@ -967,7 +967,7 @@ export default function StudentTopicConditioningDialog({
   const [interventionUsed, setInterventionUsed] = useState("");
   const [activeTab, setActiveTab] = useState("dashboard");
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
-  const [selectedTimelineExpanded, setSelectedTimelineExpanded] = useState(false);
+  const [showFullSelectedTimeline, setShowFullSelectedTimeline] = useState(false);
 
   useEffect(() => {
     if (topics.length === 0) return;
@@ -995,12 +995,9 @@ export default function StudentTopicConditioningDialog({
     if (found) {
       setPhaseObservedField(found.phase);
       setStabilityObservedField(found.stability);
+      setShowFullSelectedTimeline(false);
     }
   }, [selectedTopic, topics]);
-
-  useEffect(() => {
-    setSelectedTimelineExpanded(false);
-  }, [selectedTopic]);
 
   // When activeTopicField changes (Topic Management tab), sync phase and stability fields
   useEffect(() => {
@@ -1065,11 +1062,9 @@ export default function StudentTopicConditioningDialog({
   const prepPlan = selectedRow
     ? tutorPrepPlanFor(selectedRow.phase, selectedRow.stability, hasObservedSelection)
     : null;
-  const selectedTimelineEntries = selectedRow?.timeline || [];
-  const selectedVisibleTimeline = selectedTimelineExpanded
-    ? [...selectedTimelineEntries]
-    : selectedTimelineEntries.slice(Math.max(selectedTimelineEntries.length - 6, 0));
-  const selectedHiddenTimelineCount = Math.max(0, selectedTimelineEntries.length - 6);
+  const selectedTimeline = selectedRow?.timeline || [];
+  const hasOlderSelectedTimeline = selectedTimeline.length > 6;
+  const selectedTimelineToRender = showFullSelectedTimeline ? selectedTimeline : selectedTimeline.slice(-6);
 
   // Always use selectedRow for observedPhase and previousStability, fallback to safe defaults
   const observedPhase = (selectedRow && selectedRow.phase ? selectedRow.phase : "Clarity") as PhaseLabel;
@@ -1210,7 +1205,6 @@ export default function StudentTopicConditioningDialog({
                     const isExpanded = expandedTopics.has(row.topic);
                     const phaseLabel = row.hasObservedState ? row.phase : "Unknown";
                     const stabilityLabel = row.hasObservedState ? row.stability : "Unknown";
-                    const timelineEntries = row.timeline || [];
                     return (
                       <div
                         key={`topic-card-${row.topic}`}
@@ -1278,10 +1272,9 @@ export default function StudentTopicConditioningDialog({
 
                         <div className="space-y-1">
                           <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">State Progression Timeline</p>
-                          {timelineEntries.length > 0 ? (
-                            <div className="space-y-2">
-                              <div className="flex flex-wrap gap-1.5">
-                              {timelineEntries.map((point) => (
+                          {(row.timeline || []).length > 0 ? (
+                            <div className="flex flex-wrap gap-1.5">
+                              {row.timeline.slice(-6).map((point) => (
                                 <span
                                   key={`${row.topic}-${point.date}-${point.phase}`}
                                   className="rounded-md border border-border/60 bg-muted/20 px-2 py-0.5 text-[11px] text-muted-foreground"
@@ -1289,7 +1282,6 @@ export default function StudentTopicConditioningDialog({
                                   {point.date} · {point.phase} · {point.stability}
                                 </span>
                               ))}
-                              </div>
                             </div>
                           ) : (
                             <p className="text-xs text-muted-foreground">No timeline events yet.</p>
@@ -1570,26 +1562,26 @@ export default function StudentTopicConditioningDialog({
                 <div className="space-y-2">
                   <p className="font-medium text-sm">Topic Progress Timeline</p>
                   <div className="rounded-md border p-2 space-y-2">
-                    {selectedVisibleTimeline.map((point, idx) => (
-                      <div key={`${selectedRow.topic}-${point.date}-${point.phase}-${point.stability}-${idx}`} className="rounded-md border bg-muted/20 px-3 py-2 text-sm">
+                    {selectedTimelineToRender.map((point) => (
+                      <div key={`${point.date}-${point.phase}`} className="rounded-md border bg-muted/20 px-3 py-2 text-sm">
                         <p><span className="font-medium">Date:</span> {point.date}</p>
                         <p><span className="font-medium">Phase:</span> {point.phase}</p>
                         <p><span className="font-medium">Stability:</span> {point.stability}</p>
                       </div>
                     ))}
-                    {selectedTimelineEntries.length > 6 ? (
+                    {hasOlderSelectedTimeline && (
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="h-7 px-2 text-xs"
-                        onClick={() => setSelectedTimelineExpanded((prev) => !prev)}
+                        className="w-full"
+                        onClick={() => setShowFullSelectedTimeline((prev) => !prev)}
                       >
-                        {selectedTimelineExpanded
-                          ? "Show latest 6"
-                          : `Show older ${selectedHiddenTimelineCount}`}
+                        {showFullSelectedTimeline
+                          ? "Show Latest 6"
+                          : `Show ${selectedTimeline.length - 6} Older ${selectedTimeline.length - 6 === 1 ? "Entry" : "Entries"}`}
                       </Button>
-                    ) : null}
+                    )}
                   </div>
                 </div>
               </Card>
