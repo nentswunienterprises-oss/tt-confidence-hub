@@ -24,6 +24,7 @@ import {
   Award,
   ChevronDown,
   FileText,
+  UserMinus,
 } from "lucide-react";
 import {
   Dialog,
@@ -177,6 +178,28 @@ export default function PodDetail() {
       toast({
         title: "Error",
         description: "Failed to remove tutor from pod.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const unassignStudentMutation = useMutation({
+    mutationFn: async (enrollmentId: string) => {
+      await apiRequest("POST", `/api/hr/enrollments/${enrollmentId}/unassign-tutor`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/coo/pods/${podId}/tutors`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/coo/pods/${podId}/stats`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/coo/pods"] });
+      toast({
+        title: "Student unassigned",
+        description: "Student was unassigned safely and preserved for reassignment.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Unassign failed",
+        description: error?.message || "Failed to unassign student.",
         variant: "destructive",
       });
     },
@@ -520,6 +543,7 @@ export default function PodDetail() {
                                 certificationStatus={assignment.certification_status || "pending"}
                                 studentCount={assignment.student_count || 0}
                                 getCertificationColor={getCertificationColor}
+                                unassignStudentMutation={unassignStudentMutation}
                                 onViewTrackingSystems={(studentId, studentName) => {
                                   setSelectedStudentId(studentId);
                                   setSelectedStudentName(studentName);
@@ -692,6 +716,7 @@ interface TutorStudentsSectionProps {
   certificationStatus: string;
   studentCount: number;
   getCertificationColor: (status: string) => string;
+  unassignStudentMutation: any;
   onViewTrackingSystems: (studentId: string, studentName: string) => void;
   onViewTopicConditioning: (student: any) => void;
 }
@@ -702,6 +727,7 @@ function TutorStudentsSection({
   certificationStatus,
   studentCount,
   getCertificationColor,
+  unassignStudentMutation,
   onViewTrackingSystems,
   onViewTopicConditioning,
 }: TutorStudentsSectionProps) {
@@ -797,6 +823,23 @@ function TutorStudentsSection({
                     >
                       <Calendar className="w-3 h-3 mr-1.5" />
                       View Tracking Systems
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-7 text-red-600 border-red-200 hover:bg-red-50"
+                      disabled={!student.assignedEnrollmentId || unassignStudentMutation.isPending}
+                      onClick={() => {
+                        if (!student.assignedEnrollmentId) return;
+                        const confirmed = window.confirm(
+                          `Unassign ${student.name} from ${tutorName}?\n\nStudent data will be preserved for reassignment.`
+                        );
+                        if (!confirmed) return;
+                        unassignStudentMutation.mutate(student.assignedEnrollmentId);
+                      }}
+                    >
+                      <UserMinus className="w-3 h-3 mr-1.5" />
+                      {unassignStudentMutation.isPending ? "Unassigning..." : "Unassign"}
                     </Button>
                   </div>
                 </div>

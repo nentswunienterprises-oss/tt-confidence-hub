@@ -5637,11 +5637,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
           );
         });
 
+        const studentsWithEnrollment = activeStudents.map((student: any) => {
+          const studentId = String(student.id || "");
+          const parentId = String((student as any).parentId || "");
+          const studentName = String(student.name || "").trim().toLowerCase();
+
+          const linkedEnrollment = (assignedEnrollments || []).find((e: any) => {
+            const enrollmentStudentId = String(e.assigned_student_id || "");
+            const enrollmentParentId = String(e.user_id || "");
+            const enrollmentStudentName = String(e.student_full_name || "").trim().toLowerCase();
+
+            return (
+              (!!enrollmentStudentId && enrollmentStudentId === studentId) ||
+              (!!parentId && !!enrollmentParentId && enrollmentParentId === parentId) ||
+              (!!studentName && !!enrollmentStudentName && enrollmentStudentName === studentName)
+            );
+          });
+
+          return {
+            ...student,
+            assignedEnrollmentId: linkedEnrollment?.id || null,
+          };
+        });
+
         console.log(
           "📚 Found students:",
-          activeStudents.map((s) => ({ id: s.id, name: s.name, sessionProgress: s.sessionProgress }))
+          studentsWithEnrollment.map((s) => ({
+            id: s.id,
+            name: s.name,
+            sessionProgress: s.sessionProgress,
+            assignedEnrollmentId: s.assignedEnrollmentId,
+          }))
         );
-        res.json(activeStudents);
+        res.json(studentsWithEnrollment);
       } catch (error) {
         console.error("Error fetching tutor students:", error);
         res.status(500).json({ message: "Failed to fetch tutor students" });
