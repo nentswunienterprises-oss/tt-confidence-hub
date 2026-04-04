@@ -715,7 +715,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             let downshiftCount = 0;
             let heldCount = 0;
             const lastStateByTopic: Record<string, { phase: string; stability: string }> = {};
-            const lastStateByTopic: Record<string, { phase: string; stability: string }> = {};
 
             sorted.forEach((session) => {
               const log = session.deterministicLog;
@@ -897,6 +896,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             let upshiftCount = 0;
             let downshiftCount = 0;
             let heldCount = 0;
+            const lastStateByTopic: Record<string, { phase: string; stability: string }> = {};
 
             sorted.forEach((session) => {
               const log = session.deterministicLog;
