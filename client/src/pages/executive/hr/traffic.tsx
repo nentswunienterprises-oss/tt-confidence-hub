@@ -87,13 +87,13 @@ export default function ExecutiveHRTraffic() {
       doc?.fileUrlConsent
     );
 
-  const pendingVerificationTutors = tutorVerificationData.filter(
+  const legacyPendingVerificationTutors = tutorVerificationData.filter(
     (t) => {
       const status = normalizeStatus(t?.verificationDoc?.status);
       return !!t.verificationDoc && status === "pending";
     }
   );
-  const verifiedDocTutors = tutorVerificationData.filter(
+  const legacyVerifiedDocTutors = tutorVerificationData.filter(
     (t) => {
       const status = normalizeStatus(t?.verificationDoc?.status);
       const isVerified = status === "verified" || t?.user?.isVerified === true;
@@ -164,6 +164,58 @@ export default function ExecutiveHRTraffic() {
   const pendingApplications = applications.filter((app: any) => app.status === "pending");
   const approvedApplications = applications.filter((app: any) => app.status === "approved");
   const rejectedApplications = applications.filter((app: any) => app.status === "rejected");
+
+  const getApplicationDocumentsStatus = (app: any) => app?.documentsStatus || app?.documents_status || {};
+
+  const appPendingVerificationTutors = approvedApplications
+    .filter((app: any) => {
+      const docsStatus = getApplicationDocumentsStatus(app);
+      return Object.values(docsStatus).some((status) => String(status) === "pending_review");
+    })
+    .map((app: any) => ({
+      user: {
+        id: app.id,
+        fullNames: app.fullNames || app.full_names,
+        full_names: app.full_names || app.fullNames,
+        username: app.fullNames || app.full_names || "Tutor",
+        email: app.email,
+      },
+      verificationDoc: {
+        status: "pending",
+        // Map current sequential docs to existing card link fields for compatibility.
+        file_url_agreement: app.doc1TutorAgreementUrl || app.doc_1_tutor_agreement_url || app.doc2CodeOfConductUrl || app.doc_2_code_of_conduct_url,
+        file_url_consent: app.doc3EmergencyWaiverUrl || app.doc_3_emergency_waiver_url || app.doc4BackgroundAuthUrl || app.doc_4_background_auth_url || app.doc5TaxInfoUrl || app.doc_5_tax_info_url,
+      },
+    }));
+
+  const appVerifiedDocTutors = approvedApplications
+    .filter((app: any) => {
+      const docsStatus = getApplicationDocumentsStatus(app);
+      return ["1", "2", "3", "4", "5"].every((step) => String(docsStatus?.[step]) === "approved");
+    })
+    .map((app: any) => ({
+      user: {
+        id: app.id,
+        fullNames: app.fullNames || app.full_names,
+        full_names: app.full_names || app.fullNames,
+        username: app.fullNames || app.full_names || "Tutor",
+        email: app.email,
+      },
+      verificationDoc: {
+        status: "verified",
+        file_url_agreement: app.doc1TutorAgreementUrl || app.doc_1_tutor_agreement_url || app.doc2CodeOfConductUrl || app.doc_2_code_of_conduct_url,
+        file_url_consent: app.doc3EmergencyWaiverUrl || app.doc_3_emergency_waiver_url || app.doc4BackgroundAuthUrl || app.doc_4_background_auth_url || app.doc5TaxInfoUrl || app.doc_5_tax_info_url,
+        updated_at: app.updatedAt || app.updated_at,
+      },
+    }));
+
+  const pendingVerificationTutors = appPendingVerificationTutors.length > 0
+    ? appPendingVerificationTutors
+    : legacyPendingVerificationTutors;
+
+  const verifiedDocTutors = appVerifiedDocTutors.length > 0
+    ? appVerifiedDocTutors
+    : legacyVerifiedDocTutors;
 
   const handleOpenAssignModal = (enrollmentId: string) => {
     setSelectedEnrollmentId(enrollmentId);
