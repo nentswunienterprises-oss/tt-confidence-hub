@@ -772,14 +772,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const regressedTopics = topicMovements.filter((entry) => entry.trend === "regressed").map((entry) => entry.topic);
             const heldTopics = topicMovements.filter((entry) => entry.trend === "held").map((entry) => entry.topic);
 
-            const movementLines = topicMovements.map(({ topic, snapshot, trend }) => {
-              if (trend === "improved") {
-                return `${topic}: The student moved from ${formatState(snapshot.start)} to ${formatState(snapshot.current)}.`;
-              }
-              if (trend === "regressed") {
-                return `${topic}: The student regressed from ${formatState(snapshot.start)} to ${formatState(snapshot.current)}.`;
-              }
-              return `${topic}: The student remained at ${formatState(snapshot.current)}.`;
+            const movementLines = topicMovements.map(({ topic, snapshot }) => {
+              return `The student moved from ${formatState(snapshot.start)} to ${formatState(snapshot.current)} in ${topic}.`;
             });
 
             const weeklyImprovementNarrative = improvedTopics.length > 0 && regressedTopics.length > 0
@@ -835,7 +829,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               whatImprovedThisWeek: weeklyImprovementNarrative,
               studentResponsePatternThisWeek: weeklyResponsePatternNarrative,
               mainMisunderstandingThisWeek: weeklyChallengeNarrative,
-              mainCorrectionHelpedThisWeek: `Topic movement: ${movementLines.slice(0, 4).join(" ") || "The student remained in phase."} ${weeklyVolatilityLine}`,
+              mainCorrectionHelpedThisWeek: `Topic Movement Summary: ${movementLines.slice(0, 4).join(" ") || "The student remained in phase."} ${weeklyVolatilityLine}`,
               bossBattleSummaryThisWeek: conditioningProgress,
               reinforcementNextWeek: `Next week will focus on: ${nextFocus}.`,
               internalWeeklyTutorNote: "",
@@ -971,15 +965,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             const monthlyStateSummaryByTopic = Object.entries(topicSnapshots)
               .map(([topic, snapshot]) => {
-                const startScore = scoreState(snapshot.start);
-                const currentScore = scoreState(snapshot.current);
-                if (currentScore > startScore) {
-                  return `${topic}: improved from ${formatState(snapshot.start)} to ${formatState(snapshot.current)}.`;
-                }
-                if (currentScore < startScore) {
-                  return `${topic}: regressed from ${formatState(snapshot.start)} to ${formatState(snapshot.current)}.`;
-                }
-                return `${topic}: remained at ${formatState(snapshot.current)}.`;
+                return `The student moved from ${formatState(snapshot.start)} to ${formatState(snapshot.current)} in ${topic}.`;
               })
               .slice(0, 4);
 
@@ -1039,7 +1025,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               strongerSkillsThisMonth: strongerSkillsNarrative,
               responsePatternTrendThisMonth: monthlyResponsePatternNarrative,
               recurringChallengeThisMonth: recurringChallengeNarrative,
-              mostEffectiveInterventionThisMonth: `Movement summary: ${monthlyStateSummaryByTopic.join(" ") || "Current topics remained stable."} ${monthlyVolatilityLine}`,
+              mostEffectiveInterventionThisMonth: `Topic Movement Summary: ${monthlyStateSummaryByTopic.join(" ") || "Current topics remained stable."} ${monthlyVolatilityLine}`,
               bossBattleTrendThisMonth: topicProgression,
               nextMonthPriority: `Next month will focus on: ${nextFocus}.`,
               internalMonthlyTutorNote: "",
