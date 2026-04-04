@@ -2200,16 +2200,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const workflow = (assignedStudent?.personalProfile as any)?.workflow || {};
           introCompleted = !!workflow.introCompletedAt;
         }
-
-        // Always include id in response
-        if (!session.tutor_confirmed) {
-          return res.json({
-            id: session.id,
-            status: "pending_tutor_confirmation",
-            scheduled_time: session.scheduled_time,
-            introCompleted,
-          });
-        }
         if (!session.parent_confirmed) {
           return res.json({
             id: session.id,
@@ -2630,10 +2620,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         const students = await hydrateStudentsWithSessionProgress(tutorId, await storage.getStudentsByTutor(tutorId));
+
+        const assignedEnrollmentByStudentId = new Set(
+          (assignedEnrollments || [])
+            .map((e: any) => e.assigned_student_id)
+            .filter((v: any) => !!v)
+            .map((v: any) => String(v))
+        );
+        const assignedEnrollmentByParentId = new Set(
+          (assignedEnrollments || [])
+            .map((e: any) => e.user_id)
+            .filter((v: any) => !!v)
+            .map((v: any) => String(v))
+        );
+        const assignedEnrollmentByStudentName = new Set(
+          (assignedEnrollments || [])
+            .map((e: any) => e.student_full_name)
+            .filter((v: any) => !!v)
+            .map((v: any) => String(v).trim().toLowerCase())
+        );
+
+        const activeStudents = students.filter((student: any) => {
+          const studentId = String(student.id || "");
+          const parentId = String((student as any).parentId || "");
+          const studentName = String(student.name || "").trim().toLowerCase();
+
+          return (
+            assignedEnrollmentByStudentId.has(studentId) ||
+            (!!parentId && assignedEnrollmentByParentId.has(parentId)) ||
+            (!!studentName && assignedEnrollmentByStudentName.has(studentName))
+          );
+        });
         
         // Fetch parent enrollment info for each student
         const studentsWithParentInfo = await Promise.all(
-          students.map(async (student: any) => {
+          activeStudents.map(async (student: any) => {
 
             try {
               // Get parent enrollment for this student (match by studentId, name, or parentId)
@@ -6879,7 +6900,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const previousTutorId = enrollment.assigned_tutor_id;
         const nowIso = new Date().toISOString();
 
-        const { error: unassignError } = await supabase
+        let { error: unassignError } = await supabase
           .from("parent_enrollments")
           .update({
             assigned_tutor_id: null,
@@ -6891,30 +6912,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .eq("id", enrollment.id);
 
         if (unassignError) {
+          const message = String((unassignError as any)?.message || "").toLowerCase();
+          const missingOptionalColumn =
+            message.includes("current_step") ||
+            message.includes("proposal_id");
+
+          if (missingOptionalColumn) {
+            const fallback = await supabase
+              .from("parent_enrollments")
+              .update({
+                assigned_tutor_id: null,
+                status: "awaiting_assignment",
+                updated_at: nowIso,
+              })
+              .eq("id", enrollment.id);
+
+            unassignError = fallback.error as any;
+          }
+        }
+
+        if (unassignError) {
           return res.status(500).json({ message: "Failed to unassign tutor" });
         }
+
+        const detachPayload = { tutor_id: null, updated_at: nowIso };
 
         if (enrollment.assigned_student_id) {
           const { error: studentUnassignError } = await supabase
             .from("students")
-            .update({ tutor_id: null, updated_at: nowIso })
+            .update(detachPayload)
             .eq("id", enrollment.assigned_student_id)
             .eq("tutor_id", previousTutorId);
 
           if (studentUnassignError) {
             console.error("Failed to clear tutor assignment on student:", studentUnassignError);
           }
-        } else {
-          const { error: fallbackUnassignError } = await supabase
-            .from("students")
-            .update({ tutor_id: null, updated_at: nowIso })
-            .eq("tutor_id", previousTutorId)
-            .eq("parent_id", enrollment.user_id)
-            .eq("name", enrollment.student_full_name);
+        }
 
-          if (fallbackUnassignError) {
-            console.error("Fallback student unassign failed:", fallbackUnassignError);
-          }
+        const { error: enrollmentLinkedUnassignError } = await supabase
+          .from("students")
+          .update(detachPayload)
+          .eq("tutor_id", previousTutorId)
+          .eq("parent_enrollment_id", enrollment.id as any);
+
+        if (enrollmentLinkedUnassignError) {
+          console.error("Enrollment-linked student unassign fallback failed:", enrollmentLinkedUnassignError);
+        }
+
+        const { error: fallbackUnassignError } = await supabase
+          .from("students")
+          .update(detachPayload)
+          .eq("tutor_id", previousTutorId)
+          .eq("parent_id", enrollment.user_id)
+          .eq("name", enrollment.student_full_name);
+
+        if (fallbackUnassignError) {
+          console.error("Fallback student unassign failed:", fallbackUnassignError);
         }
 
         res.json({
