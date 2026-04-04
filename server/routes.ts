@@ -5654,6 +5654,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  // Reports center data per student (COO read-only view)
+  app.get(
+    "/api/coo/students/:studentId/reports-center",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { studentId } = req.params;
+        const student = await storage.getStudent(studentId);
+
+        if (!student) {
+          return res.status(404).json({ message: "Student not found" });
+        }
+
+        const { data: drillRows, error: drillRowsError } = await supabase
+          .from("intro_session_drills")
+          .select("id, student_id, tutor_id, drill, submitted_at")
+          .eq("student_id", studentId)
+          .order("submitted_at", { ascending: false });
+
+        if (drillRowsError) {
+          throw drillRowsError;
+        }
+
+        const sessions = (drillRows || [])
+          .map(mapDrillRowToDeterministicSession)
+          .filter(Boolean);
+
+        const { data: reports, error: reportsError } = await supabase
+          .from("parent_reports")
+          .select("*")
+          .eq("student_id", studentId)
+          .order("sent_at", { ascending: false });
+
+        if (reportsError) {
+          throw reportsError;
+        }
+
+        const enrichedReports = (reports || []).map((report: any) => ({
+          id: report.id,
+          tutorId: report.tutor_id,
+          studentId: report.student_id,
+          parentId: report.parent_id,
+          reportType: report.report_type,
+          weekNumber: report.week_number,
+          monthName: report.month_name,
+          summary: report.summary,
+          topicsLearned: report.topics_learned,
+          strengths: report.strengths,
+          areasForGrowth: report.areas_for_growth,
+          bossBattlesCompleted: report.boss_battles_completed,
+          solutionsUnlocked: report.solutions_unlocked,
+          confidenceGrowth: report.confidence_growth,
+          nextSteps: report.next_steps,
+          parentFeedback: report.parent_feedback,
+          parentFeedbackAt: report.parent_feedback_at,
+          sentAt: report.sent_at,
+          createdAt: report.created_at,
+          structuredData: parseStructuredReportSummary(report.summary),
+        }));
+
+        res.json({
+          sessions,
+          reports: enrichedReports,
+        });
+      } catch (error) {
+        console.error("Error fetching COO reports center data:", error);
+        res.status(500).json({ message: "Failed to fetch reports center data" });
+      }
+    }
+  );
+
   // Get student tracking data (COO read-only view)
   app.get(
     "/api/coo/students/:studentId/tracking",
