@@ -47,6 +47,32 @@ function getSessionTimeLabel(value: string): string {
   return format(sessionDate, "h:mm a");
 }
 
+function formatMovementSummary(value?: string | null): string {
+  const text = String(value || "").trim();
+  if (!text) return "";
+
+  const stripped = text
+    .replace(/^Across sessions, the system:\s*/i, "")
+    .replace(/^Across this week, the system:\s*/i, "")
+    .trim();
+
+  const [movementPart, volatilityPart] = stripped.split(/Intra-week volatility:/i);
+  const movementLines = (movementPart || "")
+    .split("|")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const sections: string[] = [];
+  if (movementLines.length > 0) {
+    sections.push(`Topic Movement:\n- ${movementLines.join("\n- ")}`);
+  }
+  if (volatilityPart && volatilityPart.trim()) {
+    sections.push(`Volatility:\n- ${volatilityPart.trim()}`);
+  }
+
+  return sections.length > 0 ? sections.join("\n\n") : stripped;
+}
+
 interface SessionRecord {
   id: string;
   date: string;
@@ -293,7 +319,7 @@ export default function StudentReportsDialog({
                               <FieldRow label="What Improved" value={structured.whatImprovedThisWeek || report.strengths} />
                               <FieldRow label="Response Pattern" value={structured.studentResponsePatternThisWeek} />
                               <FieldRow label="Main Breakdown" value={structured.mainMisunderstandingThisWeek || report.areasForGrowth} />
-                              <FieldRow label="System Movement" value={structured.mainCorrectionHelpedThisWeek} />
+                              <FieldRow label="Movement Summary" value={formatMovementSummary(structured.mainCorrectionHelpedThisWeek)} />
                               <FieldRow label="Conditioning Progress" value={structured.bossBattleSummaryThisWeek} />
                               <FieldRow label="Next Focus" value={structured.reinforcementNextWeek || report.nextSteps} />
                             </AccordionContent>
