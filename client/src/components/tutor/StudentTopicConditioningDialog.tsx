@@ -1068,8 +1068,16 @@ export default function StudentTopicConditioningDialog({
     ...point,
     _renderKey: `${selectedRow?.topic || "topic"}-${point.date}-${point.phase}-${point.stability}-${index}`,
   }));
+  const toRelativeSessionLabel = (index: number) => index === 0
+    ? "Last session"
+    : index === 1
+    ? "2nd last session"
+    : index === 2
+    ? "3rd last session"
+    : `${index + 1}th last session`;
   const hasOlderSelectedTimeline = selectedTimeline.length > 6;
   const selectedTimelineToRender = showFullSelectedTimeline ? selectedTimeline : selectedTimeline.slice(-6);
+  const selectedTimelineBadges = selectedTimelineToRender.slice().reverse();
 
   // Always use selectedRow for observedPhase and previousStability, fallback to safe defaults
   const observedPhase = (selectedRow && selectedRow.phase ? selectedRow.phase : "Clarity") as PhaseLabel;
@@ -1280,19 +1288,12 @@ export default function StudentTopicConditioningDialog({
                           {(row.timeline || []).length > 0 ? (
                             <div className="flex flex-wrap gap-1.5">
                               {row.timeline.slice(-6).reverse().map((point, index) => {
-                                const sessionLabel = index === 0
-                                  ? "Last session"
-                                  : index === 1
-                                  ? "2nd last session"
-                                  : index === 2
-                                  ? "3rd last session"
-                                  : `${index + 1}th last session`;
                                 return (
                                 <span
                                   key={`${row.topic}-${point.date}-${point.phase}-${index}`}
                                   className="rounded-md border border-border/60 bg-muted/20 px-2 py-0.5 text-[11px] text-muted-foreground"
                                 >
-                                  {sessionLabel} · {point.phase} · {point.stability}
+                                  {toRelativeSessionLabel(index)} · {point.phase} · {point.stability}
                                 </span>
                                 );
                               })}
@@ -1603,13 +1604,16 @@ export default function StudentTopicConditioningDialog({
                     key={`${selectedRow?.topic || "topic"}-${showFullSelectedTimeline ? "full" : "latest"}`}
                     className="rounded-md border p-2 space-y-2"
                   >
-                    {selectedTimelineToRender.map((point) => (
-                      <div key={point._renderKey} className="rounded-md border bg-muted/20 px-3 py-2 text-sm">
-                        <p><span className="font-medium">Date:</span> {point.date}</p>
-                        <p><span className="font-medium">Phase:</span> {point.phase}</p>
-                        <p><span className="font-medium">Stability:</span> {point.stability}</p>
-                      </div>
-                    ))}
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedTimelineBadges.map((point, index) => (
+                        <span
+                          key={point._renderKey}
+                          className="rounded-md border border-border/60 bg-muted/20 px-2 py-0.5 text-[11px] text-muted-foreground"
+                        >
+                          {toRelativeSessionLabel(index)} · {point.phase} · {point.stability}
+                        </span>
+                      ))}
+                    </div>
                     {hasOlderSelectedTimeline && (
                       <Button
                         type="button"
