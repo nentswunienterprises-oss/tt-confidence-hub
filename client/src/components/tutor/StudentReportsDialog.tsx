@@ -56,18 +56,24 @@ function formatMovementSummary(value?: string | null): string {
     .replace(/^Across this week, the system:\s*/i, "")
     .trim();
 
-  const [movementPart, volatilityPart] = stripped.split(/Intra-week volatility:/i);
+  const normalized = stripped.replace(/Intra-(week|month) volatility:/i, "||VOL||");
+  const [movementPart, volatilityPart] = normalized.split("||VOL||");
   const movementLines = (movementPart || "")
     .split("|")
-    .map((line) => line.trim())
+    .map((line) =>
+      line
+        .replace(/^Topic\s+Movement\s+Summary:\s*/i, "")
+        .replace(/^Topic\s+Movement:\s*/i, "")
+        .trim()
+    )
     .filter(Boolean);
 
   const sections: string[] = [];
   if (movementLines.length > 0) {
-    sections.push(`Topic Movement:\n- ${movementLines.join("\n- ")}`);
+    sections.push(`Topic Movement Summary:\n${movementLines.join("\n")}`);
   }
   if (volatilityPart && volatilityPart.trim()) {
-    sections.push(`Volatility:\n- ${volatilityPart.trim()}`);
+    sections.push(`Volatility:\n${volatilityPart.trim()}`);
   }
 
   return sections.length > 0 ? sections.join("\n\n") : stripped;
