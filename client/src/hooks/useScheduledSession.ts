@@ -21,7 +21,7 @@ export function useTutorRespondToSession(studentId) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ action, newDate, newTime }) => {
-      const res = await fetch(`${API_URL}/api/tutor/student/${studentId}/intro-session-response`, {
+      const res = await fetch(`${API_URL}/api/tutor/students/${studentId}/intro-session-response`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -31,7 +31,7 @@ export function useTutorRespondToSession(studentId) {
       return await res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tutor/students/intro-session-details", studentId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tutor/students", studentId, "intro-session-details"] });
     },
   });
 }

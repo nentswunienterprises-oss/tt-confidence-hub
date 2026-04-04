@@ -72,7 +72,7 @@ export function useTutorRespondToSession(studentId) {
             var action = _b.action, newDate = _b.newDate, newTime = _b.newTime;
             return __generator(this, function (_c) {
                 switch (_c.label) {
-                    case 0: return [4 /*yield*/, fetch("".concat(API_URL, "/api/tutor/student/").concat(studentId, "/intro-session-response"), {
+                    case 0: return [4 /*yield*/, fetch("".concat(API_URL, "/api/tutor/students/").concat(studentId, "/intro-session-response"), {
                             method: "POST",
                             credentials: "include",
                             headers: { "Content-Type": "application/json" },
