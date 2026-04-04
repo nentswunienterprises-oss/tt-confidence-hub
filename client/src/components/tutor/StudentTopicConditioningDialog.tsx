@@ -1465,14 +1465,6 @@ export default function StudentTopicConditioningDialog({
                   </div>
                 )}
 
-                <div className="rounded-md border bg-muted/40 p-3 space-y-2">
-                  <p className="text-sm font-medium">Recommended movement</p>
-                  <p className="text-sm text-muted-foreground">
-                    System recommendation: {selectedRow ? (hasObservedSelection ? nextMoveRecommendation(selectedRow.phase, selectedRow.stability) : "No recommendation until observed state exists") : "No active topic yet"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Tutor approval is required before movement between phases.</p>
-                </div>
-
                 <div className="rounded-md border p-3 space-y-3">
                   <p className="text-sm font-medium">NEXT ACTION</p>
                   {selectedRow ? (
