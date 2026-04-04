@@ -419,27 +419,42 @@ export default function ExecutiveHRTraffic() {
             </Card>
           ) : (
             <Tabs value={tutorAppSubTab} onValueChange={setTutorAppSubTab} className="w-full">
-              <TabsList className="flex w-full overflow-x-auto h-auto rounded-xl border border-primary/15 bg-muted/20 p-1 gap-1">
-                <TabsTrigger value="pending" className="flex-1 gap-1.5 text-xs sm:text-sm py-2">
-                  <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  Pending ({pendingApplications.length})
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 h-auto rounded-xl border border-primary/15 bg-muted/20 p-1 gap-1">
+                <TabsTrigger value="pending" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span>Pending</span>
+                  </span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground">{pendingApplications.length}</span>
                 </TabsTrigger>
-                <TabsTrigger value="approved" className="flex-1 gap-1.5 text-xs sm:text-sm py-2">
-                  <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  Approved ({approvedApplications.length})
+                <TabsTrigger value="approved" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
+                  <span className="inline-flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span>Approved</span>
+                  </span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground">{approvedApplications.length}</span>
                 </TabsTrigger>
-                <TabsTrigger value="rejected" className="flex-1 gap-1.5 text-xs sm:text-sm py-2">
-                  <XCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  Rejected ({rejectedApplications.length})
+                <TabsTrigger value="rejected" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
+                  <span className="inline-flex items-center gap-1.5">
+                    <XCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span>Rejected</span>
+                  </span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground">{rejectedApplications.length}</span>
                 </TabsTrigger>
-                  <TabsTrigger value="verification" className="flex-1 gap-1.5 text-xs sm:text-sm py-2">
+                <TabsTrigger value="verification" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
+                  <span className="inline-flex items-center gap-1.5">
                     <FileCheck className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                    Verification ({pendingVerificationTutors.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="verified-docs" className="flex-1 gap-1.5 text-xs sm:text-sm py-2">
+                    <span>Verify</span>
+                  </span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground">{pendingVerificationTutors.length}</span>
+                </TabsTrigger>
+                <TabsTrigger value="verified-docs" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2 col-span-2 sm:col-span-1">
+                  <span className="inline-flex items-center gap-1.5">
                     <ShieldCheck className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                    Verified Docs ({verifiedDocTutors.length})
-                  </TabsTrigger>
+                    <span>Verified</span>
+                  </span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground">{verifiedDocTutors.length}</span>
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="pending" className="space-y-4 mt-4">
