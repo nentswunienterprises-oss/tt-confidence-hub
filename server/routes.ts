@@ -133,6 +133,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (!v) return "weak";
 
             if (
+              v === "none" ||
+              v === "weak" ||
               v.includes("freeze") ||
               v.includes("could not") ||
               v.includes("cannot") ||
@@ -154,7 +156,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
               v.includes("abandoned") ||
               v.includes("panic-driven") ||
               v.includes("shutdown") ||
-              v.includes("collapse") ||
+              v.includes("waits") ||
+              v.includes("delayed") ||
+              v.includes("hesitate") ||
+              v.includes("incorrect") ||
+              v.includes("unsure") ||
+              v.includes("asks immediately") ||
+              v.includes("forgets") ||
+              v.includes("careless") ||
+              v.includes("inconsistent") ||
               v.includes("help immediately") ||
               v.includes("needed tutor to carry")
             ) {
@@ -3010,6 +3020,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!v) return "weak";
 
     if (
+      v === "none" ||
+      v === "weak" ||
       v.includes("could not") ||
       v.includes("cannot") ||
       v.includes("no idea") ||
@@ -3020,6 +3032,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       v.includes("panic-driven") ||
       v.includes("shutdown") ||
       v.includes("collapse") ||
+      v.includes("waits") ||
+      v.includes("delayed") ||
+      v.includes("hesitate") ||
+      v.includes("incorrect") ||
+      v.includes("unsure") ||
+      v.includes("asks immediately") ||
+      v.includes("forgets") ||
+      v.includes("careless") ||
+      v.includes("inconsistent") ||
+      v.includes("panic") ||
+      v.includes("breaks") ||
       v.includes("needed tutor to carry")
     ) {
       return "weak";
