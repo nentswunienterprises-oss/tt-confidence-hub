@@ -187,7 +187,7 @@ export default function TutorGateway() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2 ml-2 sm:ml-0 scale-110 sm:scale-100 origin-left">
+          <div className="flex items-center gap-2 ml-4 sm:ml-0">
             <TTLogo size="md" />
           </div>
 
