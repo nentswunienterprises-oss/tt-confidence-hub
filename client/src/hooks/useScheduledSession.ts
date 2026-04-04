@@ -3,10 +3,10 @@ import { API_URL } from "@/lib/config";
 
 export function useScheduledSession(studentId) {
   return useQuery({
-    queryKey: ["/api/tutor/student/intro-session-details", studentId],
+    queryKey: ["/api/tutor/students/intro-session-details", studentId],
     queryFn: async () => {
       if (!studentId) return null;
-      const res = await fetch(`${API_URL}/api/tutor/student/${studentId}/intro-session-details`, {
+      const res = await fetch(`${API_URL}/api/tutor/students/${studentId}/intro-session-details`, {
         credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to fetch intro session details");
@@ -31,7 +31,7 @@ export function useTutorRespondToSession(studentId) {
       return await res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tutor/student/intro-session-details", studentId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tutor/students/intro-session-details", studentId] });
     },
   });
 }

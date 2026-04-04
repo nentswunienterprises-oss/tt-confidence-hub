@@ -39,7 +39,7 @@ import { API_URL } from "@/lib/config";
 export function useScheduledSession(studentId) {
     var _this = this;
     return useQuery({
-        queryKey: ["/api/tutor/student/intro-session-details", studentId],
+        queryKey: ["/api/tutor/students/intro-session-details", studentId],
         queryFn: function () { return __awaiter(_this, void 0, void 0, function () {
             var res;
             return __generator(this, function (_a) {
@@ -47,7 +47,7 @@ export function useScheduledSession(studentId) {
                     case 0:
                         if (!studentId)
                             return [2 /*return*/, null];
-                        return [4 /*yield*/, fetch("".concat(API_URL, "/api/tutor/student/").concat(studentId, "/intro-session-details"), {
+                        return [4 /*yield*/, fetch("".concat(API_URL, "/api/tutor/students/").concat(studentId, "/intro-session-details"), {
                                 credentials: "include",
                             })];
                     case 1:
@@ -88,7 +88,7 @@ export function useTutorRespondToSession(studentId) {
             });
         }); },
         onSuccess: function () {
-            queryClient.invalidateQueries({ queryKey: ["/api/tutor/student/intro-session-details", studentId] });
+            queryClient.invalidateQueries({ queryKey: ["/api/tutor/students/intro-session-details", studentId] });
         },
     });
 }
