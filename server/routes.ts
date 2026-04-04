@@ -563,6 +563,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const previousStability = normalizeStability(parsed.summary?.previousStability || stability);
             const sessionScore = Number(parsed.summary?.sessionScore ?? 0);
             const phaseDecision = String(parsed.summary?.phaseDecision || "remain").toLowerCase();
+            const stabilityRank = (value: string) =>
+              value === "Low" ? 1 : value === "Medium" ? 2 : value === "High" ? 3 : value === "High Maintenance" ? 4 : 0;
+            const stabilityImproved = stabilityRank(stability) > stabilityRank(previousStability);
             const nextAction = String(
               parsed.summary?.nextAction ||
               NEXT_ACTION_ENGINE[resultingPhase]?.[stability]?.primaryAction ||
@@ -581,7 +584,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               deterministicLog: {
                 topicFocus: `This session focused on ${topic}, targeting ${DRILL_PURPOSE_BY_PHASE[observedPhase] || "phase-specific execution"}.`,
                 whatWasTrained: `A training drill was used to train ${DRILL_PURPOSE_BY_PHASE[observedPhase] || "phase-specific behavior"}.`,
-                  behaviorSummary: `The student showed ${phaseDecision === "advance" ? "improved independence" : stability === "High" || stability === "High Maintenance" ? "stable execution" : stability === "Medium" ? "inconsistent execution" : "breakdown under pressure"} during the drill.`,
+                  behaviorSummary: `The student showed ${phaseDecision === "advance" ? "improved independence" : phaseDecision === "regress" ? "breakdown under pressure" : stabilityImproved ? "improving consistency" : stability === "High" || stability === "High Maintenance" ? "stable execution" : stability === "Medium" ? "inconsistent execution" : "breakdown under pressure"} during the drill.`,
                 performanceResult: `Based on performance, stability is now ${stability} (${sessionScore}/100).`,
                 stateMovement:
                   resultingPhase === normalizePhase(observedPhase) && stability === previousStability
