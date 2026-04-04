@@ -341,7 +341,7 @@ export default function TutorGateway() {
                     Application received. Under review.
                   </p>
                   <p className="text-xs sm:text-sm text-muted-foreground">
-                    Response within 48 hours.
+                    Due to high demand, acceptance is limited.
                   </p>
                   <div className="bg-muted/30 rounded-lg p-3 sm:p-4 text-left">
                     <p className="text-xs sm:text-sm font-medium mb-2">What happens next:</p>
