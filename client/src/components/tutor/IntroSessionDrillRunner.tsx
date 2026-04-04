@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 type PhaseLabel = "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability";
@@ -14,6 +15,14 @@ type DrillSetConfig = {
   activeRules: string[];
   observationBlock?: ObservationField[];
   repObservationBlocks?: ObservationField[][];
+};
+
+type StudentListEntry = {
+  id: string | number;
+  fullName?: string | null;
+  name?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
 };
 
 const PHASE_CONTEXT: Record<PhaseLabel, { purpose: string; constraints: string[] }> = {
@@ -501,10 +510,27 @@ export default function IntroSessionDrillRunner() {
 
   const hasIntroTopic = !!introTopic;
 
+  const { data: studentsData } = useQuery<StudentListEntry[] | { students?: StudentListEntry[] }>({
+    queryKey: ["/api/tutor/students"],
+    staleTime: 60_000,
+  });
+
   const studentName = useMemo(() => {
-    const cached = (window as any).__queryClient?.getQueryData(["/api/tutor/students"]) as any[] | undefined;
-    return cached?.find((s: any) => String(s.id) === String(studentId))?.name || null;
-  }, [studentId]);
+    const list = Array.isArray(studentsData)
+      ? studentsData
+      : Array.isArray(studentsData?.students)
+      ? studentsData.students
+      : [];
+
+    const student = list.find((s) => String(s.id) === String(studentId));
+    if (!student) return null;
+
+    const directName = String(student.fullName || student.name || "").trim();
+    if (directName) return directName;
+
+    const composedName = `${String(student.firstName || "").trim()} ${String(student.lastName || "").trim()}`.trim();
+    return composedName || null;
+  }, [studentId, studentsData]);
 
   const set = drillStructure[currentSet];
   const isModelingSet = !!set.isModelingSet;
