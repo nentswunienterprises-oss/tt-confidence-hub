@@ -665,18 +665,22 @@ export default function ExecutiveHRTraffic() {
             </Card>
           ) : (
             <Tabs value={parentSubTab} onValueChange={setParentSubTab} className="w-full">
-              <TabsList className="flex w-full overflow-x-auto h-auto rounded-xl border border-primary/15 bg-muted/20 p-1 gap-1">
-                <TabsTrigger value="awaiting" className="flex-1 text-xs sm:text-sm py-2">
-                  Awaiting Assignment ({awaitingAssignment.length})
+              <TabsList className="grid w-full grid-cols-2 sm:flex sm:flex-nowrap h-auto rounded-xl border border-primary/15 bg-muted/20 p-1 gap-1">
+                <TabsTrigger value="awaiting" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
+                  <span>Awaiting</span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground">{awaitingAssignment.length}</span>
                 </TabsTrigger>
-                <TabsTrigger value="assigned" className="flex-1 text-xs sm:text-sm py-2">
-                  Assigned ({assigned.length})
+                <TabsTrigger value="assigned" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
+                  <span>Assigned</span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground">{assigned.length}</span>
                 </TabsTrigger>
-                <TabsTrigger value="active-pods" className="flex-1 text-xs sm:text-sm py-2">
-                  Active In Pods ({activeInPods.length})
+                <TabsTrigger value="active-pods" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
+                  <span>Active Pods</span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground">{activeInPods.length}</span>
                 </TabsTrigger>
-                <TabsTrigger value="confirmed" className="flex-1 text-xs sm:text-sm py-2">
-                  Confirmed ({confirmed.length})
+                <TabsTrigger value="confirmed" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
+                  <span>Confirmed</span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground">{confirmed.length}</span>
                 </TabsTrigger>
               </TabsList>
 
