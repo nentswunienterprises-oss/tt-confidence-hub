@@ -5475,15 +5475,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const { podId } = req.params;
         const assignments = await storage.getTutorAssignmentsByPod(podId);
+        const activeEnrollmentStatuses = ["assigned", "proposal_sent", "session_booked", "report_received", "confirmed"];
         
         // Fetch tutor details for each assignment
         const tutorsData = await Promise.all(
           assignments.map(async (assignment: any) => {
             const tutor = await storage.getUser(assignment.tutorId);
+            const { count: activeStudentCount } = await supabase
+              .from("parent_enrollments")
+              .select("id", { count: "exact", head: true })
+              .eq("assigned_tutor_id", assignment.tutorId)
+              .in("status", activeEnrollmentStatuses);
+
             return {
               ...assignment,
               tutorName: tutor?.name || "Unknown",
               tutorEmail: tutor?.email || "",
+              student_count: activeStudentCount || 0,
+              studentCount: activeStudentCount || 0,
             };
           })
         );
@@ -5536,10 +5545,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { podId } = req.params;
         const assignments = await storage.getTutorAssignmentsByPod(podId);
         const sessions = await storage.getSessionsByPod(podId);
+        const tutorIds = assignments.map((a: any) => a.tutorId).filter(Boolean);
+        const activeEnrollmentStatuses = ["assigned", "proposal_sent", "session_booked", "report_received", "confirmed"];
         
         // Calculate statistics
         const totalTutors = assignments.length;
-        const totalStudents = assignments.reduce((sum: number, a: any) => sum + (a.studentCount || 0), 0);
+        let totalStudents = 0;
+
+        if (tutorIds.length > 0) {
+          const { count } = await supabase
+            .from("parent_enrollments")
+            .select("id", { count: "exact", head: true })
+            .in("assigned_tutor_id", tutorIds)
+            .in("status", activeEnrollmentStatuses);
+          totalStudents = count || 0;
+        }
+
         const sessionsCompleted = sessions.length;
         
         res.json({

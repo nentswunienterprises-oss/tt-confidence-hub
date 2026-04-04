@@ -80,6 +80,8 @@ export default function PodDetail() {
   const { data: pods, isLoading: podLoading } = useQuery<Pod[]>({
     queryKey: ["/api/coo/pods"],
     enabled: isAuthenticated && !authLoading,
+    refetchInterval: 10000,
+    refetchOnWindowFocus: true,
   });
 
   const currentPod: Pod | undefined = pods?.find((p: Pod) => p.id === podId);
@@ -90,6 +92,8 @@ export default function PodDetail() {
   } = useQuery<User[]>({
     queryKey: ["/api/coo/tds"],
     enabled: isAuthenticated && !authLoading,
+    refetchInterval: 15000,
+    refetchOnWindowFocus: true,
   });
 
   const {
@@ -98,6 +102,8 @@ export default function PodDetail() {
   } = useQuery<User[]>({
     queryKey: ["/api/coo/approved-tutors"],
     enabled: isAuthenticated && !authLoading,
+    refetchInterval: 15000,
+    refetchOnWindowFocus: true,
   });
 
   const {
@@ -106,6 +112,8 @@ export default function PodDetail() {
   } = useQuery<string[]>({
     queryKey: ["/api/coo/all-tutor-assignments"],
     enabled: isAuthenticated && !authLoading,
+    refetchInterval: 10000,
+    refetchOnWindowFocus: true,
   });
 
   const {
@@ -115,6 +123,8 @@ export default function PodDetail() {
   } = useQuery<any[]>({
     queryKey: [`/api/coo/pods/${podId}/tutors`],
     enabled: isAuthenticated && !authLoading && !!podId,
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
   });
 
   const {
@@ -123,6 +133,8 @@ export default function PodDetail() {
   } = useQuery<{ totalTutors: number; totalStudents: number; sessionsCompleted: number }>({
     queryKey: [`/api/coo/pods/${podId}/stats`],
     enabled: isAuthenticated && !authLoading && !!podId,
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
   });
 
   useEffect(() => {
@@ -696,6 +708,8 @@ function TutorStudentsSection({
   const { data: students, isLoading } = useQuery<any[]>({
     queryKey: [`/api/coo/tutors/${tutorId}/students`],
     enabled: !!tutorId,
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
   });
 
   return (

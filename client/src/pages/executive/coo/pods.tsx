@@ -51,6 +51,8 @@ export default function COOPods() {
   } = useQuery<Pod[]>({
     queryKey: ["/api/coo/pods"],
     enabled: isAuthenticated && !authLoading,
+    refetchInterval: 10000,
+    refetchOnWindowFocus: true,
   });
 
   const {
@@ -59,6 +61,8 @@ export default function COOPods() {
   } = useQuery<User[]>({
     queryKey: ["/api/coo/tds"],
     enabled: isAuthenticated && !authLoading,
+    refetchInterval: 15000,
+    refetchOnWindowFocus: true,
   });
 
   const {
@@ -67,6 +71,8 @@ export default function COOPods() {
   } = useQuery<User[]>({
     queryKey: ["/api/coo/approved-tutors"],
     enabled: isAuthenticated && !authLoading,
+    refetchInterval: 15000,
+    refetchOnWindowFocus: true,
   });
 
   useEffect(() => {
