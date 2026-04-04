@@ -385,7 +385,17 @@ export default function PodDetail() {
         </div>
 
         {/* Statistics Section */}
-        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+          <Card className="p-4 sm:p-6 border">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground uppercase">Tutors</p>
+                <p className="text-2xl sm:text-3xl font-bold mt-1 sm:mt-2">{podStats?.totalTutors || 0}</p>
+              </div>
+              <Award className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 opacity-50" />
+            </div>
+          </Card>
+
           <Card className="p-4 sm:p-6 border">
             <div className="flex items-start justify-between">
               <div>
