@@ -20,8 +20,8 @@ export default function ClientSignup() {
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#FFF5ED" }}>
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2 ml-6 sm:ml-0 flex-1 justify-center sm:flex-initial sm:justify-start">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 relative flex items-center justify-between">
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 sm:static sm:transform-none w-full sm:w-auto flex justify-center">
             <TTLogo size="md" />
           </div>
           
