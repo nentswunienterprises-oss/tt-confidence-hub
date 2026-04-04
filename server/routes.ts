@@ -774,7 +774,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               : `The main challenge this week was ${breakdownSignal}.`;
 
             const weeklyResponsePatternNarrative = regressedTopics.length > 0
-              ? `During this week, the student typically had: ${weeklyTopSignals.join("; ") || dominantBehavior}. These patterns did not sustain level criteria in ${regressedTopics.slice(0, 2).join(", ")}.`
+              ? `The student showed ${weeklyTopSignals.length > 0 ? weeklyTopSignals.join(" and ") : "stable execution"}, but ${breakdownSignal} sessions prevented maintaining the previous level in ${regressedTopics.slice(0, 2).join(", ")}.`
               : improvedTopics.length > 0
               ? `During this week, the student typically had: ${weeklyTopSignals.join("; ") || dominantBehavior}. These patterns supported level gains in ${improvedTopics.slice(0, 2).join(", ")}.`
               : `During this week, the student typically had: ${weeklyTopSignals.join("; ") || dominantBehavior}. Performance remained stable with no level change.`;
@@ -974,7 +974,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               : `The main recurring challenge this month was ${breakdownSignal}.`;
 
             const monthlyResponsePatternNarrative = regressedTopics.length > 0
-              ? `Across the month, the student typically showed: ${monthlyTopSignals.join("; ") || dominantBehavior}. These patterns did not sustain level criteria in ${regressedTopics.slice(0, 2).join(", ")}.`
+              ? `Across the month, the student typically showed ${monthlyTopSignals.length > 0 ? monthlyTopSignals.join(" and ") : "stable performance"}, but ${breakdownSignal} sessions prevented maintaining the previous level in ${regressedTopics.slice(0, 2).join(", ")}.`
               : improvedTopics.length > 0
               ? `Across the month, the student typically showed: ${monthlyTopSignals.join("; ") || dominantBehavior}. These patterns supported level gains in ${improvedTopics.slice(0, 2).join(", ")}.`
               : `Across the month, the student typically showed: ${monthlyTopSignals.join("; ") || dominantBehavior}. Performance remained stable with no level gain.`;
