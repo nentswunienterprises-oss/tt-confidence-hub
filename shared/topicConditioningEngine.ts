@@ -40,7 +40,7 @@ export const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, NextA
       rules: ["No Boss Battles as primary", "No time pressure", "Reduce explanation, increase execution"],
       nextActions: [
         "Continue 3-Layer Lens",
-        "Increase Apply volume (more reps)",
+        "Run Clarity drill",
         "Start light execution checks (can they repeat without help?)",
       ],
     },
@@ -80,7 +80,7 @@ export const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, NextA
       primaryAction: "Run Structured Execution drill",
       rules: ["Do not rush to time pressure", "Still reinforce structure every time"],
       nextActions: [
-        "Increase independent problem volume",
+        "Run Structured Execution drill",
         "Reduce modeling",
         "Strengthen consistency across multiple problems",
         "Introduce light Boss Battles",
@@ -91,7 +91,7 @@ export const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, NextA
       rules: ["Do NOT phase advance yet", "Prove repeatable stability first"],
       nextActions: [
         "Run High Maintenance check in Structured Execution",
-        "Increase independent problem volume",
+        "Run Structured Execution drill",
         "Confirm repeatable execution stability",
       ],
     },
@@ -121,7 +121,7 @@ export const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, NextA
       primaryAction: "Run Controlled Discomfort drill",
       rules: ["Do not remove difficulty", "Do not over-guide"],
       nextActions: [
-        "Increase frequency of Boss Battles",
+        "Run Controlled Discomfort drill",
         "Reduce hesitation time",
         "Push independent starts",
         "Reinforce calm execution",
@@ -152,7 +152,7 @@ export const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, NextA
       primaryAction: "Run Time Pressure Stability drill",
       rules: ["Do not push speed", "Do not increase time pressure aggressively"],
       nextActions: [
-        "Introduce short timed problems",
+        "Run Time Pressure Stability drill",
         "Reinforce process over speed",
         "Debrief after every attempt",
         "Re-anchor structure",
@@ -162,7 +162,7 @@ export const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, NextA
       primaryAction: "Run Time Pressure Stability drill",
       rules: ["Do not sacrifice structure for speed", "Maintain method discipline"],
       nextActions: [
-        "Increase timed repetitions",
+        "Run Time Pressure Stability drill",
         "Reduce breakdown frequency",
         "Strengthen full execution within time",
       ],
@@ -180,7 +180,7 @@ export const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, NextA
       primaryAction: "Run Time Pressure Stability maintenance drill",
       rules: ["Do not over-train same pattern", "Begin cross-topic conditioning"],
       nextActions: [
-        "Maintain with mixed practice",
+        "Run Time Pressure Stability maintenance drill",
         "Introduce new variations of topic",
         "Prepare for transfer to new topics",
       ],

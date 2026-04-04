@@ -61,7 +61,7 @@ export const NEXT_ACTION_ENGINE: Record<PhaseLabel, Record<StabilityLabel, NextA
       primaryAction: "Run Clarity drill",
       nextActions: [
         "Continue 3-Layer Lens",
-        "Increase Apply volume (more reps)",
+        "Run Clarity drill",
         "Start light execution checks (can they repeat without help?)",
       ],
       rules: ["No Boss Battles as primary", "No time pressure", "Reduce explanation, increase execution"],
@@ -101,7 +101,7 @@ export const NEXT_ACTION_ENGINE: Record<PhaseLabel, Record<StabilityLabel, NextA
     Medium: {
       primaryAction: "Run Structured Execution drill",
       nextActions: [
-        "Increase independent problem volume",
+        "Run Structured Execution drill",
         "Reduce modeling",
         "Strengthen consistency across multiple problems",
         "Introduce light Boss Battles",
@@ -112,7 +112,7 @@ export const NEXT_ACTION_ENGINE: Record<PhaseLabel, Record<StabilityLabel, NextA
       primaryAction: "Run Structured Execution High Maintenance drill",
       nextActions: [
         "Run High Maintenance check in Structured Execution",
-        "Increase independent problem volume",
+        "Run Structured Execution drill",
         "Confirm repeatable execution stability",
       ],
       rules: ["Do NOT phase advance yet", "Prove repeatable stability first"],
@@ -142,7 +142,7 @@ export const NEXT_ACTION_ENGINE: Record<PhaseLabel, Record<StabilityLabel, NextA
     Medium: {
       primaryAction: "Run Controlled Discomfort drill",
       nextActions: [
-        "Increase frequency of Boss Battles",
+        "Run Controlled Discomfort drill",
         "Reduce hesitation time",
         "Push independent starts",
         "Reinforce calm execution",
@@ -173,7 +173,7 @@ export const NEXT_ACTION_ENGINE: Record<PhaseLabel, Record<StabilityLabel, NextA
     Low: {
       primaryAction: "Run Time Pressure Stability drill",
       nextActions: [
-        "Introduce short timed problems",
+        "Run Time Pressure Stability drill",
         "Reinforce \"process over speed\"",
         "Debrief after every attempt",
         "Re-anchor structure",
@@ -183,7 +183,7 @@ export const NEXT_ACTION_ENGINE: Record<PhaseLabel, Record<StabilityLabel, NextA
     Medium: {
       primaryAction: "Run Time Pressure Stability drill",
       nextActions: [
-        "Increase timed repetitions",
+        "Run Time Pressure Stability drill",
         "Reduce breakdown frequency",
         "Strengthen full execution within time",
       ],
@@ -201,7 +201,7 @@ export const NEXT_ACTION_ENGINE: Record<PhaseLabel, Record<StabilityLabel, NextA
     "High Maintenance": {
       primaryAction: "Run Time Pressure Stability maintenance drill",
       nextActions: [
-        "Maintain with mixed practice",
+        "Run Time Pressure Stability maintenance drill",
         "Introduce new variations of topic",
         "Prepare for transfer to new topics",
       ],

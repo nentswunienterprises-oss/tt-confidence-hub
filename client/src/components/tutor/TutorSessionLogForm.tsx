@@ -97,7 +97,7 @@ function nextActionFor(phase: string, stability: string): string {
   const validStabilities = ["Low", "Medium", "High", "High Maintenance"] as const;
   const p = validPhases.find(v => v === phase);
   const s = validStabilities.find(v => v === stability);
-  if (!p || !s) return "Maintain with mixed practice";
+  if (!p || !s) return "Run Time Pressure Stability maintenance drill";
   return getNextActionData(p, s).primaryAction;
 }
 
