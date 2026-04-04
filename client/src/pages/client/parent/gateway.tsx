@@ -442,6 +442,7 @@ export default function ParentGateway() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 relative flex items-center justify-between">
+          <div className="w-10 md:hidden" aria-hidden="true" />
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 sm:static sm:transform-none w-full sm:w-auto flex justify-center">
             <TTLogo size="md" />
           </div>
@@ -1018,16 +1019,24 @@ export default function ParentGateway() {
                     </div>
                   )}
 
-                  {/* Show booking dialog for not_scheduled and pending_parent_confirmation */}
-                  {(introSessionConfirmation?.status === "not_scheduled" || introSessionConfirmation?.status === "pending_parent_confirmation") && (
+                  {/* Show booking dialog for assigned / not_scheduled and pending_parent_confirmation */}
+                  {(
+                    (!introSessionConfirmation && enrollmentStatus.status === "assigned") ||
+                    introSessionConfirmation?.status === "not_scheduled" ||
+                    introSessionConfirmation?.status === "pending_parent_confirmation"
+                  ) && (
                     <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                       <p className="font-medium mb-4 text-red-900">
-                        {introSessionConfirmation?.status === "not_scheduled"
+                        {(!introSessionConfirmation && enrollmentStatus.status === "assigned") || introSessionConfirmation?.status === "not_scheduled"
                           ? "Schedule your introductory session"
                           : "Adjust your introductory session schedule"}
                       </p>
                       <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
-                        {(introSessionConfirmation?.status === "not_scheduled" || introSessionConfirmation?.status === "pending_parent_confirmation") && (
+                        {(
+                          (!introSessionConfirmation && enrollmentStatus.status === "assigned") ||
+                          introSessionConfirmation?.status === "not_scheduled" ||
+                          introSessionConfirmation?.status === "pending_parent_confirmation"
+                        ) && (
                           <DialogTrigger asChild>
                             <Button
                               style={{ backgroundColor: '#E63946', color: 'white' }}
@@ -1035,7 +1044,7 @@ export default function ParentGateway() {
                               disabled={isSubmittingSession || justBooked}
                               title={undefined}
                             >
-                              {introSessionConfirmation?.status === "not_scheduled"
+                              {(!introSessionConfirmation && enrollmentStatus.status === "assigned") || introSessionConfirmation?.status === "not_scheduled"
                                 ? "Book Introductory Session"
                                 : "Adjust Schedule"}
                             </Button>
