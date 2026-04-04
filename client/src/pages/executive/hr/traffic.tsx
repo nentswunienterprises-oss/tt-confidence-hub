@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getQueryFn } from "@/lib/queryClient";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiRequest, getQueryFn } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Loader2, User, Phone, MapPin, BookOpen, Users, GraduationCap, CheckCircle2, Clock, XCircle, FileCheck, ShieldCheck, FileText } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface TrafficStats {
   totalApplications: number;
@@ -36,20 +37,39 @@ interface ParentEnrollment {
   confidence_level: string;
   internet_access: string;
   parent_motivation?: string;
-  status: "not_enrolled" | "awaiting_assignment" | "assigned" | "session_booked" | "report_received" | "confirmed";
+  status:
+    | "not_enrolled"
+    | "awaiting_assignment"
+    | "awaiting_tutor_acceptance"
+    | "assigned"
+    | "proposal_sent"
+    | "session_booked"
+    | "report_received"
+    | "confirmed";
   current_step?: string;
+  assigned_tutor_id?: string | null;
+  assigned_student_id?: string | null;
+  assigned_tutor_name?: string | null;
+  assigned_tutor_email?: string | null;
+  assigned_pod_id?: string | null;
+  assigned_pod_name?: string | null;
+  active_in_pod?: boolean;
+  updated_at?: string;
   created_at: string;
 }
 
 export default function ExecutiveHRTraffic() {
   const { isAuthenticated, user } = useAuth();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [assignTutorOpen, setAssignTutorOpen] = useState(false);
   const [selectedEnrollmentId, setSelectedEnrollmentId] = useState<string>("");
   const [selectedApplication, setSelectedApplication] = useState<TutorApplication | null>(null);
   const [tutorAppSubTab, setTutorAppSubTab] = useState("pending");
+  const [parentSubTab, setParentSubTab] = useState("awaiting");
   const [verifyingTutorId, setVerifyingTutorId] = useState<string | null>(null);
   const [rejectingTutorId, setRejectingTutorId] = useState<string | null>(null);
+  const [unassigningEnrollmentId, setUnassigningEnrollmentId] = useState<string | null>(null);
   // Fetch tutor verification docs (from /api/coo/applications)
   const { data: tutorVerificationData = [], refetch: refetchVerificationData } = useQuery<{ user: any; verificationDoc: any }[]>({
     queryKey: ["/api/coo/applications"],
@@ -135,8 +155,9 @@ export default function ExecutiveHRTraffic() {
   // Treat 'session_booked' as assigned for HR display so booked sessions are visible under Assigned
   const assigned = enrollments.filter((e: ParentEnrollment) => {
     const s = normalize(e.status);
-    return s === "assigned" || s === "session_booked";
+    return s === "assigned" || s === "session_booked" || s === "awaiting_tutor_acceptance" || s === "proposal_sent";
   });
+  const activeInPods = enrollments.filter((e: ParentEnrollment) => !!e.active_in_pod);
   const confirmed = enrollments.filter((e: ParentEnrollment) => normalize(e.status) === "confirmed");
 
   // Filter tutor applications by status
@@ -154,18 +175,58 @@ export default function ExecutiveHRTraffic() {
     queryClient.invalidateQueries({ queryKey: ["/api/hr/enrollments"] });
   };
 
+  const unassignTutorMutation = useMutation({
+    mutationFn: async (enrollmentId: string) => {
+      const response = await apiRequest("POST", `/api/hr/enrollments/${enrollmentId}/unassign-tutor`, {});
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/hr/enrollments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/hr/stats"] });
+      toast({
+        title: "Tutor unassigned",
+        description: "Student record was preserved and removed from tutor pod view.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to unassign tutor",
+        description: error?.message || "Please try again.",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      setUnassigningEnrollmentId(null);
+    },
+  });
+
+  const handleUnassignTutor = (enrollment: ParentEnrollment) => {
+    if (!enrollment.assigned_tutor_id) return;
+    const confirmed = window.confirm(
+      `Unassign ${enrollment.student_full_name} from ${enrollment.assigned_tutor_name || "this tutor"}?\n\nStudent data will be preserved for reassignment.`
+    );
+    if (!confirmed) return;
+    setUnassigningEnrollmentId(enrollment.id);
+    unassignTutorMutation.mutate(enrollment.id);
+  };
+
   
 
-  const getStatusBadge = (status: ParentEnrollment["status"]) => {
-    const statusConfig = {
+  const getStatusBadge = (status: ParentEnrollment["status"] | string) => {
+    const statusConfig: Record<string, { label: string; color: string }> = {
       awaiting_assignment: { label: "Awaiting Assignment", color: "bg-yellow-100 text-yellow-800" },
+      awaiting_tutor_acceptance: { label: "Awaiting Tutor Acceptance", color: "bg-indigo-100 text-indigo-800" },
       assigned: { label: "Assigned", color: "bg-blue-100 text-blue-800" },
+      proposal_sent: { label: "Proposal Sent", color: "bg-cyan-100 text-cyan-800" },
       session_booked: { label: "Session Booked", color: "bg-purple-100 text-purple-800" },
       report_received: { label: "Report Received", color: "bg-orange-100 text-orange-800" },
       confirmed: { label: "Confirmed", color: "bg-green-100 text-green-800" },
       not_enrolled: { label: "Not Enrolled", color: "bg-gray-100 text-gray-800" },
     };
-    const config = statusConfig[status];
+    const config = statusConfig[String(status)] || {
+      label: String(status || "Unknown").replace(/_/g, " "),
+      color: "bg-gray-100 text-gray-800",
+    };
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
@@ -178,6 +239,12 @@ export default function ExecutiveHRTraffic() {
             <CardDescription>
               Parent: {enrollment.parent_full_name}
             </CardDescription>
+            {enrollment.assigned_tutor_name && (
+              <CardDescription>
+                Tutor: {enrollment.assigned_tutor_name}
+                {enrollment.assigned_pod_name ? ` • Pod: ${enrollment.assigned_pod_name}` : ""}
+              </CardDescription>
+            )}
           </div>
           {getStatusBadge(enrollment.status)}
         </div>
@@ -253,6 +320,24 @@ export default function ExecutiveHRTraffic() {
             onClick={() => handleOpenAssignModal(enrollment.id)}
           >
             Assign Tutor
+          </Button>
+        )}
+
+        {enrollment.assigned_tutor_id && (
+          <Button
+            className="w-full mt-2"
+            variant="destructive"
+            onClick={() => handleUnassignTutor(enrollment)}
+            disabled={unassigningEnrollmentId === enrollment.id}
+          >
+            {unassigningEnrollmentId === enrollment.id ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Unassigning...
+              </>
+            ) : (
+              "Unassign Tutor"
+            )}
           </Button>
         )}
       </CardContent>
@@ -583,52 +668,78 @@ export default function ExecutiveHRTraffic() {
               <p className="text-muted-foreground text-lg">No enrollments yet</p>
             </Card>
           ) : (
-            <>
-              {/* Awaiting Assignment */}
-              {awaitingAssignment.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                    <h2 className="text-xl font-semibold">Awaiting Assignment ({awaitingAssignment.length})</h2>
-                  </div>
+            <Tabs value={parentSubTab} onValueChange={setParentSubTab} className="w-full">
+              <TabsList className="flex w-full overflow-x-auto h-auto rounded-xl border border-primary/15 bg-muted/20 p-1 gap-1">
+                <TabsTrigger value="awaiting" className="flex-1 text-xs sm:text-sm py-2">
+                  Awaiting Assignment ({awaitingAssignment.length})
+                </TabsTrigger>
+                <TabsTrigger value="assigned" className="flex-1 text-xs sm:text-sm py-2">
+                  Assigned ({assigned.length})
+                </TabsTrigger>
+                <TabsTrigger value="active-pods" className="flex-1 text-xs sm:text-sm py-2">
+                  Active In Pods ({activeInPods.length})
+                </TabsTrigger>
+                <TabsTrigger value="confirmed" className="flex-1 text-xs sm:text-sm py-2">
+                  Confirmed ({confirmed.length})
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="awaiting" className="space-y-4 mt-4">
+                {awaitingAssignment.length === 0 ? (
+                  <Card className="p-10 text-center">
+                    <p className="text-muted-foreground">No parents awaiting assignment.</p>
+                  </Card>
+                ) : (
                   <div className="grid gap-4">
                     {awaitingAssignment.map((enrollment: ParentEnrollment) => (
                       <EnrollmentCard key={enrollment.id} enrollment={enrollment} />
                     ))}
                   </div>
-                </div>
-              )}
+                )}
+              </TabsContent>
 
-              {/* Assigned */}
-              {assigned.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-blue-500" />
-                    <h2 className="text-xl font-semibold">Assigned ({assigned.length})</h2>
-                  </div>
+              <TabsContent value="assigned" className="space-y-4 mt-4">
+                {assigned.length === 0 ? (
+                  <Card className="p-10 text-center">
+                    <p className="text-muted-foreground">No assigned enrollments.</p>
+                  </Card>
+                ) : (
                   <div className="grid gap-4">
                     {assigned.map((enrollment: ParentEnrollment) => (
                       <EnrollmentCard key={enrollment.id} enrollment={enrollment} />
                     ))}
                   </div>
-                </div>
-              )}
+                )}
+              </TabsContent>
 
-              {/* Confirmed */}
-              {confirmed.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-green-500" />
-                    <h2 className="text-xl font-semibold">Confirmed ({confirmed.length})</h2>
+              <TabsContent value="active-pods" className="space-y-4 mt-4">
+                {activeInPods.length === 0 ? (
+                  <Card className="p-10 text-center">
+                    <p className="text-muted-foreground">No parents currently active in pods.</p>
+                  </Card>
+                ) : (
+                  <div className="grid gap-4">
+                    {activeInPods.map((enrollment: ParentEnrollment) => (
+                      <EnrollmentCard key={enrollment.id} enrollment={enrollment} />
+                    ))}
                   </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="confirmed" className="space-y-4 mt-4">
+                {confirmed.length === 0 ? (
+                  <Card className="p-10 text-center">
+                    <p className="text-muted-foreground">No confirmed enrollments.</p>
+                  </Card>
+                ) : (
                   <div className="grid gap-4">
                     {confirmed.map((enrollment: ParentEnrollment) => (
                       <EnrollmentCard key={enrollment.id} enrollment={enrollment} />
                     ))}
                   </div>
-                </div>
-              )}
-            </>
+                )}
+              </TabsContent>
+            </Tabs>
           )}
         </TabsContent>
       </Tabs>
