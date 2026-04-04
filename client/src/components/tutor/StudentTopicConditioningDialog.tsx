@@ -1067,9 +1067,9 @@ export default function StudentTopicConditioningDialog({
     : null;
   const selectedTimelineEntries = selectedRow?.timeline || [];
   const selectedVisibleTimeline = selectedTimelineExpanded
-    ? selectedTimelineEntries
-    : selectedTimelineEntries.slice(-6);
-  const selectedHiddenTimelineCount = Math.max(0, selectedTimelineEntries.length - selectedVisibleTimeline.length);
+    ? [...selectedTimelineEntries]
+    : selectedTimelineEntries.slice(Math.max(selectedTimelineEntries.length - 6, 0));
+  const selectedHiddenTimelineCount = Math.max(0, selectedTimelineEntries.length - 6);
 
   // Always use selectedRow for observedPhase and previousStability, fallback to safe defaults
   const observedPhase = (selectedRow && selectedRow.phase ? selectedRow.phase : "Clarity") as PhaseLabel;
@@ -1570,8 +1570,8 @@ export default function StudentTopicConditioningDialog({
                 <div className="space-y-2">
                   <p className="font-medium text-sm">Topic Progress Timeline</p>
                   <div className="rounded-md border p-2 space-y-2">
-                    {selectedVisibleTimeline.map((point) => (
-                      <div key={`${point.date}-${point.phase}`} className="rounded-md border bg-muted/20 px-3 py-2 text-sm">
+                    {selectedVisibleTimeline.map((point, idx) => (
+                      <div key={`${selectedRow.topic}-${point.date}-${point.phase}-${point.stability}-${idx}`} className="rounded-md border bg-muted/20 px-3 py-2 text-sm">
                         <p><span className="font-medium">Date:</span> {point.date}</p>
                         <p><span className="font-medium">Phase:</span> {point.phase}</p>
                         <p><span className="font-medium">Stability:</span> {point.stability}</p>
