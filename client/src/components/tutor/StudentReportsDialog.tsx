@@ -255,7 +255,6 @@ export default function StudentReportsDialog({
                             </div>
                           </AccordionTrigger>
                           <AccordionContent className="space-y-3">
-                            <FieldRow label="Session Time" value={getSessionTimeLabel(session.date)} />
                             <DeterministicSessionLog session={session} />
                           </AccordionContent>
                         </AccordionItem>

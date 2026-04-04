@@ -247,7 +247,6 @@ export default function ViewTrackingSystemsDialog({
                               </div>
                             </AccordionTrigger>
                             <AccordionContent className="space-y-3">
-                              <FieldRow label="Session Time" value={getSessionTimeLabel(session.date)} />
                               {session.deterministicLog ? (
                                 <div className="space-y-3 rounded-xl border border-primary/15 bg-background p-4">
                                   <FieldRow label="Session Summary" value={session.deterministicLog.summaryText || session.deterministicLog.topicFocus} />
