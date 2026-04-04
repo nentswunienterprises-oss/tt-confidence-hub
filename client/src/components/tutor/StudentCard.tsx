@@ -65,6 +65,7 @@ function getWorkflowLabel(workflow) {
   if (!workflow.assignmentAccepted) return "Assignment Pending";
   if (!workflow.introConfirmed) return "Intro Booking";
   if (!workflow.introCompleted) return "Intro Confirmed";
+  if (workflow.proposalAccepted && workflow.introCompleted) return "Active Training";
   if (!workflow.identitySaved) return "Identity Sheet";
   if (!workflow.proposalSent) return "Proposal Draft";
   if (!workflow.proposalAccepted) return "Awaiting Parent";
