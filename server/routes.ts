@@ -5563,8 +5563,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const { tutorId } = req.params;
         console.log("📚 COO requesting students for tutor:", tutorId);
-        const students = await storage.getStudentsByTutor(tutorId);
-        console.log("📚 Found students:", students.map(s => ({ id: s.id, name: s.name })));
+        const students = await hydrateStudentsWithSessionProgress(
+          tutorId,
+          await storage.getStudentsByTutor(tutorId)
+        );
+        console.log(
+          "📚 Found students:",
+          students.map((s) => ({ id: s.id, name: s.name, sessionProgress: s.sessionProgress }))
+        );
         res.json(students);
       } catch (error) {
         console.error("Error fetching tutor students:", error);
