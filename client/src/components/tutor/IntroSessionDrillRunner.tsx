@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { observationLevelFromOptionIndex } from "@shared/observationScoring";
 
 type PhaseLabel = "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability";
 type DrillMode = "diagnosis" | "training";
@@ -639,7 +640,11 @@ export default function IntroSessionDrillRunner() {
               const obs: Record<string, string> = {};
               const observationBlock = getObservationBlockForRep(set, repIdx);
               observationBlock.forEach((block) => {
-                obs[block.key] = observations[`set${setIdx}_rep${repIdx}_${block.key}`] || "";
+                const selectedLabel = observations[`set${setIdx}_rep${repIdx}_${block.key}`] || "";
+                const optionIndex = block.options.findIndex((option) => option === selectedLabel);
+                const selectedLevel = observationLevelFromOptionIndex(optionIndex, block.options.length);
+                obs[block.key] = selectedLabel;
+                obs[`${block.key}_level`] = selectedLevel;
               });
               return obs;
             }),

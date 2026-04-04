@@ -32,6 +32,7 @@ import {
   type TopicPhase,
   type TopicStability,
 } from "@shared/topicConditioningEngine";
+import { normalizeObservationLevelValue } from "@shared/observationScoring";
 import { z } from "zod";
 
 // Extend Express session type to include affiliateCode
@@ -117,7 +118,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               for (let repIndex = 0; repIndex < observations.length; repIndex += 1) {
                 const rep = observations[repIndex] || {};
                 for (const field of phaseFields) {
-                  const hasValue = field.aliases.some((alias) => String(rep?.[alias] || "").trim().length > 0);
+                  const hasValue = field.aliases.some((alias) =>
+                    String(rep?.[`${alias}_level`] || rep?.[alias] || "").trim().length > 0
+                  );
                   if (!hasValue) {
                     return `Set ${setIndex + 1}, rep ${repIndex + 1} is missing required observation value`;
                   }
@@ -128,77 +131,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return null;
           };
 
+          const resolveObservationValue = (repObs: Record<string, string>, aliases: string[]): string => {
+            for (const alias of aliases) {
+              const levelValue = String(repObs?.[`${alias}_level`] || "").trim();
+              if (levelValue) return levelValue;
+
+              const labelValue = String(repObs?.[alias] || "").trim();
+              if (labelValue) return labelValue;
+            }
+            return "";
+          };
+
           const observationLevelFor = (value: unknown): "weak" | "partial" | "clear" => {
-            const v = String(value || "").toLowerCase().trim();
-            if (!v) return "weak";
-
-            if (
-              v === "none" ||
-              v === "weak" ||
-              v.includes("freeze") ||
-              v.includes("could not") ||
-              v.includes("cannot") ||
-              v.includes("no idea") ||
-              v.includes("avoided") ||
-              v.includes("avoid") ||
-              v.includes("random") ||
-              v.includes("guess") ||
-              v.includes("guessed") ||
-              v.includes("froze") ||
-              v.includes("wrong") ||
-              v.includes("fails") ||
-              v.includes("cannot finish") ||
-              v.includes("collapse") ||
-              v.includes("collapses") ||
-              v.includes("breaks") ||
-              v.includes("lost") ||
-              v.includes("panic") ||
-              v.includes("abandoned") ||
-              v.includes("panic-driven") ||
-              v.includes("shutdown") ||
-              v.includes("waits") ||
-              v.includes("delayed") ||
-              v.includes("hesitate") ||
-              v.includes("incorrect") ||
-              v.includes("unsure") ||
-              v.includes("asks immediately") ||
-              v.includes("forgets") ||
-              v.includes("careless") ||
-              v.includes("inconsistent") ||
-              v.includes("help immediately") ||
-              v.includes("needed tutor to carry")
-            ) {
-              return "weak";
-            }
-
-            if (
-              v.includes("clear") ||
-              v.includes("independent") ||
-              v.includes("immediate") ||
-              v.includes("correct") ||
-              v.includes("engages") ||
-              v.includes("starts") ||
-              v.includes("present") ||
-              v.includes("structured") ||
-              v.includes("full") ||
-              v.includes("complete") ||
-              v.includes("adapts") ||
-              v.includes("stable") ||
-              v.includes("recovers") ||
-              v.includes("composed") ||
-              v.includes("no rescue") ||
-              v.includes("maintained") ||
-              v.includes("controlled") ||
-              v.includes("completed with structure") ||
-              v.includes("calmly") ||
-              v.includes("consisten") ||
-              v.includes("without support") ||
-              v.includes("did not seek rescue")
-            ) {
-              return "clear";
-            }
-
-            return "partial";
+            return normalizeObservationLevelValue(value);
           };
 
           const weightedScoreFor = (weight: number, level: "weak" | "partial" | "clear") => {
@@ -250,9 +195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             firstTwoSets.forEach((set) => {
               const repScores = (set.observations || []).map((repObs, repIndex) => {
                 const score = phaseWeights.reduce((sum, field) => {
-                  const rawValue = field.aliases
-                    .map((alias) => repObs?.[alias])
-                    .find((val) => String(val || "").trim().length > 0);
+                  const rawValue = resolveObservationValue(repObs, field.aliases);
                   const level = observationLevelFor(rawValue);
                   const fieldScore = weightedScoreFor(field.weight, level);
                   return sum + fieldScore;
@@ -275,9 +218,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               if (phase === "Clarity") {
                 const repHasZeroField = (set.observations || []).some((repObs) =>
                   phaseWeights.some((field) => {
-                    const rawValue = field.aliases
-                      .map((alias) => repObs?.[alias])
-                      .find((val) => String(val || "").trim().length > 0);
+                    const rawValue = resolveObservationValue(repObs, field.aliases);
                     return weightedScoreFor(field.weight, observationLevelFor(rawValue)) === 0;
                   })
                 );
@@ -357,9 +298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             scoredSets.forEach((set) => {
               const repScores = (set.observations || []).map((repObs, repIndex) => {
                 const score = phaseWeights.reduce((sum, field) => {
-                  const rawValue = field.aliases
-                    .map((alias) => repObs?.[alias])
-                    .find((val) => String(val || "").trim().length > 0);
+                  const rawValue = resolveObservationValue(repObs, field.aliases);
                   const level = observationLevelFor(rawValue);
                   return sum + weightedScoreFor(field.weight, level);
                 }, 0);
@@ -381,9 +320,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               if (observedPhase === "Clarity") {
                 const repHasZeroField = (set.observations || []).some((repObs) =>
                   phaseWeights.some((field) => {
-                    const rawValue = field.aliases
-                      .map((alias) => repObs?.[alias])
-                      .find((val) => String(val || "").trim().length > 0);
+                    const rawValue = resolveObservationValue(repObs, field.aliases);
                     return weightedScoreFor(field.weight, observationLevelFor(rawValue)) === 0;
                   })
                 );
@@ -3016,53 +2953,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   const normalizeObservationLevel = (value: unknown): "weak" | "partial" | "clear" => {
-    const v = String(value || "").toLowerCase().trim();
-    if (!v) return "weak";
-
-    if (
-      v === "none" ||
-      v === "weak" ||
-      v.includes("could not") ||
-      v.includes("cannot") ||
-      v.includes("no idea") ||
-      v.includes("avoid") ||
-      v.includes("guess") ||
-      v.includes("froze") ||
-      v.includes("abandoned") ||
-      v.includes("panic-driven") ||
-      v.includes("shutdown") ||
-      v.includes("collapse") ||
-      v.includes("waits") ||
-      v.includes("delayed") ||
-      v.includes("hesitate") ||
-      v.includes("incorrect") ||
-      v.includes("unsure") ||
-      v.includes("asks immediately") ||
-      v.includes("forgets") ||
-      v.includes("careless") ||
-      v.includes("inconsistent") ||
-      v.includes("panic") ||
-      v.includes("breaks") ||
-      v.includes("needed tutor to carry")
-    ) {
-      return "weak";
-    }
-
-    if (
-      v.includes("clear") ||
-      v.includes("independent") ||
-      v.includes("maintained") ||
-      v.includes("controlled") ||
-      v.includes("completed with structure") ||
-      v.includes("calmly") ||
-      v.includes("consisten") ||
-      v.includes("without support") ||
-      v.includes("did not seek rescue")
-    ) {
-      return "clear";
-    }
-
-    return "partial";
+    return normalizeObservationLevelValue(value);
   };
 
   const weightedFieldContribution = (weight: number, level: "weak" | "partial" | "clear") => {
