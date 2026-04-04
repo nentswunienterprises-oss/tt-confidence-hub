@@ -754,7 +754,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 : `During this week, the student typically had: ${weeklySignalsText}. These patterns supported level gains in ${improvedTopics.slice(0, 2).join(", ")}.`
               : `During this week, the student typically had: ${weeklySignalsText}. Performance remained stable with no level change.`;
 
-            const weeklyVolatilityLine = `Intra-week volatility: ${upshiftCount} ${upshiftCount === 1 ? "upshift" : "upshifts"}, ${downshiftCount} ${downshiftCount === 1 ? "downshift" : "downshifts"}, ${heldCount} ${heldCount === 1 ? "held session" : "held sessions"}.`;
+            const weeklyVolatilityLine = `Volatility: ${upshiftCount} ${upshiftCount === 1 ? "upshift" : "upshifts"}, ${downshiftCount} ${downshiftCount === 1 ? "downshift" : "downshifts"}, ${heldCount} ${heldCount === 1 ? "held session" : "held sessions"}.`;
 
             const conditioningProgress = Object.entries(topicSnapshots)
               .map(([topic, snapshot]) => `${topic}\nStarted: ${formatState(snapshot.start)}\nCurrent: ${formatState(snapshot.current)}`)
@@ -966,7 +966,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 : `Across the month, the student typically showed: ${monthlySignalsText}. These patterns supported level gains in ${improvedTopics.slice(0, 2).join(", ")}.`
               : `Across the month, the student typically showed: ${monthlySignalsText}. Performance remained stable with no level gain.`;
 
-            const monthlyVolatilityLine = `Intra-month volatility: ${upshiftCount} ${upshiftCount === 1 ? "upshift" : "upshifts"}, ${downshiftCount} ${downshiftCount === 1 ? "downshift" : "downshifts"}, ${heldCount} ${heldCount === 1 ? "held session" : "held sessions"}.`;
+            const monthlyVolatilityLine = `Volatility: ${upshiftCount} ${upshiftCount === 1 ? "upshift" : "upshifts"}, ${downshiftCount} ${downshiftCount === 1 ? "downshift" : "downshifts"}, ${heldCount} ${heldCount === 1 ? "held session" : "held sessions"}.`;
 
             return {
               version: "monthly-v2-auto",
@@ -7089,8 +7089,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ...existingProfile,
               workflow: undefined, // Remove workflow key
             };
+
+            // Clear intro sessions for this tutor/student combination
+            await supabase
+              .from("scheduled_sessions")
+              .delete()
+              .eq("tutor_id", previousTutorId)
+              .eq("student_id", studentId)
+              .eq("type", "intro");
+
+            // Clear intro session drills
+            await supabase
+              .from("intro_session_drills")
+              .delete()
+              .eq("tutor_id", previousTutorId)
+              .eq("student_id", studentId);
+
+            // Clear onboarding proposals
+            await supabase
+              .from("onboarding_proposals")
+              .delete()
+              .eq("tutor_id", previousTutorId)
+              .eq("student_id", studentId);
+
+            // Reset identity sheet completion
             await storage.updateStudent(studentId, {
               personalProfile: updatedProfile,
+              identitySheetCompletedAt: null,
               tutorId: null,
               updatedAt: nowIso,
             } as any);
