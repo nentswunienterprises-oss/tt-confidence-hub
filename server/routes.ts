@@ -1819,7 +1819,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (enrollmentError || !enrollmentData) {
         return res.status(400).json({ message: "Failed to fetch enrollment" });
       }
-      if (!enrollmentData.assigned_tutor_id || enrollmentData.status !== "assigned") {
+      if (!enrollmentData.assigned_tutor_id || (enrollmentData.status !== "assigned" && enrollmentData.status !== "awaiting_tutor_acceptance")) {
         return res.status(400).json({ message: "You must be assigned a tutor before booking a session." });
       }
 
@@ -1857,6 +1857,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error("Error updating existing intro session:", updateError);
           return res.status(500).json({ message: "Failed to update session" });
         }
+
+        // Update enrollment status to session_booked
+        await supabase
+          .from("parent_enrollments")
+          .update({ status: "session_booked", current_step: "session_booked", updated_at: new Date().toISOString() })
+          .eq("id", enrollmentData.id);
+
         return res.status(200).json({
           id: existingSession.id,
           status: "pending_tutor_confirmation",
@@ -1894,6 +1901,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (studentCreateError) {
         console.error("Error creating student record on intro session booking:", studentCreateError);
       }
+
+      // Update enrollment status to session_booked
+      await supabase
+        .from("parent_enrollments")
+        .update({ status: "session_booked", current_step: "session_booked", updated_at: new Date().toISOString() })
+        .eq("id", enrollmentData.id);
 
       res.json({ success: true });
     } catch (error) {
