@@ -261,7 +261,7 @@ function PortalLanding() {
             Ready to Build Confidence the Right Way?
           </h2>
           <p className="text-base sm:text-lg mb-8 sm:mb-10" style={{ color: "#A0A0A0" }}>
-            Pressure being familiar creates calm. Calm creates confidence. Confidence creates results.
+            Pressure being familiar creates calm. Calm creates ongoing execution.
           </p>
           <Button
             size="lg"
@@ -317,7 +317,7 @@ function PortalLanding() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Territorial Tutoring on Instagram"
-                className="inline-flex items-center justify-center w-10 h-10 rounded-full transition-opacity hover:opacity-80 md:ml-[4.75rem]"
+                className="inline-flex items-center justify-center w-10 h-10 rounded-full transition-opacity hover:opacity-80 md:ml-[8.75rem]"
                 style={{ backgroundColor: "#FFF0F0", color: "#E63946" }}
               >
                 <Instagram className="w-5 h-5" />
