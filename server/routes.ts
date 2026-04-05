@@ -1908,10 +1908,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userId = (req as any).dbUser.id;
         console.log("[DEBUG] /api/parent/intro-session-confirmation userId:", userId);
 
-        // Get parent's enrollment to find assigned tutor
+        // Get parent's enrollment to find assigned tutor and associated student
         const { data: enrollmentData, error: enrollmentError } = await supabase
           .from("parent_enrollments")
-          .select("assigned_tutor_id, status, user_id")
+          .select("assigned_tutor_id, assigned_student_id, status, user_id")
           .eq("user_id", userId)
           .maybeSingle();
         console.log("[DEBUG] /api/parent/intro-session-confirmation enrollmentData:", enrollmentData, "enrollmentError:", enrollmentError);
@@ -1938,11 +1938,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("[DEBUG] /api/parent/intro-session-confirmation session:", session, "sessionError:", sessionError);
 
         if (sessionError || !session) {
-          // If we can't find a session, just check if the enrollment is assigned
+          // No intro session exists yet. If the parent is assigned, allow booking.
           if (enrollmentData.status === "assigned") {
-            console.log("[DEBUG] /api/parent/intro-session-confirmation response: awaiting_tutor_acceptance (no session found, but assigned)");
+            console.log("[DEBUG] /api/parent/intro-session-confirmation response: not_scheduled (assigned with no session)");
             return res.json({
-              status: "awaiting_tutor_acceptance",
+              status: "not_scheduled",
               introCompleted: false,
             });
           }
@@ -1950,48 +1950,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json({ status: "not_scheduled" });
         }
 
-        // Always use the actual session.status for the response
+        const assignedStudentWorkflow = enrollmentData.assigned_student_id
+          ? ((await storage.getStudent(enrollmentData.assigned_student_id))?.personalProfile as any)?.workflow || {}
+          : {};
+        const introCompleted = !!assignedStudentWorkflow.introCompletedAt;
+
+        const effectiveStatus = session.status === "pending_tutor_confirmation" || session.status === "pending_parent_confirmation" || session.status === "confirmed"
+          ? session.status
+          : !session.tutor_confirmed
+            ? "pending_tutor_confirmation"
+            : !session.parent_confirmed
+              ? "pending_parent_confirmation"
+              : "confirmed";
+
         const responseObj = {
           id: session.id,
-          status: session.status,
+          status: effectiveStatus,
           scheduled_time: session.scheduled_time,
           parent_confirmed: session.parent_confirmed,
           tutor_confirmed: session.tutor_confirmed,
+          introCompleted,
           debug: {
             parent_id: session.parent_id,
             tutor_id: session.tutor_id,
             type: session.type,
-            session_status: session.status
-          }
+            session_status: session.status,
+          },
         };
         console.log("[DEBUG] /api/parent/intro-session-confirmation response:", responseObj);
         return res.json(responseObj);
-
-        let introCompleted = false;
-        if (enrollmentData.assigned_student_id) {
-          const assignedStudent = await storage.getStudent(enrollmentData.assigned_student_id);
-          const workflow = (assignedStudent?.personalProfile as any)?.workflow || {};
-          introCompleted = !!workflow.introCompletedAt;
-        }
-        if (!session.parent_confirmed) {
-          return res.json({
-            id: session.id,
-            status: "pending_parent_confirmation",
-            scheduled_time: session.scheduled_time,
-            introCompleted,
-          });
-        }
-        return res.json({
-          id: session.id,
-          status: "confirmed",
-          scheduled_time: session.scheduled_time,
-          introCompleted,
-        });
       } catch (error) {
         console.error("Error in intro-session-confirmation:", error);
         res.status(500).json({ status: "error", message: "Failed to fetch intro session confirmation status" });
       }
     });
+
+  app.post("/api/parent/intro-session-confirm", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).dbUser.id;
+      const { sessionId } = req.body;
+      if (!sessionId) {
+        return res.status(400).json({ message: "Missing sessionId" });
+      }
+
+      const { data: session, error: sessionError } = await supabase
+        .from("scheduled_sessions")
+        .select("id, status, parent_confirmed, tutor_confirmed, parent_id, tutor_id, type")
+        .eq("id", sessionId)
+        .maybeSingle();
+
+      if (sessionError || !session) {
+        return res.status(404).json({ message: "Session not found" });
+      }
+      if (session.parent_id !== userId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      if (session.status !== "pending_parent_confirmation") {
+        return res.status(400).json({ message: "Session is not waiting for parent confirmation" });
+      }
+
+      const { error: updateError } = await supabase
+        .from("scheduled_sessions")
+        .update({
+          parent_confirmed: true,
+          tutor_confirmed: true,
+          status: "confirmed",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", sessionId);
+
+      if (updateError) {
+        console.error("Failed to confirm intro session:", updateError);
+        return res.status(500).json({ message: "Failed to confirm session" });
+      }
+
+      res.json({ success: true, status: "confirmed" });
+    } catch (error) {
+      console.error("Error confirming intro session:", error);
+      res.status(500).json({ message: "Failed to confirm session" });
+    }
+  });
+
   // Simple health check to verify JSON responses and CORS
   app.get("/api/health", (_req: Request, res: Response) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
@@ -7087,8 +7126,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const existingProfile = (student.personalProfile as any) || {};
             const updatedProfile = {
               ...existingProfile,
-              workflow: undefined, // Remove workflow key
+              workflow: {},
             };
+
+            const parentId = student.parentId || student.parent_id || null;
 
             // Clear intro sessions for this tutor/student combination
             await supabase
@@ -7098,6 +7139,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .eq("student_id", studentId)
               .eq("type", "intro");
 
+            // Clear intro sessions that were stored by parent only
+            if (parentId) {
+              await supabase
+                .from("scheduled_sessions")
+                .delete()
+                .eq("tutor_id", previousTutorId)
+                .eq("parent_id", parentId)
+                .is("student_id", null)
+                .eq("type", "intro");
+            }
+
             // Clear intro session drills
             await supabase
               .from("intro_session_drills")
@@ -7105,12 +7157,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .eq("tutor_id", previousTutorId)
               .eq("student_id", studentId);
 
-            // Clear onboarding proposals
+            // Clear onboarding proposals tied to this student and enrollment
             await supabase
               .from("onboarding_proposals")
               .delete()
               .eq("tutor_id", previousTutorId)
               .eq("student_id", studentId);
+
+            if (enrollment.id) {
+              await supabase
+                .from("onboarding_proposals")
+                .delete()
+                .eq("tutor_id", previousTutorId)
+                .eq("enrollment_id", enrollment.id);
+            }
 
             // Reset identity sheet completion
             await storage.updateStudent(studentId, {
