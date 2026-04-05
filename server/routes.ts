@@ -4133,7 +4133,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .eq("tutor_id", dbUser.id)
           .order("created_at", { ascending: false })
           .maybeSingle();
-        
+
+        let enrollmentForStudent: { status: string } | null = null;
+        const { data: enrollmentByStudent } = await supabase
+          .from("parent_enrollments")
+          .select("status")
+          .eq("assigned_tutor_id", dbUser.id)
+          .eq("assigned_student_id", studentId)
+          .maybeSingle();
+        enrollmentForStudent = enrollmentByStudent;
+
+        if (!enrollmentForStudent) {
+          const parentId = student.parentId || student.parent_id || null;
+          if (parentId) {
+            const { data: enrollmentByParent } = await supabase
+              .from("parent_enrollments")
+              .select("status")
+              .eq("assigned_tutor_id", dbUser.id)
+              .eq("user_id", parentId)
+              .eq("status", "awaiting_tutor_acceptance")
+              .maybeSingle();
+            enrollmentForStudent = enrollmentByParent;
+          }
+        }
+
+        const isPendingTutorAcceptance = enrollmentForStudent?.status === "awaiting_tutor_acceptance";
+
         // Backfill signal: if an intro diagnosis drill exists, treat intro as completed.
         const { data: latestIntroDrillRow } = await supabase
           .from("intro_session_drills")
@@ -4223,14 +4248,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           latestProposal?.accepted_at
         );
 
-        const assignmentAccepted = !!(
-          workflow.assignmentAcceptedAt ||
-          introSession ||
-          inferredIntroCompleted ||
-          student.identitySheetCompletedAt ||
-          latestProposal?.sent_at ||
-          latestProposal?.accepted_at
-        );
+        const assignmentAccepted = isPendingTutorAcceptance
+          ? false
+          : !!(
+              workflow.assignmentAcceptedAt ||
+              introSession ||
+              inferredIntroCompleted ||
+              student.identitySheetCompletedAt ||
+              latestProposal?.sent_at ||
+              latestProposal?.accepted_at
+            );
 
         res.json({
           assignmentAccepted,

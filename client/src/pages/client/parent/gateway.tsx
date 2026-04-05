@@ -254,7 +254,7 @@ export default function ParentGateway() {
 
       toast({
         title: "Application Received",
-        description: "We'll assess fit and respond within 48 hours.",
+        description: "We'll assess fit and respond.",
       });
       setStep("submitted");
     } catch (error) {
@@ -877,7 +877,7 @@ export default function ParentGateway() {
                     Application received. We're assessing fit.
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    We match each student with the right tutor. Response within 48 hours.
+                    We match each student with the right tutor. Due to high demand and our commitment to fit, acceptance is not guaranteed.
                   </p>
                   <div className="bg-muted/30 rounded-lg p-4 text-left">
                     <p className="text-sm font-medium mb-2">What happens next:</p>
