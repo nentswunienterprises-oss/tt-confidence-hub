@@ -1858,10 +1858,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ message: "Failed to update session" });
         }
 
-        // Update enrollment status to session_booked
+        // Update enrollment current_step to intro_session_booked
         await supabase
           .from("parent_enrollments")
-          .update({ status: "session_booked", current_step: "session_booked", updated_at: new Date().toISOString() })
+          .update({ current_step: "intro_session_booked", updated_at: new Date().toISOString() })
           .eq("id", enrollmentData.id);
 
         return res.status(200).json({
@@ -1902,10 +1902,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Error creating student record on intro session booking:", studentCreateError);
       }
 
-      // Update enrollment status to session_booked
+      // Update enrollment current_step to intro_session_booked
       await supabase
         .from("parent_enrollments")
-        .update({ status: "session_booked", current_step: "session_booked", updated_at: new Date().toISOString() })
+        .update({ current_step: "intro_session_booked", updated_at: new Date().toISOString() })
         .eq("id", enrollmentData.id);
 
       res.json({ success: true });
