@@ -1192,58 +1192,9 @@ export default function ParentGateway() {
                       </CardContent>
                     </Card>
                   ) : (
-                    <Card className="border-2 border-primary mb-4 sm:mb-6">
-                      <CardHeader className="p-3 sm:p-6">
-                        <CardTitle className="text-base sm:text-xl">Generate Student Code</CardTitle>
-                        <CardDescription className="text-xs sm:text-sm">
-                          Create your child's access code
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0 space-y-3 sm:space-y-4">
-                        <div className="bg-muted/30 rounded-lg p-3 sm:p-4">
-                          <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
-                            Proposal accepted. Generate a code for your child to create their account.
-                          </p>
-                          <Button
-                            onClick={async () => {
-                              try {
-                                const { data: { session } } = await supabase.auth.getSession();
-                                const headers: HeadersInit = { "Content-Type": "application/json" };
-                                if (session?.access_token) {
-                                  headers["Authorization"] = `Bearer ${session.access_token}`;
-                                }
-                                const response = await fetch(`${API_URL}/api/parent/generate-student-code`, {
-                                  method: "POST",
-                                  headers,
-                                  credentials: "include",
-                                });
-                                const data = await response.json();
-                                if (response.ok && data.parentCode) {
-                                  setParentCode(data.parentCode);
-                                  toast({
-                                    title: "Code Generated!",
-                                    description: "Your student access code is ready.",
-                                  });
-                                } else {
-                                  throw new Error(data.message || "Failed to generate code");
-                                }
-                              } catch (error: any) {
-                                console.error("❌ Error generating code:", error);
-                                toast({
-                                  title: "Error",
-                                  description: error.message || "Failed to generate student code. Please try again.",
-                                  variant: "destructive",
-                                });
-                              }
-                            }}
-                            className="w-full"
-                            size="lg"
-                          >
-                            Generate Student Code
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+                      <p className="text-sm text-yellow-600">Student access code is being generated. Please refresh the page if it doesn't appear.</p>
+                    </div>
                   )}
                 </>
               )}
