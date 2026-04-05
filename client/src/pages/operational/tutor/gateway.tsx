@@ -200,7 +200,7 @@ export default function TutorGateway() {
 
           <Button
             variant="ghost"
-            className="hidden md:inline-flex text-sm sm:text-base font-medium hover:bg-transparent flex items-center gap-1 sm:gap-2 px-2 sm:px-4"
+            className="sm:hidden md:flex text-sm sm:text-base font-medium hover:bg-transparent flex items-center gap-1 sm:gap-2 px-2 sm:px-4"
             style={{ color: "#1A1A1A" }}
             onClick={() => window.history.back()}
           >
