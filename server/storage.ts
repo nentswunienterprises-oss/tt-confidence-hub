@@ -247,10 +247,8 @@ export class SupabaseStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
     // Check in-memory cache first
     if (this.__userCache[id]) {
-      console.log(`[getUser] Returning cached user for id: ${id}`);
       return this.__userCache[id];
     }
-    const start = Date.now();
     try {
       // Explicitly select only user columns to avoid any relationship pollution
       const { data, error } = await supabase
@@ -258,10 +256,8 @@ export class SupabaseStorage implements IStorage {
         .select("id,email,first_name,last_name,phone,bio,profile_image_url,password,role,name,grade,school,verified,created_at,updated_at")
         .eq("id", id)
         .maybeSingle();
-      const elapsed = Date.now() - start;
-      console.log(`[getUser] DB query for id: ${id} took ${elapsed}ms`);
       if (error) {
-        console.error("❌ Error fetching user:", error);
+        console.error("Error fetching user:", error);
         return undefined;
       }
       if (!data) {

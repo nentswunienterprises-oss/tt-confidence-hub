@@ -1,5 +1,3 @@
-console.log("=== DEBUG LOG TEST: server/routes.ts loaded ===");
-
 import type { Express, Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { existsSync } from "fs";
@@ -1963,19 +1961,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.get("/api/parent/intro-session-confirmation", isAuthenticated, async (req: Request, res: Response) => {
       try {
         const userId = (req as any).dbUser.id;
-        console.log("[DEBUG] /api/parent/intro-session-confirmation userId:", userId);
 
         // Get parent's enrollment to find assigned tutor and associated student
-        const { data: enrollmentData, error: enrollmentError } = await supabase
+        const enrollmentWithAssignedStudent = await supabase
           .from("parent_enrollments")
           .select("assigned_tutor_id, assigned_student_id, status, user_id")
           .eq("user_id", userId)
           .maybeSingle();
-        console.log("[DEBUG] /api/parent/intro-session-confirmation enrollmentData:", enrollmentData, "enrollmentError:", enrollmentError);
+
+        let enrollmentData: any = enrollmentWithAssignedStudent.data || null;
+        let enrollmentError: any = enrollmentWithAssignedStudent.error || null;
+
+        if (enrollmentError && String(enrollmentError.message || "").includes("assigned_student_id")) {
+          const enrollmentFallback = await supabase
+            .from("parent_enrollments")
+            .select("assigned_tutor_id, status, user_id, student_full_name, parent_email, student_grade, id")
+            .eq("user_id", userId)
+            .maybeSingle();
+
+          enrollmentData = enrollmentFallback.data
+            ? { ...enrollmentFallback.data, assigned_student_id: null }
+            : null;
+          enrollmentError = enrollmentFallback.error || null;
+        }
 
         if (enrollmentError || !enrollmentData || !enrollmentData.assigned_tutor_id) {
-          console.log("[DEBUG] /api/parent/intro-session-confirmation: no assigned tutor");
+          if (enrollmentError) {
+            console.error("[intro-session-confirmation] enrollment lookup failed", {
+              userId,
+              code: enrollmentError.code,
+              message: enrollmentError.message,
+              details: enrollmentError.details,
+            });
+          }
           return res.json({ status: "not_scheduled" });
+        }
+
+        let assignedStudent: any = null;
+        if (enrollmentData.assigned_student_id) {
+          assignedStudent = await storage.getStudent(enrollmentData.assigned_student_id);
+        }
+
+        if (!assignedStudent && enrollmentData.student_full_name) {
+          const tutorStudents = await storage.getStudentsByTutor(enrollmentData.assigned_tutor_id);
+          assignedStudent = tutorStudents.find(
+            (student: any) =>
+              String(student?.parentId || "") === String(userId) ||
+              String(student?.name || "").trim().toLowerCase() ===
+                String(enrollmentData.student_full_name || "").trim().toLowerCase()
+          ) || null;
         }
 
 
@@ -1990,11 +2024,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .order("created_at", { ascending: false });
 
         // Fallback for rows linked by student_id if parent_id linkage is absent or inconsistent.
-        if ((!allSessions || allSessions.length === 0) && enrollmentData.assigned_student_id) {
+        if ((!allSessions || allSessions.length === 0) && assignedStudent?.id) {
           const fallback = await supabase
             .from("scheduled_sessions")
             .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, parent_id, tutor_id, student_id, type, created_at, updated_at")
-            .eq("student_id", enrollmentData.assigned_student_id)
+            .eq("student_id", assignedStudent.id)
             .eq("tutor_id", enrollmentData.assigned_tutor_id)
             .eq("type", "intro")
             .order("updated_at", { ascending: false })
@@ -2005,28 +2039,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
             allSessionsError = fallback.error as any;
           }
         }
-        console.log("[DEBUG] /api/parent/intro-session-confirmation allSessions:", allSessions, "allSessionsError:", allSessionsError);
-
         // Use the most recent session if any
         const session = allSessions && allSessions.length > 0 ? allSessions[0] : null;
         const sessionError = allSessionsError;
-        console.log("[DEBUG] /api/parent/intro-session-confirmation session:", session, "sessionError:", sessionError);
+        if (sessionError) {
+          console.error("[intro-session-confirmation] session lookup failed", {
+            userId,
+            tutorId: enrollmentData.assigned_tutor_id,
+            studentId: assignedStudent?.id || enrollmentData.assigned_student_id || null,
+            code: sessionError.code,
+            message: sessionError.message,
+            details: sessionError.details,
+          });
+        }
 
         if (sessionError || !session) {
           // No intro session exists yet. If the parent is assigned, allow booking.
           if (enrollmentData.status === "assigned") {
-            console.log("[DEBUG] /api/parent/intro-session-confirmation response: not_scheduled (assigned with no session)");
             return res.json({
               status: "not_scheduled",
               introCompleted: false,
             });
           }
-          console.log("[DEBUG] /api/parent/intro-session-confirmation response: not_scheduled");
           return res.json({ status: "not_scheduled" });
         }
 
-        const assignedStudentWorkflow = enrollmentData.assigned_student_id
-          ? ((await storage.getStudent(enrollmentData.assigned_student_id))?.personalProfile as any)?.workflow || {}
+        const assignedStudentWorkflow = assignedStudent
+          ? (assignedStudent.personalProfile as any)?.workflow || {}
           : {};
         const introCompleted = !!assignedStudentWorkflow.introCompletedAt;
 
@@ -2052,7 +2091,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             session_status: session.status,
           },
         };
-        console.log("[DEBUG] /api/parent/intro-session-confirmation response:", responseObj);
         return res.json(responseObj);
       } catch (error) {
         console.error("Error in intro-session-confirmation:", error);

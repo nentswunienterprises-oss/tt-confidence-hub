@@ -805,18 +805,10 @@ export const isAuthenticated: RequestHandler = async (
   next: NextFunction,
 ) => {
   try {
-    console.time("⏱️ isAuthenticated total time");
-    // Debug: print cookies and session object for all requests
-    console.log("[DEBUG] isAuthenticated method:", req.method);
-    console.log("[DEBUG] isAuthenticated url:", req.originalUrl);
-    console.log("[DEBUG] isAuthenticated headers.cookie:", req.headers.cookie);
-    console.log("[DEBUG] isAuthenticated session:", req.session);
     // First, try session-based auth (for same-origin requests)
     if (req.session && (req.session as any).userId) {
       const sessionUserId = (req.session as any).userId;
-      console.log("🔐 [isAuthenticated] sessionUserId:", sessionUserId);
       // Session auth found - use it
-      console.time("⏱️ storage.getUser");
       try {
         // Add timeout to prevent hanging on database queries
         const userPromise = storage.getUser(sessionUserId);
@@ -824,15 +816,12 @@ export const isAuthenticated: RequestHandler = async (
           setTimeout(() => reject(new Error("getUser timeout after 5s")), 5000)
         );
         const user = await Promise.race([userPromise, timeoutPromise]);
-        console.timeEnd("⏱️ storage.getUser");
-        console.log("✅ [isAuthenticated] user found:", user?.email);
         if (user) {
           (req as any).dbUser = user;
-          console.timeEnd("⏱️ isAuthenticated total time");
           return next();
         }
       } catch (userError) {
-        console.error("❌ [isAuthenticated] error fetching user:", userError);
+        console.error("[isAuthenticated] error fetching user from session:", userError);
         return res.status(500).json({ message: "Error retrieving user" });
       }
     }

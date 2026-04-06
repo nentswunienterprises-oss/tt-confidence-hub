@@ -1,4 +1,4 @@
-TT DRILL SYSTEM (FINAL FORM)
+TT DRILL SYSTEM FINAL FORM
 Core Rule
 
 Every session runs ONE fixed drill per topic-state.
