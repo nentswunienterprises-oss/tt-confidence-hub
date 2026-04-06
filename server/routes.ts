@@ -8952,7 +8952,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .eq("assigned_tutor_id", tutorId)
             .maybeSingle();
 
-          if (legacyStudentLookupError) {
+          if (
+            legacyStudentLookupError &&
+            !String(legacyStudentLookupError.message || "").includes("student_id")
+          ) {
             console.error("Error looking up enrollment by legacy student_id:", legacyStudentLookupError);
             return res.status(500).json({ message: "Failed to resolve enrollment for proposal" });
           }
