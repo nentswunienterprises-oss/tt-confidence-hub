@@ -964,13 +964,14 @@ export default function ParentGateway() {
                     </div>
                   )}
 
-                  {/* Always show 'tutor assigned' message */}
-                  <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <p className="font-medium text-yellow-900">Your tutor has been assigned.</p>
-                    <p className="text-sm text-yellow-700 mt-2">
-                      Book your intro session below once ready.
-                    </p>
-                  </div>
+                  {(effectiveIntroSessionConfirmation?.status === "not_scheduled" || !effectiveIntroSessionConfirmation?.status) && (
+                    <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="font-medium text-yellow-900">Your tutor has been assigned.</p>
+                      <p className="text-sm text-yellow-700 mt-2">
+                        Book your intro session below once ready.
+                      </p>
+                    </div>
+                  )}
 
                   {/* Show session status if present */}
                   {effectiveIntroSessionConfirmation?.status === "pending_tutor_confirmation" && (
