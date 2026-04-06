@@ -45,6 +45,7 @@ export default function ParentGateway() {
   const [proposedDate, setProposedDate] = useState<Date | undefined>(undefined);
   const [proposedTime, setProposedTime] = useState<string>("");
   const [isSubmittingSession, setIsSubmittingSession] = useState(false);
+  const [bookedIntroSessionOverride, setBookedIntroSessionOverride] = useState<any>(null);
   const justSubmittedRef = useRef(false);
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [loadingDebug, setLoadingDebug] = useState(false);
@@ -143,6 +144,17 @@ export default function ParentGateway() {
   const effectiveParentCode = useMemo(() => {
     return parentCode || proposal?.parentCode || null;
   }, [parentCode, proposal?.parentCode]);
+
+  const effectiveIntroSessionConfirmation = useMemo(() => {
+    if (
+      bookedIntroSessionOverride &&
+      (!introSessionConfirmation || introSessionConfirmation.status === "not_scheduled")
+    ) {
+      return bookedIntroSessionOverride;
+    }
+
+    return introSessionConfirmation || bookedIntroSessionOverride;
+  }, [bookedIntroSessionOverride, introSessionConfirmation]);
 
   // Auto-set step based on enrollment status and intro session confirmation
   useEffect(() => {
@@ -394,6 +406,17 @@ export default function ParentGateway() {
       setProposedTime("");
 
       setJustBooked(true);
+      setBookedIntroSessionOverride({
+        ...(introSessionConfirmation || {}),
+        ...sessionData,
+        status: sessionData?.status || "pending_tutor_confirmation",
+        scheduled_time:
+          sessionData?.scheduled_time ||
+          `${format(proposedDate, "yyyy-MM-dd")}T${proposedTime}`,
+        parent_confirmed: sessionData?.parent_confirmed ?? true,
+        tutor_confirmed: sessionData?.tutor_confirmed ?? false,
+        introCompleted: false,
+      });
 
       queryClient.setQueryData(["/api/parent/intro-session-confirmation"], {
         ...(introSessionConfirmation || {}),
@@ -422,10 +445,16 @@ export default function ParentGateway() {
   };
   // Reset justBooked if status is still not_scheduled (e.g. booking failed or was reset)
   useEffect(() => {
-    if (justBooked && introSessionConfirmation?.status === "not_scheduled") {
+    if (introSessionConfirmation?.status && introSessionConfirmation.status !== "not_scheduled") {
+      setBookedIntroSessionOverride(null);
+    }
+  }, [introSessionConfirmation?.status]);
+
+  useEffect(() => {
+    if (justBooked && effectiveIntroSessionConfirmation?.status === "not_scheduled") {
       setTimeout(() => setJustBooked(false), 2000); // Add a short delay to avoid flicker
     }
-  }, [introSessionConfirmation?.status, justBooked]);
+  }, [effectiveIntroSessionConfirmation?.status, justBooked]);
 
   const handleDebugAuthInfo = async () => {
     setLoadingDebug(true);
@@ -944,27 +973,27 @@ export default function ParentGateway() {
                   </div>
 
                   {/* Show session status if present */}
-                  {introSessionConfirmation?.status === "pending_tutor_confirmation" && (
+                  {effectiveIntroSessionConfirmation?.status === "pending_tutor_confirmation" && (
                     <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                       <div className="flex items-center gap-3">
                         <div className="w-6 h-6 border-3 border-red-400/30 border-t-red-600 rounded-full animate-spin flex-shrink-0" />
                         <div>
                           <p className="font-medium text-red-900">Waiting for tutor confirmation</p>
-                          {introSessionConfirmation.scheduled_time && (
-                            <p className="text-xs text-red-700 mt-1">Proposed time: {new Date(introSessionConfirmation.scheduled_time).toLocaleString()}</p>
+                          {effectiveIntroSessionConfirmation.scheduled_time && (
+                            <p className="text-xs text-red-700 mt-1">Proposed time: {new Date(effectiveIntroSessionConfirmation.scheduled_time).toLocaleString()}</p>
                           )}
                         </div>
                       </div>
                     </div>
                   )}
-                  {introSessionConfirmation?.status === "pending_parent_confirmation" && (
+                  {effectiveIntroSessionConfirmation?.status === "pending_parent_confirmation" && (
                     <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                       <div className="flex items-center gap-3">
                         <div className="w-6 h-6 border-3 border-yellow-400/30 border-t-yellow-600 rounded-full animate-spin flex-shrink-0" />
                         <div>
                           <p className="font-medium text-yellow-900">Tutor proposed a different schedule. Please confirm.</p>
-                          {introSessionConfirmation.scheduled_time && (
-                            <p className="text-xs text-yellow-700 mt-1">Proposed schedule: {new Date(introSessionConfirmation.scheduled_time).toLocaleString()}</p>
+                          {effectiveIntroSessionConfirmation.scheduled_time && (
+                            <p className="text-xs text-yellow-700 mt-1">Proposed schedule: {new Date(effectiveIntroSessionConfirmation.scheduled_time).toLocaleString()}</p>
                           )}
                         </div>
                       </div>
@@ -985,7 +1014,7 @@ export default function ParentGateway() {
                                 method: "POST",
                                 headers,
                                 credentials: "include",
-                                body: JSON.stringify({ sessionId: introSessionConfirmation.id }),
+                                body: JSON.stringify({ sessionId: effectiveIntroSessionConfirmation.id }),
                               });
                               if (!response.ok) throw new Error("Failed to confirm session");
                               toast({ title: "Session Confirmed", description: "Your session is now confirmed." });
@@ -1012,9 +1041,9 @@ export default function ParentGateway() {
                       </div>
                     </div>
                   )}
-                  {introSessionConfirmation?.status === "confirmed" && (
+                  {effectiveIntroSessionConfirmation?.status === "confirmed" && (
                     <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                      {introSessionConfirmation.introCompleted ? (
+                      {effectiveIntroSessionConfirmation.introCompleted ? (
                         <>
                           <p className="font-medium text-green-900">Your introductory session has been conducted</p>
                           <p className="text-sm text-green-700 mt-2">
@@ -1024,8 +1053,8 @@ export default function ParentGateway() {
                       ) : (
                         <>
                           <p className="font-medium text-green-900">Your session has been confirmed</p>
-                          {introSessionConfirmation.scheduled_time && (
-                            <p className="text-sm text-green-700 mt-2">Scheduled for: {new Date(introSessionConfirmation.scheduled_time).toLocaleString()}</p>
+                          {effectiveIntroSessionConfirmation.scheduled_time && (
+                            <p className="text-sm text-green-700 mt-2">Scheduled for: {new Date(effectiveIntroSessionConfirmation.scheduled_time).toLocaleString()}</p>
                           )}
                           <p className="text-sm text-green-700 mt-2">You will receive an introductory report and proposal here after you've had your intro session</p>
                         </>
@@ -1034,15 +1063,15 @@ export default function ParentGateway() {
                   )}
 
                   {/* Show booking dialog for not_scheduled and pending_parent_confirmation */}
-                  {(introSessionConfirmation?.status === "not_scheduled" || introSessionConfirmation?.status === "pending_parent_confirmation") && (
+                  {(effectiveIntroSessionConfirmation?.status === "not_scheduled" || effectiveIntroSessionConfirmation?.status === "pending_parent_confirmation") && (
                     <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                       <p className="font-medium mb-4 text-red-900">
-                        {introSessionConfirmation?.status === "not_scheduled"
+                        {effectiveIntroSessionConfirmation?.status === "not_scheduled"
                           ? "Schedule your introductory session"
                           : "Adjust your introductory session schedule"}
                       </p>
                       <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
-                        {(introSessionConfirmation?.status === "not_scheduled" || introSessionConfirmation?.status === "pending_parent_confirmation") && (
+                        {(effectiveIntroSessionConfirmation?.status === "not_scheduled" || effectiveIntroSessionConfirmation?.status === "pending_parent_confirmation") && (
                           <DialogTrigger asChild>
                             <Button
                               style={{ backgroundColor: '#E63946', color: 'white' }}
@@ -1050,7 +1079,7 @@ export default function ParentGateway() {
                               disabled={isSubmittingSession || justBooked}
                               title={undefined}
                             >
-                              {introSessionConfirmation?.status === "not_scheduled"
+                              {effectiveIntroSessionConfirmation?.status === "not_scheduled"
                                 ? "Book Introductory Session"
                                 : "Adjust Schedule"}
                             </Button>

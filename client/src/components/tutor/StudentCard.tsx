@@ -127,6 +127,25 @@ export function StudentCard({
   const markIntroCompleted = useMarkIntroCompleted(student.id);
   const respondToAssignment = useRespondToAssignment(student.id);
 
+  const effectiveWorkflow = useMemo(() => {
+    const baseWorkflow = {
+      assignmentAccepted: false,
+      introConfirmed: false,
+      introCompleted: false,
+      identitySaved: false,
+      proposalSent: false,
+      proposalAccepted: false,
+      ...(workflow || {}),
+    };
+
+    return {
+      ...baseWorkflow,
+      assignmentAccepted: student.pendingTutorAcceptance
+        ? false
+        : baseWorkflow.assignmentAccepted,
+    };
+  }, [workflow, student.pendingTutorAcceptance]);
+
   // Fetch topic activations for this student (must be at the top of the function body)
   const { data: activationsData } = useQuery({
     queryKey: ["/api/tutor/students", student.id, "topic-conditioning-activations"],
@@ -311,7 +330,7 @@ export function StudentCard({
   const hasTopicConditioningTimestamp = !!(
     topicConditioningLastUpdated && !Number.isNaN(topicConditioningLastUpdated.getTime())
   );
-  const workflowLabel = getWorkflowLabel(workflow);
+  const workflowLabel = getWorkflowLabel(effectiveWorkflow);
 
   return (
     <div className="relative rounded-2xl border border-black/25 bg-background p-5 shadow-sm transition-shadow hover:shadow-md sm:p-6 tutor-pod-student-card">
@@ -407,7 +426,7 @@ export function StudentCard({
         )}
 
 
-        {workflow && !workflow.assignmentAccepted && (
+        {effectiveWorkflow && !effectiveWorkflow.assignmentAccepted && (
           <div className="pt-4 border-t border-border/60 space-y-2">
             <p className="text-xs text-muted-foreground text-center">
               New parent assignment received. Accept or decline this assignment before intro booking can begin.
@@ -431,7 +450,7 @@ export function StudentCard({
           </div>
         )}
 
-        {workflow?.assignmentAccepted && !workflow.introConfirmed && (
+        {effectiveWorkflow?.assignmentAccepted && !effectiveWorkflow.introConfirmed && (
           <TutorIntroSessionActions
             studentId={student.id}
             parentId={student.parentInfo?.parent_id}
@@ -440,7 +459,7 @@ export function StudentCard({
         )}
 
 
-        {workflow?.assignmentAccepted && workflow?.introConfirmed && !workflow.introCompleted && (
+        {effectiveWorkflow?.assignmentAccepted && effectiveWorkflow?.introConfirmed && !effectiveWorkflow.introCompleted && (
           <IntroDiagnosticTopicSection
             student={student}
             reportedTopics={reportedTopics}
@@ -451,7 +470,7 @@ export function StudentCard({
         )}
 
 
-        {workflow?.assignmentAccepted && workflow?.introCompleted && !workflow.proposalSent && !workflow?.proposalAccepted && (
+        {effectiveWorkflow?.assignmentAccepted && effectiveWorkflow?.introCompleted && !effectiveWorkflow.proposalSent && !effectiveWorkflow?.proposalAccepted && (
           <div className="pt-4 border-t border-border/60 space-y-3">
             <Button
               className="w-full"
@@ -468,7 +487,7 @@ export function StudentCard({
           </div>
         )}
 
-        {workflow?.assignmentAccepted && workflow?.proposalSent && !workflow.proposalAccepted && (
+        {effectiveWorkflow?.assignmentAccepted && effectiveWorkflow?.proposalSent && !effectiveWorkflow.proposalAccepted && (
           <div className="pt-4 border-t border-border/60 space-y-2">
             <p className="text-xs text-muted-foreground text-center">
               Proposal sent. Waiting for parent acceptance to unlock reports.

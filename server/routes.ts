@@ -1769,26 +1769,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .eq("type", "intro")
             .order("created_at", { ascending: false })
             .maybeSingle();
-          console.log("[DEBUG] intro-session-details query result:", { session, sessionError, tutorId: dbUser.id, studentId });
-          if (sessionError) {
-            console.error("[DEBUG] intro-session-details sessionError:", sessionError);
-            return res.status(500).json({ message: "Failed to fetch intro session details", details: sessionError });
+
+          let resolvedSession = session;
+          let resolvedSessionError = sessionError;
+
+          if (!resolvedSession) {
+            const parentId = student.parentId || student.parent_id || null;
+            if (parentId) {
+              const { data: fallbackSession, error: fallbackError } = await supabase
+                .from("scheduled_sessions")
+                .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, created_at, updated_at, tutor_id, student_id, parent_id, type")
+                .eq("tutor_id", dbUser.id)
+                .eq("parent_id", parentId)
+                .eq("type", "intro")
+                .order("created_at", { ascending: false })
+                .maybeSingle();
+
+              if (fallbackSession) {
+                resolvedSession = fallbackSession;
+                resolvedSessionError = fallbackError;
+              }
+            }
           }
-          if (!session) {
+
+          console.log("[DEBUG] intro-session-details query result:", { session: resolvedSession, sessionError: resolvedSessionError, tutorId: dbUser.id, studentId });
+          if (resolvedSessionError) {
+            console.error("[DEBUG] intro-session-details sessionError:", resolvedSessionError);
+            return res.status(500).json({ message: "Failed to fetch intro session details", details: resolvedSessionError });
+          }
+          if (!resolvedSession) {
             return res.json({ status: "not_scheduled" });
           }
           res.json({
-            id: session.id,
-            scheduled_time: session.scheduled_time,
-            status: session.status,
-            parent_confirmed: session.parent_confirmed,
-            tutor_confirmed: session.tutor_confirmed,
-            created_at: session.created_at,
-            updated_at: session.updated_at,
+            id: resolvedSession.id,
+            scheduled_time: resolvedSession.scheduled_time,
+            status: resolvedSession.status,
+            parent_confirmed: resolvedSession.parent_confirmed,
+            tutor_confirmed: resolvedSession.tutor_confirmed,
+            created_at: resolvedSession.created_at,
+            updated_at: resolvedSession.updated_at,
             debug: {
-              tutor_id: session.tutor_id,
-              student_id: session.student_id,
-              type: session.type
+              tutor_id: resolvedSession.tutor_id,
+              student_id: resolvedSession.student_id,
+              parent_id: (resolvedSession as any).parent_id,
+              type: resolvedSession.type
             }
           });
         } catch (error) {
@@ -1823,9 +1847,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "You must be assigned a tutor before booking a session." });
       }
 
-      const assignedStudent = enrollmentData.assigned_student_id
+      let assignedStudent = enrollmentData.assigned_student_id
         ? await storage.getStudent(enrollmentData.assigned_student_id)
-        : await ensureStudentForEnrollment(enrollmentData, enrollmentData.assigned_tutor_id);
+        : null;
+
+      if (!assignedStudent) {
+        assignedStudent = await ensureStudentForEnrollment(
+          enrollmentData,
+          enrollmentData.assigned_tutor_id
+        );
+      }
 
       // Removed check for assignedWorkflow.assignmentAcceptedAt; only enrollment status and assigned tutor are required
 
@@ -1949,13 +1980,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
         // Find all intro sessions for this parent/tutor
-        const { data: allSessions, error: allSessionsError } = await supabase
+        let { data: allSessions, error: allSessionsError } = await supabase
           .from("scheduled_sessions")
           .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, parent_id, tutor_id, type, created_at, updated_at")
           .eq("parent_id", userId)
           .eq("tutor_id", enrollmentData.assigned_tutor_id)
           .eq("type", "intro")
           .order("created_at", { ascending: false });
+
+        // Fallback for rows linked by student_id if parent_id linkage is absent or inconsistent.
+        if ((!allSessions || allSessions.length === 0) && enrollmentData.assigned_student_id) {
+          const fallback = await supabase
+            .from("scheduled_sessions")
+            .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, parent_id, tutor_id, student_id, type, created_at, updated_at")
+            .eq("student_id", enrollmentData.assigned_student_id)
+            .eq("tutor_id", enrollmentData.assigned_tutor_id)
+            .eq("type", "intro")
+            .order("created_at", { ascending: false });
+
+          if (fallback.data && fallback.data.length > 0) {
+            allSessions = fallback.data as any;
+            allSessionsError = fallback.error as any;
+          }
+        }
         console.log("[DEBUG] /api/parent/intro-session-confirmation allSessions:", allSessions, "allSessionsError:", allSessionsError);
 
         // Use the most recent session if any
@@ -2794,26 +2841,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .eq("type", "intro")
           .order("created_at", { ascending: false })
           .maybeSingle();
-        console.log("[DEBUG] intro-session-details query result:", { session, sessionError, tutorId: dbUser.id, studentId });
-        if (sessionError) {
-          console.error("[DEBUG] intro-session-details sessionError:", sessionError);
-          return res.status(500).json({ message: "Failed to fetch intro session details", details: sessionError });
+
+        let resolvedSession = session;
+        let resolvedSessionError = sessionError;
+
+        if (!resolvedSession) {
+          const parentId = student.parentId || student.parent_id || null;
+          if (parentId) {
+            const { data: fallbackSession, error: fallbackError } = await supabase
+              .from("scheduled_sessions")
+              .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, created_at, updated_at, tutor_id, student_id, parent_id, type")
+              .eq("tutor_id", dbUser.id)
+              .eq("parent_id", parentId)
+              .eq("type", "intro")
+              .order("created_at", { ascending: false })
+              .maybeSingle();
+
+            if (fallbackSession) {
+              resolvedSession = fallbackSession;
+              resolvedSessionError = fallbackError;
+            }
+          }
         }
-        if (!session) {
+
+        console.log("[DEBUG] intro-session-details query result:", { session: resolvedSession, sessionError: resolvedSessionError, tutorId: dbUser.id, studentId });
+        if (resolvedSessionError) {
+          console.error("[DEBUG] intro-session-details sessionError:", resolvedSessionError);
+          return res.status(500).json({ message: "Failed to fetch intro session details", details: resolvedSessionError });
+        }
+        if (!resolvedSession) {
           return res.json({ status: "not_scheduled" });
         }
         res.json({
-          id: session.id,
-          scheduled_time: session.scheduled_time,
-          status: session.status,
-          parent_confirmed: session.parent_confirmed,
-          tutor_confirmed: session.tutor_confirmed,
-          created_at: session.created_at,
-          updated_at: session.updated_at,
+          id: resolvedSession.id,
+          scheduled_time: resolvedSession.scheduled_time,
+          status: resolvedSession.status,
+          parent_confirmed: resolvedSession.parent_confirmed,
+          tutor_confirmed: resolvedSession.tutor_confirmed,
+          created_at: resolvedSession.created_at,
+          updated_at: resolvedSession.updated_at,
           debug: {
-            tutor_id: session.tutor_id,
-            student_id: session.student_id,
-            type: session.type
+            tutor_id: resolvedSession.tutor_id,
+            student_id: resolvedSession.student_id,
+            parent_id: (resolvedSession as any).parent_id,
+            type: resolvedSession.type
           }
         });
       } catch (error) {

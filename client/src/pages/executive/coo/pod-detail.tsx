@@ -53,6 +53,19 @@ import ViewTrackingSystemsDialog from "@/components/tutor/ViewTrackingSystemsDia
 import StudentTopicConditioningDialog from "@/components/tutor/StudentTopicConditioningDialog";
 import type { Pod, User } from "@shared/schema";
 
+interface ParentEnrollment {
+  id: string;
+  parent_full_name: string;
+  parent_email: string;
+  parent_phone: string;
+  parent_city: string;
+  student_full_name: string;
+  student_grade: string;
+  school_name: string;
+  math_struggle_areas: string;
+  status: string;
+}
+
 export default function PodDetail() {
   const { podId } = useParams();
   const navigate = useNavigate();
@@ -138,6 +151,13 @@ export default function PodDetail() {
     refetchOnWindowFocus: true,
   });
 
+  const { data: enrollments = [] } = useQuery<ParentEnrollment[]>({
+    queryKey: ["/api/hr/enrollments"],
+    enabled: isAuthenticated && !authLoading,
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
+  });
+
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       toast({
@@ -200,6 +220,33 @@ export default function PodDetail() {
       toast({
         title: "Unassign failed",
         description: error?.message || "Failed to unassign student.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const assignAwaitingEnrollmentMutation = useMutation({
+    mutationFn: async ({ enrollmentId, tutorId }: { enrollmentId: string; tutorId: string }) => {
+      await apiRequest("POST", `/api/hr/enrollments/${enrollmentId}/assign-tutor`, {
+        tutorId,
+        podId,
+      });
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/hr/enrollments"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/coo/pods/${podId}/tutors`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/coo/pods/${podId}/stats`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/coo/tutors/${variables.tutorId}/students`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/coo/pods"] });
+      toast({
+        title: "Parent assigned",
+        description: "The parent was assigned to the tutor from this pod view.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Assignment failed",
+        description: error?.message || "Failed to assign parent to tutor.",
         variant: "destructive",
       });
     },
@@ -338,6 +385,10 @@ export default function PodDetail() {
     }
     return !isInList;
   }) || [];
+
+  const awaitingAssignments = enrollments.filter(
+    (enrollment) => String(enrollment.status || "").toLowerCase().trim() === "awaiting_assignment"
+  );
 
   return (
     <DashboardLayout>
@@ -552,8 +603,10 @@ export default function PodDetail() {
                                 tutorName={assignment.tutorName}
                                 certificationStatus={assignment.certification_status || "pending"}
                                 studentCount={assignment.student_count || 0}
+                                awaitingAssignments={awaitingAssignments}
                                 getCertificationColor={getCertificationColor}
                                 unassignStudentMutation={unassignStudentMutation}
+                                assignAwaitingEnrollmentMutation={assignAwaitingEnrollmentMutation}
                                 onViewTrackingSystems={(studentId, studentName) => {
                                   setSelectedStudentId(studentId);
                                   setSelectedStudentName(studentName);
@@ -725,8 +778,10 @@ interface TutorStudentsSectionProps {
   tutorName: string;
   certificationStatus: string;
   studentCount: number;
+  awaitingAssignments: ParentEnrollment[];
   getCertificationColor: (status: string) => string;
   unassignStudentMutation: any;
+  assignAwaitingEnrollmentMutation: any;
   onViewTrackingSystems: (studentId: string, studentName: string) => void;
   onViewTopicConditioning: (student: any) => void;
 }
@@ -736,11 +791,14 @@ function TutorStudentsSection({
   tutorName,
   certificationStatus,
   studentCount,
+  awaitingAssignments,
   getCertificationColor,
   unassignStudentMutation,
+  assignAwaitingEnrollmentMutation,
   onViewTrackingSystems,
   onViewTopicConditioning,
 }: TutorStudentsSectionProps) {
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const { data: students, isLoading } = useQuery<any[]>({
     queryKey: [`/api/coo/tutors/${tutorId}/students`],
     enabled: !!tutorId,
@@ -857,6 +915,88 @@ function TutorStudentsSection({
             })}
           </div>
         )}
+      </div>
+
+      <div className="border-t pt-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase">Awaiting Parents</p>
+            <p className="text-sm text-muted-foreground">
+              Assign directly from the unassigned parent queue without leaving this pod.
+            </p>
+          </div>
+          <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
+            <DialogTrigger asChild>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={awaitingAssignments.length === 0 || assignAwaitingEnrollmentMutation.isPending}
+              >
+                Assign Parent
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Assign Parent to {tutorName}</DialogTitle>
+                <DialogDescription>
+                  Select an unassigned parent enrollment from the awaiting list.
+                </DialogDescription>
+              </DialogHeader>
+
+              {awaitingAssignments.length === 0 ? (
+                <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                  No parents are currently awaiting assignment.
+                </div>
+              ) : (
+                <div className="max-h-[28rem] space-y-3 overflow-y-auto pr-1">
+                  {awaitingAssignments.map((enrollment) => (
+                    <div
+                      key={enrollment.id}
+                      className="rounded-lg border p-4"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0 space-y-1">
+                          <p className="font-semibold">{enrollment.student_full_name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Parent: {enrollment.parent_full_name}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Grade {enrollment.student_grade || "Unknown"} • {enrollment.school_name || "No school provided"}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {enrollment.parent_email || enrollment.parent_phone || enrollment.parent_city || "No contact details provided"}
+                          </p>
+                          {enrollment.math_struggle_areas && (
+                            <p className="text-xs text-muted-foreground">
+                              Focus: {enrollment.math_struggle_areas}
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          size="sm"
+                          disabled={assignAwaitingEnrollmentMutation.isPending}
+                          onClick={async () => {
+                            try {
+                              await assignAwaitingEnrollmentMutation.mutateAsync({
+                                enrollmentId: enrollment.id,
+                                tutorId,
+                              });
+                              setAssignDialogOpen(false);
+                            } catch {
+                              // Toast is handled by the mutation error callback.
+                            }
+                          }}
+                        >
+                          {assignAwaitingEnrollmentMutation.isPending ? "Assigning..." : `Assign to ${tutorName}`}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
     </div>
   );
