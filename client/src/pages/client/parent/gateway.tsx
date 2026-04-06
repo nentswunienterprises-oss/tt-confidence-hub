@@ -382,6 +382,8 @@ export default function ParentGateway() {
         throw new Error("Failed to propose session");
       }
 
+      const sessionData = await response.json();
+
       toast({
         title: "Session Proposed",
         description: "Your tutor will confirm the time shortly.",
@@ -392,6 +394,18 @@ export default function ParentGateway() {
       setProposedTime("");
 
       setJustBooked(true);
+
+      queryClient.setQueryData(["/api/parent/intro-session-confirmation"], {
+        ...(introSessionConfirmation || {}),
+        ...sessionData,
+        status: sessionData?.status || "pending_tutor_confirmation",
+        scheduled_time:
+          sessionData?.scheduled_time ||
+          `${format(proposedDate, "yyyy-MM-dd")}T${proposedTime}`,
+        parent_confirmed: sessionData?.parent_confirmed ?? true,
+        tutor_confirmed: sessionData?.tutor_confirmed ?? false,
+        introCompleted: false,
+      });
 
       // Force refetch intro session confirmation immediately after booking
       await refetchIntroSessionConfirmation();

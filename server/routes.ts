@@ -1846,6 +1846,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { error: updateError } = await supabase
           .from("scheduled_sessions")
           .update({
+            student_id: assignedStudent?.id || null,
             scheduled_time: `${proposedDate}T${proposedTime}`,
             parent_confirmed: true,
             tutor_confirmed: false,
@@ -1866,6 +1867,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         return res.status(200).json({
           id: existingSession.id,
+          student_id: assignedStudent?.id || null,
           status: "pending_tutor_confirmation",
           scheduled_time: `${proposedDate}T${proposedTime}`,
           parent_confirmed: true,
@@ -1880,6 +1882,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           {
             parent_id: userId,
             tutor_id: enrollmentData.assigned_tutor_id,
+            student_id: assignedStudent?.id || null,
             scheduled_time: `${proposedDate}T${proposedTime}`,
             type: "intro",
             status: "pending_tutor_confirmation",
@@ -1908,7 +1911,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .update({ current_step: "intro_session_booked", updated_at: new Date().toISOString() })
         .eq("id", enrollmentData.id);
 
-      res.json({ success: true });
+      const insertedSession = Array.isArray(sessionInsert) ? sessionInsert[0] : sessionInsert;
+
+      res.json({
+        id: insertedSession?.id || null,
+        student_id: assignedStudent?.id || null,
+        status: "pending_tutor_confirmation",
+        scheduled_time: `${proposedDate}T${proposedTime}`,
+        parent_confirmed: true,
+        tutor_confirmed: false,
+        success: true,
+      });
     } catch (error) {
       console.error("Error in propose intro session:", error);
       res.status(500).json({ message: "Failed to propose session" });
