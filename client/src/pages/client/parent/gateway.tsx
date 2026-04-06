@@ -449,10 +449,15 @@ export default function ParentGateway() {
   };
   // Reset justBooked if status is still not_scheduled (e.g. booking failed or was reset)
   useEffect(() => {
-    if (introSessionConfirmation?.status && introSessionConfirmation.status !== "not_scheduled") {
+    if (
+      bookedIntroSessionOverride &&
+      introSessionConfirmation?.status &&
+      introSessionConfirmation.status !== "not_scheduled" &&
+      introSessionConfirmation.status === bookedIntroSessionOverride.status
+    ) {
       setBookedIntroSessionOverride(null);
     }
-  }, [introSessionConfirmation?.status]);
+  }, [bookedIntroSessionOverride, introSessionConfirmation?.status]);
 
   useEffect(() => {
     if (justBooked && effectiveIntroSessionConfirmation?.status === "not_scheduled") {
