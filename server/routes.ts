@@ -1986,6 +1986,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .eq("parent_id", userId)
           .eq("tutor_id", enrollmentData.assigned_tutor_id)
           .eq("type", "intro")
+          .order("updated_at", { ascending: false })
           .order("created_at", { ascending: false });
 
         // Fallback for rows linked by student_id if parent_id linkage is absent or inconsistent.
@@ -1996,6 +1997,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .eq("student_id", enrollmentData.assigned_student_id)
             .eq("tutor_id", enrollmentData.assigned_tutor_id)
             .eq("type", "intro")
+            .order("updated_at", { ascending: false })
             .order("created_at", { ascending: false });
 
           if (fallback.data && fallback.data.length > 0) {

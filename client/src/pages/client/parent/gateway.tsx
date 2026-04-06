@@ -91,6 +91,10 @@ export default function ParentGateway() {
     enabled:
       !!user &&
       (
+        enrollmentStatus?.status === "proposal_sent" ||
+        enrollmentStatus?.status === "session_booked" ||
+        enrollmentStatus?.status === "report_received" ||
+        enrollmentStatus?.status === "confirmed" ||
         enrollmentStatus?.status === "assigned" ||
         enrollmentStatus?.status === "awaiting_assignment" ||
         enrollmentStatus?.status === "awaiting_tutor_acceptance"
@@ -99,7 +103,7 @@ export default function ParentGateway() {
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
-    refetchInterval: 10000, // Poll every 10s for status updates
+    refetchInterval: 5000, // Poll every 5s for status updates
   });
 
   // Fetch proposal if available
