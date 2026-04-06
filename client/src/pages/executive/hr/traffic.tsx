@@ -818,7 +818,7 @@ export default function ExecutiveHRTraffic() {
         <Dialog open={!!selectedApplication} onOpenChange={() => setSelectedApplication(null)}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{(selectedApplication as any).full_names || (selectedApplication as any).fullNames}</DialogTitle>
+              <DialogTitle>{(selectedApplication as any).fullName || (selectedApplication as any).full_name || (selectedApplication as any).full_names || (selectedApplication as any).fullNames}</DialogTitle>
               <DialogDescription>
                 Submitted on {format(new Date((selectedApplication as any).created_at || (selectedApplication as any).createdAt), "PPP")}
               </DialogDescription>
@@ -840,12 +840,12 @@ export default function ExecutiveHRTraffic() {
 
 // Tutor Application Card Component
 function TutorApplicationCard({ application, onViewDetails }: { application: any; onViewDetails: () => void }) {
-  const fullNames = application.full_names || application.fullNames;
+  const fullNames = application.fullName || application.full_name || application.full_names || application.fullNames;
   const email = application.email;
-  const phoneNumber = application.phone_number || application.phoneNumber;
+  const phoneNumber = application.phone || application.phone_number || application.phoneNumber;
   const age = application.age;
   const city = application.city;
-  const currentStatus = application.current_status || application.currentStatus || "N/A";
+  const currentStatus = application.currentSituation || application.current_situation || application.currentStatus || application.current_status || "N/A";
   const gradesEquipped = application.grades_equipped || application.gradesEquipped || [];
   const status = application.status;
 
@@ -897,47 +897,66 @@ function TutorApplicationCard({ application, onViewDetails }: { application: any
 // Application Details Component
 function ApplicationDetails({ application }: { application: TutorApplication }) {
   const app = application as any;
-  const mindset = (app.mindsetData || app.mindset_data) as any;
-  const psychological = (app.psychologicalData || app.psychological_data) as any;
-  const vision = (app.visionData || app.vision_data) as any;
-  const toolConfidence = (app.toolConfidence || app.tool_confidence) as any;
-  const getField = (camelCase: string, snake_case: string) => app[camelCase] || app[snake_case];
+  const getField = (newCamel: string, newSnake: string, oldCamel?: string, oldSnake?: string) =>
+    app[newCamel] ?? (oldCamel ? app[oldCamel] : undefined) ?? app[newSnake] ?? (oldSnake ? app[oldSnake] : undefined);
 
   return (
     <div className="space-y-6">
-      <Section title="Personal Information">
-        <InfoItem label="Full Names" value={getField('fullNames', 'full_names')} />
-        <InfoItem label="Age" value={(getField('age', 'age') || 0).toString()} />
-        <InfoItem label="Email" value={getField('email', 'email')} />
-        <InfoItem label="Phone" value={getField('phoneNumber', 'phone_number')} />
-        <InfoItem label="City" value={getField('city', 'city')} />
-        <InfoItem label="Current Status" value={(getField('currentStatus', 'current_status') || '').replace(/_/g, " ")} />
+      <Section title="Section 1 - Basic Information">
+        <InfoItem label="Full Name" value={getField("fullName", "full_name", "fullNames", "full_names")} />
+        <InfoItem label="Age" value={String(app.age ?? "")} />
+        <InfoItem label="Email" value={app.email} />
+        <InfoItem label="Phone" value={getField("phone", "phone", "phoneNumber", "phone_number")} />
+        <InfoItem label="City" value={app.city} />
       </Section>
 
-      <Section title="Mindset & Mission">
-        <InfoItem label="Why Tutor?" value={mindset?.whyTutor || mindset?.why_tutor} />
-        <InfoItem label="Confidence Mentor Understanding" value={mindset?.whatIsConfidenceMentor || mindset?.what_is_confidence_mentor} />
-        <InfoItem label="Resilience Story" value={mindset?.resilienceStory || mindset?.resilience_story} />
-        <InfoItem label="Belief in Confidence" value={mindset?.beliefInConfidence || mindset?.belief_in_confidence} />
+      <Section title="Section 2 - Academic Background">
+        <InfoItem label="Completed Matric" value={getField("completedMatric", "completed_matric")} />
+        <InfoItem label="Matric Year" value={getField("matricYear", "matric_year")} />
+        <InfoItem label="Math Level" value={getField("mathLevel", "math_level")} />
+        <InfoItem label="Math Result" value={getField("mathResult", "math_result")} />
+        <InfoItem label="Other Subjects" value={getField("otherSubjects", "other_subjects")} />
       </Section>
 
-      <Section title="Academic Confidence">
-        <InfoItem label="Grades Equipped" value={(getField('gradesEquipped', 'grades_equipped') || []).join(", ")} />
-        <InfoItem label="Can Explain Clearly" value={(getField('canExplainClearly', 'can_explain_clearly') || '').replace(/_/g, " ")} />
-        <InfoItem label="Google Meet Confidence" value={`${toolConfidence?.googleMeet || toolConfidence?.google_meet || 0}/5`} />
+      <Section title="Section 3 - Current Situation">
+        <InfoItem label="Current Situation" value={(getField("currentSituation", "current_situation", "currentStatus", "current_status") || "").replace(/_/g, " ")} />
+        <InfoItem label="Other (if applicable)" value={getField("currentSituationOther", "current_situation_other")} />
+        <InfoItem label="Why interested?" value={getField("interestReason", "interest_reason")} />
       </Section>
 
-      <Section title="Psychological Fit">
-        <InfoItem label="Feedback Response" value={(psychological?.feedbackResponse || psychological?.feedback_response || '').replace(/_/g, " ")} />
-        <InfoItem label="Team Meaning" value={(psychological?.teamMeaning || psychological?.team_meaning || '').replace(/_/g, " ")} />
-        <InfoItem label="What Scares You" value={psychological?.whatScares || psychological?.what_scares} />
+      <Section title="Section 4 - Teaching & Communication">
+        <InfoItem label="Helped someone before?" value={getField("helpedBefore", "helped_before")} />
+        <InfoItem label="Explanation" value={getField("helpExplanation", "help_explanation")} />
+        <InfoItem label="Student says 'I don't get this'" value={getField("studentDontGet", "student_dont_get")} />
       </Section>
 
-      <Section title="Vision & Availability">
-        <InfoItem label="Future Personality" value={vision?.futurePersonality || vision?.future_personality} />
-        <InfoItem label="Impact vs Scale" value={(vision?.impactVsScale || vision?.impact_vs_scale || '').replace(/_/g, " ")} />
-        <InfoItem label="Bootcamp Available" value={getField('bootcampAvailable', 'bootcamp_available')} />
-        <InfoItem label="Commit to Trial" value={getField('commitToTrial', 'commit_to_trial') ? "Yes" : "No"} />
+      <Section title="Section 5 - Response Under Pressure">
+        <InfoItem label="Pressure Story" value={getField("pressureStory", "pressure_story")} />
+        <InfoItem label="Pressure Response" value={(getField("pressureResponse", "pressure_response") || []).join(", ")} />
+        <InfoItem label="Panic Cause" value={getField("panicCause", "panic_cause")} />
+      </Section>
+
+      <Section title="Section 6 - Discipline & Responsibility">
+        <InfoItem label="Discipline Reason" value={getField("disciplineReason", "discipline_reason")} />
+        <InfoItem label="Repeat Mistake Response" value={getField("repeatMistakeResponse", "repeat_mistake_response")} />
+      </Section>
+
+      <Section title="Section 7 - Alignment With TT">
+        <InfoItem label="TT Meaning" value={getField("ttMeaning", "tt_meaning")} />
+        <InfoItem label="Structure Preference" value={getField("structurePreference", "structure_preference")} />
+      </Section>
+
+      <Section title="Section 8 - Availability">
+        <InfoItem label="Hours Per Week" value={getField("hoursPerWeek", "hours_per_week")} />
+        <InfoItem label="Available Afternoons?" value={getField("availableAfternoon", "available_afternoon", "bootcampAvailable", "bootcamp_available")} />
+      </Section>
+
+      <Section title="Section 9 - Final Filter">
+        <InfoItem label="Why should you be considered?" value={getField("finalReason", "final_reason")} />
+      </Section>
+
+      <Section title="Section 10 - Commitment">
+        <InfoItem label="Committed to training & protocols?" value={getField("commitment", "commitment", "commitToTrial", "commit_to_trial") === true ? "yes" : getField("commitment", "commitment", "commitToTrial", "commit_to_trial")} />
       </Section>
     </div>
   );
