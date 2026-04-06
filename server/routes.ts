@@ -8919,25 +8919,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Find the enrollment record for this student
       let actualEnrollmentId = enrollmentId;
       if (!actualEnrollmentId) {
-        // Prefer assigned_student_id (canonical), then fallback to legacy student_id.
-        const { data: enrollmentByAssignedStudent } = await supabase
+        const student = await storage.getStudent(studentId);
+
+        if (student?.tutorId && student.tutorId !== tutorId) {
+          return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
+        }
+
+        // Prefer canonical student linkage first. Older deployments may not have
+        // assigned_student_id on parent_enrollments, so treat that as a soft miss.
+        const { data: enrollmentByAssignedStudent, error: assignedStudentLookupError } = await supabase
           .from("parent_enrollments")
           .select("id")
           .eq("assigned_student_id", studentId)
           .eq("assigned_tutor_id", tutorId)
           .maybeSingle();
 
+        if (
+          assignedStudentLookupError &&
+          !String(assignedStudentLookupError.message || "").includes("assigned_student_id")
+        ) {
+          console.error("Error looking up enrollment by assigned_student_id:", assignedStudentLookupError);
+          return res.status(500).json({ message: "Failed to resolve enrollment for proposal" });
+        }
+
         actualEnrollmentId = enrollmentByAssignedStudent?.id || null;
 
         if (!actualEnrollmentId) {
-          const { data: enrollmentByLegacyStudentId } = await supabase
+          const { data: enrollmentByLegacyStudentId, error: legacyStudentLookupError } = await supabase
             .from("parent_enrollments")
             .select("id")
             .eq("student_id", studentId)
             .eq("assigned_tutor_id", tutorId)
             .maybeSingle();
 
+          if (legacyStudentLookupError) {
+            console.error("Error looking up enrollment by legacy student_id:", legacyStudentLookupError);
+            return res.status(500).json({ message: "Failed to resolve enrollment for proposal" });
+          }
+
           actualEnrollmentId = enrollmentByLegacyStudentId?.id || null;
+        }
+
+        if (!actualEnrollmentId && (student as any)?.parentEnrollmentId) {
+          actualEnrollmentId = (student as any).parentEnrollmentId;
+        }
+
+        if (!actualEnrollmentId && (student as any)?.parent_enrollment_id) {
+          actualEnrollmentId = (student as any).parent_enrollment_id;
+        }
+
+        if (!actualEnrollmentId && student?.parentId && student?.name) {
+          const { data: enrollmentByParentAndName, error: parentAndNameLookupError } = await supabase
+            .from("parent_enrollments")
+            .select("id")
+            .eq("user_id", student.parentId)
+            .eq("assigned_tutor_id", tutorId)
+            .eq("student_full_name", student.name)
+            .order("updated_at", { ascending: false })
+            .limit(1);
+
+          if (parentAndNameLookupError) {
+            console.error("Error looking up enrollment by parent_id + student name:", parentAndNameLookupError);
+            return res.status(500).json({ message: "Failed to resolve enrollment for proposal" });
+          }
+
+          actualEnrollmentId = enrollmentByParentAndName?.[0]?.id || null;
+        }
+
+        if (!actualEnrollmentId && student?.parentId) {
+          const { data: enrollmentByParentOnly, error: parentOnlyLookupError } = await supabase
+            .from("parent_enrollments")
+            .select("id")
+            .eq("user_id", student.parentId)
+            .eq("assigned_tutor_id", tutorId)
+            .order("updated_at", { ascending: false })
+            .limit(1);
+
+          if (parentOnlyLookupError) {
+            console.error("Error looking up enrollment by parent_id:", parentOnlyLookupError);
+            return res.status(500).json({ message: "Failed to resolve enrollment for proposal" });
+          }
+
+          actualEnrollmentId = enrollmentByParentOnly?.[0]?.id || null;
+        }
+
+        if (!actualEnrollmentId && student?.parentContact && student?.name) {
+          const { data: enrollmentByEmailAndName, error: emailAndNameLookupError } = await supabase
+            .from("parent_enrollments")
+            .select("id")
+            .eq("parent_email", student.parentContact)
+            .eq("assigned_tutor_id", tutorId)
+            .eq("student_full_name", student.name)
+            .order("updated_at", { ascending: false })
+            .limit(1);
+
+          if (emailAndNameLookupError) {
+            console.error("Error looking up enrollment by parent_email + student name:", emailAndNameLookupError);
+            return res.status(500).json({ message: "Failed to resolve enrollment for proposal" });
+          }
+
+          actualEnrollmentId = enrollmentByEmailAndName?.[0]?.id || null;
+        }
+
+        if (!actualEnrollmentId && student?.parentContact) {
+          const { data: enrollmentByEmailOnly, error: emailOnlyLookupError } = await supabase
+            .from("parent_enrollments")
+            .select("id")
+            .eq("parent_email", student.parentContact)
+            .eq("assigned_tutor_id", tutorId)
+            .order("updated_at", { ascending: false })
+            .limit(1);
+
+          if (emailOnlyLookupError) {
+            console.error("Error looking up enrollment by parent_email:", emailOnlyLookupError);
+            return res.status(500).json({ message: "Failed to resolve enrollment for proposal" });
+          }
+
+          actualEnrollmentId = enrollmentByEmailOnly?.[0]?.id || null;
         }
       }
 
