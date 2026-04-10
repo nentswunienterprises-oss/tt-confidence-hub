@@ -1,11 +1,12 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { observationLevelFromOptionIndex } from "@shared/observationScoring";
+import { useStudentWorkflowState } from "@/hooks/useStudentWorkflowState";
 
 type PhaseLabel = "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability";
-type DrillMode = "diagnosis" | "training";
+type DrillMode = "diagnosis" | "training" | "session";
 type ObservationField = { key: string; label: string; options: string[] };
 type DrillSetConfig = {
   setName: string;
@@ -28,7 +29,7 @@ type StudentListEntry = {
 
 const PHASE_CONTEXT: Record<PhaseLabel, { purpose: string; constraints: string[] }> = {
   Clarity: {
-    purpose: "Can the student see the problem clearly before solving? Clarity = naming what's there, recognizing the method, understanding why. If this fails - everything else collapses.",
+    purpose: "Can the student see the problem clearly before solving? Clarity is naming what's there, recognizing the method, understanding why. If this fails - everything else collapses.",
     constraints: ["No Boss Battles", "No time pressure", "No skipping layers"],
   },
   "Structured Execution": {
@@ -498,16 +499,49 @@ export default function IntroSessionDrillRunner() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [scoring, setScoring] = useState<any[] | null>(null);
+  const [sessionTopicIndex, setSessionTopicIndex] = useState(0);
+  const [sessionResults, setSessionResults] = useState<any[]>([]);
 
-  const drillMode: DrillMode = searchParams.get("mode") === "training" ? "training" : "diagnosis";
+  const drillMode: DrillMode = searchParams.get("mode") === "training" ? "training" : searchParams.get("mode") === "session" ? "session" : "diagnosis";
+  const isSessionMode = drillMode === "session";
   const phase = normalizePhase(searchParams.get("phase"));
-  const drillStructure = useMemo(() => buildDrillStructure(drillMode, phase), [drillMode, phase]);
   const previousStability = String(searchParams.get("stability") || "").trim() || null;
 
   const introTopic = useMemo(() => {
     const raw = searchParams.get("topic") || "";
     return String(raw).trim();
   }, [searchParams]);
+
+  const sessionTopics = useMemo(() => {
+    const raw = searchParams.get("topics") || "";
+    return raw ? raw.split(',').map(t => decodeURIComponent(t).trim()).filter(Boolean) : [];
+  }, [searchParams]);
+
+  const { data: topicData, isLoading: topicDataLoading } = useQuery<{ topics: Array<{ topic: string; phase: string; stability: string }> } | undefined>({
+    queryKey: ["/api/tutor/topic-conditioning", studentId],
+    enabled: isSessionMode && !!studentId,
+  });
+
+  const currentSessionTopic = useMemo(() => {
+    if (!isSessionMode || !topicData?.topics || sessionTopicIndex >= sessionTopics.length) return null;
+    const topicName = sessionTopics[sessionTopicIndex];
+    return topicData.topics.find((t: any) => t.topic === topicName) || null;
+  }, [isSessionMode, topicData, sessionTopicIndex, sessionTopics]);
+
+  const currentTopicPhase = currentSessionTopic?.phase || phase;
+  const currentTopicStability = currentSessionTopic?.stability || previousStability;
+  const currentTopicName = isSessionMode && sessionTopicIndex < sessionTopics.length 
+    ? sessionTopics[sessionTopicIndex]
+    : introTopic;
+  const { data: workflow, isLoading: workflowLoading } = useStudentWorkflowState(studentId || "");
+  const assignmentAccepted = workflow?.assignmentAccepted ?? true;
+
+  const modeToUse: DrillMode = isSessionMode ? "training" : drillMode;
+  const drillStructure = useMemo(() => {
+    if (isSessionMode && topicDataLoading) return null;
+    const phaseToUse = (isSessionMode ? currentTopicPhase : phase) as PhaseLabel;
+    return buildDrillStructure(modeToUse, phaseToUse);
+  }, [isSessionMode, modeToUse, currentTopicPhase, phase, topicDataLoading]);
 
   const hasIntroTopic = !!introTopic;
 
@@ -533,12 +567,25 @@ export default function IntroSessionDrillRunner() {
     return composedName || null;
   }, [studentId, studentsData]);
 
-  const set = drillStructure[currentSet];
-  const isModelingSet = !!set.isModelingSet;
+  const set = drillStructure?.[currentSet] ?? null;
+  const isModelingSet = !!set?.isModelingSet;
   const isFirstRep = currentRep === 0;
   const isFirstSet = currentSet === 0;
-  const isLastRep = currentRep === set.reps - 1;
-  const isLastSet = currentSet === drillStructure.length - 1;
+  const isLastRep = set ? currentRep === set.reps - 1 : false;
+  const isLastSet = drillStructure ? currentSet === drillStructure.length - 1 : false;
+  const showSessionInstructions = isSessionMode && sessionTopicIndex === 0 && isFirstSet;
+
+  useEffect(() => {
+    if (!drillStructure) return;
+    if (currentSet >= drillStructure.length) {
+      setCurrentSet(0);
+      setCurrentRep(0);
+      return;
+    }
+    if (set && currentRep >= set.reps) {
+      setCurrentRep(0);
+    }
+  }, [drillStructure, currentSet, currentRep, set]);
 
   const handleExitToPod = () => {
     navigate("/tutor/pod");
@@ -555,6 +602,21 @@ export default function IntroSessionDrillRunner() {
       const previousSet = drillStructure[previousSetIndex];
       setCurrentSet(previousSetIndex);
       setCurrentRep(previousSet.reps - 1);
+      return;
+    }
+    // If we're at the beginning and in session mode, go back to previous topic
+    if (isSessionMode && sessionTopicIndex > 0) {
+      setSessionTopicIndex(prev => prev - 1);
+      // Reset to last set/rep of previous topic
+      setCurrentSet(drillStructure.length - 1);
+      setCurrentRep(drillStructure[drillStructure.length - 1].reps - 1);
+      // Restore observations for previous topic if they exist
+      const prevTopicResults = sessionResults[sessionTopicIndex - 1];
+      if (prevTopicResults) {
+        // This is complex - we'd need to reconstruct observations from stored results
+        // For now, just reset observations and let user re-do if needed
+        setObservations({});
+      }
     }
   };
 
@@ -575,6 +637,7 @@ export default function IntroSessionDrillRunner() {
   };
 
   const getFirstMissingRep = () => {
+    if (!drillStructure) return null;
     for (let setIndex = 0; setIndex < drillStructure.length; setIndex++) {
       const repSet = drillStructure[setIndex];
       for (let repIndex = 0; repIndex < repSet.reps; repIndex++) {
@@ -592,7 +655,12 @@ export default function IntroSessionDrillRunner() {
   };
 
   const handleNext = async () => {
-    if (!hasIntroTopic) {
+    if (!drillStructure) {
+      setSubmitError("Drill structure is loading. Please wait.");
+      return;
+    }
+
+    if (!isSessionMode && !hasIntroTopic) {
       setSubmitError("Diagnostic topic is required. Please return and set Add Diagnostic Topic first.");
       return;
     }
@@ -609,30 +677,13 @@ export default function IntroSessionDrillRunner() {
       setCurrentSet((s) => s + 1);
       setCurrentRep(0);
     } else {
-      // Submit observations to backend for scoring
-      setSubmitting(true);
-      setSubmitError(null);
-      setSubmitSuccess(false);
-      setScoring(null);
-      try {
-        const firstMissing = getFirstMissingRep();
-        if (firstMissing) {
-          setCurrentSet(firstMissing.setIndex);
-          setCurrentRep(firstMissing.repIndex);
-          setSubmitError(
-            `Set ${firstMissing.setIndex + 1}, Rep ${firstMissing.repIndex + 1} is incomplete. Missing: ${firstMissing.label}.`
-          );
-          setSubmitting(false);
-          return;
-        }
-
-        const payload = {
-          studentId,
-          introTopic,
-          trainingTopic: introTopic,
-          phase,
-          previousStability,
-          drillType: drillMode,
+      // Last rep of last set - either submit or move to next topic in session
+      if (isSessionMode && sessionTopicIndex < sessionTopics.length - 1) {
+        // Save current drill results and move to next topic
+        const drillResult = {
+          trainingTopic: currentTopicName,
+          phase: currentTopicPhase,
+          previousStability: currentTopicStability,
           drill: drillStructure.map((set, setIdx) => ({
             setName: set.setName,
             reps: getSubmissionRepCount(set),
@@ -650,9 +701,75 @@ export default function IntroSessionDrillRunner() {
             }),
           })),
         };
-        const endpoint = drillMode === "training"
-          ? "/api/tutor/training-session-drill"
-          : "/api/tutor/intro-session-drill";
+        
+        setSessionResults(prev => [...prev, drillResult]);
+        setSessionTopicIndex(prev => prev + 1);
+        setCurrentSet(0);
+        setCurrentRep(0);
+        setObservations({});
+        return;
+      }
+
+      // Submit observations to backend for scoring
+      setSubmitting(true);
+      setSubmitError(null);
+      setSubmitSuccess(false);
+      setScoring(null);
+      try {
+        const firstMissing = getFirstMissingRep();
+        if (firstMissing) {
+          setCurrentSet(firstMissing.setIndex);
+          setCurrentRep(firstMissing.repIndex);
+          setSubmitError(
+            `Set ${firstMissing.setIndex + 1}, Rep ${firstMissing.repIndex + 1} is incomplete. Missing: ${firstMissing.label}.`
+          );
+          setSubmitting(false);
+          return;
+        }
+
+        // Construct drill data for this topic - ensure ALL sets are included
+        const currentDrill = {
+          trainingTopic: isSessionMode ? currentTopicName : introTopic,
+          phase: isSessionMode ? currentTopicPhase : phase,
+          previousStability: isSessionMode ? currentTopicStability : previousStability,
+          // IMPORTANT: Include all sets from drillStructure - no filtering
+          // Training drills MUST have exactly 3 sets per validation rules
+          drill: drillStructure.map((set, setIdx) => ({
+            setName: set.setName,
+            reps: getSubmissionRepCount(set),
+            observations: Array.from({ length: getSubmissionRepCount(set) }).map((_, repIdx) => {
+              const obs: Record<string, string> = {};
+              const observationBlock = getObservationBlockForRep(set, repIdx);
+              observationBlock.forEach((block) => {
+                const selectedLabel = observations[`set${setIdx}_rep${repIdx}_${block.key}`] || "";
+                const optionIndex = block.options.findIndex((option) => option === selectedLabel);
+                const selectedLevel = observationLevelFromOptionIndex(optionIndex, block.options.length);
+                obs[block.key] = selectedLabel;
+                obs[`${block.key}_level`] = selectedLevel;
+              });
+              return obs;
+            }),
+          })),
+        };
+
+        // Collect all drills (for multi-topic sessions, include previous + current)
+        const allDrills = isSessionMode 
+          ? [...sessionResults.map(d => ({ ...d, trainingTopic: d.trainingTopic || d.topic })), currentDrill]
+          : [currentDrill];
+
+        const isDiagnosisMode = modeToUse === "diagnosis";
+        const endpoint = isDiagnosisMode ? "/api/tutor/intro-session-drill" : "/api/tutor/training-session-drill";
+        const payload = isDiagnosisMode
+          ? {
+              studentId,
+              drill: currentDrill.drill,
+              introTopic: currentDrill.trainingTopic,
+              phase: currentDrill.phase,
+            }
+          : {
+              studentId,
+              sessionDrills: allDrills,
+            };
         const res = await axios.post(endpoint, payload);
         
         // Invalidate relevant caches so updated status/stage/state appear immediately
@@ -661,6 +778,8 @@ export default function IntroSessionDrillRunner() {
           await Promise.all([
             queryClient.invalidateQueries({ queryKey: ["/api/tutor/pod"] }),
             queryClient.invalidateQueries({ queryKey: ["/api/tutor/sessions"] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/tutor/topic-conditioning", studentId] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/tutor/students", studentId, "topic-conditioning-activations"] }),
             queryClient.invalidateQueries({ queryKey: [`/api/tutor/students/${studentId}/reports-center`] }),
             queryClient.invalidateQueries({ queryKey: [`/api/tutor/students/${studentId}/assignments`] }),
             queryClient.invalidateQueries({ queryKey: ["/api/parent/reports"] }),
@@ -677,9 +796,20 @@ export default function IntroSessionDrillRunner() {
         }
         
         setSubmitSuccess(true);
-        setScoring(res.data?.scoring || null);
+        const drillResults = res.data?.drillResults;
+        const scoringRows = res.data?.scoring || (Array.isArray(drillResults)
+          ? drillResults.flatMap((result: any) =>
+              Array.isArray(result.scoring)
+                ? result.scoring.map((row: any) => ({ ...row, topic: result.topic }))
+                : []
+            )
+          : null);
+        setScoring(scoringRows || null);
       } catch (err: any) {
-        setSubmitError(err?.response?.data?.message || "Submission failed. Please try again.");
+        console.error("Intro session drill submission error:", err);
+        const errorMessage = err?.response?.data?.message || err?.message || "Submission failed. Please try again.";
+        const statusCode = err?.response?.status;
+        setSubmitError(statusCode ? `${errorMessage} (${statusCode})` : errorMessage);
       } finally {
         setSubmitting(false);
       }
@@ -688,6 +818,37 @@ export default function IntroSessionDrillRunner() {
 
   return (
     <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-4">
+      {(drillMode === "training" || isSessionMode) && workflowLoading && (
+        <div className="mb-4 p-3 rounded-md border border-primary/20 bg-primary/5">
+          <p className="text-sm">Checking assignment access...</p>
+        </div>
+      )}
+      {(drillMode === "training" || isSessionMode) && !workflowLoading && !assignmentAccepted && (
+        <div className="space-y-4">
+          <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-amber-900">
+            <p className="font-semibold">Training access is locked</p>
+            <p className="mt-2 text-sm">
+              This student is assigned to you, but you must accept the assignment before running drills or training sessions.
+            </p>
+          </div>
+          <div className="flex justify-end">
+            <button
+              type="button"
+              className="px-4 py-2 rounded-md border border-primary/20 bg-background hover:bg-primary/5"
+              onClick={handleExitToPod}
+            >
+              Back to Pod
+            </button>
+          </div>
+        </div>
+      )}
+      {!((drillMode === "training" || isSessionMode) && !workflowLoading && !assignmentAccepted) && (
+      <>
+      {(!drillStructure || (isSessionMode && topicDataLoading)) && (
+        <div className="mb-4 p-3 rounded-md border border-primary/20 bg-primary/5">
+          <p className="text-sm">Loading drill structure...</p>
+        </div>
+      )}
       <div className="mb-2 flex justify-end">
         <button
           type="button"
@@ -698,28 +859,62 @@ export default function IntroSessionDrillRunner() {
         </button>
       </div>
       {submitSuccess && scoring && scoring.length > 0 && (() => {
-        // Group rows by set name
+        // Group rows by topic and set name so multi-topic sessions render clearly
         const setGroups: Record<string, typeof scoring> = {};
         scoring.forEach((row) => {
-          if (!setGroups[row.set]) setGroups[row.set] = [];
-          setGroups[row.set].push(row);
+          const key = row.topic ? `${row.topic} · ${row.set}` : row.set;
+          if (!setGroups[key]) setGroups[key] = [];
+          setGroups[key].push(row);
         });
         const setNames = Object.keys(setGroups);
-        const sessionScore = scoring[scoring.length - 1]?.sessionScore ?? 0;
-        const lastRow = scoring[scoring.length - 1];
-        const stabilityColor =
-          lastRow?.stability === "High Maintenance"
+        const topicRows = scoring.reduce((acc: Record<string, typeof scoring>, row) => {
+          const topicKey = row.topic || "Session";
+          if (!acc[topicKey]) acc[topicKey] = [];
+          acc[topicKey].push(row);
+          return acc;
+        }, {});
+        const topicNames = Object.keys(topicRows);
+        const topicSummaries = topicNames.map((topicName) => {
+          const rows = topicRows[topicName];
+          const lastRow = rows[rows.length - 1];
+          const topicScore = lastRow?.sessionScore ?? 0;
+          return {
+            topicName,
+            rows,
+            lastRow,
+            topicScore,
+          };
+        });
+        const overallSessionScore = Math.round(
+          topicSummaries.reduce((sum, topic) => sum + topic.topicScore, 0) / Math.max(topicSummaries.length, 1)
+        );
+        const stabilityColorFor = (stability?: string | null) =>
+          stability === "High Maintenance"
             ? "text-blue-700"
-            : lastRow?.stability === "High"
+            : stability === "High"
             ? "text-green-700"
-            : lastRow?.stability === "Medium"
+            : stability === "Medium"
             ? "text-yellow-700"
             : "text-red-700";
-        const decisionColor = lastRow?.nextAction?.toLowerCase().includes("transition") || lastRow?.nextAction?.toLowerCase().includes("advance")
-          ? "text-green-700"
-          : lastRow?.nextAction?.toLowerCase().includes("regress")
-          ? "text-red-700"
-          : "text-blue-700";
+        const resultLabelFor = (row: any, topicName: string) => {
+          const transitionReason = String(row?.transitionReason || row?.phaseDecision || "remain").toLowerCase();
+          if (transitionReason === "phase progress" || row?.phaseDecision === "advance") {
+            return `${topicName}: phase advanced to ${row?.phase} at ${row?.stability} stability`;
+          }
+          if (transitionReason === "stability regress" || row?.phaseDecision === "regress") {
+            return `${topicName}: stability regressed to ${row?.stability} in ${row?.phase}`;
+          }
+          if (transitionReason === "stability advance") {
+            return `${topicName}: stability improved to ${row?.stability} in ${row?.phase}`;
+          }
+          return `${topicName}: stability held at ${row?.stability} in ${row?.phase}`;
+        };
+        const formatState = (phaseValue?: string | null, stabilityValue?: string | null) => {
+          if (!phaseValue && !stabilityValue) return "Not recorded";
+          if (!phaseValue) return String(stabilityValue || "Not recorded");
+          if (!stabilityValue) return String(phaseValue || "Not recorded");
+          return `${phaseValue} (${stabilityValue})`;
+        };
         return (
           <div className="mb-6 space-y-4">
             <div className="p-3 rounded-md border border-primary/25 bg-primary/10 text-foreground font-medium">
@@ -758,41 +953,46 @@ export default function IntroSessionDrillRunner() {
 
             {/* Session total */}
             <div className="rounded-xl border border-primary/15 bg-background px-4 py-3 flex justify-between items-center">
-              <span className="font-semibold">Session Total</span>
+              <span className="font-semibold">
+                {topicSummaries.length > 1 ? "Overall Session Average" : "Session Total"}
+              </span>
               <span className={`text-lg font-bold ${
-                sessionScore >= 70 ? "text-green-700" : sessionScore >= 45 ? "text-yellow-700" : "text-red-700"
-              }`}>{sessionScore}/100</span>
+                overallSessionScore >= 70 ? "text-green-700" : overallSessionScore >= 45 ? "text-yellow-700" : "text-red-700"
+              }`}>{overallSessionScore}/100</span>
             </div>
 
-            {/* Direction card */}
-            {(() => {
-              const prevStab = drillMode === "training" ? previousStability : null;
-              const newStab = lastRow?.stability;
-              const newPhase = lastRow?.phase;
-              const phaseChanged = newPhase && phase && newPhase !== phase;
-              const stabilityChanged = prevStab && newStab && newStab !== prevStab;
-              const sessionResultLabel = phaseChanged
-                ? `Phase advanced to ${newPhase} at ${newStab} stability`
-                : stabilityChanged
-                ? `Stability updated: ${prevStab} → ${newStab} within ${phase}`
-                : `Stability held at ${newStab} within ${phase}`;
+            {/* Per-topic direction cards */}
+            {topicSummaries.map(({ topicName, lastRow, topicScore }) => {
+              const stabilityColor = stabilityColorFor(lastRow?.stability);
               return (
-                <div className="rounded-xl border border-primary/15 bg-background overflow-hidden">
+                <div key={topicName} className="rounded-xl border border-primary/15 bg-background overflow-hidden">
                   <div className="bg-primary/5 px-4 py-2">
-                    <span className="font-semibold text-sm">System Direction</span>
+                    <span className="font-semibold text-sm">
+                      System Direction{topicSummaries.length > 1 ? ` · ${topicName}` : ""}
+                    </span>
                   </div>
                   <div className="px-4 py-3 space-y-3 text-sm">
                     <div>
                       <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">This Session Result</p>
-                      <p className={`font-semibold ${stabilityColor}`}>{sessionResultLabel}</p>
+                      <p className={`font-semibold ${stabilityColor}`}>{resultLabelFor(lastRow, topicName)}</p>
                     </div>
                     <div className="flex justify-between items-center pt-1 border-t">
-                      <span className="text-muted-foreground">Phase</span>
-                      <span className="font-medium">{newPhase}</span>
+                      <span className="text-muted-foreground">Topic Score</span>
+                      <span className={`font-bold ${
+                        topicScore >= 70 ? "text-green-700" : topicScore >= 45 ? "text-yellow-700" : "text-red-700"
+                      }`}>{topicScore}/100</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Stability</span>
-                      <span className={`font-bold ${stabilityColor}`}>{newStab}</span>
+                      <span className="text-muted-foreground">Before</span>
+                      <span className="font-medium">{formatState(lastRow?.phaseBefore, lastRow?.stabilityBefore)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Now</span>
+                      <span className="font-medium">{formatState(lastRow?.phase, lastRow?.stability)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Phase</span>
+                      <span className="font-medium">{lastRow?.phase}</span>
                     </div>
                     <div className="pt-2 border-t">
                       <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Next Session Focus</p>
@@ -806,7 +1006,7 @@ export default function IntroSessionDrillRunner() {
                   </div>
                 </div>
               );
-            })()}
+            })}
           </div>
         );
       })()}
@@ -820,18 +1020,43 @@ export default function IntroSessionDrillRunner() {
           {submitError}
         </div>
       )}
-      <h2 className="text-2xl font-bold mb-2">
-        {drillMode === "training"
-          ? `Training Drill - ${phase}`
-          : `Intro Session - ${phase} Diagnostic Drill`}
-      </h2>
+      {drillStructure && set && (
+        <>
+          <h2 className="text-2xl font-bold mb-2">
+            {isSessionMode
+              ? `Training Session - Topic ${sessionTopicIndex + 1} of ${sessionTopics.length}`
+              : drillMode === "training"
+              ? `Training Drill - ${phase}`
+              : `Intro Session - ${phase} Diagnostic Drill`}
+          </h2>
       <p className="mb-2 text-sm">
-        <span className="font-semibold">Diagnostic Topic:</span>{" "}
-        {hasIntroTopic ? introTopic : "Not set"}
+        <span className="font-semibold">
+          {isSessionMode ? "Current Topic:" : "Diagnostic Topic:"}
+        </span>{" "}
+        {isSessionMode ? currentTopicName : hasIntroTopic ? introTopic : "Not set"}
+        {isSessionMode && currentSessionTopic && (
+          <span className="ml-2 text-muted-foreground">
+            ({currentTopicPhase} - {currentTopicStability})
+          </span>
+        )}
       </p>
-      {!hasIntroTopic && (
+      {!hasIntroTopic && !isSessionMode && (
         <div className="mb-4 p-3 rounded-md border border-primary/20 bg-primary/5 text-sm">
           No diagnostic topic was provided. Go back to the student card and use Add Diagnostic Topic before opening the intro session.
+        </div>
+      )}
+      <p className="mb-4 text-muted-foreground">{studentName || studentId}</p>
+      {showSessionInstructions && (
+        <div className="mb-4 p-3 rounded-md border border-primary/20 bg-primary/5">
+          <p className="font-semibold mb-1">Session Instructions:</p>
+          <ul className="list-disc pl-5 text-sm text-foreground/90 space-y-1">
+            <li>
+              This is a multi-topic training session. Complete drills for each selected topic in sequence.
+            </li>
+            <li>Each topic follows its own phase-specific drill structure based on current state.</li>
+            <li>After completing all topics, the session results will be submitted together.</li>
+            <li>You can navigate back to previous topics if needed, but all topics must be completed.</li>
+          </ul>
         </div>
       )}
       {drillMode === "diagnosis" && (
@@ -848,7 +1073,6 @@ export default function IntroSessionDrillRunner() {
         </ul>
       </div>
       )}
-      <p className="mb-4 text-muted-foreground">{studentName || studentId}</p>
 
       {/* Phase-level context bar — shown only on set 1 */}
       {isFirstSet && isFirstRep && <div className="mb-4 p-3 rounded-xl border border-primary/20 bg-primary/5 text-sm">
@@ -862,7 +1086,7 @@ export default function IntroSessionDrillRunner() {
       </div>}
 
       {/* Modeling session callout - shown only for Clarity Training Set 1 */}
-      {set.isModelingSet && (
+      {set?.isModelingSet && (
         <div className="mb-4 p-4 rounded-xl border border-primary/25 bg-primary/10">
           <div className="font-bold text-foreground text-sm mb-1">MODELING STEP</div>
           <div className="text-muted-foreground text-xs leading-relaxed">
@@ -877,17 +1101,17 @@ export default function IntroSessionDrillRunner() {
       <div className="mb-4 p-3 rounded-xl border border-primary/15 bg-background shadow-sm">
         <div className="flex items-center justify-between mb-2">
           <div className="font-semibold text-sm flex items-center gap-2">
-            Set {currentSet + 1} / {drillStructure.length}: {set.setName}
+            Set {currentSet + 1} / {drillStructure.length}: {set?.setName}
           </div>
-          <div className="text-sm font-medium text-muted-foreground">{isModelingSet ? "Pre-Drill Step" : `Rep ${currentRep + 1} / ${set.reps}`}</div>
+          <div className="text-sm font-medium text-muted-foreground">{isModelingSet ? "Pre-Drill Step" : `Rep ${currentRep + 1} / ${set?.reps ?? 0}`}</div>
         </div>
-        <div className="text-xs text-muted-foreground mb-3">{set.purpose}</div>
+        <div className="text-xs text-muted-foreground mb-3">{set?.purpose}</div>
         <div className="p-2 rounded-md border border-primary/20 bg-primary/5 mb-3">
           <div className="text-xs font-semibold text-primary mb-0.5">→ Rep instruction</div>
-          <div className="text-sm text-foreground font-medium">{set.repInstruction}</div>
+          <div className="text-sm text-foreground font-medium">{set?.repInstruction}</div>
         </div>
         <div className="flex flex-wrap gap-1">
-          {set.activeRules.map((rule, i) => (
+          {set?.activeRules?.map((rule, i) => (
             <span key={i} className="px-2 py-0.5 bg-background border border-primary/15 text-muted-foreground rounded text-xs">{rule}</span>
           ))}
         </div>
@@ -917,13 +1141,15 @@ export default function IntroSessionDrillRunner() {
           </div>
         ))}
       </form>
+        </>
+      )}
       <div className="mt-6 flex justify-end">
         {!submitSuccess && (
           <button
             type="button"
             className="mr-2 px-4 py-2 rounded-md border border-primary/20 bg-background hover:bg-primary/5 disabled:opacity-60"
             onClick={handleBackStep}
-            disabled={submitting || (isFirstSet && isFirstRep)}
+            disabled={submitting || (isFirstSet && isFirstRep && (!isSessionMode || sessionTopicIndex === 0))}
           >
             Back
           </button>
@@ -934,7 +1160,7 @@ export default function IntroSessionDrillRunner() {
             submitSuccess ? "bg-primary cursor-default" : "bg-primary hover:bg-primary/90"
           }`}
           onClick={handleNext}
-          disabled={submitting || submitSuccess || !hasIntroTopic}
+          disabled={submitting || submitSuccess || (!isSessionMode && !hasIntroTopic) || (isSessionMode && topicDataLoading) || !drillStructure || !set}
         >
           {submitSuccess
             ? "Submitted"
@@ -942,7 +1168,7 @@ export default function IntroSessionDrillRunner() {
             ? "Submitting..."
             : isLastSet && isLastRep
             ? "Submit Drill"
-            : set.isModelingSet && isLastRep
+            : set?.isModelingSet && isLastRep
             ? "Start Drilling"
             : "Next"}
         </button>
@@ -966,6 +1192,8 @@ export default function IntroSessionDrillRunner() {
             </button>
           )}
         </div>
+      )}
+      </>
       )}
     </div>
   );

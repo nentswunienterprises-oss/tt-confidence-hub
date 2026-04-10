@@ -364,11 +364,11 @@ function ApplicationCard({
 
   // Handle new column names, old column names, and raw snake_case from DB
   const app = application as any;
-  const fullName = app.fullName || app.fullNames || app.full_name || app.full_names || "—";
-  const email = app.email || "—";
-  const phone = app.phone || app.phoneNumber || app.phone_number || "—";
+  const fullName = app.fullName || app.fullNames || app.full_name || app.full_names || "-";
+  const email = app.email || "-";
+  const phone = app.phone || app.phoneNumber || app.phone_number || "-";
   const age = app.age;
-  const city = app.city || "—";
+  const city = app.city || "-";
   const currentSituation = (app.currentSituation || app.currentStatus || app.current_situation || app.current_status || "N/A").replace(/_/g, " ");
   const rejectionReason = app.rejectionReason || app.rejection_reason;
 
@@ -539,8 +539,8 @@ function VerificationCard({
   isVerifying: boolean;
 }) {
   const app = application as any;
-  const fullName = app.fullName || app.fullNames || app.full_name || app.full_names || "—";
-  const email = app.email || "—";
+  const fullName = app.fullName || app.fullNames || app.full_name || app.full_names || "-";
+  const email = app.email || "-";
   const age = app.age;
   const isUnder18 = age < 18;
   
@@ -680,8 +680,8 @@ function VerificationCard({
 
 function VerifiedSubmissionCard({ application }: { application: TutorApplication }) {
   const app = application as any;
-  const fullName = app.fullName || app.fullNames || app.full_name || app.full_names || "—";
-  const email = app.email || "—";
+  const fullName = app.fullName || app.fullNames || app.full_name || app.full_names || "-";
+  const email = app.email || "-";
 
   const submittedDocs: Array<{ step: number; name: string; url?: string }> = [
     {

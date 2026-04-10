@@ -16,6 +16,18 @@ function getLogoutRedirect(user) {
     return "/executive";
   }
 
+  if (user?.role === "parent") {
+    return "/";
+  }
+
+  if (user?.role === "student") {
+    return "/";
+  }
+
+  if (user?.role === "affiliate" || user?.role === "od") {
+    return "/";
+  }
+
   // If role is missing/stale, infer the portal from the current route.
   if (pathname.startsWith("/executive")) {
     return "/executive";

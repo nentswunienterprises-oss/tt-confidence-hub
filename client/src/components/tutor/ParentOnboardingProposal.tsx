@@ -105,7 +105,7 @@ export default function ParentOnboardingProposal({
       const topic = drillData?.introTopic || drillData?.topic || drillData?.summary?.topic || "";
       const trainingEntryPhase = deriveTrainingEntryPhase(diagnosisPhase, stability);
 
-      const recommendedPlan = `${trainingEntryPhase} phase conditioning on ${topic || "primary diagnostic topic"} (entry stability: ${stability}). Diagnosed at ${diagnosisPhase} — training starts at ${trainingEntryPhase}. System-generated from intro drill.`;
+      const recommendedPlan = `${trainingEntryPhase} phase conditioning on ${topic || "primary diagnostic topic"} (entry stability: ${stability}). Diagnosed at ${diagnosisPhase} - training starts at ${trainingEntryPhase}. System-generated from intro drill.`;
       const justification = `Intro drill scored ${drillData?.summary?.diagnosisScore ?? "-"}/100 at ${diagnosisPhase} phase. Stability: ${stability}. Training entry phase resolved to ${trainingEntryPhase}. Next action: ${drillData?.summary?.nextAction || "Continue phase work"}.`;
 
       const response = await fetch(`${API_URL}/api/tutor/proposal`, {

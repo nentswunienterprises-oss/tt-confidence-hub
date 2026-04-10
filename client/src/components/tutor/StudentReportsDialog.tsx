@@ -85,6 +85,29 @@ function formatWeeklyNextFocus(value?: string | null): string {
   return text.replace(/\bRun\s+/g, "Running ");
 }
 
+function formatReportValue(value: any): string {
+  if (Array.isArray(value)) {
+    const formatted = value
+      .map((item) => {
+        if (!item) return "";
+        if (typeof item === "string") return item.trim();
+        if (typeof item === "object") {
+          if ("topic" in item && "startState" in item && "endState" in item) {
+            return `${item.topic}: ${item.startState} -> ${item.endState}`;
+          }
+          if ("topic" in item && "currentState" in item) {
+            return `${item.topic}: ${item.currentState}`;
+          }
+        }
+        return String(item).trim();
+      })
+      .filter(Boolean);
+    return formatted.join("\n");
+  }
+
+  return String(value || "").trim();
+}
+
 interface SessionRecord {
   id: string;
   date: string;
@@ -327,13 +350,14 @@ export default function StudentReportsDialog({
                               </div>
                             </AccordionTrigger>
                             <AccordionContent className="space-y-3">
-                              <FieldRow label="Topics Worked On" value={structured.mainTopicsCovered || report.topicsLearned} />
-                              <FieldRow label="What Improved" value={structured.whatImprovedThisWeek || report.strengths} />
-                              <FieldRow label="Response Pattern" value={structured.studentResponsePatternThisWeek} />
-                              <FieldRow label="Main Breakdown" value={structured.mainMisunderstandingThisWeek || report.areasForGrowth} />
-                              <FieldRow label="Movement Summary" value={formatMovementSummary(structured.mainCorrectionHelpedThisWeek)} />
-                              <FieldRow label="Conditioning Progress" value={structured.bossBattleSummaryThisWeek} />
-                              <FieldRow label="Next Focus" value={formatWeeklyNextFocus(structured.reinforcementNextWeek || report.nextSteps)} />
+                              <FieldRow label="Topics Worked On" value={formatReportValue(structured.topicsWorkedOn || structured.mainTopicsCovered || report.topicsLearned)} />
+                              <FieldRow label="Conditioning Progress" value={formatReportValue(structured.conditioningProgress || structured.bossBattleSummaryThisWeek)} />
+                              <FieldRow label="What Improved" value={formatReportValue(structured.whatImproved || structured.whatImprovedThisWeek || report.strengths)} />
+                              <FieldRow label="Response Pattern" value={formatReportValue(structured.responsePattern || structured.studentResponsePatternThisWeek)} />
+                              <FieldRow label="Main Breakdown" value={formatReportValue(structured.mainBreakdown || structured.mainMisunderstandingThisWeek || report.areasForGrowth)} />
+                              <FieldRow label="Movement Summary" value={formatMovementSummary(formatReportValue(structured.systemMovement || structured.mainCorrectionHelpedThisWeek))} />
+                              <FieldRow label="Next Focus" value={formatWeeklyNextFocus(formatReportValue(structured.nextFocus || structured.reinforcementNextWeek || report.nextSteps))} />
+                              <FieldRow label="Parent Feedback" value={formatReportValue(report.parentFeedback)} />
                             </AccordionContent>
                           </AccordionItem>
                         );
@@ -364,13 +388,13 @@ export default function StudentReportsDialog({
                               </div>
                             </AccordionTrigger>
                             <AccordionContent className="space-y-3">
-                              <FieldRow label="Topics Conditioned" value={structured.mainAreasCoveredThisMonth || report.topicsLearned} />
-                              <FieldRow label="What Became Stronger" value={structured.strongerSkillsThisMonth || report.strengths} />
-                              <FieldRow label="Response Trend" value={structured.responsePatternTrendThisMonth} />
-                              <FieldRow label="Recurring Challenge" value={structured.recurringChallengeThisMonth || report.areasForGrowth} />
-                              <FieldRow label="System Outcome" value={structured.mostEffectiveInterventionThisMonth} />
-                              <FieldRow label="Topic Progression" value={structured.bossBattleTrendThisMonth} />
-                              <FieldRow label="Next Month Focus" value={structured.nextMonthPriority || report.nextSteps} />
+                              <FieldRow label="Topics Conditioned" value={formatReportValue(structured.topicsConditioned || structured.mainAreasCoveredThisMonth || report.topicsLearned)} />
+                              <FieldRow label="Topic Progression" value={formatReportValue(structured.topicProgression || structured.bossBattleTrendThisMonth)} />
+                              <FieldRow label="What Became Stronger" value={formatReportValue(structured.whatBecameStronger || structured.strongerSkillsThisMonth || report.strengths)} />
+                              <FieldRow label="Response Trend" value={formatReportValue(structured.responseTrend || structured.responsePatternTrendThisMonth)} />
+                              <FieldRow label="Recurring Challenge" value={formatReportValue(structured.recurringChallenge || structured.recurringChallengeThisMonth || report.areasForGrowth)} />
+                              <FieldRow label="System Outcome" value={formatReportValue(structured.systemOutcome || structured.mostEffectiveInterventionThisMonth)} />
+                              <FieldRow label="Next Month Focus" value={formatReportValue(structured.nextMonthFocus || structured.nextMonthPriority || report.nextSteps)} />
                             </AccordionContent>
                           </AccordionItem>
                         );

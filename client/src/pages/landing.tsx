@@ -297,7 +297,7 @@ export default function Landing() {
                 role: "Grade 9 Student"
               },
               {
-                quote: "Being a TT tutor changed how I see education. It's not about information transfer—it's about transformation.",
+                quote: "Being a TT tutor changed how I see education. It's not about information transfer-it's about transformation.",
                 name: "Lerato P.",
                 role: "Territorial Tutor"
               }
@@ -333,7 +333,7 @@ export default function Landing() {
               Join the Movement
             </h2>
             <p className="text-base sm:text-lg" style={{ color: "#5A5A5A" }}>
-              Whether you're a parent, a student, or want to become a tutor—there's a place for you.
+              Whether you're a parent, a student, or want to become a tutor-there's a place for you.
             </p>
           </div>
 

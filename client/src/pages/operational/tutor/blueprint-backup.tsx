@@ -41,7 +41,7 @@ export default function TutorBlueprint() {
           </div>
           <p className="text-lg opacity-95 max-w-2xl mb-6">
             Master the 7 modules that transform tutors into confidence-building leaders. 
-            Each module builds on the last—creating an unstoppable teaching system.
+            Each module builds on the last-creating an unstoppable teaching system.
           </p>
           
           {/* Progress Bar */}
@@ -206,7 +206,7 @@ function ModuleOne({ expandedSections, toggleSection, onComplete, isComplete }: 
             <div>
               <CardTitle className="text-2xl">Module 1: The 3-Layer Lens Teaching Model</CardTitle>
               <CardDescription className="text-white/95 text-lg mt-2">
-                "Model. Apply. Guide." — The student doesn't just learn the skill, they own it.
+                "Model. Apply. Guide." - The student doesn't just learn the skill, they own it.
               </CardDescription>
             </div>
           </div>
@@ -256,7 +256,7 @@ function ModuleOne({ expandedSections, toggleSection, onComplete, isComplete }: 
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center font-bold flex-shrink-0">1</div>
                 <div>
-                  <h4 className="font-bold text-lg mb-2">Step 1: MODEL — "Get them READY."</h4>
+                  <h4 className="font-bold text-lg mb-2">Step 1: MODEL - "Get them READY."</h4>
                   <ul className="space-y-2 text-muted-foreground">
                     <li>• The tutor solves a full problem out loud</li>
                     <li>• Uses all 3 layers - calls out terms, follows steps, explains logic</li>
@@ -269,7 +269,7 @@ function ModuleOne({ expandedSections, toggleSection, onComplete, isComplete }: 
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 rounded-full bg-primary/80 text-white flex items-center justify-center font-bold flex-shrink-0">2</div>
                 <div>
-                  <h4 className="font-bold text-lg mb-2">Step 2: APPLY — "Let them FIRE."</h4>
+                  <h4 className="font-bold text-lg mb-2">Step 2: APPLY - "Let them FIRE."</h4>
                   <ul className="space-y-2 text-muted-foreground">
                     <li>• Student does a similar problem right after</li>
                     <li>• Tutor supports - but doesn't lead</li>
@@ -282,7 +282,7 @@ function ModuleOne({ expandedSections, toggleSection, onComplete, isComplete }: 
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 rounded-full bg-primary/60 text-white flex items-center justify-center font-bold flex-shrink-0">3</div>
                 <div>
-                  <h4 className="font-bold text-lg mb-2">Step 3: GUIDE — "Now we AIM."</h4>
+                  <h4 className="font-bold text-lg mb-2">Step 3: GUIDE - "Now we AIM."</h4>
                   <ul className="space-y-2 text-muted-foreground">
                     <li>• The tutor corrects, refines, and clarifies</li>
                     <li>• Points out which layer needs reinforcement</li>
@@ -900,7 +900,7 @@ function ModuleFour({ expandedSections, toggleSection, onComplete, isComplete }:
                 </ol>
               </div>
 
-              <p className="italic text-sm">Win = Momentum. You're not trying to teach a full concept—you're showing them that they can.</p>
+              <p className="italic text-sm">Win = Momentum. You're not trying to teach a full concept-you're showing them that they can.</p>
             </div>
           </SectionCard>
 
@@ -1313,7 +1313,7 @@ function ModuleSeven({ expandedSections, toggleSection, onComplete, isComplete }
             gradient="from-primary to-primary/80"
           >
             <div className="space-y-4">
-              <p className="font-bold text-lg">Training tutors not just to manage time — but to hold space with rhythm, calm, and inner clarity.</p>
+              <p className="font-bold text-lg">Training tutors not just to manage time - but to hold space with rhythm, calm, and inner clarity.</p>
               
               <div className="bg-accent p-4 rounded-lg border border-primary/10">
                 <p className="font-bold mb-3">🎯 Outcome - TT Tutors will know how to:</p>

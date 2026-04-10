@@ -50,6 +50,7 @@ export default function ParentGateway() {
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [loadingDebug, setLoadingDebug] = useState(false);
   const [debugError, setDebugError] = useState<string | null>(null);
+  const [hideStudentCodeCard, setHideStudentCodeCard] = useState(false);
 
   // Fetch current user data
   const { data: user } = useQuery<any>({
@@ -148,6 +149,38 @@ export default function ParentGateway() {
   const effectiveParentCode = useMemo(() => {
     return parentCode || proposal?.parentCode || null;
   }, [parentCode, proposal?.parentCode]);
+
+  const studentCodeDismissKey = useMemo(() => {
+    if (!user?.id) return null;
+    return `parent-gateway-hide-student-code:${user.id}`;
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!studentCodeDismissKey) {
+      setHideStudentCodeCard(false);
+      return;
+    }
+
+    try {
+      setHideStudentCodeCard(window.localStorage.getItem(studentCodeDismissKey) === "true");
+    } catch {
+      setHideStudentCodeCard(false);
+    }
+  }, [studentCodeDismissKey]);
+
+  useEffect(() => {
+    if (!studentCodeDismissKey) return;
+
+    try {
+      if (hideStudentCodeCard) {
+        window.localStorage.setItem(studentCodeDismissKey, "true");
+      } else {
+        window.localStorage.removeItem(studentCodeDismissKey);
+      }
+    } catch {
+      // Ignore localStorage failures and keep the session usable.
+    }
+  }, [hideStudentCodeCard, studentCodeDismissKey]);
 
   const effectiveIntroSessionConfirmation = useMemo(() => {
     if (
@@ -504,7 +537,7 @@ export default function ParentGateway() {
               Cohort Application
             </span>
           </div>
-          
+
           <Button
             variant="ghost"
             className="hidden md:inline-flex text-sm sm:text-base font-medium hover:bg-transparent items-center gap-1 sm:gap-2 px-2 sm:px-4"
@@ -1007,10 +1040,10 @@ export default function ParentGateway() {
                           )}
                         </div>
                       </div>
-                      <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                      <div className="mt-4">
                         <Button
                           style={{ backgroundColor: '#E63946', color: 'white' }}
-                          className="flex-1"
+                          className="w-full"
                           disabled={isSubmittingSession}
                           onClick={async () => {
                             setIsSubmittingSession(true);
@@ -1039,14 +1072,6 @@ export default function ParentGateway() {
                           }}
                         >
                           Confirm
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="flex-1"
-                          disabled={isSubmittingSession}
-                          onClick={() => setIsBookingDialogOpen(true)}
-                        >
-                          Adjust Schedule
                         </Button>
                       </div>
                     </div>
@@ -1199,7 +1224,7 @@ export default function ParentGateway() {
                       <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-3" />
                       <p className="text-sm text-muted-foreground">Loading your student access code...</p>
                     </div>
-                  ) : effectiveParentCode ? (
+                  ) : effectiveParentCode && !hideStudentCodeCard ? (
                     <Card className="border-2 border-primary mb-4 sm:mb-6">
                       <CardHeader className="p-3 sm:p-6">
                         <CardTitle className="text-base sm:text-xl">Student Access Code</CardTitle>
@@ -1242,8 +1267,30 @@ export default function ParentGateway() {
                         >
                           Continue to Dashboard
                         </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="w-full text-sm"
+                          onClick={() => setHideStudentCodeCard(true)}
+                        >
+                          Got it, don't show this again.
+                        </Button>
                       </CardContent>
                     </Card>
+                  ) : effectiveParentCode ? (
+                    <div className="bg-muted/30 rounded-lg p-4 text-center mb-4 sm:mb-6">
+                      <p className="text-sm text-muted-foreground">
+                        Student access code is stored in the dashboard whenever you need it again.
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="mt-3"
+                        onClick={() => navigate("/client/parent/dashboard")}
+                      >
+                        Go to Dashboard
+                      </Button>
+                    </div>
                   ) : (
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
                       <p className="text-sm text-yellow-600">Student access code is being generated. Please refresh the page if it doesn't appear.</p>

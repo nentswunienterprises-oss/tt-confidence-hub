@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getQueryFn } from "@/lib/queryClient";
 import { Target, AlertCircle, Info, ChevronDown } from "lucide-react";
+import { useStudentWorkflowState } from "@/hooks/useStudentWorkflowState";
 // Removed TutorSessionLogForm import (manual session logging is deprecated)
 import {
   PHASES,
@@ -812,6 +813,8 @@ export default function StudentTopicConditioningDialog({
   topicConditioning,
   persistedTopicStates,
 }: StudentTopicConditioningDialogProps) {
+  const { data: workflow } = useStudentWorkflowState(studentId);
+  const assignmentAccepted = workflow?.assignmentAccepted ?? true;
   // Fetch topic activations for this student (must be inside component to access studentId)
   const { data: activationsData, refetch: refetchActivations } = useQuery({
     queryKey: [apiBasePath, "students", studentId, "topic-conditioning-activations"],
@@ -865,6 +868,8 @@ export default function StudentTopicConditioningDialog({
     phase: PhaseLabel;
     stability: StabilityLabel;
   } | null>(null);
+  const [sessionTopicsModalOpen, setSessionTopicsModalOpen] = useState(false);
+  const [selectedSessionTopics, setSelectedSessionTopics] = useState<Set<string>>(new Set());
 
   // Add topic handler
   const handleActivateTopic = async () => {
@@ -902,6 +907,7 @@ export default function StudentTopicConditioningDialog({
   };
 
   const handleOpenTrainingDrillModal = (topic: TopicRow) => {
+    if (!assignmentAccepted) return;
     setPendingTrainingDrill({
       topic: topic.topic,
       phase: topic.phase,
@@ -917,6 +923,14 @@ export default function StudentTopicConditioningDialog({
     const stabilityParam = encodeURIComponent(pendingTrainingDrill.stability);
     setTrainingDrillModalOpen(false);
     window.location.href = `/tutor/intro-session/${studentId}?mode=training&topic=${topicParam}&phase=${phaseParam}&stability=${stabilityParam}`;
+  };
+
+  const handleStartTrainingSession = () => {
+    if (!assignmentAccepted) return;
+    if (selectedSessionTopics.size === 0) return;
+    const topicsParam = Array.from(selectedSessionTopics).map(t => encodeURIComponent(t)).join(',');
+    setSessionTopicsModalOpen(false);
+    window.location.href = `/tutor/intro-session/${studentId}?mode=session&topics=${topicsParam}`;
   };
   const { data: sessions } = useQuery<TutorSessionRecord[]>({
     queryKey: [apiBasePath, "sessions"],
@@ -1134,12 +1148,12 @@ export default function StudentTopicConditioningDialog({
     if (sessionScore <= phaseConfig.thresholds.maintenance.regressMax) projectedStability = "High";
     else if (sessionScore <= phaseConfig.thresholds.maintenance.highMax) projectedStability = "High Maintenance";
     else {
-      projectedStability = "High Maintenance";
+      projectedStability = "Low";
       advanceReady = true;
     }
   }
 
-  const nextPhase = getNextActionData(observedPhase, projectedStability).advanceTo;
+  const nextPhase = getNextActionData(observedPhase, "High Maintenance").advanceTo;
   const projectedPhase: PhaseLabel =
     previousStability === "High Maintenance" && advanceReady && !!nextPhase
       ? (nextPhase as PhaseLabel)
@@ -1173,6 +1187,18 @@ export default function StudentTopicConditioningDialog({
   const pendingTrainingPrepPlan = pendingTrainingDrill
     ? tutorPrepPlanFor(pendingTrainingDrill.phase, pendingTrainingDrill.stability, true)
     : null;
+  const selectedSessionPrepPlans = Array.from(selectedSessionTopics)
+    .map((topicName) => {
+      const topicState = topics.find((topic) => topic.topic === topicName);
+      if (!topicState) return null;
+      return {
+        topic: topicName,
+        phase: topicState.phase,
+        stability: topicState.stability,
+        prepPlan: tutorPrepPlanFor(topicState.phase, topicState.stability, topicState.hasObservedState),
+      };
+    })
+    .filter((entry): entry is NonNullable<typeof entry> => !!entry);
 
   const showTopicManagement = !readOnly && !mapOnly;
 
@@ -1484,7 +1510,7 @@ export default function StudentTopicConditioningDialog({
                             <ul className="text-xs text-muted-foreground space-y-0.5">
                               {getNextActionData(selectedRow.phase, selectedRow.stability).rules.map((r) => (
                                 <li key={r} className="flex items-start gap-1.5">
-                                  <span className="shrink-0 text-foreground/40">—</span>
+                                  <span className="shrink-0 text-foreground/40">-</span>
                                   <span>{r}</span>
                                 </li>
                               ))}
@@ -1594,7 +1620,7 @@ export default function StudentTopicConditioningDialog({
                           <ul className="text-xs text-muted-foreground space-y-0.5">
                             {prepPlan.prepNotes.map((note) => (
                               <li key={note} className="flex items-start gap-1.5">
-                                <span className="shrink-0 text-foreground/40">—</span>
+                                <span className="shrink-0 text-foreground/40">-</span>
                                 <span>{note}</span>
                               </li>
                             ))}
@@ -1688,24 +1714,45 @@ export default function StudentTopicConditioningDialog({
 
             <Card className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 md:p-5 shadow-sm space-y-4">
               {topics.length > 0 ? (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {topics.map((topic) => (
-                    <div key={topic.topic} className="rounded-md border p-3 flex flex-col gap-2 bg-muted/10">
-                      <div className="flex flex-row items-center justify-between">
-                        <div>
-                          <p className="font-medium">{topic.topic}</p>
-                          <p className="text-xs text-muted-foreground mt-1">{topic.phase} | {topic.stability}</p>
-                        </div>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => handleOpenTrainingDrillModal(topic)}
-                        >
-                          Start Training Drill
-                        </Button>
-                      </div>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium">Active Topics</h4>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => setSessionTopicsModalOpen(true)}
+                      disabled={!assignmentAccepted}
+                      title={!assignmentAccepted ? "Accept the assignment before running training sessions." : undefined}
+                    >
+                      Start Training Session
+                    </Button>
+                  </div>
+                  {!assignmentAccepted && (
+                    <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                      This student is assigned to you, but training access stays locked until you accept the assignment.
                     </div>
-                  ))}
+                  )}
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {topics.map((topic) => (
+                      <div key={topic.topic} className="rounded-md border p-3 flex flex-col gap-2 bg-muted/10">
+                        <div className="flex flex-row items-center justify-between">
+                          <div>
+                            <p className="font-medium">{topic.topic}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{topic.phase} | {topic.stability}</p>
+                          </div>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleOpenTrainingDrillModal(topic)}
+                            disabled={!assignmentAccepted}
+                            title={!assignmentAccepted ? "Accept the assignment before running drills." : undefined}
+                          >
+                            Start Single Drill
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <div className="text-sm text-muted-foreground">No active topics. Activate a topic to begin.</div>
@@ -1771,6 +1818,119 @@ export default function StudentTopicConditioningDialog({
                   </Button>
                   <Button className="w-full sm:w-auto" onClick={handleStartTrainingDrill} disabled={!pendingTrainingDrill}>
                     Enter Drill
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog
+              open={sessionTopicsModalOpen}
+              onOpenChange={(open) => {
+                setSessionTopicsModalOpen(open);
+                if (open) {
+                  // Pre-populate with activated topics
+                  const activatedTopics = new Set<string>(activationTopics.map((t) => t.topic));
+                  setSelectedSessionTopics(activatedTopics);
+                } else {
+                  setSelectedSessionTopics(new Set<string>());
+                }
+              }}
+            >
+              <DialogContent className="w-[calc(100vw-1rem)] sm:w-full sm:max-w-2xl max-h-[88vh] overflow-y-auto p-4 sm:p-6">
+                <DialogHeader>
+                  <DialogTitle>Start Training Session</DialogTitle>
+                  <DialogDescription>
+                    Select topics to include in this training session. You can run drills for multiple topics in one session.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Select the topics you want to work on in this session. Each selected topic will have its own drill.
+                  </p>
+                  <div className="grid gap-2 max-h-60 overflow-y-auto">
+                    {topics.map((topic) => (
+                      <div key={topic.topic} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id={`session-topic-${topic.topic}`}
+                          checked={selectedSessionTopics.has(topic.topic)}
+                          onChange={(e) => {
+                            const newSet = new Set(selectedSessionTopics);
+                            if (e.target.checked) {
+                              newSet.add(topic.topic);
+                            } else {
+                              newSet.delete(topic.topic);
+                            }
+                            setSelectedSessionTopics(newSet);
+                          }}
+                          className="rounded border-gray-300"
+                        />
+                        <label
+                          htmlFor={`session-topic-${topic.topic}`}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {topic.topic} ({topic.phase} - {topic.stability})
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {selectedSessionPrepPlans.length > 0 ? (
+                  <div className="rounded-md border border-primary/20 bg-primary/5 p-3 space-y-3">
+                    <p className="text-sm font-medium">Prep Rules For Selected Topics</p>
+                    <p className="text-xs text-muted-foreground">
+                      Multi-topic sessions still require topic-specific problem prep. Review the exact drill load before you enter the session.
+                    </p>
+                    <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+                      {selectedSessionPrepPlans.map(({ topic, phase, stability, prepPlan }) => (
+                        <div key={`session-prep-${topic}`} className="rounded-md border border-primary/20 bg-background p-3 space-y-2">
+                          <div>
+                            <p className="font-medium text-sm">{topic}</p>
+                            <p className="text-xs text-muted-foreground">{phase} · {stability}</p>
+                          </div>
+                          <ul className="text-xs text-muted-foreground space-y-1">
+                            {prepPlan.setPlans.map((setPlan) => (
+                              <li key={`${topic}-${setPlan.label}`}>
+                                {setPlan.label}: {setPlan.problems} problems · {setPlan.difficulty}
+                              </li>
+                            ))}
+                          </ul>
+                          <div>
+                            <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Prep Rules</p>
+                            <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">
+                              {prepPlan.prepNotes.map((note) => (
+                                <li key={`${topic}-prep-note-${note}`} className="flex items-start gap-1.5">
+                                  <span className="mt-0.5 shrink-0 text-foreground/40">•</span>
+                                  <span>{note}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                  <Button
+                    className="w-full sm:w-auto"
+                    variant="outline"
+                    onClick={() => {
+                      setSessionTopicsModalOpen(false);
+                      setSelectedSessionTopics(new Set());
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="w-full sm:w-auto"
+                    onClick={handleStartTrainingSession}
+                    disabled={selectedSessionTopics.size === 0}
+                  >
+                    Start Session ({selectedSessionTopics.size} topics)
                   </Button>
                 </div>
               </DialogContent>

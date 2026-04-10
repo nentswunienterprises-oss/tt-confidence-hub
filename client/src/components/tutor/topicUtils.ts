@@ -10,6 +10,8 @@ export function buildTopics(
   topic: string;
   phase: PhaseLabel;
   stability: StabilityLabel;
+  hasObservedState: boolean;
+  lastUpdated: string | null;
   lastSession: string;
   trend: TopicTrend;
   entryDiagnosis: string;
@@ -25,11 +27,11 @@ export function buildTopics(
   >();
 
   const persistedEntries = persistedTopicStates && typeof persistedTopicStates === "object"
-    ? Object.values(persistedTopicStates)
+    ? Object.entries(persistedTopicStates)
     : [];
 
-  persistedEntries.forEach((entry: any) => {
-    const persistedTopic = sanitizeTopic(entry?.topic || "");
+  persistedEntries.forEach(([topicKey, entry]: [string, any]) => {
+    const persistedTopic = sanitizeTopic(entry?.topic || topicKey || "");
     if (!persistedTopic) return;
 
     const existing = byTopic.get(persistedTopic) || { history: [] as any[] };
@@ -61,7 +63,7 @@ export function buildTopics(
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   const hasPersistedHistory = persistedEntries.some(
-    (entry: any) => Array.isArray(entry?.history) && entry.history.length > 0,
+    ([, entry]: [string, any]) => Array.isArray(entry?.history) && entry.history.length > 0,
   );
 
   observations.forEach((obs) => {
@@ -83,6 +85,8 @@ export function buildTopics(
     topic: string;
     phase: PhaseLabel;
     stability: StabilityLabel;
+    hasObservedState: boolean;
+    lastUpdated: string | null;
     lastSession: string;
     trend: TopicTrend;
     entryDiagnosis: string;
@@ -115,6 +119,8 @@ export function buildTopics(
       topic,
       phase,
       stability,
+      hasObservedState: history.length > 0,
+      lastUpdated: lastSessionDate || null,
       lastSession: formatLastUpdatedLabel(lastSessionDate),
       trend: trendFromHistory(history.map((h) => h.stability)),
       entryDiagnosis:

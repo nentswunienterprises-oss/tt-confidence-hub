@@ -237,7 +237,7 @@ export default function DisputesModule() {
                 Pattern Detection
               </h3>
               <p className="text-muted-foreground mb-4">
-                Early-warning intelligence. Great HR doesn't react—it prevents.
+                Early-warning intelligence. Great HR doesn't react-it prevents.
               </p>
               
               {disputes.length < 3 ? (

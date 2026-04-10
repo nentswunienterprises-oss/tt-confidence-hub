@@ -266,6 +266,8 @@ export function StudentCard({
           topic,
           phase: "Clarity",
           stability: "Low",
+          hasObservedState: false,
+          lastUpdated: activatedAt || null,
           lastSession: activatedAt ? formatRelativeTime(new Date(activatedAt)) : "Activated",
           trend: "Stable",
           entryDiagnosis: "Activated by tutor.",
@@ -285,8 +287,12 @@ export function StudentCard({
       if (!topic) return;
       byTopic.set(topic, {
         topic,
-        phase: normalizePhaseLabel(entry.phase) || "Structured Execution",
-        stability: normalizeStabilityLabel(entry.stability) || "Low",
+        phase: entry?.hasObservedState
+          ? (normalizePhaseLabel(entry.phase) || "Structured Execution")
+          : "Unknown",
+        stability: entry?.hasObservedState
+          ? (normalizeStabilityLabel(entry.stability) || "Low")
+          : "Unknown",
       });
     });
 
@@ -297,8 +303,8 @@ export function StudentCard({
       if (byTopic.has(topic)) return;
       byTopic.set(topic, {
         topic,
-        phase: normalizePhaseLabel(entry?.phase || student.topicConditioning?.entry_phase) || "Structured Execution",
-        stability: normalizeStabilityLabel(entry?.stability || student.topicConditioning?.stability) || "Low",
+        phase: "Unknown",
+        stability: "Unknown",
       });
     });
 
@@ -315,10 +321,10 @@ export function StudentCard({
     ? normalizeTopicLabel(latestEntry.topic)
     : normalizeTopicLabel(topicConditioning?.topic)) || reportedTopics[0] || "Current class topic";
   const displayPhase = (hasTopics
-    ? normalizePhaseLabel(latestEntry.phase)
+    ? (latestEntry?.hasObservedState ? normalizePhaseLabel(latestEntry.phase) : "Unknown")
     : normalizePhaseLabel(topicConditioning?.entry_phase)) || "Structured Execution";
   const displayStability = (hasTopics
-    ? normalizeStabilityLabel(latestEntry.stability)
+    ? (latestEntry?.hasObservedState ? normalizeStabilityLabel(latestEntry.stability) : "Unknown")
     : normalizeStabilityLabel(topicConditioning?.stability)) || "Low";
 
   const topicConditioningLastUpdatedRaw = hasTopics
@@ -490,7 +496,7 @@ export function StudentCard({
         {effectiveWorkflow?.assignmentAccepted && effectiveWorkflow?.proposalSent && !effectiveWorkflow.proposalAccepted && (
           <div className="pt-4 border-t border-border/60 space-y-2">
             <p className="text-xs text-muted-foreground text-center">
-              Proposal sent. Waiting for parent acceptance to unlock reports.
+              Proposal sent. Waiting for parent acceptance to unlock systems.
             </p>
           </div>
         )}

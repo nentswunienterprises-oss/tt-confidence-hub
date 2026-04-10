@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   UserRound,
+  LogOut,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
@@ -294,7 +295,7 @@ function getCurrentStepCopy(introSession: IntroSessionInfo | null, hasProposal: 
 }
 
 export default function ParentDashboard() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [, setLocation] = useLocation();
   const [proposalDialogOpen, setProposalDialogOpen] = useState(false);
 
@@ -702,6 +703,14 @@ export default function ParentDashboard() {
                 Copy Student Code
               </Button>
             )}
+            <Button
+              variant="outline"
+              className="w-full justify-start text-sm"
+              onClick={logout}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Log Out
+            </Button>
           </CardContent>
         </Card>
       </div>

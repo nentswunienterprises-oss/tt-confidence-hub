@@ -48,6 +48,15 @@ function getLogoutRedirect(user) {
     if ((user === null || user === void 0 ? void 0 : user.role) === "coo" || (user === null || user === void 0 ? void 0 : user.role) === "hr" || (user === null || user === void 0 ? void 0 : user.role) === "ceo" || (user === null || user === void 0 ? void 0 : user.role) === "executive") {
         return "/executive";
     }
+    if ((user === null || user === void 0 ? void 0 : user.role) === "parent") {
+        return "/";
+    }
+    if ((user === null || user === void 0 ? void 0 : user.role) === "student") {
+        return "/";
+    }
+    if ((user === null || user === void 0 ? void 0 : user.role) === "affiliate" || (user === null || user === void 0 ? void 0 : user.role) === "od") {
+        return "/";
+    }
     if (pathname.startsWith("/executive")) {
         return "/executive";
     }
