@@ -395,6 +395,7 @@ export default function StudentReportsDialog({
                               <FieldRow label="Recurring Challenge" value={formatReportValue(structured.recurringChallenge || structured.recurringChallengeThisMonth || report.areasForGrowth)} />
                               <FieldRow label="System Outcome" value={formatReportValue(structured.systemOutcome || structured.mostEffectiveInterventionThisMonth)} />
                               <FieldRow label="Next Month Focus" value={formatReportValue(structured.nextMonthFocus || structured.nextMonthPriority || report.nextSteps)} />
+                              <FieldRow label="Parent Feedback" value={formatReportValue(report.parentFeedback)} />
                             </AccordionContent>
                           </AccordionItem>
                         );
