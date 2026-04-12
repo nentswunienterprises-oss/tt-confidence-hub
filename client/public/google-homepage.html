@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>Math Pressure Response Conditioning for Learners</title>
+    <meta
+      name="description"
+      content="Understanding math is not enough - most students freeze or rush when pressure appears. Territorial Tutoring trains how students respond when math gets difficult, closing the gap between knowing and executing when it matters most."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://territorialtutoring.co.za/" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #fff5ed;
+        --bg-soft: #fff0f0;
+        --fg: #1a1a1a;
+        --muted: #5a5a5a;
+        --muted-soft: #a0a0a0;
+        --accent: #e63946;
+        --dark: #2a2a2a;
+        --border: #e5e5e5;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--fg);
+      }
+      a { color: inherit; text-decoration: none; }
+      img { display: block; max-width: 100%; }
+      .container { width: min(1280px, calc(100% - 32px)); margin: 0 auto; }
+      .header {
+        position: fixed; inset: 0 0 auto 0; z-index: 50;
+        backdrop-filter: blur(12px);
+        background: rgba(255, 245, 237, 0.95);
+      }
+      .header-inner {
+        min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 12px;
+      }
+      .header-title { display: none; font-size: 24px; font-weight: 700; letter-spacing: -0.04em; }
+      .header-actions { display: flex; align-items: center; gap: 8px; }
+      .button-link {
+        display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; white-space: nowrap; transition: all .2s ease;
+      }
+      .ghost-link { padding: 8px 10px; font-size: 14px; font-weight: 500; }
+      .cta-link, .hero-cta {
+        background: var(--accent); color: #fff; box-shadow: 0 18px 30px rgba(0, 0, 0, .14);
+      }
+      .cta-link { padding: 10px 16px; font-size: 14px; font-weight: 600; }
+      .desktop-label { display: none; }
+      .mobile-label { display: inline; }
+      .top-spacer { height: 64px; }
+      .mobile-title { text-align: center; margin: 0 0 24px; font-size: 24px; font-weight: 700; letter-spacing: -0.04em; }
+      .hero { padding: 16px 0 48px; }
+      .hero-grid { display: grid; gap: 32px; align-items: center; }
+      .hero-copy { display: flex; flex-direction: column; gap: 20px; }
+      .eyebrow {
+        display: inline-flex; width: fit-content; align-items: center; padding: 6px 12px; border-radius: 999px;
+        background: var(--bg-soft); color: var(--accent); font-size: 12px; font-weight: 500;
+      }
+      h1 { margin: 0; font-size: 36px; line-height: 1.05; letter-spacing: -0.05em; }
+      h1 span { color: var(--accent); }
+      .hero-copy p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.75; }
+      .hero-actions { display: flex; flex-direction: column; gap: 12px; padding-top: 8px; }
+      .hero-cta {
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        width: fit-content; padding: 16px 24px; border-radius: 999px; font-size: 16px; font-weight: 600;
+      }
+      .hero-arrow { width: 18px; height: 18px; flex: 0 0 auto; }
+      .image-wrap { position: relative; }
+      .image-backdrop { position: absolute; inset: 0; transform: rotate(3deg); border-radius: 24px; background: var(--bg-soft); }
+      .hero-image {
+        position: relative; z-index: 1; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 24px; box-shadow: 0 28px 50px rgba(0, 0, 0, .18);
+      }
+      .image-note {
+        position: absolute; left: 8px; bottom: -16px; z-index: 2; padding: 12px; border-radius: 16px; background: #fff; box-shadow: 0 18px 35px rgba(0, 0, 0, .18);
+      }
+      .image-note strong { display: block; font-size: 14px; }
+      .image-note span { display: block; color: var(--muted); font-size: 12px; }
+      .section-dark { background: var(--fg); color: #fff; padding: 48px 0; }
+      .section-light { background: var(--bg); padding: 48px 0; }
+      .section-center { max-width: 768px; margin: 0 auto 40px; text-align: center; }
+      .section-center h2 { margin: 0 0 16px; font-size: 32px; }
+      .section-center p { margin: 0; font-size: 16px; }
+      .how-grid, .who-grid { display: grid; gap: 16px; }
+      .how-card { border-radius: 24px; background: var(--dark); padding: 20px; }
+      .how-number {
+        display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin-bottom: 16px;
+        border-radius: 999px; background: var(--accent); color: #fff; font-size: 28px; font-weight: 800; letter-spacing: -0.02em;
+      }
+      .how-card h3, .who-card h3 { margin: 0 0 8px; }
+      .how-card p { margin: 0; color: var(--muted-soft); font-size: 14px; line-height: 1.6; }
+      .who-grid { max-width: 960px; margin: 0 auto; }
+      .who-card { border-radius: 24px; background: #fff; padding: 20px; box-shadow: 0 18px 35px rgba(0, 0, 0, .08); }
+      .who-list { display: flex; flex-direction: column; gap: 16px; }
+      .who-item { display: flex; gap: 12px; align-items: flex-start; }
+      .check-badge {
+        display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: 0 0 28px; border-radius: 999px; background: var(--bg-soft); color: var(--accent);
+      }
+      .who-item h3 { color: var(--fg); font-size: 14px; font-weight: 600; }
+      .who-item p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+      .cta-section { text-align: center; }
+      .cta-section p { margin: 0 0 32px; color: var(--muted-soft); font-size: 16px; }
+      .footer { background: var(--bg); padding: 32px 0; }
+      .footer-top {
+        display: grid; gap: 24px; padding-bottom: 24px; margin-bottom: 24px; border-bottom: 1px solid var(--border);
+      }
+      .footer h4 { margin: 0 0 12px; font-size: 14px; font-weight: 600; }
+      .footer-copy { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+      .footer-links { display: flex; flex-direction: column; gap: 8px; padding-top: 8px; }
+      .footer-links a, .footer-faq-link { width: fit-content; color: var(--muted); font-size: 12px; }
+      .footer-faq-link { color: #2563eb; }
+      .footer-links a:hover, .footer-faq-link:hover { text-decoration: underline; }
+      .footer-bottom { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+      .footer-brand { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+      .footer-social {
+        display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 999px; background: var(--bg-soft); color: var(--accent);
+      }
+      .footer-social svg { width: 20px; height: 20px; }
+      .footer-bottom p { margin: 0; color: var(--muted); text-align: center; font-size: 12px; line-height: 1.6; }
+      .tt-logo, .tt-stack-logo { display: inline-block; line-height: 1; }
+      .tt-logo-top { display: flex; align-items: flex-end; }
+      .tt-logo-leading, .tt-logo-territorial {
+        color: #222; font-size: 13.75px; font-weight: 600; letter-spacing: .02em; text-transform: uppercase;
+      }
+      .tt-logo-tutoring { margin-left: calc(1ch + .02em); color: var(--accent); font-size: 13.75px; font-weight: 700; text-transform: uppercase; }
+      .tt-stack-line { display: block; text-align: center; font-size: clamp(12px, 2.8vw, 14px); font-weight: 600; letter-spacing: .02em; text-transform: uppercase; color: #222; }
+      .tt-stack-line.accent { color: var(--accent); font-weight: 700; letter-spacing: 0; }
+      @media (min-width: 640px) {
+        .container { width: min(1280px, calc(100% - 48px)); }
+        .header-inner { min-height: 80px; padding: 0 24px; }
+        .ghost-link { padding: 8px 16px; font-size: 16px; }
+        .cta-link { padding: 12px 24px; font-size: 16px; }
+        .desktop-label { display: inline; }
+        .mobile-label { display: none; }
+        .top-spacer { height: 80px; }
+        .mobile-title { display: none; }
+        .hero { padding: 32px 0 80px; }
+        .hero-copy { gap: 32px; }
+        .eyebrow { padding: 8px 16px; font-size: 14px; }
+        h1 { font-size: 48px; }
+        .hero-copy p, .section-center p, .cta-section p { font-size: 18px; }
+        .hero-actions { flex-direction: row; gap: 16px; padding-top: 16px; }
+        .hero-cta { padding: 20px 32px; font-size: 18px; }
+        .image-note { left: -24px; bottom: -24px; padding: 16px; border-radius: 20px; }
+        .image-note strong { font-size: 18px; }
+        .image-note span { font-size: 14px; }
+        .section-dark, .section-light { padding: 80px 0; }
+        .section-center { margin-bottom: 64px; }
+        .section-center h2 { font-size: 36px; }
+        .how-grid, .who-grid { gap: 24px; }
+        .how-card, .who-card { padding: 24px; }
+        .how-number { width: 56px; height: 56px; margin-bottom: 24px; }
+        .how-card h3 { font-size: 20px; }
+        .how-card p { font-size: 16px; }
+        .who-item h3 { font-size: 16px; }
+        .who-item p { font-size: 14px; }
+        .footer { padding: 48px 0; }
+        .footer-top { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; padding-bottom: 32px; margin-bottom: 32px; }
+        .footer h4, .footer-copy, .footer-links a, .footer-faq-link, .footer-bottom p { font-size: 14px; }
+      }
+      @media (min-width: 768px) { h1 { font-size: 60px; } }
+      @media (min-width: 1024px) {
+        .header-title { display: block; font-size: 36px; }
+        .hero { margin-top: -48px; }
+        .hero-grid, .who-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; }
+        .how-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+        .footer-top { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .footer-bottom { flex-direction: row; justify-content: space-between; }
+        .footer-brand { flex-direction: row; gap: 16px; }
+        .footer-social { margin-left: 140px; }
+        .footer-bottom p { text-align: right; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <div class="container header-inner">
+        <div class="tt-logo" aria-label="Territorial Tutoring">
+          <div class="tt-logo-top"><span class="tt-logo-leading">T</span><span class="tt-logo-territorial">ERRITORIAL</span></div>
+          <div><span class="tt-logo-tutoring">TUTORING</span></div>
+        </div>
+        <div class="header-title">RESPONSE TRAINING</div>
+        <div class="header-actions">
+          <a class="button-link ghost-link" href="/client/signup?mode=login">Log In</a>
+          <a class="button-link cta-link" href="/client/signup" data-signup-link><span class="desktop-label">Get Started</span><span class="mobile-label">Start</span></a>
+        </div>
+      </div>
+    </header>
+    <div class="top-spacer"></div>
+    <main>
+      <section class="hero">
+        <div class="container">
+          <div class="mobile-title">RESPONSE TRAINING</div>
+          <div class="hero-grid">
+            <div class="hero-copy">
+              <div class="eyebrow">For Parents of Grade 6-9 Students</div>
+              <h1>Calm Execution<br /><span>Under Pressure.</span></h1>
+              <p>
+                Most students don&rsquo;t struggle because they're bad at math or not intelligent.
+                <br />
+                They struggle because pressure disrupts their response.
+                <br /><br />
+                TT focuses on training how students respond when math gets hard... eliminating surprises through pattern and calm execution.
+              </p>
+              <div class="hero-actions">
+                <a class="hero-cta" href="/client/signup" data-signup-link>
+                  <span>Start Your Child&rsquo;s Journey</span>
+                  <svg class="hero-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                </a>
+              </div>
+            </div>
+            <div class="image-wrap">
+              <div class="image-backdrop"></div>
+              <img class="hero-image" src="/images/Benefits-of-Online-Tutoring-1-1080x589.png" alt="Student training calm focus" />
+              <div class="image-note"><strong>Calm First</strong><span>Confidence follows</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="section-dark">
+        <div class="container">
+          <div class="section-center">
+            <h2>How It Works</h2>
+            <p>We train calm execution to be a normal response.</p>
+          </div>
+          <div class="how-grid">
+            <article class="how-card"><div class="how-number">1</div><h3>Pattern Gets Trained</h3><p>When certainty disappears, your child stays oriented. They don't freeze. They execute.</p></article>
+            <article class="how-card"><div class="how-number">2</div><h3>Calm Becomes Automatic</h3><p>Through repetition under controlled pressure, executing and moving forward without emotional negotiation becomes habit.</p></article>
+            <article class="how-card"><div class="how-number">3</div><h3>Identity Shifts</h3><p>Your child stops being someone who panics. They become someone who performs.</p></article>
+          </div>
+        </div>
+      </section>
+      <section class="section-light">
+        <div class="container">
+          <div class="section-center"><h2>Who Your Child Becomes</h2><p>&nbsp;</p></div>
+          <div class="who-grid">
+            <article class="who-card">
+              <div class="who-list">
+                <div class="who-item"><span class="check-badge" aria-hidden="true">&#10003;</span><div><h3>Someone Who Doesn't Freeze</h3><p>When the question breaks expectation, they stay calm and execute their trained response.</p></div></div>
+                <div class="who-item"><span class="check-badge" aria-hidden="true">&#10003;</span><div><h3>Someone Parents Trust</h3><p>You stop micromanaging. Their ability to handle pressure becomes predictable.</p></div></div>
+                <div class="who-item"><span class="check-badge" aria-hidden="true">&#10003;</span><div><h3>Someone Who Belongs</h3><p>Part of a system that values discipline over motivation. Clarity over chaos.</p></div></div>
+              </div>
+            </article>
+            <article class="who-card">
+              <div class="who-list">
+                <div class="who-item"><span class="check-badge" aria-hidden="true">&#10003;</span><div><h3>Someone Exams Don't Ambush</h3><p>Pressure feels familiar. Performance stays stable across terms.</p></div></div>
+                <div class="who-item"><span class="check-badge" aria-hidden="true">&#10003;</span><div><h3>Someone Who Stops Self-Labeling</h3><p>No more 'I'm bad at math.' Just 'I know how to respond when it gets hard.'</p></div></div>
+                <div class="who-item"><span class="check-badge" aria-hidden="true">&#10003;</span><div><h3>Someone Ready For What's Next</h3><p>Academic pressure becomes manageable, not traumatic. The future stops feeling uncertain.</p></div></div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+      <section class="section-dark cta-section">
+        <div class="container" style="max-width: 896px;">
+          <div class="section-center" style="margin-bottom: 32px;">
+            <h2>Ready to Build Confidence the Right Way?</h2>
+            <p>Pressure being familiar creates calm. Calm creates ongoing execution.</p>
+          </div>
+          <a class="hero-cta" href="/client/signup"><span>Start Your Child&rsquo;s Journey</span><svg class="hero-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></a>
+        </div>
+      </section>
+    </main>
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-top">
+          <section>
+            <h4>About TT</h4>
+            <p class="footer-copy">Territorial Tutoring is a performance-first math mentorship system built on clarity, repetition, and standards.</p>
+            <div class="footer-links">
+              <a href="https://territorialtutoring.co.za/privacy-policy">Privacy Policy</a>
+              <a href="https://territorialtutoring.co.za/terms-of-use">Terms of Use</a>
+              <a href="https://territorialtutoring.co.za/aboutTT">More About TT</a>
+            </div>
+          </section>
+          <section>
+            <h4>FAQ</h4>
+            <a class="footer-faq-link" href="/faq">Have a question?</a>
+          </section>
+        </div>
+        <div class="footer-bottom">
+          <div class="footer-brand">
+            <div class="tt-stack-logo" aria-label="The Response Hub">
+              <span class="tt-stack-line">THE</span>
+              <span class="tt-stack-line accent">RESPONSE</span>
+              <span class="tt-stack-line">HUB</span>
+            </div>
+            <a class="footer-social" href="https://www.instagram.com/territorialtutoring?utm_source=ig_web_button_share_sheet&amp;igsh=ZDNlZDc0MzIxNw==" target="_blank" rel="noopener noreferrer" aria-label="Territorial Tutoring on Instagram">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="3.5" y="3.5" width="17" height="17" rx="4.5" stroke="currentColor" stroke-width="1.8"></rect>
+                <circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.8"></circle>
+                <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor"></circle>
+              </svg>
+            </a>
+          </div>
+          <p>&copy; <span id="current-year">2026</span> Territorial Tutoring SA (Pty) Ltd<br /><span>Math Pressure Response-Training.</span></p>
+        </div>
+      </div>
+    </footer>
+    <script>
+      (function () {
+        var yearNode = document.getElementById("current-year");
+        if (yearNode) yearNode.textContent = String(new Date().getFullYear());
+        var params = new URLSearchParams(window.location.search);
+        var affiliate = params.get("affiliate");
+        var trackingSource = params.get("utm_source");
+        var trackingCampaign = params.get("utm_campaign");
+        if (!affiliate && !trackingSource && !trackingCampaign) return;
+        var signupParams = new URLSearchParams();
+        if (affiliate) signupParams.set("affiliate", affiliate);
+        if (trackingSource) signupParams.set("utm_source", trackingSource);
+        if (trackingCampaign) signupParams.set("utm_campaign", trackingCampaign);
+        var href = "/client/signup" + (signupParams.toString() ? "?" + signupParams.toString() : "");
+        document.querySelectorAll("[data-signup-link]").forEach(function (node) { node.setAttribute("href", href); });
+      })();
+    </script>
+  </body>
+</html>

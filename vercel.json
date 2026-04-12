@@ -25,6 +25,9 @@
   ],
   "rewrites": [
     { "source": "/api/:path*", "destination": "https://tt-confidence-hub-api.onrender.com/api/:path*" },
+    { "source": "/", "destination": "/google-homepage.html" },
+    { "source": "/privacy-policy", "destination": "/privacy-policy.html" },
+    { "source": "/terms-of-use", "destination": "/terms-of-use.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

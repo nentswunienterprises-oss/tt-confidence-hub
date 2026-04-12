@@ -285,12 +285,12 @@ function PortalLanding() {
                 Territorial Tutoring is a performance-first math mentorship system built on clarity, repetition, and standards.
               </p>
               <div className="space-y-2 pt-2">
-                <button onClick={() => navigate("/privacy-policy")} className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
+                <a href="https://territorialtutoring.co.za/privacy-policy" className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
                   Privacy Policy
-                </button>
-                <button onClick={() => navigate("/terms-of-use")} className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
+                </a>
+                <a href="https://territorialtutoring.co.za/terms-of-use" className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
                   Terms of Use
-                </button>
+                </a>
                 <button onClick={() => navigate("/aboutTT")} className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
                   More About TT
                 </button>
