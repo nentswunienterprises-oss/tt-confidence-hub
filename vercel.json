@@ -28,6 +28,7 @@
     { "source": "/", "destination": "/google-homepage.html" },
     { "source": "/privacy-policy", "destination": "/privacy-policy.html" },
     { "source": "/terms-of-use", "destination": "/terms-of-use.html" },
+    { "source": "/more-about-tt", "destination": "/aboutTT.html" },
     { "source": "/aboutTT", "destination": "/aboutTT.html" },
     { "source": "/faq", "destination": "/faq.html" },
     { "source": "/(.*)", "destination": "/index.html" }

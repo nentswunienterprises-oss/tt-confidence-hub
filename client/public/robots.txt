@@ -1,2 +1,13 @@
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: GPTBot
+Disallow: /
+
 User-agent: *
 Allow: /
+
+Sitemap: https://territorialtutoring.co.za/sitemap.xml

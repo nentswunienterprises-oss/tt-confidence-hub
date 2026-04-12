@@ -187,8 +187,6 @@ export default function AboutTT() {
               confidence follows naturally.
             </p>
 
-            <h2></h2>
-
             <h3>Level 1 - The Surface</h3>
             <p>What parents think they’re buying:</p>
             <ul>
