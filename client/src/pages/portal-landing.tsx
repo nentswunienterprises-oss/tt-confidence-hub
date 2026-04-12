@@ -291,9 +291,9 @@ function PortalLanding() {
                 <a href="https://territorialtutoring.co.za/terms-of-use" className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
                   Terms of Use
                 </a>
-                <button onClick={() => navigate("/aboutTT")} className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
+                <a href="https://territorialtutoring.co.za/aboutTT" className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
                   More About TT
-                </button>
+                </a>
               </div>
             </div>
 
