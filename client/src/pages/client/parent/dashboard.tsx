@@ -154,11 +154,31 @@ const PARENT_STATE_ENGINE: Record<PhaseLabel, Record<StabilityLabel, ParentState
   },
 };
 
+function normalizeTopicText(value?: string | null): string[] {
+  const raw = String(value || "").trim();
+  if (!raw) return [];
+
+  if (raw.startsWith("[") && raw.endsWith("]")) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return parsed
+          .map((item) => String(item || "").trim())
+          .filter(Boolean);
+      }
+    } catch {
+      // Fall through to plain-text splitting.
+    }
+  }
+
+  return [raw];
+}
+
 function splitList(value?: string): string[] {
   if (!value) return [];
   return value
     .split(/[\n,;|]+/)
-    .map((item) => item.replace(/^[-*\u2022\s]+/, "").trim())
+    .flatMap((item) => normalizeTopicText(item.replace(/^[-*\u2022\s]+/, "").trim()))
     .filter(Boolean);
 }
 
@@ -169,8 +189,13 @@ function extractTopicConditioning(proposal: any) {
 
   if (proposal.topicConditioning) {
     return {
-      topic: proposal.topicConditioning.topic?.trim() || null,
-      entryPhase: proposal.topicConditioning.entryPhase?.trim() || null,
+      topic: normalizeTopicText(proposal.topicConditioning.topic)[0] || null,
+      entryPhase:
+        String(
+          proposal.topicConditioning.entryPhase ??
+          proposal.topicConditioning.entry_phase ??
+          ""
+        ).trim() || null,
       stability: proposal.topicConditioning.stability?.trim() || null,
     };
   }
@@ -179,7 +204,7 @@ function extractTopicConditioning(proposal: any) {
   const justificationText = String(proposal.justification || "");
 
   return {
-    topic: String(proposal.currentTopics || "").trim() || null,
+    topic: normalizeTopicText(String(proposal.currentTopics || ""))[0] || null,
     entryPhase:
       noteText.match(/Entry Phase:\s*([^\n\r]+)/i)?.[1]?.trim() ||
       justificationText.match(/Entry phase\s*([^|\.]+)/i)?.[1]?.trim() ||
@@ -414,14 +439,35 @@ export default function ParentDashboard() {
   );
   const firstParentName = user?.name?.split(" ")[0] || user?.email?.split("@")[0] || "Parent";
 
-  const normalizedTopicStates = (topicStatesData || [])
-    .map((item) => ({
-      ...item,
-      phase: normalizePhaseLabel(item.phase),
-      stability: normalizeStabilityLabel(item.stability),
-      topic: String(item.topic || "").trim(),
-    }))
-    .filter((item) => item.topic.length > 0);
+  const normalizedTopicStates = Array.from(
+    (topicStatesData || [])
+      .map((item) => ({
+        ...item,
+        phase: normalizePhaseLabel(item.phase),
+        stability: normalizeStabilityLabel(item.stability),
+        topic: String(item.topic || "").trim(),
+      }))
+      .filter((item) => item.topic.length > 0)
+      .reduce((map, item) => {
+        const key = item.topic.toLowerCase();
+        const existing = map.get(key);
+
+        if (!existing) {
+          map.set(key, item);
+          return map;
+        }
+
+        const existingDate = new Date(existing.lastUpdated || 0).getTime();
+        const itemDate = new Date(item.lastUpdated || 0).getTime();
+
+        if (itemDate >= existingDate) {
+          map.set(key, item);
+        }
+
+        return map;
+      }, new Map<string, ParentTopicState>())
+      .values()
+  );
 
   const fallbackTopics = Array.from(
     new Set([

@@ -359,7 +359,15 @@ export default function ViewTrackingSystemsDialog({
                                 <FieldRow label="Main Breakdown" value={formatReportValue(structured.mainBreakdown || structured.mainMisunderstandingThisWeek || report.areasForGrowth)} />
                                 <FieldRow label="Movement Summary" value={formatMovementSummary(formatReportValue(structured.systemMovement || structured.mainCorrectionHelpedThisWeek))} />
                                 <FieldRow label="Next Focus" value={formatWeeklyNextFocus(formatReportValue(structured.nextFocus || structured.reinforcementNextWeek || report.nextSteps))} />
-                                <FieldRow label="Parent Feedback" value={formatReportValue(report.parentFeedback)} />
+                                {report.parentFeedback ? (
+                                  <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-amber-900">Parent Feedback</p>
+                                    <p className="mt-2 text-sm leading-relaxed text-amber-950">{report.parentFeedback}</p>
+                                    {report.parentFeedbackAt ? (
+                                      <p className="mt-2 text-xs text-amber-800">Submitted {formatDate(report.parentFeedbackAt, true)}</p>
+                                    ) : null}
+                                  </div>
+                                ) : null}
                               </AccordionContent>
                             </AccordionItem>
                           );

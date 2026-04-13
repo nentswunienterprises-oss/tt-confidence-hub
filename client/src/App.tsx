@@ -91,8 +91,7 @@ import ParentUpdates from "@/pages/client/parent/updates";
 import StudentLanding from "@/pages/client/student/StudentLanding";
 import StudentDashboardNew from "@/pages/client/student/StudentDashboard";
 import StudentDashboard from "@/pages/client/student/dashboard";
-import StudentGrowth from "@/pages/client/student/growth";
-import StudentAcademicTracker from "@/pages/client/student/academic-tracker";
+import StudentSessions from "@/pages/client/student/sessions";
 import StudentAssignments from "@/pages/client/student/assignments";
 import StudentUpdates from "@/pages/client/student/updates";
 
@@ -318,8 +317,7 @@ function Router() {
         path="/responseconditioningsystem/session-infrastructure/logging-system"
         element={<ResponseConditioningLoggingSystem />}
       />
-
-<Route
+      <Route
         path="/responseconditioningsystem/tools-required"
         element={<ResponseConditioningToolsRequired />}
       />
@@ -342,8 +340,7 @@ function Router() {
       <Route path="/student" element={<StudentLanding />} />
       <Route path="/student/dashboard" element={<Navigate to="/client/student/dashboard" replace />} />
       <Route path="/client/student/dashboard" element={<DashboardLayout><StudentDashboard /></DashboardLayout>} />
-      <Route path="/client/student/growth" element={<DashboardLayout><StudentGrowth /></DashboardLayout>} />
-      <Route path="/client/student/academic-tracker" element={<DashboardLayout><StudentAcademicTracker /></DashboardLayout>} />
+      <Route path="/client/student/sessions" element={<DashboardLayout><StudentSessions /></DashboardLayout>} />
       <Route path="/client/student/assignments" element={<DashboardLayout><StudentAssignments /></DashboardLayout>} />
       <Route path="/client/student/updates" element={<DashboardLayout><StudentUpdates /></DashboardLayout>} />
 
@@ -361,7 +358,7 @@ function Router() {
       <Route path="/operational/tutor/tt-os" element={<TTOS />} />
       <Route path="/operational/tutor/growth" element={<DashboardLayout><TutorGrowth /></DashboardLayout>} />
       <Route path="/operational/tutor/academic-tracker" element={<DashboardLayout><TutorAcademics /></DashboardLayout>} />
-      <Route path="/operational/tutor/sessions" element={<DashboardLayout><TutorSessions /></DashboardLayout>} />
+      <Route path="/operational/tutor/sessions" element={<TutorSessions />} />
       <Route path="/operational/tutor/profile" element={<DashboardLayout><TutorProfile /></DashboardLayout>} />
       <Route path="/operational/tutor/updates" element={<DashboardLayout><TutorUpdates /></DashboardLayout>} />
 

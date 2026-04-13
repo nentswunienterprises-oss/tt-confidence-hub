@@ -22,8 +22,14 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { getQueryFn } from "@/lib/queryClient";
-import { Target, AlertCircle, Info, ChevronDown } from "lucide-react";
+import { Target, AlertCircle, Info, ChevronDown, MoreHorizontal } from "lucide-react";
 import { useStudentWorkflowState } from "@/hooks/useStudentWorkflowState";
 // Removed TutorSessionLogForm import (manual session logging is deprecated)
 import {
@@ -39,6 +45,7 @@ import {
 import { Progress } from "../ui/progress";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 import type { PhaseLabel, StabilityLabel, TopicTrend } from "./topicConditioningEngine";
+import { useConfirmTrainingSession, useRespondTrainingSession, useRetryScheduledSessionMeetSync, useSyncScheduledSessionArtifacts, useTrainingSessions } from "@/hooks/useScheduledSession";
 
 type TopicConditioningMap = {
   topic?: string | null;
@@ -389,7 +396,25 @@ export function normalizeStability(value?: string | null): StabilityLabel {
 }
 
 export function sanitizeTopic(value?: string | null): string | null {
-  const cleaned = String(value || "").trim();
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+
+  let cleaned = raw;
+  if (cleaned.startsWith("[") && cleaned.endsWith("]")) {
+    try {
+      const parsed = JSON.parse(cleaned);
+      if (Array.isArray(parsed)) {
+        cleaned = String(parsed[0] || "").trim();
+      }
+    } catch {
+      // Keep the raw string when it is not valid JSON.
+    }
+  }
+
+  if (cleaned.includes("|")) {
+    cleaned = cleaned.split("|")[0].trim();
+  }
+
   if (!cleaned) return null;
   if (cleaned.toLowerCase() === "onboarding baseline diagnostic") return null;
   return cleaned;
@@ -615,7 +640,7 @@ export function parseObservation(session: TutorSessionRecord): {
   const stabilityFromNotes = noteText.match(/Stability Observed in Session:\s*([^\n\r]+)/i)?.[1]?.trim();
   const stabilityFromResponse = responseText.match(/Stability:\s*([^|\n\r]+)/i)?.[1]?.trim();
 
-  const topic = sanitizeTopic(topicFromNotes || topicFromMethod);
+  const topic = sanitizeTopic(topicFromMethod || topicFromNotes);
   const phase = normalizePhase(phaseFromNotes || phaseFromResponse || "Structured Execution");
   const stability = normalizeStability(stabilityFromNotes || stabilityFromResponse || "Low");
 
@@ -862,14 +887,17 @@ export default function StudentTopicConditioningDialog({
   const [activationReason, setActivationReason] = useState("");
   const [activationNote, setActivationNote] = useState("");
   const [activateError, setActivateError] = useState("");
-  const [trainingDrillModalOpen, setTrainingDrillModalOpen] = useState(false);
-  const [pendingTrainingDrill, setPendingTrainingDrill] = useState<{
-    topic: string;
-    phase: PhaseLabel;
-    stability: StabilityLabel;
-  } | null>(null);
   const [sessionTopicsModalOpen, setSessionTopicsModalOpen] = useState(false);
   const [selectedSessionTopics, setSelectedSessionTopics] = useState<Set<string>>(new Set());
+  const [trainingSessionMeetMessage, setTrainingSessionMeetMessage] = useState<string | null>(null);
+  const [editingTrainingSessionId, setEditingTrainingSessionId] = useState<string | null>(null);
+  const [adjustedTrainingSessionTime, setAdjustedTrainingSessionTime] = useState("");
+
+  const { data: trainingSessionsData } = useTrainingSessions(studentId);
+  const confirmTrainingSession = useConfirmTrainingSession(studentId);
+  const respondTrainingSession = useRespondTrainingSession(studentId);
+  const retryMeetSync = useRetryScheduledSessionMeetSync(studentId);
+  const syncScheduledSessionArtifacts = useSyncScheduledSessionArtifacts(studentId);
 
   // Add topic handler
   const handleActivateTopic = async () => {
@@ -906,31 +934,52 @@ export default function StudentTopicConditioningDialog({
     }
   };
 
-  const handleOpenTrainingDrillModal = (topic: TopicRow) => {
-    if (!assignmentAccepted) return;
-    setPendingTrainingDrill({
-      topic: topic.topic,
-      phase: topic.phase,
-      stability: topic.stability,
-    });
-    setTrainingDrillModalOpen(true);
-  };
+  const launchTrainingSession = (sessionId?: string | null) => {
+    const selectedTopics = Array.from(selectedSessionTopics);
+    if (selectedTopics.length === 0) return;
 
-  const handleStartTrainingDrill = () => {
-    if (!pendingTrainingDrill) return;
-    const topicParam = encodeURIComponent(pendingTrainingDrill.topic);
-    const phaseParam = encodeURIComponent(pendingTrainingDrill.phase);
-    const stabilityParam = encodeURIComponent(pendingTrainingDrill.stability);
-    setTrainingDrillModalOpen(false);
-    window.location.href = `/tutor/intro-session/${studentId}?mode=training&topic=${topicParam}&phase=${phaseParam}&stability=${stabilityParam}`;
+    if (selectedTopics.length === 1) {
+      const topicState = topics.find((topic) => topic.topic === selectedTopics[0]);
+      if (!topicState) return;
+      const topicParam = encodeURIComponent(topicState.topic);
+      const phaseParam = encodeURIComponent(topicState.phase);
+      const stabilityParam = encodeURIComponent(topicState.stability);
+      const sessionParam = sessionId ? `&scheduledSessionId=${encodeURIComponent(sessionId)}` : "";
+      setSessionTopicsModalOpen(false);
+      window.location.href = `/tutor/intro-session/${studentId}?mode=training&topic=${topicParam}&phase=${phaseParam}&stability=${stabilityParam}${sessionParam}`;
+      return;
+    }
+
+    const topicsParam = selectedTopics.map((t) => encodeURIComponent(t)).join(',');
+    const sessionParam = sessionId ? `&scheduledSessionId=${encodeURIComponent(sessionId)}` : "";
+    setSessionTopicsModalOpen(false);
+    window.location.href = `/tutor/intro-session/${studentId}?mode=session&topics=${topicsParam}${sessionParam}`;
   };
 
   const handleStartTrainingSession = () => {
     if (!assignmentAccepted) return;
     if (selectedSessionTopics.size === 0) return;
-    const topicsParam = Array.from(selectedSessionTopics).map(t => encodeURIComponent(t)).join(',');
-    setSessionTopicsModalOpen(false);
-    window.location.href = `/tutor/intro-session/${studentId}?mode=session&topics=${topicsParam}`;
+    const activeSession = trainingSessionsData?.sessions?.find((session: any) => session.launch?.canLaunch);
+    if (activeSession) {
+      launchTrainingSession(activeSession.id);
+      return;
+    }
+    const pendingParentSession = trainingSessionsData?.sessions?.find((session: any) => session.status === "pending_parent_confirmation");
+    const pendingTutorSession = trainingSessionsData?.sessions?.find((session: any) => session.status === "pending_tutor_confirmation");
+    if (pendingTutorSession) {
+      setTrainingSessionMeetMessage("Two weekly lesson times are waiting for tutor confirmation. Confirm them before running drills.");
+      setSessionTopicsModalOpen(false);
+      return;
+    }
+    if (pendingParentSession) {
+      setTrainingSessionMeetMessage("A training lesson is already waiting for parent confirmation. The lesson will unlock after the parent confirms it.");
+      setSessionTopicsModalOpen(false);
+      return;
+    }
+    if (!activeSession) {
+      setTrainingSessionMeetMessage("No launch-ready lesson is scheduled. The parent must book the week's two training sessions in the Sessions tab first.");
+      return;
+    }
   };
   const { data: sessions } = useQuery<TutorSessionRecord[]>({
     queryKey: [apiBasePath, "sessions"],
@@ -1184,9 +1233,6 @@ export default function StudentTopicConditioningDialog({
     configForValidation.categories.every((category) => !!phaseSelections[category.key] && configForValidation.categories.some(c => c.key === category.key)) &&
     !!interventionUsed;
 
-  const pendingTrainingPrepPlan = pendingTrainingDrill
-    ? tutorPrepPlanFor(pendingTrainingDrill.phase, pendingTrainingDrill.stability, true)
-    : null;
   const selectedSessionPrepPlans = Array.from(selectedSessionTopics)
     .map((topicName) => {
       const topicState = topics.find((topic) => topic.topic === topicName);
@@ -1199,6 +1245,31 @@ export default function StudentTopicConditioningDialog({
       };
     })
     .filter((entry): entry is NonNullable<typeof entry> => !!entry);
+  const actionableTrainingSessions = (trainingSessionsData?.sessions || []).filter(
+    (session: any) => !["completed", "cancelled", "flagged"].includes(String(session.status || "")),
+  );
+  const confirmedTrainingSessions = actionableTrainingSessions.filter(
+    (session: any) => ["confirmed", "ready", "live"].includes(String(session.status || "")),
+  );
+  const pendingConfirmedMeetSyncSessions = confirmedTrainingSessions.filter(
+    (session: any) => !session.google_meet_url,
+  );
+  const latestCompletedTrainingSession = [...(trainingSessionsData?.sessions || [])]
+    .filter((session: any) => String(session.status || "") === "completed")
+    .sort(
+      (a: any, b: any) =>
+        new Date(b.scheduled_time || b.updated_at || 0).getTime() -
+        new Date(a.scheduled_time || a.updated_at || 0).getTime()
+    )[0] || null;
+  const pendingTutorConfirmationSessions = actionableTrainingSessions.filter((session: any) => session.status === "pending_tutor_confirmation");
+  const pendingTrainingConfirmationSession = actionableTrainingSessions.find((session: any) => session.status === "pending_parent_confirmation") || null;
+  const activeTrainingSession = pendingTrainingConfirmationSession
+    ? null
+    : actionableTrainingSessions.find((session: any) => session.launch?.canLaunch) || null;
+  const nextTrainingSession = actionableTrainingSessions.find(
+    (session: any) =>
+      ["confirmed", "ready", "live"].includes(String(session.status || "")) && !session.launch?.canLaunch,
+  ) || null;
 
   const showTopicManagement = !readOnly && !mapOnly;
 
@@ -1208,6 +1279,23 @@ export default function StudentTopicConditioningDialog({
   const studentBadgeLabel = studentNameHasGrade
     ? studentName || "-"
     : `${studentName || "-"} • Grade ${normalizedGradeValue}`;
+
+  const formatLessonTime = (value?: string | null) =>
+    value
+      ? new Intl.DateTimeFormat(undefined, {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          hour: "numeric",
+          minute: "2-digit",
+        }).format(new Date(value))
+      : "-";
+  const formatArtifactStatus = (value?: string | null) => {
+    const normalized = String(value || "").trim();
+    if (!normalized) return "unknown";
+    if (normalized === "not_found_in_google") return "not found in Google";
+    return normalized.replaceAll("_", " ");
+  };
 
   const toggleTopicExpanded = (topic: string) => {
     setExpandedTopics((prev) => {
@@ -1230,7 +1318,7 @@ export default function StudentTopicConditioningDialog({
           <TabsList className={`flex w-full flex-row sm:grid h-auto rounded-xl border border-primary/15 bg-muted/20 p-1 gap-1 ${showTopicManagement ? "sm:grid-cols-2" : "sm:grid-cols-1"}`}>
             <TabsTrigger value="dashboard" className="flex-1 h-auto whitespace-normal text-xs sm:text-sm py-2 px-2">Map</TabsTrigger>
             {showTopicManagement ? (
-              <TabsTrigger value="session-form" className="flex-1 h-auto whitespace-normal text-xs sm:text-sm py-2 px-2">Topic Management</TabsTrigger>
+              <TabsTrigger value="session-form" className="flex-1 h-auto whitespace-normal text-xs sm:text-sm py-2 px-2">Training</TabsTrigger>
             ) : null}
           </TabsList>
 
@@ -1238,7 +1326,21 @@ export default function StudentTopicConditioningDialog({
             <Card className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 md:p-5 shadow-sm space-y-3">
 
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <h3 className="font-semibold">Active Conditioning Map</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold">Active Conditioning Map</h3>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button type="button" variant="ghost" size="sm" className="h-8 w-8 px-0">
+                        <MoreHorizontal className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setActivateDialogOpen(true)}>
+                        Activate Topic
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
                 <Badge variant="outline" className="w-full sm:w-fit max-w-full break-all">
                   {studentBadgeLabel}
                 </Badge>
@@ -1383,9 +1485,6 @@ export default function StudentTopicConditioningDialog({
                           <Badge variant="outline" className="border-primary/20 bg-muted/20 text-foreground">
                             {row.hasObservedState ? topicIntel.transitionStatus : "Awaiting Observation"}
                           </Badge>
-                          <Badge variant="outline" className="border-primary/20 bg-muted/20 text-foreground">
-                            {row.stateSource === "activated" ? "Activated" : row.stateSource === "seeded" ? "Seeded" : "Observed"}
-                          </Badge>
                           {row.hasObservedState && (
                             <Badge className={stabilityTone(row.stability)}>
                               <span
@@ -1411,6 +1510,44 @@ export default function StudentTopicConditioningDialog({
                 </div>
               )}
             </Card>
+
+            <Dialog open={activateDialogOpen} onOpenChange={setActivateDialogOpen}>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Activate New Topic</DialogTitle>
+                  <DialogDescription>
+                    Select a topic and provide a reason for activation. This will add the topic to the active list and log the reason.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-3 mt-2">
+                  <Input
+                    placeholder="Topic name (e.g. Linear equations)"
+                    value={newTopic}
+                    onChange={e => setNewTopic(e.target.value)}
+                  />
+                  <Select value={activationReason} onValueChange={setActivationReason}>
+                    <SelectTrigger className="w-full">{activationReason || "Select reason"}</SelectTrigger>
+                    <SelectContent>
+                      {ACTIVATION_REASONS.map(r => (
+                        <SelectItem key={r} value={r}>{r}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {activationReason === "Other (enter note)" && (
+                    <Textarea
+                      placeholder="Enter activation note"
+                      value={activationNote}
+                      onChange={e => setActivationNote(e.target.value)}
+                    />
+                  )}
+                  {activateError && <p className="text-xs text-red-500">{activateError}</p>}
+                  <div className="flex justify-end gap-2">
+                    <Button variant="ghost" onClick={() => setActivateDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={handleActivateTopic}>Activate</Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
 
             {/* Removed Topics Tracked, Needs Stabilization, Ready To Advance cards as requested */}
 
@@ -1668,160 +1805,337 @@ export default function StudentTopicConditioningDialog({
 
           {showTopicManagement ? (
           <TabsContent value="session-form" className="space-y-4 sm:space-y-6">
-            <div className="flex justify-end mb-2">
-              <Button variant="outline" onClick={() => setActivateDialogOpen(true)}>
-                Activate Topic
-              </Button>
-            </div>
-            {/* Activate Topic Dialog */}
-            <Dialog open={activateDialogOpen} onOpenChange={setActivateDialogOpen}>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Activate New Topic</DialogTitle>
-                  <DialogDescription>
-                    Select a topic and provide a reason for activation. This will add the topic to the active list and log the reason.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-3 mt-2">
-                  <Input
-                    placeholder="Topic name (e.g. Linear equations)"
-                    value={newTopic}
-                    onChange={e => setNewTopic(e.target.value)}
-                  />
-                  <Select value={activationReason} onValueChange={setActivationReason}>
-                    <SelectTrigger className="w-full">{activationReason || "Select reason"}</SelectTrigger>
-                    <SelectContent>
-                      {ACTIVATION_REASONS.map(r => (
-                        <SelectItem key={r} value={r}>{r}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {activationReason === "Other (enter note)" && (
-                    <Textarea
-                      placeholder="Enter activation note"
-                      value={activationNote}
-                      onChange={e => setActivationNote(e.target.value)}
-                    />
-                  )}
-                  {activateError && <p className="text-xs text-red-500">{activateError}</p>}
-                  <div className="flex justify-end gap-2">
-                    <Button variant="ghost" onClick={() => setActivateDialogOpen(false)}>Cancel</Button>
-                    <Button onClick={handleActivateTopic}>Activate</Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-
             <Card className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 md:p-5 shadow-sm space-y-4">
               {topics.length > 0 ? (
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <h4 className="font-medium">Active Topics</h4>
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={() => setSessionTopicsModalOpen(true)}
-                      disabled={!assignmentAccepted}
-                      title={!assignmentAccepted ? "Accept the assignment before running training sessions." : undefined}
-                    >
-                      Start Training Session
-                    </Button>
+                    <h4 className="font-medium">Training Operations</h4>
+                    {activeTrainingSession ? (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => setSessionTopicsModalOpen(true)}
+                        disabled={!assignmentAccepted}
+                        title={!assignmentAccepted ? "Accept the assignment before running training sessions." : undefined}
+                      >
+                        Start Session
+                      </Button>
+                    ) : null}
+                  </div>
+                  <div className="rounded-md border border-primary/20 bg-primary/5 p-3 space-y-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium">TT Lesson Wrapper</p>
+                        <p className="text-xs text-muted-foreground">
+                          Training drills must launch inside a scheduled TT lesson.
+                        </p>
+                      </div>
+                      <div className="text-right text-xs text-muted-foreground">
+                        Parent books the two weekly lesson times in the Sessions tab.
+                      </div>
+                    </div>
+                    {activeTrainingSession ? (
+                      <div className="rounded border border-primary/20 bg-background px-3 py-2 text-xs space-y-2">
+                        <p className="font-medium text-foreground">Launch-ready lesson</p>
+                        <p className="text-muted-foreground">{formatLessonTime(activeTrainingSession.scheduled_time)}</p>
+                        {activeTrainingSession.google_meet_url ? (
+                          <a
+                            href={activeTrainingSession.google_meet_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex text-primary underline underline-offset-2"
+                          >
+                            Join Meet
+                          </a>
+                        ) : (
+                          <div className="space-y-2">
+                            <p className="text-muted-foreground">Meet link pending calendar sync.</p>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={async () => {
+                                try {
+                                  const result = await retryMeetSync.mutateAsync({ sessionId: activeTrainingSession.id });
+                                  setTrainingSessionMeetMessage(
+                                    result?.googleMeetError ||
+                                    (result?.googleMeetSync === "google_calendar"
+                                      ? "Google Meet synced to the lesson."
+                                      : "Meet sync retried.")
+                                  );
+                                } catch (error) {
+                                  setTrainingSessionMeetMessage(
+                                    error instanceof Error ? error.message : "Failed to retry Meet sync."
+                                  );
+                                }
+                              }}
+                              disabled={retryMeetSync.isPending}
+                            >
+                              {retryMeetSync.isPending ? "Syncing..." : "Retry Meet Sync"}
+                            </Button>
+                          </div>
+                        )}
+                        {trainingSessionMeetMessage ? (
+                          <p className={trainingSessionMeetMessage.includes("created") ? "text-green-700" : "text-red-600"}>
+                            {trainingSessionMeetMessage}
+                          </p>
+                        ) : null}
+                        <p className="text-muted-foreground">
+                          Start Session unlocks topic selection for this lesson.
+                        </p>
+                      </div>
+                    ) : null}
+                    {pendingTutorConfirmationSessions.length > 0 ? (
+                      <div className="rounded border border-blue-200 bg-blue-50 px-3 py-2 text-xs space-y-2">
+                        <p className="font-medium text-blue-900">Awaiting tutor confirmation</p>
+                        <p className="text-blue-800">
+                          The parent has proposed this week's training lessons. Confirm both dates before Meet links are created.
+                        </p>
+                        <div className="space-y-2">
+                          {pendingTutorConfirmationSessions.map((session: any) => (
+                            <div key={session.id} className="rounded border border-blue-200 bg-background px-3 py-2 space-y-2">
+                              <div className="flex items-center justify-between gap-3">
+                                <div>
+                                  <p className="font-medium text-foreground">{formatLessonTime(session.scheduled_time)}</p>
+                                  <p className="text-muted-foreground">Status: waiting for tutor confirmation</p>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={async () => {
+                                      try {
+                                        const result = await confirmTrainingSession.mutateAsync({ sessionId: session.id });
+                                        setTrainingSessionMeetMessage(
+                                          result?.googleMeetError ||
+                                          (result?.googleMeetSync === "google_calendar"
+                                            ? "Tutor confirmed. Google Meet attached to the lesson."
+                                            : "Tutor confirmed the lesson.")
+                                        );
+                                      } catch (error) {
+                                        setTrainingSessionMeetMessage(
+                                          error instanceof Error ? error.message : "Failed to confirm training session."
+                                        );
+                                      }
+                                    }}
+                                    disabled={confirmTrainingSession.isPending || respondTrainingSession.isPending}
+                                  >
+                                    {confirmTrainingSession.isPending ? "Confirming..." : "Confirm Date"}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      setEditingTrainingSessionId((current) => current === session.id ? null : session.id);
+                                      setAdjustedTrainingSessionTime(new Date(session.scheduled_time).toISOString().slice(0, 16));
+                                    }}
+                                    disabled={confirmTrainingSession.isPending || respondTrainingSession.isPending}
+                                  >
+                                    Adjust
+                                  </Button>
+                                </div>
+                              </div>
+                              {editingTrainingSessionId === session.id ? (
+                                <div className="rounded border border-blue-200 bg-blue-50 px-3 py-2 space-y-2">
+                                  <Input
+                                    type="datetime-local"
+                                    value={adjustedTrainingSessionTime}
+                                    onChange={(e) => setAdjustedTrainingSessionTime(e.target.value)}
+                                  />
+                                  <div className="flex justify-end">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={async () => {
+                                        try {
+                                          const result = await respondTrainingSession.mutateAsync({
+                                            sessionId: session.id,
+                                            action: "reschedule",
+                                            scheduledStart: new Date(adjustedTrainingSessionTime).toISOString(),
+                                            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Africa/Johannesburg",
+                                          });
+                                          setTrainingSessionMeetMessage(
+                                            result?.googleMeetError || "Tutor sent a new time to the parent for confirmation."
+                                          );
+                                          setEditingTrainingSessionId(null);
+                                          setAdjustedTrainingSessionTime("");
+                                        } catch (error) {
+                                          setTrainingSessionMeetMessage(
+                                            error instanceof Error ? error.message : "Failed to adjust training session."
+                                          );
+                                        }
+                                      }}
+                                      disabled={!adjustedTrainingSessionTime || respondTrainingSession.isPending}
+                                    >
+                                      {respondTrainingSession.isPending ? "Sending..." : "Send New Time"}
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : null}
+                            </div>
+                          ))}
+                        </div>
+                        {trainingSessionMeetMessage ? (
+                          <p className={trainingSessionMeetMessage.includes("attached") ? "text-green-700" : "text-red-600"}>
+                            {trainingSessionMeetMessage}
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    {pendingTrainingConfirmationSession ? (
+                      <div className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs space-y-1">
+                        <p className="font-medium text-amber-900">Awaiting parent confirmation</p>
+                        <p className="text-amber-800">{formatLessonTime(pendingTrainingConfirmationSession.scheduled_time)}</p>
+                        <p className="text-amber-800">
+                          The parent must confirm this lesson before Meet is attached and drills can launch.
+                        </p>
+                        {trainingSessionMeetMessage ? (
+                          <p className={trainingSessionMeetMessage.includes("created") ? "text-green-700" : "text-red-600"}>
+                            {trainingSessionMeetMessage}
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    {nextTrainingSession ? (
+                      <div className="rounded border border-border/60 bg-background px-3 py-2 text-xs space-y-1">
+                        <p className="font-medium text-foreground">Next scheduled lesson</p>
+                        <p className="text-muted-foreground">{formatLessonTime(nextTrainingSession.scheduled_time)}</p>
+                        <p className="text-muted-foreground">
+                          This lesson is outside the live/imminent launch window.
+                        </p>
+                        {trainingSessionMeetMessage ? (
+                          <p className={trainingSessionMeetMessage.includes("created") ? "text-green-700" : "text-red-600"}>
+                            {trainingSessionMeetMessage}
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    {confirmedTrainingSessions.length > 0 ? (
+                      <div className="rounded border border-border/60 bg-background px-3 py-2 text-xs space-y-2">
+                        <p className="font-medium text-foreground">Confirmed lessons</p>
+                        <div className="space-y-2">
+                          {confirmedTrainingSessions.map((session: any) => (
+                            <div key={session.id} className="rounded border border-border/60 bg-muted/10 px-3 py-2 space-y-1">
+                              <div className="flex items-center justify-between gap-3">
+                                <div>
+                                  <p className="font-medium text-foreground">{formatLessonTime(session.scheduled_time)}</p>
+                                  <p className="text-muted-foreground">Status: {String(session.status || "").replaceAll("_", " ")}</p>
+                                </div>
+                                {session.launch?.canLaunch ? (
+                                  <Badge variant="outline" className="border-primary/20 bg-primary/5 text-foreground">
+                                    Launch Ready
+                                  </Badge>
+                                ) : null}
+                              </div>
+                              {session.google_meet_url ? (
+                                <a
+                                  href={session.google_meet_url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex text-primary underline underline-offset-2"
+                                >
+                                  Join Meet
+                                </a>
+                              ) : (
+                                <div className="space-y-2">
+                                  <p className="text-muted-foreground">Meet link pending calendar sync.</p>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={async () => {
+                                      try {
+                                        const result = await retryMeetSync.mutateAsync({ sessionId: session.id });
+                                        setTrainingSessionMeetMessage(
+                                          result?.googleMeetError ||
+                                          (result?.googleMeetSync === "google_calendar"
+                                            ? "Google Meet synced to the lesson."
+                                            : "Meet sync retried.")
+                                        );
+                                      } catch (error) {
+                                        setTrainingSessionMeetMessage(
+                                          error instanceof Error ? error.message : "Failed to retry Meet sync."
+                                        );
+                                      }
+                                    }}
+                                    disabled={retryMeetSync.isPending}
+                                  >
+                                    {retryMeetSync.isPending ? "Syncing..." : "Retry Meet Sync"}
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        {trainingSessionMeetMessage ? (
+                          <p className={trainingSessionMeetMessage.includes("created") ? "text-green-700" : "text-red-600"}>
+                            {trainingSessionMeetMessage}
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    {!activeTrainingSession && pendingTutorConfirmationSessions.length === 0 && !pendingTrainingConfirmationSession && !nextTrainingSession && confirmedTrainingSessions.length === 0 ? (
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground">
+                          No TT training lesson is attached yet. The parent must schedule this week's two lesson times in the Sessions tab.
+                        </p>
+                        {trainingSessionMeetMessage ? (
+                          <p className={trainingSessionMeetMessage.includes("created") ? "text-xs text-green-700" : "text-xs text-red-600"}>
+                            {trainingSessionMeetMessage}
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </div>
                   {!assignmentAccepted && (
                     <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
                       This student is assigned to you, but training access stays locked until you accept the assignment.
                     </div>
                   )}
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {topics.map((topic) => (
-                      <div key={topic.topic} className="rounded-md border p-3 flex flex-col gap-2 bg-muted/10">
-                        <div className="flex flex-row items-center justify-between">
-                          <div>
-                            <p className="font-medium">{topic.topic}</p>
-                            <p className="text-xs text-muted-foreground mt-1">{topic.phase} | {topic.stability}</p>
-                          </div>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => handleOpenTrainingDrillModal(topic)}
-                            disabled={!assignmentAccepted}
-                            title={!assignmentAccepted ? "Accept the assignment before running drills." : undefined}
-                          >
-                            Start Single Drill
-                          </Button>
+                  {latestCompletedTrainingSession ? (
+                    <div className="rounded-md border border-border/70 bg-background p-3 text-sm space-y-2">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="font-medium text-foreground">Latest Completed Lesson</p>
+                          <p className="text-muted-foreground">{formatLessonTime(latestCompletedTrainingSession.scheduled_time)}</p>
                         </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={async () => {
+                            try {
+                              const result = await syncScheduledSessionArtifacts.mutateAsync({ sessionId: latestCompletedTrainingSession.id });
+                              const syncedSession = result?.session;
+                              if (syncedSession?.recording_file_id || syncedSession?.transcript_file_id) {
+                                setTrainingSessionMeetMessage("Meeting artifacts synced from Google.");
+                              } else {
+                                setTrainingSessionMeetMessage("Artifact sync completed. Google did not expose recording/transcript files for this lesson.");
+                              }
+                            } catch (error) {
+                              setTrainingSessionMeetMessage(
+                                error instanceof Error ? error.message : "Failed to sync meeting artifacts."
+                              );
+                            }
+                          }}
+                          disabled={syncScheduledSessionArtifacts.isPending}
+                        >
+                          {syncScheduledSessionArtifacts.isPending ? "Syncing..." : "Sync Recording / Transcript"}
+                        </Button>
                       </div>
-                    ))}
+                      <div className="grid gap-1 text-xs text-muted-foreground">
+                        <p>Recording: <span className="font-medium text-foreground">{latestCompletedTrainingSession.recording_file_id ? "stored" : formatArtifactStatus(latestCompletedTrainingSession.recording_status)}</span></p>
+                        <p>Transcript: <span className="font-medium text-foreground">{latestCompletedTrainingSession.transcript_file_id ? "stored" : formatArtifactStatus(latestCompletedTrainingSession.transcript_status)}</span></p>
+                        <p>Co-host sync: <span className="font-medium text-foreground">{formatArtifactStatus(latestCompletedTrainingSession.cohost_sync_status)}</span></p>
+                      </div>
+                    </div>
+                  ) : null}
+                  <div className="rounded-md border border-dashed border-border/70 bg-muted/10 p-3 text-sm text-muted-foreground">
+                    Topic selection now happens inside <span className="font-medium text-foreground">Start Session</span> after a confirmed lesson is available.
+                    Use the <span className="font-medium text-foreground">Map</span> tab to review active topics and activate new ones.
                   </div>
                 </div>
               ) : (
                 <div className="text-sm text-muted-foreground">No active topics. Activate a topic to begin.</div>
               )}
             </Card>
-
-            <Dialog
-              open={trainingDrillModalOpen}
-              onOpenChange={(open) => {
-                setTrainingDrillModalOpen(open);
-                if (!open) setPendingTrainingDrill(null);
-              }}
-            >
-              <DialogContent className="w-[calc(100vw-1rem)] sm:w-full sm:max-w-2xl max-h-[88vh] overflow-y-auto p-4 sm:p-6">
-                <DialogHeader>
-                  <DialogTitle>Training Drill Instructions</DialogTitle>
-                  <DialogDescription>
-                    {pendingTrainingDrill
-                      ? `${pendingTrainingDrill.phase} Drill · Topic: ${pendingTrainingDrill.topic}`
-                      : "Review drill requirements before you begin."}
-                  </DialogDescription>
-                </DialogHeader>
-
-                <ul className="list-disc pl-5 text-sm space-y-1">
-                  <li>This drill is for system-driven training progression. Follow the structure exactly.</li>
-                  <li>
-                    <strong>Before you begin:</strong>{" "}
-                    {pendingTrainingPrepPlan
-                      ? `Prepare ${pendingTrainingPrepPlan.setPlans.reduce((sum, setPlan) => sum + setPlan.problems, 0)} total problems using this drill structure.`
-                      : "Prepare all required problems for the selected drill structure."}
-                  </li>
-                  {pendingTrainingPrepPlan?.setPlans.map((setPlan) => (
-                    <li key={`training-modal-set-${setPlan.label}`}>
-                      {setPlan.label}: {setPlan.problems} problems · {setPlan.difficulty}
-                    </li>
-                  ))}
-                  <li>For each set and rep, present the prepared problem, observe the student, and select the option that best matches their behavior for each field.</li>
-                  <li>You cannot skip steps or edit outside the drill structure. Complete each observation in order.</li>
-                  <li>When finished, observations are scored and the topic state map updates automatically.</li>
-                </ul>
-
-                {pendingTrainingPrepPlan?.prepNotes?.length ? (
-                  <div className="rounded-md border border-primary/20 bg-primary/5 p-3">
-                    <p className="text-xs font-medium uppercase tracking-[0.06em] text-muted-foreground">Prep Rules</p>
-                    <ul className="mt-2 list-disc pl-5 text-sm space-y-1">
-                      {pendingTrainingPrepPlan.prepNotes.map((note) => (
-                        <li key={`training-modal-rule-${note}`}>{note}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : null}
-
-                <div className="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                  <Button
-                    className="w-full sm:w-auto"
-                    variant="outline"
-                    onClick={() => {
-                      setTrainingDrillModalOpen(false);
-                      setPendingTrainingDrill(null);
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button className="w-full sm:w-auto" onClick={handleStartTrainingDrill} disabled={!pendingTrainingDrill}>
-                    Enter Drill
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
 
             <Dialog
               open={sessionTopicsModalOpen}
@@ -1838,15 +2152,15 @@ export default function StudentTopicConditioningDialog({
             >
               <DialogContent className="w-[calc(100vw-1rem)] sm:w-full sm:max-w-2xl max-h-[88vh] overflow-y-auto p-4 sm:p-6">
                 <DialogHeader>
-                  <DialogTitle>Start Training Session</DialogTitle>
+                  <DialogTitle>Start Session</DialogTitle>
                   <DialogDescription>
-                    Select topics to include in this training session. You can run drills for multiple topics in one session.
+                    Select one or more topics for this lesson. One topic runs as a single-topic session; multiple topics run as a multi-topic session.
                   </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-3">
                   <p className="text-sm text-muted-foreground">
-                    Select the topics you want to work on in this session. Each selected topic will have its own drill.
+                    Choose the topics you want to cover in this lesson, then enter the runner in the correct session mode automatically.
                   </p>
                   <div className="grid gap-2 max-h-60 overflow-y-auto">
                     {topics.map((topic) => (
@@ -1881,7 +2195,7 @@ export default function StudentTopicConditioningDialog({
                   <div className="rounded-md border border-primary/20 bg-primary/5 p-3 space-y-3">
                     <p className="text-sm font-medium">Prep Rules For Selected Topics</p>
                     <p className="text-xs text-muted-foreground">
-                      Multi-topic sessions still require topic-specific problem prep. Review the exact drill load before you enter the session.
+                      Review the exact drill load before you enter the lesson. Each selected topic still needs its own problem prep.
                     </p>
                     <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
                       {selectedSessionPrepPlans.map(({ topic, phase, stability, prepPlan }) => (
@@ -1935,6 +2249,7 @@ export default function StudentTopicConditioningDialog({
                 </div>
               </DialogContent>
             </Dialog>
+
           </TabsContent>
           ) : null}
         </Tabs>

@@ -425,6 +425,7 @@ export default function ParentGateway() {
         body: JSON.stringify({
           proposedDate: format(proposedDate, "yyyy-MM-dd"),
           proposedTime,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Africa/Johannesburg",
         }),
       });
       if (!response.ok) {
@@ -1076,7 +1077,7 @@ export default function ParentGateway() {
                       </div>
                     </div>
                   )}
-                  {effectiveIntroSessionConfirmation?.status === "confirmed" && (
+                  {["confirmed", "ready", "live", "completed"].includes(String(effectiveIntroSessionConfirmation?.status || "")) && (
                     <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                       {effectiveIntroSessionConfirmation.introCompleted ? (
                         <>
@@ -1090,6 +1091,16 @@ export default function ParentGateway() {
                           <p className="font-medium text-green-900">Your session has been confirmed</p>
                           {effectiveIntroSessionConfirmation.scheduled_time && (
                             <p className="text-sm text-green-700 mt-2">Scheduled for: {new Date(effectiveIntroSessionConfirmation.scheduled_time).toLocaleString()}</p>
+                          )}
+                          {effectiveIntroSessionConfirmation.google_meet_url && (
+                            <a
+                              href={effectiveIntroSessionConfirmation.google_meet_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex mt-2 text-sm text-green-800 underline underline-offset-2"
+                            >
+                              Join Google Meet
+                            </a>
                           )}
                           <p className="text-sm text-green-700 mt-2">You will receive an introductory report and proposal here after you've had your intro session</p>
                         </>

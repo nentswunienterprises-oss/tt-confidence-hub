@@ -18,7 +18,6 @@ import {
   FileCheck,
   Bell,
   LogOut,
-  BookOpen,
   TrendingUp,
   Calendar,
   MessageSquare,
@@ -197,8 +196,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const studentNav: NavItem[] = [
     { label: "Dashboard", path: "/client/student/dashboard", icon: <Home className="w-5 h-5" /> },
-    { label: "Growth", path: "/client/student/growth", icon: <TrendingUp className="w-5 h-5" /> },
-    { label: "Academic Tracker", path: "/client/student/academic-tracker", icon: <BookOpen className="w-5 h-5" /> },
+    { label: "Sessions", path: "/client/student/sessions", icon: <Calendar className="w-5 h-5" /> },
     { label: "Assignments", path: "/client/student/assignments", icon: <FileCheck className="w-5 h-5" /> },
     { label: "Updates", path: "/client/student/updates", icon: <Bell className="w-5 h-5" /> },
   ];

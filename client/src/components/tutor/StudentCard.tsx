@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useStudentWorkflowState, useMarkIntroCompleted, useRespondToAssignment } from "@/hooks/useStudentWorkflowState";
 import { TutorIntroSessionActions } from "./TutorIntroSessionActions";
+import { useScheduledSession } from "@/hooks/useScheduledSession";
 import { Input } from "@/components/ui/input";
 
 function splitReportedTopics(rawValue) {
@@ -126,6 +127,7 @@ export function StudentCard({
   const { data: workflow, isLoading: workflowLoading } = useStudentWorkflowState(student.id);
   const markIntroCompleted = useMarkIntroCompleted(student.id);
   const respondToAssignment = useRespondToAssignment(student.id);
+  const { data: introSessionDetails } = useScheduledSession(student.id);
 
   const effectiveWorkflow = useMemo(() => {
     const baseWorkflow = {
@@ -468,6 +470,7 @@ export function StudentCard({
         {effectiveWorkflow?.assignmentAccepted && effectiveWorkflow?.introConfirmed && !effectiveWorkflow.introCompleted && (
           <IntroDiagnosticTopicSection
             student={student}
+            introSession={introSessionDetails}
             reportedTopics={reportedTopics}
             symptomSignals={symptomSignals}
             suggestedTopic={suggestedTopic}
@@ -577,6 +580,7 @@ export function StudentCard({
 
 function IntroDiagnosticTopicSection({
   student,
+  introSession,
   reportedTopics,
   symptomSignals,
   suggestedTopic,
@@ -691,20 +695,47 @@ function IntroDiagnosticTopicSection({
 
   return (
     <div className="pt-4 border-t border-border/60 space-y-2">
+      {introSession?.scheduled_time ? (
+        <div className="rounded-xl border border-primary/20 bg-muted/20 p-3 space-y-1">
+          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Scheduled Intro Lesson</p>
+          <p className="text-sm text-foreground">
+            {new Date(introSession.scheduled_time).toLocaleString()}
+          </p>
+          {introSession.google_meet_url ? (
+            <a
+              href={introSession.google_meet_url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex text-xs text-primary underline underline-offset-2"
+            >
+              Join Meet
+            </a>
+          ) : (
+            <p className="text-xs text-muted-foreground">Meet link pending calendar sync.</p>
+          )}
+        </div>
+      ) : null}
       <Button
         className="w-full"
         variant="default"
         size="sm"
         onClick={() => {
           const topicParam = encodeURIComponent(activatedTopic);
-          window.location.href = `/tutor/intro-session/${student.id}?topic=${topicParam}`;
+          const sessionParam = introSession?.id ? `&scheduledSessionId=${encodeURIComponent(introSession.id)}` : "";
+          window.location.href = `/tutor/intro-session/${student.id}?topic=${topicParam}${sessionParam}`;
         }}
+        disabled={!introSession?.id || !["confirmed", "ready", "live", "scheduled"].includes(String(introSession?.status || ""))}
       >
-        Open Session
+        Open Intro Drill
       </Button>
       <p className="text-xs text-muted-foreground text-center">
         Intro Diagnostic Topic: <span className="font-semibold text-foreground">{activatedTopic}</span>
       </p>
+      {!introSession?.id || !["confirmed", "ready", "live", "scheduled"].includes(String(introSession?.status || "")) ? (
+        <p className="text-xs text-amber-700 text-center">
+          Confirm the intro lesson before entering the drill runner.
+        </p>
+      ) : null}
       <Button
         className="w-full"
         variant="outline"

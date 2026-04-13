@@ -14,6 +14,10 @@ const __dirname = path.dirname(__filename);
 const SCOPES = [
   'https://www.googleapis.com/auth/calendar',
   'https://www.googleapis.com/auth/calendar.events',
+  'https://www.googleapis.com/auth/meetings.space.settings',
+  'https://www.googleapis.com/auth/meetings.space.created',
+  'https://www.googleapis.com/auth/meetings.space.readonly',
+  'https://www.googleapis.com/auth/drive.meet.readonly',
 ];
 const CREDENTIALS_PATH = path.join(__dirname, 'client_secret_175952709987-on8a0u7o2j80oj40i2irufg78au227ut.apps.googleusercontent.com.json');
 const TOKEN_PATH = path.join(__dirname, 'google-calendar-token.json');
@@ -28,7 +32,11 @@ function authorize() {
     return oAuth2Client;
   }
 
-  const authUrl = oAuth2Client.generateAuthUrl({ access_type: 'offline', scope: SCOPES });
+  const authUrl = oAuth2Client.generateAuthUrl({
+    access_type: 'offline',
+    prompt: 'consent',
+    scope: SCOPES,
+  });
   console.log('Authorize this app by visiting this url:', authUrl);
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   rl.question('Enter the code from that page here: ', (code) => {
