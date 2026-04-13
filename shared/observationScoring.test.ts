@@ -32,6 +32,7 @@ test("normalizeObservationLevelValue keeps expected middle and high labels", () 
   assert.equal(normalizeObservationLevelValue("asks later"), "partial");
   assert.equal(normalizeObservationLevelValue("Did not seek rescue"), "clear");
   assert.equal(normalizeObservationLevelValue("Controlled pace"), "clear");
+  assert.equal(normalizeObservationLevelValue("Stayed inside difficulty without collapse"), "clear");
 });
 
 test("observationLevelFromOptionIndex maps ordered options deterministically", () => {

@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import {
   computeTransition,
   mapObservationsToBehavior,
+  normalizePhase,
+  tryParsePhase,
 } from "./topicConditioningEngine";
 
 test("computeTransition promotes High to High Maintenance at 85+", () => {
@@ -19,6 +21,13 @@ test("computeTransition phase progresses only from High Maintenance and enters n
   assert.equal(result.transition_reason, "phase progress");
 });
 
+test("computeTransition keeps final phase in High Maintenance on a strong maintenance score", () => {
+  const result = computeTransition("Time Pressure Stability", "High Maintenance", 91);
+  assert.equal(result.next_phase, "Time Pressure Stability");
+  assert.equal(result.next_stability, "High Maintenance");
+  assert.equal(result.transition_reason, "remain");
+});
+
 test("mapObservationsToBehavior maps weak and clear observation labels deterministically", () => {
   const behaviors = mapObservationsToBehavior([
     { key: "start_behavior", value: "Delayed start" },
@@ -33,4 +42,14 @@ test("mapObservationsToBehavior maps weak and clear observation labels determini
     "more independent execution",
     "more controlled pace",
   ]);
+});
+
+test("normalizePhase falls back conservatively to Clarity", () => {
+  assert.equal(normalizePhase(""), "Clarity");
+  assert.equal(normalizePhase("unknown legacy phase"), "Clarity");
+});
+
+test("tryParsePhase rejects unknown values", () => {
+  assert.equal(tryParsePhase("Clarity"), "Clarity");
+  assert.equal(tryParsePhase("legacy unknown"), null);
 });

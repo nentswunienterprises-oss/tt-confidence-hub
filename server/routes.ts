@@ -25,6 +25,7 @@ import {
   PHASES,
   STABILITY_THRESHOLDS,
   normalizePhase,
+  tryParsePhase,
   normalizeStability,
   stabilityToScore,
   computeTransition,
@@ -37,6 +38,11 @@ import {
 } from "@shared/topicConditioningEngine";
 import { normalizeObservationLevelValue } from "@shared/observationScoring";
 import { z } from "zod";
+import {
+  isGoogleMeetIntegrationAvailable,
+  reconcileGoogleMeetArtifacts,
+  syncGoogleMeetEvent,
+} from "./googleMeet";
 
 // Extend Express session type to include affiliateCode
 declare module 'express-session' {
@@ -63,14 +69,296 @@ const requireRole = (roles: string[]) => {
   };
 };
 
+const SCHEDULED_SESSION_SELECT = [
+  "id",
+  "scheduled_time",
+  "scheduled_end",
+  "timezone",
+  "status",
+  "type",
+  "workflow_stage",
+  "parent_confirmed",
+  "tutor_confirmed",
+  "parent_id",
+  "tutor_id",
+  "student_id",
+  "google_calendar_id",
+  "google_event_id",
+  "google_meet_url",
+  "google_conference_id",
+  "google_meet_space_name",
+  "google_meet_code",
+  "host_account_id",
+  "attendance_status",
+  "recording_status",
+  "recording_file_id",
+  "recording_detected_at",
+  "transcript_status",
+  "transcript_file_id",
+  "transcript_detected_at",
+  "attendance_report_file_id",
+  "cohost_sync_status",
+  "cohost_sync_error",
+  "last_artifact_sync_at",
+  "last_meet_sync_error",
+  "created_at",
+  "updated_at",
+].join(", ");
+
+const INTRO_SESSION_DURATION_MINUTES = 60;
+const TRAINING_SESSION_DURATION_MINUTES = 90;
+const TRAINING_SESSION_IMMINENT_WINDOW_MS = 2 * 60 * 60 * 1000;
+const RELAX_TRAINING_SESSION_LAUNCH_WINDOW =
+  String(process.env.RELAX_TRAINING_SESSION_LAUNCH_WINDOW || "true").toLowerCase() === "true";
+
+function addMinutesToIso(iso: string, minutes: number) {
+  const date = new Date(iso);
+  return new Date(date.getTime() + minutes * 60 * 1000).toISOString();
+}
+
+function getSessionTimezone(session: any, fallback = "Africa/Johannesburg") {
+  return String(session?.timezone || fallback).trim() || fallback;
+}
+
+function getScheduledSessionEndIso(session: any) {
+  if (session?.scheduled_end) {
+    return new Date(session.scheduled_end).toISOString();
+  }
+  const minutes = session?.type === "training" ? TRAINING_SESSION_DURATION_MINUTES : INTRO_SESSION_DURATION_MINUTES;
+  return addMinutesToIso(session.scheduled_time, minutes);
+}
+
+function shouldReconcileSessionArtifacts(session: any) {
+  const status = String(session?.status || "");
+  if (!["completed", "live", "ready", "confirmed"].includes(status)) {
+    return false;
+  }
+  const endMs = new Date(getScheduledSessionEndIso(session)).getTime();
+  const hasPendingArtifacts =
+    (String(session?.recording_status || "").toLowerCase() === "expected" && !session?.recording_file_id) ||
+    (String(session?.transcript_status || "").toLowerCase() === "expected" && !session?.transcript_file_id);
+  return endMs <= Date.now() && hasPendingArtifacts;
+}
+
+function getSessionLaunchState(session: any, kind: "intro" | "training") {
+  const startMs = new Date(session?.scheduled_time || 0).getTime();
+  const endMs = new Date(getScheduledSessionEndIso(session)).getTime();
+  const nowMs = Date.now();
+  const isLive = nowMs >= startMs - 15 * 60 * 1000 && nowMs <= endMs + 3 * 60 * 60 * 1000;
+  const isImminent = nowMs < startMs && startMs - nowMs <= TRAINING_SESSION_IMMINENT_WINDOW_MS;
+  const blockedStatuses = new Set(["cancelled", "completed", "flagged"]);
+  const allowedStatuses = new Set(["confirmed", "scheduled", "ready", "live"]);
+  const hasOperationalStatus = allowedStatuses.has(String(session?.status || ""));
+
+  if (kind === "intro") {
+    return {
+      canLaunch: hasOperationalStatus,
+      isLive,
+      isImminent,
+    };
+  }
+
+  return {
+    canLaunch: hasOperationalStatus &&
+      !blockedStatuses.has(String(session?.status || "")) &&
+      (RELAX_TRAINING_SESSION_LAUNCH_WINDOW || isLive || isImminent),
+    isLive,
+    isImminent,
+  };
+}
+
+async function getUserEmailName(userId?: string | null) {
+  if (!userId) return null;
+  const user = await storage.getUser(userId);
+  if (!user) return null;
+  return {
+    email: user.email || null,
+    displayName: user.name || [user.firstName, user.lastName].filter(Boolean).join(" ") || null,
+  };
+}
+
+async function syncMeetForScheduledSession(session: any, options?: { studentName?: string | null }) {
+  const tutorInfo = await getUserEmailName(session?.tutor_id);
+  const parentInfo = await getUserEmailName(session?.parent_id);
+  const studentName = String(options?.studentName || "Student").trim() || "Student";
+  const summary = session?.type === "training"
+    ? `TT Training Session - ${studentName}`
+    : `TT Intro Session - ${studentName}`;
+  const description = [
+    `TT operational session`,
+    `Kind: ${session?.type || "session"}`,
+    `Scheduled session ID: ${session?.id}`,
+  ].join("\n");
+
+  const syncResult = await syncGoogleMeetEvent({
+    scheduledSessionId: session.id,
+    summary,
+    description,
+    startIso: new Date(session.scheduled_time).toISOString(),
+    endIso: getScheduledSessionEndIso(session),
+    timezone: getSessionTimezone(session),
+    attendees: [tutorInfo, parentInfo],
+    existingEventId: session?.google_event_id || null,
+    tutorEmail: tutorInfo?.email || null,
+  });
+
+  if (syncResult.provider === "google_calendar") {
+    const nextStatus = session?.status === "confirmed" ? "ready" : session?.status;
+    const lastMeetSyncError = syncResult.meetConfigError || null;
+    const { error } = await supabase
+      .from("scheduled_sessions")
+      .update({
+        status: nextStatus,
+        google_calendar_id: syncResult.googleCalendarId,
+        google_event_id: syncResult.googleEventId,
+        google_meet_url: syncResult.googleMeetUrl,
+        google_conference_id: syncResult.googleConferenceId,
+        google_meet_space_name: syncResult.googleMeetSpaceName,
+        google_meet_code: syncResult.googleMeetCode,
+        host_account_id: syncResult.hostAccountId,
+        attendance_status: session?.attendance_status || "not_started",
+        recording_status: syncResult.autoRecordingEnabled ? "expected" : "manual_start_required",
+        transcript_status: syncResult.autoTranscriptionEnabled ? "expected" : "manual_start_required",
+        cohost_sync_status: syncResult.tutorCohostStatus,
+        cohost_sync_error: syncResult.tutorCohostError,
+        last_meet_sync_error: lastMeetSyncError,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", session.id);
+
+    if (error) {
+      console.error("Failed to persist Google Meet metadata:", error);
+    }
+  }
+
+  return syncResult;
+}
+
+async function reconcileArtifactsForScheduledSession(session: any) {
+  const artifactResult = await reconcileGoogleMeetArtifacts({
+    googleMeetSpaceName: session?.google_meet_space_name || null,
+    googleMeetCode: session?.google_meet_code || null,
+  });
+
+  if (artifactResult.provider === "google_meet_artifacts") {
+    const recordingStatus = artifactResult.recordingFileId
+      ? "stored"
+      : String(session?.recording_status || "").toLowerCase() === "expected"
+        ? "not_found_in_google"
+        : session?.recording_status;
+    const transcriptStatus = artifactResult.transcriptFileId
+      ? "stored"
+      : String(session?.transcript_status || "").toLowerCase() === "expected"
+        ? "not_found_in_google"
+        : session?.transcript_status;
+    const { error } = await supabase
+      .from("scheduled_sessions")
+      .update({
+        recording_file_id: artifactResult.recordingFileId,
+        recording_detected_at: artifactResult.recordingDetectedAt,
+        recording_status: recordingStatus,
+        transcript_file_id: artifactResult.transcriptFileId,
+        transcript_detected_at: artifactResult.transcriptDetectedAt,
+        transcript_status: transcriptStatus,
+        last_artifact_sync_at: artifactResult.artifactSyncAt,
+        last_meet_sync_error: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", session.id);
+
+    if (error) {
+      console.error("Failed to persist Meet artifact metadata:", error);
+    }
+  } else if (artifactResult.provider === "error") {
+    await supabase
+      .from("scheduled_sessions")
+      .update({
+        last_artifact_sync_at: new Date().toISOString(),
+        last_meet_sync_error: artifactResult.reason,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", session.id);
+  }
+
+  return artifactResult;
+}
+
+function getMeetSyncResponsePayload(syncResult: any) {
+  if (!syncResult) {
+    return {
+      googleMeetSync: null,
+      googleMeetError: null,
+    };
+  }
+
+  return {
+    googleMeetSync: syncResult.provider || null,
+    googleMeetError:
+      syncResult.provider === "error" || syncResult.provider === "disabled"
+        ? syncResult.reason || "Google Meet sync failed."
+        : syncResult.provider === "google_calendar"
+          ? syncResult.meetConfigError || null
+        : null,
+  };
+}
+
+async function resolveTutorScheduledSession(
+  tutorId: string,
+  studentId: string,
+  kind: "intro" | "training",
+  sessionId?: string | null
+) {
+  let query = supabase
+    .from("scheduled_sessions")
+    .select(SCHEDULED_SESSION_SELECT)
+    .eq("tutor_id", tutorId)
+    .eq("student_id", studentId)
+    .eq("type", kind)
+    .order("scheduled_time", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (sessionId) {
+    query = query.eq("id", sessionId);
+  }
+
+  const { data, error } = sessionId ? await query.maybeSingle() : await query.limit(20);
+  if (error) {
+    return { session: null, error };
+  }
+
+  if (sessionId) {
+    return { session: data || null, error: null };
+  }
+
+  const rows = Array.isArray(data) ? data : [];
+  const preferred =
+    rows.find((row) => getSessionLaunchState(row, kind).isLive) ||
+    rows.find((row) => getSessionLaunchState(row, kind).isImminent) ||
+    rows[0] ||
+    null;
+
+  return { session: preferred, error: null };
+}
+
+async function getPendingTrainingConfirmationSession(tutorId: string, studentId: string) {
+  const { data, error } = await supabase
+    .from("scheduled_sessions")
+    .select(SCHEDULED_SESSION_SELECT)
+    .eq("tutor_id", tutorId)
+    .eq("student_id", studentId)
+    .eq("type", "training")
+    .eq("status", "pending_parent_confirmation")
+    .order("scheduled_time", { ascending: true })
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return { session: data || null, error };
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
-          const normalizeIntroPhase = (value: unknown): "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability" => {
-            const v = String(value || "").toLowerCase();
-            if (v.includes("clarity")) return "Clarity";
-            if (v.includes("structured") || v.includes("execution")) return "Structured Execution";
-            if (v.includes("discomfort")) return "Controlled Discomfort";
-            if (v.includes("time") || v.includes("pressure")) return "Time Pressure Stability";
-            return "Clarity";
+          const parseAuthoritativePhase = (value: unknown): TopicPhase | null => {
+            return tryParsePhase(value);
           };
 
           const normalizeIntroDrillSets = (raw: any): Array<{ setName: string; observations: Array<Record<string, string>> }> => {
@@ -89,12 +377,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return [];
           };
 
+          const EXACT_SET_LIBRARY: Record<
+            "diagnosis" | "training",
+            Record<
+              "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability",
+              Array<{ setName: string; reps: number; modelingOnly?: boolean }>
+            >
+          > = {
+            diagnosis: {
+              Clarity: [
+                { setName: "Recognition Probe", reps: 3 },
+                { setName: "Light Apply Probe", reps: 3 },
+              ],
+              "Structured Execution": [
+                { setName: "Start + Structure", reps: 3 },
+                { setName: "Repeatability", reps: 3 },
+              ],
+              "Controlled Discomfort": [
+                { setName: "First Contact", reps: 3 },
+                { setName: "Pressure Hold", reps: 3 },
+              ],
+              "Time Pressure Stability": [
+                { setName: "Light Timer", reps: 3 },
+                { setName: "Consistency", reps: 3 },
+              ],
+            },
+            training: {
+              Clarity: [
+                { setName: "Modeling", reps: 1, modelingOnly: true },
+                { setName: "Identification", reps: 3 },
+                { setName: "Light Apply", reps: 3 },
+              ],
+              "Structured Execution": [
+                { setName: "Forced Structure", reps: 3 },
+                { setName: "Independent Execution", reps: 3 },
+                { setName: "Variation Control", reps: 3 },
+              ],
+              "Controlled Discomfort": [
+                { setName: "Controlled Entry", reps: 3 },
+                { setName: "No Rescue", reps: 3 },
+                { setName: "Repeat Exposure", reps: 3 },
+              ],
+              "Time Pressure Stability": [
+                { setName: "Structure Under Timer", reps: 3 },
+                { setName: "Repeated Timed Execution", reps: 3 },
+                { setName: "Full Constraint", reps: 3 },
+              ],
+            },
+          };
+
           const validateDrillStructure = (
             mode: "diagnosis" | "training",
             phase: "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability",
             sets: Array<{ setName: string; observations: Array<Record<string, string>> }>
           ): string | null => {
-            const expectedSetCount = mode === "diagnosis" ? 2 : 3;
+            const expectedSets = EXACT_SET_LIBRARY[mode][phase] || [];
+            const expectedSetCount = expectedSets.length;
             if (sets.length !== expectedSetCount) {
               return `${mode} drill must include exactly ${expectedSetCount} sets`;
             }
@@ -103,29 +441,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
             for (let setIndex = 0; setIndex < sets.length; setIndex += 1) {
               const set = sets[setIndex];
               const observations = Array.isArray(set?.observations) ? set.observations : [];
+              const expectedSet = expectedSets[setIndex];
+              const actualSetName = String(set?.setName || "").trim();
 
-              const isClarityModelingSet =
-                mode === "training" &&
-                phase === "Clarity" &&
-                setIndex === 0;
+              if (!expectedSet) {
+                return `Unexpected set ${setIndex + 1} for ${phase} ${mode} drill`;
+              }
+              if (actualSetName !== expectedSet.setName) {
+                return `Set ${setIndex + 1} must be "${expectedSet.setName}"`;
+              }
 
               // Clarity training Set 1 is modeling-only. It is non-scored and has no required observations.
-              if (isClarityModelingSet) {
+              if (expectedSet.modelingOnly) {
+                if (observations.length > 0) {
+                  return `Set ${setIndex + 1} must not include scored observations`;
+                }
                 continue;
               }
 
-              if (observations.length !== 3) {
-                return `Set ${setIndex + 1} must include exactly 3 reps`;
+              if (observations.length !== expectedSet.reps) {
+                return `Set ${setIndex + 1} must include exactly ${expectedSet.reps} reps`;
               }
 
               for (let repIndex = 0; repIndex < observations.length; repIndex += 1) {
                 const rep = observations[repIndex] || {};
                 for (const field of phaseFields) {
-                  const hasValue = field.aliases.some((alias) =>
-                    String(rep?.[`${alias}_level`] || rep?.[alias] || "").trim().length > 0
-                  );
-                  if (!hasValue) {
-                    return `Set ${setIndex + 1}, rep ${repIndex + 1} is missing required observation value`;
+                  const explicitLevel = field.aliases
+                    .map((alias) => String(rep?.[`${alias}_level`] || "").trim())
+                    .find(Boolean);
+                  if (!explicitLevel) {
+                    return `Set ${setIndex + 1}, rep ${repIndex + 1} is missing required observation level`;
+                  }
+                  if (!["weak", "partial", "clear"].includes(explicitLevel)) {
+                    return `Set ${setIndex + 1}, rep ${repIndex + 1} has invalid observation level`;
                   }
                 }
               }
@@ -138,9 +486,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             for (const alias of aliases) {
               const levelValue = String(repObs?.[`${alias}_level`] || "").trim();
               if (levelValue) return levelValue;
-
-              const labelValue = String(repObs?.[alias] || "").trim();
-              if (labelValue) return labelValue;
             }
             return "";
           };
@@ -409,6 +754,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
               sets.forEach((set: any) => {
                 (Array.isArray(set?.observations) ? set.observations : []).forEach((observation: any) => {
                   if (!observation || typeof observation !== "object") return;
+                  const levelEntries = Object.entries(observation).filter(([key, value]) =>
+                    key.endsWith("_level") && value !== null && value !== undefined && String(value).trim()
+                  );
+
+                  if (levelEntries.length > 0) {
+                    levelEntries.forEach(([key, value]) => {
+                      signals.push({
+                        key: key.replace(/_level$/i, ""),
+                        value: String(value),
+                      });
+                    });
+                    return;
+                  }
+
                   Object.entries(observation).forEach(([key, value]) => {
                     if (value !== null && value !== undefined && String(value).trim()) {
                       signals.push({ key, value: String(value) });
@@ -421,14 +780,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
             };
 
             const buildBehaviorSummary = (signals: ObservationSignal[], context: string) => {
-              const behaviors = mapObservationsToBehavior(signals).filter(
-                (behavior) => behavior !== "no mapped observation signal detected"
+              const behaviors = normalizeBehaviorLabelsForContext(
+                mapObservationsToBehavior(signals).filter(
+                  (behavior) => behavior !== "no mapped observation signal detected"
+                ),
+                "absolute"
               );
               if (behaviors.length === 0) {
                 return `No mapped observation pattern was detected during ${context}.`;
               }
               return `The student showed ${naturalJoin(behaviors)} during ${context}.`;
             };
+
+            const rawBehaviorPatterns = (signals: ObservationSignal[]) =>
+              mapObservationsToBehavior(signals).filter(
+                (behavior) => behavior !== "no mapped observation signal detected"
+              );
 
             let parsed: any = null;
             try {
@@ -447,18 +814,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             if (drillType === "diagnosis") {
               const topic = String(parsed.introTopic || parsed.trainingTopic || "").trim();
-              const diagnosisPhase = normalizeIntroPhase(parsed.phase || parsed.summary?.phase || "Clarity");
+              const diagnosisPhase = parseAuthoritativePhase(parsed.phase || parsed.summary?.phase);
+              if (!diagnosisPhase) return null;
               const stability = normalizeStability(parsed.summary?.stability || "Low");
               const diagnosisScore = Number(parsed.summary?.diagnosisScore ?? 0);
-              const trainingEntryPhase = deriveTrainingEntryPhase(normalizePhase(diagnosisPhase), stability);
+              const trainingEntryPhase = deriveTrainingEntryPhase(diagnosisPhase, stability);
               const nextAction = String(
                 parsed.summary?.nextAction ||
-                NEXT_ACTION_ENGINE[normalizePhase(diagnosisPhase)]?.[stability]?.primaryAction ||
+                NEXT_ACTION_ENGINE[diagnosisPhase]?.[stability]?.primaryAction ||
                 ""
               ).trim();
               const constraint = String(
                 parsed.summary?.constraint ||
-                NEXT_ACTION_ENGINE[normalizePhase(diagnosisPhase)]?.[stability]?.rules?.[0] ||
+                NEXT_ACTION_ENGINE[diagnosisPhase]?.[stability]?.rules?.[0] ||
                 ""
               ).trim() || null;
               const observationSignals = extractObservationSignalsFromDrill(parsed);
@@ -471,9 +839,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 sessionGroupId: String(parsed.sessionId || row.id),
                 topic,
                 drillType: "diagnosis",
-                behaviorPatterns: mapObservationsToBehavior(observationSignals).filter(
-                  (behavior) => behavior !== "no mapped observation signal detected"
-                ),
+                behaviorPatterns: rawBehaviorPatterns(observationSignals),
                 score: diagnosisScore,
                 phaseBefore: diagnosisPhase,
                 phaseAfter: trainingEntryPhase,
@@ -485,10 +851,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   topicFocus: `This session focused on ${topic}, targeting baseline diagnosis in ${diagnosisPhase}.`,
                   whatWasTrained: `A diagnosis drill was used to identify ${DRILL_PURPOSE_BY_PHASE[diagnosisPhase] || "phase-specific response patterns"}.`,
                   behaviorSummary: buildBehaviorSummary(observationSignals, "diagnosis"),
-                  performanceResult: `Based on performance, stability is now ${stability} (${diagnosisScore}/100).`,
-                  stateMovement: transitionReasonToSessionMovement(transitionReason),
+                  performanceResult: describePerformanceResult({
+                    phaseBefore: diagnosisPhase,
+                    phaseAfter: trainingEntryPhase,
+                    stabilityAfter: stability,
+                    score: diagnosisScore,
+                    transitionReason,
+                  }),
+                  stateMovement: describeSessionMovement({
+                    phaseBefore: diagnosisPhase,
+                    phaseAfter: trainingEntryPhase,
+                    stabilityBefore: stability,
+                    stabilityAfter: stability,
+                    transitionReason,
+                  }),
                   transitionReason,
-                  whatThisMeans: TUTOR_MEANING_BY_PHASE[trainingEntryPhase],
+                  whatThisMeans: buildTutorMeaning({
+                    phaseBefore: diagnosisPhase,
+                    phaseAfter: trainingEntryPhase,
+                    stabilityAfter: stability,
+                    transitionReason,
+                    drillType: "diagnosis",
+                  }),
                   nextMove: nextAction,
                   summaryText: `This session focused on ${topic}, targeting baseline diagnosis in ${diagnosisPhase}.`,
                   drillLabel: `Intro Diagnosis (${diagnosisPhase})`,
@@ -501,8 +885,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
 
             const topic = String(parsed.trainingTopic || parsed.introTopic || "").trim();
-            const observedPhase = normalizeIntroPhase(parsed.phase || parsed.summary?.observedPhase || "Structured Execution");
-            const resultingPhase = normalizePhase(parsed.summary?.phase || observedPhase);
+            const observedPhase = parseAuthoritativePhase(parsed.phase || parsed.summary?.observedPhase);
+            const resultingPhase = parseAuthoritativePhase(parsed.summary?.phase || observedPhase);
+            if (!observedPhase || !resultingPhase) return null;
             const stability = normalizeStability(parsed.summary?.stability || "Low");
             const previousStability = normalizeStability(parsed.summary?.previousStability || stability);
             const sessionScore = Number(parsed.summary?.sessionScore ?? 0);
@@ -530,24 +915,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
               sessionGroupId: String(parsed.sessionId || row.id),
               topic,
               drillType: "training",
-              behaviorPatterns: mapObservationsToBehavior(observationSignals).filter(
-                (behavior) => behavior !== "no mapped observation signal detected"
-              ),
-              score: sessionScore,
-              phaseBefore: observedPhase,
-              phaseAfter: resultingPhase,
+                behaviorPatterns: rawBehaviorPatterns(observationSignals),
+                score: sessionScore,
+                phaseBefore: observedPhase,
+                phaseAfter: resultingPhase,
               stabilityBefore: previousStability,
               stabilityAfter: stability,
               nextAction,
               transitionReason,
-              deterministicLog: {
+                deterministicLog: {
                 topicFocus: `This session focused on ${topic}, targeting ${DRILL_PURPOSE_BY_PHASE[observedPhase] || "phase-specific execution"}.`,
-                whatWasTrained: `A training drill was used to train ${DRILL_PURPOSE_BY_PHASE[observedPhase] || "phase-specific behavior"}.`,
-                behaviorSummary: buildBehaviorSummary(observationSignals, "the drill"),
-                performanceResult: `Based on performance, stability is now ${stability} (${sessionScore}/100).`,
-                stateMovement: transitionReasonToSessionMovement(transitionReason),
-                transitionReason,
-                whatThisMeans: TUTOR_MEANING_BY_PHASE[resultingPhase],
+                  whatWasTrained: `A training drill was used to train ${DRILL_PURPOSE_BY_PHASE[observedPhase] || "phase-specific behavior"}.`,
+                  behaviorSummary: buildBehaviorSummary(observationSignals, "the drill"),
+                  performanceResult: describePerformanceResult({
+                    phaseBefore: observedPhase,
+                    phaseAfter: resultingPhase,
+                    stabilityAfter: stability,
+                    score: sessionScore,
+                    transitionReason,
+                  }),
+                  stateMovement: describeSessionMovement({
+                    phaseBefore: observedPhase,
+                    phaseAfter: resultingPhase,
+                    stabilityBefore: previousStability,
+                    stabilityAfter: stability,
+                    transitionReason,
+                  }),
+                  transitionReason,
+                  whatThisMeans: buildTutorMeaning({
+                    phaseBefore: observedPhase,
+                    phaseAfter: resultingPhase,
+                    stabilityAfter: stability,
+                    transitionReason,
+                    drillType: "training",
+                  }),
                 nextMove: nextAction,
                 summaryText: `This session focused on ${topic}, targeting ${DRILL_PURPOSE_BY_PHASE[observedPhase] || "phase-specific execution"}.`,
                 drillLabel: `Training Drill (${observedPhase})`,
@@ -820,6 +1221,263 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return summaryParts.length > 0 ? naturalJoin(summaryParts) : fallback;
           };
 
+          const ABSOLUTE_BEHAVIOR_LABELS: Record<string, string> = {
+            "clearer concept recall": "clear concept recall",
+            "more reliable step execution": "reliable step execution",
+            "more independent execution": "independent execution",
+            "earlier independent starts": "independent starts",
+            "better control under difficulty": "control under difficulty",
+            "stronger structure retention": "structure retention",
+            "more controlled pace": "controlled pace",
+          };
+
+          const toAbsoluteBehaviorLabel = (label: string) =>
+            ABSOLUTE_BEHAVIOR_LABELS[String(label || "").trim().toLowerCase()] || String(label || "").trim();
+
+          const normalizeBehaviorLabelsForContext = (labels: string[], mode: "absolute" | "comparative") =>
+            labels
+              .map((label) => (mode === "absolute" ? toAbsoluteBehaviorLabel(label) : String(label || "").trim()))
+              .filter(Boolean);
+
+          const isFinalPhaseMaintenanceState = (phase: string, stability: string) =>
+            phase === "Time Pressure Stability" && stability === "High Maintenance";
+
+          const didPhaseProgress = ({
+            phaseBefore,
+            phaseAfter,
+            transitionReason,
+          }: {
+            phaseBefore: string;
+            phaseAfter: string;
+            transitionReason: TransitionReason;
+          }) => transitionReason === "phase progress" && phaseBefore !== phaseAfter;
+
+          const describePerformanceResult = ({
+            phaseBefore,
+            phaseAfter,
+            stabilityAfter,
+            score,
+            transitionReason,
+          }: {
+            phaseBefore: string;
+            phaseAfter: string;
+            stabilityAfter: string;
+            score: number;
+            transitionReason: TransitionReason;
+          }) => {
+            if (didPhaseProgress({ phaseBefore, phaseAfter, transitionReason })) {
+              return `Based on performance, phase is now ${phaseAfter} and stability is ${stabilityAfter} (${score}/100).`;
+            }
+            if (isFinalPhaseMaintenanceState(phaseAfter, stabilityAfter)) {
+              return `Based on performance, phase remains ${phaseAfter} at ${stabilityAfter} (${score}/100).`;
+            }
+            return `Based on performance, stability is now ${stabilityAfter} in ${phaseAfter} (${score}/100).`;
+          };
+
+          const describeSessionMovement = ({
+            phaseBefore,
+            phaseAfter,
+            stabilityBefore,
+            stabilityAfter,
+            transitionReason,
+          }: {
+            phaseBefore: string;
+            phaseAfter: string;
+            stabilityBefore: string;
+            stabilityAfter: string;
+            transitionReason: TransitionReason;
+          }) => {
+            if (didPhaseProgress({ phaseBefore, phaseAfter, transitionReason })) {
+              return `Phase progressed from ${phaseBefore} to ${phaseAfter}.`;
+            }
+            if (transitionReason === "stability advance" && stabilityBefore !== stabilityAfter) {
+              return `Stability improved from ${stabilityBefore} to ${stabilityAfter} within ${phaseAfter}.`;
+            }
+            if (transitionReason === "stability regress" && stabilityBefore !== stabilityAfter) {
+              return `Stability regressed from ${stabilityBefore} to ${stabilityAfter} within ${phaseAfter}.`;
+            }
+            return `State remained at ${phaseAfter} ${stabilityAfter}.`;
+          };
+
+          const TUTOR_ENTRY_MEANING_BY_PHASE: Record<TopicPhase, string> = {
+            Clarity: "Student is entering Clarity and needs foundational recognition before independent execution can be trained.",
+            "Structured Execution": "Student can begin Structured Execution but needs consistency without tutor carry.",
+            "Controlled Discomfort": "Student can enter Controlled Discomfort but needs stability when challenge rises.",
+            "Time Pressure Stability": "Student can enter Time Pressure Stability but needs structure to hold under urgency.",
+          };
+
+          const TUTOR_ONGOING_MEANING_BY_PHASE: Record<TopicPhase, string> = {
+            Clarity: "Student is in Clarity and still needs foundational recognition before independent execution can be trained.",
+            "Structured Execution": "Student is in Structured Execution and still needs consistency without tutor carry.",
+            "Controlled Discomfort": "Student is in Controlled Discomfort and still destabilizes when challenge spikes.",
+            "Time Pressure Stability": "Student is in Time Pressure Stability and urgency still tests structure retention.",
+          };
+
+          const buildTutorMeaning = ({
+            phaseBefore,
+            phaseAfter,
+            stabilityAfter,
+            transitionReason,
+            drillType,
+          }: {
+            phaseBefore: TopicPhase;
+            phaseAfter: TopicPhase;
+            stabilityAfter: TopicStability;
+            transitionReason: TransitionReason;
+            drillType: "diagnosis" | "training";
+          }) => {
+            if (drillType === "diagnosis" || didPhaseProgress({ phaseBefore, phaseAfter, transitionReason })) {
+              return TUTOR_ENTRY_MEANING_BY_PHASE[phaseAfter];
+            }
+            if (transitionReason === "stability regress") {
+              return `Student showed enough instability that ${phaseAfter} must be reinforced before progressing.`;
+            }
+            if (isFinalPhaseMaintenanceState(phaseAfter, stabilityAfter)) {
+              return "Student is sustaining final-phase control and is now in maintenance and transfer territory.";
+            }
+            return TUTOR_ONGOING_MEANING_BY_PHASE[phaseAfter];
+          };
+
+          const PARENT_ENTRY_MEANING_BY_PHASE: Record<TopicPhase, string> = {
+            Clarity: "Your child is building the foundation of this topic before independent solving begins.",
+            "Structured Execution": "Your child has entered independent execution in this topic and is now building consistency without tutor carry.",
+            "Controlled Discomfort": "Your child has entered the challenge phase in this topic and is learning to stay stable when work becomes difficult.",
+            "Time Pressure Stability": "Your child has entered timed stability in this topic and is learning to keep structure under urgency.",
+          };
+
+          const buildParentMeaningForContext = ({
+            phaseBefore,
+            phaseAfter,
+            stabilityAfter,
+            transitionReasons,
+          }: {
+            phaseBefore: TopicPhase;
+            phaseAfter: TopicPhase;
+            stabilityAfter: TopicStability;
+            transitionReasons: TransitionReason[];
+          }) => {
+            const finalTransitionReason = transitionReasons[transitionReasons.length - 1] || "remain";
+            if (didPhaseProgress({ phaseBefore, phaseAfter, transitionReason: finalTransitionReason })) {
+              return PARENT_ENTRY_MEANING_BY_PHASE[phaseAfter];
+            }
+            if (finalTransitionReason === "stability regress") {
+              return "This topic needs reinforcement at the current level before moving forward again.";
+            }
+            if (isFinalPhaseMaintenanceState(phaseAfter, stabilityAfter)) {
+              return "Your child is sustaining top-level stability in this topic and we are now maintaining and transferring the skill.";
+            }
+            return getParentDashboardCopyForState(phaseAfter, stabilityAfter).meaning;
+          };
+
+          const buildTopicImprovementSummary = ({
+            topic,
+            firstDrillState,
+            lastDrillState,
+            transitionReasons,
+            drillBehaviors,
+          }: {
+            topic: string;
+            firstDrillState: { phase: string; stability: string };
+            lastDrillState: { phase: string; stability: string };
+            transitionReasons: TransitionReason[];
+            drillBehaviors: string[][];
+          }) => {
+            const latestTransitionReason = transitionReasons[transitionReasons.length - 1] || "remain";
+            if (didPhaseProgress({
+              phaseBefore: firstDrillState.phase,
+              phaseAfter: lastDrillState.phase,
+              transitionReason: latestTransitionReason,
+            })) {
+              const strongLate = summarizeBehaviorLabels(
+                normalizeBehaviorLabelsForContext(
+                  getBehaviorBuckets(drillBehaviors[drillBehaviors.length - 1] || []).strong,
+                  "absolute"
+                ),
+                2
+              );
+              const behaviorClause = strongLate.length > 0 ? ` with ${naturalJoin(strongLate)}` : "";
+              return `${topic}: progressed from ${firstDrillState.phase} to ${lastDrillState.phase}${behaviorClause}`;
+            }
+
+            const midpoint = Math.max(1, Math.floor(drillBehaviors.length / 2));
+            const earlyBehaviors = drillBehaviors.slice(0, midpoint).flat();
+            const lateBehaviors = drillBehaviors.slice(midpoint).flat();
+            const fallback = transitionReasons.includes("stability advance")
+              ? "showed stronger stability"
+              : "improved stability across drills";
+            return `${topic}: ${buildBehaviorShiftSummary(earlyBehaviors, lateBehaviors, fallback)}`;
+          };
+
+          const buildTopicResponsePattern = (topic: string, allBehaviors: string[]) => {
+            const behaviors = summarizeBehaviorLabels(
+              normalizeBehaviorLabelsForContext(allBehaviors, "absolute"),
+              3
+            );
+            return `${topic}: ${behaviors.length > 0 ? naturalJoin(behaviors) : "no mapped observation signal detected"}`;
+          };
+
+          const buildWeeklySystemMovement = ({
+            topic,
+            firstDrillState,
+            lastDrillState,
+            transitionReasons,
+          }: {
+            topic: string;
+            firstDrillState: { phase: string; stability: string };
+            lastDrillState: { phase: string; stability: string };
+            transitionReasons: TransitionReason[];
+          }) => {
+            const latestTransitionReason = transitionReasons[transitionReasons.length - 1] || "remain";
+            if (didPhaseProgress({
+              phaseBefore: firstDrillState.phase,
+              phaseAfter: lastDrillState.phase,
+              transitionReason: latestTransitionReason,
+            })) {
+              return `${topic}: entered ${lastDrillState.phase}`;
+            }
+            if (latestTransitionReason === "stability advance") {
+              return `${topic}: improved stability inside ${lastDrillState.phase}`;
+            }
+            if (latestTransitionReason === "stability regress") {
+              return `${topic}: regressed within ${lastDrillState.phase}`;
+            }
+            if (isFinalPhaseMaintenanceState(lastDrillState.phase, lastDrillState.stability)) {
+              return `${topic}: sustained final-phase maintenance`;
+            }
+            return `${topic}: reinforced ${lastDrillState.phase}`;
+          };
+
+          const buildMonthlySystemOutcome = ({
+            topic,
+            firstDrillState,
+            lastDrillState,
+            transitionReasons,
+          }: {
+            topic: string;
+            firstDrillState: { phase: string; stability: string };
+            lastDrillState: { phase: string; stability: string };
+            transitionReasons: TransitionReason[];
+          }) => {
+            const latestTransitionReason = transitionReasons[transitionReasons.length - 1] || "remain";
+            if (didPhaseProgress({
+              phaseBefore: firstDrillState.phase,
+              phaseAfter: lastDrillState.phase,
+              transitionReason: latestTransitionReason,
+            })) {
+              return `${topic}: advanced into ${lastDrillState.phase}`;
+            }
+            if (isFinalPhaseMaintenanceState(lastDrillState.phase, lastDrillState.stability)) {
+              return `${topic}: remained in final-phase maintenance`;
+            }
+            if (latestTransitionReason === "stability advance") {
+              return `${topic}: improved within ${lastDrillState.phase}`;
+            }
+            if (latestTransitionReason === "stability regress") {
+              return `${topic}: regressed within ${lastDrillState.phase}`;
+            }
+            return `${topic}: held in ${lastDrillState.phase}`;
+          };
+
           const buildTopicSnapshots = (sessions: any[]) => {
             const snapshots: Record<string, {
               firstDrillState: { phase: string; stability: string; date: string };
@@ -833,8 +1491,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             sessions.forEach((session) => {
               const topic = String(session?.topic || "").trim() || "Unknown topic";
+              const parsedPhase = tryParsePhase(session?.phaseAfter);
+              if (!parsedPhase) return;
               const state = {
-                phase: normalizePhase(session?.phaseAfter || "Clarity"),
+                phase: parsedPhase,
                 stability: normalizeStability(session?.stabilityAfter || "Low"),
                 date: String(session?.date || ""),
               };
@@ -973,17 +1633,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
               })
               .map(topic => {
                 const snapshot = topicSnapshots[topic];
-                const earlyBehaviors = snapshot.drillBehaviors[0] || [];
-                const lateBehaviors = snapshot.drillBehaviors[snapshot.drillBehaviors.length - 1] || [];
-                const fallback = snapshot.transitionReasons.includes("phase progress")
-                  ? "introduced the next phase"
-                  : "improved stability across drills";
-                return `${topic}: ${buildBehaviorShiftSummary(earlyBehaviors, lateBehaviors, fallback)}`;
+                return buildTopicImprovementSummary({
+                  topic,
+                  firstDrillState: snapshot.firstDrillState,
+                  lastDrillState: snapshot.lastDrillState,
+                  transitionReasons: snapshot.transitionReasons,
+                  drillBehaviors: snapshot.drillBehaviors,
+                });
               });
 
             const responsePattern = topics.map(topic => {
-              const behaviors = summarizeBehaviorLabels(topicSnapshots[topic].allBehaviors, 3);
-              return `${topic}: ${behaviors.length > 0 ? naturalJoin(behaviors) : "no mapped observation signal detected"}`;
+              return buildTopicResponsePattern(topic, topicSnapshots[topic].allBehaviors);
             });
 
             const mainBreakdown = topics.map(topic => {
@@ -992,8 +1652,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
 
             const systemMovement = topics.map(topic => {
-              return transitionReasonToWeeklyMovement(topicSnapshots[topic].transitionReasons);
-            }).filter((movement, index, arr) => arr.indexOf(movement) === index); // unique values
+              const snapshot = topicSnapshots[topic];
+              return buildWeeklySystemMovement({
+                topic,
+                firstDrillState: snapshot.firstDrillState,
+                lastDrillState: snapshot.lastDrillState,
+                transitionReasons: snapshot.transitionReasons,
+              });
+            });
 
             const nextFocus = topics.map(topic => {
               const snapshot = topicSnapshots[topic];
@@ -1001,11 +1667,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
             const whatThisMeans = topics.map(topic => {
               const snapshot = topicSnapshots[topic];
-              const parentCopy = getParentDashboardCopyForState(
-                snapshot.lastDrillState.phase,
-                snapshot.lastDrillState.stability
-              );
-              return `${topic}: ${parentCopy.meaning}`;
+              return `${topic}: ${buildParentMeaningForContext({
+                phaseBefore: snapshot.firstDrillState.phase as TopicPhase,
+                phaseAfter: snapshot.lastDrillState.phase as TopicPhase,
+                stabilityAfter: snapshot.lastDrillState.stability as TopicStability,
+                transitionReasons: snapshot.transitionReasons,
+              })}`;
             });
 
             const startDate = sorted[0].date;
@@ -1086,13 +1753,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
               })
               .map(topic => {
                 const snapshot = topicSnapshots[topic];
-                const midpoint = Math.max(1, Math.floor(snapshot.drillBehaviors.length / 2));
-                const earlyBehaviors = snapshot.drillBehaviors.slice(0, midpoint).flat();
-                const lateBehaviors = snapshot.drillBehaviors.slice(midpoint).flat();
-                const fallback = snapshot.transitionReasons.includes("phase progress")
-                  ? "advanced into the next phase"
-                  : "showed stronger stability";
-                return `${topic}: ${buildBehaviorShiftSummary(earlyBehaviors, lateBehaviors, fallback)}`;
+                return buildTopicImprovementSummary({
+                  topic,
+                  firstDrillState: snapshot.firstDrillState,
+                  lastDrillState: snapshot.lastDrillState,
+                  transitionReasons: snapshot.transitionReasons,
+                  drillBehaviors: snapshot.drillBehaviors,
+                });
               });
 
             const responseTrend = topics.map(topic => {
@@ -1100,7 +1767,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const midpoint = Math.max(1, Math.floor(snapshot.drillBehaviors.length / 2));
               const earlyBehaviors = snapshot.drillBehaviors.slice(0, midpoint).flat();
               const lateBehaviors = snapshot.drillBehaviors.slice(midpoint).flat();
-              return `${topic}: ${buildBehaviorShiftSummary(earlyBehaviors, lateBehaviors, "consistent mapped response pattern")}`;
+              return `${topic}: ${buildBehaviorShiftSummary(
+                earlyBehaviors,
+                lateBehaviors,
+                "showed a more consistent response pattern"
+              )}`;
             });
 
             const recurringChallenge = topics.map(topic => {
@@ -1109,7 +1780,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
 
             const systemOutcome = topics.map(topic => {
-              return `${topic}: ${transitionReasonToMonthlyOutcome(topicSnapshots[topic].transitionReasons)}`;
+              const snapshot = topicSnapshots[topic];
+              return buildMonthlySystemOutcome({
+                topic,
+                firstDrillState: snapshot.firstDrillState,
+                lastDrillState: snapshot.lastDrillState,
+                transitionReasons: snapshot.transitionReasons,
+              });
             });
 
             const currentStateSnapshot = topics.map(topic => {
@@ -1127,11 +1804,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
             const whatThisMeans = topics.map(topic => {
               const snapshot = topicSnapshots[topic];
-              const parentCopy = getParentDashboardCopyForState(
-                snapshot.lastDrillState.phase,
-                snapshot.lastDrillState.stability
-              );
-              return `${topic}: ${parentCopy.meaning}`;
+              return `${topic}: ${buildParentMeaningForContext({
+                phaseBefore: snapshot.firstDrillState.phase as TopicPhase,
+                phaseAfter: snapshot.lastDrillState.phase as TopicPhase,
+                stabilityAfter: snapshot.lastDrillState.stability as TopicStability,
+                transitionReasons: snapshot.transitionReasons,
+              })}`;
             });
 
             const startDate = sorted[0].date;
@@ -1309,13 +1987,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           app.post("/api/tutor/intro-session-drill", isAuthenticated, requireRole(["tutor"]), async (req: Request, res: Response) => {
             try {
               const tutorId = (req as any).dbUser.id;
-              const { studentId, drill, introTopic, phase: rawPhase } = req.body;
+              const { studentId, drill, introTopic, phase: rawPhase, scheduledSessionId } = req.body;
               const drillSets = normalizeIntroDrillSets(drill);
-              const drillPhase = normalizeIntroPhase(rawPhase || "Clarity");
+              const drillPhase = parseAuthoritativePhase(rawPhase);
               const normalizedIntroTopic = String(introTopic || "").trim();
 
               if (!studentId || drillSets.length === 0) {
                 return res.status(400).json({ message: "Missing or invalid studentId or drill data" });
+              }
+              if (!drillPhase) {
+                return res.status(400).json({ message: "Invalid or missing diagnostic phase" });
               }
               if (!normalizedIntroTopic) {
                 return res.status(400).json({ message: "Diagnostic topic is required before intro drill submission" });
@@ -1337,6 +2018,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 return res.status(403).json({ message: "Accept this assignment before running drills for this student." });
               }
 
+              const { session: pendingTrainingConfirmation, error: pendingTrainingConfirmationError } =
+                await getPendingTrainingConfirmationSession(tutorId, studentId);
+              if (pendingTrainingConfirmationError) {
+                return res.status(500).json({ message: "Failed to validate training session confirmation state" });
+              }
+              if (pendingTrainingConfirmation && String(scheduledSessionId || "") !== String(pendingTrainingConfirmation.id)) {
+                return res.status(400).json({
+                  message: "A proposed TT training lesson is still waiting for parent confirmation before drills can run.",
+                });
+              }
+
+              const { session: scheduledSession, error: scheduledSessionError } = await resolveTutorScheduledSession(
+                tutorId,
+                studentId,
+                "intro",
+                typeof scheduledSessionId === "string" ? scheduledSessionId : null
+              );
+              if (scheduledSessionError) {
+                return res.status(500).json({ message: "Failed to validate intro session context" });
+              }
+              if (!scheduledSession) {
+                return res.status(400).json({ message: "A confirmed scheduled intro session is required before drill submission." });
+              }
+
+              const introLaunch = getSessionLaunchState(scheduledSession, "intro");
+              if (!introLaunch.canLaunch) {
+                return res.status(400).json({ message: "Intro drill submission is blocked until the intro session is confirmed." });
+              }
+
               const diagnosisSummary = computeIntroDiagnosisSummary(drillPhase, drillSets);
 
               // Store drill results in intro_session_drills table
@@ -1351,9 +2061,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     introTopic: normalizedIntroTopic,
                     phase: drillPhase,
                     drillType: "diagnosis",
+                    scheduledSessionId: scheduledSession.id,
                     sets: drillSets,
                     summary: diagnosisSummary,
                   }),
+                  scheduled_session_id: scheduledSession.id,
                   submitted_at: new Date().toISOString(),
                 })
                 .select()
@@ -1378,16 +2090,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 } as any);
               }
 
-              const scoringResults = diagnosisSummary.repRows.map((row) => ({
-                set: row.set,
-                rep: row.rep,
-                score: row.repScore,
-                sessionScore: diagnosisSummary.diagnosisScore,
-                phase: diagnosisSummary.phase,
-                stability: diagnosisSummary.stability,
-                nextAction: diagnosisSummary.nextAction,
-                constraint: diagnosisSummary.constraint,
-              }));
+              const scoringResults = diagnosisSummary.repRows.map((row) => {
+                const setIndex = diagnosisSummary.repRows.findIndex(
+                  (candidate) => candidate.set === row.set && candidate.rep === row.rep
+                );
+                const scoredSetIndex = Math.max(0, Math.floor(setIndex / 3));
+                const setScore = diagnosisSummary.setScores[scoredSetIndex] ?? row.repScore;
+
+                return {
+                  set: row.set,
+                  rep: row.rep,
+                  score: row.repScore,
+                  setScore,
+                  setPoints: setScore,
+                  setMaxPoints: 100,
+                  sessionScore: diagnosisSummary.diagnosisScore,
+                  phase: diagnosisSummary.phase,
+                  stability: diagnosisSummary.stability,
+                  nextAction: diagnosisSummary.nextAction,
+                  constraint: diagnosisSummary.constraint,
+                };
+              });
 
               const conceptMastery: any =
                 student.conceptMastery && typeof student.conceptMastery === "object"
@@ -1455,6 +2178,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 console.error("Auto report generation failed after intro drill:", autoReportError);
               }
 
+              await supabase
+                .from("scheduled_sessions")
+                .update({
+                  status: "completed",
+                  attendance_status: "both_joined",
+                  recording_status: scheduledSession.google_event_id ? "expected" : scheduledSession.recording_status,
+                  transcript_status: scheduledSession.google_event_id ? "expected" : scheduledSession.transcript_status,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq("id", scheduledSession.id);
+
               res.json({
                 success: true,
                 id: inserted.id,
@@ -1471,7 +2205,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           app.post("/api/tutor/training-session-drill", isAuthenticated, requireRole(["tutor"]), async (req: Request, res: Response) => {
             try {
               const tutorId = (req as any).dbUser.id;
-              const { studentId, sessionDrills } = req.body;
+              const { studentId, sessionDrills, scheduledSessionId } = req.body;
 
               if (!studentId || !Array.isArray(sessionDrills) || sessionDrills.length === 0) {
                 return res.status(400).json({ message: "Missing or invalid studentId or sessionDrills array" });
@@ -1485,6 +2219,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const assignmentAccepted = await isTutorAssignmentAcceptedForStudent(student, tutorId);
               if (!assignmentAccepted) {
                 return res.status(403).json({ message: "Accept this assignment before running drills for this student." });
+              }
+
+              const { session: scheduledSession, error: scheduledSessionError } = await resolveTutorScheduledSession(
+                tutorId,
+                studentId,
+                "training",
+                typeof scheduledSessionId === "string" ? scheduledSessionId : null
+              );
+              if (scheduledSessionError) {
+                return res.status(500).json({ message: "Failed to validate training session context" });
+              }
+              if (!scheduledSession) {
+                return res.status(400).json({ message: "A TT training lesson must be attached before drill submission." });
+              }
+
+              const trainingLaunch = getSessionLaunchState(scheduledSession, "training");
+              if (!trainingLaunch.canLaunch) {
+                return res.status(400).json({ message: "Training drills must submit from an active or imminently scheduled TT lesson." });
               }
 
               const conceptMastery: any =
@@ -1504,15 +2256,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const sessionStartTime = new Date().toISOString();
               const drillResults = [];
 
+              const { data: trainingRun } = await supabase
+                .from("training_session_runs")
+                .insert({
+                  id: sessionId,
+                  scheduled_session_id: scheduledSession.id,
+                  student_id: studentId,
+                  tutor_id: tutorId,
+                  topic_count: sessionDrills.length,
+                  started_at: sessionStartTime,
+                  status: "in_progress",
+                  created_at: sessionStartTime,
+                  updated_at: sessionStartTime,
+                })
+                .select()
+                .single();
+
               // Process each drill in the session
               for (const drillData of sessionDrills) {
                 const { trainingTopic, drill, phase: rawPhase, previousStability: rawPreviousStability } = drillData;
                 const drillSets = normalizeIntroDrillSets(drill);
-                const observedPhase = normalizeIntroPhase(rawPhase || "Structured Execution");
+                const observedPhase = parseAuthoritativePhase(rawPhase);
                 const normalizedTopic = String(trainingTopic || "").trim();
 
                 if (drillSets.length === 0) {
                   return res.status(400).json({ message: `Missing drill data for topic ${normalizedTopic}` });
+                }
+                if (!observedPhase) {
+                  return res.status(400).json({ message: `Invalid or missing phase for topic ${normalizedTopic}` });
                 }
                 if (!normalizedTopic) {
                   return res.status(400).json({ message: "Training topic is required for each drill" });
@@ -1531,7 +2302,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 const previousStability = normalizeStability(
                   existing?.stability || rawPreviousStability || "Low"
                 );
-                const effectivePhase = normalizePhase(existing?.phase || observedPhase);
+                // Score the drill against the phase that was actually run. If persisted topic
+                // state lags behind the launched drill, falling back to the stored phase turns
+                // every later-phase observation into a silent zero because the field aliases differ.
+                const effectivePhase = observedPhase;
                 const existingHistory = Array.isArray(existing.history) ? [...existing.history] : [];
                 let priorConsecutiveLows = 0;
                 if (existingHistory.length > 0) {
@@ -1569,7 +2343,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       sets: drillSets,
                       summary: trainingSummary,
                       sessionId: sessionId,
+                      scheduledSessionId: scheduledSession.id,
                     }),
+                    scheduled_session_id: scheduledSession.id,
+                    training_session_run_id: trainingRun?.id || sessionId,
                     submitted_at: sessionStartTime,
                   })
                   .select()
@@ -1625,20 +2402,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 drillResults.push({
                   drillId: inserted.id,
                   topic: normalizedTopic,
-                  scoring: trainingSummary.repRows.map((row) => ({
-                    set: row.set,
-                    rep: row.rep,
-                    score: row.repScore,
-                    sessionScore: trainingSummary.sessionScore,
-                    phaseBefore: trainingSummary.observedPhase,
-                    phase: trainingSummary.phase,
-                    stabilityBefore: trainingSummary.previousStability,
-                    stability: trainingSummary.stability,
-                    transitionReason: trainingSummary.transitionReason,
-                    phaseDecision: trainingSummary.phaseDecision,
-                    nextAction: trainingSummary.nextAction,
-                    constraint: trainingSummary.constraint,
-                  })),
+                  scoring: trainingSummary.repRows.map((row) => {
+                    const setIndex = trainingSummary.repRows.findIndex(
+                      (candidate) => candidate.set === row.set && candidate.rep === row.rep
+                    );
+                    const scoredSetIndex = Math.max(0, Math.floor(setIndex / 3));
+                    const setScore = trainingSummary.setScores[scoredSetIndex] ?? row.repScore;
+
+                    return {
+                      set: row.set,
+                      rep: row.rep,
+                      score: row.repScore,
+                      setScore,
+                      setPoints: setScore,
+                      setMaxPoints: 100,
+                      sessionScore: trainingSummary.sessionScore,
+                      phaseBefore: trainingSummary.observedPhase,
+                      phase: trainingSummary.phase,
+                      stabilityBefore: trainingSummary.previousStability,
+                      stability: trainingSummary.stability,
+                      transitionReason: trainingSummary.transitionReason,
+                      phaseDecision: trainingSummary.phaseDecision,
+                      nextAction: trainingSummary.nextAction,
+                      constraint: trainingSummary.constraint,
+                    };
+                  }),
                   summary: trainingSummary,
                 });
               }
@@ -1666,9 +2454,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   : []
               );
 
+              await supabase
+                .from("scheduled_sessions")
+                .update({
+                  status: "completed",
+                  attendance_status: "both_joined",
+                  recording_status: scheduledSession.google_event_id ? "expected" : scheduledSession.recording_status,
+                  transcript_status: scheduledSession.google_event_id ? "expected" : scheduledSession.transcript_status,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq("id", scheduledSession.id);
+
+              await supabase
+                .from("training_session_runs")
+                .update({
+                  status: "submitted",
+                  submitted_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                })
+                .eq("id", trainingRun?.id || sessionId);
+
               res.json({
                 success: true,
                 sessionId,
+                scheduledSessionId: scheduledSession.id,
                 sessionDuration,
                 topicsTouched,
                 drillResults,
@@ -1824,24 +2633,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       existingStudent = data;
     }
 
-    if (!existingStudent) {
+    if (!existingStudent && enrollment.id) {
       const { data } = await supabase
         .from("students")
         .select("*")
-        .eq("parent_id", enrollment.user_id)
-        .eq("tutor_id", tutorId)
-        .maybeSingle();
-      existingStudent = data;
+        .eq("parent_enrollment_id", enrollment.id)
+        .order("updated_at", { ascending: false })
+        .limit(1);
+      existingStudent = data?.[0] || null;
     }
 
     if (!existingStudent) {
       const { data } = await supabase
         .from("students")
         .select("*")
-        .eq("name", enrollment.student_full_name)
+        .eq("parent_id", enrollment.user_id)
         .eq("tutor_id", tutorId)
-        .maybeSingle();
-      existingStudent = data;
+        .eq("name", enrollment.student_full_name)
+        .order("updated_at", { ascending: false })
+        .limit(1);
+      existingStudent = data?.[0] || null;
+    }
+
+    if (!existingStudent && enrollment.parent_email) {
+      const { data } = await supabase
+        .from("students")
+        .select("*")
+        .eq("parent_contact", enrollment.parent_email)
+        .eq("tutor_id", tutorId)
+        .eq("name", enrollment.student_full_name)
+        .order("updated_at", { ascending: false })
+        .limit(1);
+      existingStudent = data?.[0] || null;
+    }
+
+    if (!existingStudent) {
+      const { data } = await supabase
+        .from("students")
+        .select("*")
+        .eq("parent_id", enrollment.user_id)
+        .eq("tutor_id", tutorId)
+        .limit(2);
+
+      if ((data || []).length === 1) {
+        existingStudent = data?.[0] || null;
+      }
     }
 
     const studentPayload = {
@@ -2026,14 +2862,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // DEBUG: Print all scheduled_sessions for this tutor and student
           const { data: debugSessions, error: debugSessionsError } = await supabase
             .from("scheduled_sessions")
-            .select("id, tutor_id, student_id, type, status, scheduled_time, parent_confirmed, tutor_confirmed, created_at, updated_at")
+            .select(SCHEDULED_SESSION_SELECT)
             .eq("tutor_id", dbUser.id)
             .eq("student_id", studentId);
           console.log("[DEBUG] All scheduled_sessions for tutor and student:", { debugSessions, debugSessionsError, tutorId: dbUser.id, studentId });
           // Find latest intro session for this student/tutor
           const { data: session, error: sessionError } = await supabase
             .from("scheduled_sessions")
-            .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, created_at, updated_at, tutor_id, student_id, type")
+            .select(SCHEDULED_SESSION_SELECT)
             .eq("tutor_id", dbUser.id)
             .eq("student_id", studentId)
             .eq("type", "intro")
@@ -2048,7 +2884,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (parentId) {
               const { data: fallbackSession, error: fallbackError } = await supabase
                 .from("scheduled_sessions")
-                .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, created_at, updated_at, tutor_id, student_id, parent_id, type")
+                .select(SCHEDULED_SESSION_SELECT)
                 .eq("tutor_id", dbUser.id)
                 .eq("parent_id", parentId)
                 .eq("type", "intro")
@@ -2070,12 +2906,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (!resolvedSession) {
             return res.json({ status: "not_scheduled" });
           }
+          if (shouldReconcileSessionArtifacts(resolvedSession)) {
+            await reconcileArtifactsForScheduledSession(resolvedSession);
+            const { data: refreshedSession } = await supabase
+              .from("scheduled_sessions")
+              .select(SCHEDULED_SESSION_SELECT)
+              .eq("id", resolvedSession.id)
+              .maybeSingle();
+            if (refreshedSession) {
+              resolvedSession = refreshedSession;
+            }
+          }
           res.json({
             id: resolvedSession.id,
             scheduled_time: resolvedSession.scheduled_time,
+            scheduled_end: resolvedSession.scheduled_end,
+            timezone: resolvedSession.timezone,
             status: resolvedSession.status,
             parent_confirmed: resolvedSession.parent_confirmed,
             tutor_confirmed: resolvedSession.tutor_confirmed,
+            google_meet_url: resolvedSession.google_meet_url,
+            google_event_id: resolvedSession.google_event_id,
+            recording_status: resolvedSession.recording_status,
+            transcript_status: resolvedSession.transcript_status,
             created_at: resolvedSession.created_at,
             updated_at: resolvedSession.updated_at,
             debug: {
@@ -2134,7 +2987,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check for existing pending intro session for this parent/tutor
       const { data: existingSession, error: existingSessionError } = await supabase
         .from("scheduled_sessions")
-        .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed")
+        .select(SCHEDULED_SESSION_SELECT)
         .eq("parent_id", userId)
         .eq("tutor_id", enrollmentData.assigned_tutor_id)
         .eq("type", "intro")
@@ -2149,9 +3002,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .update({
             student_id: assignedStudent?.id || null,
             scheduled_time: `${proposedDate}T${proposedTime}`,
+            scheduled_end: addMinutesToIso(`${proposedDate}T${proposedTime}`, INTRO_SESSION_DURATION_MINUTES),
+            timezone: String(req.body?.timezone || "Africa/Johannesburg"),
+            workflow_stage: "intro_booking",
             parent_confirmed: true,
             tutor_confirmed: false,
             status: "pending_tutor_confirmation",
+            google_calendar_id: null,
+            google_event_id: null,
+            google_meet_url: null,
+            google_conference_id: null,
+            google_meet_space_name: null,
+            google_meet_code: null,
+            host_account_id: null,
+            recording_file_id: null,
+            recording_detected_at: null,
+            recording_status: "not_expected_yet",
+            transcript_file_id: null,
+            transcript_detected_at: null,
+            transcript_status: "not_expected_yet",
+            attendance_report_file_id: null,
+            cohost_sync_status: "not_configured",
+            cohost_sync_error: null,
+            last_artifact_sync_at: null,
+            last_meet_sync_error: null,
             updated_at: new Date().toISOString(),
           })
           .eq("id", existingSession.id);
@@ -2185,7 +3059,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             tutor_id: enrollmentData.assigned_tutor_id,
             student_id: assignedStudent?.id || null,
             scheduled_time: `${proposedDate}T${proposedTime}`,
+            scheduled_end: addMinutesToIso(`${proposedDate}T${proposedTime}`, INTRO_SESSION_DURATION_MINUTES),
+            timezone: String(req.body?.timezone || "Africa/Johannesburg"),
             type: "intro",
+            workflow_stage: "intro_booking",
             status: "pending_tutor_confirmation",
             parent_confirmed: true,
             tutor_confirmed: false,
@@ -2234,28 +3111,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const userId = (req as any).dbUser.id;
 
-        // Get parent's enrollment to find assigned tutor and associated student
-        const enrollmentWithAssignedStudent = await supabase
-          .from("parent_enrollments")
-          .select("assigned_tutor_id, assigned_student_id, status, user_id")
-          .eq("user_id", userId)
-          .maybeSingle();
-
-        let enrollmentData: any = enrollmentWithAssignedStudent.data || null;
-        let enrollmentError: any = enrollmentWithAssignedStudent.error || null;
-
-        if (enrollmentError && String(enrollmentError.message || "").includes("assigned_student_id")) {
-          const enrollmentFallback = await supabase
-            .from("parent_enrollments")
-            .select("assigned_tutor_id, status, user_id, student_full_name, parent_email, student_grade, id")
-            .eq("user_id", userId)
-            .maybeSingle();
-
-          enrollmentData = enrollmentFallback.data
-            ? { ...enrollmentFallback.data, assigned_student_id: null }
-            : null;
-          enrollmentError = enrollmentFallback.error || null;
-        }
+        const { data: enrollmentData, error: enrollmentError } = await selectLatestParentEnrollment({
+          parentId: userId,
+          primarySelect: "id, user_id, assigned_tutor_id, assigned_student_id, status, student_full_name, parent_email, student_grade",
+          fallbackSelect: "id, user_id, assigned_tutor_id, status, student_full_name, parent_email, student_grade",
+        });
 
         if (enrollmentError || !enrollmentData || !enrollmentData.assigned_tutor_id) {
           if (enrollmentError) {
@@ -2269,26 +3129,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json({ status: "not_scheduled" });
         }
 
-        let assignedStudent: any = null;
-        if (enrollmentData.assigned_student_id) {
-          assignedStudent = await storage.getStudent(enrollmentData.assigned_student_id);
-        }
-
-        if (!assignedStudent && enrollmentData.student_full_name) {
-          const tutorStudents = await storage.getStudentsByTutor(enrollmentData.assigned_tutor_id);
-          assignedStudent = tutorStudents.find(
-            (student: any) =>
-              String(student?.parentId || "") === String(userId) ||
-              String(student?.name || "").trim().toLowerCase() ===
-                String(enrollmentData.student_full_name || "").trim().toLowerCase()
-          ) || null;
-        }
+        const assignedStudent = await resolveCanonicalStudentForEnrollment(enrollmentData);
 
 
         // Find all intro sessions for this parent/tutor
         let { data: allSessions, error: allSessionsError } = await supabase
           .from("scheduled_sessions")
-          .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, parent_id, tutor_id, type, created_at, updated_at")
+          .select(SCHEDULED_SESSION_SELECT)
           .eq("parent_id", userId)
           .eq("tutor_id", enrollmentData.assigned_tutor_id)
           .eq("type", "intro")
@@ -2299,7 +3146,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if ((!allSessions || allSessions.length === 0) && assignedStudent?.id) {
           const fallback = await supabase
             .from("scheduled_sessions")
-            .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, parent_id, tutor_id, student_id, type, created_at, updated_at")
+            .select(SCHEDULED_SESSION_SELECT)
             .eq("student_id", assignedStudent.id)
             .eq("tutor_id", enrollmentData.assigned_tutor_id)
             .eq("type", "intro")
@@ -2341,7 +3188,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           : {};
         const introCompleted = !!assignedStudentWorkflow.introCompletedAt;
 
-        const effectiveStatus = session.status === "pending_tutor_confirmation" || session.status === "pending_parent_confirmation" || session.status === "confirmed"
+        const effectiveStatus = session.status === "pending_tutor_confirmation" || session.status === "pending_parent_confirmation" || session.status === "confirmed" || session.status === "ready" || session.status === "live" || session.status === "completed"
           ? session.status
           : !session.tutor_confirmed
             ? "pending_tutor_confirmation"
@@ -2353,8 +3200,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: session.id,
           status: effectiveStatus,
           scheduled_time: session.scheduled_time,
+          scheduled_end: session.scheduled_end,
+          timezone: session.timezone,
           parent_confirmed: session.parent_confirmed,
           tutor_confirmed: session.tutor_confirmed,
+          google_meet_url: session.google_meet_url,
+          google_event_id: session.google_event_id,
           introCompleted,
           debug: {
             parent_id: session.parent_id,
@@ -2380,7 +3231,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { data: session, error: sessionError } = await supabase
         .from("scheduled_sessions")
-        .select("id, status, parent_confirmed, tutor_confirmed, parent_id, tutor_id, type")
+        .select(SCHEDULED_SESSION_SELECT)
         .eq("id", sessionId)
         .maybeSingle();
 
@@ -2394,7 +3245,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Session is not waiting for parent confirmation" });
       }
 
-      const { error: updateError } = await supabase
+      const { data: updatedSession, error: updateError } = await supabase
         .from("scheduled_sessions")
         .update({
           parent_confirmed: true,
@@ -2402,14 +3253,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: "confirmed",
           updated_at: new Date().toISOString(),
         })
-        .eq("id", sessionId);
+        .eq("id", sessionId)
+        .select(SCHEDULED_SESSION_SELECT)
+        .single();
 
       if (updateError) {
         console.error("Failed to confirm intro session:", updateError);
         return res.status(500).json({ message: "Failed to confirm session" });
       }
 
-      res.json({ success: true, status: "confirmed" });
+      const assignedStudent = session.student_id ? await storage.getStudent(session.student_id) : null;
+      const meetSync = updatedSession
+        ? await syncMeetForScheduledSession(updatedSession, { studentName: assignedStudent?.name || null })
+        : null;
+
+      res.json({
+        success: true,
+        status: "confirmed",
+        googleMeetConfigured: isGoogleMeetIntegrationAvailable(),
+        ...getMeetSyncResponsePayload(meetSync),
+      });
     } catch (error) {
       console.error("Error confirming intro session:", error);
       res.status(500).json({ message: "Failed to confirm session" });
@@ -2496,8 +3359,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const assignment = await storage.getTutorAssignment(tutorId);
           // Fetch students
           const students = await storage.getStudentsByTutor(tutorId);
-          // Fetch sessions
-          const sessions = await storage.getSessionsByTutor(tutorId);
+          const sessions = await getTutorSessionFeed(tutorId);
           // Fetch academic profile (verification status)
           const profile = await storage.getAcademicProfile(tutorId);
           // Fetch province (assuming it's in dbUser or profile)
@@ -3104,13 +3966,141 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Get tutor's sessions
   app.get(
+    "/api/tutor/weekly-schedule",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const tutorId = (req as any).dbUser.id;
+        const weekStartParam = String(req.query.weekStart || "").trim();
+
+        const baseDate = weekStartParam ? new Date(`${weekStartParam}T00:00:00`) : new Date();
+        if (Number.isNaN(baseDate.getTime())) {
+          return res.status(400).json({ message: "Invalid weekStart" });
+        }
+
+        const weekStart = new Date(baseDate);
+        const mondayOffset = (weekStart.getDay() + 6) % 7;
+        weekStart.setHours(0, 0, 0, 0);
+        weekStart.setDate(weekStart.getDate() - mondayOffset);
+
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 6);
+        weekEnd.setHours(23, 59, 59, 999);
+
+        const { data: sessions, error } = await supabase
+          .from("scheduled_sessions")
+          .select("id, scheduled_time, scheduled_end, timezone, status, type, workflow_stage, parent_confirmed, tutor_confirmed, student_id, parent_id, google_meet_url, created_at, updated_at")
+          .eq("tutor_id", tutorId)
+          .gte("scheduled_time", weekStart.toISOString())
+          .lte("scheduled_time", weekEnd.toISOString())
+          .not("status", "in", '("cancelled","flagged")')
+          .order("scheduled_time", { ascending: true });
+
+        if (error) {
+          console.error("Error fetching tutor weekly schedule:", error);
+          return res.status(500).json({ message: "Failed to fetch tutor weekly schedule" });
+        }
+
+        const studentIds = Array.from(
+          new Set((sessions || []).map((session: any) => String(session.student_id || "")).filter(Boolean))
+        );
+
+        const studentsById = new Map<string, { id: string; name: string; grade?: string | null }>();
+        if (studentIds.length > 0) {
+          const { data: students } = await supabase
+            .from("students")
+            .select("id, name, grade")
+            .in("id", studentIds);
+
+          (students || []).forEach((student: any) => {
+            studentsById.set(String(student.id), {
+              id: String(student.id),
+              name: String(student.name || "Student"),
+              grade: student.grade || null,
+            });
+          });
+        }
+
+        res.json({
+          weekStart: weekStart.toISOString(),
+          weekEnd: weekEnd.toISOString(),
+          sessions: (sessions || []).map((session: any) => ({
+            ...session,
+            student: studentsById.get(String(session.student_id || "")) || null,
+          })),
+        });
+      } catch (error) {
+        console.error("Error fetching tutor weekly schedule:", error);
+        res.status(500).json({ message: "Failed to fetch tutor weekly schedule" });
+      }
+    }
+  );
+
+  app.get(
+    "/api/tutor/scheduled-sessions/:sessionId/log",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const tutorId = (req as any).dbUser.id;
+        const { sessionId } = req.params;
+
+        const { data: session, error: sessionError } = await supabase
+          .from("scheduled_sessions")
+          .select("id, scheduled_time, status, type, student_id, tutor_id")
+          .eq("id", sessionId)
+          .eq("tutor_id", tutorId)
+          .single();
+
+        if (sessionError || !session) {
+          return res.status(404).json({ message: "Scheduled session not found" });
+        }
+
+        const { data: drillRows, error: drillError } = await supabase
+          .from("intro_session_drills")
+          .select("id, drill, submitted_at, training_session_run_id")
+          .eq("scheduled_session_id", sessionId)
+          .order("submitted_at", { ascending: true });
+
+        if (drillError) {
+          console.error("Error fetching scheduled session drill log:", drillError);
+          return res.status(500).json({ message: "Failed to fetch scheduled session log" });
+        }
+
+        const { data: trainingRuns, error: runError } = await supabase
+          .from("training_session_runs")
+          .select("id, topic_count, started_at, submitted_at, status")
+          .eq("scheduled_session_id", sessionId)
+          .order("submitted_at", { ascending: false });
+
+        if (runError) {
+          console.error("Error fetching training session run log:", runError);
+          return res.status(500).json({ message: "Failed to fetch scheduled session log" });
+        }
+
+        const sessionLogs = aggregateDeterministicSessions(drillRows || []);
+
+        res.json({
+          session,
+          trainingRuns: trainingRuns || [],
+          sessionLogs,
+        });
+      } catch (error) {
+        console.error("Error fetching scheduled session log:", error);
+        res.status(500).json({ message: "Failed to fetch scheduled session log" });
+      }
+    }
+  );
+
+  app.get(
     "/api/tutor/sessions",
     isAuthenticated,
     requireRole(["tutor"]),
     async (req: Request, res: Response) => {
       try {
         const tutorId = (req as any).dbUser.id;
-        const sessions = await storage.getSessionsByTutor(tutorId);
+        const sessions = await getTutorSessionFeed(tutorId);
         res.json(sessions);
       } catch (error) {
         console.error("Error fetching sessions:", error);
@@ -3215,7 +4205,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Try to find the intro session for this tutor/student
       let { data: session, error: sessionError } = await supabase
         .from("scheduled_sessions")
-        .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, created_at, updated_at, tutor_id, student_id, parent_id, type")
+        .select(SCHEDULED_SESSION_SELECT)
         .eq("tutor_id", dbUser.id)
         .eq("student_id", studentId)
         .eq("type", "intro")
@@ -3233,7 +4223,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (parentId) {
           const { data: fallbackSession } = await supabase
             .from("scheduled_sessions")
-            .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, created_at, updated_at, tutor_id, student_id, parent_id, type")
+            .select(SCHEDULED_SESSION_SELECT)
             .eq("tutor_id", dbUser.id)
             .eq("parent_id", parentId)
             .is("student_id", null)
@@ -3276,12 +4266,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from("scheduled_sessions")
         .update(updateFields)
         .eq("id", session.id)
-        .select();
+        .select(SCHEDULED_SESSION_SELECT);
       console.log('[DEBUG] Update result', { updateError, updateData });
       if (updateError) {
         return res.status(500).json({ message: "Failed to update session", details: updateError });
       }
-      res.json({ success: true });
+      let meetSync: any = null;
+      if (action === "accept" && Array.isArray(updateData) && updateData[0]) {
+        const student = await storage.getStudent(studentId);
+        meetSync = await syncMeetForScheduledSession(updateData[0], { studentName: student?.name || null });
+      }
+      res.json({
+        success: true,
+        googleMeetConfigured: isGoogleMeetIntegrationAvailable(),
+        ...getMeetSyncResponsePayload(meetSync),
+      });
     } catch (error) {
       console.error("Error in tutor intro session response:", error);
       res.status(500).json({ message: "Failed to process tutor response" });
@@ -3297,7 +4296,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Try to find the intro session for this tutor/student
       let { data: session, error: sessionError } = await supabase
         .from("scheduled_sessions")
-        .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, created_at, updated_at, tutor_id, student_id, parent_id, type")
+        .select(SCHEDULED_SESSION_SELECT)
         .eq("tutor_id", dbUser.id)
         .eq("student_id", studentId)
         .eq("type", "intro")
@@ -3315,7 +4314,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (parentId) {
           const { data: fallbackSession } = await supabase
             .from("scheduled_sessions")
-            .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, created_at, updated_at, tutor_id, student_id, parent_id, type")
+            .select(SCHEDULED_SESSION_SELECT)
             .eq("tutor_id", dbUser.id)
             .eq("parent_id", parentId)
             .is("student_id", null)
@@ -3358,15 +4357,923 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from("scheduled_sessions")
         .update(updateFields)
         .eq("id", session.id)
-        .select();
+        .select(SCHEDULED_SESSION_SELECT);
       console.log('[DEBUG] Update result', { updateError, updateData });
       if (updateError) {
         return res.status(500).json({ message: "Failed to update session", details: updateError });
       }
-      res.json({ success: true });
+      let meetSync: any = null;
+      if (action === "accept" && Array.isArray(updateData) && updateData[0]) {
+        const student = await storage.getStudent(studentId);
+        meetSync = await syncMeetForScheduledSession(updateData[0], { studentName: student?.name || null });
+      }
+      res.json({
+        success: true,
+        googleMeetConfigured: isGoogleMeetIntegrationAvailable(),
+        ...getMeetSyncResponsePayload(meetSync),
+      });
     } catch (error) {
       console.error("Error in tutor intro session response:", error);
       res.status(500).json({ message: "Failed to process tutor response" });
+    }
+  });
+
+  app.get(
+    "/api/tutor/students/:studentId/training-sessions",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { studentId } = req.params;
+        const tutorId = (req as any).dbUser.id;
+        const student = await storage.getStudent(studentId);
+        if (!student || student.tutorId !== tutorId) {
+          return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
+        }
+
+        const { data, error } = await supabase
+          .from("scheduled_sessions")
+          .select(SCHEDULED_SESSION_SELECT)
+          .eq("tutor_id", tutorId)
+          .eq("student_id", studentId)
+          .eq("type", "training")
+          .order("scheduled_time", { ascending: true })
+          .limit(12);
+
+        if (error) {
+          return res.status(500).json({ message: "Failed to fetch training sessions" });
+        }
+
+        const sessionsWithArtifacts = await Promise.all(
+          (data || []).map(async (session: any) => {
+            if (shouldReconcileSessionArtifacts(session)) {
+              await reconcileArtifactsForScheduledSession(session);
+              const { data: refreshedSession } = await supabase
+                .from("scheduled_sessions")
+                .select(SCHEDULED_SESSION_SELECT)
+                .eq("id", session.id)
+                .maybeSingle();
+              return refreshedSession || session;
+            }
+            return session;
+          })
+        );
+
+        res.json({
+          sessions: sessionsWithArtifacts.map((session: any) => ({
+            ...session,
+            launch: getSessionLaunchState(session, "training"),
+          })),
+          googleMeetConfigured: isGoogleMeetIntegrationAvailable(),
+        });
+      } catch (error) {
+        console.error("Error fetching training sessions:", error);
+        res.status(500).json({ message: "Failed to fetch training sessions" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/tutor/students/:studentId/training-sessions",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { studentId } = req.params;
+        const tutorId = (req as any).dbUser.id;
+        const student = await storage.getStudent(studentId);
+        if (!student || student.tutorId !== tutorId) {
+          return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
+        }
+
+        const assignmentAccepted = await isTutorAssignmentAcceptedForStudent(student, tutorId);
+        if (!assignmentAccepted) {
+          return res.status(403).json({ message: "Accept this assignment before scheduling training sessions." });
+        }
+        const parentId = (student as any).parentId || null;
+        if (!parentId) {
+          return res.status(400).json({ message: "Student must be linked to a parent before a TT training lesson can be scheduled." });
+        }
+
+        const scheduledStart = String(req.body?.scheduledStart || new Date().toISOString());
+        const timezone = String(req.body?.timezone || "Africa/Johannesburg");
+        const scheduledEnd = String(
+          req.body?.scheduledEnd || addMinutesToIso(scheduledStart, TRAINING_SESSION_DURATION_MINUTES)
+        );
+
+        const { data: inserted, error } = await supabase
+          .from("scheduled_sessions")
+          .insert({
+            parent_id: parentId,
+            tutor_id: tutorId,
+            student_id: studentId,
+            scheduled_time: scheduledStart,
+            scheduled_end: scheduledEnd,
+            timezone,
+            type: "training",
+            workflow_stage: "active_training",
+            status: "pending_parent_confirmation",
+            parent_confirmed: false,
+            tutor_confirmed: true,
+            attendance_status: "not_started",
+            recording_status: "not_expected_yet",
+            transcript_status: "not_expected_yet",
+            cohost_sync_status: "not_configured",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .select(SCHEDULED_SESSION_SELECT)
+          .single();
+
+        if (error || !inserted) {
+          console.error("Error creating training session:", error);
+          return res.status(500).json({ message: "Failed to create training session" });
+        }
+
+        const { session } = await resolveTutorScheduledSession(tutorId, studentId, "training", inserted.id);
+
+        res.json({
+          success: true,
+          session: session || inserted,
+          googleMeetConfigured: isGoogleMeetIntegrationAvailable(),
+          googleMeetSync: null,
+          googleMeetError: null,
+        });
+      } catch (error) {
+        console.error("Error creating training session:", error);
+        res.status(500).json({ message: "Failed to create training session" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/tutor/students/:studentId/training-sessions/:sessionId/confirm",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { studentId, sessionId } = req.params;
+        const tutorId = (req as any).dbUser.id;
+        const student = await storage.getStudent(studentId);
+        if (!student || student.tutorId !== tutorId) {
+          return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
+        }
+
+        const { data: session, error: sessionError } = await supabase
+          .from("scheduled_sessions")
+          .select(SCHEDULED_SESSION_SELECT)
+          .eq("id", sessionId)
+          .eq("student_id", studentId)
+          .eq("tutor_id", tutorId)
+          .eq("type", "training")
+          .maybeSingle();
+
+        if (sessionError || !session) {
+          return res.status(404).json({ message: "Training session not found" });
+        }
+
+        if (session.status !== "pending_tutor_confirmation") {
+          return res.status(400).json({ message: "Training session is not waiting for tutor confirmation" });
+        }
+
+        const { data: updatedSession, error: updateError } = await supabase
+          .from("scheduled_sessions")
+          .update({
+            parent_confirmed: true,
+            tutor_confirmed: true,
+            status: "confirmed",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", sessionId)
+          .select(SCHEDULED_SESSION_SELECT)
+          .single();
+
+        if (updateError || !updatedSession) {
+          return res.status(500).json({ message: "Failed to confirm training session" });
+        }
+
+        const meetSync = await syncMeetForScheduledSession(updatedSession, { studentName: student.name });
+
+        res.json({
+          success: true,
+          session: updatedSession,
+          googleMeetConfigured: isGoogleMeetIntegrationAvailable(),
+          ...getMeetSyncResponsePayload(meetSync),
+        });
+      } catch (error) {
+        console.error("Error confirming tutor training session:", error);
+        res.status(500).json({ message: "Failed to confirm training session" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/tutor/students/:studentId/training-sessions/:sessionId/respond",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { studentId, sessionId } = req.params;
+        const tutorId = (req as any).dbUser.id;
+        const { action, scheduledStart } = req.body as {
+          action?: "confirm" | "reschedule";
+          scheduledStart?: string;
+        };
+        const timezone = String(req.body?.timezone || "Africa/Johannesburg");
+        const student = await storage.getStudent(studentId);
+        if (!student || student.tutorId !== tutorId) {
+          return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
+        }
+
+        const { data: session, error: sessionError } = await supabase
+          .from("scheduled_sessions")
+          .select(SCHEDULED_SESSION_SELECT)
+          .eq("id", sessionId)
+          .eq("student_id", studentId)
+          .eq("tutor_id", tutorId)
+          .eq("type", "training")
+          .maybeSingle();
+
+        if (sessionError || !session) {
+          return res.status(404).json({ message: "Training session not found" });
+        }
+
+        if (session.status !== "pending_tutor_confirmation") {
+          return res.status(400).json({ message: "Training session is not waiting for tutor confirmation" });
+        }
+
+        if (action !== "confirm" && action !== "reschedule") {
+          return res.status(400).json({ message: "Action must be 'confirm' or 'reschedule'" });
+        }
+
+        if (action === "reschedule") {
+          const nextStart = String(scheduledStart || "").trim();
+          if (!nextStart) {
+            return res.status(400).json({ message: "New scheduled time is required" });
+          }
+
+          const parsedStart = new Date(nextStart);
+          if (Number.isNaN(parsedStart.getTime())) {
+            return res.status(400).json({ message: "New scheduled time is invalid" });
+          }
+
+          if (parsedStart.getTime() <= Date.now()) {
+            return res.status(400).json({ message: "Rescheduled sessions must be in the future." });
+          }
+
+          const { data: updatedSession, error: updateError } = await supabase
+            .from("scheduled_sessions")
+            .update({
+              scheduled_time: nextStart,
+              scheduled_end: addMinutesToIso(nextStart, TRAINING_SESSION_DURATION_MINUTES),
+              timezone,
+              parent_confirmed: false,
+              tutor_confirmed: true,
+              status: "pending_parent_confirmation",
+              google_calendar_id: null,
+              google_event_id: null,
+              google_meet_url: null,
+              google_conference_id: null,
+              google_meet_space_name: null,
+              google_meet_code: null,
+              host_account_id: null,
+              recording_file_id: null,
+              recording_detected_at: null,
+              recording_status: "not_expected_yet",
+              transcript_file_id: null,
+              transcript_detected_at: null,
+              transcript_status: "not_expected_yet",
+              attendance_report_file_id: null,
+              cohost_sync_status: "not_configured",
+              cohost_sync_error: null,
+              last_artifact_sync_at: null,
+              last_meet_sync_error: null,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", sessionId)
+            .select(SCHEDULED_SESSION_SELECT)
+            .single();
+
+          if (updateError || !updatedSession) {
+            return res.status(500).json({ message: "Failed to reschedule training session" });
+          }
+
+          return res.json({
+            success: true,
+            session: updatedSession,
+            status: "pending_parent_confirmation",
+            googleMeetConfigured: isGoogleMeetIntegrationAvailable(),
+            googleMeetSync: null,
+            googleMeetError: null,
+          });
+        }
+
+        const { data: updatedSession, error: updateError } = await supabase
+          .from("scheduled_sessions")
+          .update({
+            parent_confirmed: true,
+            tutor_confirmed: true,
+            status: "confirmed",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", sessionId)
+          .select(SCHEDULED_SESSION_SELECT)
+          .single();
+
+        if (updateError || !updatedSession) {
+          return res.status(500).json({ message: "Failed to confirm training session" });
+        }
+
+        const meetSync = await syncMeetForScheduledSession(updatedSession, { studentName: student.name });
+
+        res.json({
+          success: true,
+          session: updatedSession,
+          googleMeetConfigured: isGoogleMeetIntegrationAvailable(),
+          ...getMeetSyncResponsePayload(meetSync),
+        });
+      } catch (error) {
+        console.error("Error responding to tutor training session:", error);
+        res.status(500).json({ message: "Failed to respond to training session" });
+      }
+    }
+  );
+
+  app.get(
+    "/api/tutor/students/:studentId/drill-session-access",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { studentId } = req.params;
+        const tutorId = (req as any).dbUser.id;
+        const kind = req.query.kind === "training" ? "training" : "intro";
+        const sessionId = typeof req.query.sessionId === "string" ? req.query.sessionId : null;
+
+        const student = await storage.getStudent(studentId);
+        if (!student || student.tutorId !== tutorId) {
+          return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
+        }
+
+        if (kind === "training") {
+          const { session: pendingTrainingConfirmation, error: pendingTrainingConfirmationError } =
+            await getPendingTrainingConfirmationSession(tutorId, studentId);
+          if (pendingTrainingConfirmationError) {
+            return res.status(500).json({ message: "Failed to validate training confirmation state" });
+          }
+
+          if (pendingTrainingConfirmation && (!sessionId || sessionId !== String(pendingTrainingConfirmation.id))) {
+            return res.status(400).json({
+              canLaunch: false,
+              message: "A TT training lesson is waiting for parent confirmation before drills can launch.",
+              session: {
+                ...pendingTrainingConfirmation,
+                launch: {
+                  canLaunch: false,
+                  isLive: false,
+                  isImminent: false,
+                },
+              },
+            });
+          }
+        }
+
+        const { session, error } = await resolveTutorScheduledSession(tutorId, studentId, kind, sessionId);
+        if (error) {
+          return res.status(500).json({ message: "Failed to resolve scheduled session" });
+        }
+        if (!session) {
+          return res.status(404).json({
+            canLaunch: false,
+            message:
+              kind === "training"
+                ? "Create or attach a TT training lesson before opening the drill runner."
+                : "A confirmed intro session is required before opening the intro drill.",
+          });
+        }
+
+        const launch = getSessionLaunchState(session, kind);
+        if (!launch.canLaunch) {
+          return res.status(400).json({
+            canLaunch: false,
+            message:
+              kind === "training"
+                ? "Training drills must launch from an active or imminently scheduled TT lesson."
+                : "Intro drills must launch from a confirmed TT intro session.",
+            session: {
+              ...session,
+              launch,
+            },
+          });
+        }
+
+        res.json({
+          canLaunch: true,
+          session: {
+            ...session,
+            launch,
+          },
+          googleMeetConfigured: isGoogleMeetIntegrationAvailable(),
+        });
+      } catch (error) {
+        console.error("Error validating drill session access:", error);
+        res.status(500).json({ message: "Failed to validate drill session access" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/tutor/students/:studentId/scheduled-sessions/:sessionId/retry-meet-sync",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { studentId, sessionId } = req.params;
+        const tutorId = (req as any).dbUser.id;
+        const student = await storage.getStudent(studentId);
+
+        if (!student || student.tutorId !== tutorId) {
+          return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
+        }
+
+        const { data: session, error } = await supabase
+          .from("scheduled_sessions")
+          .select(SCHEDULED_SESSION_SELECT)
+          .eq("id", sessionId)
+          .eq("student_id", studentId)
+          .eq("tutor_id", tutorId)
+          .maybeSingle();
+
+        if (error) {
+          return res.status(500).json({ message: "Failed to load scheduled session" });
+        }
+
+        if (!session) {
+          return res.status(404).json({ message: "Scheduled session not found" });
+        }
+
+        const meetSync = await syncMeetForScheduledSession(session, { studentName: student.name });
+
+        const { data: refreshedSession } = await supabase
+          .from("scheduled_sessions")
+          .select(SCHEDULED_SESSION_SELECT)
+          .eq("id", sessionId)
+          .maybeSingle();
+
+        res.json({
+          success: meetSync?.provider === "google_calendar",
+          session: refreshedSession || session,
+          googleMeetConfigured: isGoogleMeetIntegrationAvailable(),
+          ...getMeetSyncResponsePayload(meetSync),
+        });
+      } catch (error) {
+        console.error("Error retrying Meet sync:", error);
+        res.status(500).json({ message: "Failed to retry Meet sync" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/tutor/students/:studentId/scheduled-sessions/:sessionId/sync-artifacts",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { studentId, sessionId } = req.params;
+        const tutorId = (req as any).dbUser.id;
+        const student = await storage.getStudent(studentId);
+
+        if (!student || student.tutorId !== tutorId) {
+          return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
+        }
+
+        const { data: session, error } = await supabase
+          .from("scheduled_sessions")
+          .select(SCHEDULED_SESSION_SELECT)
+          .eq("id", sessionId)
+          .eq("student_id", studentId)
+          .eq("tutor_id", tutorId)
+          .maybeSingle();
+
+        if (error || !session) {
+          return res.status(404).json({ message: "Scheduled session not found" });
+        }
+
+        if (!session.google_event_id && !session.google_meet_space_name && !session.google_meet_code) {
+          return res.status(400).json({ message: "This session has no Google Meet metadata to sync artifacts from." });
+        }
+
+        const artifactSync = await reconcileArtifactsForScheduledSession(session);
+        const { data: refreshedSession } = await supabase
+          .from("scheduled_sessions")
+          .select(SCHEDULED_SESSION_SELECT)
+          .eq("id", sessionId)
+          .maybeSingle();
+
+        if (artifactSync.provider === "error") {
+          return res.status(500).json({
+            message: artifactSync.reason || "Failed to sync artifacts",
+            session: refreshedSession || session,
+          });
+        }
+
+        res.json({
+          success: true,
+          artifactSync: artifactSync.provider,
+          session: refreshedSession || session,
+        });
+      } catch (error) {
+        console.error("Error syncing scheduled session artifacts:", error);
+        res.status(500).json({ message: "Failed to sync scheduled session artifacts" });
+      }
+    }
+  );
+
+  app.get("/api/parent/training-sessions", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).dbUser.id;
+
+      const { data: enrollment, error: enrollmentError } = await selectLatestParentEnrollment({
+        parentId: userId,
+        primarySelect: "id, user_id, assigned_tutor_id, assigned_student_id, student_full_name, student_grade, parent_email",
+        fallbackSelect: "id, user_id, assigned_tutor_id, student_full_name, student_grade, parent_email",
+      });
+
+      if (enrollmentError) {
+        return res.status(500).json({ message: "Failed to fetch enrollment" });
+      }
+
+      if (!enrollment?.assigned_tutor_id) {
+        return res.json({ sessions: [] });
+      }
+
+      const studentRecord = await resolveCanonicalStudentForEnrollment(enrollment);
+      const studentId = studentRecord?.id || enrollment.assigned_student_id || null;
+
+      let query = supabase
+        .from("scheduled_sessions")
+        .select(SCHEDULED_SESSION_SELECT)
+        .eq("parent_id", userId)
+        .eq("type", "training")
+        .order("scheduled_time", { ascending: true })
+        .limit(12);
+
+      if (studentId) {
+        query = query.eq("student_id", studentId);
+      } else {
+        query = query.eq("tutor_id", enrollment.assigned_tutor_id);
+      }
+
+      const { data, error } = await query;
+      if (error) {
+        return res.status(500).json({ message: "Failed to fetch training sessions" });
+      }
+
+      const sessionsWithArtifacts = await Promise.all(
+        (data || []).map(async (session: any) => {
+          if (shouldReconcileSessionArtifacts(session)) {
+            await reconcileArtifactsForScheduledSession(session);
+            const { data: refreshedSession } = await supabase
+              .from("scheduled_sessions")
+              .select(SCHEDULED_SESSION_SELECT)
+              .eq("id", session.id)
+              .maybeSingle();
+            return refreshedSession || session;
+          }
+          return session;
+        })
+      );
+
+      res.json({
+        sessions: sessionsWithArtifacts.map((session: any) => ({
+          ...session,
+          launch: getSessionLaunchState(session, "training"),
+        })),
+      });
+    } catch (error) {
+      console.error("Error fetching parent training sessions:", error);
+      res.status(500).json({ message: "Failed to fetch training sessions" });
+    }
+  });
+
+  app.post("/api/parent/training-sessions/schedule-week", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).dbUser.id;
+      const rawSlots = Array.isArray(req.body?.slots) ? req.body.slots : [];
+      const timezone = String(req.body?.timezone || "Africa/Johannesburg");
+      const weekdayLookup: Record<string, number> = {
+        Sun: 0,
+        Mon: 1,
+        Tue: 2,
+        Wed: 3,
+        Thu: 4,
+        Fri: 5,
+        Sat: 6,
+      };
+      const getLocalWeekInfo = (isoString: string) => {
+        const date = new Date(isoString);
+        if (Number.isNaN(date.getTime())) {
+          return null;
+        }
+        const parts = new Intl.DateTimeFormat("en-US", {
+          timeZone: timezone,
+          weekday: "short",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }).formatToParts(date);
+        const weekday = parts.find((part) => part.type === "weekday")?.value || "";
+        const year = Number(parts.find((part) => part.type === "year")?.value || NaN);
+        const month = Number(parts.find((part) => part.type === "month")?.value || NaN);
+        const day = Number(parts.find((part) => part.type === "day")?.value || NaN);
+        const weekdayIndex = weekdayLookup[weekday];
+        if (!weekday || Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day) || typeof weekdayIndex !== "number") {
+          return null;
+        }
+        const localDateUtc = Date.UTC(year, month - 1, day);
+        const mondayOffset = (weekdayIndex + 6) % 7;
+        return {
+          weekdayIndex,
+          weekStartUtc: localDateUtc - mondayOffset * 24 * 60 * 60 * 1000,
+        };
+      };
+
+      if (rawSlots.length !== 2) {
+        return res.status(400).json({ message: "Exactly two weekly session slots are required." });
+      }
+
+      const enrollmentWithAssignedStudent = await supabase
+        .from("parent_enrollments")
+        .select("assigned_tutor_id, assigned_student_id, student_full_name")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      let enrollment: any = enrollmentWithAssignedStudent.data || null;
+      let enrollmentError: any = enrollmentWithAssignedStudent.error || null;
+
+      if (enrollmentError && String(enrollmentError.message || "").includes("assigned_student_id")) {
+        const enrollmentFallback = await supabase
+          .from("parent_enrollments")
+          .select("assigned_tutor_id, student_full_name")
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        enrollment = enrollmentFallback.data
+          ? { ...enrollmentFallback.data, assigned_student_id: null }
+          : null;
+        enrollmentError = enrollmentFallback.error || null;
+      }
+
+      if (enrollmentError || !enrollment?.assigned_tutor_id) {
+        return res.status(400).json({ message: "Assigned tutor is required before weekly scheduling." });
+      }
+
+      let studentId = enrollment.assigned_student_id || null;
+      if (!studentId && enrollment.student_full_name) {
+        const { data: student } = await supabase
+          .from("students")
+          .select("id")
+          .eq("name", enrollment.student_full_name)
+          .eq("tutor_id", enrollment.assigned_tutor_id)
+          .maybeSingle();
+        studentId = student?.id || null;
+      }
+
+      if (!studentId) {
+        return res.status(400).json({ message: "Student must be linked before weekly sessions can be scheduled." });
+      }
+
+      const parsedSlots = rawSlots
+        .map((slot: any) => String(slot?.scheduledStart || "").trim())
+        .filter(Boolean)
+        .map((scheduledStart) => ({
+          scheduledStart,
+          scheduledEnd: addMinutesToIso(scheduledStart, TRAINING_SESSION_DURATION_MINUTES),
+        }))
+        .sort((a, b) => new Date(a.scheduledStart).getTime() - new Date(b.scheduledStart).getTime());
+
+      if (parsedSlots.length !== 2) {
+        return res.status(400).json({ message: "Both weekly session times are required." });
+      }
+
+      const weekInfos = parsedSlots.map((slot) => getLocalWeekInfo(slot.scheduledStart));
+      if (weekInfos.some((info) => !info)) {
+        return res.status(400).json({ message: "Weekly session dates must be valid." });
+      }
+
+      if (weekInfos.some((info) => (info?.weekdayIndex || 0) < 1 || (info?.weekdayIndex || 0) > 6)) {
+        return res.status(400).json({ message: "Weekly session dates must fall between Monday and Saturday." });
+      }
+
+      const targetWeekStartUtc = weekInfos[0]?.weekStartUtc;
+      if (weekInfos.some((info) => info?.weekStartUtc !== targetWeekStartUtc)) {
+        return res.status(400).json({ message: "Both weekly session dates must be within the same Monday-to-Saturday week." });
+      }
+
+      const nowMs = Date.now();
+      if (parsedSlots.some((slot) => new Date(slot.scheduledStart).getTime() <= nowMs)) {
+        return res.status(400).json({ message: "Weekly sessions must be scheduled in the future." });
+      }
+
+      const slotTimes = parsedSlots.map((slot) => slot.scheduledStart);
+      const uniqueSlotTimes = new Set(slotTimes);
+      if (uniqueSlotTimes.size !== slotTimes.length) {
+        return res.status(400).json({ message: "Weekly session times must be different." });
+      }
+
+      const { data: existingSessions, error: existingSessionsError } = await supabase
+        .from("scheduled_sessions")
+        .select(SCHEDULED_SESSION_SELECT)
+        .eq("parent_id", userId)
+        .eq("student_id", studentId)
+        .eq("tutor_id", enrollment.assigned_tutor_id)
+        .eq("type", "training")
+        .in("status", ["pending_tutor_confirmation", "pending_parent_confirmation", "confirmed", "ready", "live"])
+        .gte("scheduled_time", new Date().toISOString())
+        .order("scheduled_time", { ascending: true });
+
+      if (existingSessionsError) {
+        return res.status(500).json({ message: "Failed to inspect existing training sessions." });
+      }
+
+      const existingTimes = new Set((existingSessions || []).map((session: any) => String(session.scheduled_time)));
+      const slotsToInsert = parsedSlots.filter((slot) => !existingTimes.has(slot.scheduledStart));
+
+      if (slotsToInsert.length === 0) {
+        return res.json({
+          success: true,
+          sessions: existingSessions || [],
+          createdCount: 0,
+        });
+      }
+
+      const { data: insertedSessions, error: insertError } = await supabase
+        .from("scheduled_sessions")
+        .insert(
+          slotsToInsert.map((slot) => ({
+            parent_id: userId,
+            tutor_id: enrollment.assigned_tutor_id,
+            student_id: studentId,
+            scheduled_time: slot.scheduledStart,
+            scheduled_end: slot.scheduledEnd,
+            timezone,
+            type: "training",
+            workflow_stage: "active_training",
+            status: "pending_tutor_confirmation",
+            parent_confirmed: true,
+            tutor_confirmed: false,
+            attendance_status: "not_started",
+            recording_status: "not_expected_yet",
+            transcript_status: "not_expected_yet",
+            cohost_sync_status: "not_configured",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }))
+        )
+        .select(SCHEDULED_SESSION_SELECT);
+
+      if (insertError) {
+        return res.status(500).json({ message: "Failed to schedule weekly sessions." });
+      }
+
+      res.json({
+        success: true,
+        sessions: insertedSessions || [],
+        createdCount: (insertedSessions || []).length,
+      });
+    } catch (error) {
+      console.error("Error scheduling weekly training sessions:", error);
+      res.status(500).json({ message: "Failed to schedule weekly sessions" });
+    }
+  });
+
+  app.post("/api/parent/training-sessions/respond", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).dbUser.id;
+      const { sessionId, action, scheduledStart } = req.body as {
+        sessionId?: string;
+        action?: "confirm" | "reschedule";
+        scheduledStart?: string;
+      };
+      const timezone = String(req.body?.timezone || "Africa/Johannesburg");
+
+      if (!sessionId) {
+        return res.status(400).json({ message: "Missing sessionId" });
+      }
+
+      if (action !== "confirm" && action !== "reschedule") {
+        return res.status(400).json({ message: "Action must be 'confirm' or 'reschedule'" });
+      }
+
+      const { data: session, error: sessionError } = await supabase
+        .from("scheduled_sessions")
+        .select(SCHEDULED_SESSION_SELECT)
+        .eq("id", sessionId)
+        .eq("type", "training")
+        .maybeSingle();
+
+      if (sessionError || !session) {
+        return res.status(404).json({ message: "Training session not found" });
+      }
+
+      if (session.parent_id !== userId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      if (session.status !== "pending_parent_confirmation") {
+        return res.status(400).json({ message: "This session is not waiting for parent confirmation" });
+      }
+
+      if (action === "reschedule") {
+        const nextStart = String(scheduledStart || "").trim();
+        if (!nextStart) {
+          return res.status(400).json({ message: "New scheduled time is required" });
+        }
+
+        const parsedStart = new Date(nextStart);
+        if (Number.isNaN(parsedStart.getTime())) {
+          return res.status(400).json({ message: "New scheduled time is invalid" });
+        }
+
+        if (parsedStart.getTime() <= Date.now()) {
+          return res.status(400).json({ message: "Rescheduled sessions must be in the future." });
+        }
+
+        const { data: updatedSession, error: updateError } = await supabase
+          .from("scheduled_sessions")
+          .update({
+            scheduled_time: nextStart,
+            scheduled_end: addMinutesToIso(nextStart, TRAINING_SESSION_DURATION_MINUTES),
+            timezone,
+            parent_confirmed: true,
+            tutor_confirmed: false,
+            status: "pending_tutor_confirmation",
+            google_calendar_id: null,
+            google_event_id: null,
+            google_meet_url: null,
+            google_conference_id: null,
+            google_meet_space_name: null,
+            google_meet_code: null,
+            host_account_id: null,
+            recording_file_id: null,
+            recording_detected_at: null,
+            recording_status: "not_expected_yet",
+            transcript_file_id: null,
+            transcript_detected_at: null,
+            transcript_status: "not_expected_yet",
+            attendance_report_file_id: null,
+            cohost_sync_status: "not_configured",
+            cohost_sync_error: null,
+            last_artifact_sync_at: null,
+            last_meet_sync_error: null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", sessionId)
+          .select(SCHEDULED_SESSION_SELECT)
+          .single();
+
+        if (updateError || !updatedSession) {
+          return res.status(500).json({ message: "Failed to reschedule session" });
+        }
+
+        return res.json({
+          success: true,
+          status: "pending_tutor_confirmation",
+          session: updatedSession,
+        });
+      }
+
+      const { data: updatedSession, error: updateError } = await supabase
+        .from("scheduled_sessions")
+        .update({
+          parent_confirmed: true,
+          tutor_confirmed: true,
+          status: "confirmed",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", sessionId)
+        .select(SCHEDULED_SESSION_SELECT)
+        .single();
+
+      if (updateError || !updatedSession) {
+        return res.status(500).json({ message: "Failed to confirm session" });
+      }
+
+      const assignedStudent = updatedSession.student_id ? await storage.getStudent(updatedSession.student_id) : null;
+      const meetSync = await syncMeetForScheduledSession(updatedSession, {
+        studentName: assignedStudent?.name || null,
+      });
+
+      return res.json({
+        success: true,
+        status: "confirmed",
+        session: updatedSession,
+        googleMeetConfigured: isGoogleMeetIntegrationAvailable(),
+        ...getMeetSyncResponsePayload(meetSync),
+      });
+    } catch (error) {
+      console.error("Error responding to training session:", error);
+      res.status(500).json({ message: "Failed to respond to training session" });
     }
   });
 
@@ -3469,8 +5376,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   };
   const getParentDashboardCopyForState = (phase?: unknown, stability?: unknown) => {
-    const normalizedPhase = normalizePhase(phase || "Clarity");
+    const normalizedPhase = tryParsePhase(phase);
     const normalizedStability = normalizeStability(stability || "Low");
+    if (!normalizedPhase) {
+      return {
+        status: "Your child's current training state is being verified.",
+        meaning: "We are validating the latest conditioning data before showing a phase update.",
+        focus: "The tutor system is reconciling the most recent drill record.",
+      };
+    }
     return PARENT_DASHBOARD_COPY_BY_STATE[normalizedPhase][normalizedStability];
   };
 
@@ -3575,40 +5489,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     isAuthenticated,
     requireRole(["tutor"]),
     async (req: Request, res: Response) => {
-      try {
-        const tutorId = (req as any).dbUser.id;
-        if (req.body?.topicStatePayload) {
-          return res.status(400).json({
-            message: "Topic conditioning state can only be updated via drill submission endpoints.",
-          });
-        }
-        // Parse and type the data
-        const data = insertSessionSchema.parse({
-          ...req.body,
-          tutorId,
-          date: new Date(req.body.date),
-        });
-        // Defensive: ensure studentId and confidenceScoreDelta exist
-        const studentId = (data as any).studentId || (data as any).student_id;
-        const confidenceScoreDelta = (data as any).confidenceScoreDelta || (data as any).confidence_score_delta || 0;
-        const session = await storage.createSession(data);
-        // Update student progress
-        if (studentId) {
-          const student = await storage.getStudent(studentId);
-          if (student) {
-            const sessions = await storage.getSessionsByStudent(studentId);
-            await storage.updateStudentProgress(
-              studentId,
-              sessions.length,
-              confidenceScoreDelta
-            );
-          }
-        }
-        res.json(session);
-      } catch (error) {
-        console.error("Error creating session:", error);
-        res.status(400).json({ message: "Failed to create session" });
-      }
+      return res.status(410).json({
+        message:
+          "Manual tutor session logging is deprecated. Record intro and training activity from the Training tab workflow.",
+      });
     }
   );
 
@@ -3649,107 +5533,357 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return 1;
   };
 
-  const getSessionMetrics = (sessions: any[]) => {
-    const readSessionText = (session: any, camelKey: string, snakeKey: string) => {
-      return String(session?.[camelKey] ?? session?.[snakeKey] ?? "").trim();
-    };
+  const selectLatestParentEnrollment = async ({
+    parentId,
+    primarySelect,
+    fallbackSelect,
+  }: {
+    parentId: string;
+    primarySelect: string;
+    fallbackSelect?: string;
+  }) => {
+    const primaryResult = await supabase
+      .from("parent_enrollments")
+      .select(primarySelect)
+      .eq("user_id", parentId)
+      .order("updated_at", { ascending: false })
+      .limit(1);
 
-    const completedSessions = sessions.length;
-    const bossBattlesCompleted = sessions.reduce(
-      (sum, session) => sum + parseBossBattleCount(session?.bossBattlesDone ?? session?.boss_battles_done),
-      0
-    );
-    const solutionsUnlocked = sessions.filter(
-      (session) =>
-        !!readSessionText(session, "vocabularyNotes", "vocabulary_notes") ||
-        !!readSessionText(session, "methodNotes", "method_notes") ||
-        !!readSessionText(session, "reasonNotes", "reason_notes")
-    ).length;
+    let data = primaryResult.data?.[0] || null;
+    let error: any = primaryResult.error || null;
 
-    const uniqueSessionDays = Array.from(
-      new Set(
-        sessions
-          .map((session) => {
-            const date = new Date(session.date);
-            if (Number.isNaN(date.getTime())) return null;
-            return date.toISOString().slice(0, 10);
-          })
-          .filter((value): value is string => !!value)
-      )
-    ).sort((a, b) => b.localeCompare(a));
+    if (
+      error &&
+      fallbackSelect &&
+      String(error.message || "").includes("assigned_student_id")
+    ) {
+      const fallbackResult = await supabase
+        .from("parent_enrollments")
+        .select(fallbackSelect)
+        .eq("user_id", parentId)
+        .order("updated_at", { ascending: false })
+        .limit(1);
 
-    let currentStreak = 0;
-    if (uniqueSessionDays.length > 0) {
-      let cursor = new Date(`${uniqueSessionDays[0]}T00:00:00.000Z`);
-      for (const sessionDay of uniqueSessionDays) {
-        const currentDay = new Date(`${sessionDay}T00:00:00.000Z`);
-        if (currentDay.getTime() === cursor.getTime()) {
-          currentStreak += 1;
-          cursor.setUTCDate(cursor.getUTCDate() - 1);
-          continue;
-        }
+      data = fallbackResult.data?.[0]
+        ? { ...fallbackResult.data[0], assigned_student_id: null }
+        : null;
+      error = fallbackResult.error || null;
+    }
 
-        break;
+    return { data, error };
+  };
+
+  const resolveCanonicalStudentForEnrollment = async (enrollment: any) => {
+    if (!enrollment) return null;
+
+    if (enrollment.assigned_student_id) {
+      const assignedStudent = await storage.getStudent(enrollment.assigned_student_id);
+      if (assignedStudent) return assignedStudent;
+    }
+
+    if (enrollment.id) {
+      const { data: byEnrollmentId } = await supabase
+        .from("students")
+        .select("*")
+        .eq("parent_enrollment_id", enrollment.id)
+        .order("updated_at", { ascending: false })
+        .limit(1);
+
+      if (byEnrollmentId?.[0]) return byEnrollmentId[0];
+    }
+
+    if (
+      enrollment.id &&
+      enrollment.assigned_tutor_id &&
+      enrollment.user_id &&
+      enrollment.student_full_name &&
+      enrollment.student_grade
+    ) {
+      try {
+        const ensuredStudent = await ensureStudentForEnrollment(enrollment, enrollment.assigned_tutor_id);
+        if (ensuredStudent) return ensuredStudent;
+      } catch (error) {
+        console.error("Failed to ensure canonical student for enrollment:", error);
       }
     }
 
+    if (enrollment.assigned_tutor_id && enrollment.user_id && enrollment.student_full_name) {
+      const { data: byParentAndName } = await supabase
+        .from("students")
+        .select("*")
+        .eq("parent_id", enrollment.user_id)
+        .eq("tutor_id", enrollment.assigned_tutor_id)
+        .eq("name", enrollment.student_full_name)
+        .order("updated_at", { ascending: false })
+        .limit(1);
+
+      if (byParentAndName?.[0]) return byParentAndName[0];
+    }
+
+    return null;
+  };
+
+  const getStudentDashboardStats = async (studentId: string) => {
+    const student = await storage.getStudent(studentId);
+    if (!student) {
+      return {
+        bossBattlesCompleted: 0,
+        solutionsUnlocked: 0,
+        currentStreak: 0,
+        totalSessions: 0,
+        confidenceLevel: 50,
+      };
+    }
+
+    const parseDrillPayload = (value: unknown) => {
+      if (typeof value !== "string") return null;
+      try {
+        return JSON.parse(value);
+      } catch {
+        return null;
+      }
+    };
+
+    const { data: drillRows } = await supabase
+      .from("intro_session_drills")
+      .select("id, scheduled_session_id, training_session_run_id, submitted_at, drill")
+      .eq("student_id", studentId)
+      .order("submitted_at", { ascending: false });
+
+    const { data: trainingRuns } = await supabase
+      .from("training_session_runs")
+      .select("id, scheduled_session_id, topic_count, submitted_at, status")
+      .eq("student_id", studentId)
+      .order("submitted_at", { ascending: false });
+
+    const normalizedTrainingRuns = (trainingRuns || []).filter((row: any) =>
+      ["submitted", "completed"].includes(String(row?.status || "").toLowerCase())
+    );
+
+    const parsedDrills = (drillRows || []).map((row: any) => {
+      const payload = parseDrillPayload(row?.drill);
+      const inferredType =
+        payload?.drillType ||
+        (row?.training_session_run_id ? "training" : "diagnosis");
+
+      return {
+        id: String(row?.id || ""),
+        scheduledSessionId: String(row?.scheduled_session_id || "").trim() || null,
+        trainingSessionRunId: String(row?.training_session_run_id || "").trim() || null,
+        submittedAt: String(row?.submitted_at || "").trim() || null,
+        drillType: String(inferredType || "").trim().toLowerCase(),
+      };
+    });
+
+    const introDrills = parsedDrills.filter((row) => row.drillType === "diagnosis");
+    const trainingDrills = parsedDrills.filter((row) => row.drillType === "training");
+
+    const completedSessionKeys = new Set<string>();
+    introDrills.forEach((row) => {
+      completedSessionKeys.add(row.scheduledSessionId ? `intro:${row.scheduledSessionId}` : `intro:${row.id}`);
+    });
+    normalizedTrainingRuns.forEach((row: any) => {
+      const runId = String(row?.id || "").trim();
+      const scheduledId = String(row?.scheduled_session_id || "").trim();
+      if (scheduledId) {
+        completedSessionKeys.add(`training:${scheduledId}`);
+      } else if (runId) {
+        completedSessionKeys.add(`training:${runId}`);
+      }
+    });
+
+    if (normalizedTrainingRuns.length === 0) {
+      const groupedTrainingRunIds = new Set(
+        trainingDrills
+          .map((row) => row.trainingSessionRunId)
+          .filter((value): value is string => !!value)
+      );
+      groupedTrainingRunIds.forEach((runId) => completedSessionKeys.add(`training:${runId}`));
+    }
+
+    const derivedBossBattles =
+      introDrills.length +
+      (normalizedTrainingRuns.length > 0
+        ? normalizedTrainingRuns.reduce((sum: number, row: any) => sum + Number(row?.topic_count || 0), 0)
+        : trainingDrills.length);
+
+    const derivedSolutionsUnlocked =
+      introDrills.length +
+      (normalizedTrainingRuns.length > 0 ? normalizedTrainingRuns.length : new Set(
+        trainingDrills.map((row) => row.trainingSessionRunId || row.id).filter(Boolean)
+      ).size);
+
+    const { data: commitments } = await supabase
+      .from("student_commitments")
+      .select("streak_count")
+      .eq("student_id", studentId)
+      .eq("is_active", true)
+      .order("streak_count", { ascending: false })
+      .limit(1);
+
+    const currentStreak = Number(commitments?.[0]?.streak_count || 0);
+
     return {
-      completedSessions,
-      bossBattlesCompleted,
-      solutionsUnlocked,
+      bossBattlesCompleted: derivedBossBattles,
+      solutionsUnlocked: derivedSolutionsUnlocked,
       currentStreak,
+      totalSessions: completedSessionKeys.size,
+      confidenceLevel: 50,
     };
   };
 
-  const normalizeComparableName = (value: unknown) => String(value || "").trim().toLowerCase();
-
-  const getCanonicalStudentSessions = async ({
-    tutorId,
-    studentId,
-    studentName,
-    parentId,
-    parentContact,
-  }: {
-    tutorId: string;
-    studentId?: string | null;
-    studentName?: string | null;
-    parentId?: string | null;
-    parentContact?: string | null;
-  }) => {
-    const { data: tutorStudents } = await supabase
-      .from("students")
-      .select("id, name, parent_id, parent_contact")
-      .eq("tutor_id", tutorId);
-
-    const normalizedName = normalizeComparableName(studentName);
-    const normalizedParentContact = normalizeComparableName(parentContact);
-    const candidateIds = Array.from(
-      new Set(
-        (tutorStudents || [])
-          .filter((candidate: any) => {
-            if (studentId && candidate.id === studentId) return true;
-            if (parentId && candidate.parent_id && candidate.parent_id === parentId) return true;
-            if (normalizedParentContact && normalizeComparableName(candidate.parent_contact) === normalizedParentContact) return true;
-            if (normalizedName && normalizeComparableName(candidate.name) === normalizedName) return true;
-            return false;
-          })
-          .map((candidate: any) => candidate.id)
-          .concat(studentId ? [studentId] : [])
-      )
-    );
-
-    if (candidateIds.length === 0) {
-      return [] as any[];
-    }
-
+  const getTTScheduledSessionsByStudent = async (studentId: string) => {
     const { data: sessions } = await supabase
-      .from("tutoring_sessions")
-      .select("*")
-      .eq("tutor_id", tutorId)
-      .in("student_id", candidateIds)
-      .order("date", { ascending: false });
+      .from("scheduled_sessions")
+      .select(SCHEDULED_SESSION_SELECT)
+      .eq("student_id", studentId)
+      .in("status", ["completed", "ready", "live", "confirmed"])
+      .order("scheduled_time", { ascending: false });
 
     return sessions || [];
+  };
+
+  const getTTScheduledSessionsByTutor = async (tutorId: string) => {
+    const { data: sessions } = await supabase
+      .from("scheduled_sessions")
+      .select(SCHEDULED_SESSION_SELECT)
+      .eq("tutor_id", tutorId)
+      .in("status", ["completed", "ready", "live", "confirmed"])
+      .order("scheduled_time", { ascending: false });
+
+    return sessions || [];
+  };
+
+  const getTTScheduledSessionsByTutors = async (tutorIds: string[]) => {
+    if (!tutorIds.length) return [];
+
+    const { data: sessions } = await supabase
+      .from("scheduled_sessions")
+      .select(SCHEDULED_SESSION_SELECT)
+      .in("tutor_id", tutorIds)
+      .in("status", ["completed", "ready", "live", "confirmed"])
+      .order("scheduled_time", { ascending: false });
+
+    return sessions || [];
+  };
+
+  const getTutorSessionFeed = async (tutorId: string, studentId?: string | null) => {
+    let scheduledQuery = supabase
+      .from("scheduled_sessions")
+      .select(SCHEDULED_SESSION_SELECT)
+      .eq("tutor_id", tutorId)
+      .in("status", ["completed", "ready", "live", "confirmed"])
+      .order("scheduled_time", { ascending: false });
+
+    if (studentId) {
+      scheduledQuery = scheduledQuery.eq("student_id", studentId);
+    }
+
+    const { data: scheduledSessions } = await scheduledQuery;
+    const scheduledRows = scheduledSessions || [];
+    const scheduledIds = scheduledRows.map((row: any) => String(row.id || "")).filter(Boolean);
+
+    let trainingRunsQuery = supabase
+      .from("training_session_runs")
+      .select("id, scheduled_session_id, topic_count, submitted_at, status")
+      .eq("tutor_id", tutorId);
+    if (studentId) {
+      trainingRunsQuery = trainingRunsQuery.eq("student_id", studentId);
+    }
+    const { data: trainingRuns } = await trainingRunsQuery;
+
+    let drillRowsQuery = supabase
+      .from("intro_session_drills")
+      .select("id, student_id, scheduled_session_id, training_session_run_id, submitted_at, drill")
+      .eq("tutor_id", tutorId);
+    if (studentId) {
+      drillRowsQuery = drillRowsQuery.eq("student_id", studentId);
+    }
+    const { data: drillRows } = await drillRowsQuery;
+
+    const parseDrillPayload = (value: unknown) => {
+      if (typeof value !== "string") return null;
+      try {
+        return JSON.parse(value);
+      } catch {
+        return null;
+      }
+    };
+
+    const runsByScheduledId = new Map<string, any>();
+    (trainingRuns || []).forEach((row: any) => {
+      const key = String(row?.scheduled_session_id || "").trim();
+      if (key) runsByScheduledId.set(key, row);
+    });
+
+    const drillsByScheduledId = new Map<string, any[]>();
+    (drillRows || []).forEach((row: any) => {
+      const key = String(row?.scheduled_session_id || "").trim();
+      if (!key) return;
+      const bucket = drillsByScheduledId.get(key) || [];
+      bucket.push({
+        ...row,
+        parsed: parseDrillPayload(row?.drill),
+      });
+      drillsByScheduledId.set(key, bucket);
+    });
+
+    const normalized = scheduledRows.map((session: any) => {
+      const scheduledId = String(session?.id || "");
+      const sessionDrills = drillsByScheduledId.get(scheduledId) || [];
+      const trainingRun = runsByScheduledId.get(scheduledId) || null;
+      const dateText = String(session?.scheduled_time || session?.created_at || new Date().toISOString());
+      const startMs = new Date(dateText).getTime();
+      const endMs = new Date(String(session?.scheduled_end || "")).getTime();
+      const duration =
+        Number.isFinite(startMs) && Number.isFinite(endMs) && endMs > startMs
+          ? Math.round((endMs - startMs) / 60000)
+          : session?.type === "training"
+          ? TRAINING_SESSION_DURATION_MINUTES
+          : INTRO_SESSION_DURATION_MINUTES;
+
+      const drillType = session?.type === "training" ? "training" : "diagnosis";
+      const topicCount =
+        session?.type === "training"
+          ? Number(trainingRun?.topic_count || sessionDrills.length || 0)
+          : sessionDrills.length > 0
+          ? 1
+          : 0;
+
+      const primaryDrill = sessionDrills[sessionDrills.length - 1]?.parsed || null;
+      const activeTopic =
+        primaryDrill?.trainingTopic ||
+        primaryDrill?.introTopic ||
+        primaryDrill?.summary?.topic ||
+        null;
+
+      const sessionLabel = session?.type === "training" ? "TT Training Session" : "TT Intro Session";
+      const status = String(session?.status || "").trim() || "completed";
+
+      return {
+        id: scheduledId,
+        tutorId: String(session?.tutor_id || tutorId),
+        studentId: String(session?.student_id || studentId || ""),
+        date: dateText,
+        duration,
+        notes: `${sessionLabel}${activeTopic ? ` | Active Topic: ${activeTopic}` : ""} | Status: ${status}`,
+        vocabularyNotes: session?.type === "training" ? "TT training execution recorded." : "TT intro diagnosis recorded.",
+        methodNotes: activeTopic ? `Active Topic: ${activeTopic}` : null,
+        reasonNotes: primaryDrill?.summary?.nextAction || null,
+        studentResponse:
+          primaryDrill?.summary?.phase && primaryDrill?.summary?.stability
+            ? `Phase: ${primaryDrill.summary.phase} | Stability: ${primaryDrill.summary.stability}`
+            : null,
+        tutorGrowthReflection: null,
+        bossBattlesDone: topicCount > 0 ? String(topicCount) : null,
+        practiceProblems: null,
+        createdAt: String(session?.created_at || dateText),
+      };
+    });
+
+    return normalized.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
   };
 
   const hydrateStudentsWithSessionProgress = async (tutorId: string, students: any[]) => {
@@ -4905,7 +7039,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         res.json({
           assignmentAccepted,
-          introConfirmed: introSession?.status === "confirmed",
+          introConfirmed: ["confirmed", "ready", "live", "completed"].includes(String(introSession?.status || "")),
           introCompleted: inferredIntroCompleted,
           identitySaved: !!student.identitySheetCompletedAt,
           proposalSent: !!latestProposal?.sent_at,
@@ -5109,7 +7243,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
 
-        if (resolvedSession?.status !== "confirmed") {
+        if (!["confirmed", "ready", "live", "completed"].includes(String(resolvedSession?.status || ""))) {
           return res.status(400).json({ message: "Intro session must be confirmed before completing" });
         }
 
@@ -5448,7 +7582,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (!tutor) return null;
 
             const students = await storage.getStudentsByTutor(tutor.id);
-            const sessions = await storage.getSessionsByTutor(tutor.id);
+            const sessions = await getTutorSessionFeed(tutor.id);
             const reflections = await storage.getReflectionsByTutor(tutor.id);
             
             const avgHabitScore =
@@ -6234,7 +8368,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const { podId } = req.params;
         const assignments = await storage.getTutorAssignmentsByPod(podId);
-        const sessions = await storage.getSessionsByPod(podId);
         const tutorIds = assignments.map((a: any) => a.tutorId).filter(Boolean);
         const activeEnrollmentStatuses = ["assigned", "proposal_sent", "session_booked", "report_received", "confirmed"];
         
@@ -6251,7 +8384,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           totalStudents = count || 0;
         }
 
-        const sessionsCompleted = sessions.length;
+        let sessionsCompleted = 0;
+        if (tutorIds.length > 0) {
+          const { count } = await supabase
+            .from("scheduled_sessions")
+            .select("id", { count: "exact", head: true })
+            .in("tutor_id", tutorIds)
+            .eq("status", "completed");
+          sessionsCompleted = count || 0;
+        }
         
         res.json({
           totalTutors,
@@ -6532,12 +8673,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Student not found" });
         }
 
-        // Get tutoring sessions
-        const { data: sessions, error: sessionsError } = await supabase
-          .from("tutoring_sessions")
-          .select("*")
-          .eq("student_id", studentId)
-          .order("session_date", { ascending: false });
+        const sessions = await getTTScheduledSessionsByStudent(studentId);
 
         // Get parent reports
         const { data: parentReports, error: reportsError } = await supabase
@@ -6553,8 +8689,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .eq("student_id", studentId)
           .order("created_at", { ascending: false });
 
-        if (sessionsError || reportsError || feedbackError) {
-          console.error("Error fetching tracking data:", { sessionsError, reportsError, feedbackError });
+        if (reportsError || feedbackError) {
+          console.error("Error fetching tracking data:", { reportsError, feedbackError });
           return res.status(500).json({ message: "Failed to fetch tracking data" });
         }
 
@@ -9078,12 +11214,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req as any).dbUser.id;
       console.log("📋 Fetching assigned tutor for parent:", userId);
 
-      // Get parent's enrollment to find assigned tutor
-      const { data: enrollmentData, error } = await supabase
-        .from("parent_enrollments")
-        .select("assigned_tutor_id")
-        .eq("user_id", userId)
-        .maybeSingle();
+      const { data: enrollmentData, error } = await selectLatestParentEnrollment({
+        parentId: userId,
+        primarySelect: "assigned_tutor_id",
+      });
 
       console.log("📋 Enrollment data:", enrollmentData, "Error:", error);
 
@@ -9685,19 +11819,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("📋 Fetching proposal for parent:", parentId);
 
-      // Get parent's enrollment
-      const { data: enrollment, error: enrollmentError } = await supabase
-        .from("parent_enrollments")
-        .select("id, proposal_id, status")
-        .eq("user_id", parentId)
-        .maybeSingle();
+      const { data: enrollment, error: enrollmentError } = await selectLatestParentEnrollment({
+        parentId,
+        primarySelect: "id, proposal_id, status",
+      });
 
-        // Also fetch math_struggle_areas to fix stale currentTopics in proposals
-        const { data: enrollmentFull } = await supabase
-          .from("parent_enrollments")
-          .select("math_struggle_areas")
-          .eq("user_id", parentId)
-          .maybeSingle();
+      const { data: enrollmentFull } = await selectLatestParentEnrollment({
+        parentId,
+        primarySelect: "math_struggle_areas",
+      });
 
       console.log("📋 Enrollment data:", enrollment, "Error:", enrollmentError);
 
@@ -9737,7 +11867,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get student info separately
       const { data: student } = await supabase
         .from("students")
-        .select("name, grade")
+        .select("name, grade, concept_mastery")
         .eq("id", proposal.student_id)
         .single();
 
@@ -9747,6 +11877,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .select("id, email, user_metadata")
         .eq("id", proposal.tutor_id)
         .single();
+
+      const normalizeTopicConditioningPhase = (value?: string | null) => {
+        const v = String(value || "").toLowerCase();
+        if (v.includes("clarity")) return "Clarity";
+        if (v.includes("structured")) return "Structured Execution";
+        if (v.includes("discomfort")) return "Controlled Discomfort";
+        if (v.includes("time") || v.includes("pressure")) return "Time Pressure Stability";
+        return "Clarity";
+      };
+
+      const normalizeTopicConditioningStability = (value?: string | null) => {
+        const v = String(value || "").toLowerCase();
+        if (v.includes("high maintenance")) return "High Maintenance";
+        if (v.includes("high")) return "High";
+        if (v.includes("medium")) return "Medium";
+        return "Low";
+      };
+
+      const liveTopicConditioning = (() => {
+        const conceptMastery =
+          student?.concept_mastery && typeof student.concept_mastery === "object"
+            ? student.concept_mastery
+            : {};
+        const topicConditioningStore =
+          conceptMastery.topicConditioning && typeof conceptMastery.topicConditioning === "object"
+            ? conceptMastery.topicConditioning
+            : {};
+        const topicsStore =
+          topicConditioningStore.topics && typeof topicConditioningStore.topics === "object"
+            ? topicConditioningStore.topics
+            : {};
+
+        const latestTopic = Object.entries(topicsStore)
+          .map(([topicKey, entry]) => {
+            const topic = String(topicKey || entry?.topic || "").trim();
+            if (!topic) return null;
+
+            const entryPhase = normalizeTopicConditioningPhase(
+              entry?.phase || topicConditioningStore.entry_phase || "Clarity"
+            );
+            const entryStability = normalizeTopicConditioningStability(
+              entry?.stability || topicConditioningStore.stability || "Low"
+            );
+
+            const normalizedHistory = Array.isArray(entry?.history)
+              ? entry.history
+                  .map((item: any) => ({
+                    phase: normalizeTopicConditioningPhase(item?.phase || entryPhase),
+                    stability: normalizeTopicConditioningStability(item?.stability || entryStability),
+                    date: String(item?.date || "").trim(),
+                  }))
+                  .filter((item: any) => !!item.date)
+                  .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+              : [];
+
+            const latest = normalizedHistory[normalizedHistory.length - 1] || {
+              phase: entryPhase,
+              stability: entryStability,
+              date:
+                String(
+                  entry?.lastUpdated ||
+                  entry?.lastUpdatedAt ||
+                  topicConditioningStore.lastUpdated ||
+                  topicConditioningStore.lastUpdatedAt ||
+                  ""
+                ).trim() || new Date().toISOString(),
+            };
+
+            return {
+              topic,
+              entryPhase: latest.phase,
+              stability: latest.stability,
+              lastUpdated: latest.date,
+            };
+          })
+          .filter((item): item is NonNullable<typeof item> => !!item)
+          .sort((a, b) => new Date(a.lastUpdated).getTime() - new Date(b.lastUpdated).getTime())
+          .pop();
+
+        return latestTopic || null;
+      })();
 
       // Combine data and convert to camelCase
       const enrichedProposal = {
@@ -9760,12 +11971,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currentTopics: (proposal.current_topics && proposal.current_topics !== "Onboarding baseline diagnostic")
           ? proposal.current_topics
           : (enrollmentFull?.math_struggle_areas || proposal.current_topics),
-        topicConditioning: buildTopicConditioningMap({
-          ...proposal,
-          current_topics: (proposal.current_topics && proposal.current_topics !== "Onboarding baseline diagnostic")
-            ? proposal.current_topics
-            : (enrollmentFull?.math_struggle_areas || proposal.current_topics),
-        }),
+        topicConditioning:
+          liveTopicConditioning ||
+          buildTopicConditioningMap({
+            ...proposal,
+            current_topics: (proposal.current_topics && proposal.current_topics !== "Onboarding baseline diagnostic")
+              ? proposal.current_topics
+              : (enrollmentFull?.math_struggle_areas || proposal.current_topics),
+          }),
         immediateStruggles: proposal.immediate_struggles,
         gapsIdentified: proposal.gaps_identified,
         tutorNotes: proposal.tutor_notes,
@@ -9893,7 +12106,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Auto-activate the proposal topic for Topic Management/Map only after parent accepts.
       const acceptedTopic = String(proposal?.topic_conditioning_topic || "").trim();
-      const acceptedPhase = normalizePhase(proposal?.topic_conditioning_entry_phase || "Clarity");
+      const acceptedPhase = tryParsePhase(proposal?.topic_conditioning_entry_phase) || "Clarity";
       const acceptedStability = normalizeStability(proposal?.topic_conditioning_stability || "Low");
 
       if (proposal?.student_id && proposal?.tutor_id && acceptedTopic) {
@@ -10437,6 +12650,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/student/sessions", async (req: Request, res: Response) => {
+    try {
+      const studentUserId = (req.session as any).studentUserId;
+      if (!studentUserId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { data: studentUser } = await supabase
+        .from("student_users")
+        .select("student_id")
+        .eq("id", studentUserId)
+        .single();
+
+      if (!studentUser?.student_id) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+
+      const { data: sessions, error } = await supabase
+        .from("scheduled_sessions")
+        .select("id, scheduled_time, scheduled_end, timezone, status, type, workflow_stage, parent_confirmed, tutor_confirmed, google_meet_url, created_at, updated_at")
+        .eq("student_id", studentUser.student_id)
+        .not("status", "in", '("cancelled","flagged")')
+        .order("scheduled_time", { ascending: true });
+
+      if (error) {
+        console.error("Error fetching student sessions:", error);
+        return res.status(500).json({ message: "Failed to fetch student sessions" });
+      }
+
+      res.json({ sessions: sessions || [] });
+    } catch (error) {
+      console.error("Error fetching student sessions:", error);
+      res.status(500).json({ message: "Failed to fetch student sessions" });
+    }
+  });
+
   // Student logout
   app.post("/api/student/logout", async (req: Request, res: Response) => {
     try {
@@ -10477,30 +12726,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Student not found" });
       }
 
-      // Call get_student_stats function
-      const { data, error } = await supabase
-        .rpc("get_student_stats", { p_student_id: studentUser.student_id });
-
-      if (error) {
-        console.error("Error calling get_student_stats:", error);
-        // Return zeros if function doesn't exist yet
-        return res.json({
-          bossBattlesCompleted: 0,
-          solutionsUnlocked: 0,
-          currentStreak: 0,
-          totalSessions: 0,
-          confidenceLevel: 50,
-        });
-      }
-
-      const stats = data?.[0] || {};
-      res.json({
-        bossBattlesCompleted: stats.boss_battles_completed || 0,
-        solutionsUnlocked: stats.solutions_unlocked || 0,
-        currentStreak: stats.current_streak || 0,
-        totalSessions: stats.total_sessions || 0,
-        confidenceLevel: stats.confidence_level || 50,
-      });
+      const stats = await getStudentDashboardStats(studentUser.student_id);
+      res.json(stats);
     } catch (error) {
       console.error("Error fetching student stats:", error);
       res.status(500).json({ message: "Failed to fetch stats" });
@@ -10827,6 +13054,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get student academic profile
+  app.get("/api/student/profile", async (req: Request, res: Response) => {
+    try {
+      const studentUserId = (req.session as any).studentUserId;
+      if (!studentUserId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { data: studentUser } = await supabase
+        .from("student_users")
+        .select("student_id")
+        .eq("id", studentUserId)
+        .single();
+
+      if (!studentUser?.student_id) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+
+      const profile = await storage.getAcademicProfile(studentUser.student_id);
+      res.json(profile || {});
+    } catch (error) {
+      console.error("Error fetching student profile:", error);
+      res.status(500).json({ message: "Failed to fetch student profile" });
+    }
+  });
+
+  app.post("/api/student/profile", async (req: Request, res: Response) => {
+    try {
+      const studentUserId = (req.session as any).studentUserId;
+      if (!studentUserId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { data: studentUser } = await supabase
+        .from("student_users")
+        .select("student_id")
+        .eq("id", studentUserId)
+        .single();
+
+      if (!studentUser?.student_id) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+
+      const profile = await storage.upsertAcademicProfile({
+        studentId: studentUser.student_id,
+        fullName: req.body?.fullName,
+        grade: req.body?.grade,
+        school: req.body?.school,
+        latestTermReport: req.body?.latestTermReport,
+        myThoughts: req.body?.myThoughts,
+        currentChallenges: req.body?.currentChallenges,
+        recentWins: req.body?.recentWins,
+        upcomingExamsProjects: req.body?.upcomingExamsProjects,
+      });
+
+      res.json(profile);
+    } catch (error) {
+      console.error("Error saving student profile:", error);
+      res.status(500).json({ message: "Failed to save student profile" });
+    }
+  });
+
   app.get("/api/student/academic-profile", async (req: Request, res: Response) => {
     try {
       const studentUserId = (req.session as any).studentUserId;
@@ -10859,6 +13147,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get student struggle targets
+  app.get("/api/student/targets", async (req: Request, res: Response) => {
+    try {
+      const studentUserId = (req.session as any).studentUserId;
+      if (!studentUserId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { data: studentUser } = await supabase
+        .from("student_users")
+        .select("student_id")
+        .eq("id", studentUserId)
+        .single();
+
+      if (!studentUser?.student_id) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+
+      const targets = await storage.getStruggleTargets(studentUser.student_id);
+      res.json(targets || []);
+    } catch (error) {
+      console.error("Error fetching student targets:", error);
+      res.status(500).json({ message: "Failed to fetch student targets" });
+    }
+  });
+
+  app.post("/api/student/targets", async (req: Request, res: Response) => {
+    try {
+      const studentUserId = (req.session as any).studentUserId;
+      if (!studentUserId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { data: studentUser } = await supabase
+        .from("student_users")
+        .select("student_id")
+        .eq("id", studentUserId)
+        .single();
+
+      if (!studentUser?.student_id) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+
+      const target = await storage.createStruggleTarget({
+        studentId: studentUser.student_id,
+        subject: req.body?.subject,
+        topicConcept: req.body?.topicConcept,
+        myStruggle: req.body?.myStruggle,
+        strategy: req.body?.strategy,
+        consolidationDate: req.body?.consolidationDate,
+      });
+
+      res.json(target);
+    } catch (error) {
+      console.error("Error creating student target:", error);
+      res.status(500).json({ message: "Failed to create student target" });
+    }
+  });
+
+  app.put("/api/student/targets/:id", async (req: Request, res: Response) => {
+    try {
+      const studentUserId = (req.session as any).studentUserId;
+      if (!studentUserId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { data: studentUser } = await supabase
+        .from("student_users")
+        .select("student_id")
+        .eq("id", studentUserId)
+        .single();
+
+      if (!studentUser?.student_id) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+
+      const existingTargets = await storage.getStruggleTargets(studentUser.student_id);
+      if (!existingTargets.some((target) => String(target.id) === String(req.params.id))) {
+        return res.status(404).json({ message: "Target not found" });
+      }
+
+      const updatedTarget = await storage.updateStruggleTarget(req.params.id, {
+        subject: req.body?.subject,
+        topicConcept: req.body?.topicConcept,
+        myStruggle: req.body?.myStruggle,
+        strategy: req.body?.strategy,
+        consolidationDate: req.body?.consolidationDate,
+        overcame: req.body?.overcame,
+      });
+
+      res.json(updatedTarget || null);
+    } catch (error) {
+      console.error("Error updating student target:", error);
+      res.status(500).json({ message: "Failed to update student target" });
+    }
+  });
+
+  app.delete("/api/student/targets/:id", async (req: Request, res: Response) => {
+    try {
+      const studentUserId = (req.session as any).studentUserId;
+      if (!studentUserId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { data: studentUser } = await supabase
+        .from("student_users")
+        .select("student_id")
+        .eq("id", studentUserId)
+        .single();
+
+      if (!studentUser?.student_id) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+
+      const existingTargets = await storage.getStruggleTargets(studentUser.student_id);
+      if (!existingTargets.some((target) => String(target.id) === String(req.params.id))) {
+        return res.status(404).json({ message: "Target not found" });
+      }
+
+      await storage.deleteStruggleTarget(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting student target:", error);
+      res.status(500).json({ message: "Failed to delete student target" });
+    }
+  });
+
   app.get("/api/student/struggle-targets", async (req: Request, res: Response) => {
     try {
       const studentUserId = (req.session as any).studentUserId;
@@ -10907,29 +13321,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Student not found" });
       }
 
-      const { data: student } = await supabase
-        .from("students")
-        .select("id, name, tutor_id")
-        .eq("id", studentUser.student_id)
-        .maybeSingle();
+      const student = await storage.getStudent(studentUser.student_id);
 
-      if (!student?.tutor_id) {
-        return res.json({
-          topic: null,
-          phase: null,
-          stability: null,
-          stage: "Foundation",
-          lastUpdated: null,
-        });
-      }
-
-      const sessions = await getCanonicalStudentSessions({
-        tutorId: student.tutor_id,
-        studentId: student.id,
-        studentName: student.name,
-      });
-
-      if (!sessions.length) {
+      if (!student?.tutorId) {
         return res.json({
           topic: null,
           phase: null,
@@ -10960,44 +13354,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const cleaned = String(value || "").trim();
         if (!cleaned) return null;
         if (cleaned.toLowerCase() === "onboarding baseline diagnostic") return null;
+        if (cleaned.startsWith("[") && cleaned.endsWith("]")) {
+          try {
+            const parsed = JSON.parse(cleaned);
+            if (Array.isArray(parsed)) {
+              const first = String(parsed[0] || "").trim();
+              if (!first) return null;
+              if (first.toLowerCase() === "onboarding baseline diagnostic") return null;
+              return first;
+            }
+          } catch {
+            // Fall back to the raw cleaned string.
+          }
+        }
         return cleaned;
       };
 
-      const parseObservation = (session: any) => {
-        const noteText = String(session.notes ?? session.session_notes ?? "");
-        const methodText = String(session.methodNotes ?? session.method_notes ?? "");
-        const responseText = String(session.studentResponse ?? session.student_response ?? "");
-
-        const dateSource = session.date ?? session.session_date ?? session.created_at ?? null;
-        const parsedDate = new Date(String(dateSource || ""));
-        if (Number.isNaN(parsedDate.getTime())) {
-          return null;
-        }
-
-        const topicFromNotes = noteText.match(/Active Topic:\s*([^\n\r]+)/i)?.[1]?.trim();
-        const topicFromMethod = methodText.match(/Active Topic:\s*(.+)$/i)?.[1]?.trim();
-        const phaseFromNotes = noteText.match(/Phase Observed in Session:\s*([^\n\r]+)/i)?.[1]?.trim();
-        const phaseFromResponse = responseText.match(/Phase:\s*([^|\n\r]+)/i)?.[1]?.trim();
-        const stabilityFromNotes = noteText.match(/Stability Observed in Session:\s*([^\n\r]+)/i)?.[1]?.trim();
-        const stabilityFromResponse = responseText.match(/Stability:\s*([^|\n\r]+)/i)?.[1]?.trim();
-
-        const topic = sanitizeTopic(topicFromNotes || topicFromMethod);
-        if (!topic) return null;
-
-        return {
-          topic,
-          phase: normalizePhase(phaseFromNotes || phaseFromResponse),
-          stability: normalizeStability(stabilityFromNotes || stabilityFromResponse),
-          date: parsedDate.toISOString(),
-        };
+      const phaseToStage: Record<string, string> = {
+        Clarity: "Foundation",
+        "Structured Execution": "Method",
+        "Controlled Discomfort": "Challenge",
+        "Time Pressure Stability": "Timed Stability",
       };
+      const conceptMastery: any =
+        student.conceptMastery && typeof student.conceptMastery === "object"
+          ? student.conceptMastery
+          : {};
+      const topicConditioningStore: any =
+        conceptMastery.topicConditioning && typeof conceptMastery.topicConditioning === "object"
+          ? conceptMastery.topicConditioning
+          : {};
+      const topicsStore: Record<string, any> =
+        topicConditioningStore.topics && typeof topicConditioningStore.topics === "object"
+          ? topicConditioningStore.topics
+          : {};
 
-      const observations = (sessions || [])
-        .map(parseObservation)
-        .filter((item: any) => !!item)
-        .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      let latest = Object.entries(topicsStore)
+        .map(([topicKey, entry]) => {
+          const topic = sanitizeTopic(topicKey) || sanitizeTopic((entry as any)?.topic) || null;
+          if (!topic) return null;
 
-      if (!observations.length) {
+          const latestPhase = tryParsePhase((entry as any)?.phase) || tryParsePhase(topicConditioningStore.entry_phase);
+          if (!latestPhase) return null;
+          const latestStability = normalizeStability((entry as any)?.stability || topicConditioningStore.stability || "Low");
+          const normalizedHistory = Array.isArray((entry as any)?.history)
+            ? (entry as any).history
+                .map((item: any) => ({
+                  phase: tryParsePhase(item?.phase) || latestPhase,
+                  stability: normalizeStability(item?.stability || latestStability),
+                  date: String(item?.date || "").trim(),
+                }))
+                .filter((item: any) => !!item.date)
+                .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+            : [];
+
+          const resolvedLatest = normalizedHistory[normalizedHistory.length - 1] || {
+            phase: latestPhase,
+            stability: latestStability,
+            date:
+              String(
+                (entry as any)?.lastUpdated ||
+                (entry as any)?.lastUpdatedAt ||
+                topicConditioningStore.lastUpdated ||
+                topicConditioningStore.lastUpdatedAt ||
+                ""
+              ).trim() || new Date().toISOString(),
+          };
+
+          return {
+            topic,
+            phase: resolvedLatest.phase,
+            stability: resolvedLatest.stability,
+            date: resolvedLatest.date,
+          };
+        })
+        .filter((item): item is NonNullable<typeof item> => !!item)
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .pop() || null;
+
+      if (!latest) {
+        const { data: activations } = await supabase
+          .from("topic_conditioning_activations")
+          .select("topic, created_at")
+          .eq("student_id", student.id)
+          .order("created_at", { ascending: true });
+
+        const activation = (activations || [])
+          .map((row: any) => ({
+            topic: sanitizeTopic(row?.topic),
+            date: String(row?.created_at || "").trim(),
+          }))
+          .filter((row: any) => !!row.topic && !!row.date)
+          .pop();
+
+        if (activation) {
+          const activationPhase = tryParsePhase(topicConditioningStore.entry_phase);
+          if (activationPhase) {
+            latest = {
+              topic: activation.topic,
+              phase: activationPhase,
+              stability: normalizeStability(topicConditioningStore.stability || "Low"),
+              date: activation.date,
+            };
+          }
+        }
+      }
+
+      if (!latest) {
         return res.json({
           topic: null,
           phase: null,
@@ -11006,15 +13469,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           lastUpdated: null,
         });
       }
-
-      const latest = observations[observations.length - 1];
-
-      const phaseToStage: Record<string, string> = {
-        Clarity: "Foundation",
-        "Structured Execution": "Method",
-        "Controlled Discomfort": "Challenge",
-        "Time Pressure Stability": "Timed Stability",
-      };
 
       res.json({
         topic: latest.topic,
@@ -11038,28 +13492,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const parentId = (req as any).dbUser.id;
 
-      // Get parent's enrollment to find student
-      const enrollmentWithAssignedStudent = await supabase
-        .from("parent_enrollments")
-        .select("student_full_name, assigned_tutor_id, assigned_student_id, parent_email")
-        .eq("user_id", parentId)
-        .maybeSingle();
-
-      let enrollment: any = enrollmentWithAssignedStudent.data || null;
-      let enrollmentError: any = enrollmentWithAssignedStudent.error || null;
-
-      if (enrollmentError && String(enrollmentError.message || "").includes("assigned_student_id")) {
-        const enrollmentFallback = await supabase
-          .from("parent_enrollments")
-          .select("student_full_name, assigned_tutor_id, parent_email")
-          .eq("user_id", parentId)
-          .maybeSingle();
-
-        enrollment = enrollmentFallback.data
-          ? { ...enrollmentFallback.data, assigned_student_id: null }
-          : null;
-        enrollmentError = enrollmentFallback.error || null;
-      }
+      const { data: enrollment, error: enrollmentError } = await selectLatestParentEnrollment({
+        parentId,
+        primarySelect: "id, user_id, student_full_name, student_grade, assigned_tutor_id, assigned_student_id, parent_email",
+        fallbackSelect: "id, user_id, student_full_name, student_grade, assigned_tutor_id, parent_email",
+      });
 
       if (enrollmentError) {
         return res.status(500).json({ message: "Failed to fetch enrollment" });
@@ -11076,46 +13513,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      let studentId = enrollment.assigned_student_id || null;
+      const studentRecord = await resolveCanonicalStudentForEnrollment(enrollment);
+      const studentId = studentRecord?.id || enrollment.assigned_student_id || null;
 
-      if (!studentId) {
-        const { data: student } = await supabase
-          .from("students")
-          .select("id")
-          .eq("name", enrollment.student_full_name)
-          .eq("tutor_id", enrollment.assigned_tutor_id)
-          .maybeSingle();
-
-        studentId = student?.id || null;
-      }
-
-      const sessions = await getCanonicalStudentSessions({
-        tutorId: enrollment.assigned_tutor_id,
-        studentId,
-        studentName: enrollment.student_full_name,
-        parentId,
-        parentContact: enrollment.parent_email || null,
-      });
-      const stats = getSessionMetrics(sessions);
-
-      const matchedStudentIds = Array.from(
-        new Set(
-          sessions
-            .map((session: any) => session?.student_id)
-            .filter((id: unknown): id is string => typeof id === "string" && id.length > 0)
-        )
-      );
+      const stats = studentId
+        ? await getStudentDashboardStats(studentId)
+        : {
+            bossBattlesCompleted: 0,
+            solutionsUnlocked: 0,
+            currentStreak: 0,
+            totalSessions: 0,
+            confidenceLevel: 50,
+          };
 
       // Get commitments count
       let commitments: any[] | null = null;
-      if (matchedStudentIds.length > 0) {
-        const { data } = await supabase
-          .from("student_commitments")
-          .select("id")
-          .in("student_id", matchedStudentIds)
-          .eq("is_active", true);
-        commitments = data || [];
-      } else if (studentId) {
+      if (studentId) {
         const { data } = await supabase
           .from("student_commitments")
           .select("id")
@@ -11128,7 +13541,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bossBattlesCompleted: stats.bossBattlesCompleted,
         solutionsUnlocked: stats.solutionsUnlocked,
         confidenceGrowth: 50,
-        sessionsCompleted: stats.completedSessions,
+        sessionsCompleted: stats.totalSessions,
         currentStreak: stats.currentStreak,
         totalCommitments: commitments?.length || 0,
       });
@@ -11143,15 +13556,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const parentId = (req as any).dbUser.id;
 
-      const { data: enrollment, error: enrollmentError } = await supabase
-        .from("parent_enrollments")
-        .select(`
-          student_full_name, 
-          student_grade,
-          assigned_tutor_id
-        `)
-        .eq("user_id", parentId)
-        .maybeSingle();
+      const { data: enrollment, error: enrollmentError } = await selectLatestParentEnrollment({
+        parentId,
+        primarySelect: "id, user_id, student_full_name, student_grade, assigned_tutor_id, assigned_student_id, parent_email",
+        fallbackSelect: "id, user_id, student_full_name, student_grade, assigned_tutor_id, parent_email",
+      });
 
       if (enrollmentError) {
         console.error("Error fetching parent enrollment:", enrollmentError);
@@ -11160,6 +13569,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!enrollment) {
         return res.status(404).json({ message: "No enrollment found" });
       }
+
+      const studentRecord = await resolveCanonicalStudentForEnrollment(enrollment);
 
       // Get tutor's pod if assigned
       let podName = null;
@@ -11181,14 +13592,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log("📊 Parent student info response:", {
-        name: enrollment.student_full_name,
-        grade: enrollment.student_grade,
+        name: studentRecord?.name || enrollment.student_full_name,
+        grade: studentRecord?.grade || enrollment.student_grade,
         podName: podName,
       });
 
       res.json({
-        name: enrollment.student_full_name,
-        grade: enrollment.student_grade,
+        name: studentRecord?.name || enrollment.student_full_name,
+        grade: studentRecord?.grade || enrollment.student_grade,
         podName: podName,
       });
     } catch (error) {
@@ -11201,27 +13612,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const parentId = (req as any).dbUser.id;
 
-      const enrollmentWithAssignedStudent = await supabase
-        .from("parent_enrollments")
-        .select("student_full_name, assigned_tutor_id, assigned_student_id, parent_email")
-        .eq("user_id", parentId)
-        .maybeSingle();
-
-      let enrollment: any = enrollmentWithAssignedStudent.data || null;
-      let enrollmentError: any = enrollmentWithAssignedStudent.error || null;
-
-      if (enrollmentError && String(enrollmentError.message || "").includes("assigned_student_id")) {
-        const enrollmentFallback = await supabase
-          .from("parent_enrollments")
-          .select("student_full_name, assigned_tutor_id, parent_email")
-          .eq("user_id", parentId)
-          .maybeSingle();
-
-        enrollment = enrollmentFallback.data
-          ? { ...enrollmentFallback.data, assigned_student_id: null }
-          : null;
-        enrollmentError = enrollmentFallback.error || null;
-      }
+      const { data: enrollment, error: enrollmentError } = await selectLatestParentEnrollment({
+        parentId,
+        primarySelect: "id, user_id, student_full_name, student_grade, assigned_tutor_id, assigned_student_id, parent_email",
+        fallbackSelect: "id, user_id, student_full_name, student_grade, assigned_tutor_id, parent_email",
+      });
 
       if (enrollmentError) {
         return res.status(500).json({ message: "Failed to fetch enrollment" });
@@ -11238,19 +13633,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return cleaned;
       };
 
-      let studentRecord: any = null;
-      if (enrollment.assigned_student_id) {
-        studentRecord = await storage.getStudent(enrollment.assigned_student_id);
-      }
-
-      if (!studentRecord) {
-        const tutorStudents = await storage.getStudentsByTutor(enrollment.assigned_tutor_id);
-        studentRecord = tutorStudents.find(
-          (student: any) =>
-            String(student?.name || "").trim().toLowerCase() ===
-            String(enrollment.student_full_name || "").trim().toLowerCase()
-        );
-      }
+      const studentRecord = await resolveCanonicalStudentForEnrollment(enrollment);
 
       if (!studentRecord) return res.json([]);
 
@@ -11273,13 +13656,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const topic = sanitizeTopic(topicKey) || sanitizeTopic(entry?.topic) || null;
           if (!topic) return null;
 
-          const latestPhase = normalizePhase(entry?.phase || topicConditioningStore.entry_phase || "Clarity");
+          const latestPhase = tryParsePhase(entry?.phase) || tryParsePhase(topicConditioningStore.entry_phase);
+          if (!latestPhase) return null;
           const latestStability = normalizeStability(entry?.stability || topicConditioningStore.stability || "Low");
 
           const normalizedHistory = Array.isArray(entry?.history)
             ? entry.history
                 .map((item: any) => ({
-                  phase: normalizePhase(item?.phase || latestPhase),
+                  phase: tryParsePhase(item?.phase) || latestPhase,
                   stability: normalizeStability(item?.stability || latestStability),
                   date: String(item?.date || "").trim(),
                 }))
@@ -11338,7 +13722,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
         });
 
-      res.json(rows);
+      const dedupedRows = Array.from(
+        rows.reduce((map, row) => {
+          const key = String(row.topic || "").trim().toLowerCase();
+          const existing = map.get(key);
+
+          if (!existing) {
+            map.set(key, row);
+            return map;
+          }
+
+          const existingDate = new Date(existing.lastUpdated || 0).getTime();
+          const rowDate = new Date(row.lastUpdated || 0).getTime();
+
+          if (rowDate >= existingDate) {
+            map.set(key, row);
+          }
+
+          return map;
+        }, new Map<string, any>())
+        .values()
+      ).sort((a, b) => {
+        if (a.bucket !== b.bucket) return a.bucket === "active" ? -1 : 1;
+        return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
+      });
+
+      res.json(dedupedRows);
     } catch (error) {
       console.error("Error fetching parent topic conditioning states:", error);
       res.status(500).json({ message: "Failed to fetch topic conditioning states" });
@@ -11385,13 +13794,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const topic = sanitizeTopic(topicKey) || sanitizeTopic(entry?.topic) || null;
           if (!topic) return null;
 
-          const latestPhase = normalizePhase(entry?.phase || topicConditioningStore.entry_phase || "Clarity");
+          const latestPhase = tryParsePhase(entry?.phase) || tryParsePhase(topicConditioningStore.entry_phase);
+          if (!latestPhase) return null;
           const latestStability = normalizeStability(entry?.stability || topicConditioningStore.stability || "Low");
 
           const normalizedHistory = Array.isArray(entry?.history)
             ? entry.history
                 .map((item: any) => ({
-                  phase: normalizePhase(item?.phase || latestPhase),
+                  phase: tryParsePhase(item?.phase) || latestPhase,
                   stability: normalizeStability(item?.stability || latestStability),
                   date: String(item?.date || "").trim(),
                 }))

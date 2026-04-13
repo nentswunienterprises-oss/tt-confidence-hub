@@ -69,11 +69,21 @@ const CLEAR_KEYWORDS = [
   "did not seek rescue",
 ];
 
+const CLEAR_PRIORITY_PHRASES = [
+  "without collapse",
+  "did not seek rescue",
+  "no rescue",
+];
+
 export function normalizeObservationLevelValue(value: unknown): ObservationLevel {
   const v = String(value || "").toLowerCase().trim();
   if (!v) return "weak";
   if (v === "weak" || v === "partial" || v === "clear") return v;
   if (v === "none") return "weak";
+
+  if (CLEAR_PRIORITY_PHRASES.some((phrase) => v.includes(phrase))) {
+    return "clear";
+  }
 
   if (WEAK_KEYWORDS.some((keyword) => v.includes(keyword))) {
     return "weak";

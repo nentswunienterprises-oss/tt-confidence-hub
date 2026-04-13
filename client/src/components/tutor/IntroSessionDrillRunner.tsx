@@ -3,6 +3,7 @@ import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { observationLevelFromOptionIndex } from "@shared/observationScoring";
+import { tryParsePhase } from "@shared/topicConditioningEngine";
 import { useStudentWorkflowState } from "@/hooks/useStudentWorkflowState";
 
 type PhaseLabel = "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability";
@@ -469,12 +470,7 @@ const TRAINING_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
 };
 
 function normalizePhase(value: string | null): PhaseLabel {
-  const v = String(value || "").toLowerCase();
-  if (v.includes("clarity")) return "Clarity";
-  if (v.includes("structured")) return "Structured Execution";
-  if (v.includes("discomfort")) return "Controlled Discomfort";
-  if (v.includes("time") || v.includes("pressure")) return "Time Pressure Stability";
-  return "Clarity";
+  return tryParsePhase(value) || "Clarity";
 }
 
 function buildDrillStructure(mode: DrillMode, phase: PhaseLabel) {
@@ -504,7 +500,10 @@ export default function IntroSessionDrillRunner() {
 
   const drillMode: DrillMode = searchParams.get("mode") === "training" ? "training" : searchParams.get("mode") === "session" ? "session" : "diagnosis";
   const isSessionMode = drillMode === "session";
-  const phase = normalizePhase(searchParams.get("phase"));
+  const scheduledSessionId = searchParams.get("scheduledSessionId") || "";
+  const rawPhase = searchParams.get("phase");
+  const parsedLaunchPhase = tryParsePhase(rawPhase);
+  const phase = parsedLaunchPhase || "Clarity";
   const previousStability = String(searchParams.get("stability") || "").trim() || null;
 
   const introTopic = useMemo(() => {
@@ -535,6 +534,24 @@ export default function IntroSessionDrillRunner() {
     : introTopic;
   const { data: workflow, isLoading: workflowLoading } = useStudentWorkflowState(studentId || "");
   const assignmentAccepted = workflow?.assignmentAccepted ?? true;
+  const sessionKind = drillMode === "diagnosis" ? "intro" : "training";
+
+  const {
+    data: drillSessionAccess,
+    isLoading: drillSessionAccessLoading,
+  } = useQuery<any>({
+    queryKey: ["/api/tutor/drill-session-access", studentId, sessionKind, scheduledSessionId],
+    queryFn: async () => {
+      const params = new URLSearchParams({ kind: sessionKind });
+      if (scheduledSessionId) params.set("sessionId", scheduledSessionId);
+      const res = await axios.get(`/api/tutor/students/${studentId}/drill-session-access?${params.toString()}`);
+      return res.data;
+    },
+    enabled: !!studentId,
+    retry: false,
+  });
+  const canUseScheduledSession = drillSessionAccess?.canLaunch ?? false;
+  const scheduledSession = drillSessionAccess?.session || null;
 
   const modeToUse: DrillMode = isSessionMode ? "training" : drillMode;
   const drillStructure = useMemo(() => {
@@ -654,6 +671,34 @@ export default function IntroSessionDrillRunner() {
     return setConfig.reps;
   };
 
+  const serializeSetForSubmission = (setConfig: DrillSetConfig, setIndex: number) => {
+    const repCount = getSubmissionRepCount(setConfig);
+    if (setConfig.isModelingSet) {
+      return {
+        setName: setConfig.setName,
+        reps: repCount,
+        observations: [],
+      };
+    }
+
+    return {
+      setName: setConfig.setName,
+      reps: repCount,
+      observations: Array.from({ length: repCount }).map((_, repIdx) => {
+        const obs: Record<string, string> = {};
+        const observationBlock = getObservationBlockForRep(setConfig, repIdx);
+        observationBlock.forEach((block) => {
+          const selectedLabel = observations[`set${setIndex}_rep${repIdx}_${block.key}`] || "";
+          const optionIndex = block.options.findIndex((option) => option === selectedLabel);
+          const selectedLevel = observationLevelFromOptionIndex(optionIndex, block.options.length);
+          obs[block.key] = selectedLabel;
+          obs[`${block.key}_level`] = selectedLevel;
+        });
+        return obs;
+      }),
+    };
+  };
+
   const handleNext = async () => {
     if (!drillStructure) {
       setSubmitError("Drill structure is loading. Please wait.");
@@ -662,6 +707,18 @@ export default function IntroSessionDrillRunner() {
 
     if (!isSessionMode && !hasIntroTopic) {
       setSubmitError("Diagnostic topic is required. Please return and set Add Diagnostic Topic first.");
+      return;
+    }
+    if (!isSessionMode && !parsedLaunchPhase) {
+      setSubmitError("Invalid drill phase. Relaunch the drill from the student card or topic map.");
+      return;
+    }
+    if (!canUseScheduledSession) {
+      setSubmitError(
+        drillMode === "diagnosis"
+          ? "A confirmed TT intro session is required before running this drill."
+          : "A launch-ready TT training lesson is required before running this drill."
+      );
       return;
     }
 
@@ -684,22 +741,7 @@ export default function IntroSessionDrillRunner() {
           trainingTopic: currentTopicName,
           phase: currentTopicPhase,
           previousStability: currentTopicStability,
-          drill: drillStructure.map((set, setIdx) => ({
-            setName: set.setName,
-            reps: getSubmissionRepCount(set),
-            observations: Array.from({ length: getSubmissionRepCount(set) }).map((_, repIdx) => {
-              const obs: Record<string, string> = {};
-              const observationBlock = getObservationBlockForRep(set, repIdx);
-              observationBlock.forEach((block) => {
-                const selectedLabel = observations[`set${setIdx}_rep${repIdx}_${block.key}`] || "";
-                const optionIndex = block.options.findIndex((option) => option === selectedLabel);
-                const selectedLevel = observationLevelFromOptionIndex(optionIndex, block.options.length);
-                obs[block.key] = selectedLabel;
-                obs[`${block.key}_level`] = selectedLevel;
-              });
-              return obs;
-            }),
-          })),
+          drill: drillStructure.map((set, setIdx) => serializeSetForSubmission(set, setIdx)),
         };
         
         setSessionResults(prev => [...prev, drillResult]);
@@ -734,22 +776,7 @@ export default function IntroSessionDrillRunner() {
           previousStability: isSessionMode ? currentTopicStability : previousStability,
           // IMPORTANT: Include all sets from drillStructure - no filtering
           // Training drills MUST have exactly 3 sets per validation rules
-          drill: drillStructure.map((set, setIdx) => ({
-            setName: set.setName,
-            reps: getSubmissionRepCount(set),
-            observations: Array.from({ length: getSubmissionRepCount(set) }).map((_, repIdx) => {
-              const obs: Record<string, string> = {};
-              const observationBlock = getObservationBlockForRep(set, repIdx);
-              observationBlock.forEach((block) => {
-                const selectedLabel = observations[`set${setIdx}_rep${repIdx}_${block.key}`] || "";
-                const optionIndex = block.options.findIndex((option) => option === selectedLabel);
-                const selectedLevel = observationLevelFromOptionIndex(optionIndex, block.options.length);
-                obs[block.key] = selectedLabel;
-                obs[`${block.key}_level`] = selectedLevel;
-              });
-              return obs;
-            }),
-          })),
+          drill: drillStructure.map((set, setIdx) => serializeSetForSubmission(set, setIdx)),
         };
 
         // Collect all drills (for multi-topic sessions, include previous + current)
@@ -765,10 +792,12 @@ export default function IntroSessionDrillRunner() {
               drill: currentDrill.drill,
               introTopic: currentDrill.trainingTopic,
               phase: currentDrill.phase,
+              scheduledSessionId,
             }
           : {
               studentId,
               sessionDrills: allDrills,
+              scheduledSessionId,
             };
         const res = await axios.post(endpoint, payload);
         
@@ -818,6 +847,58 @@ export default function IntroSessionDrillRunner() {
 
   return (
     <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-4">
+      {drillSessionAccessLoading && (
+        <div className="mb-4 p-3 rounded-md border border-primary/20 bg-primary/5">
+          <p className="text-sm">Validating TT lesson context...</p>
+        </div>
+      )}
+      {!drillSessionAccessLoading && !canUseScheduledSession && (
+        <div className="space-y-4">
+          <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-amber-900">
+            <p className="font-semibold">Live lesson context required</p>
+            <p className="mt-2 text-sm">
+              {drillMode === "diagnosis"
+                ? "Return to the student card and launch this intro drill from the confirmed TT intro lesson."
+                : "Return to Topic Conditioning and launch this drill from a live or imminently scheduled TT training lesson."}
+            </p>
+          </div>
+          <div className="flex justify-end">
+            <button
+              type="button"
+              className="px-4 py-2 rounded-md border border-primary/20 bg-background hover:bg-primary/5"
+              onClick={handleExitToPod}
+            >
+              Back to Pod
+            </button>
+          </div>
+        </div>
+      )}
+      {canUseScheduledSession && scheduledSession && (
+        <div className="rounded-md border border-primary/20 bg-primary/5 p-3 space-y-2">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">TT Lesson</p>
+          <p className="text-sm font-medium">
+            {new Date(scheduledSession.scheduled_time).toLocaleString()}
+          </p>
+          <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+            <span>Status: {scheduledSession.status}</span>
+            <span>Type: {scheduledSession.type}</span>
+          </div>
+          {scheduledSession.google_meet_url ? (
+            <a
+              href={scheduledSession.google_meet_url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex text-sm text-primary underline underline-offset-2"
+            >
+              Join Meet
+            </a>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Meet link pending calendar sync.
+            </p>
+          )}
+        </div>
+      )}
       {(drillMode === "training" || isSessionMode) && workflowLoading && (
         <div className="mb-4 p-3 rounded-md border border-primary/20 bg-primary/5">
           <p className="text-sm">Checking assignment access...</p>
@@ -842,7 +923,7 @@ export default function IntroSessionDrillRunner() {
           </div>
         </div>
       )}
-      {!((drillMode === "training" || isSessionMode) && !workflowLoading && !assignmentAccepted) && (
+      {!drillSessionAccessLoading && canUseScheduledSession && !((drillMode === "training" || isSessionMode) && !workflowLoading && !assignmentAccepted) && (
       <>
       {(!drillStructure || (isSessionMode && topicDataLoading)) && (
         <div className="mb-4 p-3 rounded-md border border-primary/20 bg-primary/5">
@@ -898,8 +979,11 @@ export default function IntroSessionDrillRunner() {
             : "text-red-700";
         const resultLabelFor = (row: any, topicName: string) => {
           const transitionReason = String(row?.transitionReason || row?.phaseDecision || "remain").toLowerCase();
-          if (transitionReason === "phase progress" || row?.phaseDecision === "advance") {
+          if ((transitionReason === "phase progress" || row?.phaseDecision === "advance") && row?.phaseBefore !== row?.phase) {
             return `${topicName}: phase advanced to ${row?.phase} at ${row?.stability} stability`;
+          }
+          if (row?.phase === "Time Pressure Stability" && row?.stability === "High Maintenance") {
+            return `${topicName}: sustained final-phase maintenance in ${row?.phase}`;
           }
           if (transitionReason === "stability regress" || row?.phaseDecision === "regress") {
             return `${topicName}: stability regressed to ${row?.stability} in ${row?.phase}`;

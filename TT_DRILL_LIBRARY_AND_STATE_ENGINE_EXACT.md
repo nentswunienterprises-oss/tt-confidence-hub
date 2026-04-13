@@ -15,10 +15,22 @@ Derived from:
 - `session` mode uses the training drill library for each selected topic.
 - `diagnosis` mode uses `DIAGNOSIS_SETS_BY_PHASE`.
 - `training` mode uses `TRAINING_SETS_BY_PHASE`.
-- Observation scoring is positional:
+- Observation scoring is authoritative from explicit `*_level` fields:
   - first option => `weak`
   - middle option => `partial`
   - last option => `clear`
+- Raw label text is no longer the source of truth for drill scoring in authoritative paths.
+- Authoritative phase parsing is strict:
+  - unknown or missing phases are rejected in drill submission and deterministic report reconstruction
+  - silent phase fallback is UI-only, not algorithmic
+- Drill validation is exact:
+  - set count must match the phase library exactly
+  - set order and set names must match exactly
+  - rep counts must match exactly
+  - required observation levels must be present for every scored rep
+- Clarity training Set 1 (`Modeling`) is non-scored:
+  - it is submitted with `observations: []`
+  - any scored observation payload for that set is invalid
 - `getObservationBlockForRep`:
   - uses rep-specific `repObservationBlocks` when present
   - otherwise reuses the same `observationBlock` for every rep
@@ -511,14 +523,20 @@ Thresholds:
 - From `High Maintenance`:
   - `0-59` => regress to `High`
   - `60-84` => remain `High Maintenance`
-  - `85-100` => `phase progress`, move to next phase at `Low`
+  - `85-100` =>
+    - non-final phase => `phase progress`, move to next phase at `Low`
+    - final phase (`Time Pressure Stability`) => remain `High Maintenance`
 
 Phase progression rule:
 
 - Only legal when previous stability is `High Maintenance` and score is `>= 85`
-- `next_phase = getNextPhase(previous_phase)`
-- `next_stability = Low`
-- If already in final phase, `getNextPhase` returns current phase, so final-phase `High Maintenance` + `85+` produces the same phase at `Low` with `phase progress`
+- Non-final phases:
+  - `next_phase = getNextPhase(previous_phase)`
+  - `next_stability = Low`
+- Final phase:
+  - do not reset to `Low`
+  - remain `Time Pressure Stability + High Maintenance`
+  - transition reason stays `remain`
 
 ## 2. Next-action engine
 
@@ -663,6 +681,17 @@ Source: `shared/topicConditioningEngine.ts`
   - Clear => `more controlled pace`
 - Fallback: `no mapped observation signal detected`
 
+Important report-generation rule:
+
+- these mapped labels are comparative-style labels
+- single-session behavior summaries now convert them into absolute wording when no comparison baseline exists
+- examples:
+  - `clearer concept recall` -> `clear concept recall`
+  - `more reliable step execution` -> `reliable step execution`
+  - `more independent execution` -> `independent execution`
+  - `earlier independent starts` -> `independent starts`
+  - `more controlled pace` -> `controlled pace`
+
 ## 5. Parent translation engine
 
 Actual parent meaning source for dashboard state copy:
@@ -671,6 +700,11 @@ Actual parent meaning source for dashboard state copy:
 - constant name in current code: `PARENT_STATE_ENGINE`
 
 This is the phase-specific parent dashboard matrix to use for `status`, `meaning`, and `focus`.
+
+If phase data is invalid in parent-facing state reconstruction:
+
+- do not invent a real TT phase
+- return neutral verification copy instead of silently coercing to `Clarity`
 
 ### Clarity
 
@@ -823,3 +857,146 @@ This is a separate full `phase × stability` parent-copy matrix.
 - High Maintenance:
   - Status: `has repeatedly sustained structured execution under timed pressure`
   - Meaning: `is in maintenance mode and will continue with mixed practice to preserve transfer-ready stability`
+
+## 7. Deterministic report and session-log language
+
+Source: `server/routes.ts`
+
+The report/session-log structure stays the same, but the wording inside it is now context-aware.
+
+Affected fields:
+
+- `Behavior Summary`
+- `Performance Result`
+- `State Update`
+- `What This Means`
+- weekly `What Improved`
+- weekly `System Movement`
+- monthly `What Became Stronger`
+- monthly `System Outcome`
+
+### Session-log wording rules
+
+#### Behavior Summary
+
+- Single-session summaries use absolute wording, not comparative wording.
+- Example conversions:
+  - `clearer concept recall` -> `clear concept recall`
+  - `more reliable step execution` -> `reliable step execution`
+  - `more independent execution` -> `independent execution`
+  - `earlier independent starts` -> `independent starts`
+  - `more controlled pace` -> `controlled pace`
+
+#### Performance Result
+
+- If phase did not change:
+  - `Based on performance, stability is now <stability> in <phase> (<score>/100).`
+- If phase progressed:
+  - `Based on performance, phase is now <phase> and stability is <stability> (<score>/100).`
+- If final-phase maintenance held:
+  - `Based on performance, phase remains Time Pressure Stability at High Maintenance (<score>/100).`
+
+#### State Update
+
+- Do not use bare engine labels like `phase progressed`.
+- Use explicit movement text:
+  - `Phase progressed from Clarity to Structured Execution.`
+  - `Stability improved from Medium to High within Controlled Discomfort.`
+  - `Stability regressed from High to Medium within Structured Execution.`
+  - `State remained at Time Pressure Stability High Maintenance.`
+
+#### What This Means
+
+- Meaning is context-aware, not state-only.
+- Entry wording is used for:
+  - diagnosis output
+  - first entry into a new phase
+- Ongoing wording is used for:
+  - same-phase hold
+- Regression wording is used for:
+  - stability regressions
+- Final-maintenance wording is used for:
+  - `Time Pressure Stability + High Maintenance`
+
+Examples:
+
+- Structured Execution entry:
+  - `Student can begin Structured Execution but needs consistency without tutor carry.`
+- Structured Execution ongoing:
+  - `Student is in Structured Execution and still needs consistency without tutor carry.`
+- Regression:
+  - `Student showed enough instability that Structured Execution must be reinforced before progressing.`
+- Final maintenance:
+  - `Student is sustaining final-phase control and is now in maintenance and transfer territory.`
+
+### Weekly report wording rules
+
+#### What Improved
+
+- If a topic had phase progression during the week, lead with the phase event.
+- Example:
+  - `Fractions: progressed from Clarity to Structured Execution with clear concept recall and reliable step execution`
+- If there was no phase progression, use stability/behavior improvement language.
+
+#### Response Pattern
+
+- Use absolute labels, not comparative labels.
+- Example:
+  - `Fractions: clear concept recall and reliable step execution`
+
+#### System Movement
+
+- Make movement topic-specific.
+- Examples:
+  - `Fractions: entered Structured Execution`
+  - `Equations: improved stability inside Controlled Discomfort`
+  - `Speed Drills: sustained final-phase maintenance`
+  - `Algebra: reinforced Structured Execution`
+
+#### What This Means
+
+- Use parent meaning that matches the actual event:
+  - phase entry
+  - hold
+  - regression
+  - final maintenance
+
+### Monthly report wording rules
+
+#### What Became Stronger
+
+- If the month includes phase progression, lead with progression.
+- Example:
+  - `Fractions: progressed from Clarity to Structured Execution with clear concept recall and reliable step execution`
+
+#### Response Trend
+
+- Avoid vague fallback phrases like `consistent mapped response pattern`.
+- Use plain-language trend wording instead, for example:
+  - `showed a more consistent response pattern`
+
+#### System Outcome
+
+- Make monthly outcome topic-specific.
+- Examples:
+  - `Fractions: advanced into Structured Execution`
+  - `Algebra: held in Controlled Discomfort`
+  - `Speed Drills: remained in final-phase maintenance`
+  - `Equations: improved within Structured Execution`
+
+#### What This Means
+
+- Use the same context-aware parent meaning logic as weekly/session generation.
+
+### Reporting-context flags
+
+The live formatter now distinguishes between:
+
+- `phase progress`
+- same-phase stability advance
+- same-phase stability regress
+- state hold
+- final-phase maintenance
+- no valid comparison baseline vs valid comparison baseline
+
+That distinction is required to keep wording aligned with the actual TT state change.

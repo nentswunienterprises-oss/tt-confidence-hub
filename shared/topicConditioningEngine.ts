@@ -36,6 +36,8 @@ export type TransitionReason =
   | "stability regress"
   | "phase progress";
 
+export const FINAL_PHASE: TopicPhase = "Time Pressure Stability";
+
 /**
  * Locked Transition Engine - TT Drift Correction Spec
  * Inputs: previous_phase, previous_stability, drill_total_out_of_100
@@ -94,10 +96,17 @@ export const computeTransition = (
       next_stability = "High Maintenance";
       transition_reason = "remain";
     } else {
-      // Phase progress is only legal when previous_stability = High Maintenance and score >= 85
-      next_phase = getNextPhase(previous_phase);
-      next_stability = "Low";
-      transition_reason = "phase progress";
+      // Final-phase topics do not reset to Low on a strong maintenance check.
+      // They stay in maintenance because there is no further in-sequence phase to enter.
+      if (previous_phase === FINAL_PHASE) {
+        next_phase = previous_phase;
+        next_stability = "High Maintenance";
+        transition_reason = "remain";
+      } else {
+        next_phase = getNextPhase(previous_phase);
+        next_stability = "Low";
+        transition_reason = "phase progress";
+      }
     }
   }
 
@@ -500,12 +509,16 @@ export const NEXT_ACTION_ENGINE: Record<TopicPhase, Record<TopicStability, NextA
 };
 
 export const normalizePhase = (value: unknown): TopicPhase => {
+  return tryParsePhase(value) || "Clarity";
+};
+
+export const tryParsePhase = (value: unknown): TopicPhase | null => {
   const v = String(value || "").toLowerCase();
   if (v.includes("clarity")) return "Clarity";
   if (v.includes("structured")) return "Structured Execution";
   if (v.includes("discomfort")) return "Controlled Discomfort";
   if (v.includes("time") || v.includes("pressure")) return "Time Pressure Stability";
-  return "Structured Execution";
+  return null;
 };
 
 export const normalizeStability = (value: unknown): TopicStability => {
