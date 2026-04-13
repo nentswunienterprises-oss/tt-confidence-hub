@@ -3,6 +3,94 @@ import { ArrowLeft, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
+const trainingSets = [
+  {
+    name: "Structure Under Timer",
+    reps: "3 reps",
+    purpose: "Build structured execution under a timer with method still prioritized over speed.",
+    instruction: "Focus on method, not speed.",
+    rules: [
+      "Timer active.",
+      "Method priority, not speed.",
+      "Structure must be maintained throughout.",
+    ],
+  },
+  {
+    name: "Repeated Timed Execution",
+    reps: "3 reps",
+    purpose: "Build consistency under repeated timed attempts using the same time constraint.",
+    instruction: "Repeat under timer.",
+    rules: [
+      "Same timer constraint.",
+      "Build consistency, not just completion.",
+      "Observe pace regulation.",
+    ],
+  },
+  {
+    name: "Full Constraint",
+    reps: "3 reps",
+    purpose: "Tighter timed exposure where structure and completion integrity are both tested.",
+    instruction: "Solve under tighter time.",
+    rules: [
+      "Tighter timer.",
+      "Full constraint with no relief.",
+      "Structure and completion both required.",
+    ],
+  },
+];
+
+const diagnosisSets = [
+  {
+    name: "Light Timer",
+    reps: "3 reps",
+    purpose: "Tests structure and start behavior under first timer exposure.",
+    instruction: "Solve under short timer.",
+    rules: [
+      "Timer is active.",
+      "Observe structure, not just speed.",
+      "Record panic versus controlled response.",
+    ],
+  },
+  {
+    name: "Consistency",
+    reps: "3 reps",
+    purpose: "Tests whether structure holds across repeated timed attempts or drifts.",
+    instruction: "Repeat under the same time constraint.",
+    rules: [
+      "Same timer each rep.",
+      "Observe drift and consistency.",
+      "Behavioral pattern matters, not just completion.",
+    ],
+  },
+];
+
+const observationSignals = [
+  "Start under time: freeze, delayed, or immediate?",
+  "Structure under time: breaks, partial, or maintained?",
+  "Pace control: panic, rushed, or controlled?",
+  "Completion integrity: fails, partial, or complete under the timer?",
+];
+
+const progressionBands = [
+  "Low: run Time Pressure Stability drill. Do not push speed aggressively.",
+  "Medium: continue timed conditioning without sacrificing method discipline.",
+  "High: run High Maintenance checks. Do not declare transfer yet. Confirm sustained timed stability.",
+  "High Maintenance: remain in maintenance and begin cross-topic transfer rather than phase advancement.",
+];
+
+const auditChecks = [
+  "A real timer was used and maintained across reps.",
+  "Tutor prioritized structure over speed.",
+  "Tutor did not rush the student or ignore structure breakdowns.",
+  "Repeated timed attempts were executed and logged honestly.",
+];
+
+const criticalFails = [
+  "No real timer was used.",
+  "Tutor pushes speed over method.",
+  "Structure collapse is ignored or cleaned up in the log.",
+];
+
 export default function ResponseConditioningTimePressureStability() {
   const navigate = useNavigate();
 
@@ -30,6 +118,9 @@ export default function ResponseConditioningTimePressureStability() {
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-1">
                 Time Pressure Stability
               </h1>
+              <p className="text-base md:text-lg text-muted-foreground mt-2">
+                Timed conditioning as an exact algorithmic phase, not a motivational push
+              </p>
             </div>
           </div>
         </div>
@@ -37,318 +128,158 @@ export default function ResponseConditioningTimePressureStability() {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-8">
         <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">What It Is</h2>
-          <p className="text-muted-foreground">Time Pressure Stability is where:</p>
-          <p className="font-medium">execution is tested under constraint</p>
-          <p className="text-muted-foreground">Not new learning.</p>
-          <p className="text-muted-foreground">Not new teaching.</p>
-          <p className="text-muted-foreground">This is:</p>
-          <p className="font-medium">Can the student execute when time is limited and pressure is present?</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">The Shift</h2>
-          <p className="text-muted-foreground">From:</p>
-          <p className="font-medium">"I can do it when I have time"</p>
-          <p className="text-muted-foreground">To:</p>
-          <p className="font-medium">"I can do it when time is restricted"</p>
-        </Card>
-
-        <Card className="p-6 space-y-5 border-primary/30 bg-primary/5">
-          <h2 className="text-2xl font-bold">The Tool</h2>
-          <p className="font-medium">Timed Execution</p>
-          <p className="text-muted-foreground">This is Boss Battles under time constraint.</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">Why This Phase Exists</h2>
-          <p className="text-muted-foreground">Exams are not:</p>
+          <h2 className="text-2xl font-bold">Phase Function in the Engine</h2>
+          <p className="text-muted-foreground">
+            Time Pressure Stability exists to maintain method structure under urgency. The system
+            does not treat speed as the target. Structure is the target. Time pressure only reveals
+            whether the structure holds.
+          </p>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>open</li>
-            <li>relaxed</li>
-            <li>forgiving</li>
-          </ul>
-          <p className="text-muted-foreground">They are:</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>timed</li>
-            <li>silent</li>
-            <li>high consequence</li>
-          </ul>
-          <p className="text-muted-foreground">Students do not fail because:</p>
-          <p className="text-muted-foreground">they do not know</p>
-          <p className="text-muted-foreground">They fail because:</p>
-          <p className="font-medium">their execution breaks under time pressure</p>
-        </Card>
-
-        <Card className="p-6 space-y-5 border-l-4 border-l-primary">
-          <h2 className="text-2xl font-bold">TT Trains This Directly</h2>
-          <p className="text-muted-foreground">We do not wait for exams to expose this.</p>
-          <p className="font-medium">We simulate it.</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">When to Use Timed Execution</h2>
-          <p className="text-muted-foreground">Only after:</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>Clarity is stable</li>
-            <li>Method is repeatable</li>
-            <li>Student can handle Boss Battles</li>
-          </ul>
-          <p className="font-medium">Rule:</p>
-          <p className="font-medium">Do NOT introduce time pressure during instability.</p>
-          <p className="text-muted-foreground">Time pressure amplifies everything.</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">What Happens When Time Starts</h2>
-          <p className="text-muted-foreground">The moment you say:</p>
-          <p className="font-medium">"5 minutes. Start."</p>
-          <p className="text-muted-foreground">Three things spike:</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>urgency</li>
-            <li>anxiety</li>
-            <li>mental noise</li>
-          </ul>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">What You Are Watching</h2>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>do they rush?</li>
-            <li>do they freeze?</li>
-            <li>do they skip steps?</li>
-            <li>do they stay structured?</li>
-          </ul>
-        </Card>
-
-        <Card className="p-6 space-y-5 border-primary/30 bg-primary/5">
-          <h2 className="text-2xl font-bold">The Critical Reminder (Before Starting)</h2>
-          <p className="text-muted-foreground">You say:</p>
-          <p className="font-medium">"The goal is not speed.</p>
-          <p className="font-medium">The goal is stable execution."</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">What the Student Must Do</h2>
-          <p className="text-muted-foreground">Under time:</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>read fully</li>
-            <li>identify type</li>
-            <li>follow method</li>
-            <li>execute step-by-step</li>
-          </ul>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">What Weak Students Do</h2>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>rush reading</li>
-            <li>misidentify problem</li>
-            <li>skip steps</li>
-            <li>panic</li>
+            <li>Method over speed.</li>
+            <li>Timer is active.</li>
+            <li>Structured response required. No panic tolerance.</li>
           </ul>
         </Card>
 
         <Card className="p-6 space-y-5 border-l-4 border-l-primary">
-          <h2 className="text-2xl font-bold">What Trained Students Do</h2>
+          <h2 className="text-2xl font-bold">Unified Protocol</h2>
+          <p className="text-muted-foreground">
+            This phase is the timed extension of the same conditioning engine. It does not replace
+            the earlier phases. It exposes whether Clarity, Structured Execution, and Controlled
+            Discomfort were real.
+          </p>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>slow the start</li>
-            <li>orient first</li>
-            <li>execute method</li>
-            <li>maintain structure</li>
+            <li>Purpose of phase: preserve structure when urgency rises.</li>
+            <li>Primary action in the engine: run Time Pressure Stability drill.</li>
+            <li>Allowed emphasis: process under time, not hustle rhetoric.</li>
+            <li>Expected outcome: stable starts, maintained method, controlled pace, intact completion.</li>
           </ul>
         </Card>
 
         <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">The Paradox</h2>
-          <p className="text-muted-foreground">They appear slower at the start.</p>
-          <p className="text-muted-foreground">But they:</p>
-          <p className="font-medium">finish more accurately and more consistently</p>
+          <h2 className="text-2xl font-bold">Diagnosis Structure</h2>
+          <p className="text-muted-foreground">
+            Diagnosis comes first in the intro session. It checks whether the timer itself changes
+            the student's behavior and whether that pattern stays stable across repeated reps.
+          </p>
+          <div className="space-y-4">
+            {diagnosisSets.map((set) => (
+              <div key={set.name} className="rounded-lg border p-4 space-y-3">
+                <div>
+                  <h3 className="text-lg font-semibold">{set.name}</h3>
+                  <p className="text-sm text-muted-foreground">{set.reps}</p>
+                </div>
+                <p className="text-muted-foreground">{set.purpose}</p>
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">Rep instruction:</span>{" "}
+                  {set.instruction}
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  {set.rules.map((rule) => (
+                    <li key={rule}>{rule}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </Card>
 
         <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">Your Role During Timed Execution</h2>
-          <p className="font-medium">Minimal.</p>
-          <p className="text-muted-foreground">You do NOT:</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>guide constantly</li>
-            <li>interrupt</li>
-            <li>correct mid-way</li>
-          </ul>
-          <p className="text-muted-foreground">You observe.</p>
-          <p className="text-muted-foreground">Why</p>
-          <p className="text-muted-foreground">Because:</p>
-          <p className="font-medium">real pressure has no tutor</p>
+          <h2 className="text-2xl font-bold">Training Drill Structure</h2>
+          <p className="text-muted-foreground">
+            Once diagnosis shows that time pressure is the live instability, ongoing sessions use
+            the training sets below to build timed stability.
+          </p>
+          <div className="space-y-4">
+            {trainingSets.map((set) => (
+              <div key={set.name} className="rounded-lg border p-4 space-y-3">
+                <div>
+                  <h3 className="text-lg font-semibold">{set.name}</h3>
+                  <p className="text-sm text-muted-foreground">{set.reps}</p>
+                </div>
+                <p className="text-muted-foreground">{set.purpose}</p>
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">Rep instruction:</span>{" "}
+                  {set.instruction}
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  {set.rules.map((rule) => (
+                    <li key={rule}>{rule}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </Card>
 
         <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">When You Intervene</h2>
-          <p className="text-muted-foreground">Only if:</p>
+          <h2 className="text-2xl font-bold">What the App Actually Observes</h2>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>complete breakdown</li>
-            <li>no movement</li>
-            <li>system abandoned</li>
+            {observationSignals.map((signal) => (
+              <li key={signal}>{signal}</li>
+            ))}
           </ul>
-          <p className="text-muted-foreground">Even then:</p>
-          <p className="text-muted-foreground">You guide to:</p>
-          <p className="font-medium">first step only</p>
+          <p className="font-medium">
+            Under this phase, speed without structure is not success. Controlled pace and intact
+            method are what score well.
+          </p>
         </Card>
 
         <Card className="p-6 space-y-5 border-primary/30 bg-primary/5">
-          <h2 className="text-2xl font-bold">After Time Ends - Debrief</h2>
-          <p className="text-muted-foreground">This is where the learning happens.</p>
-          <p className="text-muted-foreground">You Do NOT Say</p>
+          <h2 className="text-2xl font-bold">Progression Logic</h2>
+          <p className="text-muted-foreground">
+            This is the final phase. High Maintenance here does not move to a fifth phase. It
+            shifts into maintenance and cross-topic transfer when timed stability is sustained.
+          </p>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>"You got it wrong"</li>
-            <li>"You need to be faster"</li>
-          </ul>
-          <p className="text-muted-foreground">You Do Say</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>"What happened when time started?"</li>
-            <li>"Where did you lose structure?"</li>
-            <li>"Did you follow the method?"</li>
-          </ul>
-          <p className="text-muted-foreground">What You Are Reinforcing</p>
-          <p className="text-muted-foreground">Not result.</p>
-          <p className="font-medium">process under pressure</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">What You Log</h2>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>response pattern</li>
-            <li>stability level</li>
-            <li>breakdown point</li>
+            {progressionBands.map((band) => (
+              <li key={band}>{band}</li>
+            ))}
           </ul>
         </Card>
 
         <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">What This Phase Builds</h2>
-          <h3 className="text-xl font-semibold">1. Pressure Familiarity</h3>
-          <p className="text-muted-foreground">Time pressure stops feeling foreign</p>
-          <h3 className="text-xl font-semibold">2. Execution Stability</h3>
-          <p className="text-muted-foreground">Steps remain intact under stress</p>
-          <h3 className="text-xl font-semibold">3. Reduced Volatility</h3>
-          <p className="text-muted-foreground">Less panic</p>
-          <p className="text-muted-foreground">Less rushing</p>
-          <p className="text-muted-foreground">Less collapse</p>
-          <h3 className="text-xl font-semibold">4. Calm Under Constraint</h3>
-          <p className="text-muted-foreground">Student begins to:</p>
-          <p className="font-medium">trust structure over urgency</p>
+          <h2 className="text-2xl font-bold">Tutor Discipline Inside This Phase</h2>
+          <ul className="space-y-2 text-sm text-muted-foreground">
+            <li>Do not confuse urgency with quality.</li>
+            <li>Do not shout speed cues that make the student abandon method.</li>
+            <li>Do not intervene continuously. Real pressure has no live tutor rescue.</li>
+            <li>Debrief structure loss after the timer, not by coaching through the rep.</li>
+          </ul>
         </Card>
 
         <Card className="p-6 space-y-5 border-primary/30 bg-primary/5">
-          <h2 className="text-2xl font-bold">Common Failure Modes</h2>
-          <p className="font-medium">Speed Obsession</p>
-          <p className="text-muted-foreground">Tutor pushes:</p>
-          <p className="font-medium">"Go faster"</p>
-          <p className="text-muted-foreground">This creates:</p>
-          <p className="text-muted-foreground">rushing</p>
-          <p className="text-muted-foreground">mistakes</p>
-          <p className="text-muted-foreground">instability</p>
-
-          <p className="font-medium">Over-Intervention</p>
-          <p className="text-muted-foreground">Tutor keeps helping.</p>
-          <p className="text-muted-foreground">Pressure becomes artificial.</p>
-
-          <p className="font-medium">Early Timing</p>
-          <p className="text-muted-foreground">Student not ready.</p>
-          <p className="text-muted-foreground">Breakdown becomes chaos.</p>
-
-          <p className="font-medium">Ignoring Process</p>
-          <p className="text-muted-foreground">Focusing only on final answer.</p>
-          <p className="text-muted-foreground">Misses the entire point.</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">Correct Behaviour</h2>
-          <p className="text-muted-foreground">You are:</p>
+          <h2 className="text-2xl font-bold">Compliance Audit Exposure</h2>
+          <p className="text-muted-foreground">
+            Time Pressure Stability is auditable against the TD library with fixed timer integrity
+            and structure-preservation checks.
+          </p>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>calm</li>
-            <li>observant</li>
-            <li>non-reactive</li>
-            <li>precise in debrief</li>
+            {auditChecks.map((check) => (
+              <li key={check}>{check}</li>
+            ))}
           </ul>
-          <p className="text-muted-foreground">You are not:</p>
+          <p className="font-medium">
+            If the timer is fake, inconsistent, or used to push speed instead of structure, the
+            session fails compliance.
+          </p>
+        </Card>
+
+        <Card className="p-6 space-y-5 border-l-4 border-l-destructive">
+          <h2 className="text-2xl font-bold">Violation Consequence</h2>
+          <p className="text-muted-foreground">
+            Timed sessions that are manipulated, softened, or logged dishonestly can be flagged by
+            compliance review.
+          </p>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>pushing speed</li>
-            <li>panicking with them</li>
-            <li>correcting every step live</li>
+            {criticalFails.map((fail) => (
+              <li key={fail}>{fail}</li>
+            ))}
           </ul>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">Relationship to Other Phases</h2>
-          <p className="text-muted-foreground">Without Clarity:</p>
-          <p className="font-medium">They misread under time</p>
-          <p className="text-muted-foreground">Without Structured Execution:</p>
-          <p className="font-medium">They forget steps</p>
-          <p className="text-muted-foreground">Without Controlled Discomfort:</p>
-          <p className="font-medium">They panic instantly</p>
-          <p className="text-muted-foreground">This phase exposes:</p>
-          <p className="font-medium">everything that is not stable</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">What Mastery Looks Like</h2>
-          <p className="text-muted-foreground">You will see:</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>steady start</li>
-            <li>correct identification</li>
-            <li>consistent steps</li>
-            <li>controlled pace</li>
-          </ul>
-          <p className="text-muted-foreground">The student treats time as:</p>
-          <p className="font-medium">a condition, not a threat</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">The Hidden Outcome</h2>
-          <p className="text-muted-foreground">This phase creates:</p>
-          <p className="font-medium">exam readiness without needing exams</p>
-        </Card>
-
-        <Card className="p-6 space-y-5 border-primary/30 bg-primary/5">
-          <h2 className="text-2xl font-bold">Final Principle</h2>
-          <p className="text-muted-foreground">Time pressure does not create ability.</p>
-          <p className="text-muted-foreground">It reveals:</p>
-          <p className="font-medium">what has already been conditioned</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">Final Rule</h2>
-          <p className="text-muted-foreground">If a student collapses under time:</p>
-          <p className="text-muted-foreground">Do NOT say:</p>
-          <p className="font-medium">"They need more practice"</p>
-          <p className="text-muted-foreground">Say:</p>
-          <p className="font-medium">"The system is not yet stable"</p>
-          <p className="text-muted-foreground">And return to:</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>clarity</li>
-            <li>execution</li>
-            <li>discomfort</li>
-          </ul>
-        </Card>
-
-        <Card className="p-6 space-y-5 border-l-4 border-l-primary">
-          <h2 className="text-2xl font-bold">End State of the System</h2>
-          <p className="text-muted-foreground">When all phases are complete:</p>
-          <p className="text-muted-foreground">The student:</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>sees clearly</li>
-            <li>executes reliably</li>
-            <li>handles difficulty</li>
-            <li>remains stable under time</li>
-          </ul>
-          <p className="text-muted-foreground">They do not rely on:</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>confidence</li>
-            <li>motivation</li>
-            <li>luck</li>
-          </ul>
-          <p className="text-muted-foreground">They rely on:</p>
-          <p className="font-medium">trained response</p>
-          <p className="font-medium">That is TT.</p>
+          <p className="font-medium">
+            Audit failure can lead to session invalidation and suspension, and repeated or severe
+            violations can justify permanent TT platform ban or blacklisting.
+          </p>
         </Card>
       </div>
     </div>

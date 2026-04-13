@@ -3,6 +3,94 @@ import { ArrowLeft, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
+const trainingSets = [
+  {
+    name: "Controlled Entry",
+    reps: "3 reps",
+    purpose: "Build controlled entry under difficulty by forcing pause before action.",
+    instruction: "Pause. Then state the first step.",
+    rules: [
+      "Force a pause before starting.",
+      "First step must be stated out loud.",
+      "Do not let the student jump in randomly.",
+    ],
+  },
+  {
+    name: "No Rescue",
+    reps: "3 reps",
+    purpose: "Build independence under difficulty with no rescue.",
+    instruction: "Continue. No full help.",
+    rules: [
+      "No rescue allowed.",
+      "Hold the hold. Do not relieve the pressure.",
+      "Observe rescue-seeking pattern.",
+    ],
+  },
+  {
+    name: "Repeat Exposure",
+    reps: "3 reps",
+    purpose: "Repeat the same difficulty level until response becomes stable, not merely survivable.",
+    instruction: "Another similar difficulty.",
+    rules: [
+      "Same difficulty level.",
+      "Repeat exposure to build tolerance.",
+      "Observe consistency of response.",
+    ],
+  },
+];
+
+const diagnosisSets = [
+  {
+    name: "First Contact",
+    reps: "3 reps",
+    purpose: "Tests the student's first response to difficulty under a no-help condition.",
+    instruction: "Try this. No help for 10 seconds.",
+    rules: [
+      "No help for 10 seconds.",
+      "Hold the discomfort window.",
+      "Do not rescue. Observe.",
+    ],
+  },
+  {
+    name: "Pressure Hold",
+    reps: "3 reps",
+    purpose: "Tests whether the student can stay engaged under difficulty without relief.",
+    instruction: "Continue. I will only confirm the first step.",
+    rules: [
+      "One-step confirmation only.",
+      "No rescue allowed.",
+      "Hold pressure. Do not relieve it.",
+    ],
+  },
+];
+
+const observationSignals = [
+  "Initial response: do they freeze, hesitate, or attempt?",
+  "First-step control: can they produce the first move without prompt?",
+  "Discomfort tolerance: do they panic, tighten, or stay controlled?",
+  "Rescue dependence: do they ask immediately, later, or work without rescue?",
+];
+
+const progressionBands = [
+  "Low: run Controlled Discomfort drill. No rescuing. No full explanations mid-struggle. No time pressure yet.",
+  "Medium: keep the difficulty on. Do not over-guide and do not remove uncertainty.",
+  "High: run High Maintenance checks. Do not phase advance yet. Prove repeatable stability.",
+  "High Maintenance: if a full session scores 85 or above, the engine progresses the topic into Time Pressure Stability at Low.",
+];
+
+const auditChecks = [
+  "The 10 to 15 second discomfort window was genuinely held when required.",
+  "Tutor did not rescue at any point.",
+  "Only minimal first-step confirmation was used where the set allows it.",
+  "Student remained responsible for execution and the rep was logged honestly.",
+];
+
+const criticalFails = [
+  "Any rescue occurs.",
+  "Tutor relieves pressure early or shortens the discomfort window.",
+  "Tutor gives hints or explanations mid-struggle and converts the drill into support.",
+];
+
 export default function ResponseConditioningControlledDiscomfort() {
   const navigate = useNavigate();
 
@@ -30,6 +118,9 @@ export default function ResponseConditioningControlledDiscomfort() {
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-1">
                 Controlled Discomfort
               </h1>
+              <p className="text-base md:text-lg text-muted-foreground mt-2">
+                Difficulty exposure as an exact drill protocol, not a loose coaching style
+              </p>
             </div>
           </div>
         </div>
@@ -37,311 +128,156 @@ export default function ResponseConditioningControlledDiscomfort() {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-8">
         <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">What It Is</h2>
-          <p className="text-muted-foreground">Controlled Discomfort is where:</p>
-          <p className="font-medium">the student encounters difficulty without being rescued</p>
-          <p className="text-muted-foreground">This is not teaching.</p>
-          <p className="font-medium">This is response training.</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">The Shift</h2>
-          <p className="text-muted-foreground">From:</p>
-          <p className="font-medium">"I can do it when it is familiar"</p>
-          <p className="text-muted-foreground">To:</p>
-          <p className="font-medium">"I can stay stable when it is unfamiliar"</p>
-        </Card>
-
-        <Card className="p-6 space-y-5 border-primary/30 bg-primary/5">
-          <h2 className="text-2xl font-bold">The Tool</h2>
-          <p className="font-medium">Boss Battles</p>
-          <p className="text-muted-foreground">This is the mechanism.</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">Why This Phase Exists</h2>
-          <p className="text-muted-foreground">Most students collapse not because:</p>
+          <h2 className="text-2xl font-bold">Phase Function in the Engine</h2>
+          <p className="text-muted-foreground">
+            Controlled Discomfort exists to test and stabilize behavior under uncertainty and
+            difficulty. This is where the app checks whether the student persists, or shuts down,
+            once familiarity is removed.
+          </p>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>they do not understand</li>
-            <li>they did not practice</li>
+            <li>No full rescue.</li>
+            <li>Hold the discomfort window.</li>
+            <li>One-step confirmation maximum.</li>
           </ul>
-          <p className="text-muted-foreground">They collapse because:</p>
-          <p className="text-muted-foreground">their first reaction to difficulty is unstable</p>
-          <p className="text-muted-foreground">They:</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>panic</li>
-            <li>rush</li>
-            <li>freeze</li>
-            <li>guess</li>
-          </ul>
-          <p className="text-muted-foreground">And traditional tutoring:</p>
-          <p className="text-muted-foreground">removes the difficulty before the response can be trained</p>
         </Card>
 
         <Card className="p-6 space-y-5 border-l-4 border-l-primary">
-          <h2 className="text-2xl font-bold">TT Does the Opposite</h2>
-          <p className="text-muted-foreground">We:</p>
+          <h2 className="text-2xl font-bold">Unified Protocol</h2>
+          <p className="text-muted-foreground">
+            The phase purpose and the drill structure are one thing here. TT does not claim to
+            train discomfort unless the discomfort protocol was actually run.
+          </p>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>introduce difficulty deliberately</li>
-            <li>control the environment</li>
-            <li>train the response</li>
+            <li>Purpose of phase: keep method alive when uncertainty appears.</li>
+            <li>Primary action in the engine: run Controlled Discomfort drill.</li>
+            <li>Tool inside the app: Boss Battle style difficulty without rescue.</li>
+            <li>Target behavior: controlled starts, reduced rescue-seeking, stable structure under friction.</li>
           </ul>
         </Card>
 
         <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">What a Boss Battle Is</h2>
-          <p className="text-muted-foreground">A Boss Battle is:</p>
-          <p className="font-medium">a problem designed to trigger uncertainty</p>
-          <p className="text-muted-foreground">Not impossible.</p>
-          <p className="text-muted-foreground">Not unfair.</p>
-          <p className="text-muted-foreground">Just:</p>
-          <p className="font-medium">slightly beyond comfort</p>
+          <h2 className="text-2xl font-bold">Diagnosis Structure</h2>
+          <p className="text-muted-foreground">
+            Diagnosis comes first in the intro session. It exposes raw response patterns before the
+            tutor contaminates the rep with explanations or comfort behavior.
+          </p>
+          <div className="space-y-4">
+            {diagnosisSets.map((set) => (
+              <div key={set.name} className="rounded-lg border p-4 space-y-3">
+                <div>
+                  <h3 className="text-lg font-semibold">{set.name}</h3>
+                  <p className="text-sm text-muted-foreground">{set.reps}</p>
+                </div>
+                <p className="text-muted-foreground">{set.purpose}</p>
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">Rep instruction:</span>{" "}
+                  {set.instruction}
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  {set.rules.map((rule) => (
+                    <li key={rule}>{rule}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </Card>
 
         <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">When to Introduce It</h2>
-          <p className="text-muted-foreground">Only after:</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>3-4 correct executions</li>
-            <li>visible confidence</li>
-            <li>stable method</li>
-          </ul>
-          <p className="font-medium">Rule:</p>
-          <p className="font-medium">Do NOT introduce difficulty during confusion.</p>
-          <p className="text-muted-foreground">You introduce it during:</p>
-          <p className="font-medium">false comfort</p>
+          <h2 className="text-2xl font-bold">Training Drill Structure</h2>
+          <p className="text-muted-foreground">
+            Once diagnosis shows that the topic breaks under discomfort, ongoing sessions use the
+            training sets below to stabilize that response.
+          </p>
+          <div className="space-y-4">
+            {trainingSets.map((set) => (
+              <div key={set.name} className="rounded-lg border p-4 space-y-3">
+                <div>
+                  <h3 className="text-lg font-semibold">{set.name}</h3>
+                  <p className="text-sm text-muted-foreground">{set.reps}</p>
+                </div>
+                <p className="text-muted-foreground">{set.purpose}</p>
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">Rep instruction:</span>{" "}
+                  {set.instruction}
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  {set.rules.map((rule) => (
+                    <li key={rule}>{rule}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </Card>
 
         <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">The Moment That Matters</h2>
-          <p className="text-muted-foreground">The second the student sees the problem.</p>
-          <p className="text-muted-foreground">Before they speak.</p>
-          <p className="text-muted-foreground">Before they act.</p>
-          <p className="text-muted-foreground">You are watching:</p>
+          <h2 className="text-2xl font-bold">What the App Actually Observes</h2>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>pause</li>
-            <li>facial reaction</li>
-            <li>breathing</li>
-            <li>body language</li>
-            <li>first move</li>
+            {observationSignals.map((signal) => (
+              <li key={signal}>{signal}</li>
+            ))}
           </ul>
-          <p className="font-medium">This is the raw response pattern</p>
+          <p className="font-medium">
+            Those signals determine whether the system reads hesitation under pressure or better
+            control under difficulty. That translation drives progression.
+          </p>
         </Card>
 
         <Card className="p-6 space-y-5 border-primary/30 bg-primary/5">
-          <h2 className="text-2xl font-bold">The Most Important Rule</h2>
-          <p className="font-medium">Do Not Rescue</p>
-          <p className="text-muted-foreground">When discomfort appears:</p>
-          <p className="font-medium">You do nothing.</p>
-          <p className="font-medium">For 10-15 seconds.</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">Why This Matters</h2>
-          <p className="text-muted-foreground">That silence is where:</p>
+          <h2 className="text-2xl font-bold">Progression Logic</h2>
+          <p className="text-muted-foreground">
+            The student does not graduate from this phase because the tutor felt the struggle looked
+            cleaner. The topic only moves when the session score and stability state justify it.
+          </p>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>panic shows</li>
-            <li>habits surface</li>
-            <li>conditioning begins</li>
-          </ul>
-          <p className="text-muted-foreground">If you interrupt:</p>
-          <p className="font-medium">you destroy the moment</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">What Weak Tutors Do</h2>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>"Let me help you..."</li>
-            <li>"It is actually not that hard..."</li>
-            <li>"Just do this first..."</li>
-          </ul>
-          <p className="text-muted-foreground">They remove pressure.</p>
-          <p className="font-medium">They remove training.</p>
-        </Card>
-
-        <Card className="p-6 space-y-5 border-l-4 border-l-primary">
-          <h2 className="text-2xl font-bold">What TT Tutors Do</h2>
-          <p className="text-muted-foreground">They hold the space.</p>
-          <p className="text-muted-foreground">Calm.</p>
-          <p className="text-muted-foreground">Still.</p>
-          <p className="font-medium">Observing.</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">After the Pause</h2>
-          <p className="text-muted-foreground">Now you guide.</p>
-          <p className="text-muted-foreground">Not the solution.</p>
-          <p className="font-medium">The first step.</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">What You Say</h2>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>"What do you know?"</li>
-            <li>"What type of problem is this?"</li>
-            <li>"Start with what you recognize."</li>
-          </ul>
-          <p className="text-muted-foreground">What You Are Doing</p>
-          <p className="font-medium">You are teaching:</p>
-          <p className="font-medium">movement under uncertainty</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">What You Are NOT Doing</h2>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>solving</li>
-            <li>explaining everything</li>
-            <li>reducing difficulty</li>
+            {progressionBands.map((band) => (
+              <li key={band}>{band}</li>
+            ))}
           </ul>
         </Card>
 
         <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">The Student's Experience</h2>
-          <p className="text-muted-foreground">At first:</p>
+          <h2 className="text-2xl font-bold">Tutor Discipline Inside This Phase</h2>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>discomfort</li>
-            <li>resistance</li>
-            <li>hesitation</li>
+            <li>Do not comfort the student out of the drill.</li>
+            <li>Do not soften the difficulty to protect the tutor experience.</li>
+            <li>Do not explain the whole problem after the first visible hesitation.</li>
+            <li>If guidance is allowed, it is first-step only. Nothing beyond that.</li>
           </ul>
-          <p className="text-muted-foreground">Then:</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>small movement</li>
-            <li>first step</li>
-            <li>partial clarity</li>
-          </ul>
-          <p className="text-muted-foreground">Then:</p>
-          <p className="font-medium">continued execution</p>
-          <p className="text-muted-foreground">This is the shift</p>
-          <p className="text-muted-foreground">From:</p>
-          <p className="font-medium">"I need help"</p>
-          <p className="text-muted-foreground">To:</p>
-          <p className="font-medium">"I can start"</p>
         </Card>
 
         <Card className="p-6 space-y-5 border-primary/30 bg-primary/5">
-          <h2 className="text-2xl font-bold">The Debrief (Critical)</h2>
-          <p className="text-muted-foreground">After the attempt:</p>
-          <p className="text-muted-foreground">You do not just check the answer.</p>
-          <p className="font-medium">You name the behaviour.</p>
-          <p className="text-muted-foreground">What You Say</p>
+          <h2 className="text-2xl font-bold">Compliance Audit Exposure</h2>
+          <p className="text-muted-foreground">
+            Controlled Discomfort is one of the most audit-sensitive phases. The TD library checks
+            whether pressure was truly maintained or quietly removed.
+          </p>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>"You paused."</li>
-            <li>"You identified the problem type."</li>
-            <li>"You started with what you knew."</li>
-            <li>"That is the response."</li>
+            {auditChecks.map((check) => (
+              <li key={check}>{check}</li>
+            ))}
           </ul>
-          <p className="text-muted-foreground">Why This Matters</p>
-          <p className="font-medium">You are reinforcing:</p>
-          <p className="font-medium">process over result</p>
+          <p className="font-medium">
+            The standard is exact execution. Only 100 percent compliance passes.
+          </p>
         </Card>
 
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">What This Phase Builds</h2>
-          <h3 className="text-xl font-semibold">1. Tolerance</h3>
-          <p className="text-muted-foreground">They stay in difficulty longer</p>
-          <h3 className="text-xl font-semibold">2. Initiation</h3>
-          <p className="text-muted-foreground">They start without waiting</p>
-          <h3 className="text-xl font-semibold">3. Control</h3>
-          <p className="text-muted-foreground">They do not rush or panic</p>
-          <h3 className="text-xl font-semibold">4. Trust in System</h3>
-          <p className="text-muted-foreground">They rely on steps, not emotion</p>
-        </Card>
-
-        <Card className="p-6 space-y-5 border-primary/30 bg-primary/5">
-          <h2 className="text-2xl font-bold">Common Failure Modes</h2>
-          <p className="font-medium">Early Rescue</p>
-          <p className="text-muted-foreground">Tutor jumps in too fast.</p>
-          <p className="text-muted-foreground">Training never happens.</p>
-          <p className="font-medium">Over-Guiding</p>
-          <p className="text-muted-foreground">Tutor gives too many hints.</p>
-          <p className="text-muted-foreground">Student follows, but does not think.</p>
-          <p className="font-medium">Emotional Softening</p>
-          <p className="text-muted-foreground">Tutor says:</p>
-          <p className="font-medium">"It is okay, do not stress..."</p>
-          <p className="text-muted-foreground">This reinforces fragility.</p>
-          <p className="font-medium">Wrong Timing</p>
-          <p className="text-muted-foreground">Boss Battle introduced:</p>
-          <p className="text-muted-foreground">too early causes overwhelm</p>
-          <p className="text-muted-foreground">too late has no impact</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">Correct Behaviour</h2>
-          <p className="text-muted-foreground">You are:</p>
+        <Card className="p-6 space-y-5 border-l-4 border-l-destructive">
+          <h2 className="text-2xl font-bold">Violation Consequence</h2>
+          <p className="text-muted-foreground">
+            If a tutor rescues, relieves the pressure, or falsifies what happened in the discomfort
+            window, the platform can flag the session immediately.
+          </p>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>calm</li>
-            <li>observant</li>
-            <li>minimal</li>
-            <li>precise</li>
+            {criticalFails.map((fail) => (
+              <li key={fail}>{fail}</li>
+            ))}
           </ul>
-          <p className="text-muted-foreground">You are not:</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>reactive</li>
-            <li>talkative</li>
-            <li>comforting</li>
-            <li>rushing</li>
-          </ul>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">The Core Principle</h2>
-          <p className="font-medium">Controlled Discomfort is:</p>
-          <p className="font-medium">pressure without chaos</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">Relationship to Other Phases</h2>
-          <p className="text-muted-foreground">Without Structured Execution:</p>
-          <p className="font-medium">Student has nothing to rely on</p>
-          <p className="text-muted-foreground">Without Controlled Discomfort:</p>
-          <p className="font-medium">Execution remains fragile</p>
-          <p className="text-muted-foreground">Without This Phase:</p>
-          <p className="font-medium">Pressure will always break them</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">What Mastery Looks Like</h2>
-          <p className="text-muted-foreground">You will see:</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>shorter hesitation</li>
-            <li>quicker first step</li>
-            <li>less emotional reaction</li>
-            <li>more stable execution</li>
-          </ul>
-          <p className="text-muted-foreground">The student begins to treat difficulty as:</p>
-          <p className="font-medium">normal</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">The Hidden Outcome</h2>
-          <p className="text-muted-foreground">This phase rewires:</p>
-          <p className="font-medium">the meaning of difficulty</p>
-          <p className="text-muted-foreground">From:</p>
-          <p className="font-medium">"something is wrong"</p>
-          <p className="text-muted-foreground">To:</p>
-          <p className="font-medium">"execute the system"</p>
-        </Card>
-
-        <Card className="p-6 space-y-5 border-primary/30 bg-primary/5">
-          <h2 className="text-2xl font-bold">Final Principle</h2>
-          <p className="text-muted-foreground">You are not making the student uncomfortable.</p>
-          <p className="text-muted-foreground">You are:</p>
-          <p className="font-medium">removing their dependence on comfort</p>
-        </Card>
-
-        <Card className="p-6 space-y-5 border-l-4 border-l-primary">
-          <h2 className="text-2xl font-bold">Final Rule</h2>
-          <p className="text-muted-foreground">If the student never feels:</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>uncertainty</li>
-            <li>hesitation</li>
-            <li>difficulty</li>
-          </ul>
-          <p className="text-muted-foreground">Then:</p>
-          <p className="font-medium">you are not conditioning response</p>
-          <p className="text-muted-foreground">You are just teaching.</p>
-          <p className="text-muted-foreground">And TT is not teaching.</p>
-          <p className="font-medium">It is conditioning.</p>
+          <p className="font-medium">
+            Audit failure in this phase can trigger suspension, and repeated or severe drill
+            violations can result in permanent TT platform ban or blacklisting.
+          </p>
         </Card>
       </div>
     </div>

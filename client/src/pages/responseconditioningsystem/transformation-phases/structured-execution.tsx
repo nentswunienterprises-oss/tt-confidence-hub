@@ -3,6 +3,94 @@ import { ArrowLeft, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
+const trainingSets = [
+  {
+    name: "Forced Structure",
+    reps: "3 reps",
+    purpose: "Force step discipline before full independence.",
+    instruction: "State the steps first. Then solve.",
+    rules: [
+      "Steps must be stated before solving.",
+      "No skipping steps.",
+      "Correct step order is required.",
+    ],
+  },
+  {
+    name: "Independent Execution",
+    reps: "3 reps",
+    purpose: "Build clean, repeatable execution with no help from tutor.",
+    instruction: "Solve independently.",
+    rules: [
+      "No help from tutor.",
+      "Full independence expected.",
+      "Observe consistency and error handling.",
+    ],
+  },
+  {
+    name: "Variation Control",
+    reps: "3 reps",
+    purpose: "Test transfer to a slightly different form using the same method.",
+    instruction: "Solve a slightly different form.",
+    rules: [
+      "Same method, different form.",
+      "Test transfer, not memorization.",
+      "No hints on what changed.",
+    ],
+  },
+];
+
+const diagnosisSets = [
+  {
+    name: "Start + Structure",
+    reps: "3 reps",
+    purpose: "Observe whether structure exists from the first move with no assistance.",
+    instruction: "Solve the problem. No help for 10 seconds.",
+    rules: [
+      "No help for the cold start window.",
+      "Observe independent start behavior.",
+      "Record exactly what happens with no prompting.",
+    ],
+  },
+  {
+    name: "Repeatability",
+    reps: "3 reps",
+    purpose: "Test whether execution holds across similar problems without breakdown.",
+    instruction: "Solve a similar problem.",
+    rules: [
+      "Same method repeated.",
+      "No step-by-step guidance.",
+      "Observe consistency across reps.",
+    ],
+  },
+];
+
+const observationSignals = [
+  "Start behavior: do they avoid, delay, or start immediately?",
+  "Step execution: do they guess, partially structure, or run full structure?",
+  "Repeatability: does the step order hold across reps or drift?",
+  "Independence: do they wait for help, ask after trying, or complete alone?",
+];
+
+const progressionBands = [
+  "Low: run Structured Execution drill. No time pressure. Boss Battles only if the student can start.",
+  "Medium: stay in Structured Execution and reinforce repeatable structure across multiple problems.",
+  "High: run High Maintenance checks. Do not phase advance yet. Prove repeatable stability.",
+  "High Maintenance: if a full session scores 85 or above, the engine progresses the topic into Controlled Discomfort at Low.",
+];
+
+const auditChecks = [
+  "Cold start window was respected with no early help.",
+  "Student was required to initiate and execute independently.",
+  "Tutor enforced step order instead of tolerating guessing.",
+  "Each rep was presented clearly and the log reflects what really happened.",
+];
+
+const criticalFails = [
+  "Tutor helps before the student attempts.",
+  "Student is not required to start independently.",
+  "Tutor allows guessing or skips enforcing the steps.",
+];
+
 export default function ResponseConditioningStructuredExecution() {
   const navigate = useNavigate();
 
@@ -30,6 +118,9 @@ export default function ResponseConditioningStructuredExecution() {
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-1">
                 Structured Execution
               </h1>
+              <p className="text-base md:text-lg text-muted-foreground mt-2">
+                The execution phase as defined by the state engine and drill library
+              </p>
             </div>
           </div>
         </div>
@@ -37,271 +128,157 @@ export default function ResponseConditioningStructuredExecution() {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-8">
         <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">What It Is</h2>
-          <p className="text-muted-foreground">Structured Execution is the phase where:</p>
-          <p className="font-medium">understanding is forced into action</p>
-          <p className="text-muted-foreground">The student stops watching.</p>
-          <p className="text-muted-foreground">Stops agreeing.</p>
-          <p className="text-muted-foreground">Stops saying "I get it."</p>
-          <p className="font-medium">They execute.</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">The Shift</h2>
-          <p className="text-muted-foreground">From:</p>
-          <p className="font-medium">"I understand what you did"</p>
-          <p className="text-muted-foreground">To:</p>
-          <p className="font-medium">"I can do it myself, step-by-step"</p>
-        </Card>
-
-        <Card className="p-6 space-y-5 border-primary/30 bg-primary/5">
-          <h2 className="text-2xl font-bold">The Tool</h2>
-          <p className="font-medium">Model -&gt; Apply -&gt; Guide</p>
-          <p className="text-muted-foreground">This is not a suggestion.</p>
-          <p className="font-medium">It is the only sequence.</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">Why This Phase Exists</h2>
-          <p className="text-muted-foreground">Most students:</p>
+          <h2 className="text-2xl font-bold">Phase Function in the Engine</h2>
+          <p className="text-muted-foreground">
+            Structured Execution exists to test and build the student's ability to execute
+            a known method independently. The student already knows. Now the system requires
+            proof that they can do it alone, in order, repeatedly.
+          </p>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>follow explanations</li>
-            <li>recognize patterns</li>
-            <li>feel confident</li>
-          </ul>
-          <p className="text-muted-foreground">But when left alone:</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>hesitate</li>
-            <li>forget steps</li>
-            <li>guess</li>
-          </ul>
-          <p className="text-muted-foreground">Because:</p>
-          <p className="text-muted-foreground">they were never forced to execute immediately</p>
-          <p className="font-medium">Structured Execution fixes this</p>
-          <p className="text-muted-foreground">By enforcing:</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>immediate action</li>
-            <li>repetition</li>
-            <li>correction at point of failure</li>
+            <li>State steps before solving.</li>
+            <li>No guessing tolerated.</li>
+            <li>No skipping steps.</li>
           </ul>
         </Card>
 
         <Card className="p-6 space-y-5 border-l-4 border-l-primary">
-          <h2 className="text-2xl font-bold">The Three Components</h2>
-
-          <h3 className="text-xl font-semibold">1. Model (You Execute Clearly)</h3>
-          <p className="text-muted-foreground">Purpose:</p>
-          <p className="font-medium">Create a perfect reference</p>
-          <p className="text-muted-foreground">What You Do:</p>
-          <p className="text-muted-foreground">You solve one problem through:</p>
+          <h2 className="text-2xl font-bold">Unified Protocol</h2>
+          <p className="text-muted-foreground">
+            This phase is where the app stops rewarding passive understanding and starts scoring
+            behavior. The purpose of the phase and the drill structure are the same system.
+          </p>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>Vocabulary</li>
-            <li>Method</li>
-            <li>Reason</li>
+            <li>Purpose of phase: convert clarity into independent, repeatable method use.</li>
+            <li>Primary action in the engine: run Structured Execution drill.</li>
+            <li>Tutor role: enforce step order, not provide comfort teaching.</li>
+            <li>Success is measured through rep-by-rep execution signals, not tutor opinion.</li>
           </ul>
-          <p className="text-muted-foreground">No shortcuts.</p>
-          <p className="text-muted-foreground">No skipping.</p>
-          <p className="text-muted-foreground">What You Are Creating:</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>a visible structure</li>
-            <li>a repeatable pattern</li>
-            <li>a mental template</li>
-          </ul>
-          <p className="font-medium">Rule:</p>
-          <p className="font-medium">If your model is unclear, their execution will collapse.</p>
-
-          <h3 className="text-xl font-semibold">2. Apply (They Execute Immediately)</h3>
-          <p className="text-muted-foreground">Purpose:</p>
-          <p className="font-medium">Force action while the model is still fresh</p>
-          <p className="text-muted-foreground">What You Do:</p>
-          <p className="text-muted-foreground">You give:</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>2-3 similar problems</li>
-            <li>immediately</li>
-          </ul>
-          <p className="text-muted-foreground">No delay.</p>
-          <p className="text-muted-foreground">No extra explanation.</p>
-          <p className="text-muted-foreground">What You Say:</p>
-          <p className="font-medium">"Now you do this one."</p>
-          <p className="text-muted-foreground">Then:</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>they name</li>
-            <li>they execute</li>
-            <li>they explain</li>
-          </ul>
-          <p className="text-muted-foreground">What You Are Watching:</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>do they hesitate?</li>
-            <li>do they follow steps?</li>
-            <li>do they skip?</li>
-          </ul>
-          <p className="font-medium">Rule:</p>
-          <p className="font-medium">No passive learning.</p>
-          <p className="font-medium">If they are not executing:</p>
-          <p className="font-medium">the system is not running</p>
-
-          <h3 className="text-xl font-semibold">3. Guide (You Correct Precisely)</h3>
-          <p className="text-muted-foreground">Purpose:</p>
-          <p className="font-medium">Repair breakdowns in real-time</p>
-          <p className="text-muted-foreground">What You Do:</p>
-          <p className="text-muted-foreground">You do NOT:</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>re-teach everything</li>
-            <li>restart the lesson</li>
-            <li>take over</li>
-          </ul>
-          <p className="text-muted-foreground">You:</p>
-          <p className="text-muted-foreground">identify the exact layer that failed</p>
-          <p className="text-muted-foreground">Then fix only that.</p>
-          <p className="text-muted-foreground">Your Process:</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>Observe the error</li>
-            <li>Diagnose the layer:</li>
-            <li>Vocabulary</li>
-            <li>Method</li>
-            <li>Reason</li>
-            <li>Correct the layer</li>
-            <li>Return control</li>
-          </ul>
-          <p className="text-muted-foreground">Example:</p>
-          <p className="text-muted-foreground">Student skips step.</p>
-          <p className="text-muted-foreground">You say:</p>
-          <p className="font-medium">"What is the next step?"</p>
-          <p className="text-muted-foreground">Not:</p>
-          <p className="font-medium">"Let me show you."</p>
-          <p className="font-medium">Rule:</p>
-          <p className="font-medium">Guide, do not replace.</p>
         </Card>
 
         <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">What Structured Execution Builds</h2>
+          <h2 className="text-2xl font-bold">Diagnosis Structure</h2>
+          <p className="text-muted-foreground">
+            Diagnosis comes first in the intro session. It is not a general check-in. It uses
+            fixed sets to expose start behavior, step order, and repeatability before training
+            begins.
+          </p>
+          <div className="space-y-4">
+            {diagnosisSets.map((set) => (
+              <div key={set.name} className="rounded-lg border p-4 space-y-3">
+                <div>
+                  <h3 className="text-lg font-semibold">{set.name}</h3>
+                  <p className="text-sm text-muted-foreground">{set.reps}</p>
+                </div>
+                <p className="text-muted-foreground">{set.purpose}</p>
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">Rep instruction:</span>{" "}
+                  {set.instruction}
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  {set.rules.map((rule) => (
+                    <li key={rule}>{rule}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </Card>
 
-          <h3 className="text-xl font-semibold">1. Repeatability</h3>
-          <p className="font-medium">Same problem -&gt; same steps</p>
-          <p className="text-muted-foreground">No guessing.</p>
+        <Card className="p-6 space-y-5">
+          <h2 className="text-2xl font-bold">Training Drill Structure</h2>
+          <p className="text-muted-foreground">
+            Once diagnosis places the topic in Structured Execution, ongoing sessions use the
+            training sets below to build independent method use.
+          </p>
+          <div className="space-y-4">
+            {trainingSets.map((set) => (
+              <div key={set.name} className="rounded-lg border p-4 space-y-3">
+                <div>
+                  <h3 className="text-lg font-semibold">{set.name}</h3>
+                  <p className="text-sm text-muted-foreground">{set.reps}</p>
+                </div>
+                <p className="text-muted-foreground">{set.purpose}</p>
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">Rep instruction:</span>{" "}
+                  {set.instruction}
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  {set.rules.map((rule) => (
+                    <li key={rule}>{rule}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </Card>
 
-          <h3 className="text-xl font-semibold">2. Speed Through Familiarity</h3>
-          <p className="text-muted-foreground">Not rushing.</p>
-          <p className="text-muted-foreground">But:</p>
+        <Card className="p-6 space-y-5">
+          <h2 className="text-2xl font-bold">What the App Actually Observes</h2>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>faster recognition</li>
-            <li>faster start</li>
+            {observationSignals.map((signal) => (
+              <li key={signal}>{signal}</li>
+            ))}
           </ul>
+          <p className="font-medium">
+            These observations are converted into weak, partial, or clear signals and rolled into
+            the drill total that determines stability movement.
+          </p>
+        </Card>
 
-          <h3 className="text-xl font-semibold">3. Error Awareness</h3>
-          <p className="text-muted-foreground">Student starts seeing:</p>
-          <p className="font-medium">"I skipped a step"</p>
-          <p className="text-muted-foreground">Without you telling them.</p>
-
-          <h3 className="text-xl font-semibold">4. Ownership</h3>
-          <p className="text-muted-foreground">Student becomes:</p>
+        <Card className="p-6 space-y-5 border-primary/30 bg-primary/5">
+          <h2 className="text-2xl font-bold">Progression Logic</h2>
+          <p className="text-muted-foreground">
+            Advancement out of Structured Execution only happens when the engine sees sustained
+            High Maintenance performance, not when a tutor feels satisfied.
+          </p>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>active</li>
-            <li>responsible</li>
-            <li>engaged</li>
+            {progressionBands.map((band) => (
+              <li key={band}>{band}</li>
+            ))}
+          </ul>
+        </Card>
+
+        <Card className="p-6 space-y-5">
+          <h2 className="text-2xl font-bold">Tutor Discipline Inside This Phase</h2>
+          <ul className="space-y-2 text-sm text-muted-foreground">
+            <li>Do not rescue the cold start. Observe it.</li>
+            <li>Do not keep remodelling when the phase requires independent execution.</li>
+            <li>Do not accept skipped steps because the final answer looks right.</li>
+            <li>After correction, return the problem to the student and require re-execution.</li>
           </ul>
         </Card>
 
         <Card className="p-6 space-y-5 border-primary/30 bg-primary/5">
-          <h2 className="text-2xl font-bold">Common Failure Modes (Critical)</h2>
-          <p className="font-medium">Over-Explaining</p>
-          <p className="text-muted-foreground">Tutor keeps talking.</p>
-          <p className="text-muted-foreground">Student keeps listening.</p>
-          <p className="text-muted-foreground">No execution.</p>
-
-          <p className="font-medium">Delayed Application</p>
-          <p className="text-muted-foreground">Tutor says:</p>
-          <p className="font-medium">"Let us do one more example..."</p>
-          <p className="font-medium">No.</p>
-          <p className="text-muted-foreground">You already modeled.</p>
-          <p className="text-muted-foreground">Now they execute.</p>
-
-          <p className="font-medium">Taking Over</p>
-          <p className="text-muted-foreground">Student struggles.</p>
-          <p className="text-muted-foreground">Tutor jumps in.</p>
-          <p className="text-muted-foreground">Execution is stolen.</p>
-
-          <p className="font-medium">Ignoring the Lens</p>
-          <p className="text-muted-foreground">Tutor says:</p>
-          <p className="font-medium">"That is wrong"</p>
-          <p className="text-muted-foreground">Instead of:</p>
-          <p className="font-medium">"What layer broke?"</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">What You Must Enforce</h2>
-          <p className="font-medium">Rule 1:</p>
-          <p className="text-muted-foreground">After modeling -&gt; they must act</p>
-          <p className="font-medium">Rule 2:</p>
-          <p className="text-muted-foreground">After error -&gt; you must diagnose</p>
-          <p className="font-medium">Rule 3:</p>
-          <p className="text-muted-foreground">After correction -&gt; they must re-execute</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">The Loop</h2>
-          <p className="text-muted-foreground">This phase is not linear.</p>
-          <p className="text-muted-foreground">It is a loop:</p>
-          <p className="font-medium">Model</p>
-          <p className="font-medium">-&gt; Apply</p>
-          <p className="font-medium">-&gt; Guide</p>
-          <p className="font-medium">-&gt; Apply again</p>
-          <p className="font-medium">-&gt; Guide again</p>
-          <p className="text-muted-foreground">Until:</p>
-          <p className="font-medium">execution stabilizes</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">What Mastery Looks Like</h2>
-          <p className="text-muted-foreground">You will see:</p>
+          <h2 className="text-2xl font-bold">Compliance Audit Exposure</h2>
+          <p className="text-muted-foreground">
+            Structured Execution sessions are auditable against the TD compliance library. The audit
+            tests execution integrity, not tutor intent.
+          </p>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>less hesitation</li>
-            <li>fewer skipped steps</li>
-            <li>correct language</li>
-            <li>cleaner structure</li>
+            {auditChecks.map((check) => (
+              <li key={check}>{check}</li>
+            ))}
           </ul>
-          <p className="text-muted-foreground">The student begins to:</p>
-          <p className="font-medium">trust the process instead of guessing</p>
+          <p className="font-medium">
+            Only full compliance passes. If the drill is softened, the session fails audit.
+          </p>
         </Card>
 
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">The Hidden Outcome</h2>
-          <p className="text-muted-foreground">This phase quietly builds:</p>
-          <p className="font-medium">discipline</p>
-          <p className="text-muted-foreground">Not motivation.</p>
-          <p className="text-muted-foreground">Not confidence.</p>
-          <p className="font-medium">Discipline.</p>
-        </Card>
-
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">Relationship to Other Phases</h2>
-          <p className="text-muted-foreground">Without Clarity:</p>
-          <p className="font-medium">Execution becomes guessing</p>
-          <p className="text-muted-foreground">Without Structured Execution:</p>
-          <p className="font-medium">Boss Battles become overwhelming</p>
-          <p className="text-muted-foreground">Without This Phase:</p>
-          <p className="font-medium">Timed Execution collapses</p>
-          <p className="font-medium">This is the bridge.</p>
-        </Card>
-
-        <Card className="p-6 space-y-5 border-primary/30 bg-primary/5">
-          <h2 className="text-2xl font-bold">Final Principle</h2>
-          <p className="text-muted-foreground">Structured Execution is where:</p>
-          <p className="font-medium">thinking becomes behaviour</p>
-        </Card>
-
-        <Card className="p-6 space-y-5 border-l-4 border-l-primary">
-          <h2 className="text-2xl font-bold">Final Rule</h2>
-          <p className="text-muted-foreground">If the student is not:</p>
+        <Card className="p-6 space-y-5 border-l-4 border-l-destructive">
+          <h2 className="text-2xl font-bold">Violation Consequence</h2>
+          <p className="text-muted-foreground">
+            Any attempt to bypass independent execution, interfere early, or clean up the logs can
+            trigger violation detection.
+          </p>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>doing</li>
-            <li>correcting</li>
-            <li>repeating</li>
+            {criticalFails.map((fail) => (
+              <li key={fail}>{fail}</li>
+            ))}
           </ul>
-          <p className="text-muted-foreground">Then:</p>
-          <p className="font-medium">you are teaching, not conditioning</p>
-          <p className="text-muted-foreground">And TT is not teaching.</p>
-          <p className="font-medium">It is conditioning.</p>
+          <p className="font-medium">
+            Flagged non-compliance can lead to failed audits, suspension from active training,
+            and for repeated or severe breaches, permanent ban or blacklisting from the TT platform.
+          </p>
         </Card>
       </div>
     </div>
