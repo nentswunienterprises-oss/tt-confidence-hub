@@ -53,6 +53,10 @@ export default function ResponseConditioningTopicConditioning() {
             <li>Find where their response breaks inside that topic.</li>
             <li>Run the TT system until their response becomes stable.</li>
           </ul>
+          <p className="text-muted-foreground">
+            That first diagnosis happens in the intro session. Training starts after the entry
+            phase has been identified.
+          </p>
           <p className="font-semibold">That is Topic Conditioning.</p>
         </Card>
 
