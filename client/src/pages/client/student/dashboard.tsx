@@ -11,17 +11,6 @@ interface StudentStats {
   confidenceLevel: number;
 }
 
-interface StruggleTarget {
-  id?: string;
-  subject?: string;
-  topicConcept?: string;
-  topic_concept?: string;
-  strategy?: string;
-  myStruggle?: string;
-  my_struggle?: string;
-  overcame?: boolean;
-}
-
 interface TopicConditioningState {
   topic: string | null;
   phase: string | null;
@@ -236,12 +225,6 @@ export default function StudentDashboard() {
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
 
-  const { data: struggleTargetsData } = useQuery<StruggleTarget[] | null>({
-    queryKey: ["/api/student/struggle-targets"],
-    queryFn: getQueryFn({ on401: "returnNull" }),
-    retry: false,
-  });
-
   const { data: topicConditioningState } = useQuery<TopicConditioningState | null>({
     queryKey: ["/api/student/topic-conditioning-state"],
     queryFn: getQueryFn({ on401: "returnNull" }),
@@ -262,8 +245,6 @@ export default function StudentDashboard() {
     );
   }
 
-  const struggleTargets = Array.isArray(struggleTargetsData) ? struggleTargetsData : [];
-  const activeTarget = struggleTargets.find((target) => !target.overcame) || struggleTargets[0] || null;
   const conditioningTopic = normalizeTopicText(topicConditioningState?.topic);
   const normalizedPhase = normalizePhaseLabel(topicConditioningState?.phase);
   const normalizedStability = normalizeStabilityLabel(topicConditioningState?.stability);
@@ -309,8 +290,6 @@ export default function StudentDashboard() {
     : [];
 
   const topicCards = normalizedTopicStates.length > 0 ? normalizedTopicStates : fallbackTopicCards;
-  const primaryTopicCard = topicCards[0] || null;
-  const primaryTopicCopy = studentCopyForState(primaryTopicCard?.phase, primaryTopicCard?.stability);
 
   const trainingMarkers = [
     { label: "Sessions Completed", value: stats?.totalSessions || 0 },
@@ -318,22 +297,6 @@ export default function StudentDashboard() {
     { label: "Structured Solutions", value: stats?.solutionsUnlocked || 0 },
     { label: "Topics In Conditioning", value: topicCards.length },
   ];
-
-  const focusTopic =
-    (activeTarget ? normalizeTopicText(activeTarget.topicConcept || activeTarget.topic_concept) : null) ||
-    primaryTopicCard?.topic ||
-    "No topic set";
-  const focusSubject =
-    activeTarget?.subject ||
-    primaryTopicCard?.phase ||
-    (topicConditioningState?.stage ? `TT ${topicConditioningState.stage}` : "No subject set");
-  const focusObjective =
-    activeTarget?.strategy ||
-    activeTarget?.myStruggle ||
-    activeTarget?.my_struggle ||
-    (primaryTopicCard
-      ? primaryTopicCopy.drillPurpose
-      : "Your tutor will set the next objective after your upcoming session.");
 
   const allCoreMetricsZero =
     (stats?.totalSessions || 0) === 0 &&
@@ -368,29 +331,6 @@ export default function StudentDashboard() {
         </h1>
         <p className="mt-0.5 text-sm text-muted-foreground">Your training overview</p>
       </div>
-
-      <Card className="border-primary/20 bg-background shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-medium tracking-[-0.01em]">Primary Focus</CardTitle>
-          <CardDescription>The main topic and drill-purpose TT is emphasizing right now.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="rounded-xl border border-primary/20 bg-muted/20 px-4 py-3">
-              <p className="text-[11px] uppercase tracking-[0.07em] text-muted-foreground">Current Topic</p>
-              <p className="mt-2 text-base font-medium text-foreground break-words">{focusTopic}</p>
-            </div>
-            <div className="rounded-xl border border-primary/20 bg-muted/20 px-4 py-3">
-              <p className="text-[11px] uppercase tracking-[0.07em] text-muted-foreground">Current Stage</p>
-              <p className="mt-2 text-base font-medium text-foreground break-words">{focusSubject}</p>
-            </div>
-            <div className="rounded-xl border border-primary/20 bg-muted/20 px-4 py-3">
-              <p className="text-[11px] uppercase tracking-[0.07em] text-muted-foreground">Drill Purpose</p>
-              <p className="mt-2 text-base font-medium text-foreground break-words">{focusObjective}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       <Card className="border-primary/20 bg-background shadow-sm">
         <CardHeader className="pb-3">
