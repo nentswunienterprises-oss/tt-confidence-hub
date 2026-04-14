@@ -80,6 +80,11 @@ function statusLabel(session: StudentSession) {
   return raw ? raw.replace(/_/g, " ") : "Scheduled";
 }
 
+function canJoinMeet(session: StudentSession) {
+  const raw = String(session.status || "").trim().toLowerCase();
+  return ["confirmed", "ready", "live"].includes(raw);
+}
+
 export default function StudentSessions() {
   const { data, isLoading } = useQuery<{ sessions: StudentSession[] }>({
     queryKey: ["/api/student/sessions"],
@@ -186,7 +191,7 @@ export default function StudentSessions() {
                           </Badge>
                         </div>
 
-                        {session.google_meet_url ? (
+                        {session.google_meet_url && canJoinMeet(session) ? (
                           <Button asChild size="sm" className="gap-2">
                             <a href={session.google_meet_url} target="_blank" rel="noreferrer">
                               <Video className="w-4 h-4" />
@@ -239,7 +244,7 @@ export default function StudentSessions() {
                 </Badge>
               </div>
 
-              {nextSession.google_meet_url ? (
+              {nextSession.google_meet_url && canJoinMeet(nextSession) ? (
                 <Button asChild size="sm" className="gap-2">
                   <a href={nextSession.google_meet_url} target="_blank" rel="noreferrer">
                     <Video className="w-4 h-4" />

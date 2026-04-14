@@ -2183,8 +2183,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 .update({
                   status: "completed",
                   attendance_status: "both_joined",
-                  recording_status: scheduledSession.google_event_id ? "expected" : scheduledSession.recording_status,
-                  transcript_status: scheduledSession.google_event_id ? "expected" : scheduledSession.transcript_status,
+                  recording_status: scheduledSession.recording_file_id ? "recording_uploaded" : "recording_required",
+                  transcript_status: "manual_not_tracked",
                   updated_at: new Date().toISOString(),
                 })
                 .eq("id", scheduledSession.id);
@@ -2459,8 +2459,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 .update({
                   status: "completed",
                   attendance_status: "both_joined",
-                  recording_status: scheduledSession.google_event_id ? "expected" : scheduledSession.recording_status,
-                  transcript_status: scheduledSession.google_event_id ? "expected" : scheduledSession.transcript_status,
+                  recording_status: scheduledSession.recording_file_id ? "recording_uploaded" : "recording_required",
+                  transcript_status: "manual_not_tracked",
                   updated_at: new Date().toISOString(),
                 })
                 .eq("id", scheduledSession.id);
@@ -4834,17 +4834,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   app.post(
-    "/api/tutor/students/:studentId/scheduled-sessions/:sessionId/sync-artifacts",
+    "/api/tutor/students/:studentId/scheduled-sessions/:sessionId/submit-recording",
     isAuthenticated,
     requireRole(["tutor"]),
     async (req: Request, res: Response) => {
       try {
         const { studentId, sessionId } = req.params;
         const tutorId = (req as any).dbUser.id;
+        const recordingUrl = String(req.body?.recordingUrl || "").trim();
+        const fileData = String(req.body?.fileData || "").trim();
+        const fileName = String(req.body?.fileName || "").trim();
+        const contentType = String(req.body?.contentType || "").trim() || "video/webm";
         const student = await storage.getStudent(studentId);
 
         if (!student || student.tutorId !== tutorId) {
           return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
+        }
+
+        if (!recordingUrl && !fileData) {
+          return res.status(400).json({ message: "Recording link or uploaded file is required" });
         }
 
         const { data: session, error } = await supabase
@@ -4859,32 +4867,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Scheduled session not found" });
         }
 
-        if (!session.google_event_id && !session.google_meet_space_name && !session.google_meet_code) {
-          return res.status(400).json({ message: "This session has no Google Meet metadata to sync artifacts from." });
+        let persistedRecordingUrl = recordingUrl;
+        if (fileData) {
+          if (!fileName) {
+            return res.status(400).json({ message: "Uploaded recording file must include a file name" });
+          }
+
+          const safeFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+          const extension = safeFileName.includes(".") ? safeFileName.split(".").pop() : "webm";
+          const storagePath = `session-recordings/${studentId}/${sessionId}-${Date.now()}.${extension}`;
+          const normalizedBase64 = fileData.includes(",") ? fileData.split(",").pop() || "" : fileData;
+          const buffer = Buffer.from(normalizedBase64, "base64");
+
+          const { error: uploadError } = await supabase.storage
+            .from("session-recordings")
+            .upload(storagePath, buffer, {
+              contentType,
+              upsert: true,
+            });
+
+          if (uploadError) {
+            return res.status(500).json({ message: `Failed to upload recording: ${uploadError.message}` });
+          }
+
+          const { data: urlData } = supabase.storage
+            .from("session-recordings")
+            .getPublicUrl(storagePath);
+
+          if (!urlData?.publicUrl) {
+            return res.status(500).json({ message: "Recording upload succeeded but file URL could not be generated" });
+          }
+
+          persistedRecordingUrl = urlData.publicUrl;
+        } else {
+          let parsedUrl: URL;
+          try {
+            parsedUrl = new URL(recordingUrl);
+          } catch {
+            return res.status(400).json({ message: "Recording link must be a valid URL" });
+          }
+
+          if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+            return res.status(400).json({ message: "Recording link must use http or https" });
+          }
         }
 
-        const artifactSync = await reconcileArtifactsForScheduledSession(session);
-        const { data: refreshedSession } = await supabase
+        const { data: updatedSession, error: updateError } = await supabase
           .from("scheduled_sessions")
-          .select(SCHEDULED_SESSION_SELECT)
+          .update({
+            recording_file_id: persistedRecordingUrl,
+            recording_detected_at: new Date().toISOString(),
+            recording_status: "recording_uploaded",
+            transcript_status:
+              String(session?.transcript_status || "").trim() || "manual_not_tracked",
+            updated_at: new Date().toISOString(),
+          })
           .eq("id", sessionId)
-          .maybeSingle();
+          .select(SCHEDULED_SESSION_SELECT)
+          .single();
 
-        if (artifactSync.provider === "error") {
-          return res.status(500).json({
-            message: artifactSync.reason || "Failed to sync artifacts",
-            session: refreshedSession || session,
-          });
+        if (updateError || !updatedSession) {
+          return res.status(500).json({ message: "Failed to save recording link" });
         }
 
         res.json({
           success: true,
-          artifactSync: artifactSync.provider,
-          session: refreshedSession || session,
+          session: updatedSession,
         });
       } catch (error) {
-        console.error("Error syncing scheduled session artifacts:", error);
-        res.status(500).json({ message: "Failed to sync scheduled session artifacts" });
+        console.error("Error submitting manual session recording:", error);
+        res.status(500).json({ message: "Failed to save recording link" });
       }
     }
   );
@@ -13480,6 +13532,157 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching student topic conditioning state:", error);
       res.status(500).json({ message: "Failed to fetch topic conditioning state" });
+    }
+  });
+
+  app.get("/api/student/topic-conditioning-states", async (req: Request, res: Response) => {
+    try {
+      const studentUserId = (req.session as any).studentUserId;
+      if (!studentUserId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { data: studentUser } = await supabase
+        .from("student_users")
+        .select("student_id")
+        .eq("id", studentUserId)
+        .single();
+
+      if (!studentUser?.student_id) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+
+      const student = await storage.getStudent(studentUser.student_id);
+      if (!student?.tutorId) {
+        return res.json([]);
+      }
+
+      const sanitizeTopic = (value?: string | null) => {
+        const cleaned = String(value || "").trim();
+        if (!cleaned) return null;
+        if (cleaned.toLowerCase() === "onboarding baseline diagnostic") return null;
+        if (cleaned.startsWith("[") && cleaned.endsWith("]")) {
+          try {
+            const parsed = JSON.parse(cleaned);
+            if (Array.isArray(parsed)) {
+              const first = String(parsed[0] || "").trim();
+              if (!first || first.toLowerCase() === "onboarding baseline diagnostic") return null;
+              return first;
+            }
+          } catch {
+            return cleaned;
+          }
+        }
+        return cleaned;
+      };
+
+      const conceptMastery: any =
+        student.conceptMastery && typeof student.conceptMastery === "object"
+          ? student.conceptMastery
+          : {};
+      const topicConditioningStore: any =
+        conceptMastery.topicConditioning && typeof conceptMastery.topicConditioning === "object"
+          ? conceptMastery.topicConditioning
+          : {};
+      const topicsStore: Record<string, any> =
+        topicConditioningStore.topics && typeof topicConditioningStore.topics === "object"
+          ? topicConditioningStore.topics
+          : {};
+
+      const now = Date.now();
+      const rows = Object.entries(topicsStore)
+        .map(([topicKey, entry]) => {
+          const topic = sanitizeTopic(topicKey) || sanitizeTopic(entry?.topic) || null;
+          if (!topic) return null;
+
+          const latestPhase = tryParsePhase(entry?.phase) || tryParsePhase(topicConditioningStore.entry_phase);
+          if (!latestPhase) return null;
+          const latestStability = normalizeStability(entry?.stability || topicConditioningStore.stability || "Low");
+
+          const normalizedHistory = Array.isArray(entry?.history)
+            ? entry.history
+                .map((item: any) => ({
+                  phase: tryParsePhase(item?.phase) || latestPhase,
+                  stability: normalizeStability(item?.stability || latestStability),
+                  date: String(item?.date || "").trim(),
+                }))
+                .filter((item: any) => !!item.date)
+                .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+            : [];
+
+          const latest = normalizedHistory[normalizedHistory.length - 1] || {
+            phase: latestPhase,
+            stability: latestStability,
+            date: entry?.lastUpdated || topicConditioningStore.lastUpdatedAt || new Date().toISOString(),
+          };
+          const previous = normalizedHistory.length > 1 ? normalizedHistory[normalizedHistory.length - 2] : null;
+
+          const latestPhaseIdx = PHASE_ORDER.indexOf(latest.phase);
+          const previousPhaseIdx = previous ? PHASE_ORDER.indexOf(previous.phase) : -1;
+          const latestStabilityScore = stabilityToScore(latest.stability);
+          const previousStabilityScore = previous ? stabilityToScore(previous.stability) : 0;
+
+          let movement: "none" | "improved" | "regressed" | "changed" = "none";
+          if (previous) {
+            if (latestPhaseIdx > previousPhaseIdx || (latestPhaseIdx === previousPhaseIdx && latestStabilityScore > previousStabilityScore)) {
+              movement = "improved";
+            } else if (latestPhaseIdx < previousPhaseIdx || (latestPhaseIdx === previousPhaseIdx && latestStabilityScore < previousStabilityScore)) {
+              movement = "regressed";
+            } else if (latest.phase !== previous.phase || latest.stability !== previous.stability) {
+              movement = "changed";
+            }
+          }
+
+          const daysSinceUpdate = Math.floor((now - new Date(latest.date).getTime()) / (1000 * 60 * 60 * 24));
+          const bucket = daysSinceUpdate <= 14 ? "active" : daysSinceUpdate <= 45 ? "recent" : "older";
+
+          return {
+            topic,
+            phase: latest.phase,
+            stability: latest.stability,
+            lastUpdated: latest.date,
+            previousPhase: previous?.phase || null,
+            previousStability: previous?.stability || null,
+            movement,
+            bucket,
+          };
+        })
+        .filter((row): row is NonNullable<typeof row> => !!row)
+        .filter((row) => row.bucket !== "older")
+        .sort((a, b) => {
+          if (a.bucket !== b.bucket) return a.bucket === "active" ? -1 : 1;
+          return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
+        });
+
+      const dedupedRows = Array.from(
+        rows.reduce((map, row) => {
+          const key = String(row.topic || "").trim().toLowerCase();
+          const existing = map.get(key);
+
+          if (!existing) {
+            map.set(key, row);
+            return map;
+          }
+
+          const existingDate = new Date(existing.lastUpdated || 0).getTime();
+          const rowDate = new Date(row.lastUpdated || 0).getTime();
+
+          if (rowDate >= existingDate) {
+            map.set(key, row);
+          }
+
+          return map;
+        }, new Map<string, any>())
+        .values()
+      ).sort((a, b) => {
+        if (a.bucket !== b.bucket) return a.bucket === "active" ? -1 : 1;
+        return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
+      });
+
+      res.json(dedupedRows);
+    } catch (error) {
+      console.error("Error fetching student topic conditioning states:", error);
+      res.status(500).json({ message: "Failed to fetch topic conditioning states" });
     }
   });
 

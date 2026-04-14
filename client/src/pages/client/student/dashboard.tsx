@@ -30,6 +30,17 @@ interface TopicConditioningState {
   lastUpdated: string | null;
 }
 
+interface StudentTopicState {
+  topic: string;
+  phase: string | null;
+  stability: string | null;
+  lastUpdated?: string | null;
+  previousPhase?: string | null;
+  previousStability?: string | null;
+  movement?: "none" | "improved" | "regressed" | "changed";
+  bucket?: "active" | "recent" | "older";
+}
+
 const PHASE_SEQUENCE = ["Clarity", "Structured Execution", "Controlled Discomfort", "Time Pressure Stability"] as const;
 const STABILITY_SEQUENCE = ["Low", "Medium", "High", "High Maintenance"] as const;
 
@@ -237,6 +248,12 @@ export default function StudentDashboard() {
     retry: false,
   });
 
+  const { data: topicStatesData } = useQuery<StudentTopicState[] | null>({
+    queryKey: ["/api/student/topic-conditioning-states"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    retry: false,
+  });
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -245,33 +262,77 @@ export default function StudentDashboard() {
     );
   }
 
-  const trainingMarkers = [
-    { label: "Sessions Completed", value: stats?.totalSessions || 0 },
-    { label: "Challenge Exposure", value: stats?.bossBattlesCompleted || 0 },
-    { label: "Structured Solutions", value: stats?.solutionsUnlocked || 0 },
-    { label: "Current Training Stage", value: topicConditioningState?.stage || "Foundation" },
-  ];
-
   const struggleTargets = Array.isArray(struggleTargetsData) ? struggleTargetsData : [];
   const activeTarget = struggleTargets.find((target) => !target.overcame) || struggleTargets[0] || null;
   const conditioningTopic = normalizeTopicText(topicConditioningState?.topic);
   const normalizedPhase = normalizePhaseLabel(topicConditioningState?.phase);
   const normalizedStability = normalizeStabilityLabel(topicConditioningState?.stability);
-  const topicStateCopy = studentCopyForState(topicConditioningState?.phase, topicConditioningState?.stability);
+  const normalizedTopicStates = Array.from(
+    ((topicStatesData || []) as StudentTopicState[])
+      .map((item) => ({
+        ...item,
+        phase: normalizePhaseLabel(item.phase),
+        stability: normalizeStabilityLabel(item.stability),
+        topic: String(item.topic || "").trim(),
+      }))
+      .filter((item) => item.topic.length > 0)
+      .reduce((map, item) => {
+        const key = item.topic.toLowerCase();
+        const existing = map.get(key);
+
+        if (!existing) {
+          map.set(key, item);
+          return map;
+        }
+
+        const existingDate = new Date(existing.lastUpdated || 0).getTime();
+        const itemDate = new Date(item.lastUpdated || 0).getTime();
+
+        if (itemDate >= existingDate) {
+          map.set(key, item);
+        }
+
+        return map;
+      }, new Map<string, StudentTopicState & { phase: PhaseLabel | null; stability: StabilityLabel | null }>())
+      .values()
+  );
+
+  const fallbackTopicCards = conditioningTopic
+    ? [{
+        topic: conditioningTopic,
+        phase: normalizedPhase,
+        stability: normalizedStability,
+        lastUpdated: topicConditioningState?.lastUpdated || null,
+        movement: "none" as const,
+        bucket: "active" as const,
+      }]
+    : [];
+
+  const topicCards = normalizedTopicStates.length > 0 ? normalizedTopicStates : fallbackTopicCards;
+  const primaryTopicCard = topicCards[0] || null;
+  const primaryTopicCopy = studentCopyForState(primaryTopicCard?.phase, primaryTopicCard?.stability);
+
+  const trainingMarkers = [
+    { label: "Sessions Completed", value: stats?.totalSessions || 0 },
+    { label: "Challenge Exposure", value: stats?.bossBattlesCompleted || 0 },
+    { label: "Structured Solutions", value: stats?.solutionsUnlocked || 0 },
+    { label: "Topics In Conditioning", value: topicCards.length },
+  ];
+
   const focusTopic =
     (activeTarget ? normalizeTopicText(activeTarget.topicConcept || activeTarget.topic_concept) : null) ||
-    conditioningTopic ||
+    primaryTopicCard?.topic ||
     "No topic set";
   const focusSubject =
     activeTarget?.subject ||
-    normalizedPhase ||
+    primaryTopicCard?.phase ||
     (topicConditioningState?.stage ? `TT ${topicConditioningState.stage}` : "No subject set");
   const focusObjective =
     activeTarget?.strategy ||
     activeTarget?.myStruggle ||
     activeTarget?.my_struggle ||
-    (conditioningTopic
-      ? topicStateCopy.drillPurpose
+    (primaryTopicCard
+      ? primaryTopicCopy.drillPurpose
       : "Your tutor will set the next objective after your upcoming session.");
 
   const allCoreMetricsZero =
@@ -310,8 +371,8 @@ export default function StudentDashboard() {
 
       <Card className="border-primary/20 bg-background shadow-sm">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-medium tracking-[-0.01em]">Next Session Focus</CardTitle>
-          <CardDescription>The active topic and the drill-purpose TT is training next.</CardDescription>
+          <CardTitle className="text-lg font-medium tracking-[-0.01em]">Primary Focus</CardTitle>
+          <CardDescription>The main topic and drill-purpose TT is emphasizing right now.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -334,44 +395,63 @@ export default function StudentDashboard() {
       <Card className="border-primary/20 bg-background shadow-sm">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-medium tracking-[-0.01em]">Topic Focus</CardTitle>
-          <CardDescription>The current observed state of your active training topic.</CardDescription>
+          <CardDescription>The current observed state of the topics TT is conditioning right now.</CardDescription>
         </CardHeader>
         <CardContent>
-          {!conditioningTopic ? (
+          {topicCards.length === 0 ? (
             <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
               Topic cards appear as soon as TT activates a topic in conditioning.
             </div>
           ) : (
-            <div className="rounded-xl border border-primary/20 bg-background p-4 space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-base font-semibold tracking-tight text-foreground">{conditioningTopic}</p>
-              </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {topicCards.map((row) => {
+                const copy = studentCopyForState(row.phase, row.stability);
+                const hasProgressUpdate = row.movement === "improved";
 
-              <div className="flex flex-wrap gap-2">
-                <span className="rounded-full border border-primary/30 bg-background/80 px-3 py-1 text-xs text-foreground">
-                  Stage: {normalizedPhase || "Unknown"}
-                </span>
-                <span className="rounded-full border border-primary/30 bg-background/80 px-3 py-1 text-xs text-foreground">
-                  Stability: {normalizedStability || "Unknown"}
-                </span>
-              </div>
+                return (
+                  <div key={`${row.topic}-${row.phase}-${row.stability}`} className="rounded-xl border border-primary/20 bg-background p-4 space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-base font-semibold tracking-tight text-foreground">{row.topic}</p>
+                      {row.bucket === "recent" && (
+                        <span className="rounded-full bg-muted px-3 py-1 text-xs text-foreground">Recently Trained</span>
+                      )}
+                    </div>
 
-              <div className="space-y-2">
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Current Status</p>
-                  <p className="text-sm text-foreground leading-relaxed">{topicStateCopy.status}</p>
-                </div>
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">What This Means</p>
-                  <p className="text-sm text-foreground leading-relaxed">{topicStateCopy.meaning}</p>
-                </div>
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Current Focus</p>
-                  <p className="text-sm text-foreground leading-relaxed">{topicStateCopy.focus}</p>
-                </div>
-              </div>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="rounded-full border border-primary/30 bg-background/80 px-3 py-1 text-xs text-foreground">
+                        Stage: {row.phase || "Unknown"}
+                      </span>
+                      <span className="rounded-full border border-primary/30 bg-background/80 px-3 py-1 text-xs text-foreground">
+                        Stability: {row.stability || "Unknown"}
+                      </span>
+                    </div>
 
-              <p className="text-xs text-muted-foreground">Last updated: {formatDateLabel(topicConditioningState?.lastUpdated)}</p>
+                    {hasProgressUpdate && (
+                      <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2">
+                        <p className="text-sm font-medium text-green-800">Progress Update</p>
+                        <p className="text-xs text-green-700">You have improved in this topic this week.</p>
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <div>
+                        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Current Status</p>
+                        <p className="text-sm text-foreground leading-relaxed">{copy.status}</p>
+                      </div>
+                      <div>
+                        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">What This Means</p>
+                        <p className="text-sm text-foreground leading-relaxed">{copy.meaning}</p>
+                      </div>
+                      <div>
+                        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Current Focus</p>
+                        <p className="text-sm text-foreground leading-relaxed">{copy.focus}</p>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-muted-foreground">Last updated: {formatDateLabel(row.lastUpdated)}</p>
+                  </div>
+                );
+              })}
             </div>
           )}
         </CardContent>
