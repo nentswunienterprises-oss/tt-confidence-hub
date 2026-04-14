@@ -701,18 +701,6 @@ function IntroDiagnosticTopicSection({
           <p className="text-sm text-foreground">
             {new Date(introSession.scheduled_time).toLocaleString()}
           </p>
-          {introSession.google_meet_url ? (
-            <a
-              href={introSession.google_meet_url}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex text-xs text-primary underline underline-offset-2"
-            >
-              Join Meet
-            </a>
-          ) : (
-            <p className="text-xs text-muted-foreground">Meet link pending calendar sync.</p>
-          )}
         </div>
       ) : null}
       <Button

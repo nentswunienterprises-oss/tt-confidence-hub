@@ -97,18 +97,20 @@ export function useRetryScheduledSessionMeetSync(studentId) {
   });
 }
 
-export function useSyncScheduledSessionArtifacts(studentId) {
+export function useSubmitScheduledSessionRecording(studentId) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ sessionId }) => {
-      const res = await fetch(`${API_URL}/api/tutor/students/${studentId}/scheduled-sessions/${sessionId}/sync-artifacts`, {
+    mutationFn: async ({ sessionId, recordingUrl, fileData, fileName, contentType }) => {
+      const res = await fetch(`${API_URL}/api/tutor/students/${studentId}/scheduled-sessions/${sessionId}/submit-recording`, {
         method: "POST",
         credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, recordingUrl, fileData, fileName, contentType }),
       });
       const payload = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(payload?.message || "Failed to sync session artifacts");
+        throw new Error(payload?.message || "Failed to submit recording");
       }
       return payload;
     },

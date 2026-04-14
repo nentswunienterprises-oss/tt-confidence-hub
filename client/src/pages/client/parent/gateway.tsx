@@ -1092,16 +1092,6 @@ export default function ParentGateway() {
                           {effectiveIntroSessionConfirmation.scheduled_time && (
                             <p className="text-sm text-green-700 mt-2">Scheduled for: {new Date(effectiveIntroSessionConfirmation.scheduled_time).toLocaleString()}</p>
                           )}
-                          {effectiveIntroSessionConfirmation.google_meet_url && (
-                            <a
-                              href={effectiveIntroSessionConfirmation.google_meet_url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex mt-2 text-sm text-green-800 underline underline-offset-2"
-                            >
-                              Join Google Meet
-                            </a>
-                          )}
                           <p className="text-sm text-green-700 mt-2">You will receive an introductory report and proposal here after you've had your intro session</p>
                         </>
                       )}

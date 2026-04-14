@@ -883,20 +883,6 @@ export default function IntroSessionDrillRunner() {
             <span>Status: {scheduledSession.status}</span>
             <span>Type: {scheduledSession.type}</span>
           </div>
-          {scheduledSession.google_meet_url ? (
-            <a
-              href={scheduledSession.google_meet_url}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex text-sm text-primary underline underline-offset-2"
-            >
-              Join Meet
-            </a>
-          ) : (
-            <p className="text-xs text-muted-foreground">
-              Meet link pending calendar sync.
-            </p>
-          )}
         </div>
       )}
       {(drillMode === "training" || isSessionMode) && workflowLoading && (

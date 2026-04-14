@@ -2925,8 +2925,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             status: resolvedSession.status,
             parent_confirmed: resolvedSession.parent_confirmed,
             tutor_confirmed: resolvedSession.tutor_confirmed,
-            google_meet_url: resolvedSession.google_meet_url,
-            google_event_id: resolvedSession.google_event_id,
             recording_status: resolvedSession.recording_status,
             transcript_status: resolvedSession.transcript_status,
             created_at: resolvedSession.created_at,
@@ -3204,8 +3202,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           timezone: session.timezone,
           parent_confirmed: session.parent_confirmed,
           tutor_confirmed: session.tutor_confirmed,
-          google_meet_url: session.google_meet_url,
-          google_event_id: session.google_event_id,
           introCompleted,
           debug: {
             parent_id: session.parent_id,
@@ -3262,16 +3258,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "Failed to confirm session" });
       }
 
-      const assignedStudent = session.student_id ? await storage.getStudent(session.student_id) : null;
-      const meetSync = updatedSession
-        ? await syncMeetForScheduledSession(updatedSession, { studentName: assignedStudent?.name || null })
-        : null;
-
       res.json({
         success: true,
         status: "confirmed",
-        googleMeetConfigured: isGoogleMeetIntegrationAvailable(),
-        ...getMeetSyncResponsePayload(meetSync),
       });
     } catch (error) {
       console.error("Error confirming intro session:", error);
@@ -4271,15 +4260,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (updateError) {
         return res.status(500).json({ message: "Failed to update session", details: updateError });
       }
-      let meetSync: any = null;
-      if (action === "accept" && Array.isArray(updateData) && updateData[0]) {
-        const student = await storage.getStudent(studentId);
-        meetSync = await syncMeetForScheduledSession(updateData[0], { studentName: student?.name || null });
-      }
       res.json({
         success: true,
-        googleMeetConfigured: isGoogleMeetIntegrationAvailable(),
-        ...getMeetSyncResponsePayload(meetSync),
       });
     } catch (error) {
       console.error("Error in tutor intro session response:", error);
@@ -4362,15 +4344,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (updateError) {
         return res.status(500).json({ message: "Failed to update session", details: updateError });
       }
-      let meetSync: any = null;
-      if (action === "accept" && Array.isArray(updateData) && updateData[0]) {
-        const student = await storage.getStudent(studentId);
-        meetSync = await syncMeetForScheduledSession(updateData[0], { studentName: student?.name || null });
-      }
       res.json({
         success: true,
-        googleMeetConfigured: isGoogleMeetIntegrationAvailable(),
-        ...getMeetSyncResponsePayload(meetSync),
       });
     } catch (error) {
       console.error("Error in tutor intro session response:", error);
@@ -4873,11 +4848,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return res.status(400).json({ message: "Uploaded recording file must include a file name" });
           }
 
+          if (!contentType.startsWith("video/") && !contentType.startsWith("audio/")) {
+            return res.status(400).json({ message: "Uploaded recording must be an audio or video file" });
+          }
+
           const safeFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
           const extension = safeFileName.includes(".") ? safeFileName.split(".").pop() : "webm";
           const storagePath = `session-recordings/${studentId}/${sessionId}-${Date.now()}.${extension}`;
           const normalizedBase64 = fileData.includes(",") ? fileData.split(",").pop() || "" : fileData;
           const buffer = Buffer.from(normalizedBase64, "base64");
+
+          if (buffer.byteLength > 30 * 1024 * 1024) {
+            return res.status(400).json({ message: "Uploaded recording must be 30 MB or smaller for now" });
+          }
 
           const { error: uploadError } = await supabase.storage
             .from("session-recordings")
@@ -4927,7 +4910,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .single();
 
         if (updateError || !updatedSession) {
-          return res.status(500).json({ message: "Failed to save recording link" });
+          return res.status(500).json({ message: "Failed to save recording" });
         }
 
         res.json({
@@ -4936,7 +4919,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } catch (error) {
         console.error("Error submitting manual session recording:", error);
-        res.status(500).json({ message: "Failed to save recording link" });
+        res.status(500).json({ message: "Failed to save recording" });
       }
     }
   );

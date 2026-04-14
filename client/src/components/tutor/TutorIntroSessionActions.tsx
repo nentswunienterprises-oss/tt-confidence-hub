@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { useRetryScheduledSessionMeetSync, useScheduledSession, useTutorRespondToSession } from "@/hooks/useScheduledSession";
+import { useScheduledSession, useTutorRespondToSession } from "@/hooks/useScheduledSession";
 import { useParentIntroSessionStatus } from "@/hooks/useParentIntroSessionStatus";
 import { useState } from "react";
 
@@ -11,9 +11,6 @@ export function TutorIntroSessionActions({ studentId, parentId, tutorId }) {
   const respond = studentId
     ? useTutorRespondToSession(studentId)
     : { mutate: () => {}, isPending: false, isError: false, isSuccess: false, error: null };
-  const retryMeetSync = studentId
-    ? useRetryScheduledSessionMeetSync(studentId)
-    : { mutate: () => {}, isPending: false, isError: false, isSuccess: false, data: null, error: null };
   const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -96,46 +93,13 @@ export function TutorIntroSessionActions({ studentId, parentId, tutorId }) {
       {["confirmed", "ready", "live", "completed"].includes(String(data.status || "")) && (
         <div className="space-y-1">
           <div className="text-[11px] text-green-700">Session confirmed!</div>
-          {data.google_meet_url ? (
-            <a
-              href={data.google_meet_url}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex text-[11px] text-primary underline underline-offset-2"
-            >
-              Join Meet
-            </a>
-          ) : (
-            <div className="space-y-1">
-              <div className="text-[11px] text-muted-foreground">
-                Meet link has not been attached yet.
-              </div>
-              {respond.data?.googleMeetError ? (
-                <div className="text-[11px] text-red-600">{respond.data.googleMeetError}</div>
-              ) : null}
-              {retryMeetSync.data?.googleMeetError ? (
-                <div className="text-[11px] text-red-600">{retryMeetSync.data.googleMeetError}</div>
-              ) : null}
-              {studentId && data.id ? (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => retryMeetSync.mutate({ sessionId: data.id })}
-                  disabled={retryMeetSync.isPending}
-                >
-                  {retryMeetSync.isPending ? "Retrying..." : "Retry Meet Sync"}
-                </Button>
-              ) : null}
-            </div>
-          )}
+          <div className="text-[11px] text-muted-foreground">
+            Intro session is confirmed. Open the drill runner when you are ready.
+          </div>
         </div>
       )}
       {respond.isError && <div className="text-[11px] text-red-600">{respond.error instanceof Error ? respond.error.message : "Failed to send response"}</div>}
       {respond.isSuccess && <div className="text-[11px] text-green-600">Response sent!</div>}
-      {retryMeetSync.isError && <div className="text-[11px] text-red-600">{retryMeetSync.error instanceof Error ? retryMeetSync.error.message : "Failed to retry Meet sync"}</div>}
-      {retryMeetSync.isSuccess && retryMeetSync.data?.googleMeetSync === "google_calendar" && (
-        <div className="text-[11px] text-green-600">Meet sync completed.</div>
-      )}
     </div>
   );
 }
