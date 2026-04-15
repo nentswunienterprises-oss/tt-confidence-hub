@@ -43,6 +43,10 @@ import {
   reconcileGoogleMeetArtifacts,
   syncGoogleMeetEvent,
 } from "./googleMeet";
+import {
+  getTutorGatewayLink,
+  sendTutorApplicationDecisionEmail,
+} from "./tutorApplicationNotifications";
 
 // Extend Express session type to include affiliateCode
 declare module 'express-session' {
@@ -9679,6 +9683,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!application) {
           return res.status(404).json({ message: "Application not found" });
         }
+
+        try {
+          await storage.createNotification({
+            recipientUserId: application.userId,
+            actorUserId: reviewerId,
+            channel: "action_required",
+            title: "Tutor application approved",
+            message: "Your tutor application was approved. Open the tutor gateway to upload your verification documents and continue onboarding.",
+            link: getTutorGatewayLink(),
+            entityType: "tutor_application",
+            entityId: application.id,
+          });
+        } catch (notificationError) {
+          console.error("Error creating tutor approval notification:", notificationError);
+        }
+
+        try {
+          await sendTutorApplicationDecisionEmail(application, "approved");
+        } catch (emailError) {
+          console.error("Error sending tutor approval email:", emailError);
+        }
         
         res.json(application);
       } catch (error) {
@@ -9702,6 +9727,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         if (!application) {
           return res.status(404).json({ message: "Application not found" });
+        }
+
+        const trimmedReason = typeof reason === "string" ? reason.trim() : "";
+
+        try {
+          await storage.createNotification({
+            recipientUserId: application.userId,
+            actorUserId: reviewerId,
+            channel: "informational",
+            title: "Tutor application update",
+            message: trimmedReason
+              ? `Your tutor application was not accepted. Reason: ${trimmedReason}`
+              : "Your tutor application was not accepted. Open the tutor gateway to review your status.",
+            link: getTutorGatewayLink(),
+            entityType: "tutor_application",
+            entityId: application.id,
+          });
+        } catch (notificationError) {
+          console.error("Error creating tutor rejection notification:", notificationError);
+        }
+
+        try {
+          await sendTutorApplicationDecisionEmail(application, "rejected", trimmedReason);
+        } catch (emailError) {
+          console.error("Error sending tutor rejection email:", emailError);
         }
         
         res.json(application);

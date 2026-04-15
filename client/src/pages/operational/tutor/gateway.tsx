@@ -70,6 +70,7 @@ export default function TutorGateway() {
     students: gatewaySession?.students,
   };
   const hasPodAssignment = !!podData.assignment;
+  const announcedStatusRef = useRef<string | null>(null);
   // Province, role, enrollmentStatus, verificationStatus available as needed
   // const province = gatewaySession?.province;
   // const role = gatewaySession?.role;
@@ -125,6 +126,47 @@ export default function TutorGateway() {
       setStep("submitted");
     }
   }, [applicationStatus, appStatusLoading, appStatusError, userLoading, isAuthenticated, navigate, hasPodAssignment]);
+
+  useEffect(() => {
+    if (!applicationStatus?.applicationId) return;
+
+    const status = applicationStatus.status;
+    if (!["approved", "rejected", "confirmed"].includes(status)) return;
+
+    const announcementKey = `${applicationStatus.applicationId}:${status}`;
+    if (announcedStatusRef.current === announcementKey) return;
+    announcedStatusRef.current = announcementKey;
+
+    const storageKey = "tt:tutor-gateway:last-announced-status";
+    const previousAnnouncement = window.localStorage.getItem(storageKey);
+    if (previousAnnouncement === announcementKey) return;
+
+    window.localStorage.setItem(storageKey, announcementKey);
+
+    if (status === "approved") {
+      toast({
+        title: "Application approved",
+        description: "You were approved while away. Upload your verification documents to continue onboarding.",
+      });
+      return;
+    }
+
+    if (status === "rejected") {
+      toast({
+        title: "Application update",
+        description: "Your application was reviewed and was not accepted at this stage.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Documents verified",
+      description: hasPodAssignment
+        ? "Your onboarding is complete and your pod is ready."
+        : "Your documents were approved. We will notify you when your pod is assigned.",
+    });
+  }, [applicationStatus, hasPodAssignment, toast]);
 
   // Mark onboarding complete (tutor clicked Continue to Dashboard)
   const completeOnboarding = async () => {
