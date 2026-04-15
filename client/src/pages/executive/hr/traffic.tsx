@@ -6,8 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Loader2, User, Phone, MapPin, BookOpen, Users, GraduationCap, CheckCircle2, Clock, XCircle, FileCheck, ShieldCheck, FileText } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Loader2, User, Phone, MapPin, BookOpen, Users, GraduationCap, CheckCircle2, Clock, XCircle, FileCheck, ShieldCheck, FileText, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface TrafficStats {
@@ -20,6 +22,7 @@ interface TrafficStats {
 }
 import { format } from "date-fns";
 import AssignTutorModal from "@/components/executive/AssignTutorModal";
+import { TutorDocumentReview } from "@/components/tutor/TutorDocumentReview";
 import type { TutorApplication } from "@shared/schema";
 
 interface ParentEnrollment {
@@ -65,10 +68,10 @@ export default function ExecutiveHRTraffic() {
   const [assignTutorOpen, setAssignTutorOpen] = useState(false);
   const [selectedEnrollmentId, setSelectedEnrollmentId] = useState<string>("");
   const [selectedApplication, setSelectedApplication] = useState<TutorApplication | null>(null);
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
   const [tutorAppSubTab, setTutorAppSubTab] = useState("pending");
   const [parentSubTab, setParentSubTab] = useState("awaiting");
-  const [verifyingTutorId, setVerifyingTutorId] = useState<string | null>(null);
-  const [rejectingTutorId, setRejectingTutorId] = useState<string | null>(null);
   const [unassigningEnrollmentId, setUnassigningEnrollmentId] = useState<string | null>(null);
   // Fetch tutor verification docs (from /api/coo/applications)
   const { data: tutorVerificationData = [], refetch: refetchVerificationData } = useQuery<{ user: any; verificationDoc: any }[]>({
@@ -100,28 +103,6 @@ export default function ExecutiveHRTraffic() {
       return isVerified && hasAnyDocUrl(t?.verificationDoc);
     }
   );
-
-  const handleVerifyTutor = async (userId: string) => {
-    setVerifyingTutorId(userId);
-    try {
-      await fetch(`/api/coo/verify-tutor/${userId}`, { method: "POST", credentials: "include" });
-      refetchVerificationData();
-      queryClient.invalidateQueries({ queryKey: ["/api/hr/stats"] });
-    } finally {
-      setVerifyingTutorId(null);
-    }
-  };
-
-  const handleRejectTutor = async (userId: string) => {
-    setRejectingTutorId(userId);
-    try {
-      await fetch(`/api/coo/reject-tutor/${userId}`, { method: "POST", credentials: "include" });
-      refetchVerificationData();
-    } finally {
-      setRejectingTutorId(null);
-    }
-  };
-
 
   // Fetch traffic stats
   const { data: stats, isLoading: statsLoading } = useQuery<TrafficStats>({
@@ -166,6 +147,14 @@ export default function ExecutiveHRTraffic() {
   const rejectedApplications = applications.filter((app: any) => app.status === "rejected");
 
   const getApplicationDocumentsStatus = (app: any) => app?.documentsStatus || app?.documents_status || {};
+  const verificationPendingApplications = approvedApplications.filter((app: any) => {
+    const docsStatus = getApplicationDocumentsStatus(app);
+    return Object.values(docsStatus).some((status) => String(status) === "pending_review");
+  });
+  const verificationVerifiedApplications = approvedApplications.filter((app: any) => {
+    const docsStatus = getApplicationDocumentsStatus(app);
+    return ["1", "2", "3", "4", "5", "6"].every((step) => String(docsStatus?.[step]) === "approved");
+  });
 
   const appPendingVerificationTutors = approvedApplications
     .filter((app: any) => {
@@ -238,6 +227,64 @@ export default function ExecutiveHRTraffic() {
   const verifiedDocTutors = appVerifiedDocTutors.length > 0
     ? appVerifiedDocTutors
     : legacyVerifiedDocTutors;
+
+  const approveApplicationMutation = useMutation({
+    mutationFn: async (applicationId: string) => {
+      await apiRequest("POST", `/api/coo/tutor-applications/${applicationId}/approve`, {});
+    },
+    onSuccess: () => {
+      toast({
+        title: "Application approved",
+        description: "The tutor application has been approved successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/coo/tutor-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/hr/stats"] });
+      setSelectedApplication(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Approval failed",
+        description: error?.message || "Failed to approve application.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const rejectApplicationMutation = useMutation({
+    mutationFn: async ({ applicationId, reason }: { applicationId: string; reason: string }) => {
+      await apiRequest("POST", `/api/coo/tutor-applications/${applicationId}/reject`, { reason });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Application rejected",
+        description: "The tutor application has been rejected.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/coo/tutor-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/hr/stats"] });
+      setSelectedApplication(null);
+      setShowRejectDialog(false);
+      setRejectionReason("");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Rejection failed",
+        description: error?.message || "Failed to reject application.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleApproveApplication = (application: TutorApplication) => {
+    approveApplicationMutation.mutate(application.id);
+  };
+
+  const handleRejectApplication = () => {
+    if (!selectedApplication || !rejectionReason.trim()) return;
+    rejectApplicationMutation.mutate({
+      applicationId: selectedApplication.id,
+      reason: rejectionReason.trim(),
+    });
+  };
 
   const handleOpenAssignModal = (enrollmentId: string) => {
     setSelectedEnrollmentId(enrollmentId);
@@ -520,14 +567,14 @@ export default function ExecutiveHRTraffic() {
                     <FileCheck className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                     <span>Verify</span>
                   </span>
-                  <span className="text-[10px] sm:text-xs text-muted-foreground">{pendingVerificationTutors.length}</span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground">{verificationPendingApplications.length}</span>
                 </TabsTrigger>
                 <TabsTrigger value="verified-docs" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2 col-span-2 sm:col-span-1">
                   <span className="inline-flex items-center gap-1.5">
                     <ShieldCheck className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                     <span>Verified</span>
                   </span>
-                  <span className="text-[10px] sm:text-xs text-muted-foreground">{verifiedDocTutors.length}</span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground">{verificationVerifiedApplications.length}</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -544,6 +591,12 @@ export default function ExecutiveHRTraffic() {
                         key={application.id}
                         application={application}
                         onViewDetails={() => setSelectedApplication(application)}
+                        onApprove={() => handleApproveApplication(application)}
+                        onReject={() => {
+                          setSelectedApplication(application);
+                          setShowRejectDialog(true);
+                        }}
+                        showActions
                       />
                     ))}
                   </div>
@@ -589,150 +642,59 @@ export default function ExecutiveHRTraffic() {
               </TabsContent>
 
                 <TabsContent value="verification" className="space-y-4 mt-4">
-                  {pendingVerificationTutors.length === 0 ? (
+                  {verificationPendingApplications.length === 0 ? (
                     <Card className="p-12 text-center">
                       <FileCheck className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
                       <p className="text-muted-foreground">No documents pending verification</p>
                     </Card>
                   ) : (
                     <div className="grid gap-4">
-                      {pendingVerificationTutors.map(({ user: t, verificationDoc }) => (
-                        <Card key={t.id}>
-                          <CardHeader>
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <CardTitle className="text-base">{t.full_names || t.fullNames || t.username}</CardTitle>
-                                <CardDescription>{t.email}</CardDescription>
-                              </div>
-                              <Badge className="bg-yellow-100 text-yellow-800">Pending Review</Badge>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="space-y-4">
-                            <div className="grid gap-3">
-                              {verificationDoc.file_url_agreement && (
-                                <div className="flex items-center justify-between rounded-lg border p-3">
-                                  <div className="flex items-center gap-2">
-                                    <FileText className="w-4 h-4 text-muted-foreground" />
-                                    <span className="text-sm font-medium">Trial Agreement</span>
-                                  </div>
-                                  <a
-                                    href={verificationDoc.file_url_agreement}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-xs text-primary underline"
-                                  >
-                                    View Document
-                                  </a>
-                                </div>
-                              )}
-                              {verificationDoc.file_url_consent && (
-                                <div className="flex items-center justify-between rounded-lg border p-3">
-                                  <div className="flex items-center gap-2">
-                                    <FileText className="w-4 h-4 text-muted-foreground" />
-                                    <span className="text-sm font-medium">Parent Consent</span>
-                                  </div>
-                                  <a
-                                    href={verificationDoc.file_url_consent}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-xs text-primary underline"
-                                  >
-                                    View Document
-                                  </a>
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex gap-2 pt-2">
-                              <Button
-                                size="sm"
-                                className="flex-1"
-                                disabled={verifyingTutorId === t.id}
-                                onClick={() => handleVerifyTutor(t.id)}
-                              >
-                                {verifyingTutorId === t.id ? (
-                                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                ) : (
-                                  <CheckCircle2 className="w-4 h-4 mr-2" />
-                                )}
-                                Approve & Verify
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="flex-1 text-red-600 border-red-200 hover:bg-red-50"
-                                disabled={rejectingTutorId === t.id}
-                                onClick={() => handleRejectTutor(t.id)}
-                              >
-                                {rejectingTutorId === t.id ? (
-                                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                ) : (
-                                  <XCircle className="w-4 h-4 mr-2" />
-                                )}
-                                Reject
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
+                      {verificationPendingApplications.map((application: any) => (
+                        <TutorDocumentReview
+                          key={application.id}
+                          application={application}
+                          onReview={() => {
+                            queryClient.invalidateQueries({ queryKey: ["/api/coo/tutor-applications"] });
+                            refetchVerificationData();
+                          }}
+                        />
                       ))}
                     </div>
                   )}
                 </TabsContent>
 
                 <TabsContent value="verified-docs" className="space-y-4 mt-4">
-                  {verifiedDocTutors.length === 0 ? (
+                  {verificationVerifiedApplications.length === 0 ? (
                     <Card className="p-12 text-center">
                       <ShieldCheck className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
                       <p className="text-muted-foreground">No verified docs yet</p>
                     </Card>
                   ) : (
                     <div className="grid gap-4">
-                      {verifiedDocTutors.map(({ user: t, verificationDoc }) => (
-                        <Card key={t.id}>
+                      {verificationVerifiedApplications.map((application: any) => (
+                        <Card key={application.id}>
                           <CardHeader>
                             <div className="flex items-start justify-between">
                               <div>
-                                <CardTitle className="text-base">{t.full_names || t.fullNames || t.username}</CardTitle>
-                                <CardDescription>{t.email}</CardDescription>
+                                <CardTitle className="text-base">
+                                  {application.fullName || application.full_name || application.full_names || application.fullNames}
+                                </CardTitle>
+                                <CardDescription>{application.email}</CardDescription>
                               </div>
                               <Badge className="bg-green-100 text-green-800">Verified</Badge>
                             </div>
                           </CardHeader>
                           <CardContent className="space-y-3">
-                            {verificationDoc.file_url_agreement && (
-                              <div className="flex items-center justify-between rounded-lg border p-3">
-                                <div className="flex items-center gap-2">
-                                  <FileText className="w-4 h-4 text-muted-foreground" />
-                                  <span className="text-sm font-medium">Trial Agreement</span>
-                                </div>
-                                <a
-                                  href={verificationDoc.file_url_agreement}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-xs text-primary underline"
-                                >
-                                  View Document
-                                </a>
-                              </div>
-                            )}
-                            {verificationDoc.file_url_consent && (
-                              <div className="flex items-center justify-between rounded-lg border p-3">
-                                <div className="flex items-center gap-2">
-                                  <FileText className="w-4 h-4 text-muted-foreground" />
-                                  <span className="text-sm font-medium">Parent Consent</span>
-                                </div>
-                                <a
-                                  href={verificationDoc.file_url_consent}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-xs text-primary underline"
-                                >
-                                  View Document
-                                </a>
-                              </div>
-                            )}
-                            {verificationDoc.updated_at && (
+                            <p className="text-sm text-muted-foreground">
+                              All six onboarding documents have been approved. This tutor is ready for pod assignment.
+                            </p>
+                            <Button variant="outline" className="gap-2" onClick={() => setSelectedApplication(application)}>
+                              <User className="w-4 h-4" />
+                              View Full Application
+                            </Button>
+                            {(application.updated_at || application.updatedAt) && (
                               <p className="text-xs text-muted-foreground">
-                                Verified on {format(new Date(verificationDoc.updated_at), "PPP")}
+                                Updated on {format(new Date(application.updated_at || application.updatedAt), "PPP")}
                               </p>
                             )}
                           </CardContent>
@@ -836,7 +798,7 @@ export default function ExecutiveHRTraffic() {
       </Tabs>
 
       {/* Tutor Application Details Dialog */}
-      {selectedApplication && (
+      {selectedApplication && !showRejectDialog && (
         <Dialog open={!!selectedApplication} onOpenChange={() => setSelectedApplication(null)}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
@@ -846,9 +808,61 @@ export default function ExecutiveHRTraffic() {
               </DialogDescription>
             </DialogHeader>
             <ApplicationDetails application={selectedApplication} />
+            {selectedApplication.status === "pending" && (
+              <DialogFooter className="gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowRejectDialog(true)}
+                  disabled={approveApplicationMutation.isPending || rejectApplicationMutation.isPending}
+                >
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Reject
+                </Button>
+                <Button
+                  onClick={() => handleApproveApplication(selectedApplication)}
+                  disabled={approveApplicationMutation.isPending}
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  {approveApplicationMutation.isPending ? "Approving..." : "Approve"}
+                </Button>
+              </DialogFooter>
+            )}
           </DialogContent>
         </Dialog>
       )}
+
+      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject Application</DialogTitle>
+            <DialogDescription>Please provide a reason for rejecting this application.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="coo-traffic-rejection-reason">Rejection Reason</Label>
+              <Textarea
+                id="coo-traffic-rejection-reason"
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Enter the reason for rejection..."
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRejectDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleRejectApplication}
+              disabled={!rejectionReason.trim() || rejectApplicationMutation.isPending}
+            >
+              {rejectApplicationMutation.isPending ? "Rejecting..." : "Reject Application"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <AssignTutorModal
         open={assignTutorOpen}
@@ -861,7 +875,19 @@ export default function ExecutiveHRTraffic() {
 }
 
 // Tutor Application Card Component
-function TutorApplicationCard({ application, onViewDetails }: { application: any; onViewDetails: () => void }) {
+function TutorApplicationCard({
+  application,
+  onViewDetails,
+  onApprove,
+  onReject,
+  showActions = false,
+}: {
+  application: any;
+  onViewDetails: () => void;
+  onApprove?: () => void;
+  onReject?: () => void;
+  showActions?: boolean;
+}) {
   const fullNames = application.fullName || application.full_name || application.full_names || application.fullNames;
   const email = application.email;
   const phoneNumber = application.phone || application.phone_number || application.phoneNumber;
@@ -911,6 +937,18 @@ function TutorApplicationCard({ application, onViewDetails }: { application: any
           <User className="w-4 h-4" />
           View Full Application
         </Button>
+        {showActions && onApprove && onReject && (
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" className="gap-2" onClick={onReject}>
+              <XCircle className="w-4 h-4" />
+              Reject
+            </Button>
+            <Button className="gap-2" onClick={onApprove}>
+              <CheckCircle className="w-4 h-4" />
+              Approve
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
