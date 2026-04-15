@@ -1,0 +1,373 @@
+TD Drill Compliance Audit Library
+
+“A system that cannot be executed incorrectly without being caught.”
+
+GLOBAL AUDIT STRUCTURE (APPLIES TO ALL SETS)
+
+Every set audit block follows the same structure:
+
+Tutor:
+Session:
+Phase:
+Drill:
+Set:
+
+Tutor Observations:
+(auto displayed from system)
+
+----------------------------
+
+AUDIT BLOCK
+
+[ ] Rule Adherence
+[ ] OS Integrity
+[ ] Logging Honesty
+
+----------------------------
+
+POTENTIAL VIOLATIONS (context-specific)
+[ ] ...
+[ ] ...
+[ ] ...
+
+----------------------------
+
+CRITICAL FAIL CONDITIONS
+- ...
+- ...
+
+----------------------------
+
+
+
+Violation Tags (if fail):
+[ ] Rule Break
+[ ] Early Intervention
+[ ] Rescue Violation
+[ ] Pressure Not Maintained
+[ ] Dishonest Logging
+
+CHECKPOINTS (BY ENGINE)
+
+We derive these directly from /TT_DRILL_LIBRARY_AND_STATE_ENGINE_EXACT.md system.
+
+Not invented.
+
+🔹 CLARITY COMPLIANCE
+
+🔹 SET: Recognition Probe
+RULES
+Student does NOT solve
+Recognition only (Vocabulary / Method / Reason)
+No guidance, no steps given
+
+AUDIT BLOCK
+[ ] Student did NOT solve at any point
+[ ] Tutor did NOT provide steps or guide answers
+[ ] Tutor enforced recognition only (no execution drift)
+[ ] Observations reflect recognition, not solving
+[ ] Each rep presented clearly 
+
+POTENTIAL VIOLATIONS
+[ ] Tutor allowed solving during recognition
+[ ] Tutor fed method/steps instead of observing recall
+[ ] Tutor corrected answers instead of probing
+[ ] Tutor converted set into teaching instead of assessment
+[ ] Tutor skips or mixes V/M/R sequence
+[ ] Tutor presents each rep poorly/unclearly
+
+CRITICAL FAIL
+Student solves even once
+Tutor gives steps or explains method
+Set turns into teaching instead of probing
+
+🔹 SET: Light Apply
+RULES
+Student must attempt solving
+Minimal guidance only
+No step-by-step help
+AUDIT BLOCK
+[ ] Student attempted independently
+[ ] Tutor did NOT guide step-by-step
+[ ] Tutor allowed struggle before intervening
+[ ] Observations reflect real attempt behavior
+[ ] Each rep presented clearly
+
+POTENTIAL VIOLATIONS
+[ ] Tutor over-guided execution
+[ ] Tutor fed steps mid-solution
+[ ] Tutor prevented struggle (jumped in early)
+[ ] No real independent attempt occurred
+[ ] Observations too clean vs expected struggle
+[ ] Tutor presents each rep poorly/unclearly
+
+CRITICAL FAIL
+Tutor solves with student
+Tutor provides step-by-step guidance
+No independent attempt allowed
+
+
+🔹 STRUCTURED EXECUTION COMPLIANCE
+
+
+SET: Start + Structure
+RULES
+No help for cold start window
+Student must initiate independently
+Steps must be followed
+AUDIT BLOCK
+[ ] Cold start was respected (no early help)
+[ ] Student initiated independently
+[ ] Tutor enforced step-by-step execution
+[ ] Tutor did NOT interfere early
+[ ] Each rep presented clearly 
+
+POTENTIAL VIOLATIONS
+[ ] Tutor intervened before student attempted
+[ ] Tutor allowed guessing instead of structure
+[ ] Tutor guided start instead of observing it
+[ ] Tutor skipped enforcing steps
+[ ] Tutor presents each rep poorly/unclearly
+
+CRITICAL FAIL
+Tutor helps before student attempts
+Student not required to start independently
+Steps not enforced
+
+🔹 SET: Repeatability
+RULES
+Same method repeated
+No step-by-step help
+Consistency must be tested
+
+AUDIT BLOCK
+[ ] Student repeated method independently
+[ ] Tutor did NOT guide each repetition
+[ ] Tutor allowed errors to surface naturally
+[ ] Tutor observed consistency across reps
+[ ] Each rep presented clearly 
+
+POTENTIAL VIOLATIONS
+[ ] Tutor re-taught instead of testing repeatability
+[ ] Tutor corrected too early each time
+[ ] Tutor interfered between repetitions
+[ ] Tutor did not allow pattern to emerge
+[ ] Tutor presents each rep poorly/unclearly
+
+CRITICAL FAIL
+Tutor guides each repetition
+Tutor prevents independent execution
+Repeatability not actually tested
+
+🧠 CONTROLLED DISCOMFORT COMPLIANCE
+🔹 SET: First Contact
+RULES
+No help for initial window
+Discomfort must be held
+No rescue
+AUDIT BLOCK
+[ ] Tutor held discomfort (no early help)
+[ ] Student was forced to attempt
+[ ] Tutor did NOT rescue
+[ ] Tutor allowed real struggle to occur
+[ ] Each rep presented clearly 
+
+POTENTIAL VIOLATIONS
+[ ] Tutor rescued student early
+[ ] Tutor shortened discomfort window
+[ ] Tutor gave hints during struggle
+[ ] Tutor softened difficulty
+[ ] Tutor presents each rep poorly/unclearly
+CRITICAL FAIL
+Any rescue occurs
+Tutor relieves pressure early
+Student not allowed to struggle
+🔹 SET: Pressure Hold
+RULES
+Sustained pressure
+No rescue
+Max one-step confirmation
+AUDIT BLOCK
+[ ] Pressure was sustained throughout
+[ ] Tutor did NOT rescue at any point
+[ ] Only allowed guidance (if any) was minimal
+[ ] Student remained responsible for execution
+[ ] Each rep presented clearly 
+
+POTENTIAL VIOLATIONS
+[ ] Tutor gave multi-step guidance
+[ ] Tutor relieved pressure mid-set
+[ ] Tutor stepped in after struggle
+[ ] Tutor reduced difficulty
+[ ] Tutor presents each rep poorly/unclearly
+CRITICAL FAIL
+Tutor rescues student
+Tutor gives full explanation
+Pressure not maintained
+
+🧠 TIME PRESSURE STABILITY COMPLIANCE
+🔹 SET: Light Timer
+RULES
+Timer must be active
+Structure over speed
+Observe panic vs control
+AUDIT BLOCK
+[ ] Timer was genuinely active
+[ ] Tutor prioritized structure over speed
+[ ] Tutor did NOT rush student
+[ ] Tutor enforced method under time
+[ ] Each rep presented clearly
+
+POTENTIAL VIOLATIONS
+[ ] Timer not properly enforced
+[ ] Tutor rushed student for speed
+[ ] Tutor ignored structure breakdown
+[ ] Tutor prioritized completion over method
+[ ] Tutor presents each rep poorly/unclearly
+
+CRITICAL FAIL
+No real timer used
+Tutor pushes speed over structure
+Structure breakdown ignored
+
+🔹 SET: Consistency
+RULES
+Same time constraint repeated
+Observe consistency / drift
+AUDIT BLOCK
+[ ] Same time constraint was maintained
+[ ] Tutor did NOT adjust difficulty mid-set
+[ ] Tutor observed consistency across reps
+[ ] Tutor enforced structure each time
+[ ] Each rep presented clearly 
+
+POTENTIAL VIOLATIONS
+[ ] Timer changed between reps
+[ ] Tutor adjusted conditions mid-set
+[ ] Tutor guided later reps
+[ ] Tutor ignored drift or breakdown
+[ ] Tutor presents each rep poorly/unclearly
+
+CRITICAL FAIL
+Time constraint inconsistent
+Tutor interferes across repetitions
+Consistency not actually tested
+
+🧠 FINAL SYSTEM BEHAVIOR
+
+This is what you’ve built:
+
+Tutor cannot:
+rescue without being caught
+guide without being caught
+skip pressure without being caught
+fake logs without being questioned
+TD does NOT:
+interpret learning
+analyze patterns
+second-guess system
+TD ONLY:
+
+confirms execution integrity of the system
+
+💥 FINAL TRUTH
+
+This library does one thing:
+
+It forces reality to match the system
+
+If tutor deviates → caught
+If tutor softens → caught
+If tutor fakes → caught
+🔹 CONTROLLED DISCOMFORT COMPLIANCE
+Checkpoints:
+[ ] 10–15 second discomfort window held
+[ ] No rescue given
+[ ] Only first-step guidance allowed (if defined)
+[ ] Tutor does NOT relieve pressure
+[ ] Student forced to attempt
+[ ] Each rep presented clearly and observed honestly
+CRITICAL FAIL:
+- Tutor rescues student fully
+- Tutor shortens discomfort window
+- Tutor explains mid-struggle
+- Tutor presents each rep poorly/unclearly
+🔹 TIME PRESSURE STABILITY COMPLIANCE
+Checkpoints:
+[ ] Timer used
+[ ] Structure prioritized over speed
+[ ] Tutor does NOT rush student
+[ ] Tutor does NOT ignore structure breaks
+[ ] Repeated timed attempts executed
+[ ] Each rep presented clearly and observed honestly
+CRITICAL FAIL:
+- Tutor prioritizes speed over method
+- Tutor ignores structure collapse
+- No timer used
+- Tutor presents each rep poorly/unclearly
+🧠 2. TD AUDIT ALGORITHM (EXACT)
+
+This is what your dev implements.
+
+INPUTS
+
+From system:
+
+session logs
+drill type
+phase
+observation logs
+(optional later: recording)
+
+
+PROCESS
+function auditSession(session):
+
+  checkpoints = getCheckpoints(session.phase)
+
+  passed = 0
+  total = checkpoints.length
+
+  for checkpoint in checkpoints:
+      if validate(checkpoint, session):
+          passed += 1
+      else:
+          if checkpoint.isCritical:
+              return {
+                status: "FAIL",
+                complianceScore: 0,
+                reason: checkpoint.name
+              }
+
+  score = (passed / total) * 100
+
+  if score == 100:
+      return PASS
+  else:
+      return FAIL
+🚨 YOUR RULE (LOCK THIS):
+
+ONLY 100% = PASS
+ANYTHING ELSE = FAIL
+
+No 85
+No 90
+No “close enough”
+
+COMPLIANCE UNIT = CHECKPOINT
+
+Each session has non-negotiable checkpoints
+
+Each checkpoint =
+
+1 = compliant
+0 = violation
+
+SESSION COMPLIANCE SCORE
+Compliance Score = (Total Passed Checkpoints / Total Checkpoints) × 100
+
+BUT:
+
+❌ NO PARTIAL CREDIT
+❌ NO WEIGHTING
+❌ NO “almost”
