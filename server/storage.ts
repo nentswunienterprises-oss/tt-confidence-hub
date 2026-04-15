@@ -566,30 +566,51 @@ export class SupabaseStorage implements IStorage {
 
   // Students
   async createStudent(student: InsertStudent): Promise<Student> {
-    // Try to find parent_id from parent_enrollments using parent_contact (email)
-    let parentId: string | null = null;
-    if (student.parentContact) {
-      const { data: parentRow } = await supabase
+    // Bulletproof parent_id assignment with explicit logging
+    let parentId: string | null = student.parent_id || null;
+    if (!parentId && student.parentContact) {
+      const { data: parentRow, error: parentLookupError } = await supabase
         .from("parent_enrollments")
         .select("user_id")
         .eq("parent_email", student.parentContact)
         .maybeSingle();
+      if (parentLookupError) {
+        console.error("[createStudent] Error looking up parent_enrollments:", parentLookupError);
+      }
       if (parentRow && parentRow.user_id) {
         parentId = parentRow.user_id;
+      } else {
+        console.error("[createStudent] No parent_enrollments row found for parentContact:", student.parentContact);
       }
+    }
+    if (!parentId) {
+      console.error("[createStudent] Failed to resolve parent_id for student:", student);
+      throw new Error("Cannot create student without parent_id. Provide parent_id or valid parentContact.");
+    }
+    // Ensure all required fields are present
+    if (!student.name || !student.grade || !student.tutorId) {
+      console.error("[createStudent] Missing required student fields:", student);
+      throw new Error("Missing required student fields (name, grade, tutorId)");
     }
     const dbStudent = {
       name: student.name,
       grade: student.grade,
       tutor_id: student.tutorId,
-      session_progress: student.sessionProgress,
-      concept_mastery: student.conceptMastery,
-      confidence_score: student.confidenceScore,
+      session_progress: student.sessionProgress ?? 0,
+      concept_mastery: student.conceptMastery ?? {},
+      confidence_score: student.confidenceScore ?? 5,
       parent_contact: student.parentContact,
       parent_id: parentId,
     };
-    const { data } = await supabase.from("students").insert(dbStudent).select().single();
-    if (!data) throw new Error("Failed to create student");
+    const { data, error: insertError } = await supabase.from("students").insert(dbStudent).select().single();
+    if (insertError) {
+      console.error("[createStudent] Supabase insert error:", insertError, dbStudent);
+      throw new Error("Failed to create student: " + insertError.message);
+    }
+    if (!data) {
+      console.error("[createStudent] Supabase insert returned no data:", dbStudent);
+      throw new Error("Failed to create student: No data returned");
+    }
     return transformSnakeToCamel(data);
   }
 

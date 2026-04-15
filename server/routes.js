@@ -130,6 +130,38 @@ export function registerRoutes(app) {
                             }
                         });
                     }); });
+
+                    // Tutor declares subjects
+                    app.post("/api/tutor/subjects", isAuthenticated, requireRole(["tutor"]), async function (req, res) {
+                        try {
+                            const tutorId = req.dbUser.id;
+                            const subjects = req.body.subjects;
+                            if (!Array.isArray(subjects) || subjects.length === 0) {
+                                return res.status(400).json({ message: "Subjects array required" });
+                            }
+                            // Store subjects for tutor (replace with actual storage logic)
+                            // Example: await storage.saveTutorSubjects(tutorId, subjects);
+                            console.log(`Tutor ${tutorId} declared subjects:`, subjects);
+                            res.json({ success: true, subjects });
+                        } catch (error) {
+                            console.error("Error declaring subjects:", error);
+                            res.status(500).json({ message: "Failed to declare subjects" });
+                        }
+                    });
+
+                    // Tutor fetches subjects
+                    app.get("/api/tutor/subjects", isAuthenticated, requireRole(["tutor"]), async function (req, res) {
+                        try {
+                            const tutorId = req.dbUser.id;
+                            // Fetch subjects for tutor (replace with actual storage logic)
+                            // Example: const subjects = await storage.getTutorSubjects(tutorId);
+                            const subjects = [];
+                            res.json({ subjects });
+                        } catch (error) {
+                            console.error("Error fetching subjects:", error);
+                            res.status(500).json({ message: "Failed to fetch subjects" });
+                        }
+                    });
                     // Debug endpoint for remote header/session inspection
                     app.get("/api/debug/auth-info", function (req, res) {
                         var authHeader = req.headers.authorization || null;
@@ -220,6 +252,7 @@ export function registerRoutes(app) {
                                     _c.trys.push([0, 3, , 4]);
                                     userId = req.dbUser.id;
                                     _a = req.body, proposedDate = _a.proposedDate, proposedTime = _a.proposedTime;
+                                    // Only require date and time, not studentId
                                     if (!proposedDate || !proposedTime) {
                                         return [2 /*return*/, res.status(400).json({ message: "Missing date or time" })];
                                     }
@@ -3652,24 +3685,21 @@ export function registerRoutes(app) {
                                     };
                                     confidenceText = (enrollment.confidence_level || "").toLowerCase();
                                     confidenceScore = confidenceLevelMap[confidenceText] || 5;
-                                    return [4 /*yield*/, supabase
-                                            .from("students")
-                                            .insert({
+                                    // Use bulletproof student creation logic
+                                    try {
+                                        const studentData = {
                                             name: enrollment.student_full_name,
                                             grade: enrollment.student_grade,
-                                            tutor_id: tutorId,
-                                            confidence_score: confidenceScore,
-                                            session_progress: 0,
-                                            parent_contact: enrollment.parent_email,
-                                        })];
-                                case 3:
-                                    studentError = (_c.sent()).error;
-                                    if (studentError) {
-                                        console.error("Error creating student:", studentError);
-                                        // Don't fail the tutor assignment if student creation fails
-                                    }
-                                    else {
+                                            tutorId: tutorId,
+                                            sessionProgress: 0,
+                                            confidenceScore: confidenceScore,
+                                            parent_id: enrollment.user_id, // Use parent_id directly
+                                        };
+                                        await storage.createStudent(studentData);
                                         console.log("Student created successfully for:", enrollment.student_full_name);
+                                    } catch (studentError) {
+                                        console.error("Error creating student:", studentError);
+                                        return res.status(500).json({ message: "Failed to create student", error: studentError.message });
                                     }
                                     return [3 /*break*/, 5];
                                 case 4:

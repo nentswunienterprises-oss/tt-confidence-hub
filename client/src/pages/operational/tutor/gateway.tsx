@@ -131,6 +131,7 @@ export default function TutorGateway() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tutor/application-status"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tutor/gateway-session"] });
       toast({
         title: "Document Uploaded",
         description: "Your document has been submitted for verification.",

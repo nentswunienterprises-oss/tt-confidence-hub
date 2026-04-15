@@ -213,7 +213,7 @@ export default function TutorPod() {
             </Badge>
           </div>
           <p className="text-lg text-muted-foreground">
-            You're building confidence, one session at a time. Keep showing up!
+            You're training calm execution, one session at a time. Keep showing up!
           </p>
         </div>
 
@@ -265,9 +265,9 @@ export default function TutorPod() {
               </div>
               <div className="p-4 bg-accent/30 rounded-lg">
                 <p className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">Pod Members (0/10)</span>
+                  <span className="font-medium text-foreground">Pod Members (0/12)</span>
                   <br />
-                  Connect with your pod team to share insights and grow together.
+                  
                 </p>
               </div>
               <Button className="w-full" variant="outline">

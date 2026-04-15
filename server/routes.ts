@@ -48,6 +48,27 @@ const requireRole = (roles: string[]) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
+                  // Tutor fetches intro session by parentId and tutorId (studentId null)
+                  app.get("/api/tutor/parent/:parentId/tutor/:tutorId/intro-session-details", isAuthenticated, requireRole(["tutor"]), async (req: Request, res: Response) => {
+                    try {
+                      const { parentId, tutorId } = req.params;
+                      const { data: session, error } = await supabase
+                        .from("scheduled_sessions")
+                        .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, created_at, updated_at, tutor_id, student_id, parent_id, type")
+                        .eq("parent_id", parentId)
+                        .eq("tutor_id", tutorId)
+                        .is("student_id", null)
+                        .eq("type", "intro")
+                        .order("created_at", { ascending: false })
+                        .maybeSingle();
+                      if (error) return res.status(500).json({ message: "Failed to fetch intro session", details: error });
+                      if (!session) return res.status(404).json({ message: "Intro session not found" });
+                      res.json(session);
+                    } catch (err) {
+                      console.error("Error fetching intro session by parent/tutor:", err);
+                      res.status(500).json({ message: "Failed to fetch intro session" });
+                    }
+                  });
                 // Parent signup (store affiliate code in session)
                 app.post("/api/auth/signup", async (req: Request, res: Response) => {
                   console.log("[SIGNUP] Received signup body:", req.body);
@@ -82,6 +103,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   .eq("id", sessionId)
                   .eq("parent_id", userId);
                 if (updateError) return res.status(500).json({ message: "Failed to confirm session", details: updateError });
+
+                // Fetch session details for calendar event
+                const { data: session, error: fetchError } = await supabase
+                  .from("scheduled_sessions")
+                  .select("id, scheduled_time, tutor_id, parent_id, student_id")
+                  .eq("id", sessionId)
+                  .maybeSingle();
+                if (fetchError || !session) {
+                  return res.status(500).json({ message: "Session confirmed, but failed to fetch session details for calendar event", details: fetchError });
+                }
+
+                // Fetch parent and tutor emails
+                const { data: parent, error: parentError } = await supabase
+                  .from("parents")
+                  .select("email")
+                  .eq("id", session.parent_id)
+                  .maybeSingle();
+                const { data: tutor, error: tutorError } = await supabase
+                  .from("tutors")
+                  .select("email")
+                  .eq("id", session.tutor_id)
+                  .maybeSingle();
+                if (parentError || tutorError || !parent || !tutor) {
+                  return res.status(500).json({ message: "Session confirmed, but failed to fetch parent/tutor emails for calendar event", details: parentError || tutorError });
+                }
+
+                // Prepare event details
+                const summary = "Intro Tutoring Session";
+                const description = `First session for parent and tutor. Session ID: ${sessionId}`;
+                const startDateTime = session.scheduled_time;
+                // Assume 1 hour session
+                const endDateTime = new Date(new Date(startDateTime).getTime() + 60 * 60 * 1000).toISOString();
+
+                // Import and call createIntroSessionEvent
+                const { createIntroSessionEvent } = await import("../../create-intro-session.js");
+                try {
+                  await createIntroSessionEvent({
+                    summary,
+                    description,
+                    startDateTime,
+                    endDateTime,
+                    parentEmail: parent.email,
+                    tutorEmail: tutor.email,
+                  });
+                } catch (calendarError) {
+                  console.error("Failed to create Google Calendar event:", calendarError);
+                  // Optionally: return error, or just log and continue
+                }
+
                 res.json({ success: true });
               } catch (error) {
                 console.error("Error in parent intro session confirm:", error);
@@ -360,30 +430,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/parent/intro-session/propose", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const userId = (req as any).dbUser.id;
-      const { proposedDate, proposedTime, studentId } = req.body;
-      if (!proposedDate || !proposedTime || !studentId) {
-        return res.status(400).json({ message: "Missing date, time, or studentId" });
+      const { proposedDate, proposedTime } = req.body;
+      if (!proposedDate || !proposedTime) {
+        return res.status(400).json({ message: "Missing date or time" });
       }
 
       // Get parent's enrollment to find assigned tutor
       const { data: enrollmentData, error: enrollmentError } = await supabase
         .from("parent_enrollments")
-        .select("assigned_tutor_id")
+        .select("assigned_tutor_id, status")
         .eq("user_id", userId)
         .maybeSingle();
 
-      if (enrollmentError || !enrollmentData || !enrollmentData.assigned_tutor_id) {
-        return res.status(400).json({ message: "No tutor assigned" });
+      if (enrollmentError || !enrollmentData) {
+        return res.status(400).json({ message: "Failed to fetch enrollment" });
+      }
+      if (!enrollmentData.assigned_tutor_id || enrollmentData.status !== "assigned") {
+        return res.status(400).json({ message: "You must be assigned a tutor before booking a session." });
       }
 
       // Insert new intro session
-      const { error: sessionError } = await supabase
+      const { data: sessionInsert, error: sessionError } = await supabase
         .from("scheduled_sessions")
         .insert([
           {
             parent_id: userId,
             tutor_id: enrollmentData.assigned_tutor_id,
-            student_id: studentId,
             scheduled_time: `${proposedDate}T${proposedTime}`,
             type: "intro",
             status: "pending_tutor_confirmation",
@@ -392,11 +464,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           },
-        ]);
+        ])
+        .select();
 
       if (sessionError) {
         console.error("Error inserting intro session:", sessionError);
         return res.status(500).json({ message: "Failed to propose session" });
+      }
+
+      // Patch: Create student record if not exists for this parent/tutor
+      const { data: parentRow } = await supabase
+        .from("parents")
+        .select("full_name, email")
+        .eq("id", userId)
+        .maybeSingle();
+      const studentName = parentRow?.full_name || "Student";
+      const studentEmail = parentRow?.email || null;
+      // Check if student already exists
+      const { data: existingStudent } = await supabase
+        .from("students")
+        .select("id")
+        .eq("parent_id", userId)
+        .eq("tutor_id", enrollmentData.assigned_tutor_id)
+        .maybeSingle();
+      if (!existingStudent) {
+        const { error: studentCreateError } = await supabase
+          .from("students")
+          .insert({
+            parent_id: userId,
+            tutor_id: enrollmentData.assigned_tutor_id,
+            name: studentName,
+            email: studentEmail,
+            grade: null,
+            session_progress: 0,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+        if (studentCreateError) {
+          console.error("Error creating student record on intro session booking:", studentCreateError);
+        }
       }
 
       res.json({ success: true });
@@ -5599,6 +5705,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log("✅ Student user created:", studentUser);
+
+      // Patch: Link intro session(s) to student_id after signup
+      if (proposal.student_id) {
+        // Find all intro sessions for this parent/tutor with student_id null
+        const { data: introSessions, error: sessionFetchError } = await supabase
+          .from("scheduled_sessions")
+          .select("id")
+          .eq("parent_id", req.body.parentId || null)
+          .eq("tutor_id", proposal.tutor_id)
+          .is("student_id", null)
+          .eq("type", "intro");
+        if (sessionFetchError) {
+          console.error("❌ Error fetching intro sessions for student linkage:", sessionFetchError);
+        } else if (introSessions && introSessions.length > 0) {
+          const sessionIds = introSessions.map(s => s.id);
+          const { error: updateSessionError } = await supabase
+            .from("scheduled_sessions")
+            .update({ student_id: proposal.student_id, updated_at: new Date().toISOString() })
+            .in("id", sessionIds);
+          if (updateSessionError) {
+            console.error("❌ Error updating intro sessions with student_id:", updateSessionError);
+          } else {
+            console.log("✅ Linked intro sessions to student_id:", sessionIds);
+          }
+        }
+      }
 
       // Create session for student
       (req.session as any).studentUserId = studentUser.id;

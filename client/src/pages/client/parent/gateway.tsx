@@ -343,17 +343,6 @@ export default function ParentGateway() {
       if (session?.access_token) {
         headers["Authorization"] = `Bearer ${session.access_token}`;
       }
-      // Get studentId from formData
-      const studentId = formData.studentId || formData.student_id || formData.studentCode || null;
-      if (!studentId) {
-        toast({
-          title: "Missing Student",
-          description: "Student ID is required to propose a session.",
-          variant: "destructive",
-        });
-        setIsSubmittingSession(false);
-        return;
-      }
       const response = await fetch(`${API_URL}/api/parent/intro-session/propose`, {
         method: "POST",
         headers,
@@ -361,7 +350,6 @@ export default function ParentGateway() {
         body: JSON.stringify({
           proposedDate: format(proposedDate, "yyyy-MM-dd"),
           proposedTime,
-          studentId,
         }),
       });
       if (!response.ok) {
@@ -918,7 +906,14 @@ export default function ParentGateway() {
                       <p className="font-medium text-red-900 mb-4">Schedule your introductory session</p>
                       <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
                         <DialogTrigger asChild>
-                          <Button style={{backgroundColor: '#E63946', color: 'white'}} className="w-full">Book Introductory Session</Button>
+                          <Button 
+                            style={{backgroundColor: '#E63946', color: 'white'}} 
+                            className="w-full" 
+                            disabled={enrollmentStatus?.status !== "assigned"}
+                            title={enrollmentStatus?.status !== "assigned" ? "You must be assigned a tutor before booking a session." : undefined}
+                          >
+                            Book Introductory Session
+                          </Button>
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
@@ -957,7 +952,7 @@ export default function ParentGateway() {
                             </div>
                             <Button 
                               onClick={handleProposeIntroSession} 
-                              disabled={isSubmittingSession}
+                              disabled={isSubmittingSession || enrollmentStatus?.status !== "assigned"}
                               className="w-full"
                             >
                               {isSubmittingSession ? "Proposing..." : "Propose Time"}
@@ -965,6 +960,9 @@ export default function ParentGateway() {
                           </div>
                         </DialogContent>
                       </Dialog>
+                      {enrollmentStatus?.status !== "assigned" && (
+                        <p className="text-xs text-red-700 mt-2">You must be assigned a tutor before booking a session.</p>
+                      )}
                     </div>
                   )}
                 </>

@@ -132,6 +132,8 @@ const SubjectDeclarationForm: React.FC = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [declaredSubjects, setDeclaredSubjects] = useState<string[]>([]);
+  const [fetching, setFetching] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,11 +170,35 @@ const SubjectDeclarationForm: React.FC = () => {
         setSuccess("Subjects declared and locked for academic year");
         setSubjects([""]);
         setAcademicYear("");
+        fetchDeclaredSubjects();
       }
     } catch (err) {
       setError("Network error");
     }
     setLoading(false);
+    // Fetch declared subjects
+    const fetchDeclaredSubjects = async () => {
+      setFetching(true);
+      try {
+        const res = await fetch("/api/tutor/subjects", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.subjects)) {
+          setDeclaredSubjects(data.subjects);
+        } else {
+          setDeclaredSubjects([]);
+        }
+      } catch {
+        setDeclaredSubjects([]);
+      }
+      setFetching(false);
+    };
+
+    React.useEffect(() => {
+      fetchDeclaredSubjects();
+    }, []);
   };
 
   const handleSubjectChange = (idx: number, value: string) => {
@@ -184,40 +210,56 @@ const SubjectDeclarationForm: React.FC = () => {
   const removeSubject = (idx: number) => setSubjects(subjects.filter((_, i) => i !== idx));
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="font-medium">Academic Year</label>
-        <input
-          type="text"
-          value={academicYear}
-          onChange={e => setAcademicYear(e.target.value)}
-          className="border rounded px-2 py-1 w-full"
-          placeholder="e.g. 2026"
-        />
+    <>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="font-medium">Academic Year</label>
+          <input
+            type="text"
+            value={academicYear}
+            onChange={e => setAcademicYear(e.target.value)}
+            className="border rounded px-2 py-1 w-full"
+            placeholder="e.g. 2026"
+          />
+        </div>
+        <div>
+          <label className="font-medium">Subjects</label>
+          {subjects.map((subject, idx) => (
+            <div key={idx} className="flex gap-2 mb-2">
+              <input
+                type="text"
+                value={subject}
+                onChange={e => handleSubjectChange(idx, e.target.value)}
+                className="border rounded px-2 py-1 flex-1"
+                placeholder="Subject name"
+              />
+              {subjects.length > 1 && (
+                <button type="button" onClick={() => removeSubject(idx)} className="text-red-600">Remove</button>
+              )}
+            </div>
+          ))}
+          <button type="button" onClick={addSubject} className="mt-2 text-blue-600">Add Subject</button>
+        </div>
+        {error && <div className="text-red-600">{error}</div>}
+        {success && <div className="text-green-600">{success}</div>}
+        <button type="submit" disabled={loading} className="bg-primary text-white px-4 py-2 rounded">
+          {loading ? "Submitting..." : "Declare Subjects"}
+        </button>
+      </form>
+      <div className="mt-6">
+        <h4 className="font-semibold mb-2">Declared Subjects</h4>
+        {fetching ? (
+          <div>Loading...</div>
+        ) : declaredSubjects.length === 0 ? (
+          <div className="text-gray-500">No subjects declared yet.</div>
+        ) : (
+          <ul className="list-disc pl-6">
+            {declaredSubjects.map((subj, idx) => (
+              <li key={idx}>{subj}</li>
+            ))}
+          </ul>
+        )}
       </div>
-      <div>
-        <label className="font-medium">Subjects</label>
-        {subjects.map((subject, idx) => (
-          <div key={idx} className="flex gap-2 mb-2">
-            <input
-              type="text"
-              value={subject}
-              onChange={e => handleSubjectChange(idx, e.target.value)}
-              className="border rounded px-2 py-1 flex-1"
-              placeholder="Subject name"
-            />
-            {subjects.length > 1 && (
-              <button type="button" onClick={() => removeSubject(idx)} className="text-red-600">Remove</button>
-            )}
-          </div>
-        ))}
-        <button type="button" onClick={addSubject} className="mt-2 text-blue-600">Add Subject</button>
-      </div>
-      {error && <div className="text-red-600">{error}</div>}
-      {success && <div className="text-green-600">{success}</div>}
-      <button type="submit" disabled={loading} className="bg-primary text-white px-4 py-2 rounded">
-        {loading ? "Submitting..." : "Declare Subjects"}
-      </button>
-    </form>
+    </>
   );
 }

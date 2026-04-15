@@ -236,7 +236,7 @@ export default function TutorPod() {
             </Badge>
           </div>
           <p className="text-lg text-muted-foreground">
-            You're building confidence, one session at a time. Keep showing up!
+            You're training calm execution, one session at a time. Keep showing up!
           </p>
         </div>
 
@@ -288,9 +288,9 @@ export default function TutorPod() {
               </div>
               <div className="p-4 bg-accent/30 rounded-lg">
                 <p className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">Pod Members (0/10)</span>
+                  <span className="font-medium text-foreground">Pod Members (0/12)</span>
                   <br />
-                  Connect with your pod team to share insights and grow together.
+                  
                 </p>
               </div>
               <Button className="w-full" variant="outline">
@@ -303,24 +303,20 @@ export default function TutorPod() {
           {/* Right: Transformation Formula */}
           <Card className="p-6 border shadow-sm">
             <div className="space-y-4">
-              <h2 className="text-xl font-bold">Your Transformation Formula</h2>
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <Target className="w-5 h-5"/>
-                <p>Your personalized roadmap to tutoring excellence</p>
-              </div>
+              <h2 className="text-xl font-bold">Transformation Process</h2>
               <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
                 <p className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">Blueprint Ready</span>
+                  <span className="font-medium text-foreground">TT-OS Protocol</span>
                   <br />
-                  Access your step-by-step formula for transforming student confidence.
+                  Every session conditions response: 3-Layer Lens + Boss Battles + Timed Execution = Conditioned Response.
                 </p>
               </div>
-              <Button className="w-full" asChild>
+              {/* <Button className="w-full" asChild>
                 <Link to="/tutor/blueprint">
                   <Sparkles className="w-4 h-4 mr-2"/>
                   View Blueprint
                 </Link>
-              </Button>
+              </Button> */}
               <Button className="w-full" variant="outline" asChild>
                 <Link to="/operational/tutor/tt-os">
                   <Lock className="w-4 h-4 mr-2"/>

@@ -793,6 +793,42 @@ function ModuleThree(_a) {
                   <li>Send Proposal within 24 hours</li>
                 </ul>
               </div>
+
+            {/* Tool 4: Timed Execution */}
+            <div className="space-y-6">
+              <div>
+                <Badge className="mb-3">Tool 4</Badge>
+                <h2 className="text-2xl font-bold">Timed Execution</h2>
+                <p className="text-muted-foreground mt-2">
+                  As students progress, Boss Battles become timed. This phase introduces controlled pressure, training calm execution under stress. Timed Execution is the final stage of the transformation process.
+                </p>
+              </div>
+
+              <Card className="p-6">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-bold">What It Is</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Timed Execution means students attempt Boss Battles with a time limit. The goal is not speed, but stable execution under pressure. Students must read carefully, identify what they know, and execute the method calmly.
+                  </p>
+
+                  <h3 className="text-lg font-bold mt-6">How to Use It</h3>
+                  <ul className="list-disc pl-5 space-y-2 text-sm">
+                    <li>Assign a Boss Battle with a clear time limit (e.g., 5 minutes).</li>
+                    <li>Remind the student: pressure is part of the training, not a test.</li>
+                    <li>Observe their response: do they freeze, rush, or execute calmly?</li>
+                    <li>Debrief after: focus on process, not just result.</li>
+                    <li>Log the attempt in the Boss Battle Tracker.</li>
+                  </ul>
+
+                  <div className="bg-primary/5 p-4 rounded-lg border border-primary/30 mt-4">
+                    <p className="text-sm font-semibold text-foreground mb-2">Critical Rule:</p>
+                    <p className="text-xs text-muted-foreground">
+                      Timed Execution is not about speed. It's about training calm, reliable execution under pressure. Use it only after the student has mastered the concept and method.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </div>
             </div>
           </SectionCard>
 
@@ -1162,100 +1198,60 @@ function ModuleFive(_a) {
             </div>
           </SectionCard>
 
-          <SectionCard id="module5-teach" title="2. Model, Apply & Guide  Show. Don't Just Tell." expanded={expandedSections["module5-teach"] || false} onToggle={function () { return toggleSection("module5-teach"); }} gradient="from-primary/90 to-primary">
+          <SectionCard id="module5-teach" title="2. Model–Apply–Guide: The TT Teaching Loop" expanded={expandedSections["module5-teach"] || false} onToggle={() => toggleSection("module5-teach")} gradient="from-primary/90 to-primary">
             <div className="space-y-4">
               <div className="bg-card p-4 rounded-lg border border-primary/20">
                 <p className="font-bold mb-2">Goal:</p>
-                <p className="text-sm">Deliver an engaging, clear, and step-by-step teaching experience. Your job is to teach by doing, guide by asking, and help the student build confidence while learning the process by letting them lead.</p>
+                <p className="text-sm">Train execution, not just understanding. Every concept is taught through the TT loop: Model, Apply, Guide. The tutor operates the system, not personal teaching style.</p>
               </div>
-
               <div className="bg-accent p-4 rounded-lg border border-primary/10">
-                <p className="font-bold mb-3">1. Start with Visual Demonstration</p>
+                <p className="font-bold mb-3">Model</p>
                 <ul className="space-y-1 text-sm ml-4">
-                  <li>Use the Gooseneck Camera Setup to work through the problem in real time</li>
-                  <li>Speak your thought process aloud: "First, I.... Then, I..."</li>
-                  <li>Write cleanly and narrate each step - slow enough for them to follow</li>
+                  <li>Demonstrate the problem using the 3-Layer Lens: Vocabulary, Method, Reason.</li>
+                  <li>State terms, steps, and logic clearly.</li>
+                  <li>Show calm, structured execution.</li>
                 </ul>
               </div>
-
               <div className="bg-accent p-4 rounded-lg border border-primary/10 mt-4">
-                <p className="font-bold mb-3">2. Use the "Model-Apply-then-Guide" Loop</p>
-                <ol className="space-y-2 text-sm ml-4">
-                  <li><strong>Step 1 (Model it):</strong> You solve an example out loud, using the step-by-step method you just narrated</li>
-                  <li><strong>Step 2 (Make the student do it/Apply it):</strong> They try a similar problem using the same step-by-step method with your support</li>
-                  <li><strong>Step 3 (You Guide them):</strong> Correct them as needed</li>
-                </ol>
-                <div className="bg-primary/20 p-3 rounded mt-3 text-sm">
-                  <p className="font-semibold mb-2">T/N: it's important to implement written step-by-step methods.</p>
-                  <p>Students memorize steps, which is crucial and helps them address any problem, no matter how difficult. As long as their reasoning capacity is always good, they know the rules and remember the steps. They'll experience a great boost of confidence.</p>
-                </div>
-                <p className="mt-3 text-sm">We call this the <strong>Ready, Fire, Aim</strong> approach (from T Harv's book, Secrets of The Millionaire Mind):</p>
-                <ol className="ml-4 mt-2 space-y-1 text-sm">
-                  <li>1. Model it for the student - get them "Ready", show them how to use the method</li>
-                  <li>2. Make the student Apply the method - let the student "Fire" - do it, attempt it</li>
-                  <li>3. Lead the student to use their mistakes to Guide them - Help them "Aim" and lock in accuracy</li>
-                </ol>
-              </div>
-
-              <div className="bg-accent p-4 rounded-lg border border-primary/10 mt-4">
-                <p className="font-bold mb-3">3. Key Check-Ins (after every move in each step)</p>
-                <p className="text-sm mb-2">Ask things like:</p>
+                <p className="font-bold mb-3">Apply</p>
                 <ul className="space-y-1 text-sm ml-4">
-                  <li>"Can you explain why I did that?"</li>
-                  <li>"What do you think happens next?"</li>
+                  <li>Student attempts a similar problem independently.</li>
+                  <li>Tutor observes, does not take over.</li>
+                  <li>Struggle is allowed; ownership is built.</li>
                 </ul>
-                <p className="text-sm mt-2 italic">This keeps them mentally invested and engaged</p>
               </div>
-
               <div className="bg-accent p-4 rounded-lg border border-primary/10 mt-4">
-                <p className="font-bold mb-3">4. Teach in the 3 Layers</p>
-                <p className="text-sm mb-2">Break the concept into bite-size chunks: The 3 Layer Lens</p>
+                <p className="font-bold mb-3">Guide</p>
                 <ul className="space-y-1 text-sm ml-4">
-                  <li><strong>Vocabulary</strong> - What's this called?</li>
-                  <li><strong>Method</strong> - How do we solve it? step by step</li>
-                  <li><strong>Reasoning</strong> - Why does it work?</li>
+                  <li>Tutor corrects and refines the attempt.</li>
+                  <li>Diagnose which layer broke: Vocabulary, Method, Reason.</li>
+                  <li>Reinforce the broken layer, not just give the answer.</li>
                 </ul>
-                <p className="text-sm mt-3 italic">you're building a lawyer who should defend every statement with a valid reason (see how you can make the student tie math to real life?)</p>
-                <p className="text-sm mt-2">After the student masters all 3 layers of the lesson, track it down as/under "Solutions Unlocked".</p>
-                <p className="text-sm mt-2">To test and strengthen the third layer (Reasoning), the student should be able to answer any "Why?" asked by the tutor.</p>
               </div>
-
-              <div className="bg-accent p-4 rounded-lg border border-primary/10 mt-4">
-                <p className="font-bold mb-3">5. Boss Battles</p>
-                <p className="text-sm">After a bit more practice (the 3 layers are fully grasped by the student), implement a Boss Battle challenge of a hard or advanced difficult problem and record each successful battle into the Battle log.</p>
-              </div>
-
               <div className="bg-primary/10 p-4 rounded-lg border border-primary/30 mt-4">
-                <p className="font-bold mb-2">Why This Step is Bulletproof:</p>
+                <p className="font-bold mb-2">Why This Step Is Bulletproof:</p>
                 <ul className="space-y-1 text-sm">
-                  <li>Visual and Model teaching = stronger memory retention</li>
-                  <li>The student doesn't just see the skill - they begin to own it</li>
-                  <li>The looped structure means they're never passive</li>
-                  <li>Confidence grows because the tutor is right there guiding without pressure or spoon-feeding and tracking growth</li>
-                  <li>Practice makes perfect is a lie, we believe practice makes improvement</li>
-                  <li>Lawyer personality breeds a problem-solver identity (that's how students fall in love with math)</li>
-                  <li>Progress is data, not a feeling. Every solution they unlock mentally - they just unlocked a new superpower</li>
-                  <li>It's hard to make mistakes with the 3 Layer Lens (hack of A+ math students)</li>
+                  <li>Systematic teaching builds stable response patterns.</li>
+                  <li>Students learn to execute calmly under difficulty.</li>
+                  <li>Confidence is earned through structured practice.</li>
+                  <li>Every session follows the same loop for reliability.</li>
                 </ul>
               </div>
-
               <div className="bg-muted p-4 rounded-lg mt-4">
                 <p className="font-bold mb-2">KPI</p>
                 <ul className="space-y-1 text-sm">
-                  <li>Student successfully applies the method with 80% accuracy after being shown</li>
-                  <li>Student can identify which step they struggled with using 3-Layer Lens</li>
-                  <li>At least 1 Boss Battle issued per session</li>
+                  <li>Student attempts problem independently.</li>
+                  <li>Tutor diagnoses and reinforces broken layer.</li>
+                  <li>Session follows Model–Apply–Guide loop.</li>
                 </ul>
               </div>
-
               <div className="bg-card p-4 rounded-lg border border-primary/20 mt-4">
                 <p className="font-bold mb-2">Checklist:</p>
                 <ul className="space-y-1 text-sm">
-                  <li>Modeled example clearly, narrating steps</li>
-                  <li>Let student attempt similar problem(s)</li>
-                  <li>Guided corrections using 3-Layer lens</li>
-                  <li>Asked 2-3 engagement check-ins ("Why did I do that?" or "What's next?")</li>
-                  <li>Highlighted success verbally: "That method is yours now."</li>
+                  <li>Modeled example using 3-Layer Lens.</li>
+                  <li>Student attempted similar problem.</li>
+                  <li>Tutor guided by diagnosing layer, not just correcting answer.</li>
+                  <li>Session looped Model–Apply–Guide.</li>
                 </ul>
               </div>
             </div>
@@ -1474,151 +1470,37 @@ function ModuleFive(_a) {
 }
 function ModuleSix(_a) {
     var expandedSections = _a.expandedSections, toggleSection = _a.toggleSection, onComplete = _a.onComplete, isComplete = _a.isComplete;
-    return (<div className="space-y-4 sm:space-y-6">
+    return (<div className="space-y-4">
       <Card className="border-2 border-primary/30">
-        <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-white p-4 sm:p-6">
-          <div className="flex items-start gap-2 sm:gap-3">
-            <Clock className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0 mt-1"/>
-            <div className="min-w-0">
-              <CardTitle className="text-lg sm:text-2xl leading-tight">Module 6: Balancing Tutoring & School</CardTitle>
-              <CardDescription className="text-white/95 text-sm sm:text-lg mt-1 sm:mt-2">
-                Systems beat moods. Structure beats chaos. Every time.
-              </CardDescription>
-            </div>
-          </div>
+        <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-white p-4">
+          <CardTitle className="text-lg sm:text-2xl leading-tight">Module 6: Session Operating System</CardTitle>
+          <CardDescription className="text-white/95 text-sm sm:text-lg mt-1">Every session follows the TT structure. No improvisation. No shortcuts.</CardDescription>
         </CardHeader>
-        <CardContent className="p-3 sm:p-6 space-y-4 sm:space-y-6">
-          <div className="bg-accent p-4 sm:p-6 rounded-lg border border-primary/10">
-            <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">The Truth (No Glitter, No Hacks)</h3>
-            <p className="text-muted-foreground text-sm sm:text-base mb-3 sm:mb-4">
-              Balancing TT and school? Easy. Use systems.
-            </p>
-            <p className="font-semibold text-sm sm:text-base">Systems turn chaos into order. Moods don't. They turn order into chaos.</p>
-            <p className="mt-2 sm:mt-3 text-sm sm:text-base">Systems are like making tea: boil water, steep leaves, pour cup. It works every time, whether you're hyped or half-dead.</p>
-          </div>
-
-          <SectionCard id="module6-systems" title="What Systems Actually Do For You" expanded={expandedSections["module6-systems"] || false} onToggle={function () { return toggleSection("module6-systems"); }} gradient="from-primary to-primary/80">
-            <div className="space-y-3 sm:space-y-4">
-              <p className="font-semibold text-sm sm:text-base mb-2 sm:mb-3">They convert:</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
-                <div className="bg-card p-3 sm:p-4 rounded-lg border border-primary/20">
-                  <p className="font-bold text-destructive text-sm sm:text-base">Confusion</p>
-                  <ArrowRight className="w-4 h-4 inline mx-2"/>
-                  <p className="font-bold text-primary inline text-sm sm:text-base">Structure</p>
-                </div>
-                <div className="bg-card p-3 sm:p-4 rounded-lg border border-primary/20">
-                  <p className="font-bold text-destructive text-sm sm:text-base">Forgetfulness</p>
-                  <ArrowRight className="w-4 h-4 inline mx-2"/>
-                  <p className="font-bold text-primary inline text-sm sm:text-base">Flow</p>
-                </div>
-                <div className="bg-card p-3 sm:p-4 rounded-lg border border-primary/20">
-                  <p className="font-bold text-destructive text-sm sm:text-base">Burnout</p>
-                  <ArrowRight className="w-4 h-4 inline mx-2"/>
-                  <p className="font-bold text-primary inline text-sm sm:text-base">Rhythm</p>
-                </div>
-                <div className="bg-card p-3 sm:p-4 rounded-lg border border-primary/20">
-                  <p className="font-bold text-destructive text-sm sm:text-base">"I'm overwhelmed"</p>
-                  <ArrowRight className="w-4 h-4 inline mx-2"/>
-                  <p className="font-bold text-primary inline text-sm sm:text-base">"I'm in control"</p>
-                </div>
-              </div>
+        <CardContent className="p-3 space-y-4">
+          <SectionCard id="module6-os" title="Session Flow" expanded={expandedSections["module6-os"] || false} onToggle={() => toggleSection("module6-os")} gradient="from-primary to-primary/80">
+            <div className="space-y-2">
+              <ul className="space-y-1 text-sm ml-4">
+                <li>1. Prepare: Review notes, select concept.</li>
+                <li>2. Model: Demonstrate using 3-Layer Lens.</li>
+                <li>3. Apply: Student attempts problem independently.</li>
+                <li>4. Guide: Diagnose and reinforce broken layer.</li>
+                <li>5. Boss Battle: Student faces a difficult problem solo.</li>
+                <li>6. Timed Execution: Boss Battle under time limit (as skill improves).</li>
+              </ul>
             </div>
           </SectionCard>
-
-          <SectionCard id="module6-before-now" title="Before: Tools. Now: Operating System." expanded={expandedSections["module6-before-now"] || false} onToggle={function () { return toggleSection("module6-before-now"); }} gradient="from-primary/90 to-primary">
-            <div className="space-y-4">
-              <p className="font-semibold">Before, TT gave you trackers, tips, and tools as one-off downloads.</p>
-              <p>Now? The Response Hub is the entire infrastructure.</p>
-              
-              <div className="bg-muted p-4 rounded-lg border border-primary/10 mt-4">
-                <p className="font-bold mb-2">What changed:</p>
-                <p>You used to chase scattered files. Now you plug in and everything's already connected.</p>
-              </div>
+          <SectionCard id="module6-checklist" title="Session Checklist" expanded={expandedSections["module6-checklist"] || false} onToggle={() => toggleSection("module6-checklist")} gradient="from-primary/90 to-primary">
+            <div className="space-y-2">
+              <ul className="space-y-1 text-sm ml-4">
+                <li>Session follows TT structure.</li>
+                <li>Concept taught through 3-Layer Lens.</li>
+                <li>Student attempts problem independently.</li>
+                <li>Tutor diagnoses and reinforces broken layer.</li>
+                <li>Boss Battle issued and tracked.</li>
+                <li>Timed Execution phase included (if ready).</li>
+              </ul>
             </div>
           </SectionCard>
-
-          <SectionCard id="module6-hub" title="The Response Hub = Your Operating System" expanded={expandedSections["module6-hub"] || false} onToggle={function () { return toggleSection("module6-hub"); }} gradient="from-primary to-primary/70">
-            <div className="space-y-4">
-              <p className="font-semibold">What TT used to give you individually is now centralized:</p>
-              
-              <div className="bg-accent p-4 rounded-lg border border-primary/10">
-                <ul className="space-y-2 list-disc pl-5">
-                  <li>Challenge Tracker → automated, visual, impossible to ignore</li>
-                  <li>Boss Battles → integrated into session-logging</li>
-                  <li>Session Planner → inside your workflow</li>
-                  <li>Student Identity Sheet → intelligence stored per student</li>
-                  <li>3-Layer Lens → embedded into lesson flow</li>
-                </ul>
-              </div>
-
-              <div className="bg-card p-4 rounded-lg border-l-4 border-primary mt-4">
-                <p className="font-bold">The Hub holds the structure. You follow it.</p>
-              </div>
-            </div>
-          </SectionCard>
-
-          <SectionCard id="module6-formula" title="The Student-Tutor Reality Formula" expanded={expandedSections["module6-formula"] || false} onToggle={function () { return toggleSection("module6-formula"); }} gradient="from-primary/80 to-primary">
-            <div className="space-y-4">
-              <p>You're not building a "tutor identity" and a "student identity."</p>
-              <p className="font-semibold">You're building one identity that carries both.</p>
-              
-              <div className="bg-accent p-4 rounded-lg border border-primary/10 mt-4">
-                <p className="font-bold mb-3">Here's the formula:</p>
-                <ol className="space-y-3 ml-4">
-                  <li><strong>1. Keep Your Commitments</strong><br />
-                    <span className="text-muted-foreground">When you do TT sessions on time, you build patterns for your future self (deadlines, exams, life).</span>
-                  </li>
-                  <li><strong>2. Don't Rely on Emotion</strong><br />
-                    <span className="text-muted-foreground">When you're tired? That's when you lean on the Hub more, not less.</span>
-                  </li>
-                  <li><strong>3. Routine &gt; "Trying Hard"</strong><br />
-                    <span className="text-muted-foreground">The magic isn't motivation. It's repetition. Let the system do the heavy lifting.</span>
-                  </li>
-                </ol>
-              </div>
-            </div>
-          </SectionCard>
-
-          <SectionCard id="module6-protection" title="How the Hub Protects You" expanded={expandedSections["module6-protection"] || false} onToggle={function () { return toggleSection("module6-protection"); }} gradient="from-primary to-primary/90">
-            <div className="space-y-4">
-              <p className="font-semibold">Two ways:</p>
-              
-              <div className="space-y-3">
-                <div className="bg-card p-4 rounded-lg border border-primary/20">
-                  <p className="font-bold">1. Keeps You Moving Forward (Even When You Don't Feel Like It)</p>
-                  <p className="text-muted-foreground mt-2">Sessions scheduled? Log opens automatically. Tracker reminds you. The system doesn't wait for motivation.</p>
-                </div>
-                
-                <div className="bg-card p-4 rounded-lg border border-primary/20">
-                  <p className="font-bold">2. Keeps You From Slipping Backward</p>
-                  <p className="text-muted-foreground mt-2">You can't "forget" to update a log when it's built into your close-out. You can't skip planning when the Hub prompts you before every session.</p>
-                </div>
-              </div>
-
-              <div className="bg-muted p-4 rounded-lg border border-primary/10 mt-4">
-                <p className="font-bold">Bottom line:</p>
-                <p className="text-muted-foreground">The Hub keeps you consistent. Consistency builds your identity. Your identity powers your momentum.</p>
-              </div>
-            </div>
-          </SectionCard>
-
-          <div className="bg-gradient-to-r from-primary to-primary/80 text-white p-6 rounded-lg shadow-md">
-            <h4 className="font-bold text-xl mb-4">Mantras for When You Slip</h4>
-            <ul className="space-y-3">
-              <li>"I don't rely on pressure. I rely on process."</li>
-              <li>"I don't trust motivation. I trust my systems."</li>
-              <li>"I'm not overwhelmed. I'm under-organized."</li>
-              <li>"If I follow the Hub, my life stays clean."</li>
-            </ul>
-            
-            <div className="mt-6 pt-6 border-t border-white/20">
-              <p className="font-bold text-lg">The Final Truth:</p>
-              <p className="mt-2">If you win inside TT, you'll win in school.</p>
-              <p className="mt-2 italic">Structure is structure. Discipline is discipline. Character is character.</p>
-              <p className="mt-3">The difference between a tutor who thrives and a tutor who burns out? One trusts the system. The other trusts their mood.</p>
-            </div>
-          </div>
-
           {!isComplete && (<Button onClick={onComplete} className="w-full" size="lg">
               Mark Module 6 Complete <CheckCircle2 className="ml-2 w-5 h-5"/>
             </Button>)}
@@ -1632,180 +1514,33 @@ function ModuleSix(_a) {
 }
 function ModuleSeven(_a) {
     var expandedSections = _a.expandedSections, toggleSection = _a.toggleSection, onComplete = _a.onComplete, isComplete = _a.isComplete;
-    return (<div className="space-y-4 sm:space-y-6">
+    return (<div className="space-y-4">
       <Card className="border-2 border-primary/30">
-        <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-white p-4 sm:p-6">
-          <div className="flex items-start gap-2 sm:gap-3">
-            <Award className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0 mt-1"/>
-            <div className="min-w-0">
-              <CardTitle className="text-lg sm:text-2xl leading-tight">Module 7: Time Mastery for Soul-Led Teachers</CardTitle>
-              <CardDescription className="text-white/95 text-sm sm:text-lg mt-1 sm:mt-2">
-                "You're not just a tutor. You're a presence."
-              </CardDescription>
-            </div>
-          </div>
+        <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-white p-4">
+          <CardTitle className="text-lg sm:text-2xl leading-tight">Module 7: Timed Execution & Pressure Training</CardTitle>
+          <CardDescription className="text-white/95 text-sm sm:text-lg mt-1">Final phase: train calm execution under pressure. No noise. No improvisation.</CardDescription>
         </CardHeader>
-        <CardContent className="p-3 sm:p-6 space-y-4 sm:space-y-6">
-          <div className="bg-accent p-4 sm:p-6 rounded-lg border border-primary/10">
-            <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Main Problem</h3>
-            <p className="text-muted-foreground text-sm sm:text-base mb-3 sm:mb-4">
-              Most student-tutors think teaching is about technique.
-            </p>
-            <p className="font-semibold text-sm sm:text-base">But in reality? They're mastered by urgency, guilt, and grind.</p>
-            <p className="mt-2 sm:mt-3 text-sm sm:text-base">They burn out. They resent their students. They dread sessions. They disappear before the semester ends.</p>
-          </div>
-
-          <SectionCard id="module7-solution" title="The Real Solution" expanded={expandedSections["module7-solution"] || false} onToggle={function () { return toggleSection("module7-solution"); }} gradient="from-primary to-primary/80">
-            <div className="space-y-4">
-              <p className="font-bold text-lg">Training tutors not just to manage time  but to hold space with rhythm, calm, and inner clarity.</p>
-              
-              <div className="bg-muted p-4 rounded-lg border border-primary/10 mt-4">
-                <p className="font-bold mb-3">Outcome - TT Tutors will know how to:</p>
-                <ul className="space-y-2 ml-4">
-                  <li>Work in flow blocks, not panic hours</li>
-                  <li>Maintain emotional peace before, during, and after sessions</li>
-                  <li>Prioritize presence over perfection</li>
-                  <li>Create internal stillness, even when life is chaotic</li>
-                  <li>Build sessions that breathe, not rush</li>
-                </ul>
-              </div>
+        <CardContent className="p-3 space-y-4">
+          <SectionCard id="module7-timed" title="Timed Execution" expanded={expandedSections["module7-timed"] || false} onToggle={() => toggleSection("module7-timed")} gradient="from-primary to-primary/80">
+            <div className="space-y-2">
+              <ul className="space-y-1 text-sm ml-4">
+                <li>Boss Battles become timed as skill improves.</li>
+                <li>Student must execute calmly under time limit.</li>
+                <li>Pressure is controlled, not punitive.</li>
+                <li>Goal: automatic, structured response under stress.</li>
+              </ul>
             </div>
           </SectionCard>
-
-          <SectionCard id="module7-why-matters" title="Why This Matters" expanded={expandedSections["module7-why-matters"] || false} onToggle={function () { return toggleSection("module7-why-matters"); }} gradient="from-primary/90 to-primary">
-            <div className="space-y-3 sm:space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
-                <div className="bg-muted p-3 sm:p-4 rounded-lg border border-destructive/30">
-                  <p className="font-bold text-sm sm:text-base mb-1 sm:mb-2 text-destructive">The World's Way</p>
-                  <ul className="space-y-1 text-xs sm:text-sm">
-                    <li>Hustle harder</li>
-                    <li>Do more</li>
-                    <li>Grind 24/7</li>
-                    <li>Sacrifice well-being for results</li>
-                    <li>Burn out = badge of honor</li>
-                  </ul>
-                </div>
-                <div className="bg-accent p-3 sm:p-4 rounded-lg border border-primary/20">
-                  <p className="font-bold text-sm sm:text-base mb-1 sm:mb-2 text-primary">TT's Way</p>
-                  <ul className="space-y-1 text-xs sm:text-sm">
-                    <li>Slow down + focus deeper</li>
-                    <li>Feel more, hold better energy</li>
-                    <li>Work in sprints, then reset</li>
-                    <li>Prioritize your presence over output</li>
-                    <li>Peace = sustainable excellence</li>
-                  </ul>
-                </div>
-              </div>
-
-              <div className="bg-card p-3 sm:p-4 rounded-lg border-l-4 border-primary mt-3 sm:mt-4">
-                <p className="font-bold text-center text-sm sm:text-base">Calm mentors create confident students.</p>
-                <p className="text-muted-foreground text-center mt-1 sm:mt-2 text-xs sm:text-base">Dysregulated tutors create anxious learners.</p>
-              </div>
+          <SectionCard id="module7-checklist" title="Pressure Training Checklist" expanded={expandedSections["module7-checklist"] || false} onToggle={() => toggleSection("module7-checklist")} gradient="from-primary/90 to-primary">
+            <div className="space-y-2">
+              <ul className="space-y-1 text-sm ml-4">
+                <li>Timed Boss Battle issued.</li>
+                <li>Student executes method calmly.</li>
+                <li>Tutor observes response, not just result.</li>
+                <li>Session closes with reflection and tracking.</li>
+              </ul>
             </div>
           </SectionCard>
-
-          <SectionCard id="module7-rhythm-tools" title="Rhythm Tools" expanded={expandedSections["module7-rhythm-tools"] || false} onToggle={function () { return toggleSection("module7-rhythm-tools"); }} gradient="from-primary to-primary/70">
-            <div className="space-y-6">
-              <div>
-                <h4 className="font-bold text-lg mb-3">1. The "Sacred Pause" Strategy</h4>
-                <p className="mb-3">Sometimes the best thing you can do in a session is: Pause.</p>
-                
-                <div className="bg-card p-4 rounded-lg border-l-4 border-primary">
-                  <ul className="space-y-2 list-disc pl-5">
-                    <li>Let the student think</li>
-                    <li>Let the silence teach</li>
-                    <li>Let their brain breathe</li>
-                  </ul>
-                  <p className="italic mt-3">Silence isn't a lack of teaching. It's the space where learning downloads.</p>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-lg mb-3">2. Emotional Reset Checklist</h4>
-                <p className="mb-3">Before any session, scan this mental list:</p>
-                
-                <div className="bg-accent p-4 rounded-lg border border-primary/10">
-                  <ul className="space-y-2 list-disc pl-5">
-                    <li>Did I eat / hydrate?</li>
-                    <li>Do I feel rushed or grounded?</li>
-                    <li>What's the student's emotional state likely to be today?</li>
-                    <li>Am I here to prove something or serve someone?</li>
-                    <li>Deep breath. Shoulders down. Eyes soft. Calm energy ON.</li>
-                  </ul>
-                  <p className="font-bold mt-4">No session starts without intention.</p>
-                </div>
-              </div>
-            </div>
-          </SectionCard>
-
-          <SectionCard id="module7-lessons" title="4 Lessons" expanded={expandedSections["module7-lessons"] || false} onToggle={function () { return toggleSection("module7-lessons"); }} gradient="from-primary/80 to-primary">
-            <div className="space-y-6">
-              <div>
-                <h4 className="font-bold text-lg mb-2">Lesson 1: The Lie of the Clock</h4>
-                <p className="text-muted-foreground mb-3">Time isn't the problem. Attention is.</p>
-                <div className="bg-muted p-4 rounded-lg">
-                  <p className="font-semibold">Stop asking: "Do I have enough time?"</p>
-                  <p className="mt-2">Start asking: "Am I fully here right now?"</p>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-lg mb-2">Lesson 2: Holding Space Like a Leader</h4>
-                <p className="text-muted-foreground mb-3">Your vibe regulates the room.</p>
-                <div className="bg-card p-4 rounded-lg border border-primary/20">
-                  <p>If you're rushed → they'll feel anxious.</p>
-                  <p>If you're present → they'll feel safe.</p>
-                  <p className="font-semibold mt-3">Your energy is a teaching tool.</p>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-lg mb-2">Lesson 3: Flow Blocks, Not Time Blocks</h4>
-                <p className="text-muted-foreground mb-3">Don't schedule by the clock. Schedule by your energy zones.</p>
-                <div className="bg-muted p-4 rounded-lg">
-                  <p className="font-semibold mb-2">Example:</p>
-                  <ul className="space-y-1 ml-4">
-                    <li>Morning = deep prep (trackers, lesson planning)</li>
-                    <li>Afternoon = tutoring sessions (high presence)</li>
-                    <li>Evening = admin light (logs, messages)</li>
-                  </ul>
-                  <p className="mt-3 italic">Match tasks to your natural rhythm, not arbitrary time slots.</p>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-lg mb-2">Lesson 4: Reset Yourself, Reset the Room</h4>
-                <p className="text-muted-foreground mb-3">Between sessions, between students, between moods:</p>
-                <div className="bg-card p-4 rounded-lg border-l-4 border-primary">
-                  <p className="font-semibold">Micro-reset ritual:</p>
-                  <ul className="space-y-2 mt-2">
-                    <li>1. Stand up. Stretch. Breathe 3x deep.</li>
-                    <li>2. Shake off the last session mentally.</li>
-                    <li>3. Set one intention for the next one.</li>
-                  </ul>
-                  <p className="mt-3 font-bold">Each session gets a fresh version of you.</p>
-                </div>
-              </div>
-            </div>
-          </SectionCard>
-
-          <div className="bg-gradient-to-r from-primary to-primary/80 text-white p-6 rounded-lg shadow-md">
-            <h4 className="font-bold text-xl mb-4">Rhythm Mantras</h4>
-            <ul className="space-y-3">
-              <li>"Teaching isn't a race. It's a rhythm."</li>
-              <li>"A calm mind teaches faster than a rushed one."</li>
-              <li>"The more still you are, the more they trust you."</li>
-              <li>"A structured rhythm feels safer than a fast syllabus."</li>
-            </ul>
-            
-            <div className="mt-6 pt-6 border-t border-white/20">
-              <p className="font-bold text-lg">Final Truth:</p>
-              <p className="mt-2 italic">A dysregulated tutor can't regulate a student.</p>
-              <p className="mt-2">Your nervous system is your teaching technology.</p>
-              <p className="mt-3 font-semibold">The most powerful tool you have isn't your lesson plan. It's your capacity for self-regulation.</p>
-            </div>
-          </div>
-
           {!isComplete && (<Button onClick={onComplete} className="w-full" size="lg">
               Mark Module 7 Complete <CheckCircle2 className="ml-2 w-5 h-5"/>
             </Button>)}

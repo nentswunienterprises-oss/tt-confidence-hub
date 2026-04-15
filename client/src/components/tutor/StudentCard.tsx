@@ -87,7 +87,11 @@ export function StudentCard({
         {/* Confidence Level bars removed as requested */}
         {/* Step 1: Show session proposal and actions if not confirmed */}
         {introSessionStatus?.status !== "confirmed" && (
-          <TutorIntroSessionActions studentId={student.id} />
+          <TutorIntroSessionActions
+            studentId={student.id}
+            parentId={student.parentInfo?.parent_id}
+            tutorId={student.tutor_id}
+          />
         )}
         {/* Step 2: Mark Intro Session As Completed */}
         {introSessionStatus?.status === "confirmed" && !introCompleted && (

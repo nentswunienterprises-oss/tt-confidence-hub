@@ -471,6 +471,42 @@ export default function TTOS() {
           </Card>
         </div>
 
+        {/* Tool 4: Timed Execution */}
+        <div className="space-y-6">
+          <div>
+            <Badge className="mb-3">Tool 4</Badge>
+            <h2 className="text-2xl font-bold">Timed Execution</h2>
+            <p className="text-muted-foreground mt-2">
+              As students progress, Boss Battles become timed. This phase introduces controlled pressure, training calm execution under stress. Timed Execution is the final stage of the transformation process.
+            </p>
+          </div>
+
+          <Card className="p-6">
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold">What It Is</h3>
+              <p className="text-sm text-muted-foreground">
+                Timed Execution means students attempt Boss Battles with a time limit. The goal is not speed, but stable execution under pressure. Students must read carefully, identify what they know, and execute the method calmly.
+              </p>
+
+              <h3 className="text-lg font-bold mt-6">How to Use It</h3>
+              <ul className="list-disc pl-5 space-y-2 text-sm">
+                <li>Assign a Boss Battle with a clear time limit (e.g., 5 minutes).</li>
+                <li>Remind the student: pressure is part of the training, not a test.</li>
+                <li>Observe their response: do they freeze, rush, or execute calmly?</li>
+                <li>Debrief after: focus on process, not just result.</li>
+                <li>Log the attempt in the Boss Battle Tracker.</li>
+              </ul>
+
+              <div className="bg-primary/5 p-4 rounded-lg border border-primary/30 mt-4">
+                <p className="text-sm font-semibold text-foreground mb-2">Critical Rule:</p>
+                <p className="text-xs text-muted-foreground">
+                  Timed Execution is not about speed. It's about training calm, reliable execution under pressure. Use it only after the student has mastered the concept and method.
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
         {/* The Law of Inevitability */}
         <div className="space-y-6">
           <h2 className="text-2xl font-bold">The Law of Inevitability</h2>

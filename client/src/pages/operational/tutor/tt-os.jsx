@@ -20,10 +20,10 @@ export default function TTOS() {
             </div>
             <div>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
-                TT-OS
+                TT-OS: The Session Operating System
               </h1>
               <p className="text-lg text-muted-foreground">
-                The Response Training System
+                Territorial Tutoring's system for conditioning response patterns under pressure. Not a curriculum. Not a teaching method. A protocol for transformation.
               </p>
             </div>
           </div>
@@ -53,13 +53,13 @@ export default function TTOS() {
           <h2 className="text-2xl font-bold">What TT-OS Is</h2>
           <Card className="p-6">
             <p className="text-base leading-relaxed mb-4">
-              TT-OS is a <span className="font-semibold text-foreground">response-conditioning system</span>. Not a curriculum. Not a teaching method. A system for training how students respond when certainty disappears.
+              TT-OS is the Operating System for conditioning response patterns. Every session follows the same structure: Intro Session, Transformation Process, Logging System. No improvisation. No shortcuts.
             </p>
             <p className="text-base leading-relaxed mb-4">
-              Most tutors teach content. You train response patterns. When a student sees a problem they don't immediately recognize, we want them to stay calm, identify what they know, and execute. That response doesn't happen naturally. It gets trained.
+              The Transformation Process is how we condition responses: <span className="font-semibold text-foreground">3-Layer Lens</span> + <span className="font-semibold text-foreground">Boss Battles</span> + <span className="font-semibold text-foreground">Timed Execution</span> (Timed Boss Battles) = <span className="font-semibold text-foreground">Conditioned Response</span>.
             </p>
             <p className="text-base leading-relaxed">
-              The system has three tools: <span className="font-semibold">3-Layer Lens</span>, <span className="font-semibold">Boss Battles</span>, and <span className="font-semibold">Model → Apply → Guide</span>. Use them correctly, students transform. Skip them, you're just another tutor explaining fractions.
+              If you can't explain how TT-OS conditions responses, you missed the system. Every section, every tool, every checklist reinforces this protocol.
             </p>
           </Card>
         </div>
@@ -460,6 +460,42 @@ export default function TTOS() {
               <p className="text-xs text-muted-foreground pt-2 border-t border-primary/20 mt-3">
                 This is not Model → Apply → Introduce Boss Battle. Guide means correcting through the lens. That's the system.
               </p>
+            </div>
+          </Card>
+        </div>
+
+        {/* Tool 4: Timed Execution */}
+        <div className="space-y-6">
+          <div>
+            <Badge className="mb-3">Tool 4</Badge>
+            <h2 className="text-2xl font-bold">Timed Execution</h2>
+            <p className="text-muted-foreground mt-2">
+              As students progress, Boss Battles become timed. This phase introduces controlled pressure, training calm execution under stress. Timed Execution is the final stage of the transformation process.
+            </p>
+          </div>
+
+          <Card className="p-6">
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold">What It Is</h3>
+              <p className="text-sm text-muted-foreground">
+                Timed Execution means students attempt Boss Battles with a time limit. The goal is not speed, but stable execution under pressure. Students must read carefully, identify what they know, and execute the method calmly.
+              </p>
+
+              <h3 className="text-lg font-bold mt-6">How to Use It</h3>
+              <ul className="list-disc pl-5 space-y-2 text-sm">
+                <li>Assign a Boss Battle with a clear time limit (e.g., 5 minutes).</li>
+                <li>Remind the student: pressure is part of the training, not a test.</li>
+                <li>Observe their response: do they freeze, rush, or execute calmly?</li>
+                <li>Debrief after: focus on process, not just result.</li>
+                <li>Log the attempt in the Boss Battle Tracker.</li>
+              </ul>
+
+              <div className="bg-primary/5 p-4 rounded-lg border border-primary/30 mt-4">
+                <p className="text-sm font-semibold text-foreground mb-2">Critical Rule:</p>
+                <p className="text-xs text-muted-foreground">
+                  Timed Execution is not about speed. It's about training calm, reliable execution under pressure. Use it only after the student has mastered the concept and method.
+                </p>
+              </div>
             </div>
           </Card>
         </div>
