@@ -199,49 +199,46 @@ export default function ParentProgress() {
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8">
-      <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-background p-5 sm:p-7">
-        <div className="relative flex flex-col gap-5">
-          <div>
-            <p className="text-[11px] sm:text-xs font-medium uppercase tracking-[0.08em] text-foreground/65">Parent Reports</p>
-            <h1
-              className="text-2xl sm:text-[2.1rem] font-semibold tracking-[-0.01em] leading-tight mt-2"
-              style={{ fontFamily: '"Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif' }}
-            >
-              Progress reports for your child
-            </h1>
-            <p className="text-sm text-foreground/70 mt-2.5 max-w-2xl leading-relaxed">
-              Review the weekly and monthly summaries TT has logged so you can stay aligned with the training direction.
-            </p>
-          </div>
+    <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-3xl font-bold">Progress Reports</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">Track your child's learning journey through detailed reports</p>
+      </div>
 
-          <div className="grid grid-cols-3 gap-2 sm:gap-4">
-            <Card className="border-primary/15 bg-background/80 shadow-none">
-              <CardContent className="p-3 sm:p-5">
-                <div className="text-center sm:text-left">
-                  <p className="text-lg sm:text-2xl font-bold">{weeklyReports.length}</p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">Weekly Reports</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border-primary/15 bg-background/80 shadow-none">
-              <CardContent className="p-3 sm:p-5">
-                <div className="text-center sm:text-left">
-                  <p className="text-lg sm:text-2xl font-bold">{monthlyReports.length}</p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">Monthly Reports</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border-primary/15 bg-background/80 shadow-none">
-              <CardContent className="p-3 sm:p-5">
-                <div className="text-center sm:text-left">
-                  <p className="text-lg sm:text-2xl font-bold">{reports.length}</p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">Total</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+      <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6 sm:mb-8">
+        <Card>
+          <CardContent className="p-3 sm:pt-6">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-3 text-center sm:text-left">
+              <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+              <div>
+                <p className="text-lg sm:text-2xl font-bold">{weeklyReports.length}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Weekly Reports</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 sm:pt-6">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-3 text-center sm:text-left">
+              <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+              <div>
+                <p className="text-lg sm:text-2xl font-bold">{monthlyReports.length}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Monthly Reports</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 sm:pt-6">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-3 text-center sm:text-left">
+              <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+              <div>
+                <p className="text-lg sm:text-2xl font-bold">{reports.length}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Reports</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Tabs defaultValue={defaultTab} className="space-y-4 sm:space-y-6">
@@ -271,7 +268,7 @@ export default function ParentProgress() {
           ) : (
             <div className="grid gap-3 sm:gap-4">
               {weeklyReports.map((report) => (
-                <Card key={report.id} className="rounded-2xl border border-primary/20 bg-background shadow-sm">
+                <Card key={report.id} className="border-l-4 border-l-primary">
                   <CardHeader className="p-3 sm:p-6">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-4">
                       <div>
@@ -283,6 +280,12 @@ export default function ParentProgress() {
                               Legacy format
                             </Badge>
                           )}
+                          {report.parentFeedback && (
+                            <Badge variant="secondary" className="text-xs">
+                              <MessageSquare className="w-3 h-3 mr-1" />
+                              Feedback Given
+                            </Badge>
+                          )}
                         </CardTitle>
                         <CardDescription className="text-xs sm:text-sm mt-1">
                           {formatRange(report.weekRange?.start, report.weekRange?.end)}
@@ -291,6 +294,15 @@ export default function ParentProgress() {
                           Sent {new Date(report.sentAt).toLocaleDateString()} by {report.tutor.name}
                         </CardDescription>
                       </div>
+                      <Button
+                        size="sm"
+                        variant={report.parentFeedback ? "outline" : "default"}
+                        onClick={() => handleGiveFeedback(report)}
+                        className="w-full sm:w-auto text-xs sm:text-sm"
+                      >
+                        <MessageSquare className="w-4 h-4 mr-1 sm:mr-2" />
+                        {report.parentFeedback ? "Update" : "Feedback"}
+                      </Button>
                     </div>
                   </CardHeader>
                   <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0 space-y-3 sm:space-y-4">
@@ -309,15 +321,15 @@ export default function ParentProgress() {
 
                     <div>
                       <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Topics Worked On</h4>
-                      {renderTextOrFallback(report.mainTopicsCovered)}
+                      <p className="text-xs sm:text-sm text-muted-foreground">{report.mainTopicsCovered || "Not provided"}</p>
                     </div>
                     <div>
                       <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">What Improved</h4>
-                      {renderTextOrFallback(report.whatImproved)}
+                      <p className="text-xs sm:text-sm text-muted-foreground">{report.whatImproved || "Not provided"}</p>
                     </div>
                     <div>
                       <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">What This Means</h4>
-                      {renderTextOrFallback(report.whatThisMeans)}
+                      <p className="text-xs sm:text-sm text-muted-foreground">{report.whatThisMeans || "Not provided"}</p>
                     </div>
                     <div>
                       <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Response Pattern</h4>
@@ -326,17 +338,17 @@ export default function ParentProgress() {
                     <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
                       <div className="bg-muted/30 rounded-lg p-2 sm:p-3">
                         <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Challenges</h4>
-                        {renderTextOrFallback(report.mainMisunderstanding)}
+                        <p className="text-xs sm:text-sm text-muted-foreground">{report.mainMisunderstanding || "Not provided"}</p>
                       </div>
                       <div className="bg-muted/30 rounded-lg p-2 sm:p-3">
                         <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">System Movement</h4>
-                        {renderTextOrFallback(report.systemMovement)}
+                        <p className="text-xs sm:text-sm text-muted-foreground">{report.systemMovement || "Not provided"}</p>
                       </div>
                     </div>
                     <div>
                       <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Conditioning Progress</h4>
                       {report.conditioningProgress && report.conditioningProgress.length > 0 ? (
-                        <div className="rounded-xl border border-primary/15 bg-background overflow-hidden">
+                        <div className="rounded-lg border overflow-hidden">
                           <table className="w-full text-xs sm:text-sm">
                             <thead className="bg-muted/40">
                               <tr>
@@ -348,11 +360,11 @@ export default function ParentProgress() {
                             </thead>
                             <tbody>
                               {report.conditioningProgress.map((row, i) => (
-                                <tr key={`${row.topic}-${i}`} className="border-t border-primary/10">
+                                <tr key={`${row.topic}-${i}`} className="border-t">
                                   <td className="px-2 sm:px-3 py-1.5 font-medium">{row.topic}</td>
-                                  <td className="px-2 sm:px-3 py-1.5 text-muted-foreground">{row.startState || "-"}</td>
-                                  <td className="px-2 sm:px-3 py-1.5 text-muted-foreground">{row.endState || "-"}</td>
-                                  <td className="px-2 sm:px-3 py-1.5 text-muted-foreground hidden sm:table-cell">{row.drillCount ?? "-"}</td>
+                                  <td className="px-2 sm:px-3 py-1.5 text-muted-foreground">{row.startState || "—"}</td>
+                                  <td className="px-2 sm:px-3 py-1.5 text-muted-foreground">{row.endState || "—"}</td>
+                                  <td className="px-2 sm:px-3 py-1.5 text-muted-foreground hidden sm:table-cell">{row.drillCount ?? "—"}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -364,13 +376,13 @@ export default function ParentProgress() {
                     </div>
                     <div className="bg-primary/5 border border-primary/20 rounded-lg p-2 sm:p-3">
                       <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Next Focus</h4>
-                      {renderTextOrFallback(report.nextFocus)}
+                      <p className="text-xs sm:text-sm text-muted-foreground">{report.nextFocus || "Not provided"}</p>
                     </div>
 
                     {report.topicProgressRows && report.topicProgressRows.length > 0 && (
                       <div>
                         <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Conditioning Progress</h4>
-                        <div className="rounded-xl border border-primary/15 bg-background overflow-hidden">
+                        <div className="rounded-lg border overflow-hidden">
                           <table className="w-full text-xs sm:text-sm">
                             <thead className="bg-muted/40">
                               <tr>
@@ -382,15 +394,15 @@ export default function ParentProgress() {
                             </thead>
                             <tbody>
                               {report.topicProgressRows.map((row, i) => (
-                                <tr key={i} className="border-t border-primary/10">
+                                <tr key={i} className="border-t">
                                   <td className="px-2 sm:px-3 py-1.5 font-medium">{row.topic}</td>
-                                  <td className="px-2 sm:px-3 py-1.5 text-muted-foreground">{row.started || row.start || "-"}</td>
+                                  <td className="px-2 sm:px-3 py-1.5 text-muted-foreground">{row.started || row.start || "—"}</td>
                                   <td className="px-2 sm:px-3 py-1.5">
                                     <span className={row.movement === "improved" ? "text-green-700 font-medium" : row.movement === "regressed" ? "text-red-600 font-medium" : "text-muted-foreground"}>
-                                      {row.current || row.end || "-"}
+                                      {row.current || row.end || "—"}
                                     </span>
                                   </td>
-                                  <td className="px-2 sm:px-3 py-1.5 text-muted-foreground hidden sm:table-cell">{row.nextAction || "-"}</td>
+                                  <td className="px-2 sm:px-3 py-1.5 text-muted-foreground hidden sm:table-cell">{row.nextAction || "—"}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -398,6 +410,8 @@ export default function ParentProgress() {
                         </div>
                       </div>
                     )}
+
+                    {renderFeedbackBlock(report)}
                   </CardContent>
                 </Card>
               ))}
@@ -408,6 +422,7 @@ export default function ParentProgress() {
         <TabsContent value="monthly" className="mt-0 space-y-4">
           <div>
             <h2 className="text-lg sm:text-2xl font-bold">Monthly Reports</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">Open monthly summaries directly without scrolling through weekly entries first.</p>
           </div>
 
           {monthlyReports.length === 0 ? (
@@ -419,7 +434,7 @@ export default function ParentProgress() {
           ) : (
             <div className="grid gap-3 sm:gap-4">
               {monthlyReports.map((report) => (
-                <Card key={report.id} className="rounded-2xl border border-primary/20 bg-background shadow-sm">
+                <Card key={report.id} className="border-l-4 border-l-purple-500">
                   <CardHeader className="p-3 sm:p-6">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-4">
                       <div>
@@ -472,26 +487,26 @@ export default function ParentProgress() {
 
                     <div>
                       <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Topics Conditioned</h4>
-                      {renderTextOrFallback(report.mainAreasCovered)}
+                      <p className="text-xs sm:text-sm text-muted-foreground">{report.mainAreasCovered || "Not provided"}</p>
                     </div>
                     <div>
                       <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">What Became Stronger</h4>
-                      {renderTextOrFallback(report.skillsStronger)}
+                      <p className="text-xs sm:text-sm text-muted-foreground">{report.skillsStronger || "Not provided"}</p>
                     </div>
                     <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
                       <div className="bg-muted/30 rounded-lg p-2 sm:p-3">
                         <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Recurring Challenge</h4>
-                        {renderTextOrFallback(report.recurringChallenge)}
+                        <p className="text-xs sm:text-sm text-muted-foreground">{report.recurringChallenge || "Not provided"}</p>
                       </div>
                       <div className="bg-muted/30 rounded-lg p-2 sm:p-3">
                         <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">System Outcome</h4>
-                        {renderTextOrFallback(report.systemOutcome)}
+                        <p className="text-xs sm:text-sm text-muted-foreground">{report.systemOutcome || "Not provided"}</p>
                       </div>
                     </div>
                     <div>
                       <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Topic Progression</h4>
                       {report.topicProgressRows && report.topicProgressRows.length > 0 ? (
-                        <div className="rounded-xl border border-primary/15 bg-background overflow-hidden">
+                        <div className="rounded-lg border overflow-hidden">
                           <table className="w-full text-xs sm:text-sm">
                             <thead className="bg-muted/40">
                               <tr>
@@ -502,12 +517,12 @@ export default function ParentProgress() {
                             </thead>
                             <tbody>
                               {report.topicProgressRows.map((row, i) => (
-                                <tr key={i} className="border-t border-primary/10">
+                                <tr key={i} className="border-t">
                                   <td className="px-2 sm:px-3 py-1.5 font-medium">{row.topic}</td>
-                                  <td className="px-2 sm:px-3 py-1.5 text-muted-foreground">{row.started || row.start || "-"}</td>
+                                  <td className="px-2 sm:px-3 py-1.5 text-muted-foreground">{row.started || row.start || "—"}</td>
                                   <td className="px-2 sm:px-3 py-1.5">
                                     <span className={row.movement === "improved" ? "text-green-700 font-medium" : row.movement === "regressed" ? "text-red-600 font-medium" : "text-muted-foreground"}>
-                                      {row.current || row.end || "-"}
+                                      {row.current || row.end || "—"}
                                     </span>
                                   </td>
                                 </tr>
@@ -522,7 +537,7 @@ export default function ParentProgress() {
 
                     <div className="bg-primary/5 border border-primary/20 rounded-lg p-2 sm:p-3">
                       <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Next Month Focus</h4>
-                      {renderTextOrFallback(report.nextMonthPriority)}
+                      <p className="text-xs sm:text-sm text-muted-foreground">{report.nextMonthPriority || "Not provided"}</p>
                     </div>
 
                     {report.currentStateSnapshot && report.currentStateSnapshot.length > 0 && (
@@ -540,7 +555,7 @@ export default function ParentProgress() {
 
                     <div>
                       <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">What This Means</h4>
-                      {renderTextOrFallback(report.whatThisMeans)}
+                      <p className="text-xs sm:text-sm text-muted-foreground">{report.whatThisMeans || "Not provided"}</p>
                     </div>
 
                     {renderFeedbackBlock(report)}

@@ -31,3 +31,5 @@ repo.bundle
 *.bundle
 .vercel
 .env*.local
+google-calendar-token.json
+client_secret_*.json

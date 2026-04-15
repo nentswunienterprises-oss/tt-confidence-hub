@@ -164,14 +164,14 @@ export default function TDUpdates() {
                 <p className="text-muted-foreground">No updates yet</p>
               </div>
             ) : (
-              broadcasts.map((broadcast) => {
-                const isRead = readData?.readBroadcasts?.includes(broadcast.id);
-                return (
-                  <div
-                    key={broadcast.id}
-                    className={`p-6 space-y-3 hover-elevate transition-colors ${!isRead ? "bg-primary/5" : ""}`}
-                    data-testid={`broadcast-${broadcast.id}`}
-                  >
+            broadcasts.map((broadcast) => {
+              const isRead = readData?.readBroadcasts?.includes(broadcast.id);
+              return (
+                <div
+                  key={broadcast.id}
+                  className={`p-6 space-y-3 hover-elevate transition-colors ${!isRead ? "bg-primary/5" : ""}`}
+                  data-testid={`broadcast-${broadcast.id}`}
+                >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">

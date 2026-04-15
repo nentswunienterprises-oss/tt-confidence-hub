@@ -400,7 +400,7 @@ function Router() {
       {/* COO Routes */}
       <Route path="/executive/coo/dashboard" element={<ExecutiveCOODashboard />} />
       <Route path="/executive/coo/traffic" element={<DashboardLayout><ExecutiveHRTraffic /></DashboardLayout>} />
-      <Route path="/executive/coo/applications" element={<DashboardLayout><ExecutiveCOODashboard /></DashboardLayout>} />
+      <Route path="/executive/coo/applications" element={<COOTutorApplications />} />
       <Route path="/executive/coo/pods" element={<DashboardLayout><ExecutiveCOODashboard /></DashboardLayout>} />
       <Route path="/executive/coo/broadcast" element={<DashboardLayout><ExecutiveCOODashboard /></DashboardLayout>} />
       <Route path="/executive/coo/track-leads" element={<ExecutiveCOOTrackLeads />} />

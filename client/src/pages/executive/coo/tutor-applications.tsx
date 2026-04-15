@@ -117,12 +117,12 @@ export default function TutorApplicationsPage() {
     const documentsStatus = a.documentsStatus || a.documents_status || {};
     return Object.values(documentsStatus).some((status) => status === "pending_review");
   }) || [];
-  // Verification tab verified: approved tutors with all 5 sequential docs approved
+  // Verification tab verified: approved tutors with all 6 sequential docs approved
   const verificationVerifiedApplications = applications?.filter((app) => {
     if (app.status !== "approved") return false;
     const a = app as any;
     const documentsStatus = a.documentsStatus || a.documents_status || {};
-    return ["1", "2", "3", "4", "5"].every((step) => documentsStatus[step] === "approved");
+    return ["1", "2", "3", "4", "5", "6"].every((step) => documentsStatus[step] === "approved");
   }) || [];
   const rejectedApplications = applications?.filter((app) => app.status === "rejected") || [];
 
@@ -581,7 +581,7 @@ function VerificationCard({
                 <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
               )}
               <div>
-                <h4 className="font-semibold text-sm">Trial Tutor Agreement</h4>
+                <h4 className="font-semibold text-sm">TT-TCF-001</h4>
                 <p className="text-xs text-muted-foreground mt-1">
                   {trialVerified ? "Verified ✓" : trialAgreementUrl ? "Uploaded - Review and verify" : "Not yet uploaded"}
                 </p>
@@ -686,28 +686,53 @@ function VerifiedSubmissionCard({ application }: { application: TutorApplication
   const submittedDocs: Array<{ step: number; name: string; url?: string }> = [
     {
       step: 1,
-      name: "Consent Form (Adult)",
-      url: app.doc1TutorAgreementUrl || app.doc_1_tutor_agreement_url,
+      name: "TT-TCF-001",
+      url:
+        app.doc1CompletedTemplateUrl ||
+        app.doc_1_completed_template_url ||
+        app.doc1TutorAgreementUrl ||
+        app.doc_1_tutor_agreement_url,
     },
     {
       step: 2,
-      name: "Independent Contractor Agreement (Adult)",
-      url: app.doc2CodeOfConductUrl || app.doc_2_code_of_conduct_url,
+      name: "TT-EQV-002",
+      url:
+        app.doc2CompletedTemplateUrl ||
+        app.doc_2_completed_template_url ||
+        app.doc2CodeOfConductUrl ||
+        app.doc_2_code_of_conduct_url,
     },
     {
       step: 3,
-      name: "Safeguarding and Conduct Policy (Adult)",
-      url: app.doc3EmergencyWaiverUrl || app.doc_3_emergency_waiver_url,
+      name: "TT-ICA-003",
+      url:
+        app.doc3CompletedTemplateUrl ||
+        app.doc_3_completed_template_url ||
+        app.doc3EmergencyWaiverUrl ||
+        app.doc_3_emergency_waiver_url,
     },
     {
       step: 4,
-      name: "Data Protection Consent (Adult)",
-      url: app.doc4BackgroundAuthUrl || app.doc_4_background_auth_url,
+      name: "TT-SCP-004",
+      url:
+        app.doc4CompletedTemplateUrl ||
+        app.doc_4_completed_template_url ||
+        app.doc4BackgroundAuthUrl ||
+        app.doc_4_background_auth_url,
     },
     {
       step: 5,
-      name: "Matric Entry Qualification Verification",
-      url: app.doc5TaxInfoUrl || app.doc_5_tax_info_url,
+      name: "TT-DPC-005",
+      url:
+        app.doc5CompletedTemplateUrl ||
+        app.doc_5_completed_template_url ||
+        app.doc5TaxInfoUrl ||
+        app.doc_5_tax_info_url,
+    },
+    {
+      step: 6,
+      name: "TT-CID-006",
+      url: app.doc6CertifiedIdCopyUrl || app.doc_6_certified_id_copy_url,
     },
   ];
 
@@ -719,9 +744,9 @@ function VerifiedSubmissionCard({ application }: { application: TutorApplication
             <CardTitle className="text-lg sm:text-xl truncate">{fullName}</CardTitle>
             <CardDescription className="text-xs sm:text-sm break-all">{email}</CardDescription>
           </div>
-          <Badge className="bg-green-100 text-green-800 border-green-200 shrink-0 text-xs">
-            5 DOCS VERIFIED
-          </Badge>
+            <Badge className="bg-green-100 text-green-800 border-green-200 shrink-0 text-xs">
+              6 DOCS VERIFIED
+            </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-2">
@@ -729,7 +754,7 @@ function VerifiedSubmissionCard({ application }: { application: TutorApplication
           <div key={doc.step} className="flex items-center justify-between gap-3 rounded-md border p-3">
             <div>
               <p className="text-sm font-medium">Step {doc.step}: {doc.name}</p>
-              <p className="text-xs text-muted-foreground">Signed submission</p>
+              <p className="text-xs text-muted-foreground">Verified submission file</p>
             </div>
             {doc.url ? (
               <a href={doc.url} target="_blank" rel="noopener noreferrer" className="inline-flex">

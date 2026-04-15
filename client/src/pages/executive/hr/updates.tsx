@@ -139,10 +139,10 @@ export default function ExecutiveHRUpdates() {
                           <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
                         )}
                         <div className="flex flex-col gap-2 flex-1">
-                          <div className="flex items-center gap-2">
-                            <Badge
-                              className={`${getRoleColor(broadcast.senderRole)} border font-semibold uppercase tracking-wide text-2xs px-2 py-0.5`}
-                            >
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                className={`${getRoleColor(broadcast.senderRole)} border font-semibold uppercase tracking-wide text-2xs px-2 py-0.5`}
+                              >
                               {broadcast.senderRole === "coo"
                                 ? "COO"
                                 : broadcast.senderRole === "td"

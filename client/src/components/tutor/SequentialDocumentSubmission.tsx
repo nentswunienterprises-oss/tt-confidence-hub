@@ -22,44 +22,58 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_URL } from "@/lib/config";
 
-// Define the 5 documents in sequence
+// Define the 6 onboarding documents in sequence
 const ONBOARDING_DOCUMENTS = [
   {
     step: 1,
-    title: "Consent Form (Adult)",
-    description: "Adult consent acknowledgement",
+    title: "TT-TCF-001",
+    description: "Tutor consent form",
     details:
-      "Download the consent form, sign it, and upload the signed copy to continue.",
+      "Download TT-TCF-001, sign it, and upload the signed copy to continue.",
+    requiresTemplate: true,
   },
   {
     step: 2,
-    title: "Independent Contractor Agreement (Adult)",
-    description: "Contractor terms and engagement conditions",
+    title: "TT-EQV-002",
+    description: "Tutor onboarding document",
     details:
-      "Review and sign the independent contractor agreement, then upload the signed document.",
+      "Download TT-EQV-002, sign it, and upload the signed copy to continue.",
+    requiresTemplate: true,
   },
   {
     step: 3,
-    title: "Safeguarding and Conduct Policy (Adult)",
-    description: "Safeguarding obligations and conduct standards",
+    title: "TT-ICA-003",
+    description: "Tutor onboarding document",
     details:
-      "Read and sign the safeguarding and conduct policy before upload.",
+      "Download TT-ICA-003, sign it, and upload the signed copy to continue.",
+    requiresTemplate: true,
   },
   {
     step: 4,
-    title: "Data Protection Consent (Adult)",
-    description: "Consent for handling personal data",
+    title: "TT-SCP-004",
+    description: "Tutor onboarding document",
     details:
-      "Sign the data protection consent form and upload it for review.",
+      "Download TT-SCP-004, sign it, and upload the signed copy to continue.",
+    requiresTemplate: true,
   },
   {
     step: 5,
-    title: "Matric Entry Qualification Verification",
-    description: "Qualification declaration and verification",
+    title: "TT-DPC-005",
+    description: "Tutor onboarding document",
     details:
-      "Complete and sign the qualification verification form, then upload it as the final step.",
+      "Download TT-DPC-005, sign it, and upload the signed copy to continue.",
+    requiresTemplate: true,
+  },
+  {
+    step: 6,
+    title: "TT-CID-006",
+    description: "Certified ID copy",
+    details:
+      "Upload a certified copy of your ID document. No TT template download is required for this step.",
+    requiresTemplate: false,
   },
 ];
+const TOTAL_DOC_STEPS = 6;
 
 interface DocumentSubmissionProps {
   applicationId: string;
@@ -90,6 +104,7 @@ export function SequentialDocumentSubmission({
     "3": "not_started",
     "4": "not_started",
     "5": "not_started",
+    "6": "not_started",
   };
 
   const documentStatuses = {
@@ -106,7 +121,7 @@ export function SequentialDocumentSubmission({
       return explicitStep;
     }
 
-    for (let step = 1; step <= 5; step++) {
+    for (let step = 1; step <= TOTAL_DOC_STEPS; step++) {
       const status = documentStatuses[step.toString()];
       if (status !== "approved") {
         return step;
@@ -210,7 +225,7 @@ export function SequentialDocumentSubmission({
     },
   });
 
-  const handleDownloadTemplate = async (docStep: number) => {
+  const handleDownloadTemplate = async (docStep: number, suppressErrorToast = false) => {
     try {
       const response = await fetch(
         `${API_URL}/api/tutor/onboarding-documents/${docStep}/download`,
@@ -236,13 +251,52 @@ export function SequentialDocumentSubmission({
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `TT_Document_${docStep}.pdf`;
+      const downloadNames: Record<number, string> = {
+        1: "TT-TCF-001.pdf",
+        2: "TT-EQV-002.pdf",
+        3: "TT-ICA-003.pdf",
+        4: "TT-SCP-004.pdf",
+        5: "TT-DPC-005.pdf",
+      };
+      a.download = downloadNames[docStep] || `TT_Document_${docStep}.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Could not download document template";
+      if (suppressErrorToast) {
+        throw error;
+      }
+      if (!suppressErrorToast) {
+        const message = error instanceof Error ? error.message : "Could not download document template";
+        toast({
+          title: "Download Failed",
+          description: message,
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleDownloadAllTemplates = async () => {
+    try {
+      const templateSteps = ONBOARDING_DOCUMENTS
+        .filter((doc) => doc.requiresTemplate)
+        .map((doc) => doc.step);
+
+      for (const step of templateSteps) {
+        // Small delay helps browsers process multiple downloads from one user action.
+        // This still keeps the flow as "download all at once" from the tutor perspective.
+        await handleDownloadTemplate(step, true);
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
+
+      toast({
+        title: "Templates Downloaded",
+        description: "All onboarding templates (1-5) were triggered for download.",
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not download all templates";
       toast({
         title: "Download Failed",
         description: message,
@@ -314,7 +368,7 @@ export function SequentialDocumentSubmission({
   const getStatusLabel = (status: DocumentStatus) => {
     switch (status) {
       case "approved":
-        return "Approved ✓";
+        return "Approved (verified)";
       case "pending_upload":
         return "Ready to upload";
       case "pending_review":
@@ -330,7 +384,7 @@ export function SequentialDocumentSubmission({
   const approvedCount = Object.values(documentStatuses as Record<string, string>).filter(
     (s: any) => s === "approved"
   ).length;
-  const progressPercent = (approvedCount / 5) * 100;
+  const progressPercent = (approvedCount / TOTAL_DOC_STEPS) * 100;
 
   if (allDocumentsApproved) {
     return (
@@ -343,7 +397,7 @@ export function SequentialDocumentSubmission({
         </CardHeader>
         <CardContent>
           <p className="text-sm text-green-800">
-            Excellent! All 5 documents have been approved. You're now waiting for
+            Excellent! All 6 documents have been approved. You're now waiting for
             pod assignment.
           </p>
         </CardContent>
@@ -362,9 +416,20 @@ export function SequentialDocumentSubmission({
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm">
-            Your application has been approved! Next, we need 5 documents from you.
+            Your application has been approved! Next, we need 6 documents from you.
           </p>
-          <p className="text-sm font-medium">You'll complete them one at a time:</p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadAllTemplates}
+              className="flex items-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Download All Templates (1-5)
+            </Button>
+          </div>
+          <p className="text-sm font-medium">Uploads must still be completed in step order:</p>
           <ol className="list-decimal list-inside space-y-1 text-sm">
             {ONBOARDING_DOCUMENTS.map((doc) => (
               <li key={doc.step}>{doc.title}</li>
@@ -383,7 +448,7 @@ export function SequentialDocumentSubmission({
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <CardTitle className="text-lg">
-                Document {currentStep} of 5
+                Document {currentStep} of {TOTAL_DOC_STEPS}
               </CardTitle>
               <span className="text-sm text-muted-foreground">
                 {approvedCount} completed
@@ -412,6 +477,18 @@ export function SequentialDocumentSubmission({
           {/* Document Details */}
           <p className="text-sm text-gray-700">{currentDoc.details}</p>
 
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadAllTemplates}
+              className="flex items-center justify-center gap-2 w-full sm:w-auto"
+            >
+              <Download className="w-4 h-4" />
+              Download All Templates (1-5)
+            </Button>
+          </div>
+
           {/* Rejection Reason (if applicable) */}
           {getDocumentStatus(currentStep) === "rejected" && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -425,6 +502,7 @@ export function SequentialDocumentSubmission({
                   3: applicationStatus?.doc3EmergencyWaiverRejectionReason || applicationStatus?.doc_3EmergencyWaiverRejectionReason || applicationStatus?.doc_3_emergency_waiver_rejection_reason,
                   4: applicationStatus?.doc4BackgroundAuthRejectionReason || applicationStatus?.doc_4BackgroundAuthRejectionReason || applicationStatus?.doc_4_background_auth_rejection_reason,
                   5: applicationStatus?.doc5TaxInfoRejectionReason || applicationStatus?.doc_5TaxInfoRejectionReason || applicationStatus?.doc_5_tax_info_rejection_reason,
+                  6: applicationStatus?.doc6CertifiedIdCopyRejectionReason || applicationStatus?.doc_6CertifiedIdCopyRejectionReason || applicationStatus?.doc_6_certified_id_copy_rejection_reason,
                 } as Record<number, string | undefined>)[currentStep] || "Please review and resubmit"}
               </p>
             </div>
@@ -435,15 +513,17 @@ export function SequentialDocumentSubmission({
           getDocumentStatus(currentStep) === "pending_upload" ||
           getDocumentStatus(currentStep) === "rejected" ? (
             <div className="flex flex-col sm:flex-row gap-2 pt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleDownloadTemplate(currentStep)}
-                className="flex items-center justify-center gap-2 w-full sm:w-auto"
-              >
-                <Download className="w-4 h-4" />
-                Download Template
-              </Button>
+              {currentDoc.requiresTemplate ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDownloadTemplate(currentStep)}
+                  className="flex items-center justify-center gap-2 w-full sm:w-auto"
+                >
+                  <Download className="w-4 h-4" />
+                  Download Template
+                </Button>
+              ) : null}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -474,13 +554,13 @@ export function SequentialDocumentSubmission({
           ) : getDocumentStatus(currentStep) === "pending_review" ? (
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-800">
-                ✓ Your document has been submitted. We're reviewing it now.
+                Your document has been submitted. We're reviewing it now.
               </p>
             </div>
           ) : (
             <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
               <p className="text-sm text-green-800">
-                ✓ This document has been approved!
+                This document has been approved.
               </p>
             </div>
           )}

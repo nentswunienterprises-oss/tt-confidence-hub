@@ -172,42 +172,64 @@ export default function ExecutiveHRTraffic() {
       const docsStatus = getApplicationDocumentsStatus(app);
       return Object.values(docsStatus).some((status) => String(status) === "pending_review");
     })
-    .map((app: any) => ({
-      user: {
-        id: app.id,
-        fullNames: app.fullNames || app.full_names,
-        full_names: app.full_names || app.fullNames,
-        username: app.fullNames || app.full_names || "Tutor",
-        email: app.email,
-      },
-      verificationDoc: {
-        status: "pending",
+    .map((app: any) => {
+      const tutorUserId = app.userId || app.user_id || app.id;
+      return {
+        user: {
+          id: tutorUserId,
+          fullNames: app.fullNames || app.full_names,
+          full_names: app.full_names || app.fullNames,
+          username: app.fullNames || app.full_names || "Tutor",
+          email: app.email,
+        },
+        verificationDoc: {
+          status: "pending",
         // Map current sequential docs to existing card link fields for compatibility.
         file_url_agreement: app.doc1TutorAgreementUrl || app.doc_1_tutor_agreement_url || app.doc2CodeOfConductUrl || app.doc_2_code_of_conduct_url,
-        file_url_consent: app.doc3EmergencyWaiverUrl || app.doc_3_emergency_waiver_url || app.doc4BackgroundAuthUrl || app.doc_4_background_auth_url || app.doc5TaxInfoUrl || app.doc_5_tax_info_url,
+        file_url_consent:
+          app.doc3EmergencyWaiverUrl ||
+          app.doc_3_emergency_waiver_url ||
+          app.doc4BackgroundAuthUrl ||
+          app.doc_4_background_auth_url ||
+          app.doc5TaxInfoUrl ||
+          app.doc_5_tax_info_url ||
+          app.doc6CertifiedIdCopyUrl ||
+          app.doc_6_certified_id_copy_url,
       },
-    }));
+      };
+    });
 
   const appVerifiedDocTutors = approvedApplications
     .filter((app: any) => {
       const docsStatus = getApplicationDocumentsStatus(app);
-      return ["1", "2", "3", "4", "5"].every((step) => String(docsStatus?.[step]) === "approved");
+      return ["1", "2", "3", "4", "5", "6"].every((step) => String(docsStatus?.[step]) === "approved");
     })
-    .map((app: any) => ({
-      user: {
-        id: app.id,
-        fullNames: app.fullNames || app.full_names,
-        full_names: app.full_names || app.fullNames,
-        username: app.fullNames || app.full_names || "Tutor",
-        email: app.email,
-      },
-      verificationDoc: {
+    .map((app: any) => {
+      const tutorUserId = app.userId || app.user_id || app.id;
+      return {
+        user: {
+          id: tutorUserId,
+          fullNames: app.fullNames || app.full_names,
+          full_names: app.full_names || app.fullNames,
+          username: app.fullNames || app.full_names || "Tutor",
+          email: app.email,
+        },
+        verificationDoc: {
         status: "verified",
         file_url_agreement: app.doc1TutorAgreementUrl || app.doc_1_tutor_agreement_url || app.doc2CodeOfConductUrl || app.doc_2_code_of_conduct_url,
-        file_url_consent: app.doc3EmergencyWaiverUrl || app.doc_3_emergency_waiver_url || app.doc4BackgroundAuthUrl || app.doc_4_background_auth_url || app.doc5TaxInfoUrl || app.doc_5_tax_info_url,
+        file_url_consent:
+          app.doc3EmergencyWaiverUrl ||
+          app.doc_3_emergency_waiver_url ||
+          app.doc4BackgroundAuthUrl ||
+          app.doc_4_background_auth_url ||
+          app.doc5TaxInfoUrl ||
+          app.doc_5_tax_info_url ||
+          app.doc6CertifiedIdCopyUrl ||
+          app.doc_6_certified_id_copy_url,
         updated_at: app.updatedAt || app.updated_at,
       },
-    }));
+      };
+    });
 
   const pendingVerificationTutors = appPendingVerificationTutors.length > 0
     ? appPendingVerificationTutors

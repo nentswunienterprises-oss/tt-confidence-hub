@@ -9303,6 +9303,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         res.json({ success: true, application: updated, publicUrl: urlData.publicUrl });
       } catch (error) {
+        if (
+          error instanceof Error &&
+          /(sequential step order violation|blocked until|already approved|required|pending review)/i.test(
+            error.message
+          )
+        ) {
+          return res.status(400).json({ message: error.message });
+        }
         console.error('Error uploading onboarding document (server handler):', error);
         res.status(500).json({ message: 'Failed to upload document' });
       }
@@ -9506,6 +9514,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } catch (error) {
         console.error("Error uploading COO completed template:", error);
+        if (
+          error instanceof Error &&
+          /(required|pending review|blocked|already approved|step order)/i.test(error.message)
+        ) {
+          return res.status(400).json({ message: error.message });
+        }
         res.status(500).json({ message: "Failed to upload completed template" });
       }
     }
@@ -9554,7 +9568,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } catch (error) {
         console.error("Error reviewing sequential tutor document:", error);
-        if (error instanceof Error && error.message.toLowerCase().includes("required")) {
+        if (
+          error instanceof Error &&
+          /(required|pending review|blocked|already approved|step order)/i.test(error.message)
+        ) {
           return res.status(400).json({ message: error.message });
         }
         res.status(500).json({ message: "Failed to review document" });

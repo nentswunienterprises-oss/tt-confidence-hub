@@ -1558,7 +1558,7 @@ export class SupabaseStorage implements IStorage {
     const fields = getSequentialTutorDocumentFields(docStep);
     const { data: existing, error: existingError } = await supabase
       .from("tutor_applications")
-      .select("documents_status")
+      .select("documents_status, document_submission_step")
       .eq("id", applicationId)
       .single();
 
@@ -1568,6 +1568,45 @@ export class SupabaseStorage implements IStorage {
     }
 
     const documentsStatus = normalizeTutorDocumentStatuses(existing?.documents_status);
+    const submissionStepRaw = Number(existing?.document_submission_step);
+    let expectedStep = 0;
+    for (let step = 1; step <= 6; step++) {
+      if (String(documentsStatus[step.toString()] || "not_started") !== "approved") {
+        expectedStep = step;
+        break;
+      }
+    }
+    if (
+      !expectedStep &&
+      Number.isInteger(submissionStepRaw) &&
+      submissionStepRaw >= 1 &&
+      submissionStepRaw <= 6
+    ) {
+      expectedStep = submissionStepRaw;
+    }
+
+    if (!expectedStep) {
+      throw new Error("All sequential onboarding steps are already approved.");
+    }
+
+    for (let step = 1; step < docStep; step++) {
+      if (String(documentsStatus[step.toString()] || "not_started") !== "approved") {
+        throw new Error(
+          `Sequential step order violation: step ${docStep} is blocked until step ${step} is approved.`
+        );
+      }
+    }
+
+    if (docStep !== expectedStep) {
+      throw new Error(
+        `Sequential step order violation: current upload step is ${expectedStep}, received ${docStep}.`
+      );
+    }
+
+    if (String(documentsStatus[docStep.toString()] || "") === "approved") {
+      throw new Error(`Step ${docStep} is already approved and cannot be re-uploaded.`);
+    }
+
     documentsStatus[docStep.toString()] = "pending_review";
 
     const updateData: Record<string, any> = {
@@ -1618,6 +1657,30 @@ export class SupabaseStorage implements IStorage {
     }
     if (!fields.completedTemplateUrl || !fields.completedTemplateUploadedAt || !fields.completedTemplateUploadedBy) {
       throw new Error(`Completed template fields are not configured for step ${docStep}.`);
+    }
+
+    const { data: existing, error: existingError } = await supabase
+      .from("tutor_applications")
+      .select(`documents_status, ${fields.url}`)
+      .eq("id", applicationId)
+      .single();
+
+    if (existingError) {
+      console.error("Error fetching sequential state before completed upload:", existingError);
+      return undefined;
+    }
+
+    const documentsStatus = normalizeTutorDocumentStatuses(existing?.documents_status);
+    const stepStatus = String(documentsStatus[docStep.toString()] || "not_started");
+    if (stepStatus !== "pending_review") {
+      throw new Error(
+        `Completed template upload is only allowed while step ${docStep} is pending review.`
+      );
+    }
+    if (!existing?.[fields.url]) {
+      throw new Error(
+        `Tutor-signed document is required before uploading the TT-completed version for step ${docStep}.`
+      );
     }
 
     const updateData: Record<string, any> = {
@@ -1686,7 +1749,9 @@ export class SupabaseStorage implements IStorage {
     const fields = getSequentialTutorDocumentFields(docStep);
     const { data: existing, error: existingError } = await supabase
       .from("tutor_applications")
-      .select("documents_status, doc_1_completed_template_url, doc_2_completed_template_url, doc_3_completed_template_url, doc_4_completed_template_url, doc_5_completed_template_url")
+      .select(
+        "documents_status, doc_1_completed_template_url, doc_2_completed_template_url, doc_3_completed_template_url, doc_4_completed_template_url, doc_5_completed_template_url, doc_1_tutor_agreement_url, doc_2_code_of_conduct_url, doc_3_emergency_waiver_url, doc_4_background_auth_url, doc_5_tax_info_url, doc_6_certified_id_copy_url"
+      )
       .eq("id", applicationId)
       .single();
 
@@ -1696,6 +1761,11 @@ export class SupabaseStorage implements IStorage {
     }
 
     const documentsStatus = normalizeTutorDocumentStatuses(existing?.documents_status);
+    const currentStepStatus = String(documentsStatus[docStep.toString()] || "not_started");
+    if (currentStepStatus !== "pending_review") {
+      throw new Error(`Step ${docStep} is not currently pending review.`);
+    }
+
     const updateData: Record<string, any> = {
       updated_at: new Date(),
       [fields.verified]: approved,
@@ -1705,6 +1775,11 @@ export class SupabaseStorage implements IStorage {
     };
 
     if (approved) {
+      const tutorSignedUrl = existing?.[fields.url];
+      if (!tutorSignedUrl) {
+        throw new Error(`Tutor-signed document is required before approving step ${docStep}.`);
+      }
+
       const effectiveCompletedUrl =
         completedDocumentUrl ||
         (fields.completedTemplateUrl ? existing?.[fields.completedTemplateUrl] : null);

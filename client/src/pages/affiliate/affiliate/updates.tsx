@@ -51,6 +51,7 @@ export default function AffiliateUpdates() {
           readBroadcasts: [...(old?.readBroadcasts || []), broadcastId]
         })
       );
+      queryClient.invalidateQueries({ queryKey: ["/api/broadcasts/unread-count"] });
 
       toast({
         title: "Success",
@@ -100,14 +101,14 @@ export default function AffiliateUpdates() {
               const isMarking = markingIds.get(broadcast.id);
 
               return (
-                <Card
-                  key={broadcast.id}
-                  className={`p-3 sm:p-6 transition-all hover:shadow-md cursor-pointer border-l-4 ${
+              <Card
+                key={broadcast.id}
+                className={`p-3 sm:p-6 transition-all hover:shadow-md cursor-pointer border-l-4 ${
                     isRead 
                       ? "border-l-muted opacity-75 bg-card" 
                       : "border-l-primary bg-primary/5"
                   }`}
-                >
+              >
                   <div 
                     className="space-y-3 sm:space-y-4"
                     onClick={() => setExpandedId(isExpanded ? null : broadcast.id)}
