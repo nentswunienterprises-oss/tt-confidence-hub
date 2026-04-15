@@ -81,7 +81,7 @@ export function TutorDocumentReview({ application, onReview }: TutorDocumentRevi
   const requiresCompletedTemplate = currentDocStep >= 1 && currentDocStep <= 5;
   const completedTemplateUrl = currentDocStep ? completedTemplateUrls[currentDocStep] : null;
   const effectiveCompletedTemplateUrl = completedTemplateOverrideUrl || completedTemplateUrl;
-  const canApprove = !!tutorSignedUrl && (!requiresCompletedTemplate || !!effectiveCompletedTemplateUrl);
+  const canApprove = !!tutorSignedUrl;
 
   useEffect(() => {
     setCompletedTemplateOverrideUrl(null);
@@ -180,7 +180,7 @@ export function TutorDocumentReview({ application, onReview }: TutorDocumentRevi
               <Clock className="w-5 h-5 text-blue-600" />
               Pending Review: {documentName}
             </CardTitle>
-            <CardDescription>Review tutor submission and, for template steps, upload TT-completed version before approval.</CardDescription>
+            <CardDescription>Review the tutor-signed submission. Approve if it is valid, or reject and request changes if it is not.</CardDescription>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -225,7 +225,7 @@ export function TutorDocumentReview({ application, onReview }: TutorDocumentRevi
                 }}
               />
               <Button size="sm" variant="outline" disabled={uploadCompletedMutation.isPending} onClick={() => completedTemplateInputRef.current?.click()} className="gap-2">
-                {uploadCompletedMutation.isPending ? <><Loader2 className="w-4 h-4 animate-spin" />Uploading...</> : <><Upload className="w-4 h-4" />{effectiveCompletedTemplateUrl ? "Replace Completed Version" : "Upload Completed Version"}</>}
+                {uploadCompletedMutation.isPending ? <><Loader2 className="w-4 h-4 animate-spin" />Uploading...</> : <><Upload className="w-4 h-4" />{effectiveCompletedTemplateUrl ? "Replace TT Internal Copy" : "Upload TT Internal Copy"}</>}
               </Button>
             </div>
           ) : (
@@ -243,9 +243,9 @@ export function TutorDocumentReview({ application, onReview }: TutorDocumentRevi
             </Button>
           </div>
 
-          {(!tutorSignedUrl || (requiresCompletedTemplate && !effectiveCompletedTemplateUrl)) ? (
+          {!tutorSignedUrl ? (
             <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-2">
-              {requiresCompletedTemplate ? "Approve is disabled until both tutor-signed and TT-completed files are available." : "Approve is disabled until the tutor certified ID copy is available."}
+              Approve is disabled until the tutor-signed document is available.
             </p>
           ) : null}
         </CardContent>

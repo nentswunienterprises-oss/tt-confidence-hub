@@ -1783,9 +1783,6 @@ export class SupabaseStorage implements IStorage {
       const effectiveCompletedUrl =
         completedDocumentUrl ||
         (fields.completedTemplateUrl ? existing?.[fields.completedTemplateUrl] : null);
-      if (fields.requiresCompletedTemplate && !effectiveCompletedUrl) {
-        throw new Error(`Completed TT-signed template is required before approving step ${docStep}.`);
-      }
 
       documentsStatus[docStep.toString()] = "approved";
 
