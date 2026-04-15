@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode, useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -36,6 +36,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import type { Pod, TutorAssignment, User } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { API_URL } from "@/lib/config";
+import { useToast } from "@/hooks/use-toast";
+import type { NotificationItem } from "@/components/notifications/NotificationInbox";
 
 interface NavItem {
   label: string;
@@ -95,6 +97,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   } : user;
   
   const effectiveIsAuth = isAuthenticated || isStudentAuth;
+  const { toast } = useToast();
 
   console.log("🎯 DashboardLayout render:");
   console.log("  isAuthenticated:", isAuthenticated);
@@ -118,6 +121,47 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     enabled: effectiveIsAuth && !!effectiveUser && isParent(effectiveUser),
     retry: false,
   });
+
+  const usesNotificationInbox = !!effectiveUser && (isTutor(effectiveUser) || isParent(effectiveUser) || effectiveUser.role === "student" || isCOO(effectiveUser));
+
+  const { data: notificationUnreadData } = useQuery<{ unreadCount: number }>({
+    queryKey: ["/api/notifications/unread-count"],
+    enabled: effectiveIsAuth && !!effectiveUser && usesNotificationInbox,
+    refetchInterval: 15000,
+  });
+
+  const { data: notifications } = useQuery<NotificationItem[]>({
+    queryKey: ["/api/notifications"],
+    enabled: effectiveIsAuth && !!effectiveUser && usesNotificationInbox,
+    refetchInterval: 15000,
+  });
+
+  const notificationsInitialized = useRef(false);
+  const seenNotificationIds = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!usesNotificationInbox || !notifications) return;
+
+    const currentIds = new Set(notifications.map((notification) => notification.id));
+
+    if (!notificationsInitialized.current) {
+      notificationsInitialized.current = true;
+      seenNotificationIds.current = currentIds;
+      return;
+    }
+
+    notifications.forEach((notification) => {
+      if (!seenNotificationIds.current.has(notification.id)) {
+        toast({
+          title: notification.title,
+          description: notification.message,
+          variant: notification.channel === "action_required" ? "destructive" : "default",
+        });
+      }
+    });
+
+    seenNotificationIds.current = currentIds;
+  }, [notifications, toast, usesNotificationInbox]);
 
   console.log("👨‍👩‍👧 Parent student info:", parentStudentInfo);
 
@@ -144,6 +188,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const unreadBroadcasts = broadcasts?.filter(
     (b: any) => !readData?.readBroadcasts?.includes(b.id)
   ) || [];
+
+  const navUnreadCount = usesNotificationInbox
+    ? (notificationUnreadData?.unreadCount || 0)
+    : unreadBroadcasts.length;
 
   // Mark broadcast as read mutation
   const markAsRead = useMutation({
@@ -376,9 +424,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <Button variant="ghost" size="sm" className="gap-2 font-medium relative">
                   {item.icon}
                   <span>{item.label}</span>
-                  {item.label === "Updates" && unreadBroadcasts && unreadBroadcasts.length > 0 && (
+                  {item.label === "Updates" && navUnreadCount > 0 && (
                     <Badge variant="destructive" className="absolute -top-2 -right-2 text-xs">
-                      {unreadBroadcasts.length > 9 ? "9+" : unreadBroadcasts.length}
+                      {navUnreadCount > 9 ? "9+" : navUnreadCount}
                     </Badge>
                   )}
                 </Button>
@@ -466,7 +514,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <main className="max-w-7xl mx-auto px-3 py-4 sm:px-4 md:px-6 md:py-8 pb-20 md:pb-8">{children}</main>
       
       {/* Mobile Bottom Tab Navigator */}
-      <MobileBottomNav navItems={navItems} unreadCount={unreadBroadcasts?.length || 0} />
+      <MobileBottomNav navItems={navItems} unreadCount={navUnreadCount} />
       
       {/* Submit Idea Modal */}
       <SubmitIdeaModal open={showIdeaModal} onOpenChange={setShowIdeaModal} />

@@ -482,9 +482,9 @@ export const tutorApplications = pgTable("tutor_applications", {
   parentConsentVerifiedAt: timestamp("parent_consent_verified_at"),
   onboardingCompletedAt: timestamp("onboarding_completed_at"),
 
-  // Sequential Document Submission (5-step process)
+  // Sequential Document Submission (6-step process)
   documentSubmissionStep: integer("document_submission_step").default(0),
-  documentsStatus: jsonb("documents_status").default('{"1": "not_started", "2": "not_started", "3": "not_started", "4": "not_started", "5": "not_started"}'),
+  documentsStatus: jsonb("documents_status").default('{"1": "not_started", "2": "not_started", "3": "not_started", "4": "not_started", "5": "not_started", "6": "not_started"}'),
 
   // Step 1: Tutor Agreement
   doc1TutorAgreementUrl: varchar("doc_1_tutor_agreement_url"),
@@ -493,6 +493,9 @@ export const tutorApplications = pgTable("tutor_applications", {
   doc1TutorAgreementVerifiedBy: varchar("doc_1_tutor_agreement_verified_by").references(() => users.id),
   doc1TutorAgreementVerifiedAt: timestamp("doc_1_tutor_agreement_verified_at"),
   doc1TutorAgreementRejectionReason: text("doc_1_tutor_agreement_rejection_reason"),
+  doc1CompletedTemplateUrl: varchar("doc_1_completed_template_url"),
+  doc1CompletedTemplateUploadedAt: timestamp("doc_1_completed_template_uploaded_at"),
+  doc1CompletedTemplateUploadedBy: varchar("doc_1_completed_template_uploaded_by").references(() => users.id),
 
   // Step 2: Code of Conduct
   doc2CodeOfConductUrl: varchar("doc_2_code_of_conduct_url"),
@@ -501,6 +504,9 @@ export const tutorApplications = pgTable("tutor_applications", {
   doc2CodeOfConductVerifiedBy: varchar("doc_2_code_of_conduct_verified_by").references(() => users.id),
   doc2CodeOfConductVerifiedAt: timestamp("doc_2_code_of_conduct_verified_at"),
   doc2CodeOfConductRejectionReason: text("doc_2_code_of_conduct_rejection_reason"),
+  doc2CompletedTemplateUrl: varchar("doc_2_completed_template_url"),
+  doc2CompletedTemplateUploadedAt: timestamp("doc_2_completed_template_uploaded_at"),
+  doc2CompletedTemplateUploadedBy: varchar("doc_2_completed_template_uploaded_by").references(() => users.id),
 
   // Step 3: Emergency Contact & Liability Waiver
   doc3EmergencyWaiverUrl: varchar("doc_3_emergency_waiver_url"),
@@ -509,6 +515,9 @@ export const tutorApplications = pgTable("tutor_applications", {
   doc3EmergencyWaiverVerifiedBy: varchar("doc_3_emergency_waiver_verified_by").references(() => users.id),
   doc3EmergencyWaiverVerifiedAt: timestamp("doc_3_emergency_waiver_verified_at"),
   doc3EmergencyWaiverRejectionReason: text("doc_3_emergency_waiver_rejection_reason"),
+  doc3CompletedTemplateUrl: varchar("doc_3_completed_template_url"),
+  doc3CompletedTemplateUploadedAt: timestamp("doc_3_completed_template_uploaded_at"),
+  doc3CompletedTemplateUploadedBy: varchar("doc_3_completed_template_uploaded_by").references(() => users.id),
 
   // Step 4: Background Check Authorization
   doc4BackgroundAuthUrl: varchar("doc_4_background_auth_url"),
@@ -517,6 +526,9 @@ export const tutorApplications = pgTable("tutor_applications", {
   doc4BackgroundAuthVerifiedBy: varchar("doc_4_background_auth_verified_by").references(() => users.id),
   doc4BackgroundAuthVerifiedAt: timestamp("doc_4_background_auth_verified_at"),
   doc4BackgroundAuthRejectionReason: text("doc_4_background_auth_rejection_reason"),
+  doc4CompletedTemplateUrl: varchar("doc_4_completed_template_url"),
+  doc4CompletedTemplateUploadedAt: timestamp("doc_4_completed_template_uploaded_at"),
+  doc4CompletedTemplateUploadedBy: varchar("doc_4_completed_template_uploaded_by").references(() => users.id),
 
   // Step 5: Tax Information
   doc5TaxInfoUrl: varchar("doc_5_tax_info_url"),
@@ -525,6 +537,18 @@ export const tutorApplications = pgTable("tutor_applications", {
   doc5TaxInfoVerifiedBy: varchar("doc_5_tax_info_verified_by").references(() => users.id),
   doc5TaxInfoVerifiedAt: timestamp("doc_5_tax_info_verified_at"),
   doc5TaxInfoRejectionReason: text("doc_5_tax_info_rejection_reason"),
+
+  doc5CompletedTemplateUrl: varchar("doc_5_completed_template_url"),
+  doc5CompletedTemplateUploadedAt: timestamp("doc_5_completed_template_uploaded_at"),
+  doc5CompletedTemplateUploadedBy: varchar("doc_5_completed_template_uploaded_by").references(() => users.id),
+
+  // Step 6: Certified ID Copy (tutor submits complete copy)
+  doc6CertifiedIdCopyUrl: varchar("doc_6_certified_id_copy_url"),
+  doc6CertifiedIdCopyUploadedAt: timestamp("doc_6_certified_id_copy_uploaded_at"),
+  doc6CertifiedIdCopyVerified: boolean("doc_6_certified_id_copy_verified").default(false),
+  doc6CertifiedIdCopyVerifiedBy: varchar("doc_6_certified_id_copy_verified_by").references(() => users.id),
+  doc6CertifiedIdCopyVerifiedAt: timestamp("doc_6_certified_id_copy_verified_at"),
+  doc6CertifiedIdCopyRejectionReason: text("doc_6_certified_id_copy_rejection_reason"),
   
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -563,6 +587,43 @@ export const insertBroadcastSchema = z.object({
   message: z.string().min(1, "Message is required"),
   senderRole: z.enum(["parent", "student", "tutor", "td", "affiliate", "od", "coo", "hr", "ceo"]),
   visibility: z.enum(["all", "tds", "tutors", "parents", "students", "affiliates", "od", "hr", "ceo"]),
+});
+
+// ============================================
+// NOTIFICATIONS TABLE
+// ============================================
+
+export const notificationChannelEnum = pgEnum("notification_channel", ["action_required", "informational"]);
+
+export const notifications = pgTable("notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  recipientUserId: varchar("recipient_user_id")
+    .notNull()
+    .references(() => users.id),
+  actorUserId: varchar("actor_user_id").references(() => users.id),
+  channel: notificationChannelEnum("channel").notNull().default("informational"),
+  title: varchar("title").notNull(),
+  message: text("message").notNull(),
+  link: varchar("link"),
+  entityType: varchar("entity_type"),
+  entityId: varchar("entity_id"),
+  isRead: boolean("is_read").notNull().default(false),
+  readAt: timestamp("read_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;
+
+export const insertNotificationSchema = z.object({
+  recipientUserId: z.string().min(1),
+  actorUserId: z.string().optional(),
+  channel: z.enum(["action_required", "informational"]).default("informational"),
+  title: z.string().min(1, "Title is required"),
+  message: z.string().min(1, "Message is required"),
+  link: z.string().optional(),
+  entityType: z.string().optional(),
+  entityId: z.string().optional(),
 });
 
 // ============================================

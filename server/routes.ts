@@ -3375,14 +3375,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
               "3": "not_started",
               "4": "not_started",
               "5": "not_started",
+              "6": "not_started",
             };
             const documentsStatus = latestApp.documentsStatus && typeof latestApp.documentsStatus === "object"
               ? { ...fallbackDocumentsStatus, ...latestApp.documentsStatus }
               : fallbackDocumentsStatus;
-            const sequentialReviewStarted = Object.values(documentsStatus).some(
-              (docStatus) => docStatus === "pending_review" || docStatus === "approved" || docStatus === "rejected"
+            const sequentialDocSteps = ["1", "2", "3", "4", "5", "6"];
+            const sequentialReviewStarted = sequentialDocSteps.some((step) => {
+              const docStatus = String((documentsStatus as any)?.[step] || "");
+              return docStatus === "pending_review" || docStatus === "approved" || docStatus === "rejected";
+            });
+            const allSequentialDocumentsApproved = sequentialDocSteps.every(
+              (step) => String((documentsStatus as any)?.[step] || "") === "approved"
             );
-            const allSequentialDocumentsApproved = Object.values(documentsStatus).every((docStatus) => docStatus === "approved");
             let status = latestApp.status;
             const isUnder18 = latestApp.age < 18;
             if (allSequentialDocumentsApproved) {
@@ -9057,6 +9062,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  // Notifications
+  app.get("/api/notifications", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).dbUser.id;
+      const userCreatedAt = (req as any).dbUser?.createdAt;
+      const notifications = await storage.getNotifications(userId, userCreatedAt);
+      res.json(notifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
+  app.get("/api/notifications/unread-count", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).dbUser.id;
+      const userCreatedAt = (req as any).dbUser?.createdAt;
+      const unreadCount = await storage.getUnreadNotificationCount(userId, userCreatedAt);
+      res.json({ unreadCount });
+    } catch (error) {
+      console.error("Error fetching notification unread count:", error);
+      res.status(500).json({ message: "Failed to fetch notification unread count" });
+    }
+  });
+
+  app.post("/api/notifications/:notificationId/read", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).dbUser.id;
+      const { notificationId } = req.params;
+      await storage.markNotificationAsRead(userId, notificationId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      res.status(500).json({ message: "Failed to mark notification as read" });
+    }
+  });
+
   // ========================================
   // TUTOR APPLICATION ROUTES
   // ========================================
@@ -9120,14 +9162,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "3": "not_started",
           "4": "not_started",
           "5": "not_started",
+          "6": "not_started",
         };
         const documentsStatus = latestApp.documentsStatus && typeof latestApp.documentsStatus === "object"
           ? { ...fallbackDocumentsStatus, ...latestApp.documentsStatus }
           : fallbackDocumentsStatus;
-        const sequentialReviewStarted = Object.values(documentsStatus).some(
-          (docStatus) => docStatus === "pending_review" || docStatus === "approved" || docStatus === "rejected"
+        const sequentialDocSteps = ["1", "2", "3", "4", "5", "6"];
+        const sequentialReviewStarted = sequentialDocSteps.some((step) => {
+          const docStatus = String((documentsStatus as any)?.[step] || "");
+          return docStatus === "pending_review" || docStatus === "approved" || docStatus === "rejected";
+        });
+        const allSequentialDocumentsApproved = sequentialDocSteps.every(
+          (step) => String((documentsStatus as any)?.[step] || "") === "approved"
         );
-        const allSequentialDocumentsApproved = Object.values(documentsStatus).every((docStatus) => docStatus === "approved");
 
         // Check legacy document upload status
         const hasTrialAgreement = !!latestApp.trialAgreementUrl;
@@ -9193,7 +9240,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userId = (req.session as any).userId;
         const { applicationId, documentType, docStep, fileName, fileData, fileType } = req.body;
         const parsedDocStep = typeof docStep === "number" ? docStep : Number(docStep);
-        const isSequentialUpload = Number.isInteger(parsedDocStep) && parsedDocStep >= 1 && parsedDocStep <= 5;
+        const isSequentialUpload = Number.isInteger(parsedDocStep) && parsedDocStep >= 1 && parsedDocStep <= 6;
 
         if (!applicationId || !fileName || !fileData || (!documentType && !isSequentialUpload)) {
           return res.status(400).json({ message: "Missing required fields" });
@@ -9270,15 +9317,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const docStep = Number(req.params.docStep);
         const templateFileNames: Record<number, string> = {
-          1: "01-consent-form-adult.pdf",
-          2: "02-independent-contractor-agreement-adult.pdf",
-          3: "03-safeguarding-and-conduct-policy-adult.pdf",
-          4: "04-data-protection-consent-adult.pdf",
-          5: "05-matric-entry-qualification-verification.pdf",
+          1: "TT-TCF-001.pdf",
+          2: "TT-EQV-002.pdf",
+          3: "TT-ICA-003.pdf",
+          4: "TT-SCP-004.pdf",
+          5: "TT-DPC-005.pdf",
         };
 
         const templateFileName = templateFileNames[docStep];
         if (!templateFileName) {
+          if (docStep === 6) {
+            return res.status(400).json({ message: "Step 6 is a certified ID copy and has no downloadable template." });
+          }
           return res.status(400).json({ message: "Invalid document step" });
         }
 
@@ -9395,6 +9445,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // COO: Verify tutor onboarding document
   app.post(
+    "/api/coo/tutor/:id/document/:docStep/completed-upload",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { id } = req.params;
+        const docStep = Number(req.params.docStep);
+        const reviewerId = (req.session as any).userId;
+        const { fileName, fileData, fileType } = req.body;
+
+        if (!Number.isInteger(docStep) || docStep < 1 || docStep > 5) {
+          return res.status(400).json({ message: "Completed template upload is only valid for steps 1 to 5." });
+        }
+        if (!fileName || !fileData) {
+          return res.status(400).json({ message: "Missing required file payload for completed template upload." });
+        }
+
+        const applications = await storage.getTutorApplications();
+        const app = applications.find((a) => a.id === id);
+        if (!app) {
+          return res.status(404).json({ message: "Application not found" });
+        }
+
+        const buffer = Buffer.from(fileData, "base64");
+        const safeFileName = `coo-completed/${id}/doc_${docStep}_completed_${Date.now()}_${String(fileName).replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("tutor-documents")
+          .upload(safeFileName, buffer, {
+            contentType: fileType || undefined,
+            upsert: true,
+          });
+
+        if (uploadError) {
+          console.error("Supabase storage upload error (completed template):", uploadError);
+          return res.status(500).json({ message: "Storage upload failed", error: uploadError.message });
+        }
+
+        const { data: urlData } = supabase.storage.from("tutor-documents").getPublicUrl(safeFileName);
+        if (!urlData?.publicUrl) {
+          return res.status(500).json({ message: "Upload succeeded but completed template URL could not be generated" });
+        }
+
+        const updated = await storage.uploadCompletedTutorSequentialDocument(
+          id,
+          docStep,
+          urlData.publicUrl,
+          reviewerId
+        );
+
+        if (!updated) {
+          return res.status(500).json({ message: "Failed to save completed template URL" });
+        }
+
+        res.json({
+          success: true,
+          application: updated,
+          completedDocumentUrl: urlData.publicUrl,
+        });
+      } catch (error) {
+        console.error("Error uploading COO completed template:", error);
+        res.status(500).json({ message: "Failed to upload completed template" });
+      }
+    }
+  );
+
+  app.post(
     "/api/coo/tutor/:id/document/:docStep/review",
     isAuthenticated,
     requireRole(["coo"]),
@@ -9402,10 +9519,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const { id } = req.params;
         const docStep = Number(req.params.docStep);
-        const { approved, rejectionReason } = req.body;
+        const { approved, rejectionReason, completedDocumentUrl } = req.body;
         const reviewerId = (req.session as any).userId;
 
-        if (!Number.isInteger(docStep) || docStep < 1 || docStep > 5) {
+        if (!Number.isInteger(docStep) || docStep < 1 || docStep > 6) {
           return res.status(400).json({ message: "Invalid document step" });
         }
 
@@ -9418,6 +9535,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           docStep,
           approved,
           reviewerId,
+          completedDocumentUrl,
           rejectionReason
         );
 
@@ -9429,13 +9547,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           success: true,
           application: updated,
           message: approved
-            ? docStep === 5 && Object.values(updated.documentsStatus || {}).every((status) => status === "approved")
+            ? docStep === 6 && Object.values(updated.documentsStatus || {}).every((status) => status === "approved")
               ? "Document approved. Tutor onboarding is complete."
               : `Document ${docStep} approved. Tutor can move to the next document.`
             : `Document ${docStep} rejected. Tutor must resubmit this step.`,
         });
       } catch (error) {
         console.error("Error reviewing sequential tutor document:", error);
+        if (error instanceof Error && error.message.toLowerCase().includes("required")) {
+          return res.status(400).json({ message: error.message });
+        }
         res.status(500).json({ message: "Failed to review document" });
       }
     }

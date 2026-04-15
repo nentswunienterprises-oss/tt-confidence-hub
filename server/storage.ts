@@ -12,6 +12,7 @@ import {
   VerificationDoc, InsertVerificationDoc,
   TutorApplication, InsertTutorApplication,
   Broadcast, InsertBroadcast,
+  Notification, InsertNotification,
   RolePermission,
   affiliateCodes,
   weeklyCheckIns,
@@ -71,6 +72,7 @@ const INITIAL_TUTOR_DOCUMENT_STATUSES: Record<string, SequentialDocumentStatus> 
   "3": "not_started",
   "4": "not_started",
   "5": "not_started",
+  "6": "not_started",
 };
 
 const SEQUENTIAL_TUTOR_DOCUMENT_FIELDS: Record<
@@ -82,6 +84,10 @@ const SEQUENTIAL_TUTOR_DOCUMENT_FIELDS: Record<
     verifiedBy: string;
     verifiedAt: string;
     rejectionReason: string;
+    completedTemplateUrl?: string;
+    completedTemplateUploadedAt?: string;
+    completedTemplateUploadedBy?: string;
+    requiresCompletedTemplate: boolean;
   }
 > = {
   1: {
@@ -91,6 +97,10 @@ const SEQUENTIAL_TUTOR_DOCUMENT_FIELDS: Record<
     verifiedBy: "doc_1_tutor_agreement_verified_by",
     verifiedAt: "doc_1_tutor_agreement_verified_at",
     rejectionReason: "doc_1_tutor_agreement_rejection_reason",
+    completedTemplateUrl: "doc_1_completed_template_url",
+    completedTemplateUploadedAt: "doc_1_completed_template_uploaded_at",
+    completedTemplateUploadedBy: "doc_1_completed_template_uploaded_by",
+    requiresCompletedTemplate: true,
   },
   2: {
     url: "doc_2_code_of_conduct_url",
@@ -99,6 +109,10 @@ const SEQUENTIAL_TUTOR_DOCUMENT_FIELDS: Record<
     verifiedBy: "doc_2_code_of_conduct_verified_by",
     verifiedAt: "doc_2_code_of_conduct_verified_at",
     rejectionReason: "doc_2_code_of_conduct_rejection_reason",
+    completedTemplateUrl: "doc_2_completed_template_url",
+    completedTemplateUploadedAt: "doc_2_completed_template_uploaded_at",
+    completedTemplateUploadedBy: "doc_2_completed_template_uploaded_by",
+    requiresCompletedTemplate: true,
   },
   3: {
     url: "doc_3_emergency_waiver_url",
@@ -107,6 +121,10 @@ const SEQUENTIAL_TUTOR_DOCUMENT_FIELDS: Record<
     verifiedBy: "doc_3_emergency_waiver_verified_by",
     verifiedAt: "doc_3_emergency_waiver_verified_at",
     rejectionReason: "doc_3_emergency_waiver_rejection_reason",
+    completedTemplateUrl: "doc_3_completed_template_url",
+    completedTemplateUploadedAt: "doc_3_completed_template_uploaded_at",
+    completedTemplateUploadedBy: "doc_3_completed_template_uploaded_by",
+    requiresCompletedTemplate: true,
   },
   4: {
     url: "doc_4_background_auth_url",
@@ -115,6 +133,10 @@ const SEQUENTIAL_TUTOR_DOCUMENT_FIELDS: Record<
     verifiedBy: "doc_4_background_auth_verified_by",
     verifiedAt: "doc_4_background_auth_verified_at",
     rejectionReason: "doc_4_background_auth_rejection_reason",
+    completedTemplateUrl: "doc_4_completed_template_url",
+    completedTemplateUploadedAt: "doc_4_completed_template_uploaded_at",
+    completedTemplateUploadedBy: "doc_4_completed_template_uploaded_by",
+    requiresCompletedTemplate: true,
   },
   5: {
     url: "doc_5_tax_info_url",
@@ -123,6 +145,19 @@ const SEQUENTIAL_TUTOR_DOCUMENT_FIELDS: Record<
     verifiedBy: "doc_5_tax_info_verified_by",
     verifiedAt: "doc_5_tax_info_verified_at",
     rejectionReason: "doc_5_tax_info_rejection_reason",
+    completedTemplateUrl: "doc_5_completed_template_url",
+    completedTemplateUploadedAt: "doc_5_completed_template_uploaded_at",
+    completedTemplateUploadedBy: "doc_5_completed_template_uploaded_by",
+    requiresCompletedTemplate: true,
+  },
+  6: {
+    url: "doc_6_certified_id_copy_url",
+    uploadedAt: "doc_6_certified_id_copy_uploaded_at",
+    verified: "doc_6_certified_id_copy_verified",
+    verifiedBy: "doc_6_certified_id_copy_verified_by",
+    verifiedAt: "doc_6_certified_id_copy_verified_at",
+    rejectionReason: "doc_6_certified_id_copy_rejection_reason",
+    requiresCompletedTemplate: false,
   },
 };
 
@@ -196,6 +231,11 @@ export interface IStorage {
   getUnreadBroadcastCount(userId: string, userCreatedAt?: string): Promise<number>;
   getUserBroadcastReads(userId: string): Promise<string[]>; // Returns array of read broadcast IDs
 
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  getNotifications(userId: string, userCreatedAt?: string): Promise<Notification[]>;
+  markNotificationAsRead(userId: string, notificationId: string): Promise<void>;
+  getUnreadNotificationCount(userId: string, userCreatedAt?: string): Promise<number>;
+
   createTutorApplication(application: InsertTutorApplication): Promise<TutorApplication>;
   getTutorApplicationsByUser(userId: string): Promise<TutorApplication[]>;
   getTutorApplications(): Promise<TutorApplication[]>;
@@ -215,6 +255,12 @@ export interface IStorage {
     docStep: number,
     documentUrl: string
   ): Promise<TutorApplication | undefined>;
+  uploadCompletedTutorSequentialDocument(
+    applicationId: string,
+    docStep: number,
+    completedDocumentUrl: string,
+    completedBy: string
+  ): Promise<TutorApplication | undefined>;
   verifyTutorOnboardingDocument(
     applicationId: string,
     documentType: "trial_agreement" | "parent_consent",
@@ -225,6 +271,7 @@ export interface IStorage {
     docStep: number,
     approved: boolean,
     reviewedBy: string,
+    completedDocumentUrl?: string,
     rejectionReason?: string
   ): Promise<TutorApplication | undefined>;
   completeTutorOnboarding(applicationId: string): Promise<TutorApplication | undefined>;
@@ -1114,7 +1161,7 @@ export class SupabaseStorage implements IStorage {
     if (userCreatedAt) {
       query = query.gte("created_at", userCreatedAt);
     }
-    
+
     const { data } = await query;
     if (!data) return [];
     
@@ -1134,6 +1181,97 @@ export class SupabaseStorage implements IStorage {
     });
     
     return transformed;
+  }
+
+  // Notifications
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const dbNotification = {
+      recipient_user_id: notification.recipientUserId,
+      actor_user_id: notification.actorUserId || null,
+      channel: notification.channel || "informational",
+      title: notification.title,
+      message: notification.message,
+      link: notification.link || null,
+      entity_type: notification.entityType || null,
+      entity_id: notification.entityId || null,
+      is_read: false,
+    };
+
+    const { data, error } = await supabase.from("notifications").insert(dbNotification).select().single();
+    if (error) {
+      throw new Error(`Failed to create notification: ${error.message}`);
+    }
+    if (!data) {
+      throw new Error("Failed to create notification: no data returned");
+    }
+
+    return {
+      id: data.id,
+      recipientUserId: data.recipient_user_id,
+      actorUserId: data.actor_user_id,
+      channel: data.channel || "informational",
+      title: data.title,
+      message: data.message,
+      link: data.link,
+      entityType: data.entity_type,
+      entityId: data.entity_id,
+      isRead: data.is_read,
+      readAt: data.read_at,
+      createdAt: data.created_at,
+    };
+  }
+
+  async getNotifications(userId: string, userCreatedAt?: string): Promise<Notification[]> {
+    let query = supabase
+      .from("notifications")
+      .select("*")
+      .eq("recipient_user_id", userId)
+      .order("created_at", { ascending: false });
+
+    if (userCreatedAt) {
+      query = query.gte("created_at", userCreatedAt);
+    }
+
+    const { data } = await query;
+    if (!data) return [];
+
+    return data.map((notification: any) => ({
+      id: notification.id,
+      recipientUserId: notification.recipient_user_id,
+      actorUserId: notification.actor_user_id,
+      channel: notification.channel || "informational",
+      title: notification.title,
+      message: notification.message,
+      link: notification.link,
+      entityType: notification.entity_type,
+      entityId: notification.entity_id,
+      isRead: notification.is_read,
+      readAt: notification.read_at,
+      createdAt: notification.created_at,
+    }));
+  }
+
+  async markNotificationAsRead(userId: string, notificationId: string): Promise<void> {
+    await supabase
+      .from("notifications")
+      .update({ is_read: true, read_at: new Date() })
+      .eq("id", notificationId)
+      .eq("recipient_user_id", userId);
+  }
+
+  async getUnreadNotificationCount(userId: string, userCreatedAt?: string): Promise<number> {
+    let query = supabase
+      .from("notifications")
+      .select("id")
+      .eq("recipient_user_id", userId)
+      .eq("is_read", false);
+
+    if (userCreatedAt) {
+      query = query.gte("created_at", userCreatedAt);
+    }
+
+    const { data } = await query;
+    return data?.length || 0;
   }
 
   // Broadcast Reads (Track which broadcasts users have read)
@@ -1213,7 +1351,7 @@ export class SupabaseStorage implements IStorage {
       if (userCreatedAt) {
         broadcastQuery = broadcastQuery.gte("created_at", userCreatedAt);
       }
-      
+
       const { data: broadcasts } = await broadcastQuery;
       
       if (!broadcasts || broadcasts.length === 0) return 0;
@@ -1443,6 +1581,15 @@ export class SupabaseStorage implements IStorage {
       [fields.verifiedAt]: null,
       [fields.rejectionReason]: null,
     };
+    if (fields.completedTemplateUrl) {
+      updateData[fields.completedTemplateUrl] = null;
+    }
+    if (fields.completedTemplateUploadedAt) {
+      updateData[fields.completedTemplateUploadedAt] = null;
+    }
+    if (fields.completedTemplateUploadedBy) {
+      updateData[fields.completedTemplateUploadedBy] = null;
+    }
 
     const { data, error } = await supabase
       .from("tutor_applications")
@@ -1453,6 +1600,42 @@ export class SupabaseStorage implements IStorage {
 
     if (error) {
       console.error("Error updating sequential onboarding document:", error);
+      return undefined;
+    }
+
+    return data ? (transformSnakeToCamel(data) as TutorApplication) : undefined;
+  }
+
+  async uploadCompletedTutorSequentialDocument(
+    applicationId: string,
+    docStep: number,
+    completedDocumentUrl: string,
+    completedBy: string
+  ): Promise<TutorApplication | undefined> {
+    const fields = getSequentialTutorDocumentFields(docStep);
+    if (!fields.requiresCompletedTemplate) {
+      throw new Error(`Step ${docStep} does not require a TT-completed template upload.`);
+    }
+    if (!fields.completedTemplateUrl || !fields.completedTemplateUploadedAt || !fields.completedTemplateUploadedBy) {
+      throw new Error(`Completed template fields are not configured for step ${docStep}.`);
+    }
+
+    const updateData: Record<string, any> = {
+      updated_at: new Date(),
+      [fields.completedTemplateUrl]: completedDocumentUrl,
+      [fields.completedTemplateUploadedAt]: new Date(),
+      [fields.completedTemplateUploadedBy]: completedBy,
+    };
+
+    const { data, error } = await supabase
+      .from("tutor_applications")
+      .update(updateData)
+      .eq("id", applicationId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error uploading completed sequential document:", error);
       return undefined;
     }
 
@@ -1497,12 +1680,13 @@ export class SupabaseStorage implements IStorage {
     docStep: number,
     approved: boolean,
     reviewedBy: string,
+    completedDocumentUrl?: string,
     rejectionReason?: string
   ): Promise<TutorApplication | undefined> {
     const fields = getSequentialTutorDocumentFields(docStep);
     const { data: existing, error: existingError } = await supabase
       .from("tutor_applications")
-      .select("documents_status")
+      .select("documents_status, doc_1_completed_template_url, doc_2_completed_template_url, doc_3_completed_template_url, doc_4_completed_template_url, doc_5_completed_template_url")
       .eq("id", applicationId)
       .single();
 
@@ -1521,16 +1705,26 @@ export class SupabaseStorage implements IStorage {
     };
 
     if (approved) {
+      const effectiveCompletedUrl =
+        completedDocumentUrl ||
+        (fields.completedTemplateUrl ? existing?.[fields.completedTemplateUrl] : null);
+      if (fields.requiresCompletedTemplate && !effectiveCompletedUrl) {
+        throw new Error(`Completed TT-signed template is required before approving step ${docStep}.`);
+      }
+
       documentsStatus[docStep.toString()] = "approved";
 
-      if (docStep < 5) {
+      if (docStep < 6) {
         const nextStep = (docStep + 1).toString();
         if (documentsStatus[nextStep] !== "approved") {
           documentsStatus[nextStep] = "pending_upload";
         }
         updateData.document_submission_step = docStep + 1;
       } else {
-        updateData.document_submission_step = 5;
+        updateData.document_submission_step = 6;
+      }
+      if (fields.completedTemplateUrl && effectiveCompletedUrl) {
+        updateData[fields.completedTemplateUrl] = effectiveCompletedUrl;
       }
 
       // Keep persisted status within DB enum values.
@@ -1538,6 +1732,15 @@ export class SupabaseStorage implements IStorage {
     } else {
       documentsStatus[docStep.toString()] = "rejected";
       updateData.document_submission_step = docStep;
+      if (fields.completedTemplateUrl) {
+        updateData[fields.completedTemplateUrl] = null;
+      }
+      if (fields.completedTemplateUploadedAt) {
+        updateData[fields.completedTemplateUploadedAt] = null;
+      }
+      if (fields.completedTemplateUploadedBy) {
+        updateData[fields.completedTemplateUploadedBy] = null;
+      }
     }
 
     updateData.documents_status = documentsStatus;
