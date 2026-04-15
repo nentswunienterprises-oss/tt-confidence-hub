@@ -163,7 +163,9 @@ export default function TutorGateway() {
 
   // Determine current journey stage for progress bar
   const getStageStatus = (stage: string): boolean => {
-    if (!applicationStatus) return false;
+    if (!applicationStatus) {
+      return stage === "Application";
+    }
     
     const statusOrder = ["not_applied", "pending", "approved", "verification", "confirmed"];
     const currentIndex = statusOrder.indexOf(applicationStatus.status);
