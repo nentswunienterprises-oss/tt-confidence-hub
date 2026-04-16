@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
 import ProposalView from "@/components/parent/ProposalView";
+import { PushOptInCard } from "@/components/push/PushOptInCard";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "@/lib/config";
 import {
@@ -595,6 +596,16 @@ export default function ParentGateway() {
       </div>
 
       <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-2xl">
+        {step !== "loading" && step !== "enrollment" && (
+          <div className="mb-6">
+            <PushOptInCard
+              enabled
+              title="Enable out-of-app alerts"
+              description="Turn on browser notifications so TT can alert you when a tutor is assigned, a proposal is ready, a session needs your confirmation, or a report is sent."
+            />
+          </div>
+        )}
+
         {/* Awaiting Tutor Acceptance */}
         {step === "awaiting_tutor_acceptance" && (
           <Card className="border-0 shadow-lg" style={{ backgroundColor: "white" }}>

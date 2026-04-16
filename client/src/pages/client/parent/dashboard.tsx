@@ -11,6 +11,7 @@ import { getQueryFn } from "@/lib/queryClient";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ProposalView from "@/components/parent/ProposalView";
+import { PushOptInCard } from "@/components/push/PushOptInCard";
 import { useLocation } from "wouter";
 
 interface StudentStats {
@@ -532,6 +533,12 @@ export default function ParentDashboard() {
           </div>
         </div>
       </div>
+
+      <PushOptInCard
+        enabled
+        title="Enable out-of-app alerts"
+        description="Turn on browser notifications so TT can alert you when reports are sent or when a tutor action needs your response."
+      />
 
       <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
         <Card className="lg:col-span-2 border-primary/20 shadow-sm">

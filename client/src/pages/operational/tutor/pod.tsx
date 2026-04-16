@@ -25,6 +25,7 @@ import ViewAssignmentsDialog from "@/components/tutor/ViewAssignmentsDialog";
 import ViewTrackingSystemsDialog from "@/components/tutor/ViewTrackingSystemsDialog";
 import StudentReportsDialog from "@/components/tutor/StudentReportsDialog";
 import StudentTopicConditioningDialog from "@/components/tutor/StudentTopicConditioningDialog";
+import { PushOptInCard } from "@/components/push/PushOptInCard";
 import type { Student, TutorAssignment, Pod } from "@shared/schema";
 
 interface PodData {
@@ -221,6 +222,12 @@ export default function TutorPod() {
             </div>
           </div>
 
+          <PushOptInCard
+            enabled
+            title="Enable out-of-app alerts"
+            description="Turn on browser notifications so TT can alert you when parents respond to proposals or sessions, or when new assignments arrive."
+          />
+
           {expectingPodAssignment ? (
             <Card className="border-primary/15 bg-background shadow-sm">
               <div className="space-y-5 p-8 text-center sm:p-12">
@@ -334,6 +341,12 @@ export default function TutorPod() {
             </Badge>
           </div>
         </div>
+
+        <PushOptInCard
+          enabled
+          title="Enable out-of-app alerts"
+          description="Turn on browser notifications so TT can alert you when parents respond to proposals or sessions, or when new assignments arrive."
+        />
 
         <div className="tutor-pod-stats grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           <Card className="border-primary/15 bg-background shadow-sm">

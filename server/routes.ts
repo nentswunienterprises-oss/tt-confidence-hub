@@ -70,6 +70,25 @@ const requireRole = (roles: string[]) => {
   };
 };
 
+async function safeSendPush(
+  userId: string | null | undefined,
+  payload: {
+    title: string;
+    body: string;
+    url: string;
+    tag: string;
+  },
+  context: string,
+) {
+  if (!userId) return;
+
+  try {
+    await sendWebPushToUser(userId, payload);
+  } catch (error) {
+    console.error(`[push] Failed during ${context}:`, error);
+  }
+}
+
 const SCHEDULED_SESSION_SELECT = [
   "id",
   "scheduled_time",
@@ -1968,7 +1987,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
               for (const weeklyWindow of weeklyWindows) {
                 const structuredData = createWeeklyStructuredDataFromDrills(weeklyWindow);
                 if (structuredData) {
-                  await insertWeeklyReport({ tutorId, studentId, parentId, structuredData });
+                  const weeklyReport = await insertWeeklyReport({ tutorId, studentId, parentId, structuredData });
+                  await safeSendPush(
+                    parentId,
+                    {
+                      title: "Weekly report sent",
+                      body: "A new weekly report is available for your child. Open TT to review it.",
+                      url: "/client/parent/progress",
+                      tag: `parent-weekly-report-${weeklyReport.id}`,
+                    },
+                    "parent weekly report sent",
+                  );
                 }
               }
             }
@@ -1978,7 +2007,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
               for (const monthlyWindow of monthlyWindows) {
                 const structuredData = createMonthlyStructuredDataFromDrills(monthlyWindow);
                 if (structuredData) {
-                  await insertMonthlyReport({ tutorId, studentId, parentId, structuredData });
+                  const monthlyReport = await insertMonthlyReport({ tutorId, studentId, parentId, structuredData });
+                  await safeSendPush(
+                    parentId,
+                    {
+                      title: "Monthly report sent",
+                      body: "A new monthly report is available for your child. Open TT to review it.",
+                      url: "/client/parent/progress",
+                      tag: `parent-monthly-report-${monthlyReport.id}`,
+                    },
+                    "parent monthly report sent",
+                  );
                 }
               }
             }
@@ -3259,6 +3298,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "Failed to confirm session" });
       }
 
+      await safeSendPush(
+        updatedSession?.tutor_id,
+        {
+          title: "Session confirmed",
+          body: "A parent confirmed the intro session. Open TT for the latest schedule.",
+          url: "/operational/tutor/pod",
+          tag: `tutor-intro-session-confirmed-${sessionId}`,
+        },
+        "tutor intro session confirmed by parent",
+      );
+
       res.json({
         success: true,
         status: "confirmed",
@@ -4266,6 +4316,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (updateError) {
         return res.status(500).json({ message: "Failed to update session", details: updateError });
       }
+      if (action === "propose_adjustment") {
+        await safeSendPush(
+          session.parent_id,
+          {
+            title: "Session needs confirmation",
+            body: "Your tutor proposed a new intro-session time. Open TT to confirm or respond.",
+            url: "/client/parent/gateway",
+            tag: `parent-intro-session-confirmation-${session.id}`,
+          },
+          "parent intro session confirmation needed",
+        );
+      }
       res.json({
         success: true,
       });
@@ -4349,6 +4411,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[DEBUG] Update result', { updateError, updateData });
       if (updateError) {
         return res.status(500).json({ message: "Failed to update session", details: updateError });
+      }
+      if (action === "propose_adjustment") {
+        await safeSendPush(
+          session.parent_id,
+          {
+            title: "Session needs confirmation",
+            body: "Your tutor proposed a new intro-session time. Open TT to confirm or respond.",
+            url: "/client/parent/gateway",
+            tag: `parent-intro-session-confirmation-${session.id}`,
+          },
+          "parent intro session confirmation needed plural route",
+        );
       }
       res.json({
         success: true,
@@ -4470,6 +4544,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error("Error creating training session:", error);
           return res.status(500).json({ message: "Failed to create training session" });
         }
+
+        await safeSendPush(
+          parentId,
+          {
+            title: "Session needs confirmation",
+            body: "Your tutor proposed a training session. Open TT to confirm or reschedule.",
+            url: "/client/parent/gateway",
+            tag: `parent-training-session-confirmation-${inserted.id}`,
+          },
+          "parent training session confirmation needed",
+        );
 
         const { session } = await resolveTutorScheduledSession(tutorId, studentId, "training", inserted.id);
 
@@ -4638,6 +4723,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (updateError || !updatedSession) {
             return res.status(500).json({ message: "Failed to reschedule training session" });
           }
+
+          await safeSendPush(
+            session.parent_id,
+            {
+              title: "Session needs confirmation",
+              body: "Your tutor proposed a new training-session time. Open TT to confirm or respond.",
+              url: "/client/parent/gateway",
+              tag: `parent-training-session-confirmation-${sessionId}`,
+            },
+            "parent training session reschedule confirmation needed",
+          );
 
           return res.json({
             success: true,
@@ -5277,6 +5373,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ message: "Failed to reschedule session" });
         }
 
+        await safeSendPush(
+          updatedSession.tutor_id,
+          {
+            title: "Session rescheduled by parent",
+            body: "A parent proposed a new training-session time. Open TT to review and confirm.",
+            url: "/operational/tutor/pod",
+            tag: `tutor-training-session-rescheduled-${sessionId}`,
+          },
+          "tutor training session rescheduled by parent",
+        );
+
         return res.json({
           success: true,
           status: "pending_tutor_confirmation",
@@ -5299,6 +5406,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (updateError || !updatedSession) {
         return res.status(500).json({ message: "Failed to confirm session" });
       }
+
+      await safeSendPush(
+        updatedSession.tutor_id,
+        {
+          title: "Session confirmed",
+          body: "A parent confirmed the training session. Open TT for the latest schedule.",
+          url: "/operational/tutor/pod",
+          tag: `tutor-training-session-confirmed-${sessionId}`,
+        },
+        "tutor training session confirmed by parent",
+      );
 
       const assignedStudent = updatedSession.student_id ? await storage.getStudent(updatedSession.student_id) : null;
       const meetSync = await syncMeetForScheduledSession(updatedSession, {
@@ -7141,7 +7259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Update parent_enrollments status to 'not_scheduled' using available fields
           // Try assigned_student_id first, then fallback to student_full_name
-          let parentEnrollment = null;
+          let parentEnrollment: any = null;
           let parentEnrollmentError = null;
           let query = supabase
             .from("parent_enrollments")
@@ -7150,7 +7268,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (studentId) {
             // Try assigned_student_id
             query = query.eq("assigned_student_id", studentId);
-            const { data } = await query.maybeSingle();
+            const { data } = await query.select("id, user_id").maybeSingle();
             parentEnrollment = data;
           }
           if (!parentEnrollment) {
@@ -7160,7 +7278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (studentName) {
               const { data } = await supabase
                 .from("parent_enrollments")
-                .select("id")
+                .select("id, user_id")
                 .eq("assigned_tutor_id", dbUser.id)
                 .eq("student_full_name", studentName)
                 .maybeSingle();
@@ -7172,6 +7290,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .from("parent_enrollments")
               .update({ status: "assigned", current_step: "assigned", updated_at: new Date().toISOString() })
               .eq("id", parentEnrollment.id);
+
+            await safeSendPush(
+              parentEnrollment.user_id,
+              {
+                title: "Tutor accepted",
+                body: "Your tutor accepted the assignment. TT onboarding can now move forward.",
+                url: "/client/parent/gateway",
+                tag: `parent-tutor-accepted-${parentEnrollment.id}`,
+              },
+              "parent tutor accepted assignment",
+            );
           }
 
           return res.json({
@@ -9606,6 +9735,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Application not found" });
         }
 
+        await safeSendPush(
+          updated.userId,
+          {
+            title: approved ? "Document approved" : "Document rejected",
+            body: approved
+              ? `Your onboarding document ${docStep} was approved.`
+              : `Your onboarding document ${docStep} was rejected and needs resubmission.`,
+            url: "/operational/tutor/gateway",
+            tag: `tutor-document-review-${updated.id}-${docStep}-${approved ? "approved" : "rejected"}`,
+          },
+          "tutor document review result",
+        );
+
         res.json({
           success: true,
           application: updated,
@@ -9728,12 +9870,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!application) {
           return res.status(404).json({ message: "Application not found" });
         }
-        await sendWebPushToUser(application.userId, {
-          title: "Tutor application approved",
-          body: "Your application was approved. Open TT to continue onboarding and upload your documents.",
-          url: "/operational/tutor/gateway",
-          tag: `tutor-application-approved-${application.id}`,
-        });
+        await safeSendPush(
+          application.userId,
+          {
+            title: "Tutor application approved",
+            body: "Your application was approved. Open TT to continue onboarding and upload your documents.",
+            url: "/operational/tutor/gateway",
+            tag: `tutor-application-approved-${application.id}`,
+          },
+          "tutor application approved",
+        );
         
         res.json(application);
       } catch (error) {
@@ -9763,12 +9909,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ? `Your application was not accepted. Reason: ${trimmedReason}`
           : "Your application was reviewed and was not accepted.";
 
-        await sendWebPushToUser(application.userId, {
-          title: "Tutor application update",
-          body: message,
-          url: "/operational/tutor/gateway",
-          tag: `tutor-application-rejected-${application.id}`,
-        });
+        await safeSendPush(
+          application.userId,
+          {
+            title: "Tutor application update",
+            body: message,
+            url: "/operational/tutor/gateway",
+            tag: `tutor-application-rejected-${application.id}`,
+          },
+          "tutor application rejected",
+        );
         
         res.json(application);
       } catch (error) {
@@ -10072,6 +10222,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const enrollment = data[0];
+
+        await safeSendPush(
+          enrollment.user_id,
+          {
+            title: "Tutor assigned",
+            body: "A tutor has been assigned to your child. TT will notify you when they accept and onboarding moves forward.",
+            url: "/client/parent/gateway",
+            tag: `parent-tutor-assigned-${enrollment.id}`,
+          },
+          "parent tutor assigned",
+        );
+
+        await safeSendPush(
+          tutorId,
+          {
+            title: "New parent assignment",
+            body: `You have a new parent assignment waiting for your acceptance.`,
+            url: "/operational/tutor/pod",
+            tag: `tutor-new-assignment-${enrollment.id}`,
+          },
+          "tutor new assignment",
+        );
 
         // Create or repair a student record for the assigned tutor
         try {
@@ -11980,7 +12152,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update enrollment status to proposal_sent if enrollment exists
       if (actualEnrollmentId) {
-        await supabase
+        const { data: updatedEnrollment } = await supabase
           .from("parent_enrollments")
           .update({
             status: "proposal_sent",
@@ -11988,7 +12160,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
             proposal_sent_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           })
-          .eq("id", actualEnrollmentId);
+          .eq("id", actualEnrollmentId)
+          .select("id, user_id")
+          .maybeSingle();
+
+        await safeSendPush(
+          updatedEnrollment?.user_id,
+          {
+            title: "Proposal ready",
+            body: "Your tutor has sent a proposal. Open TT to review and respond.",
+            url: "/client/parent/gateway",
+            tag: `parent-proposal-sent-${proposalData.id}`,
+          },
+          "parent proposal sent",
+        );
       }
 
       res.json({
@@ -12484,6 +12669,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      await safeSendPush(
+        proposal?.tutor_id,
+        {
+          title: "Proposal accepted",
+          body: "A parent accepted your onboarding proposal. Continue with the scheduled session flow.",
+          url: "/operational/tutor/pod",
+          tag: `tutor-proposal-accepted-${enrollment.proposal_id}`,
+        },
+        "tutor proposal accepted",
+      );
+
       res.json({ 
         message: "Proposal accepted successfully", 
         status: "session_booked",
@@ -12633,6 +12829,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "Failed to decline proposal" });
       }
 
+      const { data: declinedProposal } = await supabase
+        .from("onboarding_proposals")
+        .select("tutor_id")
+        .eq("id", enrollment.proposal_id)
+        .maybeSingle();
+
       // Mark proposal as declined
       await supabase
         .from("onboarding_proposals")
@@ -12642,6 +12844,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           updated_at: new Date().toISOString(),
         })
         .eq("id", enrollment.proposal_id);
+
+      await safeSendPush(
+        declinedProposal?.tutor_id,
+        {
+          title: "Proposal declined",
+          body: "A parent declined your onboarding proposal. Open TT to revise the next step.",
+          url: "/operational/tutor/pod",
+          tag: `tutor-proposal-declined-${enrollment.proposal_id}`,
+        },
+        "tutor proposal declined",
+      );
 
       res.json({ message: "Proposal declined. Your tutor will be notified.", status: "assigned" });
     } catch (error) {
