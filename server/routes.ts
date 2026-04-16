@@ -43,10 +43,7 @@ import {
   reconcileGoogleMeetArtifacts,
   syncGoogleMeetEvent,
 } from "./googleMeet";
-import {
-  getTutorGatewayLink,
-  sendTutorApplicationDecisionEmail,
-} from "./tutorApplicationNotifications";
+import { getWebPushPublicKey, sendWebPushToUser } from "./webPush";
 
 // Extend Express session type to include affiliateCode
 declare module 'express-session' {
@@ -9103,6 +9100,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/push/vapid-public-key", isAuthenticated, async (_req: Request, res: Response) => {
+    try {
+      res.json({ publicKey: getWebPushPublicKey() });
+    } catch (error: any) {
+      res.status(503).json({ message: error?.message || "Web push is not configured" });
+    }
+  });
+
+  app.post("/api/push/subscribe", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).dbUser.id;
+      const subscription = req.body?.subscription;
+
+      if (!subscription?.endpoint || !subscription?.keys?.p256dh || !subscription?.keys?.auth) {
+        return res.status(400).json({ message: "Valid push subscription is required" });
+      }
+
+      await storage.upsertPushSubscription({
+        userId,
+        endpoint: subscription.endpoint,
+        p256dhKey: subscription.keys.p256dh,
+        authKey: subscription.keys.auth,
+        expirationTime: subscription.expirationTime ?? null,
+        userAgent: req.get("user-agent") || null,
+      });
+
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error saving push subscription:", error);
+      res.status(500).json({ message: "Failed to save push subscription" });
+    }
+  });
+
+  app.post("/api/push/unsubscribe", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const endpoint = req.body?.endpoint;
+      if (!endpoint) {
+        return res.status(400).json({ message: "Endpoint is required" });
+      }
+
+      await storage.deletePushSubscriptionByEndpoint(endpoint);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting push subscription:", error);
+      res.status(500).json({ message: "Failed to delete push subscription" });
+    }
+  });
+
   // ========================================
   // TUTOR APPLICATION ROUTES
   // ========================================
@@ -9683,27 +9728,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!application) {
           return res.status(404).json({ message: "Application not found" });
         }
-
-        try {
-          await storage.createNotification({
-            recipientUserId: application.userId,
-            actorUserId: reviewerId,
-            channel: "action_required",
-            title: "Tutor application approved",
-            message: "Your tutor application was approved. Open the tutor gateway to upload your verification documents and continue onboarding.",
-            link: getTutorGatewayLink(),
-            entityType: "tutor_application",
-            entityId: application.id,
-          });
-        } catch (notificationError) {
-          console.error("Error creating tutor approval notification:", notificationError);
-        }
-
-        try {
-          await sendTutorApplicationDecisionEmail(application, "approved");
-        } catch (emailError) {
-          console.error("Error sending tutor approval email:", emailError);
-        }
+        await sendWebPushToUser(application.userId, {
+          title: "Tutor application approved",
+          body: "Your application was approved. Open TT to continue onboarding and upload your documents.",
+          url: "/operational/tutor/gateway",
+          tag: `tutor-application-approved-${application.id}`,
+        });
         
         res.json(application);
       } catch (error) {
@@ -9728,31 +9758,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!application) {
           return res.status(404).json({ message: "Application not found" });
         }
-
         const trimmedReason = typeof reason === "string" ? reason.trim() : "";
+        const message = trimmedReason
+          ? `Your application was not accepted. Reason: ${trimmedReason}`
+          : "Your application was reviewed and was not accepted.";
 
-        try {
-          await storage.createNotification({
-            recipientUserId: application.userId,
-            actorUserId: reviewerId,
-            channel: "informational",
-            title: "Tutor application update",
-            message: trimmedReason
-              ? `Your tutor application was not accepted. Reason: ${trimmedReason}`
-              : "Your tutor application was not accepted. Open the tutor gateway to review your status.",
-            link: getTutorGatewayLink(),
-            entityType: "tutor_application",
-            entityId: application.id,
-          });
-        } catch (notificationError) {
-          console.error("Error creating tutor rejection notification:", notificationError);
-        }
-
-        try {
-          await sendTutorApplicationDecisionEmail(application, "rejected", trimmedReason);
-        } catch (emailError) {
-          console.error("Error sending tutor rejection email:", emailError);
-        }
+        await sendWebPushToUser(application.userId, {
+          title: "Tutor application update",
+          body: message,
+          url: "/operational/tutor/gateway",
+          tag: `tutor-application-rejected-${application.id}`,
+        });
         
         res.json(application);
       } catch (error) {

@@ -13,6 +13,7 @@ import {
   TutorApplication, InsertTutorApplication,
   Broadcast, InsertBroadcast,
   Notification, InsertNotification,
+  PushSubscriptionRecord, InsertPushSubscriptionRecord,
   RolePermission,
   affiliateCodes,
   weeklyCheckIns,
@@ -235,6 +236,9 @@ export interface IStorage {
   getNotifications(userId: string, userCreatedAt?: string): Promise<Notification[]>;
   markNotificationAsRead(userId: string, notificationId: string): Promise<void>;
   getUnreadNotificationCount(userId: string, userCreatedAt?: string): Promise<number>;
+  upsertPushSubscription(subscription: InsertPushSubscriptionRecord): Promise<PushSubscriptionRecord>;
+  getPushSubscriptionsByUser(userId: string): Promise<PushSubscriptionRecord[]>;
+  deletePushSubscriptionByEndpoint(endpoint: string): Promise<void>;
 
   createTutorApplication(application: InsertTutorApplication): Promise<TutorApplication>;
   getTutorApplicationsByUser(userId: string): Promise<TutorApplication[]>;
@@ -1272,6 +1276,55 @@ export class SupabaseStorage implements IStorage {
 
     const { data } = await query;
     return data?.length || 0;
+  }
+
+  async upsertPushSubscription(subscription: InsertPushSubscriptionRecord): Promise<PushSubscriptionRecord> {
+    const payload = {
+      user_id: subscription.userId,
+      endpoint: subscription.endpoint,
+      p256dh_key: subscription.p256dhKey,
+      auth_key: subscription.authKey,
+      expiration_time: subscription.expirationTime ?? null,
+      user_agent: subscription.userAgent ?? null,
+      updated_at: new Date(),
+      last_used_at: new Date(),
+    };
+
+    const { data, error } = await supabase
+      .from("push_subscriptions")
+      .upsert(payload, { onConflict: "endpoint" })
+      .select("*")
+      .single();
+
+    if (error || !data) {
+      throw new Error(`Failed to upsert push subscription: ${error?.message || "no data returned"}`);
+    }
+
+    return transformSnakeToCamel(data) as PushSubscriptionRecord;
+  }
+
+  async getPushSubscriptionsByUser(userId: string): Promise<PushSubscriptionRecord[]> {
+    const { data, error } = await supabase
+      .from("push_subscriptions")
+      .select("*")
+      .eq("user_id", userId);
+
+    if (error) {
+      throw new Error(`Failed to fetch push subscriptions: ${error.message}`);
+    }
+
+    return (data ?? []).map(transformSnakeToCamel) as PushSubscriptionRecord[];
+  }
+
+  async deletePushSubscriptionByEndpoint(endpoint: string): Promise<void> {
+    const { error } = await supabase
+      .from("push_subscriptions")
+      .delete()
+      .eq("endpoint", endpoint);
+
+    if (error) {
+      throw new Error(`Failed to delete push subscription: ${error.message}`);
+    }
   }
 
   // Broadcast Reads (Track which broadcasts users have read)

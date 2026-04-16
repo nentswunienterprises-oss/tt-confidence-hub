@@ -12,6 +12,7 @@ import { API_URL } from "@/lib/config";
 import { ApplicationForm } from "@/components/tutor/application-form";
 import { SequentialDocumentSubmission } from "@/components/tutor/SequentialDocumentSubmission";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { PushOptInCard } from "@/components/push/PushOptInCard";
 
 interface ApplicationStatus {
   status: "not_applied" | "pending" | "approved" | "rejected" | "verification" | "confirmed";
@@ -70,7 +71,6 @@ export default function TutorGateway() {
     students: gatewaySession?.students,
   };
   const hasPodAssignment = !!podData.assignment;
-  const announcedStatusRef = useRef<string | null>(null);
   // Province, role, enrollmentStatus, verificationStatus available as needed
   // const province = gatewaySession?.province;
   // const role = gatewaySession?.role;
@@ -126,47 +126,6 @@ export default function TutorGateway() {
       setStep("submitted");
     }
   }, [applicationStatus, appStatusLoading, appStatusError, userLoading, isAuthenticated, navigate, hasPodAssignment]);
-
-  useEffect(() => {
-    if (!applicationStatus?.applicationId) return;
-
-    const status = applicationStatus.status;
-    if (!["approved", "rejected", "confirmed"].includes(status)) return;
-
-    const announcementKey = `${applicationStatus.applicationId}:${status}`;
-    if (announcedStatusRef.current === announcementKey) return;
-    announcedStatusRef.current = announcementKey;
-
-    const storageKey = "tt:tutor-gateway:last-announced-status";
-    const previousAnnouncement = window.localStorage.getItem(storageKey);
-    if (previousAnnouncement === announcementKey) return;
-
-    window.localStorage.setItem(storageKey, announcementKey);
-
-    if (status === "approved") {
-      toast({
-        title: "Application approved",
-        description: "You were approved while away. Upload your verification documents to continue onboarding.",
-      });
-      return;
-    }
-
-    if (status === "rejected") {
-      toast({
-        title: "Application update",
-        description: "Your application was reviewed and was not accepted at this stage.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    toast({
-      title: "Documents verified",
-      description: hasPodAssignment
-        ? "Your onboarding is complete and your pod is ready."
-        : "Your documents were approved. We will notify you when your pod is assigned.",
-    });
-  }, [applicationStatus, hasPodAssignment, toast]);
 
   // Mark onboarding complete (tutor clicked Continue to Dashboard)
   const completeOnboarding = async () => {
@@ -381,6 +340,11 @@ export default function TutorGateway() {
             <CardContent className="space-y-4 px-4 sm:px-6">
               {applicationStatus.status === "pending" && (
                 <>
+                  <PushOptInCard
+                    enabled
+                    title="Enable out-of-app alerts"
+                    description="Turn on browser notifications now so TT can alert you immediately when your tutor application is approved or rejected, even if this tab is closed."
+                  />
                   <p className="text-sm sm:text-base text-muted-foreground">
                     Application received. Under review.
                   </p>

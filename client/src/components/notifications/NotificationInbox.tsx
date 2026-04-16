@@ -11,7 +11,6 @@ export interface NotificationItem {
   channel: "action_required" | "informational";
   title: string;
   message: string;
-  link?: string | null;
   isRead: boolean;
   createdAt: string;
 }
@@ -70,16 +69,6 @@ export function NotificationInbox({ title, description, emptyMessage }: { title:
               </CardHeader>
               <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
                 <p className="text-xs sm:text-sm text-muted-foreground whitespace-pre-wrap">{n.message}</p>
-                {n.link && (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="mt-4 mr-2"
-                    onClick={() => window.location.assign(n.link!)}
-                  >
-                    Open
-                  </Button>
-                )}
                 {!n.isRead && <Button size="sm" variant="outline" className="mt-4" onClick={() => markRead.mutate(n.id)}>Mark as Read</Button>}
               </CardContent>
             </Card>

@@ -627,6 +627,28 @@ export const insertNotificationSchema = z.object({
 });
 
 // ============================================
+// WEB PUSH SUBSCRIPTIONS TABLE
+// ============================================
+
+export const pushSubscriptions = pgTable("push_subscriptions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id),
+  endpoint: text("endpoint").notNull().unique(),
+  p256dhKey: text("p256dh_key").notNull(),
+  authKey: text("auth_key").notNull(),
+  expirationTime: bigint("expiration_time", { mode: "number" }),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  lastUsedAt: timestamp("last_used_at").defaultNow().notNull(),
+});
+
+export type PushSubscriptionRecord = typeof pushSubscriptions.$inferSelect;
+export type InsertPushSubscriptionRecord = typeof pushSubscriptions.$inferInsert;
+
+// ============================================
 // BROADCAST READS TABLE (Track which broadcasts users have read)
 // ============================================
 
