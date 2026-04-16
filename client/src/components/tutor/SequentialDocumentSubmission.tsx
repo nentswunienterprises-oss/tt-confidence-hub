@@ -147,6 +147,17 @@ export function SequentialDocumentSubmission({
   // Get current document
   const currentDoc = ONBOARDING_DOCUMENTS.find((d) => d.step === currentStep);
 
+  const getUploadButtonLabel = (
+    doc: typeof ONBOARDING_DOCUMENTS[number],
+    status: DocumentStatus
+  ) => {
+    if (status === "rejected") {
+      return doc.requiresTemplate ? "Resubmit Signed Document" : "Resubmit ID Copy";
+    }
+
+    return doc.requiresTemplate ? "Upload Signed Document" : "Upload ID Copy";
+  };
+
   // Upload document mutation
   const uploadDocMutation = useMutation({
     mutationFn: async ({
@@ -546,7 +557,7 @@ export function SequentialDocumentSubmission({
                 ) : (
                   <>
                     <Upload className="w-4 h-4" />
-                    {getDocumentStatus(currentStep) === "rejected" ? "Resubmit Document" : "Upload Signed Document"}
+                    {getUploadButtonLabel(currentDoc, getDocumentStatus(currentStep))}
                   </>
                 )}
               </Button>
