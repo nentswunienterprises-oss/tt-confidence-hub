@@ -1725,9 +1725,9 @@ export class SupabaseStorage implements IStorage {
 
     const documentsStatus = normalizeTutorDocumentStatuses(existing?.documents_status);
     const stepStatus = String(documentsStatus[docStep.toString()] || "not_started");
-    if (stepStatus !== "pending_review") {
+    if (stepStatus !== "pending_review" && stepStatus !== "approved") {
       throw new Error(
-        `Completed template upload is only allowed while step ${docStep} is pending review.`
+        `Completed template upload is only allowed while step ${docStep} is pending review or already approved.`
       );
     }
     if (!existing?.[fields.url]) {

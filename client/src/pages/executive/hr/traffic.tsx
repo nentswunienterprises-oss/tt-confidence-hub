@@ -61,6 +61,47 @@ interface ParentEnrollment {
   created_at: string;
 }
 
+const TOTAL_DOC_STEPS = 6;
+
+function getDocumentsStatus(application: any) {
+  return {
+    "1": "pending_upload",
+    "2": "not_started",
+    "3": "not_started",
+    "4": "not_started",
+    "5": "not_started",
+    "6": "not_started",
+    ...(application?.documentsStatus || application?.documents_status || {}),
+  } as Record<string, string>;
+}
+
+function areAllDocumentsApproved(application: any) {
+  const documentsStatus = getDocumentsStatus(application);
+  return Array.from({ length: TOTAL_DOC_STEPS }, (_, index) => String(index + 1)).every(
+    (step) => documentsStatus[step] === "approved"
+  );
+}
+
+function hasPendingReview(application: any) {
+  const documentsStatus = getDocumentsStatus(application);
+  return Object.values(documentsStatus).some((status) => String(status) === "pending_review");
+}
+
+function hasMissingCompletedTemplate(application: any) {
+  const documentsStatus = getDocumentsStatus(application);
+  const completedTemplateUrls: Record<string, string | null | undefined> = {
+    "1": application?.doc1CompletedTemplateUrl || application?.doc_1_completed_template_url,
+    "2": application?.doc2CompletedTemplateUrl || application?.doc_2_completed_template_url,
+    "3": application?.doc3CompletedTemplateUrl || application?.doc_3_completed_template_url,
+    "4": application?.doc4CompletedTemplateUrl || application?.doc_4_completed_template_url,
+    "5": application?.doc5CompletedTemplateUrl || application?.doc_5_completed_template_url,
+  };
+
+  return ["1", "2", "3", "4", "5"].some(
+    (step) => documentsStatus[step] === "approved" && !completedTemplateUrls[step]
+  );
+}
+
 export default function ExecutiveHRTraffic() {
   const { isAuthenticated, user } = useAuth();
   const queryClient = useQueryClient();
@@ -146,21 +187,32 @@ export default function ExecutiveHRTraffic() {
   const approvedApplications = applications.filter((app: any) => app.status === "approved");
   const rejectedApplications = applications.filter((app: any) => app.status === "rejected");
 
-  const getApplicationDocumentsStatus = (app: any) => app?.documentsStatus || app?.documents_status || {};
-  const verificationPendingApplications = approvedApplications.filter((app: any) => {
-    const docsStatus = getApplicationDocumentsStatus(app);
-    return Object.values(docsStatus).some((status) => String(status) === "pending_review");
+  const verificationPendingUploadApplications = approvedApplications.filter((app: any) => {
+    if (areAllDocumentsApproved(app)) return false;
+    if (hasPendingReview(app)) return false;
+    if (hasMissingCompletedTemplate(app)) return false;
+    return true;
+  });
+  const verificationUnderReviewApplications = approvedApplications.filter((app: any) => {
+    if (areAllDocumentsApproved(app)) return false;
+    return hasPendingReview(app);
+  });
+  const verificationAwaitingTTApplications = approvedApplications.filter((app: any) => {
+    if (hasPendingReview(app)) return false;
+    return hasMissingCompletedTemplate(app);
   });
   const verificationVerifiedApplications = approvedApplications.filter((app: any) => {
-    const docsStatus = getApplicationDocumentsStatus(app);
-    return ["1", "2", "3", "4", "5", "6"].every((step) => String(docsStatus?.[step]) === "approved");
+    if (!areAllDocumentsApproved(app)) return false;
+    return !hasMissingCompletedTemplate(app);
   });
+  const verificationTotalApplications =
+    verificationPendingUploadApplications.length +
+    verificationUnderReviewApplications.length +
+    verificationAwaitingTTApplications.length +
+    verificationVerifiedApplications.length;
 
   const appPendingVerificationTutors = approvedApplications
-    .filter((app: any) => {
-      const docsStatus = getApplicationDocumentsStatus(app);
-      return Object.values(docsStatus).some((status) => String(status) === "pending_review");
-    })
+    .filter((app: any) => hasPendingReview(app))
     .map((app: any) => {
       const tutorUserId = app.userId || app.user_id || app.id;
       return {
@@ -189,10 +241,7 @@ export default function ExecutiveHRTraffic() {
     });
 
   const appVerifiedDocTutors = approvedApplications
-    .filter((app: any) => {
-      const docsStatus = getApplicationDocumentsStatus(app);
-      return ["1", "2", "3", "4", "5", "6"].every((step) => String(docsStatus?.[step]) === "approved");
-    })
+    .filter((app: any) => areAllDocumentsApproved(app))
     .map((app: any) => {
       const tutorUserId = app.userId || app.user_id || app.id;
       return {
@@ -540,7 +589,7 @@ export default function ExecutiveHRTraffic() {
             </Card>
           ) : (
             <Tabs value={tutorAppSubTab} onValueChange={setTutorAppSubTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 h-auto rounded-xl border border-primary/15 bg-muted/20 p-1 gap-1">
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 h-auto rounded-xl border border-primary/15 bg-muted/20 p-1 gap-1">
                 <TabsTrigger value="pending" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
                   <span className="inline-flex items-center gap-1.5">
                     <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
@@ -565,9 +614,23 @@ export default function ExecutiveHRTraffic() {
                 <TabsTrigger value="verification" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
                   <span className="inline-flex items-center gap-1.5">
                     <FileCheck className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                    <span>Verify</span>
+                    <span>Pending Upload</span>
                   </span>
-                  <span className="text-[10px] sm:text-xs text-muted-foreground">{verificationPendingApplications.length}</span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground">{verificationPendingUploadApplications.length}</span>
+                </TabsTrigger>
+                <TabsTrigger value="verification-review" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
+                  <span className="inline-flex items-center gap-1.5">
+                    <FileCheck className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span>Under Review</span>
+                  </span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground">{verificationUnderReviewApplications.length}</span>
+                </TabsTrigger>
+                <TabsTrigger value="verification-awaiting-tt" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
+                  <span className="inline-flex items-center gap-1.5">
+                    <FileText className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span>Awaiting TT</span>
+                  </span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground">{verificationAwaitingTTApplications.length}</span>
                 </TabsTrigger>
                 <TabsTrigger value="verified-docs" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2 col-span-2 sm:col-span-1">
                   <span className="inline-flex items-center gap-1.5">
@@ -642,14 +705,58 @@ export default function ExecutiveHRTraffic() {
               </TabsContent>
 
                 <TabsContent value="verification" className="space-y-4 mt-4">
-                  {verificationPendingApplications.length === 0 ? (
+                  {verificationPendingUploadApplications.length === 0 ? (
                     <Card className="p-12 text-center">
                       <FileCheck className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-                      <p className="text-muted-foreground">No documents pending verification</p>
+                      <p className="text-muted-foreground">No tutors are currently waiting to upload the next document</p>
                     </Card>
                   ) : (
                     <div className="grid gap-4">
-                      {verificationPendingApplications.map((application: any) => (
+                      {verificationPendingUploadApplications.map((application: any) => (
+                        <TutorDocumentReview
+                          key={application.id}
+                          application={application}
+                          onReview={() => {
+                            queryClient.invalidateQueries({ queryKey: ["/api/coo/tutor-applications"] });
+                            refetchVerificationData();
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="verification-review" className="space-y-4 mt-4">
+                  {verificationUnderReviewApplications.length === 0 ? (
+                    <Card className="p-12 text-center">
+                      <FileCheck className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                      <p className="text-muted-foreground">No documents are currently pending COO review</p>
+                    </Card>
+                  ) : (
+                    <div className="grid gap-4">
+                      {verificationUnderReviewApplications.map((application: any) => (
+                        <TutorDocumentReview
+                          key={application.id}
+                          application={application}
+                          onReview={() => {
+                            queryClient.invalidateQueries({ queryKey: ["/api/coo/tutor-applications"] });
+                            refetchVerificationData();
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="verification-awaiting-tt" className="space-y-4 mt-4">
+                  {verificationAwaitingTTApplications.length === 0 ? (
+                    <Card className="p-12 text-center">
+                      <FileText className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                      <p className="text-muted-foreground">No tutors are waiting for TT internal copy completion</p>
+                    </Card>
+                  ) : (
+                    <div className="grid gap-4">
+                      {verificationAwaitingTTApplications.map((application: any) => (
                         <TutorDocumentReview
                           key={application.id}
                           application={application}
@@ -672,33 +779,14 @@ export default function ExecutiveHRTraffic() {
                   ) : (
                     <div className="grid gap-4">
                       {verificationVerifiedApplications.map((application: any) => (
-                        <Card key={application.id}>
-                          <CardHeader>
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <CardTitle className="text-base">
-                                  {application.fullName || application.full_name || application.full_names || application.fullNames}
-                                </CardTitle>
-                                <CardDescription>{application.email}</CardDescription>
-                              </div>
-                              <Badge className="bg-green-100 text-green-800">Verified</Badge>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            <p className="text-sm text-muted-foreground">
-                              All six onboarding documents have been approved. This tutor is ready for pod assignment.
-                            </p>
-                            <Button variant="outline" className="gap-2" onClick={() => setSelectedApplication(application)}>
-                              <User className="w-4 h-4" />
-                              View Full Application
-                            </Button>
-                            {(application.updated_at || application.updatedAt) && (
-                              <p className="text-xs text-muted-foreground">
-                                Updated on {format(new Date(application.updated_at || application.updatedAt), "PPP")}
-                              </p>
-                            )}
-                          </CardContent>
-                        </Card>
+                        <TutorDocumentReview
+                          key={application.id}
+                          application={application}
+                          onReview={() => {
+                            queryClient.invalidateQueries({ queryKey: ["/api/coo/tutor-applications"] });
+                            refetchVerificationData();
+                          }}
+                        />
                       ))}
                     </div>
                   )}

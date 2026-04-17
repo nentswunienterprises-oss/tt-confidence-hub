@@ -74,8 +74,6 @@ import TDUpdates from "@/pages/operational/td/updates";
 
 // Legacy COO Pages (kept for backwards compatibility)
 import COODashboard from "@/pages/executive/coo/dashboard";
-import COOApplications from "@/pages/executive/coo/applications";
-import COOTutorApplications from "@/pages/executive/coo/tutor-applications";
 import COOPods from "@/pages/executive/coo/pods";
 import COOPodDetail from "@/pages/executive/coo/pod-detail";
 import COOVerification from "@/pages/executive/coo/verification";
@@ -400,7 +398,7 @@ function Router() {
       {/* COO Routes */}
       <Route path="/executive/coo/dashboard" element={<ExecutiveCOODashboard />} />
       <Route path="/executive/coo/traffic" element={<DashboardLayout><ExecutiveHRTraffic /></DashboardLayout>} />
-      <Route path="/executive/coo/applications" element={<COOTutorApplications />} />
+      <Route path="/executive/coo/applications" element={<Navigate to="/executive/coo/traffic" replace />} />
       <Route path="/executive/coo/pods" element={<DashboardLayout><ExecutiveCOODashboard /></DashboardLayout>} />
       <Route path="/executive/coo/broadcast" element={<DashboardLayout><ExecutiveCOODashboard /></DashboardLayout>} />
       <Route path="/executive/coo/track-leads" element={<ExecutiveCOOTrackLeads />} />
@@ -442,8 +440,8 @@ function Router() {
       {/* Legacy COO Routes */}
       <Route path="/coo/dashboard" element={<COODashboard />} />
       <Route path="/coo/traffic" element={<DashboardLayout><ExecutiveHRTraffic /></DashboardLayout>} />
-      <Route path="/coo/applications" element={<COOApplications />} />
-      <Route path="/coo/tutor-applications" element={<COOTutorApplications />} />
+      <Route path="/coo/applications" element={<Navigate to="/coo/traffic" replace />} />
+      <Route path="/coo/tutor-applications" element={<Navigate to="/coo/traffic" replace />} />
       <Route path="/coo/pods" element={<COOPods />} />
       <Route path="/coo/pods/:podId" element={<COOPodDetail />} />
       <Route path="/coo/verification" element={<COOVerification />} />
