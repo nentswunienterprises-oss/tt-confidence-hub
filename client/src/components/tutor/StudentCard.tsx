@@ -45,6 +45,11 @@ function normalizeTopicLabel(rawValue) {
   return cleaned;
 }
 
+function normalizeTopicKey(rawValue) {
+  const normalized = normalizeTopicLabel(rawValue);
+  return normalized ? normalized.toLowerCase() : null;
+}
+
 function formatRelativeTime(date) {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "Unknown";
   const diffMs = Date.now() - date.getTime();
@@ -301,9 +306,11 @@ export function StudentCard({
     const byTopic = new Map<string, { topic: string; phase: string; stability: string }>();
 
     allTopics.forEach((entry) => {
-      const topic = String(entry?.topic || "").trim();
-      if (!topic) return;
-      byTopic.set(topic, {
+      const topic = normalizeTopicLabel(entry?.topic);
+      const topicKey = normalizeTopicKey(entry?.topic);
+      if (!topic || !topicKey) return;
+
+      const normalizedEntry = {
         topic,
         phase: entry?.hasObservedState
           ? (normalizePhaseLabel(entry.phase) || "Structured Execution")
@@ -311,15 +318,26 @@ export function StudentCard({
         stability: entry?.hasObservedState
           ? (normalizeStabilityLabel(entry.stability) || "Low")
           : "Unknown",
-      });
+      };
+
+      const existing = byTopic.get(topicKey);
+      const nextHasObservedState = normalizedEntry.phase !== "Unknown" || normalizedEntry.stability !== "Unknown";
+      const existingHasObservedState = existing
+        ? existing.phase !== "Unknown" || existing.stability !== "Unknown"
+        : false;
+
+      if (!existing || (nextHasObservedState && !existingHasObservedState)) {
+        byTopic.set(topicKey, normalizedEntry);
+      }
     });
 
     const proposalTopics = Object.values(student.topicConditioning?.topics || {}) as Array<any>;
     proposalTopics.forEach((entry) => {
-      const topic = String(entry?.topic || "").trim();
-      if (!topic) return;
-      if (byTopic.has(topic)) return;
-      byTopic.set(topic, {
+      const topic = normalizeTopicLabel(entry?.topic);
+      const topicKey = normalizeTopicKey(entry?.topic);
+      if (!topic || !topicKey) return;
+      if (byTopic.has(topicKey)) return;
+      byTopic.set(topicKey, {
         topic,
         phase: "Unknown",
         stability: "Unknown",
