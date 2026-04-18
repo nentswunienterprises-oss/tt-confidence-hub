@@ -90,11 +90,11 @@ function hasPendingReview(application: any) {
 function hasMissingCompletedTemplate(application: any) {
   const documentsStatus = getDocumentsStatus(application);
   const completedTemplateUrls: Record<string, string | null | undefined> = {
-    "1": application?.doc1CompletedTemplateUrl || application?.doc_1_completed_template_url,
-    "2": application?.doc2CompletedTemplateUrl || application?.doc_2_completed_template_url,
-    "3": application?.doc3CompletedTemplateUrl || application?.doc_3_completed_template_url,
-    "4": application?.doc4CompletedTemplateUrl || application?.doc_4_completed_template_url,
-    "5": application?.doc5CompletedTemplateUrl || application?.doc_5_completed_template_url,
+    "1": application?.doc1CompletedTemplateUrl,
+    "2": application?.doc2CompletedTemplateUrl,
+    "3": application?.doc3CompletedTemplateUrl,
+    "4": application?.doc4CompletedTemplateUrl,
+    "5": application?.doc5CompletedTemplateUrl,
   };
 
   return ["1", "2", "3", "4", "5"].some(
@@ -226,16 +226,12 @@ export default function ExecutiveHRTraffic() {
         verificationDoc: {
           status: "pending",
         // Map current sequential docs to existing card link fields for compatibility.
-        file_url_agreement: app.doc1TutorAgreementUrl || app.doc_1_tutor_agreement_url || app.doc2CodeOfConductUrl || app.doc_2_code_of_conduct_url,
+        file_url_agreement: app.doc1SubmissionUrl || app.doc2SubmissionUrl,
         file_url_consent:
-          app.doc3EmergencyWaiverUrl ||
-          app.doc_3_emergency_waiver_url ||
-          app.doc4BackgroundAuthUrl ||
-          app.doc_4_background_auth_url ||
-          app.doc5TaxInfoUrl ||
-          app.doc_5_tax_info_url ||
-          app.doc6CertifiedIdCopyUrl ||
-          app.doc_6_certified_id_copy_url,
+          app.doc3SubmissionUrl ||
+          app.doc4SubmissionUrl ||
+          app.doc5SubmissionUrl ||
+          app.doc6SubmissionUrl,
       },
       };
     });
@@ -254,16 +250,12 @@ export default function ExecutiveHRTraffic() {
         },
         verificationDoc: {
         status: "verified",
-        file_url_agreement: app.doc1TutorAgreementUrl || app.doc_1_tutor_agreement_url || app.doc2CodeOfConductUrl || app.doc_2_code_of_conduct_url,
+        file_url_agreement: app.doc1SubmissionUrl || app.doc2SubmissionUrl,
         file_url_consent:
-          app.doc3EmergencyWaiverUrl ||
-          app.doc_3_emergency_waiver_url ||
-          app.doc4BackgroundAuthUrl ||
-          app.doc_4_background_auth_url ||
-          app.doc5TaxInfoUrl ||
-          app.doc_5_tax_info_url ||
-          app.doc6CertifiedIdCopyUrl ||
-          app.doc_6_certified_id_copy_url,
+          app.doc3SubmissionUrl ||
+          app.doc4SubmissionUrl ||
+          app.doc5SubmissionUrl ||
+          app.doc6SubmissionUrl,
         updated_at: app.updatedAt || app.updated_at,
       },
       };

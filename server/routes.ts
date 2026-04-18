@@ -3450,12 +3450,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ...latestApp,
               status,
               applicationId: latestApp.id,
-              hasTrialAgreement: !!latestApp.trialAgreementUrl,
-              hasParentConsent: !!latestApp.parentConsentUrl,
-              trialAgreementVerified: !!latestApp.trialAgreementVerified,
-              parentConsentVerified: !!latestApp.parentConsentVerified,
-              trialAgreementUrl: latestApp.trialAgreementUrl,
-              parentConsentUrl: latestApp.parentConsentUrl,
               isUnder18,
               documentSubmissionStep: latestApp.documentSubmissionStep || (latestApp.status === "approved" ? 1 : 0),
               documentsStatus,
@@ -9354,16 +9348,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           (step) => String((documentsStatus as any)?.[step] || "") === "approved"
         );
 
-        // Check legacy document upload status
-        const hasTrialAgreement = !!latestApp.trialAgreementUrl;
-        const hasParentConsent = !!latestApp.parentConsentUrl;
-        const trialAgreementVerified = !!latestApp.trialAgreementVerified;
-        const parentConsentVerified = !!latestApp.parentConsentVerified;
-        
-        // Determine if onboarding is complete
-        const requiredDocsComplete = hasTrialAgreement && (!isUnder18 || hasParentConsent);
-        const docsVerified = trialAgreementVerified && (!isUnder18 || parentConsentVerified);
-        
         // Map application status to gateway status
         let status: string;
         switch (latestApp.status) {
@@ -9391,12 +9375,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status,
           applicationId: latestApp.id,
           isUnder18,
-          hasTrialAgreement,
-          hasParentConsent,
-          trialAgreementVerified,
-          parentConsentVerified,
-          trialAgreementUrl: latestApp.trialAgreementUrl,
-          parentConsentUrl: latestApp.parentConsentUrl,
           documentSubmissionStep: latestApp.documentSubmissionStep || (latestApp.status === "approved" ? 1 : 0),
           documentsStatus,
           onboardingCompletedAt: latestApp.onboardingCompletedAt ?? null,
@@ -9416,15 +9394,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: Request, res: Response) => {
       try {
         const userId = (req.session as any).userId;
-        const { applicationId, documentType, docStep, fileName, fileData, fileType } = req.body;
+        const { applicationId, docStep, fileName, fileData, fileType } = req.body;
         const parsedDocStep = typeof docStep === "number" ? docStep : Number(docStep);
         const isSequentialUpload = Number.isInteger(parsedDocStep) && parsedDocStep >= 1 && parsedDocStep <= 6;
 
-        if (!applicationId || !fileName || !fileData || (!documentType && !isSequentialUpload)) {
-          return res.status(400).json({ message: "Missing required fields" });
-        }
-
-        if (!isSequentialUpload && !["trial_agreement", "parent_consent"].includes(documentType)) {
+        if (!applicationId || !fileName || !fileData || !isSequentialUpload) {
           return res.status(400).json({ message: "Invalid document type" });
         }
 
@@ -9459,21 +9433,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!urlData?.publicUrl) {
           console.error('Could not resolve public URL for uploaded onboarding document', {
             applicationId,
-            docStep: isSequentialUpload ? parsedDocStep : undefined,
-            documentType: isSequentialUpload ? undefined : documentType,
+            docStep: parsedDocStep,
             safeFileName,
           });
           return res.status(500).json({ message: 'Upload succeeded but file URL could not be generated' });
         }
 
         // Save to database
-        const updated = isSequentialUpload
-          ? await storage.updateTutorSequentialDocument(applicationId, parsedDocStep, urlData.publicUrl)
-          : await storage.updateTutorOnboardingDocument(
-              applicationId,
-              documentType as 'trial_agreement' | 'parent_consent',
-              urlData.publicUrl
-            );
+        const updated = await storage.updateTutorSequentialDocument(applicationId, parsedDocStep, urlData.publicUrl);
 
         if (!updated) {
           return res.status(500).json({ message: 'Failed to update document record' });
@@ -9581,50 +9548,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error('Error completing onboarding:', error);
         res.status(500).json({ message: 'Failed to complete onboarding' });
-      }
-    }
-  );
-
-  app.post(
-    "/api/tutor/onboarding-documents",
-    isAuthenticated,
-    requireRole(["tutor"]),
-    async (req: Request, res: Response) => {
-      try {
-        const userId = (req.session as any).userId;
-        const { applicationId, documentType, documentUrl } = req.body;
-        
-        if (!applicationId || !documentType || !documentUrl) {
-          return res.status(400).json({ message: "Missing required fields" });
-        }
-        
-        if (!["trial_agreement", "parent_consent"].includes(documentType)) {
-          return res.status(400).json({ message: "Invalid document type" });
-        }
-        
-        // Verify the application belongs to this user
-        const applications = await storage.getTutorApplicationsByUser(userId);
-        const app = applications.find(a => a.id === applicationId);
-        
-        if (!app) {
-          return res.status(403).json({ message: "Application not found or access denied" });
-        }
-        
-        // Update the document URL
-        const updated = await storage.updateTutorOnboardingDocument(
-          applicationId,
-          documentType as "trial_agreement" | "parent_consent",
-          documentUrl
-        );
-        
-        if (!updated) {
-          return res.status(500).json({ message: "Failed to update document" });
-        }
-        
-        res.json({ success: true, application: updated });
-      } catch (error) {
-        console.error("Error uploading onboarding document:", error);
-        res.status(500).json({ message: "Failed to upload document" });
       }
     }
   );
@@ -9766,51 +9689,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: error.message });
         }
         res.status(500).json({ message: "Failed to review document" });
-      }
-    }
-  );
-
-  app.post(
-    "/api/coo/verify-tutor-document",
-    isAuthenticated,
-    requireRole(["coo"]),
-    async (req: Request, res: Response) => {
-      try {
-        const userId = (req.session as any).userId;
-        const { applicationId, documentType } = req.body;
-        
-        if (!applicationId || !documentType) {
-          return res.status(400).json({ message: "Missing required fields" });
-        }
-        
-        if (!["trial_agreement", "parent_consent"].includes(documentType)) {
-          return res.status(400).json({ message: "Invalid document type" });
-        }
-        
-        const updated = await storage.verifyTutorOnboardingDocument(
-          applicationId,
-          documentType as "trial_agreement" | "parent_consent",
-          userId
-        );
-        
-        if (!updated) {
-          return res.status(500).json({ message: "Failed to verify document" });
-        }
-        
-        // Check if all required docs are now verified
-        const isUnder18 = updated.age < 18;
-        const allVerified = updated.trialAgreementVerified && 
-          (!isUnder18 || updated.parentConsentVerified);
-        
-        // If all verified, mark onboarding as complete
-        if (allVerified) {
-          await storage.completeTutorOnboarding(applicationId);
-        }
-        
-        res.json({ success: true, application: updated, onboardingComplete: allVerified });
-      } catch (error) {
-        console.error("Error verifying onboarding document:", error);
-        res.status(500).json({ message: "Failed to verify document" });
       }
     }
   );

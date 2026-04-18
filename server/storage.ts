@@ -92,72 +92,72 @@ const SEQUENTIAL_TUTOR_DOCUMENT_FIELDS: Record<
   }
 > = {
   1: {
-    url: "doc_1_tutor_agreement_url",
-    uploadedAt: "doc_1_tutor_agreement_uploaded_at",
-    verified: "doc_1_tutor_agreement_verified",
-    verifiedBy: "doc_1_tutor_agreement_verified_by",
-    verifiedAt: "doc_1_tutor_agreement_verified_at",
-    rejectionReason: "doc_1_tutor_agreement_rejection_reason",
+    url: "doc_1_submission_url",
+    uploadedAt: "doc_1_submission_uploaded_at",
+    verified: "doc_1_submission_verified",
+    verifiedBy: "doc_1_submission_verified_by",
+    verifiedAt: "doc_1_submission_verified_at",
+    rejectionReason: "doc_1_submission_rejection_reason",
     completedTemplateUrl: "doc_1_completed_template_url",
     completedTemplateUploadedAt: "doc_1_completed_template_uploaded_at",
     completedTemplateUploadedBy: "doc_1_completed_template_uploaded_by",
     requiresCompletedTemplate: true,
   },
   2: {
-    url: "doc_2_code_of_conduct_url",
-    uploadedAt: "doc_2_code_of_conduct_uploaded_at",
-    verified: "doc_2_code_of_conduct_verified",
-    verifiedBy: "doc_2_code_of_conduct_verified_by",
-    verifiedAt: "doc_2_code_of_conduct_verified_at",
-    rejectionReason: "doc_2_code_of_conduct_rejection_reason",
+    url: "doc_2_submission_url",
+    uploadedAt: "doc_2_submission_uploaded_at",
+    verified: "doc_2_submission_verified",
+    verifiedBy: "doc_2_submission_verified_by",
+    verifiedAt: "doc_2_submission_verified_at",
+    rejectionReason: "doc_2_submission_rejection_reason",
     completedTemplateUrl: "doc_2_completed_template_url",
     completedTemplateUploadedAt: "doc_2_completed_template_uploaded_at",
     completedTemplateUploadedBy: "doc_2_completed_template_uploaded_by",
     requiresCompletedTemplate: true,
   },
   3: {
-    url: "doc_3_emergency_waiver_url",
-    uploadedAt: "doc_3_emergency_waiver_uploaded_at",
-    verified: "doc_3_emergency_waiver_verified",
-    verifiedBy: "doc_3_emergency_waiver_verified_by",
-    verifiedAt: "doc_3_emergency_waiver_verified_at",
-    rejectionReason: "doc_3_emergency_waiver_rejection_reason",
+    url: "doc_3_submission_url",
+    uploadedAt: "doc_3_submission_uploaded_at",
+    verified: "doc_3_submission_verified",
+    verifiedBy: "doc_3_submission_verified_by",
+    verifiedAt: "doc_3_submission_verified_at",
+    rejectionReason: "doc_3_submission_rejection_reason",
     completedTemplateUrl: "doc_3_completed_template_url",
     completedTemplateUploadedAt: "doc_3_completed_template_uploaded_at",
     completedTemplateUploadedBy: "doc_3_completed_template_uploaded_by",
     requiresCompletedTemplate: true,
   },
   4: {
-    url: "doc_4_background_auth_url",
-    uploadedAt: "doc_4_background_auth_uploaded_at",
-    verified: "doc_4_background_auth_verified",
-    verifiedBy: "doc_4_background_auth_verified_by",
-    verifiedAt: "doc_4_background_auth_verified_at",
-    rejectionReason: "doc_4_background_auth_rejection_reason",
+    url: "doc_4_submission_url",
+    uploadedAt: "doc_4_submission_uploaded_at",
+    verified: "doc_4_submission_verified",
+    verifiedBy: "doc_4_submission_verified_by",
+    verifiedAt: "doc_4_submission_verified_at",
+    rejectionReason: "doc_4_submission_rejection_reason",
     completedTemplateUrl: "doc_4_completed_template_url",
     completedTemplateUploadedAt: "doc_4_completed_template_uploaded_at",
     completedTemplateUploadedBy: "doc_4_completed_template_uploaded_by",
     requiresCompletedTemplate: true,
   },
   5: {
-    url: "doc_5_tax_info_url",
-    uploadedAt: "doc_5_tax_info_uploaded_at",
-    verified: "doc_5_tax_info_verified",
-    verifiedBy: "doc_5_tax_info_verified_by",
-    verifiedAt: "doc_5_tax_info_verified_at",
-    rejectionReason: "doc_5_tax_info_rejection_reason",
+    url: "doc_5_submission_url",
+    uploadedAt: "doc_5_submission_uploaded_at",
+    verified: "doc_5_submission_verified",
+    verifiedBy: "doc_5_submission_verified_by",
+    verifiedAt: "doc_5_submission_verified_at",
+    rejectionReason: "doc_5_submission_rejection_reason",
     completedTemplateUrl: "doc_5_completed_template_url",
     completedTemplateUploadedAt: "doc_5_completed_template_uploaded_at",
     completedTemplateUploadedBy: "doc_5_completed_template_uploaded_by",
     requiresCompletedTemplate: true,
   },
   6: {
-    url: "doc_6_certified_id_copy_url",
-    uploadedAt: "doc_6_certified_id_copy_uploaded_at",
-    verified: "doc_6_certified_id_copy_verified",
-    verifiedBy: "doc_6_certified_id_copy_verified_by",
-    verifiedAt: "doc_6_certified_id_copy_verified_at",
-    rejectionReason: "doc_6_certified_id_copy_rejection_reason",
+    url: "doc_6_submission_url",
+    uploadedAt: "doc_6_submission_uploaded_at",
+    verified: "doc_6_submission_verified",
+    verifiedBy: "doc_6_submission_verified_by",
+    verifiedAt: "doc_6_submission_verified_at",
+    rejectionReason: "doc_6_submission_rejection_reason",
     requiresCompletedTemplate: false,
   },
 };
@@ -248,12 +248,6 @@ export interface IStorage {
   rejectTutorApplication(id: string, reviewedBy: string, reason: string): Promise<TutorApplication | undefined>;
   getApprovedTutors(): Promise<User[]>;
   
-  // Tutor onboarding document tracking
-  updateTutorOnboardingDocument(
-    applicationId: string,
-    documentType: "trial_agreement" | "parent_consent",
-    documentUrl: string
-  ): Promise<TutorApplication | undefined>;
   updateTutorSequentialDocument(
     applicationId: string,
     docStep: number,
@@ -264,11 +258,6 @@ export interface IStorage {
     docStep: number,
     completedDocumentUrl: string,
     completedBy: string
-  ): Promise<TutorApplication | undefined>;
-  verifyTutorOnboardingDocument(
-    applicationId: string,
-    documentType: "trial_agreement" | "parent_consent",
-    verifiedBy: string
   ): Promise<TutorApplication | undefined>;
   reviewTutorSequentialDocument(
     applicationId: string,
@@ -1571,38 +1560,6 @@ export class SupabaseStorage implements IStorage {
     return users ?? [];
   }
 
-  // Tutor onboarding document methods
-  async updateTutorOnboardingDocument(
-    applicationId: string,
-    documentType: "trial_agreement" | "parent_consent",
-    documentUrl: string
-  ): Promise<TutorApplication | undefined> {
-    const updateData: Record<string, any> = {
-      updated_at: new Date(),
-    };
-    
-    if (documentType === "trial_agreement") {
-      updateData.trial_agreement_url = documentUrl;
-      updateData.trial_agreement_uploaded_at = new Date();
-    } else {
-      updateData.parent_consent_url = documentUrl;
-      updateData.parent_consent_uploaded_at = new Date();
-    }
-    
-    const { data, error } = await supabase
-      .from("tutor_applications")
-      .update(updateData)
-      .eq("id", applicationId)
-      .select()
-      .single();
-    
-    if (error) {
-      console.error("Error updating onboarding document:", error);
-      return undefined;
-    }
-    return data ? (transformSnakeToCamel(data) as TutorApplication) : undefined;
-  }
-
   async updateTutorSequentialDocument(
     applicationId: string,
     docStep: number,
@@ -1758,39 +1715,6 @@ export class SupabaseStorage implements IStorage {
     return data ? (transformSnakeToCamel(data) as TutorApplication) : undefined;
   }
 
-  async verifyTutorOnboardingDocument(
-    applicationId: string,
-    documentType: "trial_agreement" | "parent_consent",
-    verifiedBy: string
-  ): Promise<TutorApplication | undefined> {
-    const updateData: Record<string, any> = {
-      updated_at: new Date(),
-    };
-    
-    if (documentType === "trial_agreement") {
-      updateData.trial_agreement_verified = true;
-      updateData.trial_agreement_verified_by = verifiedBy;
-      updateData.trial_agreement_verified_at = new Date();
-    } else {
-      updateData.parent_consent_verified = true;
-      updateData.parent_consent_verified_by = verifiedBy;
-      updateData.parent_consent_verified_at = new Date();
-    }
-    
-    const { data, error } = await supabase
-      .from("tutor_applications")
-      .update(updateData)
-      .eq("id", applicationId)
-      .select()
-      .single();
-    
-    if (error) {
-      console.error("Error verifying onboarding document:", error);
-      return undefined;
-    }
-    return data ? (transformSnakeToCamel(data) as TutorApplication) : undefined;
-  }
-
   async reviewTutorSequentialDocument(
     applicationId: string,
     docStep: number,
@@ -1803,7 +1727,7 @@ export class SupabaseStorage implements IStorage {
     const { data: existing, error: existingError } = await supabase
       .from("tutor_applications")
       .select(
-        "documents_status, doc_1_completed_template_url, doc_2_completed_template_url, doc_3_completed_template_url, doc_4_completed_template_url, doc_5_completed_template_url, doc_1_tutor_agreement_url, doc_2_code_of_conduct_url, doc_3_emergency_waiver_url, doc_4_background_auth_url, doc_5_tax_info_url, doc_6_certified_id_copy_url"
+        "documents_status, doc_1_completed_template_url, doc_2_completed_template_url, doc_3_completed_template_url, doc_4_completed_template_url, doc_5_completed_template_url, doc_1_submission_url, doc_2_submission_url, doc_3_submission_url, doc_4_submission_url, doc_5_submission_url, doc_6_submission_url"
       )
       .eq("id", applicationId)
       .single();

@@ -17,12 +17,6 @@ import { PushOptInCard } from "@/components/push/PushOptInCard";
 interface ApplicationStatus {
   status: "not_applied" | "pending" | "approved" | "rejected" | "verification" | "confirmed";
   applicationId?: string;
-  hasTrialAgreement?: boolean;
-  hasParentConsent?: boolean;
-  trialAgreementVerified?: boolean;
-  parentConsentVerified?: boolean;
-  trialAgreementUrl?: string;
-  parentConsentUrl?: string;
   isUnder18?: boolean;
 }
 

@@ -67,12 +67,12 @@ export function TutorDocumentReview({ application, onReview }: TutorDocumentRevi
   };
 
   const tutorSignedUrls: Record<number, string | null> = {
-    1: application.doc1TutorAgreementUrl || application.doc_1_tutor_agreement_url,
-    2: application.doc2CodeOfConductUrl || application.doc_2_code_of_conduct_url,
-    3: application.doc3EmergencyWaiverUrl || application.doc_3_emergency_waiver_url,
-    4: application.doc4BackgroundAuthUrl || application.doc_4_background_auth_url,
-    5: application.doc5TaxInfoUrl || application.doc_5_tax_info_url,
-    6: application.doc6CertifiedIdCopyUrl || application.doc_6_certified_id_copy_url,
+    1: application.doc1SubmissionUrl,
+    2: application.doc2SubmissionUrl,
+    3: application.doc3SubmissionUrl,
+    4: application.doc4SubmissionUrl,
+    5: application.doc5SubmissionUrl,
+    6: application.doc6SubmissionUrl,
   };
 
   const completedTemplateUrls: Record<number, string | null> = {
@@ -85,12 +85,12 @@ export function TutorDocumentReview({ application, onReview }: TutorDocumentRevi
   };
 
   const rejectionReasons: Record<number, string | undefined> = {
-    1: application.doc1TutorAgreementRejectionReason || application.doc_1_tutor_agreement_rejection_reason,
-    2: application.doc2CodeOfConductRejectionReason || application.doc_2_code_of_conduct_rejection_reason,
-    3: application.doc3EmergencyWaiverRejectionReason || application.doc_3_emergency_waiver_rejection_reason,
-    4: application.doc4BackgroundAuthRejectionReason || application.doc_4_background_auth_rejection_reason,
-    5: application.doc5TaxInfoRejectionReason || application.doc_5_tax_info_rejection_reason,
-    6: application.doc6CertifiedIdCopyRejectionReason || application.doc_6_certified_id_copy_rejection_reason,
+    1: application.doc1SubmissionRejectionReason,
+    2: application.doc2SubmissionRejectionReason,
+    3: application.doc3SubmissionRejectionReason,
+    4: application.doc4SubmissionRejectionReason,
+    5: application.doc5SubmissionRejectionReason,
+    6: application.doc6SubmissionRejectionReason,
   };
 
   const approvedCount = DOCUMENTS.filter((doc) => documentsStatus[String(doc.step)] === "approved").length;
