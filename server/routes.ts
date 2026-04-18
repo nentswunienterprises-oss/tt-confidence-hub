@@ -5727,12 +5727,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return { data, error };
   };
 
+  const normalizeStudentRecord = (student: any) => {
+    if (!student) return null;
+
+    return {
+      ...student,
+      tutorId: student.tutorId || student.tutor_id || null,
+      parentId: student.parentId || student.parent_id || null,
+      parentEnrollmentId: student.parentEnrollmentId || student.parent_enrollment_id || null,
+      parentContact: student.parentContact || student.parent_contact || null,
+      sessionProgress:
+        student.sessionProgress ??
+        student.session_progress ??
+        0,
+      confidenceScore:
+        student.confidenceScore ??
+        student.confidence_score ??
+        null,
+      createdAt: student.createdAt || student.created_at || null,
+      identitySheetCompletedAt:
+        student.identitySheetCompletedAt || student.identity_sheet_completed_at || null,
+    };
+  };
+
   const resolveCanonicalStudentForEnrollment = async (enrollment: any) => {
     if (!enrollment) return null;
 
     if (enrollment.assigned_student_id) {
       const assignedStudent = await storage.getStudent(enrollment.assigned_student_id);
-      if (assignedStudent) return assignedStudent;
+      if (assignedStudent) return normalizeStudentRecord(assignedStudent);
     }
 
     if (enrollment.id) {
@@ -5743,7 +5766,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .order("updated_at", { ascending: false })
         .limit(1);
 
-      if (byEnrollmentId?.[0]) return byEnrollmentId[0];
+      if (byEnrollmentId?.[0]) return normalizeStudentRecord(byEnrollmentId[0]);
     }
 
     if (
@@ -5755,7 +5778,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     ) {
       try {
         const ensuredStudent = await ensureStudentForEnrollment(enrollment, enrollment.assigned_tutor_id);
-        if (ensuredStudent) return ensuredStudent;
+        if (ensuredStudent) return normalizeStudentRecord(ensuredStudent);
       } catch (error) {
         console.error("Failed to ensure canonical student for enrollment:", error);
       }
@@ -5771,7 +5794,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .order("updated_at", { ascending: false })
         .limit(1);
 
-      if (byParentAndName?.[0]) return byParentAndName[0];
+      if (byParentAndName?.[0]) return normalizeStudentRecord(byParentAndName[0]);
     }
 
     return null;
