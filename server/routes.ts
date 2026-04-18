@@ -6051,19 +6051,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ? "Parent"
           : String(student?.name || "Student").trim() || "Student";
 
-    if (senderRole === "tutor" && audience === "parent" && parentId) {
-      await storage.createNotification({
-        recipientUserId: parentId,
-        actorUserId: senderUserId || undefined,
-        channel: "informational",
-        title: `Message from ${senderLabel}`,
-        message,
-        link: "/client/parent/updates",
-        entityType: "student_communication",
-        entityId: inserted.id,
-      });
-    }
-
     if ((senderRole === "parent" || senderRole === "student") && student?.tutorId) {
       await storage.createNotification({
         recipientUserId: student.tutorId,
@@ -15036,6 +15023,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching parent communications:", error);
       res.status(500).json({ message: "Failed to fetch communications" });
+    }
+  });
+
+  app.get("/api/parent/communications/unread-count", isAuthenticated, requireRole(["parent"]), async (req: Request, res: Response) => {
+    try {
+      const parentId = (req as any).dbUser.id;
+      const { data: enrollment, error } = await selectLatestParentEnrollment({
+        parentId,
+        primarySelect: "id, user_id, assigned_tutor_id, assigned_student_id, student_full_name, student_grade, parent_email",
+        fallbackSelect: "id, user_id, assigned_tutor_id, student_full_name, student_grade, parent_email",
+      });
+
+      if (error) throw error;
+      if (!enrollment) {
+        return res.json({ unreadCount: 0 });
+      }
+
+      const student = await resolveCanonicalStudentForEnrollment(enrollment);
+      if (!student || !student.tutorId) {
+        return res.json({ unreadCount: 0 });
+      }
+
+      const thread = await ensureStudentCommunicationThread({
+        studentId: student.id,
+        tutorId: student.tutorId,
+        parentId,
+        audience: "parent",
+      });
+
+      const { data, error: unreadError } = await supabase
+        .from("student_communication_messages")
+        .select("id")
+        .eq("thread_id", thread.id)
+        .neq("sender_role", "parent")
+        .is("read_by_parent_at", null);
+
+      if (unreadError) throw unreadError;
+
+      res.json({ unreadCount: (data || []).length });
+    } catch (error) {
+      console.error("Error fetching parent communication unread count:", error);
+      res.status(500).json({ message: "Failed to fetch unread count" });
     }
   });
 

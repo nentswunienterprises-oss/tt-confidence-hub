@@ -11,11 +11,13 @@ export default function ParentUpdates() {
         queryKey={["/api/parent/communications"]}
         getPath="/api/parent/communications"
         postPath="/api/parent/communications"
+        unreadCountPath="/api/parent/communications/unread-count"
         updatesContent={
           <NotificationInbox
             title="Updates"
             description="Action-required items and informational notifications for parents."
             emptyMessage="No notifications yet. You'll see action-required and informational updates here."
+            excludeEntityTypes={["student_communication"]}
           />
         }
       />

@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect, useRef } from "react";
+import { ReactNode, useState, useEffect, useMemo, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -132,13 +132,32 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     refetchInterval: 15000,
   });
 
+  const { data: parentCommunicationUnreadData } = useQuery<{ unreadCount: number }>({
+    queryKey: ["/api/parent/communications/unread-count"],
+    enabled: effectiveIsAuth && !!effectiveUser && isParent(effectiveUser),
+    refetchInterval: 15000,
+  });
+
+  const visibleNotifications = useMemo(
+    () =>
+      (notifications || []).filter((notification) =>
+        isParent(effectiveUser) ? notification.entityType !== "student_communication" : true
+      ),
+    [effectiveUser, notifications]
+  );
+
+  const visibleNotificationUnreadCount = useMemo(
+    () => visibleNotifications.filter((notification) => !notification.isRead).length,
+    [visibleNotifications]
+  );
+
   const notificationsInitialized = useRef(false);
   const seenNotificationIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    if (!usesNotificationInbox || !notifications) return;
+    if (!usesNotificationInbox || !visibleNotifications.length) return;
 
-    const currentIds = new Set(notifications.map((notification) => notification.id));
+    const currentIds = new Set(visibleNotifications.map((notification) => notification.id));
 
     if (!notificationsInitialized.current) {
       notificationsInitialized.current = true;
@@ -146,7 +165,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       return;
     }
 
-    notifications.forEach((notification) => {
+    visibleNotifications.forEach((notification) => {
       if (!seenNotificationIds.current.has(notification.id)) {
         toast({
           title: notification.title,
@@ -157,7 +176,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     });
 
     seenNotificationIds.current = currentIds;
-  }, [notifications, toast, usesNotificationInbox]);
+  }, [toast, usesNotificationInbox, visibleNotifications]);
 
   console.log("👨‍👩‍👧 Parent student info:", parentStudentInfo);
 
@@ -186,7 +205,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   ) || [];
 
   const navUnreadCount = usesNotificationInbox
-    ? (notificationUnreadData?.unreadCount || 0)
+    ? (isParent(effectiveUser)
+        ? visibleNotificationUnreadCount + Number(parentCommunicationUnreadData?.unreadCount || 0)
+        : (notificationUnreadData?.unreadCount || 0))
     : unreadBroadcasts.length;
 
   // Mark broadcast as read mutation

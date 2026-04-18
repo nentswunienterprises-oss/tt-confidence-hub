@@ -13,9 +13,20 @@ export interface NotificationItem {
   message: string;
   isRead: boolean;
   createdAt: string;
+  entityType?: string | null;
 }
 
-export function NotificationInbox({ title, description, emptyMessage }: { title: string; description: string; emptyMessage: string; }) {
+export function NotificationInbox({
+  title,
+  description,
+  emptyMessage,
+  excludeEntityTypes = [],
+}: {
+  title: string;
+  description: string;
+  emptyMessage: string;
+  excludeEntityTypes?: string[];
+}) {
   const qc = useQueryClient();
   const initialized = useRef(false);
   const { data: notifications = [], isLoading } = useQuery<NotificationItem[]>({
@@ -31,7 +42,11 @@ export function NotificationInbox({ title, description, emptyMessage }: { title:
       qc.invalidateQueries({ queryKey: ["/api/notifications/unread-count"] });
     },
   });
-  const unread = useMemo(() => notifications.filter((n) => !n.isRead), [notifications]);
+  const visibleNotifications = useMemo(
+    () => notifications.filter((n) => !excludeEntityTypes.includes(n.entityType || "")),
+    [excludeEntityTypes, notifications]
+  );
+  const unread = useMemo(() => visibleNotifications.filter((n) => !n.isRead), [visibleNotifications]);
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
@@ -44,11 +59,11 @@ export function NotificationInbox({ title, description, emptyMessage }: { title:
         <div><h1 className="text-xl sm:text-3xl font-bold flex items-center gap-2"><Bell className="w-5 h-5 sm:w-8 sm:h-8" />{title}</h1><p className="text-xs sm:text-base text-muted-foreground">{description}</p></div>
         {unread.length > 0 && <Badge variant="destructive" className="text-sm sm:text-lg px-2 sm:px-4 py-1 sm:py-2">{unread.length} New</Badge>}
       </div>
-      {notifications.length === 0 ? (
+      {visibleNotifications.length === 0 ? (
         <Card><CardContent className="p-4 sm:pt-6 text-center text-sm sm:text-base text-muted-foreground"><Bell className="w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 opacity-50" /><p>{emptyMessage}</p></CardContent></Card>
       ) : (
         <div className="space-y-3 sm:space-y-4">
-          {notifications.map((n) => (
+          {visibleNotifications.map((n) => (
             <Card key={n.id} className={`${!n.isRead ? (n.channel === "action_required" ? "border-l-4 border-l-destructive bg-destructive/5" : "border-l-4 border-l-primary bg-primary/5") : ""}`}>
               <CardHeader className="p-3 sm:p-6">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
