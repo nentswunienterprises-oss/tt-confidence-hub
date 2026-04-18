@@ -53,6 +53,8 @@ import ViewTrackingSystemsDialog from "@/components/tutor/ViewTrackingSystemsDia
 import StudentTopicConditioningDialog from "@/components/tutor/StudentTopicConditioningDialog";
 import type { Pod, User } from "@shared/schema";
 
+const MAX_TUTORS_PER_POD = 12;
+
 interface ParentEnrollment {
   id: string;
   parent_full_name: string;
@@ -362,7 +364,7 @@ export default function PodDetail() {
   const podName = (currentPod as Pod).podName;
   const tdName = getTDName((currentPod as Pod).tdId);
   const tutorCount = podTutors?.length || 0;
-  const maxTutors = 10;
+  const maxTutors = MAX_TUTORS_PER_POD;
   const availableSlots = maxTutors - tutorCount;
 
   // Debug logging

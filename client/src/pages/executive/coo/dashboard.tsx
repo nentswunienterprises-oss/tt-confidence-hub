@@ -201,8 +201,8 @@ export default function COODashboard() {
     mutationFn: async (podName: string) => {
       return await apiRequest("POST", "/api/coo/pods", {
         podName,
-        podType: "Training",
-        status: "Active",
+        podType: "training",
+        status: "active",
       });
     },
     onSuccess: () => {

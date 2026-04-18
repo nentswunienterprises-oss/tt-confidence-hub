@@ -32,6 +32,8 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import type { Pod, User } from "@shared/schema";
 
+const MAX_TUTORS_PER_POD = 12;
+
 export default function COOPods() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
@@ -72,6 +74,13 @@ export default function COOPods() {
     queryKey: ["/api/coo/approved-tutors"],
     enabled: isAuthenticated && !authLoading,
     refetchInterval: 15000,
+    refetchOnWindowFocus: true,
+  });
+
+  const { data: assignedTutorIds = [] } = useQuery<string[]>({
+    queryKey: ["/api/coo/all-tutor-assignments"],
+    enabled: isAuthenticated && !authLoading,
+    refetchInterval: 10000,
     refetchOnWindowFocus: true,
   });
 
@@ -178,6 +187,10 @@ export default function COOPods() {
     return tds?.find((td) => td.id === tdId)?.name || "Unknown";
   };
 
+  const availableTutors = approvedTutors?.filter(
+    (tutor) => !assignedTutorIds.includes(tutor.id)
+  ) || [];
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -195,7 +208,7 @@ export default function COOPods() {
                 <DialogHeader>
                   <DialogTitle>Create New Pod</DialogTitle>
                   <DialogDescription>
-                    Create a new 4-Seater training pod for tutors.
+                    Create a pod and optionally assign up to 12 unassigned approved tutors.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
@@ -224,7 +237,7 @@ export default function COOPods() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="training">Training</SelectItem>
-                        <SelectItem value="commercial">Paid</SelectItem>
+                        <SelectItem value="paid">Paid</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -240,9 +253,9 @@ export default function COOPods() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="4_seater">4-Seat Pod (10 tutors, 4 students each)</SelectItem>
-                        <SelectItem value="5_seater">5-Seat Pod (10 tutors, 5 students each)</SelectItem>
-                        <SelectItem value="6_seater">6-Seat Pod (10 tutors, 6 students each)</SelectItem>
+                        <SelectItem value="4_seater">4-Seat Pod (12 tutors, 4 students each)</SelectItem>
+                        <SelectItem value="5_seater">5-Seat Pod (12 tutors, 5 students each)</SelectItem>
+                        <SelectItem value="6_seater">6-Seat Pod (12 tutors, 6 students each)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -269,24 +282,28 @@ export default function COOPods() {
                   </div>
 
                   <div className="space-y-3">
-                    <Label>Assign Tutors (Optional - max 10 per pod)</Label>
+                    <Label>{`Assign Tutors (Optional - max ${MAX_TUTORS_PER_POD} per pod)`}</Label>
                     {!approvedTutors || approvedTutors.length === 0 ? (
                       <p className="text-sm text-muted-foreground">
                         No approved tutors available. Tutors must have approved applications.
                       </p>
+                    ) : availableTutors.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        No unassigned approved tutors available.
+                      </p>
                     ) : (
                       <div className="border rounded-md p-3 space-y-2 max-h-48 overflow-y-auto">
-                        {approvedTutors.map((tutor) => (
+                        {availableTutors.map((tutor) => (
                           <div key={tutor.id} className="flex items-center space-x-2">
                             <Checkbox
                               id={`tutor-${tutor.id}`}
                               checked={formData.tutorIds.includes(tutor.id)}
                               onCheckedChange={(checked) => {
                                 if (checked) {
-                                  if (formData.tutorIds.length >= 10) {
+                                  if (formData.tutorIds.length >= MAX_TUTORS_PER_POD) {
                                     toast({
                                       title: "Maximum tutors reached",
-                                      description: "Pods can have a maximum of 10 tutors.",
+                                      description: `Pods can have a maximum of ${MAX_TUTORS_PER_POD} tutors.`,
                                       variant: "destructive",
                                     });
                                     return;
