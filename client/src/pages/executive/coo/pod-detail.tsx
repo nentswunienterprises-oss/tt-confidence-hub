@@ -51,6 +51,7 @@ import StudentIdentitySheet from "@/components/tutor/StudentIdentitySheet";
 import ViewAssignmentsDialog from "@/components/tutor/ViewAssignmentsDialog";
 import ViewTrackingSystemsDialog from "@/components/tutor/ViewTrackingSystemsDialog";
 import StudentTopicConditioningDialog from "@/components/tutor/StudentTopicConditioningDialog";
+import StudentCommunicationDialog from "@/components/communications/StudentCommunicationDialog";
 import type { Pod, User } from "@shared/schema";
 
 const MAX_TUTORS_PER_POD = 12;
@@ -94,6 +95,7 @@ export default function PodDetail() {
   const [assignmentsDialogOpen, setAssignmentsDialogOpen] = useState(false);
   const [trackingDialogOpen, setTrackingDialogOpen] = useState(false);
   const [topicConditioningDialogOpen, setTopicConditioningDialogOpen] = useState(false);
+  const [communicationDialogOpen, setCommunicationDialogOpen] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string>("");
   const [selectedStudentName, setSelectedStudentName] = useState<string>("");
   const [selectedStudentRecord, setSelectedStudentRecord] = useState<any | null>(null);
@@ -633,6 +635,12 @@ export default function PodDetail() {
                                   setSelectedStudentRecord(student);
                                   setTopicConditioningDialogOpen(true);
                                 }}
+                                onViewCommunication={(student) => {
+                                  setSelectedStudentId(student.id);
+                                  setSelectedStudentName(student.name);
+                                  setSelectedStudentRecord(student);
+                                  setCommunicationDialogOpen(true);
+                                }}
                               />
                             )}
                           </div>
@@ -783,6 +791,15 @@ export default function PodDetail() {
         mapOnly={true}
         apiBasePath="/api/coo"
       />
+
+      <StudentCommunicationDialog
+        open={communicationDialogOpen}
+        onOpenChange={setCommunicationDialogOpen}
+        studentId={selectedStudentId}
+        studentName={selectedStudentName}
+        readOnly={true}
+        apiBasePath="/api/coo"
+      />
     </DashboardLayout>
   );
 }
@@ -800,6 +817,7 @@ interface TutorStudentsSectionProps {
   assignAwaitingEnrollmentMutation: any;
   onViewTrackingSystems: (studentId: string, studentName: string) => void;
   onViewTopicConditioning: (student: any) => void;
+  onViewCommunication: (student: any) => void;
 }
 
 function TutorStudentsSection({
@@ -814,6 +832,7 @@ function TutorStudentsSection({
   assignAwaitingEnrollmentMutation,
   onViewTrackingSystems,
   onViewTopicConditioning,
+  onViewCommunication,
 }: TutorStudentsSectionProps) {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const { data: students, isLoading } = useQuery<any[]>({
@@ -910,6 +929,15 @@ function TutorStudentsSection({
                     >
                       <Calendar className="w-3 h-3 mr-1.5" />
                       View Tracking Systems
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-7"
+                      onClick={() => onViewCommunication(student)}
+                    >
+                      <Mail className="w-3 h-3 mr-1.5" />
+                      Communication
                     </Button>
                     <Button
                       variant="outline"

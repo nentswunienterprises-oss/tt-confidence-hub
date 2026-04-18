@@ -583,6 +583,7 @@ export const insertBroadcastSchema = z.object({
 // ============================================
 
 export const notificationChannelEnum = pgEnum("notification_channel", ["action_required", "informational"]);
+export const communicationAudienceEnum = pgEnum("communication_audience", ["parent", "student"]);
 
 export const notifications = pgTable("notifications", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -613,6 +614,59 @@ export const insertNotificationSchema = z.object({
   link: z.string().optional(),
   entityType: z.string().optional(),
   entityId: z.string().optional(),
+});
+
+// ============================================
+// STUDENT COMMUNICATION THREADS
+// ============================================
+
+export const studentCommunicationThreads = pgTable("student_communication_threads", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  studentId: varchar("student_id")
+    .notNull()
+    .references(() => students.id),
+  tutorId: varchar("tutor_id")
+    .notNull()
+    .references(() => users.id),
+  parentId: varchar("parent_id")
+    .references(() => users.id),
+  audience: communicationAudienceEnum("audience").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type StudentCommunicationThread = typeof studentCommunicationThreads.$inferSelect;
+export type InsertStudentCommunicationThread = typeof studentCommunicationThreads.$inferInsert;
+
+export const studentCommunicationMessages = pgTable("student_communication_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  threadId: varchar("thread_id")
+    .notNull()
+    .references(() => studentCommunicationThreads.id),
+  studentId: varchar("student_id")
+    .notNull()
+    .references(() => students.id),
+  tutorId: varchar("tutor_id")
+    .notNull()
+    .references(() => users.id),
+  parentId: varchar("parent_id").references(() => users.id),
+  audience: communicationAudienceEnum("audience").notNull(),
+  senderRole: roleEnum("sender_role").notNull(),
+  senderUserId: varchar("sender_user_id").references(() => users.id),
+  senderStudentUserId: varchar("sender_student_user_id").references(() => studentUsers.id),
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  readByTutorAt: timestamp("read_by_tutor_at"),
+  readByParentAt: timestamp("read_by_parent_at"),
+  readByStudentAt: timestamp("read_by_student_at"),
+});
+
+export type StudentCommunicationMessage = typeof studentCommunicationMessages.$inferSelect;
+export type InsertStudentCommunicationMessage = typeof studentCommunicationMessages.$inferInsert;
+
+export const insertStudentCommunicationMessageSchema = z.object({
+  audience: z.enum(["parent", "student"]),
+  message: z.string().trim().min(1, "Message is required").max(4000, "Message is too long"),
 });
 
 // ============================================

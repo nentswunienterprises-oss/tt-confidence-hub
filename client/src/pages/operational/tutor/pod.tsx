@@ -25,6 +25,7 @@ import ViewAssignmentsDialog from "@/components/tutor/ViewAssignmentsDialog";
 import ViewTrackingSystemsDialog from "@/components/tutor/ViewTrackingSystemsDialog";
 import StudentReportsDialog from "@/components/tutor/StudentReportsDialog";
 import StudentTopicConditioningDialog from "@/components/tutor/StudentTopicConditioningDialog";
+import StudentCommunicationDialog from "@/components/communications/StudentCommunicationDialog";
 import { PushOptInCard } from "@/components/push/PushOptInCard";
 import type { Student, TutorAssignment, Pod } from "@shared/schema";
 
@@ -77,6 +78,7 @@ export default function TutorPod() {
   const [assignmentsDialogOpen, setAssignmentsDialogOpen] = useState(false);
   const [trackingDialogOpen, setTrackingDialogOpen] = useState(false);
   const [topicConditioningDialogOpen, setTopicConditioningDialogOpen] = useState(false);
+  const [communicationDialogOpen, setCommunicationDialogOpen] = useState(false);
   const [reportsDialogOpen, setReportsDialogOpen] = useState(false);
   const [teamDialogOpen, setTeamDialogOpen] = useState(false);
   const [selectedTeamMemberId, setSelectedTeamMemberId] = useState<string>("");
@@ -477,6 +479,7 @@ export default function TutorPod() {
                     setProposalOpen={setProposalOpen}
                     setTopicConditioningDialogOpen={setTopicConditioningDialogOpen}
                     setReportsDialogOpen={setReportsDialogOpen}
+                    setCommunicationDialogOpen={setCommunicationDialogOpen}
                   />
                 );
               })}
@@ -571,6 +574,13 @@ export default function TutorPod() {
           parentTopics={selectedStudent?.parentInfo?.math_struggle_areas || ""}
           topicConditioning={selectedStudent?.topicConditioning || null}
           persistedTopicStates={((selectedStudent as any)?.conceptMastery?.topicConditioning?.topics as Record<string, any>) || null}
+        />
+
+        <StudentCommunicationDialog
+          open={communicationDialogOpen}
+          onOpenChange={setCommunicationDialogOpen}
+          studentId={selectedStudentId}
+          studentName={selectedStudentName}
         />
 
         <Dialog open={teamDialogOpen} onOpenChange={setTeamDialogOpen}>

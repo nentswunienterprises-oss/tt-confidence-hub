@@ -15,6 +15,7 @@ import {
   insertAcademicProfileSchema,
   insertStruggleTargetSchema,
   insertBroadcastSchema,
+  insertStudentCommunicationMessageSchema,
   insertTutorApplicationSchema,
   roleAuthorizationSchema,
   insertEncounterSchema,
@@ -5776,6 +5777,309 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return null;
   };
 
+  type CommunicationAudience = "parent" | "student";
+
+  const COMMUNICATION_AUDIENCES: CommunicationAudience[] = ["parent", "student"];
+
+  const getDisplayNameForUser = (user: any, fallback: string) => {
+    if (!user) return fallback;
+    return (
+      String(
+        user.name ||
+        [user.firstName, user.lastName].filter(Boolean).join(" ") ||
+        user.email ||
+        fallback
+      ).trim() || fallback
+    );
+  };
+
+  const ensureStudentCommunicationThread = async ({
+    studentId,
+    tutorId,
+    parentId,
+    audience,
+  }: {
+    studentId: string;
+    tutorId: string;
+    parentId: string | null;
+    audience: CommunicationAudience;
+  }) => {
+    const { data: existing, error: existingError } = await supabase
+      .from("student_communication_threads")
+      .select("*")
+      .eq("student_id", studentId)
+      .eq("audience", audience)
+      .maybeSingle();
+
+    if (existingError) throw existingError;
+
+    if (existing) {
+      const needsUpdate =
+        String(existing.tutor_id || "") !== String(tutorId || "") ||
+        String(existing.parent_id || "") !== String(parentId || "");
+
+      if (needsUpdate) {
+        const { data: updated, error: updateError } = await supabase
+          .from("student_communication_threads")
+          .update({
+            tutor_id: tutorId,
+            parent_id: parentId,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existing.id)
+          .select("*")
+          .single();
+
+        if (updateError) throw updateError;
+        return updated;
+      }
+
+      return existing;
+    }
+
+    const { data: inserted, error: insertError } = await supabase
+      .from("student_communication_threads")
+      .insert({
+        student_id: studentId,
+        tutor_id: tutorId,
+        parent_id: parentId,
+        audience,
+      })
+      .select("*")
+      .single();
+
+    if (insertError) throw insertError;
+    return inserted;
+  };
+
+  const markCommunicationThreadRead = async ({
+    studentId,
+    audience,
+    viewerRole,
+  }: {
+    studentId: string;
+    audience: CommunicationAudience;
+    viewerRole: "tutor" | "parent" | "student";
+  }) => {
+    const nowIso = new Date().toISOString();
+    const field =
+      viewerRole === "tutor"
+        ? "read_by_tutor_at"
+        : viewerRole === "parent"
+          ? "read_by_parent_at"
+          : "read_by_student_at";
+
+    const { error } = await supabase
+      .from("student_communication_messages")
+      .update({ [field]: nowIso })
+      .eq("student_id", studentId)
+      .eq("audience", audience)
+      .is(field, null);
+
+    if (error) {
+      console.error("Failed to mark communication thread read:", error);
+    }
+  };
+
+  const buildStudentCommunicationBundle = async ({
+    student,
+    parentId,
+  }: {
+    student: any;
+    parentId: string | null;
+  }) => {
+    const tutor = student?.tutorId ? await storage.getUser(student.tutorId) : null;
+    const parent = parentId ? await storage.getUser(parentId) : null;
+
+    const threads = await Promise.all(
+      COMMUNICATION_AUDIENCES.map((audience) =>
+        ensureStudentCommunicationThread({
+          studentId: student.id,
+          tutorId: student.tutorId,
+          parentId,
+          audience,
+        })
+      )
+    );
+
+    const threadsByAudience = Object.fromEntries(
+      threads.map((thread) => [thread.audience, thread])
+    ) as Record<CommunicationAudience, any>;
+
+    const { data: messageRows, error: messageError } = await supabase
+      .from("student_communication_messages")
+      .select("*")
+      .eq("student_id", student.id)
+      .order("created_at", { ascending: true });
+
+    if (messageError) throw messageError;
+
+    const messagesByAudience: Record<CommunicationAudience, any[]> = {
+      parent: [],
+      student: [],
+    };
+
+    for (const row of messageRows || []) {
+      const audience = String(row.audience || "") as CommunicationAudience;
+      if (!COMMUNICATION_AUDIENCES.includes(audience)) continue;
+
+      const senderName =
+        row.sender_role === "tutor"
+          ? getDisplayNameForUser(tutor, "Tutor")
+          : row.sender_role === "parent"
+            ? getDisplayNameForUser(parent, "Parent")
+            : row.sender_role === "student"
+              ? String(student?.name || "Student").trim() || "Student"
+              : String(row.sender_role || "User").toUpperCase();
+
+      messagesByAudience[audience].push({
+        id: row.id,
+        threadId: row.thread_id,
+        studentId: row.student_id,
+        tutorId: row.tutor_id,
+        parentId: row.parent_id,
+        audience,
+        senderRole: row.sender_role,
+        senderUserId: row.sender_user_id,
+        senderStudentUserId: row.sender_student_user_id,
+        senderName,
+        message: row.message,
+        createdAt: row.created_at,
+        readByTutorAt: row.read_by_tutor_at,
+        readByParentAt: row.read_by_parent_at,
+        readByStudentAt: row.read_by_student_at,
+      });
+    }
+
+    return {
+      student: {
+        id: student.id,
+        name: student.name,
+        grade: student.grade || null,
+      },
+      tutor: tutor
+        ? {
+            id: tutor.id,
+            name: getDisplayNameForUser(tutor, "Tutor"),
+          }
+        : null,
+      parent: parentId
+        ? {
+            id: parentId,
+            name: getDisplayNameForUser(parent, "Parent"),
+            available: !!parent,
+          }
+        : {
+            id: null,
+            name: "Parent unavailable",
+            available: false,
+          },
+      threads: {
+        parent: {
+          threadId: threadsByAudience.parent.id,
+          audience: "parent",
+          messages: messagesByAudience.parent,
+        },
+        student: {
+          threadId: threadsByAudience.student.id,
+          audience: "student",
+          messages: messagesByAudience.student,
+        },
+      },
+    };
+  };
+
+  const createStudentCommunicationMessage = async ({
+    student,
+    parentId,
+    audience,
+    senderRole,
+    senderUserId,
+    senderStudentUserId,
+    message,
+  }: {
+    student: any;
+    parentId: string | null;
+    audience: CommunicationAudience;
+    senderRole: "tutor" | "parent" | "student";
+    senderUserId?: string | null;
+    senderStudentUserId?: string | null;
+    message: string;
+  }) => {
+    const thread = await ensureStudentCommunicationThread({
+      studentId: student.id,
+      tutorId: student.tutorId,
+      parentId,
+      audience,
+    });
+
+    const timestamp = new Date().toISOString();
+    const payload: Record<string, any> = {
+      thread_id: thread.id,
+      student_id: student.id,
+      tutor_id: student.tutorId,
+      parent_id: parentId,
+      audience,
+      sender_role: senderRole,
+      sender_user_id: senderUserId || null,
+      sender_student_user_id: senderStudentUserId || null,
+      message,
+    };
+
+    if (senderRole === "tutor") payload.read_by_tutor_at = timestamp;
+    if (senderRole === "parent") payload.read_by_parent_at = timestamp;
+    if (senderRole === "student") payload.read_by_student_at = timestamp;
+
+    const { data: inserted, error: insertError } = await supabase
+      .from("student_communication_messages")
+      .insert(payload)
+      .select("*")
+      .single();
+
+    if (insertError) throw insertError;
+
+    await supabase
+      .from("student_communication_threads")
+      .update({ updated_at: timestamp, parent_id: parentId, tutor_id: student.tutorId })
+      .eq("id", thread.id);
+
+    const tutor = student?.tutorId ? await storage.getUser(student.tutorId) : null;
+    const senderLabel =
+      senderRole === "tutor"
+        ? getDisplayNameForUser(tutor, "Tutor")
+        : senderRole === "parent"
+          ? "Parent"
+          : String(student?.name || "Student").trim() || "Student";
+
+    if (senderRole === "tutor" && audience === "parent" && parentId) {
+      await storage.createNotification({
+        recipientUserId: parentId,
+        actorUserId: senderUserId || undefined,
+        channel: "informational",
+        title: `Message from ${senderLabel}`,
+        message,
+        link: "/client/parent/updates",
+        entityType: "student_communication",
+        entityId: inserted.id,
+      });
+    }
+
+    if ((senderRole === "parent" || senderRole === "student") && student?.tutorId) {
+      await storage.createNotification({
+        recipientUserId: student.tutorId,
+        actorUserId: senderUserId || undefined,
+        channel: "informational",
+        title: `Message from ${senderLabel}`,
+        message,
+        link: "/operational/tutor/my-pod",
+        entityType: "student_communication",
+        entityId: inserted.id,
+      });
+    }
+
+    return inserted;
+  };
+
   const getStudentDashboardStats = async (studentId: string) => {
     const student = await storage.getStudent(studentId);
     if (!student) {
@@ -8349,6 +8653,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  app.get(
+    "/api/tutor/students/:studentId/communications",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const tutorId = (req as any).dbUser.id;
+        const { studentId } = req.params;
+        const student = await storage.getStudent(studentId);
+
+        if (!student || student.tutorId !== tutorId) {
+          return res.status(403).json({ message: "Unauthorized" });
+        }
+
+        const parentId = await resolveParentIdForStudent(student, tutorId);
+        await Promise.all(
+          COMMUNICATION_AUDIENCES.map((audience) =>
+            markCommunicationThreadRead({ studentId, audience, viewerRole: "tutor" })
+          )
+        );
+
+        res.json(await buildStudentCommunicationBundle({ student, parentId }));
+      } catch (error) {
+        console.error("Error fetching tutor communications:", error);
+        res.status(500).json({ message: "Failed to fetch communications" });
+      }
+    }
+  );
+
+  app.get(
+    "/api/tutor/students/:studentId/communications/unread-count",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const tutorId = (req as any).dbUser.id;
+        const { studentId } = req.params;
+        const student = await storage.getStudent(studentId);
+
+        if (!student || student.tutorId !== tutorId) {
+          return res.status(403).json({ message: "Unauthorized" });
+        }
+
+        const { data, error } = await supabase
+          .from("student_communication_messages")
+          .select("id")
+          .eq("student_id", studentId)
+          .is("read_by_tutor_at", null)
+          .neq("sender_role", "tutor");
+
+        if (error) throw error;
+
+        res.json({ unreadCount: (data || []).length });
+      } catch (error) {
+        console.error("Error fetching communication unread count:", error);
+        res.status(500).json({ message: "Failed to fetch unread count" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/tutor/students/:studentId/communications",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const tutorId = (req as any).dbUser.id;
+        const { studentId } = req.params;
+        const parsed = insertStudentCommunicationMessageSchema.parse(req.body || {});
+        const student = await storage.getStudent(studentId);
+
+        if (!student || student.tutorId !== tutorId) {
+          return res.status(403).json({ message: "Unauthorized" });
+        }
+
+        const parentId = await resolveParentIdForStudent(student, tutorId);
+        if (parsed.audience === "parent" && !parentId) {
+          return res.status(400).json({ message: "Parent is not available for this student" });
+        }
+
+        const inserted = await createStudentCommunicationMessage({
+          student,
+          parentId,
+          audience: parsed.audience,
+          senderRole: "tutor",
+          senderUserId: tutorId,
+          message: parsed.message,
+        });
+
+        res.json({
+          id: inserted.id,
+          audience: inserted.audience,
+          createdAt: inserted.created_at,
+        });
+      } catch (error) {
+        console.error("Error sending tutor communication:", error);
+        res.status(400).json({ message: error instanceof Error ? error.message : "Failed to send message" });
+      }
+    }
+  );
+
   const MAX_TUTORS_PER_POD = 12;
   const getMaxStudentsPerTutorForVehicle = (vehicle?: string | null) => {
     switch (vehicle) {
@@ -8904,6 +9309,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error("Error fetching student tracking for COO:", error);
         res.status(500).json({ message: "Failed to fetch tracking data" });
+      }
+    }
+  );
+
+  app.get(
+    "/api/coo/students/:studentId/communications",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { studentId } = req.params;
+        const student = await storage.getStudent(studentId);
+
+        if (!student) {
+          return res.status(404).json({ message: "Student not found" });
+        }
+
+        const parentId =
+          (student as any)?.parentId ||
+          (student as any)?.parent_id ||
+          (await resolveParentIdForStudent(student, student.tutorId));
+
+        res.json(await buildStudentCommunicationBundle({ student, parentId: parentId || null }));
+      } catch (error) {
+        console.error("Error fetching COO communications:", error);
+        res.status(500).json({ message: "Failed to fetch communications" });
       }
     }
   );
@@ -10850,41 +11281,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error("Error converting idea to project:", error);
         res.status(500).json({ message: "Failed to convert idea" });
-      }
-    }
-  );
-
-  // Submit idea (public - any logged in user)
-  app.post(
-    "/api/ideas/submit",
-    isAuthenticated,
-    async (req: Request, res: Response) => {
-      try {
-        const userId = (req.session as any).userId;
-        const { data, error } = await supabase
-          .from("ideas")
-          .insert({
-            title: req.body.title,
-            description: req.body.description,
-            pillar: req.body.pillar,
-            problem_solved: req.body.problemSolved,
-            status: "new",
-            submitted_by: userId,
-            submitter_name: req.body.submitterName,
-            submitter_role: req.body.submitterRole,
-          })
-          .select()
-          .single();
-
-        if (error) {
-          console.error("Error submitting idea:", error);
-          return res.status(500).json({ message: "Failed to submit idea" });
-        }
-
-        res.json(data);
-      } catch (error) {
-        console.error("Error in submit idea:", error);
-        res.status(500).json({ message: "Failed to submit idea" });
       }
     }
   );
@@ -13088,6 +13484,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/student/communications", async (req: Request, res: Response) => {
+    try {
+      const studentUserId = (req.session as any).studentUserId;
+      if (!studentUserId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { data: studentUser, error } = await supabase
+        .from("student_users")
+        .select("id, student_id")
+        .eq("id", studentUserId)
+        .single();
+
+      if (error || !studentUser?.student_id) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+
+      const student = await storage.getStudent(studentUser.student_id);
+      if (!student || !student.tutorId) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+
+      const parentId = await resolveParentIdForStudent(student, student.tutorId);
+      await markCommunicationThreadRead({ studentId: student.id, audience: "student", viewerRole: "student" });
+
+      const bundle = await buildStudentCommunicationBundle({ student, parentId });
+      res.json({
+        student: bundle.student,
+        tutor: bundle.tutor,
+        parent: bundle.parent,
+        thread: bundle.threads.student,
+      });
+    } catch (error) {
+      console.error("Error fetching student communications:", error);
+      res.status(500).json({ message: "Failed to fetch communications" });
+    }
+  });
+
+  app.post("/api/student/communications", async (req: Request, res: Response) => {
+    try {
+      const studentUserId = (req.session as any).studentUserId;
+      if (!studentUserId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const parsed = insertStudentCommunicationMessageSchema.parse({ ...(req.body || {}), audience: "student" });
+      const { data: studentUser, error } = await supabase
+        .from("student_users")
+        .select("id, student_id")
+        .eq("id", studentUserId)
+        .single();
+
+      if (error || !studentUser?.student_id) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+
+      const student = await storage.getStudent(studentUser.student_id);
+      if (!student || !student.tutorId) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+
+      const parentId = await resolveParentIdForStudent(student, student.tutorId);
+      const inserted = await createStudentCommunicationMessage({
+        student,
+        parentId,
+        audience: "student",
+        senderRole: "student",
+        senderStudentUserId: studentUser.id,
+        message: parsed.message,
+      });
+
+      res.json({
+        id: inserted.id,
+        audience: inserted.audience,
+        createdAt: inserted.created_at,
+      });
+    } catch (error) {
+      console.error("Error sending student communication:", error);
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to send message" });
+    }
+  });
+
   app.get("/api/student/sessions", async (req: Request, res: Response) => {
     try {
       const studentUserId = (req.session as any).studentUserId;
@@ -14524,6 +15002,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching broadcasts:", error);
       res.status(500).json({ message: "Failed to fetch broadcasts" });
+    }
+  });
+
+  app.get("/api/parent/communications", isAuthenticated, requireRole(["parent"]), async (req: Request, res: Response) => {
+    try {
+      const parentId = (req as any).dbUser.id;
+      const { data: enrollment, error } = await selectLatestParentEnrollment({
+        parentId,
+        primarySelect: "id, user_id, assigned_tutor_id, assigned_student_id, student_full_name, student_grade, parent_email",
+        fallbackSelect: "id, user_id, assigned_tutor_id, student_full_name, student_grade, parent_email",
+      });
+
+      if (error) throw error;
+      if (!enrollment) {
+        return res.status(404).json({ message: "No active enrollment found" });
+      }
+
+      const student = await resolveCanonicalStudentForEnrollment(enrollment);
+      if (!student || !student.tutorId) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+
+      await markCommunicationThreadRead({ studentId: student.id, audience: "parent", viewerRole: "parent" });
+
+      const bundle = await buildStudentCommunicationBundle({ student, parentId });
+      res.json({
+        student: bundle.student,
+        tutor: bundle.tutor,
+        parent: bundle.parent,
+        thread: bundle.threads.parent,
+      });
+    } catch (error) {
+      console.error("Error fetching parent communications:", error);
+      res.status(500).json({ message: "Failed to fetch communications" });
+    }
+  });
+
+  app.post("/api/parent/communications", isAuthenticated, requireRole(["parent"]), async (req: Request, res: Response) => {
+    try {
+      const parentId = (req as any).dbUser.id;
+      const parsed = insertStudentCommunicationMessageSchema.parse({ ...(req.body || {}), audience: "parent" });
+      const { data: enrollment, error } = await selectLatestParentEnrollment({
+        parentId,
+        primarySelect: "id, user_id, assigned_tutor_id, assigned_student_id, student_full_name, student_grade, parent_email",
+        fallbackSelect: "id, user_id, assigned_tutor_id, student_full_name, student_grade, parent_email",
+      });
+
+      if (error) throw error;
+      if (!enrollment) {
+        return res.status(404).json({ message: "No active enrollment found" });
+      }
+
+      const student = await resolveCanonicalStudentForEnrollment(enrollment);
+      if (!student || !student.tutorId) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+
+      const inserted = await createStudentCommunicationMessage({
+        student,
+        parentId,
+        audience: "parent",
+        senderRole: "parent",
+        senderUserId: parentId,
+        message: parsed.message,
+      });
+
+      res.json({
+        id: inserted.id,
+        audience: inserted.audience,
+        createdAt: inserted.created_at,
+      });
+    } catch (error) {
+      console.error("Error sending parent communication:", error);
+      res.status(400).json({ message: error instanceof Error ? error.message : "Failed to send message" });
     }
   });
 

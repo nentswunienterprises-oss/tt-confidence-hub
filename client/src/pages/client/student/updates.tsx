@@ -1,12 +1,23 @@
+import { CommunicationInbox } from "@/components/communications/CommunicationInbox";
 import { NotificationInbox } from "@/components/notifications/NotificationInbox";
 
 export default function StudentUpdates() {
   return (
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
-      <NotificationInbox
-        title="Updates"
-        description="Action-required items and informational notifications for students."
-        emptyMessage="No notifications yet. You'll see action-required and informational updates here."
+      <CommunicationInbox
+        audience="student"
+        title="Student Inbox"
+        description="Message your tutor inside TT and keep all training communication on-platform."
+        queryKey={["/api/student/communications"]}
+        getPath="/api/student/communications"
+        postPath="/api/student/communications"
+        updatesContent={
+          <NotificationInbox
+            title="Updates"
+            description="Action-required items and informational notifications for students."
+            emptyMessage="No notifications yet. You'll see action-required and informational updates here."
+          />
+        }
       />
     </div>
   );

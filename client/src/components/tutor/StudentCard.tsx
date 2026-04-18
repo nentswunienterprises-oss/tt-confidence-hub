@@ -106,6 +106,7 @@ export function StudentCard({
   setProposalOpen,
   setTopicConditioningDialogOpen,
   setReportsDialogOpen,
+  setCommunicationDialogOpen,
 }) {
   // ...existing code...
   // State for assignment modal
@@ -160,6 +161,21 @@ export function StudentCard({
     },
     enabled: !!student.id,
   });
+
+  const { data: communicationUnreadData } = useQuery({
+    queryKey: ["/api/tutor/students", student.id, "communications", "unread-count"],
+    queryFn: async () => {
+      const res = await apiRequest(
+        "GET",
+        `/api/tutor/students/${student.id}/communications/unread-count`
+      );
+      return res.json();
+    },
+    enabled: !!student.id && !!workflow?.proposalAccepted,
+    refetchInterval: 30000,
+  });
+
+  const communicationUnreadCount = Number(communicationUnreadData?.unreadCount || 0);
 
 
   const reportedSymptoms =
@@ -531,6 +547,25 @@ export function StudentCard({
                 }}
               >
                 View Tracking Systems
+              </Button>
+              <Button
+                className="w-full sm:col-span-2"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSelectedStudentId(student.id);
+                  setSelectedStudentName(student.name);
+                  setCommunicationDialogOpen(true);
+                }}
+              >
+                <span className="inline-flex items-center gap-2">
+                  <span>Communication</span>
+                  {communicationUnreadCount > 0 ? (
+                    <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                      {communicationUnreadCount}
+                    </span>
+                  ) : null}
+                </span>
               </Button>
             </div>
           </div>

@@ -1,16 +1,15 @@
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiRequest, getQueryFn } from "@/lib/queryClient";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Loader2, AlertTriangle } from "lucide-react";
-import type { PersonRegistry } from "@shared/schema";
+import { Shield, Loader2 } from "lucide-react";
 
 interface LogDisputeModalProps {
   open: boolean;
@@ -23,18 +22,10 @@ export function LogDisputeModal({ open, onOpenChange }: LogDisputeModalProps) {
   const queryClient = useQueryClient();
   
   const [formData, setFormData] = useState({
-    involvedParties: [] as string[],
-    involvedPartyNames: [] as string[],
+    involvedPartiesText: "",
     disputeType: "",
     description: "",
     desiredOutcome: "",
-  });
-
-  // Fetch people for selection
-  const { data: people = [] } = useQuery<PersonRegistry[]>({
-    queryKey: ["/api/people-registry/list"],
-    queryFn: getQueryFn({ on401: "returnNull" }),
-    enabled: open,
   });
 
   const logDispute = useMutation({
@@ -45,8 +36,7 @@ export function LogDisputeModal({ open, onOpenChange }: LogDisputeModalProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/hr/disputes"] });
       onOpenChange(false);
       setFormData({
-        involvedParties: [],
-        involvedPartyNames: [],
+        involvedPartiesText: "",
         disputeType: "",
         description: "",
         desiredOutcome: "",
@@ -79,25 +69,16 @@ export function LogDisputeModal({ open, onOpenChange }: LogDisputeModalProps) {
     }
 
     logDispute.mutate({
-      ...formData,
+      involvedParties: [],
+      involvedPartyNames: formData.involvedPartiesText
+        .split(",")
+        .map((name) => name.trim())
+        .filter(Boolean),
+      disputeType: formData.disputeType,
+      description: formData.description,
+      desiredOutcome: formData.desiredOutcome,
       loggedByName: user?.name || user?.email || "Anonymous",
     });
-  };
-
-  const handlePersonToggle = (personId: string, personName: string, checked: boolean) => {
-    if (checked) {
-      setFormData({
-        ...formData,
-        involvedParties: [...formData.involvedParties, personId],
-        involvedPartyNames: [...formData.involvedPartyNames, personName],
-      });
-    } else {
-      setFormData({
-        ...formData,
-        involvedParties: formData.involvedParties.filter(id => id !== personId),
-        involvedPartyNames: formData.involvedPartyNames.filter(name => name !== personName),
-      });
-    }
   };
 
   const disputeTypes = [
@@ -123,41 +104,20 @@ export function LogDisputeModal({ open, onOpenChange }: LogDisputeModalProps) {
             Log an Issue
           </DialogTitle>
           <DialogDescription>
-            This is private and confidential. Only HR and CEO will see this by default.
+            This is private and confidential. Only HR and COO will see this by default.
           </DialogDescription>
         </DialogHeader>
-        
-        <div className="bg-muted/50 p-3 rounded-lg text-sm mb-4">
-          <div className="flex items-start gap-2">
-            <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5" />
-            <p className="text-muted-foreground">
-              If it's not logged, it doesn't exist. This teaches us how adults handle conflict.
-            </p>
-          </div>
-        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label>Involved Parties *</Label>
-            <p className="text-xs text-muted-foreground mb-2">Select all people involved in this issue</p>
-            <div className="border rounded-lg max-h-32 overflow-y-auto p-2 space-y-2">
-              {people.length === 0 ? (
-                <p className="text-sm text-muted-foreground p-2">No people in registry yet</p>
-              ) : (
-                people.map((person) => (
-                  <div key={person.id} className="flex items-center gap-2">
-                    <Checkbox
-                      id={person.id}
-                      checked={formData.involvedParties.includes(person.id)}
-                      onCheckedChange={(checked) => handlePersonToggle(person.id, person.fullName, checked as boolean)}
-                    />
-                    <label htmlFor={person.id} className="text-sm cursor-pointer">
-                      {person.fullName} <span className="text-muted-foreground">({person.roleTitle})</span>
-                    </label>
-                  </div>
-                ))
-              )}
-            </div>
+            <p className="text-xs text-muted-foreground mb-2">Enter names manually, separated by commas</p>
+            <Input
+              value={formData.involvedPartiesText}
+              onChange={(e) => setFormData({ ...formData, involvedPartiesText: e.target.value })}
+              placeholder="e.g. Jane Doe, Parent of Sipho, Tutor Alex"
+              required
+            />
           </div>
 
           <div>

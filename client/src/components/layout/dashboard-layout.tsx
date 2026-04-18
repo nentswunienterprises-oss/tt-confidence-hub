@@ -22,14 +22,12 @@ import {
   Calendar,
   MessageSquare,
   GraduationCap,
-  Lightbulb,
   Shield,
 } from "lucide-react";
 import { MobileBottomNav } from "./mobile-bottom-nav";
 import { useAuth } from "@/hooks/useAuth";
 import { isTutor, isTD, isCOO, isAffiliate, isOD, isParent, getRoleName, getRoleNameShort } from "@/lib/roles";
 import { logout } from "@/lib/auth";
-import { SubmitIdeaModal } from "@/components/SubmitIdeaModal";
 import { LogDisputeModal } from "@/components/LogDisputeModal";
 import { ROLE_NAVIGATION } from "@shared/portals";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -58,8 +56,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, isAuthenticated } = useAuth();
   const location = useLocation();
   
-  // Submit Idea Modal state
-  const [showIdeaModal, setShowIdeaModal] = useState(false);
   // Log Dispute Modal state
   const [showDisputeModal, setShowDisputeModal] = useState(false);
   
@@ -482,13 +478,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => setShowIdeaModal(true)}
-                  className="gap-2 font-medium"
-                >
-                  <Lightbulb className="w-4 h-4" />
-                  Submit Idea
-                </DropdownMenuItem>
-                <DropdownMenuItem
                   onClick={() => setShowDisputeModal(true)}
                   className="gap-2 font-medium"
                 >
@@ -515,9 +504,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       
       {/* Mobile Bottom Tab Navigator */}
       <MobileBottomNav navItems={navItems} unreadCount={navUnreadCount} />
-      
-      {/* Submit Idea Modal */}
-      <SubmitIdeaModal open={showIdeaModal} onOpenChange={setShowIdeaModal} />
       
       {/* Log Dispute Modal */}
       <LogDisputeModal open={showDisputeModal} onOpenChange={setShowDisputeModal} />
