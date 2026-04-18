@@ -647,6 +647,15 @@ export class SupabaseStorage implements IStorage {
 
   // Tutor Assignments
   async createTutorAssignment(assignment: any): Promise<TutorAssignment> {
+    const existingAssignment = await this.getTutorAssignment(assignment.tutorId);
+    if (existingAssignment) {
+      if (existingAssignment.podId === assignment.podId) {
+        throw new Error("Tutor is already assigned to this pod");
+      }
+
+      throw new Error("Tutor is already assigned to another pod");
+    }
+
     const dbAssignment = {
       tutor_id: assignment.tutorId,
       pod_id: assignment.podId,

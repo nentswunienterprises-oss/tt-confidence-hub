@@ -8349,6 +8349,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  const MAX_TUTORS_PER_POD = 12;
+
   // Get deleted pods
   app.get(
     "/api/coo/deleted-pods",
@@ -8401,10 +8403,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Validate tutors BEFORE creating pod
         if (tutorIds && Array.isArray(tutorIds) && tutorIds.length > 0) {
-          // Validate tutor count (max 10 for training pods)
-          if (tutorIds.length > 10) {
+          const uniqueTutorIds = [...new Set(tutorIds)];
+          if (uniqueTutorIds.length !== tutorIds.length) {
+            return res.status(400).json({
+              message: "Tutor selection contains duplicates",
+            });
+          }
+
+          // Validate tutor count
+          if (tutorIds.length > MAX_TUTORS_PER_POD) {
             return res.status(400).json({ 
-              message: "Training pods can have a maximum of 10 tutors"
+              message: `Pods can have a maximum of ${MAX_TUTORS_PER_POD} tutors`
             });
           }
 
@@ -8421,6 +8430,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
               invalidTutors
             });
           }
+
+          const { data: existingAssignments, error: assignmentsError } = await supabase
+            .from("tutor_assignments")
+            .select("tutor_id, pod_id")
+            .in("tutor_id", tutorIds);
+
+          if (assignmentsError) {
+            throw new Error(`Failed to validate tutor assignments: ${assignmentsError.message}`);
+          }
+
+          const alreadyAssignedTutorIds = (existingAssignments || []).map((assignment: any) => assignment.tutor_id);
+          if (alreadyAssignedTutorIds.length > 0) {
+            return res.status(400).json({
+              message: "Some tutors are already assigned to a pod",
+              duplicates: alreadyAssignedTutorIds,
+            });
+          }
+
           console.log(`✅ Validated ${tutorIds.length} approved tutors`);
         }
 
@@ -8901,14 +8928,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "tutorIds must be a non-empty array" });
         }
 
+        const uniqueTutorIds = [...new Set(tutorIds)];
+        if (uniqueTutorIds.length !== tutorIds.length) {
+          return res.status(400).json({ message: "Tutor selection contains duplicates" });
+        }
+
         // Get current assignments
         const currentAssignments = await storage.getTutorAssignmentsByPod(podId);
         const totalTutors = currentAssignments.length + tutorIds.length;
 
-        // Validate tutor count (max 10 for training pods)
-        if (totalTutors > 10) {
+        // Validate tutor count
+        if (totalTutors > MAX_TUTORS_PER_POD) {
           return res.status(400).json({ 
-            message: `Pod would exceed maximum of 10 tutors (current: ${currentAssignments.length}, adding: ${tutorIds.length})`
+            message: `Pod would exceed maximum of ${MAX_TUTORS_PER_POD} tutors (current: ${currentAssignments.length}, adding: ${tutorIds.length})`
           });
         }
 
@@ -8924,13 +8956,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        // Check for existing assignments
-        const existingIds = new Set(currentAssignments.map((a: any) => a.tutor_id));
+        // Check for existing assignments in this pod
+        const existingIds = new Set(currentAssignments.map((a: any) => a.tutorId));
         const duplicates = tutorIds.filter((id: string) => existingIds.has(id));
         if (duplicates.length > 0) {
           return res.status(400).json({ 
             message: "Some tutors are already assigned to this pod",
             duplicates
+          });
+        }
+
+        // Check for assignments in other pods
+        const { data: existingAssignments, error: assignmentsError } = await supabase
+          .from("tutor_assignments")
+          .select("tutor_id, pod_id")
+          .in("tutor_id", tutorIds);
+
+        if (assignmentsError) {
+          throw new Error(`Failed to validate tutor assignments: ${assignmentsError.message}`);
+        }
+
+        const assignedElsewhere = (existingAssignments || [])
+          .filter((assignment: any) => assignment.pod_id !== podId)
+          .map((assignment: any) => assignment.tutor_id);
+
+        if (assignedElsewhere.length > 0) {
+          return res.status(400).json({
+            message: "Some tutors are already assigned to another pod",
+            duplicates: assignedElsewhere,
           });
         }
 
@@ -8946,8 +8999,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
 
         res.json(newAssignments);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error adding tutors to pod:", error);
+
+        if (
+          error?.message === "Tutor is already assigned to this pod" ||
+          error?.message === "Tutor is already assigned to another pod"
+        ) {
+          return res.status(400).json({ message: error.message });
+        }
+
         res.status(400).json({ message: "Failed to add tutors to pod" });
       }
     }
