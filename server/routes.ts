@@ -8350,6 +8350,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   const MAX_TUTORS_PER_POD = 12;
+  const getMaxStudentsPerTutorForVehicle = (vehicle?: string | null) => {
+    switch (vehicle) {
+      case "6_seater":
+        return 6;
+      case "5_seater":
+        return 5;
+      case "4_seater":
+      default:
+        return 4;
+    }
+  };
 
   // Get deleted pods
   app.get(
@@ -8417,16 +8428,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
           }
 
-          // Get approved tutors to validate assignments
+          // Get pod-eligible tutors to validate assignments
           const approvedTutors = await storage.getApprovedTutors();
           const approvedTutorIds = new Set(approvedTutors.map(t => t.id));
 
-          // Validate all tutorIds are approved
+          // Validate all tutorIds are pod-eligible
           const invalidTutors = tutorIds.filter(id => !approvedTutorIds.has(id));
           if (invalidTutors.length > 0) {
-            console.error("❌ Attempted to assign unapproved tutors:", invalidTutors);
+            console.error("❌ Attempted to assign tutors who are not pod-eligible:", invalidTutors);
             return res.status(400).json({ 
-              message: "All assigned tutors must have approved applications",
+              message: "All assigned tutors must have completed onboarding and verified documents",
               invalidTutors
             });
           }
@@ -8448,7 +8459,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
           }
 
-          console.log(`✅ Validated ${tutorIds.length} approved tutors`);
+          console.log(`✅ Validated ${tutorIds.length} pod-eligible tutors`);
         }
 
         // Create pod only after all validations pass
@@ -8457,7 +8468,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Assign validated tutors to pod
         if (tutorIds && Array.isArray(tutorIds) && tutorIds.length > 0) {
-          console.log(`📝 Assigning ${tutorIds.length} approved tutors to pod ${pod.id}`);
+          console.log(`📝 Assigning ${tutorIds.length} pod-eligible tutors to pod ${pod.id}`);
           for (const tutorId of tutorIds) {
             await storage.createTutorAssignment({
               tutorId,
@@ -8944,14 +8955,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        // Validate all tutors are approved
+        // Validate all tutors are pod-eligible
         const approvedTutors = await storage.getApprovedTutors();
         const approvedTutorIds = new Set(approvedTutors.map(t => t.id));
 
         const invalidTutors = tutorIds.filter((id: string) => !approvedTutorIds.has(id));
         if (invalidTutors.length > 0) {
           return res.status(400).json({ 
-            message: "All assigned tutors must have approved applications",
+            message: "All assigned tutors must have completed onboarding and verified documents",
             invalidTutors
           });
         }
@@ -9041,7 +9052,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
-  // Get approved tutors (tutors with approved applications)
+  // Get tutors eligible for pod assignment (confirmed onboarding and verified docs)
   app.get(
     "/api/coo/approved-tutors",
     isAuthenticated,
@@ -9049,7 +9060,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: Request, res: Response) => {
       try {
         const approvedTutors = await storage.getApprovedTutors();
-        console.log("👥 Approved tutors:", approvedTutors.map((t: any) => ({ id: t.id, name: t.name })));
+        console.log("👥 Pod-eligible tutors:", approvedTutors.map((t: any) => ({ id: t.id, name: t.name })));
         res.json(approvedTutors);
       } catch (error) {
         console.error("Error fetching approved tutors:", error);
@@ -9460,7 +9471,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const isSequentialUpload = Number.isInteger(parsedDocStep) && parsedDocStep >= 1 && parsedDocStep <= 6;
 
         if (!applicationId || !fileName || !fileData || !isSequentialUpload) {
-          return res.status(400).json({ message: "Invalid document type" });
+          return res.status(400).json({ message: "Missing required fields" });
         }
 
         // Verify the application belongs to this user
@@ -10138,6 +10149,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (!tutorId) {
           return res.status(400).json({ message: "Tutor ID is required" });
+        }
+
+        const tutorAssignment = await storage.getTutorAssignment(tutorId);
+        if (!tutorAssignment) {
+          return res.status(400).json({ message: "Tutor must be assigned to a pod before receiving students" });
+        }
+
+        if (podId && tutorAssignment.podId !== podId) {
+          return res.status(400).json({ message: "Tutor is not assigned to the selected pod" });
+        }
+
+        const maxStudentsPerTutor = getMaxStudentsPerTutorForVehicle(tutorAssignment.pod.vehicle);
+        const activeEnrollmentStatuses = [
+          "awaiting_tutor_acceptance",
+          "assigned",
+          "proposal_sent",
+          "session_booked",
+          "report_received",
+          "confirmed",
+        ];
+
+        const { count: currentAssignedStudentCount, error: assignmentCountError } = await supabase
+          .from("parent_enrollments")
+          .select("id", { count: "exact", head: true })
+          .eq("assigned_tutor_id", tutorId)
+          .in("status", activeEnrollmentStatuses);
+
+        if (assignmentCountError) {
+          console.error("Error checking tutor student capacity:", assignmentCountError);
+          return res.status(500).json({ message: "Failed to validate tutor capacity" });
+        }
+
+        if ((currentAssignedStudentCount || 0) >= maxStudentsPerTutor) {
+          return res.status(400).json({
+            message: `Tutor is already at capacity for this pod vehicle (${maxStudentsPerTutor} students max)`,
+          });
         }
 
         // Update the parent enrollment with the assigned tutor, but do not set to 'assigned' until tutor accepts

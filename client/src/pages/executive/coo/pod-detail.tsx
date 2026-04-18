@@ -54,6 +54,17 @@ import StudentTopicConditioningDialog from "@/components/tutor/StudentTopicCondi
 import type { Pod, User } from "@shared/schema";
 
 const MAX_TUTORS_PER_POD = 12;
+const getMaxStudentsPerTutorForVehicle = (vehicle?: string | null) => {
+  switch (vehicle) {
+    case "6_seater":
+      return 6;
+    case "5_seater":
+      return 5;
+    case "4_seater":
+    default:
+      return 4;
+  }
+};
 
 interface ParentEnrollment {
   id: string;
@@ -366,6 +377,7 @@ export default function PodDetail() {
   const tutorCount = podTutors?.length || 0;
   const maxTutors = MAX_TUTORS_PER_POD;
   const availableSlots = maxTutors - tutorCount;
+  const maxStudentsPerTutor = getMaxStudentsPerTutorForVehicle((currentPod as Pod).vehicle);
 
   // Debug logging
   console.log("🔍 Approved tutors:", approvedTutors?.map((t: any) => ({ id: t.id, name: t.name })));
@@ -605,6 +617,7 @@ export default function PodDetail() {
                                 tutorName={assignment.tutorName}
                                 certificationStatus={assignment.certification_status || "pending"}
                                 studentCount={assignment.student_count || 0}
+                                maxStudentsPerTutor={maxStudentsPerTutor}
                                 awaitingAssignments={awaitingAssignments}
                                 getCertificationColor={getCertificationColor}
                                 unassignStudentMutation={unassignStudentMutation}
@@ -780,6 +793,7 @@ interface TutorStudentsSectionProps {
   tutorName: string;
   certificationStatus: string;
   studentCount: number;
+  maxStudentsPerTutor: number;
   awaitingAssignments: ParentEnrollment[];
   getCertificationColor: (status: string) => string;
   unassignStudentMutation: any;
@@ -793,6 +807,7 @@ function TutorStudentsSection({
   tutorName,
   certificationStatus,
   studentCount,
+  maxStudentsPerTutor,
   awaitingAssignments,
   getCertificationColor,
   unassignStudentMutation,
@@ -807,6 +822,8 @@ function TutorStudentsSection({
     refetchInterval: 5000,
     refetchOnWindowFocus: true,
   });
+  const activeStudentCount = students?.length || studentCount || 0;
+  const tutorAtCapacity = activeStudentCount >= maxStudentsPerTutor;
 
   return (
     <div className="mt-4 pt-4 border-t space-y-4">
@@ -822,7 +839,7 @@ function TutorStudentsSection({
         </div>
         <div>
           <p className="text-xs font-medium text-muted-foreground uppercase">Students</p>
-          <p className="font-semibold mt-2">{students?.length || studentCount || 0}</p>
+          <p className="font-semibold mt-2">{activeStudentCount}/{maxStudentsPerTutor}</p>
         </div>
       </div>
 
@@ -926,13 +943,18 @@ function TutorStudentsSection({
             <p className="text-sm text-muted-foreground">
               Assign directly from the unassigned parent queue without leaving this pod.
             </p>
+            {tutorAtCapacity && (
+              <p className="mt-1 text-xs text-amber-700">
+                This tutor is at vehicle capacity and cannot receive more students from quick actions.
+              </p>
+            )}
           </div>
           <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
             <DialogTrigger asChild>
               <Button
                 size="sm"
                 variant="outline"
-                disabled={awaitingAssignments.length === 0 || assignAwaitingEnrollmentMutation.isPending}
+                disabled={awaitingAssignments.length === 0 || assignAwaitingEnrollmentMutation.isPending || tutorAtCapacity}
               >
                 Assign Parent
               </Button>
@@ -976,7 +998,7 @@ function TutorStudentsSection({
                         </div>
                         <Button
                           size="sm"
-                          disabled={assignAwaitingEnrollmentMutation.isPending}
+                          disabled={assignAwaitingEnrollmentMutation.isPending || tutorAtCapacity}
                           onClick={async () => {
                             try {
                               await assignAwaitingEnrollmentMutation.mutateAsync({

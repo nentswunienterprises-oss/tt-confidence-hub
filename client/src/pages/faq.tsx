@@ -302,6 +302,15 @@ export default function FAQPage() {
         >
           admin@territorialtutoring.co.za
         </a>
+        <div className="mt-3">
+          <a
+            href="https://wa.me/27698241844"
+            className="inline-block rounded-lg px-6 py-3 text-sm sm:text-base font-semibold transition-opacity hover:opacity-90"
+            style={{ backgroundColor: "#25D366", color: "#FFFFFF" }}
+          >
+            WhatsApp 069 824 1844
+          </a>
+        </div>
       </div>
     </div>
   );

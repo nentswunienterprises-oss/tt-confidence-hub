@@ -38,6 +38,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Link } from "react-router-dom";
 
 export default function COODashboard() {
         // Helper functions for Select type compatibility
@@ -588,38 +589,46 @@ export default function COODashboard() {
                 // Find TD name if assigned
                 const assignedTD = tdId ? tds.find((td: any) => td.id === tdId) : null;
                 return (
-                  <Card key={pod.id} data-testid={`card-pod-${pod.id}`}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Users className="w-5 h-5 text-primary" />
-                        {pod.pod_name || pod.podName}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="font-medium">Status:</span>
-                          <Badge variant={pod.status === 'active' ? 'default' : 'secondary'}>
-                            {pod.status}
-                          </Badge>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium">Type:</span>
-                          <span className="text-muted-foreground">{typeDisplay}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium">Vehicle:</span>
-                          <span className="text-muted-foreground">{vehicleDisplay}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium">TD Assigned:</span>
-                          <span className="text-muted-foreground">
-                            {assignedTD ? (assignedTD.name || assignedTD.email) : 'Not assigned'}
+                  <Link key={pod.id} to={`/coo/pods/${pod.id}`} className="block">
+                    <Card
+                      data-testid={`card-pod-${pod.id}`}
+                      className="transition-all hover:border-primary/50 hover:shadow-md"
+                    >
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between gap-2">
+                          <span className="flex items-center gap-2 min-w-0">
+                            <Users className="w-5 h-5 text-primary shrink-0" />
+                            <span className="truncate">{pod.pod_name || pod.podName}</span>
                           </span>
+                          <span className="text-xs font-medium text-primary shrink-0">Open pod</span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="font-medium">Status:</span>
+                            <Badge variant={pod.status === 'active' ? 'default' : 'secondary'}>
+                              {pod.status}
+                            </Badge>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium">Type:</span>
+                            <span className="text-muted-foreground">{typeDisplay}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium">Vehicle:</span>
+                            <span className="text-muted-foreground">{vehicleDisplay}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium">TD Assigned:</span>
+                            <span className="text-muted-foreground">
+                              {assignedTD ? (assignedTD.name || assignedTD.email) : 'Not assigned'}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 );
               })}
             </div>

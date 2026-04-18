@@ -208,7 +208,7 @@ export default function COOPods() {
                 <DialogHeader>
                   <DialogTitle>Create New Pod</DialogTitle>
                   <DialogDescription>
-                    Create a pod and optionally assign up to 12 unassigned approved tutors.
+                    Create a pod and optionally assign up to 12 unassigned pod-eligible tutors.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
@@ -285,11 +285,11 @@ export default function COOPods() {
                     <Label>{`Assign Tutors (Optional - max ${MAX_TUTORS_PER_POD} per pod)`}</Label>
                     {!approvedTutors || approvedTutors.length === 0 ? (
                       <p className="text-sm text-muted-foreground">
-                        No approved tutors available. Tutors must have approved applications.
+                        No pod-eligible tutors available. Tutors must have completed onboarding and verified all documents.
                       </p>
                     ) : availableTutors.length === 0 ? (
                       <p className="text-sm text-muted-foreground">
-                        No unassigned approved tutors available.
+                        No unassigned pod-eligible tutors available.
                       </p>
                     ) : (
                       <div className="border rounded-md p-3 space-y-2 max-h-48 overflow-y-auto">
