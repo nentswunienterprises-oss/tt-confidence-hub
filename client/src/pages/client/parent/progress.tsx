@@ -280,12 +280,6 @@ export default function ParentProgress() {
                               Legacy format
                             </Badge>
                           )}
-                          {report.parentFeedback && (
-                            <Badge variant="secondary" className="text-xs">
-                              <MessageSquare className="w-3 h-3 mr-1" />
-                              Feedback Given
-                            </Badge>
-                          )}
                         </CardTitle>
                         <CardDescription className="text-xs sm:text-sm mt-1">
                           {formatRange(report.weekRange?.start, report.weekRange?.end)}
@@ -294,15 +288,6 @@ export default function ParentProgress() {
                           Sent {new Date(report.sentAt).toLocaleDateString()} by {report.tutor.name}
                         </CardDescription>
                       </div>
-                      <Button
-                        size="sm"
-                        variant={report.parentFeedback ? "outline" : "default"}
-                        onClick={() => handleGiveFeedback(report)}
-                        className="w-full sm:w-auto text-xs sm:text-sm"
-                      >
-                        <MessageSquare className="w-4 h-4 mr-1 sm:mr-2" />
-                        {report.parentFeedback ? "Update" : "Feedback"}
-                      </Button>
                     </div>
                   </CardHeader>
                   <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0 space-y-3 sm:space-y-4">
@@ -410,8 +395,6 @@ export default function ParentProgress() {
                         </div>
                       </div>
                     )}
-
-                    {renderFeedbackBlock(report)}
                   </CardContent>
                 </Card>
               ))}

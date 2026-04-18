@@ -41,8 +41,18 @@ interface ProposalData {
   createdAt?: string;
 }
 
+interface ProposalTopicState {
+  topic: string;
+  phase?: string | null;
+  stability?: string | null;
+  lastUpdated?: string | null;
+  movement?: "none" | "improved" | "regressed" | "changed";
+  bucket?: "active" | "recent" | "older";
+}
+
 interface ProposalViewProps {
   proposal: ProposalData;
+  topicStates?: ProposalTopicState[];
   showActions?: boolean;
   onAccept?: () => void;
   onDecline?: () => void;
@@ -51,6 +61,7 @@ interface ProposalViewProps {
 
 export default function ProposalView({ 
   proposal, 
+  topicStates = [],
   showActions = false,
   onAccept,
   onDecline,
@@ -67,6 +78,14 @@ export default function ProposalView({
       .split(/[\n,;|]+/)
       .map((item) => item.replace(/^[-*\u2022\s]+/, "").trim())
       .filter(Boolean);
+  };
+
+  const formatListWithAnd = (items: string[]) => {
+    const cleaned = Array.from(new Set(items.map((item) => item.trim()).filter(Boolean)));
+    if (cleaned.length === 0) return "";
+    if (cleaned.length === 1) return cleaned[0];
+    if (cleaned.length === 2) return `${cleaned[0]} and ${cleaned[1]}`;
+    return `${cleaned.slice(0, -1).join(", ")}, and ${cleaned[cleaned.length - 1]}`;
   };
 
   const extractDiagnosisPhase = (): PhaseLabel | null => {
@@ -236,6 +255,100 @@ export default function ProposalView({
   const normalizedStability = normalizeStabilityLabel(topicConditioning.stability);
   const trainingStartPhase = deriveTrainingEntryPhase(normalizedDiagnosisPhase, normalizedStability);
 
+  const normalizedLiveTopicStates = Array.from(
+    topicStates
+      .filter((item) => String(item.topic || "").trim().length > 0)
+      .reduce((map, item) => {
+        const key = String(item.topic || "").trim().toLowerCase();
+        const existing = map.get(key);
+
+        if (!existing) {
+          map.set(key, item);
+          return map;
+        }
+
+        const existingDate = new Date(existing.lastUpdated || 0).getTime();
+        const itemDate = new Date(item.lastUpdated || 0).getTime();
+
+        if (itemDate >= existingDate) {
+          map.set(key, item);
+        }
+
+        return map;
+      }, new Map<string, ProposalTopicState>())
+      .values()
+  );
+
+  const activeLiveTopicStates = normalizedLiveTopicStates.filter((item) => item.bucket === "active");
+  const currentLiveTopicStates = activeLiveTopicStates.length > 0 ? activeLiveTopicStates : normalizedLiveTopicStates;
+  const isLiveTrainingView = currentLiveTopicStates.length > 0;
+
+  const formatTrainingStateSummary = (items: ProposalTopicState[]) => {
+    const groups = Array.from(
+      items.reduce((map, item) => {
+        const phase = normalizePhaseLabel(item.phase) || "Unknown";
+        const stability = item.stability ? normalizeStabilityLabel(item.stability) : null;
+        const key = `${phase}__${stability}`;
+        const existing = map.get(key) || { phase, stability, topics: [] as string[] };
+        existing.topics.push(item.topic);
+        map.set(key, existing);
+        return map;
+      }, new Map<string, { phase: string; stability: string | null; topics: string[] }>())
+      .values()
+    );
+
+    return formatListWithAnd(
+      groups.map((group) => `${group.phase} with ${group.stability || "Unknown"} stability in ${formatListWithAnd(group.topics)}`)
+    );
+  };
+
+  const currentTopicNames = currentLiveTopicStates.map((item) => item.topic);
+  const currentTopicSummary = formatListWithAnd(currentTopicNames);
+  const liveTrainingStateSummary = formatTrainingStateSummary(currentLiveTopicStates);
+
+  const getCurrentBreakdown = (phase: PhaseLabel) => {
+    switch (phase) {
+      case "Clarity":
+        return `${studentFirstName} is still stabilizing recognition of what the question is asking and what structure belongs first.`;
+      case "Structured Execution":
+        return `${studentFirstName} can see the path, but still needs stronger independent execution without being carried through the method.`;
+      case "Controlled Discomfort":
+        return `${studentFirstName} is being pushed into harder or less familiar work and needs to hold structure when the question pushes back.`;
+      case "Time Pressure Stability":
+        return `${studentFirstName} is now training to preserve method and decision quality while pace pressure is introduced.`;
+      default:
+        return `${studentFirstName} needs more stable topic conditioning before the next pressure layer is added.`;
+    }
+  };
+
+  const getLiveProgressSignals = (topic: string, phase: PhaseLabel, stability: StabilityLabel) => {
+    const phaseSignals: Record<PhaseLabel, string[]> = {
+      Clarity: [
+        `Clearer recognition of what ${topic} questions are asking`,
+        `Earlier correct method selection in ${topic}`,
+      ],
+      "Structured Execution": [
+        `Earlier independent starts in ${topic}`,
+        `More consistent step order in ${topic}`,
+      ],
+      "Controlled Discomfort": [
+        `Calmer starts when ${topic} questions become unfamiliar`,
+        `More stable structure in harder ${topic} work`,
+      ],
+      "Time Pressure Stability": [
+        `Stronger structure while ${topic} work is timed`,
+        `Fewer rushed breakdowns in ${topic}`,
+      ],
+    };
+
+    const stabilitySignal =
+      stability === "High" || stability === "High Maintenance"
+        ? `Sustained consistency across repeated ${topic} sessions`
+        : `Less volatility from one ${topic} session to the next`;
+
+    return [...phaseSignals[phase], stabilitySignal];
+  };
+
   const stateCopy = PARENT_STATE_ENGINE[trainingStartPhase][normalizedStability];
   const derivedObserved = [stateCopy.status, stateCopy.meaning];
 
@@ -313,23 +426,73 @@ export default function ProposalView({
         "Better calm under difficulty",
       ];
 
+  const liveObservedResponse = Array.from(
+    new Set(
+      currentLiveTopicStates.flatMap((item) => {
+        const phase = normalizePhaseLabel(item.phase);
+        const stability = item.stability ? normalizeStabilityLabel(item.stability) : null;
+        if (!phase || !stability) {
+          return [`${item.topic} is active in training and the next scored session will confirm its current breakpoint more precisely.`];
+        }
+
+        const copy = PARENT_STATE_ENGINE[phase][stability];
+        return [`In ${item.topic}, ${copy.status}`, `In ${item.topic}, ${copy.meaning}`];
+      })
+    )
+  );
+
+  const liveTrainingPath = Array.from(
+    new Set(
+      currentLiveTopicStates.flatMap((item) => {
+        const phase = normalizePhaseLabel(item.phase);
+        const stability = item.stability ? normalizeStabilityLabel(item.stability) : null;
+        if (!phase || !stability) {
+          return [`TT is using the next scored session to confirm the right operating point in ${item.topic}.`];
+        }
+
+        const copy = PARENT_STATE_ENGINE[phase][stability];
+        return [`In ${item.topic}, ${copy.focus}`];
+      })
+    )
+  );
+
+  const liveProgressMarkers = Array.from(
+    new Set(
+      currentLiveTopicStates.flatMap((item) => {
+        const phase = normalizePhaseLabel(item.phase);
+        const stability = item.stability ? normalizeStabilityLabel(item.stability) : null;
+        if (!phase || !stability) {
+          return [`A scored session confirms the current phase and stability in ${item.topic}`];
+        }
+
+        return getLiveProgressSignals(item.topic, phase, stability);
+      })
+    )
+  );
+
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-6 rounded-lg">
         <h2 className="text-2xl font-bold text-foreground mb-2">Training Plan</h2>
         <p className="text-muted-foreground">
-          Structured plan for {studentName}
+          {isLiveTrainingView ? `Live operating plan for ${studentName}` : `Structured plan for ${studentName}`}
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Diagnosis Context</CardTitle>
+          <CardTitle>{isLiveTrainingView ? "Current Training Context" : "Diagnosis Context"}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Diagnosis ran on: <span className="text-foreground font-medium">{diagnosisTopic}</span>
-          </p>
+          {isLiveTrainingView ? (
+            <p className="text-sm text-muted-foreground">
+              TT is currently conditioning <span className="text-foreground font-medium">{currentTopicSummary}</span> based on the latest active topic-conditioning state.
+            </p>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Diagnosis ran on: <span className="text-foreground font-medium">{diagnosisTopic}</span>
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -339,21 +502,34 @@ export default function ProposalView({
         </CardHeader>
         <CardContent>
           <p className="text-sm text-foreground font-medium mb-2">
-            Training Starts At: {trainingStartPhase}
+            {isLiveTrainingView ? `Training Is At: ${liveTrainingStateSummary}` : `Training Starts At: ${trainingStartPhase}`}
           </p>
           <p className="text-sm text-muted-foreground">
-            {getFocusAreaText()}
+            {isLiveTrainingView
+              ? `TT is operating from ${studentFirstName}'s current breakpoint inside ${currentTopicSummary}. Current session decisions now follow the live topic-conditioning state rather than the original intro-only entry point.`
+              : getFocusAreaText()}
           </p>
         </CardContent>
       </Card>
 
-      {(normalizedStability === "Low" || normalizedStability === "Medium") && (
+      {(isLiveTrainingView || normalizedStability === "Low" || normalizedStability === "Medium") && (
         <Card>
           <CardHeader>
             <CardTitle>Where {studentFirstName} Currently Gets Stuck</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">{getFirstBreakdown()}</p>
+            {isLiveTrainingView ? (
+              <ul className="text-sm text-muted-foreground space-y-1">
+                {currentLiveTopicStates.map((item) => {
+                  const phase = normalizePhaseLabel(item.phase);
+                  return (
+                    <li key={`${item.topic}-${item.phase}-${item.stability}`}>- In {item.topic}, {getCurrentBreakdown(phase || "Clarity")}</li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">{getFirstBreakdown()}</p>
+            )}
           </CardContent>
         </Card>
       )}
@@ -363,14 +539,16 @@ export default function ProposalView({
           <CardTitle>What We Have Observed</CardTitle>
         </CardHeader>
         <CardContent>
-          {observedResponse.length > 0 ? (
+          {(isLiveTrainingView ? liveObservedResponse : observedResponse).length > 0 ? (
             <ul className="text-sm text-muted-foreground space-y-1">
-              {Array.from(new Set(observedResponse)).map((item) => (
+              {(isLiveTrainingView ? liveObservedResponse : Array.from(new Set(observedResponse))).map((item) => (
                 <li key={item}>- {item}</li>
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-muted-foreground">Observed response patterns captured during intro session.</p>
+            <p className="text-sm text-muted-foreground">
+              {isLiveTrainingView ? "Live topic-conditioning observations will appear here as the current state updates." : "Observed response patterns captured during intro session."}
+            </p>
           )}
         </CardContent>
       </Card>
@@ -380,7 +558,15 @@ export default function ProposalView({
           <CardTitle>Training Path</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">{getFirstPriority()}</p>
+          {isLiveTrainingView ? (
+            <ul className="text-sm text-muted-foreground space-y-1">
+              {liveTrainingPath.map((item) => (
+                <li key={item}>- {item}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted-foreground">{getFirstPriority()}</p>
+          )}
         </CardContent>
       </Card>
 
@@ -393,7 +579,7 @@ export default function ProposalView({
             <li>- Cadence: 2 sessions per week (8 sessions per month)</li>
             <li>- Clear explanation of the problem structure</li>
             <li>- Guided practice with immediate correction</li>
-            <li>- Repeated method-building in the same topic</li>
+            <li>- Repeated method-building in the active topic-conditioning set</li>
             <li>- Gradual increase in difficulty when readiness improves</li>
           </ul>
         </CardContent>
@@ -404,9 +590,9 @@ export default function ProposalView({
           <CardTitle>How We Will Know It Is Improving</CardTitle>
         </CardHeader>
         <CardContent>
-          {progressSignals.length > 0 ? (
+          {(isLiveTrainingView ? liveProgressMarkers : progressSignals).length > 0 ? (
             <ul className="text-sm text-muted-foreground space-y-1">
-              {progressSignals.map((item) => (
+              {(isLiveTrainingView ? liveProgressMarkers : progressSignals).map((item) => (
                 <li key={item}>- {item}</li>
               ))}
             </ul>
@@ -425,9 +611,11 @@ export default function ProposalView({
         <CardContent className="pt-6">
           <h3 className="font-bold text-lg mb-2">Parent Alignment</h3>
           <p className="text-sm text-muted-foreground">
-            This training focuses on how {studentFirstName} responds when work becomes difficult.
+            {isLiveTrainingView
+              ? `This training plan now reflects ${studentFirstName}'s live topic-conditioning state. TT is working from the current breakpoint in ${currentTopicSummary}, and the plan updates its meaning from that active state.`
+              : `This training focuses on how ${studentFirstName} responds when work becomes difficult.
             The goal is to build structured thinking, independent execution, and stability
-            under pressure.
+            under pressure.`}
           </p>
           <p className="text-sm text-muted-foreground mt-2">
             Progress is measured through behavior and response, not only marks.

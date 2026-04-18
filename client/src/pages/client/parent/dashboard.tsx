@@ -183,6 +183,14 @@ function splitList(value?: string): string[] {
     .filter(Boolean);
 }
 
+function formatListWithAnd(items: string[]): string {
+  const cleaned = Array.from(new Set(items.map((item) => item.trim()).filter(Boolean)));
+  if (cleaned.length === 0) return "";
+  if (cleaned.length === 1) return cleaned[0];
+  if (cleaned.length === 2) return `${cleaned[0]} and ${cleaned[1]}`;
+  return `${cleaned.slice(0, -1).join(", ")}, and ${cleaned[cleaned.length - 1]}`;
+}
+
 function extractTopicConditioning(proposal: any) {
   if (!proposal) {
     return { topic: null, entryPhase: null, stability: null };
@@ -487,6 +495,11 @@ export default function ParentDashboard() {
   }));
 
   const topicCards = normalizedTopicStates.length > 0 ? normalizedTopicStates : fallbackTopicCards;
+  const currentBreakpointTopics = (topicCards.filter((item) => item.bucket === "active").length > 0
+    ? topicCards.filter((item) => item.bucket === "active")
+    : topicCards
+  ).map((item) => item.topic);
+  const currentBreakpointSummary = formatListWithAnd(currentBreakpointTopics) || focusArea;
 
   const sessionMarkers = [
     {
@@ -718,7 +731,7 @@ export default function ParentDashboard() {
             <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
               <p className="text-sm text-muted-foreground">
                 {proposal
-                  ? `TT is operating from ${studentFirstName}'s current breakpoint inside ${focusArea}.`
+                  ? `TT is operating from ${studentFirstName}'s current breakpoint inside ${currentBreakpointSummary}.`
                   : `The training plan is still being loaded for ${studentFirstName}.`}
               </p>
             </div>
@@ -815,7 +828,7 @@ export default function ParentDashboard() {
             <DialogHeader>
               <DialogTitle>{studentName} Training Plan</DialogTitle>
             </DialogHeader>
-            <ProposalView proposal={proposal} />
+            <ProposalView proposal={proposal} topicStates={topicCards} />
           </DialogContent>
         </Dialog>
       )}
