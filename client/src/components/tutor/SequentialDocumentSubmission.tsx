@@ -724,11 +724,14 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
     setHasCompletedReading(Boolean(currentAcceptance));
     setViewStartedAt(null);
     setViewCompletedAt(null);
-    setReaderOpen(false);
   }, [currentStep, currentAcceptance, currentDocument, liveApplication, effectiveInitialFormData]);
 
   useEffect(() => {
     setSelectedFile(null);
+  }, [currentStep]);
+
+  useEffect(() => {
+    setReaderOpen(false);
   }, [currentStep]);
 
   useEffect(() => {
