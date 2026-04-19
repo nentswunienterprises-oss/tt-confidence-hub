@@ -105,10 +105,10 @@ not disclose learner information
 All learner data remains property of TT.
 
 11. DIGITAL CONDUCT AND PRESENCE
-Tutors must:
+11.1 Tutors must:
 present professionally on camera
 use appropriate language at all times
-The following are prohibited:
+11.2 The following are prohibited:
 offensive language
 inappropriate attire
 disruptive or unprofessional behavior
