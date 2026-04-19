@@ -282,7 +282,7 @@ function PortalLanding() {
             <div className="space-y-3 sm:space-y-4">
               <h4 className="font-semibold text-sm sm:text-base" style={{ color: "#1A1A1A" }}>About TT</h4>
               <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-                Territorial Tutoring is a performance-first math mentorship system built on clarity, repetition, and standards.
+              Our system focuses on how students respond when work becomes difficult, unfamiliar, or timed. By training this response directly, students move from inconsistent performance to stable, controlled execution across topics.
               </p>
               <div className="space-y-2 pt-2">
                 <a href="https://territorialtutoring.co.za/privacy-policy" className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
