@@ -878,6 +878,14 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
       toast({ title: "Agreement accepted", description: `${currentDocument?.code} has been recorded.` });
     },
     onError: (error: Error) => {
+      if (/(already been accepted|already accepted|current acceptance step|pending review)/i.test(error.message)) {
+        queryClient.invalidateQueries({ queryKey: ["/api/tutor/gateway-session"] });
+        toast({
+          title: "Agreement status updated",
+          description: "Your onboarding state has been refreshed.",
+        });
+        return;
+      }
       toast({ title: "Acceptance failed", description: error.message, variant: "destructive" });
     },
   });
@@ -908,6 +916,14 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
       toast({ title: "Upload received", description: "Your file is now in the COO review queue." });
     },
     onError: (error: Error) => {
+      if (/(pending review|already approved|already accepted)/i.test(error.message)) {
+        queryClient.invalidateQueries({ queryKey: ["/api/tutor/gateway-session"] });
+        toast({
+          title: "Upload status updated",
+          description: "Your onboarding state has been refreshed.",
+        });
+        return;
+      }
       toast({ title: "Upload failed", description: error.message, variant: "destructive" });
     },
   });
@@ -1033,7 +1049,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                   <p className="text-sm font-medium">Read the full document first</p>
                   <p className="text-sm text-[#6B5B52]">Open the document reader, review the agreement in-app, complete any document fields there, then return here to confirm acceptance.</p>
                 </div>
-                <Button onClick={openReader} className="w-full bg-[#E63946] text-white hover:bg-[#cf2e3c] sm:w-auto sm:self-start">
+                <Button type="button" onClick={openReader} className="w-full bg-[#E63946] text-white hover:bg-[#cf2e3c] sm:w-auto sm:self-start">
                   <Expand className="mr-2 h-4 w-4" />
                   Open document reader
                 </Button>
@@ -1079,7 +1095,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                     <p className="text-xs text-muted-foreground">This mirrors the legal name captured inside the document and is the name used on the acceptance record.</p>
                   </div>
                 </div>
-                <Button disabled={!canAccept || acceptMutation.isPending || acceptanceAlreadyRecorded} onClick={() => acceptMutation.mutate()} className="w-full">
+                <Button type="button" disabled={!canAccept || acceptMutation.isPending || acceptanceAlreadyRecorded} onClick={() => acceptMutation.mutate()} className="w-full">
                   {acceptMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileCheck className="mr-2 h-4 w-4" />}
                   Accept and continue
                 </Button>
@@ -1096,8 +1112,8 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                   <p>Hash: {String(currentDocument.contentHash || "").slice(0, 16)}...</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" onClick={openReader}><FileText className="mr-2 h-4 w-4" />Review again</Button>
-                  <Button variant="outline" disabled={!acceptanceAlreadyRecorded} onClick={downloadCopy}><Download className="mr-2 h-4 w-4" />Download accepted copy</Button>
+                  <Button type="button" variant="outline" onClick={openReader}><FileText className="mr-2 h-4 w-4" />Review again</Button>
+                  <Button type="button" variant="outline" disabled={!acceptanceAlreadyRecorded} onClick={downloadCopy}><Download className="mr-2 h-4 w-4" />Download accepted copy</Button>
                 </div>
               </div>
             </div>
@@ -1113,7 +1129,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
               ) : null}
               <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Input type="file" accept=".pdf,.png,.jpg,.jpeg" disabled={!uploadReady || uploadMutation.isPending || currentStatus === "pending_review"} onChange={(event) => setSelectedFile(event.target.files?.[0] || null)} />
-                <Button className="w-full sm:w-auto" disabled={!selectedFile || !uploadReady || uploadMutation.isPending || currentStatus === "pending_review"} onClick={() => uploadMutation.mutate()}>
+                <Button type="button" className="w-full sm:w-auto" disabled={!selectedFile || !uploadReady || uploadMutation.isPending || currentStatus === "pending_review"} onClick={() => uploadMutation.mutate()}>
                   {uploadMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
                   Upload file
                 </Button>
@@ -1152,7 +1168,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                           ) : null}
                         </div>
                         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-                          <Button variant="outline" className="w-full sm:w-auto" onClick={() => downloadAcceptedCopyFor(document, acceptance)}>
+                          <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => downloadAcceptedCopyFor(document, acceptance)}>
                             <Download className="mr-2 h-4 w-4" />
                             Download accepted copy
                           </Button>
@@ -1297,7 +1313,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                   <p className="text-sm">Read progress: {readerPercent}%</p>
                   <p className="text-xs text-[#6B5B52]">Reach the end of the document to unlock the acceptance workspace.</p>
                 </div>
-                <Button className="w-full bg-[#E63946] text-white hover:bg-[#cf2e3c] sm:w-auto" disabled={readerPercent < 99} onClick={() => { setHasCompletedReading(true); setReaderOpen(false); }}>
+                <Button type="button" className="w-full bg-[#E63946] text-white hover:bg-[#cf2e3c] sm:w-auto" disabled={readerPercent < 99} onClick={() => { setHasCompletedReading(true); setReaderOpen(false); }}>
                   <CheckCircle2 className="mr-2 h-4 w-4" />
                   Continue to acceptance
                 </Button>
