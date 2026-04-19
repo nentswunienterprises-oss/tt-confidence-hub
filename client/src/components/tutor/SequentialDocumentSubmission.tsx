@@ -427,7 +427,7 @@ function hydrateDocumentContent(content: string, fieldValues: Record<string, str
     [/Email Address:\s*_+/i, `Email Address: ${fieldValues.emailAddress || "______________________________"}`],
     [/ID Number:\s*_+/i, `ID Number: ${fieldValues.idNumber || "______________________________"}`],
     [/School Attended \(Matric\):\s*_+/i, `School Attended (Matric): ${fieldValues.schoolName || "______________________________"}`],
-    [/Current Status \(e\.g\.\s*Gap Year,\s*University Student,\s*Graduate\):\s*/i, `Current Status (e.g. Gap Year, University Student, Graduate): ${fieldValues.currentStatus || "______________________________"}\n`],
+    [/Current Status \(e\.g\.\s*Gap Year,\s*University Student,\s*Graduate\):\s*_*\s*/i, `Current Status (e.g. Gap Year, University Student, Graduate): ${fieldValues.currentStatus || "______________________________"}\n`],
     [/Matric Year:\s*_+/i, `Matric Year: ${fieldValues.matricYear || "______________________________"}`],
     [/School Where Matric Was Completed:\s*_+/i, `School Where Matric Was Completed: ${fieldValues.schoolName || "______________________________"}`],
     [/Print Name:\s*_+/i, `Print Name: ${fieldValues.legalName || "______________________________"}`],

@@ -30,7 +30,7 @@ export const TUTOR_ONBOARDING_DOCUMENTS: TutorOnboardingDocumentDefinition[] = [
     code: "TT-TCF-001",
     title: "Tutor Consent Form",
     fileName: "TT-TCF-001.txt",
-    version: "TT-TCF-001",
+    version: "1",
     requiresAcceptance: true,
     requiresUpload: false,
     mandatoryClauses: [
@@ -45,7 +45,7 @@ export const TUTOR_ONBOARDING_DOCUMENTS: TutorOnboardingDocumentDefinition[] = [
     code: "TT-EQV-002",
     title: "Entry Qualification Verification",
     fileName: "TT-EQV-002.md",
-    version: "TT-EQV-002",
+    version: "1",
     requiresAcceptance: true,
     requiresUpload: true,
     uploadTitle: "Certified Matric Certificate",
@@ -67,7 +67,7 @@ export const TUTOR_ONBOARDING_DOCUMENTS: TutorOnboardingDocumentDefinition[] = [
     code: "TT-ICA-003",
     title: "Independent Contractor Agreement",
     fileName: "TT-ICA-003.md",
-    version: "TT-ICA-003",
+    version: "1",
     requiresAcceptance: true,
     requiresUpload: false,
     mandatoryClauses: [
@@ -90,7 +90,7 @@ export const TUTOR_ONBOARDING_DOCUMENTS: TutorOnboardingDocumentDefinition[] = [
     code: "TT-SCP-004",
     title: "Safeguarding and Conduct Policy",
     fileName: "TT-SCP-004.md",
-    version: "TT-SCP-004",
+    version: "1",
     requiresAcceptance: true,
     requiresUpload: false,
     mandatoryClauses: [
@@ -109,7 +109,7 @@ export const TUTOR_ONBOARDING_DOCUMENTS: TutorOnboardingDocumentDefinition[] = [
     code: "TT-DPC-005",
     title: "Data Protection / POPIA Consent",
     fileName: "TT-DPC-005.md",
-    version: "TT-DPC-005",
+    version: "1",
     requiresAcceptance: true,
     requiresUpload: false,
     mandatoryClauses: [
@@ -128,7 +128,7 @@ export const TUTOR_ONBOARDING_DOCUMENTS: TutorOnboardingDocumentDefinition[] = [
     code: "TT-CID-006",
     title: "Certified ID Copy",
     fileName: "",
-    version: "TT-CID-006",
+    version: "1",
     requiresAcceptance: false,
     requiresUpload: true,
     uploadTitle: "Certified ID Copy",
