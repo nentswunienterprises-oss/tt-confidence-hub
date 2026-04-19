@@ -902,9 +902,12 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
             .agreement-reader ul {
               margin: 0 0 0.8rem 1.2rem;
               padding: 0;
+              list-style-type: disc;
+              list-style-position: outside;
             }
 
             .agreement-reader li {
+              display: list-item;
               margin-bottom: 0.35rem;
               font-family: Arial, sans-serif;
               font-size: 0.95rem;
