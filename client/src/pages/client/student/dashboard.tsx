@@ -248,8 +248,9 @@ export default function StudentDashboard() {
   const conditioningTopic = normalizeTopicText(topicConditioningState?.topic);
   const normalizedPhase = normalizePhaseLabel(topicConditioningState?.phase);
   const normalizedStability = normalizeStabilityLabel(topicConditioningState?.stability);
+  const safeTopicStates = Array.isArray(topicStatesData) ? topicStatesData : [];
   const normalizedTopicStates = Array.from(
-    ((topicStatesData || []) as StudentTopicState[])
+    (safeTopicStates as StudentTopicState[])
       .map((item) => ({
         ...item,
         phase: normalizePhaseLabel(item.phase),
