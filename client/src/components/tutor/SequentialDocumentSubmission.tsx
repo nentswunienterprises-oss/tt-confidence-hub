@@ -44,6 +44,42 @@ interface FieldDefinition {
   readOnly?: boolean;
 }
 
+function formatCurrentSituation(value: string) {
+  const normalized = String(value || "").trim();
+  const labels: Record<string, string> = {
+    gap_year: "Gap Year",
+    waiting_uni: "Waiting For University",
+    studying: "Currently Studying",
+    working: "Working",
+    other: "Other",
+  };
+  return labels[normalized] || normalized.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function deriveDateOfBirthFromSouthAfricanId(idNumber: string) {
+  const digits = String(idNumber || "").replace(/\D/g, "");
+  if (digits.length < 6) return "";
+  const yy = Number(digits.slice(0, 2));
+  const mm = Number(digits.slice(2, 4));
+  const dd = Number(digits.slice(4, 6));
+  if (!yy || mm < 1 || mm > 12 || dd < 1 || dd > 31) return "";
+
+  const now = new Date();
+  const currentTwoDigitYear = now.getFullYear() % 100;
+  const fullYear = yy <= currentTwoDigitYear ? 2000 + yy : 1900 + yy;
+  const date = new Date(fullYear, mm - 1, dd);
+  if (
+    Number.isNaN(date.getTime()) ||
+    date.getFullYear() !== fullYear ||
+    date.getMonth() !== mm - 1 ||
+    date.getDate() !== dd
+  ) {
+    return "";
+  }
+
+  return `${fullYear}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`;
+}
+
 function escapeHtml(value: string) {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -60,17 +96,54 @@ function formatAcceptedAt(value: string | null | undefined) {
   return date.toLocaleString();
 }
 
-function renderAgreementHtml(content: string) {
-  const lines = content.split("\n").map((line) => line.trimEnd());
-  const blocks: string[] = [];
-  let paragraphLines: string[] = [];
-  let listItems: string[] = [];
+function normalizeAgreementContent(content: string) {
+  return content
+    .replace(/\r\n/g, "\n")
+    .replace(/[â€œâ€]/g, '"')
+    .replace(/[â€˜â€™]/g, "'")
+    .replace(/[â€“â€”]/g, "-")
+    .replace(/â†’/g, " -> ")
+    .replace(/\uFFFD/g, "")
+    .replace(/Grade Level Preference:\s*[\s\S]*?(?=\nSECTION B:)/i, "")
+    .replace(/\nFOR OFFICIAL USE ONLY[\s\S]*$/i, "")
+    .replace(/\n(?:SECTION [A-Z]:\s*FINAL DECLARATION|[0-9]+\.\s*DECLARATION)[\s\S]*$/i, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
 
-  const flushParagraph = () => {
-    if (!paragraphLines.length) return;
-    blocks.push(`<p>${escapeHtml(paragraphLines.join(" "))}</p>`);
-    paragraphLines = [];
-  };
+function tokenizeAgreementLines(content: string) {
+  const rawLines = normalizeAgreementContent(content)
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const lines: string[] = [];
+
+  for (let index = 0; index < rawLines.length; index += 1) {
+    const current = rawLines[index];
+    const next = rawLines[index + 1];
+
+    if (/^SECTION [A-Z]:$/i.test(current) && next && /^[A-Z][A-Z\s()/-]+$/.test(next)) {
+      lines.push(`${current} ${next}`);
+      index += 1;
+      continue;
+    }
+
+    if (/^[A-Z][A-Z\s()/-]+$/.test(current) && next && /^[A-Z][A-Z\s()/-]+$/.test(next) && !/^SECTION [A-Z]:/i.test(next)) {
+      lines.push(`${current} ${next}`);
+      index += 1;
+      continue;
+    }
+
+    lines.push(current);
+  }
+
+  return lines;
+}
+
+function renderAgreementHtml(content: string) {
+  const lines = tokenizeAgreementLines(content);
+  const blocks: string[] = [];
+  let listItems: string[] = [];
 
   const flushList = () => {
     if (!listItems.length) return;
@@ -78,34 +151,175 @@ function renderAgreementHtml(content: string) {
     listItems = [];
   };
 
+  let listMode = false;
+
   for (const rawLine of lines) {
     const line = rawLine.trim();
-    if (!line) {
-      flushParagraph();
-      flushList();
-      continue;
-    }
 
     if (/^(SECTION [A-Z]|[0-9]+\.)/.test(line) || /^[A-Z][A-Z0-9\s/&(),.-]{8,}$/.test(line)) {
-      flushParagraph();
       flushList();
       const tag = /^(SECTION [A-Z]|[0-9]+\.)/.test(line) ? "h2" : "h1";
       blocks.push(`<${tag}>${escapeHtml(line)}</${tag}>`);
+      listMode = false;
       continue;
     }
 
-    if (/^\[.\]/.test(line) || /^(employment|partnership|joint venture|agency|copy|reproduce|distribute|teach outside TT|income|student allocation|session volume|withhold payment|reverse payment|adjust payment|audit sessions|review recordings|evaluate performance|conduct|session execution|TT Operating System \(TT-OS\) compliance|operational performance within the platform)$/i.test(line)) {
-      flushParagraph();
+    const cleanedCheckboxLine = line.replace(/^\[[^\]]*\]\s*/, "");
+    if (/^\[.\]/.test(line)) {
       listItems.push(line.replace(/^\[[^\]]*\]\s*/, ""));
+      listMode = true;
       continue;
     }
 
-    paragraphLines.push(line);
+    const isLikelyListItem =
+      listMode ||
+      /^[A-Z][a-z][^.!?]{0,95}$/.test(cleanedCheckboxLine) ||
+      /^(employment|partnership|joint venture|agency|conduct|session execution|platform discipline|non-compliance|platform violations|session integrity issues|copy|reproduce|distribute|teach outside TT|income|student allocation|session volume|withhold payment|reverse payment|adjust payment|audit sessions|review recordings|evaluate performance|compliance|quality control|system integrity|accurate|honest|complete|placement|earnings|references|long-term engagement)$/i.test(cleanedCheckboxLine) ||
+      /^(deliver|conduct|maintain|execute|record|model|apply|guide|top-down camera|clear, step-by-step visual execution|conditioning phases|stability states|tt drill system|no private communication|no acceptance of payment|consistent execution|tt-os compliance|platform discipline|session quality failure|structural violations|misreporting or dishonest observation|platform misuse|conduct issues|may occur without prior notice|immediately halts all payment eligibility|all tt decisions regarding compliance are final|contractor income stability|academic or career outcomes|personal financial obligations|all tax obligations \(including sars compliance\)|placement|earnings|references|long-term engagement)$/i.test(cleanedCheckboxLine);
+
+    if (/:$/.test(line)) {
+      flushList();
+      blocks.push(`<p>${escapeHtml(line)}</p>`);
+      listMode = true;
+      continue;
+    }
+
+    if (isLikelyListItem) {
+      listItems.push(cleanedCheckboxLine);
+      listMode = true;
+      continue;
+    }
+
+    flushList();
+    listMode = false;
+    blocks.push(`<p>${escapeHtml(line)}</p>`);
   }
 
-  flushParagraph();
   flushList();
 
+  return blocks.join("");
+}
+
+function normalizeAgreementContentStrict(content: string) {
+  return content
+    .replace(/\r\n/g, "\n")
+    .replace(/[^\S\n]+/g, " ")
+    .replace(/[\u0000-\u0008\u000B-\u001F]/g, "")
+    .replace(/\uFFFD/g, "")
+    .replace(/Grade Level Preference:\s*[\s\S]*?(?=\nSECTION B:)/i, "")
+    .replace(/\nFOR OFFICIAL USE ONLY[\s\S]*$/i, "")
+    .replace(/\n(?:SECTION [A-Z]:\s*FINAL DECLARATION|[0-9]+\.\s*DECLARATION)[\s\S]*$/i, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function tokenizeAgreementLinesStrict(content: string) {
+  const rawLines = normalizeAgreementContentStrict(content)
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const lines: string[] = [];
+
+  for (let index = 0; index < rawLines.length; index += 1) {
+    let current = rawLines[index];
+    const next = rawLines[index + 1];
+
+    if (/^SECTION [A-Z]:$/i.test(current) && next && /^[A-Z][A-Z\s()/-]+$/.test(next)) {
+      lines.push(`${current} ${next}`);
+      index += 1;
+      continue;
+    }
+
+    if (/^[A-Z][A-Z\s()/-]+$/.test(current) && next && /^[A-Z][A-Z\s()/-]+$/.test(next) && !/^SECTION [A-Z]:/i.test(next)) {
+      lines.push(`${current} ${next}`);
+      index += 1;
+      continue;
+    }
+
+    if (
+      next &&
+      !/:$/.test(current) &&
+      !/^(SECTION [A-Z]|[0-9]+\.)/i.test(current) &&
+      !/^[A-Z][A-Z0-9\s/&(),.-]{8,}$/.test(next) &&
+      /^[a-z(]/.test(next)
+    ) {
+      current = `${current} ${next}`;
+      index += 1;
+    }
+
+    lines.push(current);
+  }
+
+  return lines;
+}
+
+function renderAgreementHtmlStrict(content: string) {
+  const lines = tokenizeAgreementLinesStrict(content);
+  const blocks: string[] = [];
+  let listItems: string[] = [];
+  let listMode = false;
+
+  const flushList = () => {
+    if (!listItems.length) return;
+    blocks.push(`<ul>${listItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`);
+    listItems = [];
+  };
+
+  const protectedFieldLine =
+    /^(Full Name:|Contact Number:|Date of Birth:|Email Address:|ID Number:|School Attended \(Matric\):|Current Status|Matric Year:|School Where Matric Was Completed:|Print Name:|Document Reference:)/i;
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+
+    if (/^(SECTION [A-Z]|[0-9]+\.)/.test(line) || /^[A-Z][A-Z0-9\s/&(),.-]{8,}$/.test(line)) {
+      flushList();
+      const tag = /^(SECTION [A-Z]|[0-9]+\.)/.test(line) ? "h2" : "h1";
+      blocks.push(`<${tag}>${escapeHtml(line)}</${tag}>`);
+      listMode = false;
+      continue;
+    }
+
+    const inlineColonMatch = line.match(/^([A-Z][A-Za-z0-9\s()/-]{2,48}:)\s+(.+)$/);
+    if (inlineColonMatch && !protectedFieldLine.test(line)) {
+      flushList();
+      blocks.push(`<p>${escapeHtml(inlineColonMatch[1])}</p>`);
+      listItems.push(inlineColonMatch[2]);
+      listMode = true;
+      continue;
+    }
+
+    const cleanedCheckboxLine = line.replace(/^\[[^\]]*\]\s*/, "");
+    if (/^\[.\]/.test(line)) {
+      listItems.push(cleanedCheckboxLine);
+      listMode = true;
+      continue;
+    }
+
+    if (/:$/.test(line)) {
+      flushList();
+      blocks.push(`<p>${escapeHtml(line)}</p>`);
+      listMode = true;
+      continue;
+    }
+
+    const isLikelyListItem =
+      listMode ||
+      /^[A-Z][a-z][^.!?]{0,110}$/.test(cleanedCheckboxLine) ||
+      /^(employment|partnership|joint venture|agency|conduct|session execution|platform discipline|non-compliance|platform violations|session integrity issues|copy|reproduce|distribute|teach outside TT|income|student allocation|session volume|withhold payment|reverse payment|adjust payment|audit sessions|review recordings|evaluate performance|compliance|quality control|system integrity|accurate|honest|complete|placement|earnings|references|long-term engagement)$/i.test(cleanedCheckboxLine) ||
+      /^(deliver|conduct|maintain|required|execute|record|model|apply|guide|top-down camera|clear, step-by-step visual execution|conditioning phases|stability states|tt drill system|no private communication|no acceptance of payment|consistent execution|tt-os compliance|platform discipline|session quality failure|structural violations|misreporting or dishonest observation|platform misuse|conduct issues|may occur without prior notice|immediately halts all payment eligibility|all tt decisions regarding compliance are final|contractor income stability|academic or career outcomes|personal financial obligations|all tax obligations \(including sars compliance\)|placement|earnings|references|long-term engagement)$/i.test(cleanedCheckboxLine);
+
+    if (isLikelyListItem) {
+      listItems.push(cleanedCheckboxLine);
+      listMode = true;
+      continue;
+    }
+
+    flushList();
+    listMode = false;
+    blocks.push(`<p>${escapeHtml(line)}</p>`);
+  }
+
+  flushList();
   return blocks.join("");
 }
 
@@ -115,6 +329,19 @@ function normalizeValue(value: unknown) {
 
 function buildInitialFormData(fields: FieldDefinition[], application: any, acceptance: any) {
   const savedForm = acceptance?.formSnapshotJson || acceptance?.form_snapshot_json || {};
+  const applicationIdNumber = normalizeValue(application?.idNumber || application?.id_number);
+  const applicationCurrentSituation = normalizeValue(
+    application?.currentSituationOther ||
+    application?.current_situation_other ||
+    formatCurrentSituation(application?.currentSituation || application?.current_situation)
+  );
+  const applicationSchool = normalizeValue(
+    application?.schoolAttended ||
+    application?.school_attended ||
+    application?.school ||
+    application?.schoolName ||
+    application?.school_name
+  );
   const initial: Record<string, string> = {
     legalName: normalizeValue(
       acceptance?.typedFullName ||
@@ -124,9 +351,11 @@ function buildInitialFormData(fields: FieldDefinition[], application: any, accep
     ),
     emailAddress: normalizeValue(application?.email),
     phoneNumber: normalizeValue(application?.phone),
-    idNumber: normalizeValue(application?.idNumber || application?.id_number),
+    idNumber: applicationIdNumber,
+    dateOfBirth: normalizeValue(application?.dateOfBirth || application?.date_of_birth) || deriveDateOfBirthFromSouthAfricanId(applicationIdNumber),
     matricYear: normalizeValue(application?.matricYear || application?.matric_year),
-    schoolName: normalizeValue(application?.school || application?.schoolName || application?.school_name),
+    schoolName: applicationSchool,
+    currentStatus: applicationCurrentSituation,
     examNumber: normalizeValue(application?.examNumber || application?.exam_number),
   };
 
@@ -148,6 +377,7 @@ function hydrateDocumentContent(content: string, fieldValues: Record<string, str
     [/Email Address:\s*_+/i, `Email Address: ${fieldValues.emailAddress || "______________________________"}`],
     [/ID Number:\s*_+/i, `ID Number: ${fieldValues.idNumber || "______________________________"}`],
     [/School Attended \(Matric\):\s*_+/i, `School Attended (Matric): ${fieldValues.schoolName || "______________________________"}`],
+    [/Current Status \(e\.g\.\s*Gap Year,\s*University Student,\s*Graduate\):\s*/i, `Current Status (e.g. Gap Year, University Student, Graduate): ${fieldValues.currentStatus || "______________________________"}\n`],
     [/Matric Year:\s*_+/i, `Matric Year: ${fieldValues.matricYear || "______________________________"}`],
     [/School Where Matric Was Completed:\s*_+/i, `School Where Matric Was Completed: ${fieldValues.schoolName || "______________________________"}`],
     [/Print Name:\s*_+/i, `Print Name: ${fieldValues.legalName || "______________________________"}`],
@@ -243,7 +473,7 @@ function buildAcceptedCopyHtml(params: {
 
     <section class="section">
       <h2 class="section-title">Accepted Agreement Text</h2>
-      <div class="agreement-body">${renderAgreementHtml(hydrateDocumentContent(document.content || "", { ...formData, legalName: acceptedName }))}</div>
+      <div class="agreement-body">${renderAgreementHtmlStrict(hydrateDocumentContent(document.content || "", { ...formData, legalName: acceptedName }))}</div>
     </section>
 
     <section class="signature">
@@ -271,12 +501,16 @@ const DEFAULT_DOCUMENT_STATUSES: Record<string, DocumentStatus> = {
 const DOCUMENT_FORM_FIELDS: Record<number, FieldDefinition[]> = {
   1: [
     { key: "legalName", label: "Full legal name", placeholder: "Enter your full legal name" },
+    { key: "dateOfBirth", label: "Date of birth", placeholder: "YYYY-MM-DD" },
     { key: "emailAddress", label: "Email address", placeholder: "Loaded from your TT account", readOnly: true },
     { key: "phoneNumber", label: "Phone number", placeholder: "Enter your contact number" },
     { key: "idNumber", label: "ID number", placeholder: "Enter your South African ID number" },
+    { key: "schoolName", label: "School attended (Matric)", placeholder: "Enter the school you attended for Matric" },
+    { key: "currentStatus", label: "Current status", placeholder: "Gap year, waiting uni, studying, working, etc." },
   ],
   2: [
     { key: "legalName", label: "Full legal name", placeholder: "Enter your full legal name" },
+    { key: "dateOfBirth", label: "Date of birth", placeholder: "YYYY-MM-DD" },
     { key: "emailAddress", label: "Email address", placeholder: "Loaded from your TT account", readOnly: true },
     { key: "phoneNumber", label: "Phone number", placeholder: "Enter your contact number" },
     { key: "idNumber", label: "ID number", placeholder: "Enter your South African ID number" },
@@ -520,7 +754,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
 
   return (
     <>
-      <Card className="border-slate-200 shadow-sm">
+      <Card className="border-[#E7D5C8] bg-white shadow-sm">
         <CardHeader className="space-y-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -538,18 +772,18 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
 
         <CardContent className="space-y-6">
           {isAcceptanceStep ? (
-            <div className="rounded-2xl border bg-slate-950 p-4 text-white">
-              <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="rounded-2xl border border-[#E7D5C8] bg-[#FFF5ED] p-4 text-[#1A1A1A] sm:p-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Read the full document first</p>
-                  <p className="text-sm text-slate-300">The agreement opens full screen. Once you reach the end, you return here to complete the acceptance workspace.</p>
+                  <p className="text-sm text-[#6B5B52]">Open the document reader, review the agreement in-app, complete any document fields there, then return here to confirm acceptance.</p>
                 </div>
-                <Button onClick={openReader} className="bg-white text-slate-950 hover:bg-slate-200">
+                <Button onClick={openReader} className="w-full bg-[#E63946] text-white hover:bg-[#cf2e3c] sm:w-auto sm:self-start">
                   <Expand className="mr-2 h-4 w-4" />
-                  Open full-screen document
+                  Open document reader
                 </Button>
               </div>
-              <div className="mt-4 flex flex-wrap gap-3 text-xs text-slate-300">
+              <div className="mt-4 flex flex-col gap-1 text-xs text-[#6B5B52] sm:flex-row sm:flex-wrap sm:gap-3">
                 <span>Read progress: {readerPercent}%</span>
                 <span>{hasCompletedReading ? "Review complete" : "Acceptance remains locked until you finish reading"}</span>
               </div>
@@ -711,6 +945,15 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                                 setFormData((value) => ({ ...value, legalName: event.target.value }));
                                 return;
                               }
+                              if (field.key === "idNumber") {
+                                const nextId = event.target.value;
+                                setFormData((value) => ({
+                                  ...value,
+                                  idNumber: nextId,
+                                  dateOfBirth: value.dateOfBirth || deriveDateOfBirthFromSouthAfricanId(nextId),
+                                }));
+                                return;
+                              }
                               setFormData((value) => ({ ...value, [field.key]: event.target.value }));
                             }}
                             placeholder={field.placeholder}
@@ -723,7 +966,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                 ) : null}
                 <div
                   className="agreement-reader mt-8"
-                  dangerouslySetInnerHTML={{ __html: renderAgreementHtml(hydratedDocumentContent || "No document content available.") }}
+                  dangerouslySetInnerHTML={{ __html: renderAgreementHtmlStrict(hydratedDocumentContent || "No document content available.") }}
                 />
               </div>
             </div>
