@@ -583,6 +583,7 @@ export const tutorOnboardingAcceptances = pgTable("tutor_onboarding_acceptances"
   sessionId: varchar("session_id"),
   locale: varchar("locale"),
   sourceFlow: varchar("source_flow"),
+  formSnapshotJson: jsonb("form_snapshot_json"),
   acceptedClausesJson: jsonb("accepted_clauses_json").$type<string[]>().default(sql`'[]'::jsonb`),
   scrollCompletionPercent: integer("scroll_completion_percent"),
   viewStartedAt: timestamp("view_started_at"),

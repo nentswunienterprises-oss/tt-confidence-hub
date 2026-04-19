@@ -9994,6 +9994,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           locale,
           platform,
           sourceFlow,
+          formData,
           acceptedClauseKeys,
           scrollCompletionPercent,
           viewStartedAt,
@@ -10062,6 +10063,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           sessionId: req.sessionID || null,
           locale: locale ? String(locale) : null,
           sourceFlow: sourceFlow ? String(sourceFlow) : "tutor_onboarding_step",
+          formSnapshotJson:
+            formData && typeof formData === "object"
+              ? Object.fromEntries(
+                  Object.entries(formData).map(([key, value]) => [String(key), String(value ?? "").trim()])
+                )
+              : null,
           acceptedClauses: definition.mandatoryClauses.filter((clause) => acceptedClauseKeySet.has(clause.key)),
           scrollCompletionPercent:
             typeof scrollCompletionPercent === "number"

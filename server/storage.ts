@@ -204,6 +204,7 @@ interface CreateTutorOnboardingAcceptanceInput {
   sessionId?: string | null;
   locale?: string | null;
   sourceFlow?: string | null;
+  formSnapshotJson?: Record<string, string> | null;
   acceptedClauses: { key: string; label: string }[];
   scrollCompletionPercent?: number | null;
   viewStartedAt?: Date | null;
@@ -1822,6 +1823,7 @@ export class SupabaseStorage implements IStorage {
       sessionId: input.sessionId ?? null,
       locale: input.locale ?? null,
       sourceFlow: input.sourceFlow ?? null,
+      formSnapshotJson: input.formSnapshotJson ?? null,
       acceptedClausesJson: input.acceptedClauses.map((clause) => clause.key),
       scrollCompletionPercent: input.scrollCompletionPercent ?? null,
       viewStartedAt: input.viewStartedAt ?? null,
@@ -1853,6 +1855,7 @@ export class SupabaseStorage implements IStorage {
         session_id: acceptancePayload.sessionId,
         locale: acceptancePayload.locale,
         source_flow: acceptancePayload.sourceFlow,
+        form_snapshot_json: acceptancePayload.formSnapshotJson,
         accepted_clauses_json: acceptancePayload.acceptedClausesJson,
         scroll_completion_percent: acceptancePayload.scrollCompletionPercent,
         view_started_at: acceptancePayload.viewStartedAt,
@@ -1918,6 +1921,7 @@ export class SupabaseStorage implements IStorage {
           at: input.acceptClickedAt?.toISOString?.() ?? null,
           method: "checkbox_typed_name",
           clauses: input.acceptedClauses.map((clause) => clause.key),
+          formSnapshot: input.formSnapshotJson ?? null,
         },
       },
     ];
