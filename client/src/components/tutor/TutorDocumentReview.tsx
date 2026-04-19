@@ -114,6 +114,22 @@ function buildAcceptedAgreementHtml(item: { code: string; title: string }, accep
 </html>`;
 }
 
+function openAcceptedCopyPrintWindow(html: string, title: string) {
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const printWindow = window.open(url, "_blank", "width=960,height=720");
+  if (!printWindow) return false;
+  window.setTimeout(() => {
+    try {
+      printWindow.document.title = title;
+      printWindow.focus();
+    } catch {}
+    printWindow.print();
+    window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }, 250);
+  return true;
+}
+
 export function TutorDocumentReview({ application, onReview }: TutorDocumentReviewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -189,6 +205,18 @@ export function TutorDocumentReview({ application, onReview }: TutorDocumentRevi
     link.download = `${item.code}-accepted-copy.html`;
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const printAcceptedAgreement = (item: (typeof AGREEMENT_STEPS)[number], acceptance: any) => {
+    const html = buildAcceptedAgreementHtml(item, acceptance);
+    const opened = openAcceptedCopyPrintWindow(html, `${item.code}-accepted-copy`);
+    if (!opened) {
+      toast({
+        title: "Popup blocked",
+        description: "Allow popups to print or save the accepted copy as PDF.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -277,10 +305,14 @@ export function TutorDocumentReview({ application, onReview }: TutorDocumentRevi
                               Clauses acknowledged: {acceptance.acceptedClausesJson.join(", ")}
                             </p>
                           ) : null}
-                          <div className="pt-2">
+                          <div className="flex flex-wrap gap-2 pt-2">
                             <Button variant="outline" size="sm" onClick={() => downloadAcceptedAgreement(item, acceptance)}>
                               <Download className="mr-2 h-3 w-3" />
                               Download accepted copy
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => printAcceptedAgreement(item, acceptance)}>
+                              <FileCheck className="mr-2 h-3 w-3" />
+                              Print / Save PDF
                             </Button>
                           </div>
                         </>

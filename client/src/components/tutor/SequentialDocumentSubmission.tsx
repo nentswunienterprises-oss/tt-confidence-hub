@@ -561,6 +561,22 @@ function buildAcceptedCopyHtml(params: {
 </html>`;
 }
 
+function openAcceptedCopyPrintWindow(html: string, title: string) {
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const printWindow = window.open(url, "_blank", "width=960,height=720");
+  if (!printWindow) return false;
+  window.setTimeout(() => {
+    try {
+      printWindow.document.title = title;
+      printWindow.focus();
+    } catch {}
+    printWindow.print();
+    window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }, 250);
+  return true;
+}
+
 const DEFAULT_DOCUMENT_STATUSES: Record<string, DocumentStatus> = {
   "1": "pending_upload",
   "2": "not_started",
@@ -666,7 +682,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
 
   const statusLabel =
     currentStep === 2 && currentStatus === "pending_upload" && currentAcceptance
-      ? "accepted - waiting for certificate upload"
+      ? "Accepted - Waiting For Certificate Upload"
       : currentStep !== 6 && currentStatus === "pending_upload"
         ? "Awaiting Acceptance"
         : String(currentStatus).replace(/_/g, " ");
@@ -686,7 +702,11 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
   const canonicalLockedFormData = useMemo(
     () => ({
       ...applicationLockedFormData,
-      ...(currentStep === 2 ? previousAcceptanceDerivedFormData : {}),
+      ...(currentStep === 2
+        ? Object.fromEntries(
+            Object.entries(previousAcceptanceDerivedFormData).filter(([, value]) => Boolean(String(value || "").trim()))
+          )
+        : {}),
     }),
     [applicationLockedFormData, currentStep, previousAcceptanceDerivedFormData]
   );
@@ -843,23 +863,55 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
     URL.revokeObjectURL(url);
   };
 
-  const downloadAcceptedCopyFor = (document: OnboardingDocumentDefinition, acceptance: any) => {
-    if (!document?.content || !acceptance) return;
+  const printAcceptedCopy = () => {
+    if (!currentDocument?.content || !currentAcceptance) return;
+    const storedFormData = currentAcceptance?.formSnapshotJson || currentAcceptance?.form_snapshot_json || formData;
+    const html = buildAcceptedCopyHtml({
+      document: currentDocument,
+      acceptance: currentAcceptance,
+      typedFullName,
+      formData: storedFormData,
+      fields: currentFormFields,
+    });
+    const opened = openAcceptedCopyPrintWindow(html, `${currentDocument.code}-accepted-copy`);
+    if (!opened) {
+      toast({ title: "Popup blocked", description: "Allow popups to print or save the accepted copy as PDF.", variant: "destructive" });
+    }
+  };
+
+  const downloadAcceptedCopyFor = (docDefinition: OnboardingDocumentDefinition, acceptance: any) => {
+    if (!docDefinition?.content || !acceptance) return;
     const storedFormData = acceptance?.formSnapshotJson || acceptance?.form_snapshot_json || {};
     const html = buildAcceptedCopyHtml({
-      document,
+      document: docDefinition,
       acceptance,
       typedFullName: acceptance?.typedFullName || acceptance?.typed_full_name || "",
       formData: storedFormData,
-      fields: DOCUMENT_FORM_FIELDS[document.step] || [],
+      fields: DOCUMENT_FORM_FIELDS[docDefinition.step] || [],
     });
     const blob = new Blob([html], { type: "text/html;charset=utf-8" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    const link = window.document.createElement("a");
     link.href = url;
-    link.download = `${document.code}-accepted-copy.html`;
+    link.download = `${docDefinition.code}-accepted-copy.html`;
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const printAcceptedCopyFor = (docDefinition: OnboardingDocumentDefinition, acceptance: any) => {
+    if (!docDefinition?.content || !acceptance) return;
+    const storedFormData = acceptance?.formSnapshotJson || acceptance?.form_snapshot_json || {};
+    const html = buildAcceptedCopyHtml({
+      document: docDefinition,
+      acceptance,
+      typedFullName: acceptance?.typedFullName || acceptance?.typed_full_name || "",
+      formData: storedFormData,
+      fields: DOCUMENT_FORM_FIELDS[docDefinition.step] || [],
+    });
+    const opened = openAcceptedCopyPrintWindow(html, `${docDefinition.code}-accepted-copy`);
+    if (!opened) {
+      toast({ title: "Popup blocked", description: "Allow popups to print or save the accepted copy as PDF.", variant: "destructive" });
+    }
   };
 
   if (isLoading || !currentDocument) {
@@ -961,6 +1013,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                 <div className="flex flex-wrap gap-2">
                   <Button variant="outline" onClick={openReader}><FileText className="mr-2 h-4 w-4" />Review again</Button>
                   <Button variant="outline" disabled={!acceptanceAlreadyRecorded} onClick={downloadCopy}><Download className="mr-2 h-4 w-4" />Download accepted copy</Button>
+                  <Button variant="outline" disabled={!acceptanceAlreadyRecorded} onClick={printAcceptedCopy}><FileCheck className="mr-2 h-4 w-4" />Print / Save PDF</Button>
                 </div>
               </div>
             </div>
@@ -1006,10 +1059,16 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                             <p className="text-xs text-muted-foreground">Accepted {new Date(acceptedAt).toLocaleString()}</p>
                           ) : null}
                         </div>
-                        <Button variant="outline" className="w-full sm:w-auto" onClick={() => downloadAcceptedCopyFor(document, acceptance)}>
-                          <Download className="mr-2 h-4 w-4" />
-                          Download accepted copy
-                        </Button>
+                        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                          <Button variant="outline" className="w-full sm:w-auto" onClick={() => downloadAcceptedCopyFor(document, acceptance)}>
+                            <Download className="mr-2 h-4 w-4" />
+                            Download accepted copy
+                          </Button>
+                          <Button variant="outline" className="w-full sm:w-auto" onClick={() => printAcceptedCopyFor(document, acceptance)}>
+                            <FileCheck className="mr-2 h-4 w-4" />
+                            Print / Save PDF
+                          </Button>
+                        </div>
                       </div>
                     );
                   })}
