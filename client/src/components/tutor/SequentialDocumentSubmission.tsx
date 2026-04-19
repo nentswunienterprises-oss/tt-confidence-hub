@@ -41,6 +41,7 @@ interface FieldDefinition {
   key: string;
   label: string;
   placeholder: string;
+  readOnly?: boolean;
 }
 
 function escapeHtml(value: string) {
@@ -106,6 +107,57 @@ function renderAgreementHtml(content: string) {
   flushList();
 
   return blocks.join("");
+}
+
+function normalizeValue(value: unknown) {
+  return String(value ?? "").trim();
+}
+
+function buildInitialFormData(fields: FieldDefinition[], application: any, acceptance: any) {
+  const savedForm = acceptance?.formSnapshotJson || acceptance?.form_snapshot_json || {};
+  const initial: Record<string, string> = {
+    legalName: normalizeValue(
+      acceptance?.typedFullName ||
+      acceptance?.typed_full_name ||
+      application?.fullName ||
+      application?.full_name
+    ),
+    emailAddress: normalizeValue(application?.email),
+    phoneNumber: normalizeValue(application?.phone),
+    idNumber: normalizeValue(application?.idNumber || application?.id_number),
+    matricYear: normalizeValue(application?.matricYear || application?.matric_year),
+    schoolName: normalizeValue(application?.school || application?.schoolName || application?.school_name),
+    examNumber: normalizeValue(application?.examNumber || application?.exam_number),
+  };
+
+  for (const field of fields) {
+    const savedValue = normalizeValue(savedForm[field.key]);
+    if (savedValue) {
+      initial[field.key] = savedValue;
+    }
+  }
+
+  return Object.fromEntries(fields.map((field) => [field.key, initial[field.key] || ""]));
+}
+
+function hydrateDocumentContent(content: string, fieldValues: Record<string, string>) {
+  const replacements: Array<[RegExp, string]> = [
+    [/Full Name:\s*_+/i, `Full Name: ${fieldValues.legalName || "______________________________"}`],
+    [/Contact Number:\s*_+/i, `Contact Number: ${fieldValues.phoneNumber || "______________________________"}`],
+    [/Date of Birth:\s*_+/i, `Date of Birth: ${fieldValues.dateOfBirth || "______________________________"}`],
+    [/Email Address:\s*_+/i, `Email Address: ${fieldValues.emailAddress || "______________________________"}`],
+    [/ID Number:\s*_+/i, `ID Number: ${fieldValues.idNumber || "______________________________"}`],
+    [/School Attended \(Matric\):\s*_+/i, `School Attended (Matric): ${fieldValues.schoolName || "______________________________"}`],
+    [/Matric Year:\s*_+/i, `Matric Year: ${fieldValues.matricYear || "______________________________"}`],
+    [/School Where Matric Was Completed:\s*_+/i, `School Where Matric Was Completed: ${fieldValues.schoolName || "______________________________"}`],
+    [/Print Name:\s*_+/i, `Print Name: ${fieldValues.legalName || "______________________________"}`],
+  ];
+
+  let next = content;
+  for (const [pattern, replacement] of replacements) {
+    next = next.replace(pattern, replacement);
+  }
+  return next;
 }
 
 function buildAcceptedCopyHtml(params: {
@@ -191,7 +243,7 @@ function buildAcceptedCopyHtml(params: {
 
     <section class="section">
       <h2 class="section-title">Accepted Agreement Text</h2>
-      <div class="agreement-body">${renderAgreementHtml(document.content || "")}</div>
+      <div class="agreement-body">${renderAgreementHtml(hydrateDocumentContent(document.content || "", { ...formData, legalName: acceptedName }))}</div>
     </section>
 
     <section class="signature">
@@ -219,12 +271,15 @@ const DEFAULT_DOCUMENT_STATUSES: Record<string, DocumentStatus> = {
 const DOCUMENT_FORM_FIELDS: Record<number, FieldDefinition[]> = {
   1: [
     { key: "legalName", label: "Full legal name", placeholder: "Enter your full legal name" },
-    { key: "emailAddress", label: "Email address", placeholder: "Enter the email address you use with TT" },
+    { key: "emailAddress", label: "Email address", placeholder: "Loaded from your TT account", readOnly: true },
     { key: "phoneNumber", label: "Phone number", placeholder: "Enter your contact number" },
     { key: "idNumber", label: "ID number", placeholder: "Enter your South African ID number" },
   ],
   2: [
     { key: "legalName", label: "Full legal name", placeholder: "Enter your full legal name" },
+    { key: "emailAddress", label: "Email address", placeholder: "Loaded from your TT account", readOnly: true },
+    { key: "phoneNumber", label: "Phone number", placeholder: "Enter your contact number" },
+    { key: "idNumber", label: "ID number", placeholder: "Enter your South African ID number" },
     { key: "matricYear", label: "Matric year", placeholder: "Enter the year you completed Matric" },
     { key: "schoolName", label: "School name", placeholder: "Enter the school where you completed Matric" },
     { key: "examNumber", label: "Exam number", placeholder: "Enter your exam or candidate number if shown" },
@@ -309,11 +364,19 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
         ? "awaiting acceptance"
         : String(currentStatus).replace(/_/g, " ");
 
+  const initialFormData = useMemo(
+    () => buildInitialFormData(currentFormFields, liveApplication, currentAcceptance),
+    [currentFormFields, liveApplication, currentAcceptance]
+  );
+  const hydratedDocumentContent = useMemo(
+    () => hydrateDocumentContent(currentDocument?.content || "", { ...initialFormData, ...formData, legalName: typedFullName || initialFormData.legalName || "" }),
+    [currentDocument, initialFormData, formData, typedFullName]
+  );
+
   useEffect(() => {
     const fallbackName = liveApplication?.fullName || liveApplication?.full_name || "";
-    const savedForm = currentAcceptance?.formSnapshotJson || currentAcceptance?.form_snapshot_json || {};
-    setTypedFullName(currentAcceptance?.typedFullName || currentAcceptance?.typed_full_name || fallbackName);
-    setFormData(savedForm);
+    setTypedFullName(currentAcceptance?.typedFullName || currentAcceptance?.typed_full_name || initialFormData.legalName || fallbackName);
+    setFormData(initialFormData);
     setGeneralRead(false);
     setGeneralBound(false);
     setClauseChecks(
@@ -324,8 +387,8 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
     setViewStartedAt(null);
     setViewCompletedAt(null);
     setSelectedFile(null);
-    setReaderOpen(Boolean(currentDocument?.requiresAcceptance && !currentAcceptance));
-  }, [currentStep, currentAcceptance, currentDocument, liveApplication]);
+    setReaderOpen(false);
+  }, [currentStep, currentAcceptance, currentDocument, liveApplication, initialFormData]);
 
   const acceptMutation = useMutation({
     mutationFn: async () => {
@@ -509,21 +572,9 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                     {currentStep === 2 ? " Upload your certified Matric certificate below to move this step into COO review." : ""}
                   </div>
                 ) : null}
-                {currentFormFields.length > 0 ? (
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {currentFormFields.map((field) => (
-                      <div key={field.key} className="space-y-2">
-                        <label className="text-sm font-medium">{field.label}</label>
-                        <Input
-                          value={formData[field.key] || ""}
-                          disabled={acceptanceAlreadyRecorded}
-                          onChange={(event) => setFormData((value) => ({ ...value, [field.key]: event.target.value }))}
-                          placeholder={field.placeholder}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                ) : <p className="text-sm text-muted-foreground">This step does not require extra typed fields beyond your legal name below.</p>}
+                <p className="text-sm text-muted-foreground">
+                  Review the document fields inside the reader, then return here only to confirm assent and complete acceptance.
+                </p>
                 <div className="space-y-3 rounded-xl bg-slate-50 p-4">
                   <label className="flex items-start gap-3 text-sm"><Checkbox checked={generalRead} disabled={!hasCompletedReading || acceptanceAlreadyRecorded} onCheckedChange={(value) => setGeneralRead(Boolean(value))} /><span>I have read and understood this document.</span></label>
                   <label className="flex items-start gap-3 text-sm"><Checkbox checked={generalBound} disabled={!hasCompletedReading || acceptanceAlreadyRecorded} onCheckedChange={(value) => setGeneralBound(Boolean(value))} /><span>I agree to be legally bound by these terms and understand TT will store an audit record of this acceptance.</span></label>
@@ -534,8 +585,9 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                     </label>
                   ))}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Type your full legal name</label>
-                    <Input value={typedFullName} disabled={acceptanceAlreadyRecorded} onChange={(event) => setTypedFullName(event.target.value)} placeholder="Enter your full legal name" />
+                    <label className="text-sm font-medium">Acceptance name</label>
+                    <Input value={typedFullName} disabled placeholder="Complete your legal name in the reader above" />
+                    <p className="text-xs text-muted-foreground">This mirrors the legal name captured inside the document and is the name used on the acceptance record.</p>
                   </div>
                 </div>
                 <Button disabled={!canAccept || acceptMutation.isPending || acceptanceAlreadyRecorded} onClick={() => acceptMutation.mutate()} className="w-full">
@@ -582,7 +634,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
       </Card>
 
       <Dialog open={readerOpen} onOpenChange={setReaderOpen}>
-        <DialogContent className="h-screen w-screen max-w-none translate-x-[-50%] translate-y-[-50%] rounded-none border-0 p-0 sm:rounded-none">
+        <DialogContent className="left-1/2 top-1/2 h-[92dvh] w-[calc(100vw-1rem)] max-w-5xl -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[#E7D5C8] p-0 shadow-2xl sm:h-[88dvh] sm:w-[calc(100vw-3rem)]">
           <style>{`
             .agreement-reader h1,
             .agreement-reader h2 {
@@ -626,33 +678,62 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
               color: #243b53;
             }
           `}</style>
-          <div className="flex h-full flex-col bg-stone-950 text-stone-100">
-            <DialogHeader className="border-b border-white/10 px-6 py-5 text-left">
-              <DialogTitle className="text-2xl">{currentDocument.title}</DialogTitle>
-              <DialogDescription className="text-stone-300">{currentDocument.code} • version {currentDocument.version}</DialogDescription>
+          <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl bg-[#FFF5ED] text-[#1A1A1A]">
+            <DialogHeader className="shrink-0 border-b border-[#E7D5C8] bg-white px-4 py-4 text-left sm:px-6 sm:py-5">
+              <DialogTitle className="pr-8 text-xl sm:text-2xl">{currentDocument.title}</DialogTitle>
+              <DialogDescription className="text-[#6B5B52]">{currentDocument.code} • version {currentDocument.version}</DialogDescription>
             </DialogHeader>
-            <div ref={readerRef} onScroll={handleReaderScroll} className="flex-1 overflow-y-auto bg-[#efe7d8] px-4 py-6 sm:px-6">
-              <div className="mx-auto max-w-4xl rounded-sm bg-[#fffdf8] px-6 py-8 text-slate-900 shadow-[0_18px_60px_rgba(15,23,42,0.18)] sm:px-10 sm:py-10">
-                <div className="border-b border-stone-200 pb-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#8b2c1f]">Territorial Tutoring Onboarding Document</p>
-                  <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">{currentDocument.title}</h1>
-                  <p className="mt-2 text-sm text-slate-600">
+            <div ref={readerRef} onScroll={handleReaderScroll} className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-[#FFF5ED] px-3 py-4 touch-pan-y sm:px-6 sm:py-6">
+              <div className="mx-auto max-w-4xl rounded-2xl border border-[#E7D5C8] bg-white px-4 py-6 text-[#1A1A1A] shadow-[0_18px_50px_rgba(230,57,70,0.08)] sm:px-10 sm:py-10">
+                <div className="border-b border-[#E7D5C8] pb-5">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#E63946]">Territorial Tutoring Onboarding Document</p>
+                  <h1 className="mt-3 text-2xl font-semibold tracking-tight text-[#1A1A1A] sm:text-3xl">{currentDocument.title}</h1>
+                  <p className="mt-2 text-xs text-[#6B5B52] sm:text-sm">
                     {currentDocument.code} • Version {currentDocument.version}
                   </p>
                 </div>
+                {currentFormFields.length > 0 ? (
+                  <div className="mt-6 rounded-2xl border border-[#E7D5C8] bg-[#FFF5ED] p-4 sm:p-5">
+                    <div className="mb-4 space-y-1">
+                      <p className="text-sm font-semibold text-[#1A1A1A]">Document fields</p>
+                      <p className="text-sm text-[#6B5B52]">Complete the tutor details that belong to this document here. TT account fields are prefilled automatically.</p>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {currentFormFields.map((field) => (
+                        <div key={field.key} className="space-y-2">
+                          <label className="text-sm font-medium text-[#1A1A1A]">{field.label}</label>
+                          <Input
+                            value={field.key === "legalName" ? typedFullName : formData[field.key] || ""}
+                            disabled={acceptanceAlreadyRecorded || field.readOnly}
+                            onChange={(event) => {
+                              if (field.key === "legalName") {
+                                setTypedFullName(event.target.value);
+                                setFormData((value) => ({ ...value, legalName: event.target.value }));
+                                return;
+                              }
+                              setFormData((value) => ({ ...value, [field.key]: event.target.value }));
+                            }}
+                            placeholder={field.placeholder}
+                            className={field.readOnly ? "border-[#E7D5C8] bg-[#F7EFE7] text-[#8A7A70]" : "border-[#E7D5C8] bg-white"}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
                 <div
                   className="agreement-reader mt-8"
-                  dangerouslySetInnerHTML={{ __html: renderAgreementHtml(currentDocument.content || "<p>No document content available.</p>") }}
+                  dangerouslySetInnerHTML={{ __html: renderAgreementHtml(hydratedDocumentContent || "No document content available.") }}
                 />
               </div>
             </div>
-            <div className="border-t border-white/10 px-6 py-4">
+            <div className="shrink-0 border-t border-[#E7D5C8] bg-white px-4 py-4 sm:px-6">
               <div className="mx-auto flex max-w-4xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm">Read progress: {readerPercent}%</p>
-                  <p className="text-xs text-stone-400">Reach the end of the document to unlock the acceptance workspace.</p>
+                  <p className="text-xs text-[#6B5B52]">Reach the end of the document to unlock the acceptance workspace.</p>
                 </div>
-                <Button disabled={readerPercent < 99} onClick={() => { setHasCompletedReading(true); setReaderOpen(false); }}>
+                <Button className="w-full bg-[#E63946] text-white hover:bg-[#cf2e3c] sm:w-auto" disabled={readerPercent < 99} onClick={() => { setHasCompletedReading(true); setReaderOpen(false); }}>
                   <CheckCircle2 className="mr-2 h-4 w-4" />
                   Continue to acceptance
                 </Button>
