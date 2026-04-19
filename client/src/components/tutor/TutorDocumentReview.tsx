@@ -1,27 +1,25 @@
-import React, { useRef, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { CheckCircle2, ExternalLink, Loader2, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_URL } from "@/lib/config";
+import { CheckCircle2, ExternalLink, FileCheck, Loader2, ShieldCheck, XCircle } from "lucide-react";
 
 interface TutorDocumentReviewProps {
   application: any;
   onReview?: () => void;
 }
-
-const DOCUMENTS = [
-  { step: 1, name: "TT-TCF-001", requiresCompletedTemplate: true },
-  { step: 2, name: "TT-EQV-002", requiresCompletedTemplate: true },
-  { step: 3, name: "TT-ICA-003", requiresCompletedTemplate: true },
-  { step: 4, name: "TT-SCP-004", requiresCompletedTemplate: true },
-  { step: 5, name: "TT-DPC-005", requiresCompletedTemplate: true },
-  { step: 6, name: "TT-CID-006", requiresCompletedTemplate: false },
-] as const;
 
 type DocumentStatus =
   | "not_started"
@@ -30,214 +28,78 @@ type DocumentStatus =
   | "approved"
   | "rejected";
 
-function readFileAsBase64(fileToRead: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      resolve(result.split(",", 2)[1]);
-    };
-    reader.onerror = (err) => reject(err);
-    reader.readAsDataURL(fileToRead);
-  });
-}
+const AGREEMENT_STEPS = [
+  { step: 1, code: "TT-TCF-001", title: "Tutor Consent Form" },
+  { step: 2, code: "TT-EQV-002", title: "Entry Qualification Verification" },
+  { step: 3, code: "TT-ICA-003", title: "Independent Contractor Agreement" },
+  { step: 4, code: "TT-SCP-004", title: "Safeguarding and Conduct Policy" },
+  { step: 5, code: "TT-DPC-005", title: "Data Protection / POPIA Consent" },
+] as const;
 
 export function TutorDocumentReview({ application, onReview }: TutorDocumentReviewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const completedTemplateInputRef = useRef<HTMLInputElement>(null);
-  const [completedTemplateStep, setCompletedTemplateStep] = useState<number | null>(null);
-  const [completedTemplateOverrides, setCompletedTemplateOverrides] = useState<Record<number, string>>({});
-  const [rejectStep, setRejectStep] = useState<number | null>(null);
+  const [reviewStep, setReviewStep] = useState<2 | 6 | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
 
-  const fullName = application.fullName || application.fullNames || application.full_name || application.full_names || "Unknown Tutor";
-  const email = application.email || "No email";
-  const tutorUserId = application.userId || application.user_id || "Unknown";
-  const applicationId = application.id || "Unknown";
-
-  const documentsStatus: Record<string, string> = {
+  const documentsStatus: Record<string, DocumentStatus> = {
     "1": "pending_upload",
     "2": "not_started",
     "3": "not_started",
     "4": "not_started",
     "5": "not_started",
     "6": "not_started",
-    ...(application.documentsStatus || application.documents_status || {}),
+    ...(application?.documentsStatus || application?.documents_status || {}),
   };
 
-  const tutorSignedUrls: Record<number, string | null> = {
-    1: application.doc1SubmissionUrl,
-    2: application.doc2SubmissionUrl,
-    3: application.doc3SubmissionUrl,
-    4: application.doc4SubmissionUrl,
-    5: application.doc5SubmissionUrl,
-    6: application.doc6SubmissionUrl,
-  };
-
-  const completedTemplateUrls: Record<number, string | null> = {
-    1: completedTemplateOverrides[1] || application.doc1CompletedTemplateUrl || application.doc_1_completed_template_url,
-    2: completedTemplateOverrides[2] || application.doc2CompletedTemplateUrl || application.doc_2_completed_template_url,
-    3: completedTemplateOverrides[3] || application.doc3CompletedTemplateUrl || application.doc_3_completed_template_url,
-    4: completedTemplateOverrides[4] || application.doc4CompletedTemplateUrl || application.doc_4_completed_template_url,
-    5: completedTemplateOverrides[5] || application.doc5CompletedTemplateUrl || application.doc_5_completed_template_url,
-    6: null,
-  };
-
-  const rejectionReasons: Record<number, string | undefined> = {
-    1: application.doc1SubmissionRejectionReason,
-    2: application.doc2SubmissionRejectionReason,
-    3: application.doc3SubmissionRejectionReason,
-    4: application.doc4SubmissionRejectionReason,
-    5: application.doc5SubmissionRejectionReason,
-    6: application.doc6SubmissionRejectionReason,
-  };
-
-  const approvedCount = DOCUMENTS.filter((doc) => documentsStatus[String(doc.step)] === "approved").length;
-  const pendingReviewCount = DOCUMENTS.filter((doc) => documentsStatus[String(doc.step)] === "pending_review").length;
-  const pendingUploadCount = DOCUMENTS.filter((doc) => {
-    const status = documentsStatus[String(doc.step)] as DocumentStatus;
-    return status === "not_started" || status === "pending_upload";
-  }).length;
-  const missingCompletedTemplateCount = DOCUMENTS.filter(
-    (doc) =>
-      doc.requiresCompletedTemplate &&
-      documentsStatus[String(doc.step)] === "approved" &&
-      !completedTemplateUrls[doc.step]
-  ).length;
-
-  const currentPendingStep =
-    DOCUMENTS.find((doc) => documentsStatus[String(doc.step)] === "pending_review")?.step ?? null;
-
-  const uploadCompletedMutation = useMutation({
-    mutationFn: async ({ step, file }: { step: number; file: File }) => {
-      const base64 = await readFileAsBase64(file);
-      const ext = file.name.split(".").pop();
-      const response = await fetch(`${API_URL}/api/coo/tutor/${application.id}/document/${step}/completed-upload`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          fileName: `${application.id}/doc_${step}_completed_${Date.now()}.${ext}`,
-          fileData: base64,
-          fileType: file.type,
-        }),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data?.message || "Failed to upload completed template");
-      return { ...data, step };
-    },
-    onSuccess: (data: any) => {
-      setCompletedTemplateOverrides((current) => ({
-        ...current,
-        [data.step]: data?.completedDocumentUrl,
-      }));
-      queryClient.invalidateQueries({ queryKey: ["/api/coo/tutor-applications"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/coo/applications"] });
-      toast({
-        title: "TT Internal Copy Uploaded",
-        description: `Step ${data.step} now has a TT-completed document on record.`,
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Upload Failed",
-        description: error?.message || "Failed to upload completed template",
-        variant: "destructive",
-      });
-    },
-    onSettled: () => {
-      setCompletedTemplateStep(null);
-    },
-  });
+  const acceptanceMap = application?.onboardingAcceptanceMap || {};
+  const fullName = application?.fullName || application?.full_name || "Unknown Tutor";
+  const email = application?.email || "No email";
+  const acceptedCount = ["1", "3", "4", "5"].filter((step) => documentsStatus[step] === "approved").length;
+  const matricStatus = documentsStatus["2"];
+  const idStatus = documentsStatus["6"];
 
   const reviewMutation = useMutation({
-    mutationFn: async ({
-      step,
-      approved,
-      rejectionReason: reason,
-    }: {
-      step: number;
-      approved: boolean;
-      rejectionReason?: string;
-    }) => {
+    mutationFn: async ({ step, approved, rejectionReason: reason }: { step: 2 | 6; approved: boolean; rejectionReason?: string }) => {
       const response = await fetch(`${API_URL}/api/coo/tutor/${application.id}/document/${step}/review`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          approved,
-          rejectionReason: reason,
-        }),
+        body: JSON.stringify({ approved, rejectionReason: reason }),
       });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data?.message || "Failed to review document");
-      return data;
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload?.message || "Failed to review onboarding upload");
+      }
+      return payload;
     },
-    onSuccess: (data) => {
+    onSuccess: (payload) => {
       queryClient.invalidateQueries({ queryKey: ["/api/coo/tutor-applications"] });
       queryClient.invalidateQueries({ queryKey: ["/api/coo/applications"] });
-      toast({ title: "Document Reviewed", description: data.message });
-      setRejectStep(null);
+      toast({
+        title: "Onboarding Updated",
+        description: payload?.message || "Onboarding review saved.",
+      });
+      setReviewStep(null);
       setRejectionReason("");
       onReview?.();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Review Failed",
-        description: error?.message || "Failed to review document",
+        description: error.message,
         variant: "destructive",
       });
     },
   });
 
-  const handleCompletedTemplateFile = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    const step = completedTemplateStep;
-    if (!file || !step) return;
-    uploadCompletedMutation.mutate({ step, file });
-    event.target.value = "";
-  };
-
-  const getStatusLabel = (status: DocumentStatus) => {
-    switch (status) {
-      case "approved":
-        return "Verified";
-      case "pending_review":
-        return "Pending COO review";
-      case "pending_upload":
-        return "Waiting for tutor upload";
-      case "rejected":
-        return "Returned for changes";
-      default:
-        return "Not started";
-    }
-  };
-
-  const getStatusBadgeClassName = (status: DocumentStatus) => {
-    switch (status) {
-      case "approved":
-        return "bg-green-100 text-green-800 border-green-200";
-      case "pending_review":
-        return "bg-amber-100 text-amber-800 border-amber-200";
-      case "rejected":
-        return "bg-red-100 text-red-800 border-red-200";
-      default:
-        return "bg-slate-100 text-slate-700 border-slate-200";
-    }
-  };
-
-  const renderTopBadge = () => {
-    if (approvedCount === DOCUMENTS.length) {
-      return <Badge className="bg-green-100 text-green-800 border-green-200">6 docs verified</Badge>;
-    }
-    if (pendingReviewCount > 0) {
-      return <Badge className="bg-amber-100 text-amber-800 border-amber-200">Under review</Badge>;
-    }
-    if (missingCompletedTemplateCount > 0) {
-      return <Badge className="bg-blue-100 text-blue-800 border-blue-200">Awaiting TT completion</Badge>;
-    }
-    return <Badge className="bg-slate-100 text-slate-700 border-slate-200">Pending tutor progress</Badge>;
+  const openRejectDialog = (step: 2 | 6) => {
+    setReviewStep(step);
+    setRejectionReason(
+      step === 2
+        ? application?.doc2SubmissionRejectionReason || application?.doc_2_submission_rejection_reason || ""
+        : application?.doc6SubmissionRejectionReason || application?.doc_6_submission_rejection_reason || ""
+    );
   };
 
   return (
@@ -248,235 +110,219 @@ export function TutorDocumentReview({ application, onReview }: TutorDocumentRevi
             <div className="space-y-1">
               <CardTitle className="text-lg sm:text-xl">{fullName}</CardTitle>
               <CardDescription className="break-all">{email}</CardDescription>
-              <p className="text-xs text-muted-foreground">
-                Tutor ID: {tutorUserId} | Application Ref: {applicationId}
-              </p>
+              <p className="text-xs text-muted-foreground">Application Ref: {application.id}</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              {renderTopBadge()}
-              {currentPendingStep ? (
-                <Badge variant="outline">Current review step: {currentPendingStep}</Badge>
-              ) : null}
+              <Badge variant="outline">{acceptedCount}/4 pure agreement steps accepted</Badge>
+              <Badge variant="outline">Doc 2 is hybrid</Badge>
             </div>
           </div>
 
-          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-2 sm:grid-cols-3">
             <div className="rounded-lg border p-3">
-              <p className="text-xs text-muted-foreground">Verified</p>
-              <p className="text-lg font-semibold">{approvedCount}/6</p>
+              <p className="text-xs text-muted-foreground">Agreement acceptance record</p>
+              <p className="text-lg font-semibold">{acceptedCount}/4</p>
             </div>
             <div className="rounded-lg border p-3">
-              <p className="text-xs text-muted-foreground">Pending review</p>
-              <p className="text-lg font-semibold">{pendingReviewCount}</p>
+              <p className="text-xs text-muted-foreground">Matric review</p>
+              <p className="text-lg font-semibold">
+                {matricStatus === "approved" ? "Verified" : matricStatus === "pending_review" ? "Review" : matricStatus === "rejected" ? "Rejected" : "Waiting"}
+              </p>
             </div>
             <div className="rounded-lg border p-3">
-              <p className="text-xs text-muted-foreground">Pending tutor uploads</p>
-              <p className="text-lg font-semibold">{pendingUploadCount}</p>
-            </div>
-            <div className="rounded-lg border p-3">
-              <p className="text-xs text-muted-foreground">Missing TT copies</p>
-              <p className="text-lg font-semibold">{missingCompletedTemplateCount}</p>
+              <p className="text-xs text-muted-foreground">Certified ID review</p>
+              <p className="text-lg font-semibold">
+                {idStatus === "approved" ? "Verified" : idStatus === "pending_review" ? "Review" : idStatus === "rejected" ? "Rejected" : "Waiting"}
+              </p>
             </div>
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-3">
-          <input
-            ref={completedTemplateInputRef}
-            type="file"
-            accept=".pdf,.jpg,.jpeg,.png"
-            className="hidden"
-            onChange={handleCompletedTemplateFile}
-          />
+        <CardContent className="space-y-4">
+          <div className="rounded-xl border p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-slate-600" />
+              <p className="font-medium">In-app acceptance evidence</p>
+            </div>
+            <div className="space-y-3">
+              {AGREEMENT_STEPS.map((item) => {
+                const acceptance = acceptanceMap[String(item.step)];
+                const stepStatus = documentsStatus[String(item.step)];
+                const badgeText =
+                  item.step === 2
+                    ? !acceptance
+                      ? "Pending acceptance"
+                      : stepStatus === "approved"
+                        ? "Accepted and verified"
+                        : stepStatus === "pending_review"
+                          ? "Certificate pending review"
+                          : stepStatus === "rejected"
+                            ? "Certificate rejected"
+                            : "Accepted - waiting for upload"
+                    : stepStatus === "approved"
+                      ? "Accepted"
+                      : "Pending";
 
-          {DOCUMENTS.map((doc) => {
-            const status = (documentsStatus[String(doc.step)] || "not_started") as DocumentStatus;
-            const tutorSignedUrl = tutorSignedUrls[doc.step];
-            const completedTemplateUrl = completedTemplateUrls[doc.step];
-            const missingCompletedTemplate =
-              doc.requiresCompletedTemplate &&
-              status === "approved" &&
-              !completedTemplateUrl;
-            const isUploadingThisStep =
-              uploadCompletedMutation.isPending && completedTemplateStep === doc.step;
-            const isReviewingThisStep =
-              reviewMutation.isPending && currentPendingStep === doc.step;
-
-            return (
-              <div key={doc.step} className="rounded-xl border p-4">
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-medium">
-                        Step {doc.step}: {doc.name}
-                      </p>
-                      <Badge className={getStatusBadgeClassName(status)}>{getStatusLabel(status)}</Badge>
-                      {missingCompletedTemplate ? (
-                        <Badge className="bg-blue-100 text-blue-800 border-blue-200">TT copy missing</Badge>
-                      ) : null}
-                    </div>
-
-                    <div className="space-y-1 text-sm text-muted-foreground">
-                      <p>
-                        Tutor submission:{" "}
-                        {tutorSignedUrl ? (
-                          <a href={tutorSignedUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                            View file
-                          </a>
-                        ) : (
-                          "Not uploaded yet"
-                        )}
-                      </p>
-                      {doc.requiresCompletedTemplate ? (
-                        <p>
-                          TT internal copy:{" "}
-                          {completedTemplateUrl ? (
-                            <a href={completedTemplateUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                              View file
-                            </a>
-                          ) : (
-                            "Not uploaded yet"
-                          )}
+                return (
+                  <div key={item.step} className="rounded-lg border p-3">
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-sm font-medium">
+                          Step {item.step}: {item.code}
                         </p>
+                        <Badge className={stepStatus === "approved" ? "bg-green-100 text-green-800 border-green-200" : "bg-slate-100 text-slate-700 border-slate-200"}>
+                          {badgeText}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{item.title}</p>
+                      {acceptance ? (
+                        <>
+                          <p className="text-xs text-muted-foreground">
+                            Accepted {new Date(acceptance.acceptedAt).toLocaleString()} by {acceptance.typedFullName}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Version {acceptance.documentVersion} • Hash {String(acceptance.documentChecksum || "").slice(0, 16)}...
+                          </p>
+                          {Array.isArray(acceptance.acceptedClausesJson) && acceptance.acceptedClausesJson.length > 0 ? (
+                            <p className="text-xs text-muted-foreground">
+                              Clauses acknowledged: {acceptance.acceptedClausesJson.join(", ")}
+                            </p>
+                          ) : null}
+                        </>
                       ) : (
-                        <p>TT internal copy: Not required for certified ID copy</p>
+                        <p className="text-xs text-muted-foreground">No acceptance recorded yet.</p>
                       )}
                     </div>
-
-                    {status === "rejected" ? (
-                      <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                        <p className="font-medium">Returned to tutor</p>
-                        <p>{rejectionReasons[doc.step] || "Please review and resubmit."}</p>
-                      </div>
-                    ) : null}
-
-                    {status === "pending_review" ? (
-                      <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-                        Review is active on this step. Approval will keep the tutor moving, and the document stays visible here afterward.
-                      </div>
-                    ) : null}
                   </div>
-
-                  <div className="flex flex-wrap gap-2 lg:justify-end">
-                    {tutorSignedUrl ? (
-                      <a href={tutorSignedUrl} target="_blank" rel="noopener noreferrer" className="inline-flex">
-                        <Button size="sm" variant="outline" className="gap-1">
-                          Tutor File
-                          <ExternalLink className="h-3 w-3" />
-                        </Button>
-                      </a>
-                    ) : null}
-
-                    {completedTemplateUrl ? (
-                      <a href={completedTemplateUrl} target="_blank" rel="noopener noreferrer" className="inline-flex">
-                        <Button size="sm" variant="outline" className="gap-1">
-                          TT Copy
-                          <ExternalLink className="h-3 w-3" />
-                        </Button>
-                      </a>
-                    ) : null}
-
-                    {doc.requiresCompletedTemplate && tutorSignedUrl ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="gap-2"
-                        disabled={uploadCompletedMutation.isPending}
-                        onClick={() => {
-                          setCompletedTemplateStep(doc.step);
-                          completedTemplateInputRef.current?.click();
-                        }}
-                      >
-                        {isUploadingThisStep ? (
-                          <>
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Uploading...
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="h-4 w-4" />
-                            {completedTemplateUrl ? "Replace TT Copy" : "Upload TT Copy"}
-                          </>
-                        )}
-                      </Button>
-                    ) : null}
-
-                    {status === "pending_review" ? (
-                      <>
-                        <Button
-                          size="sm"
-                          className="gap-2"
-                          disabled={reviewMutation.isPending || !tutorSignedUrl}
-                          onClick={() => reviewMutation.mutate({ step: doc.step, approved: true })}
-                        >
-                          {isReviewingThisStep ? (
-                            <>
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              Processing...
-                            </>
-                          ) : (
-                            <>
-                              <CheckCircle2 className="h-4 w-4" />
-                              Approve
-                            </>
-                          )}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={reviewMutation.isPending}
-                          onClick={() => {
-                            setRejectStep(doc.step);
-                            setRejectionReason(rejectionReasons[doc.step] || "");
-                          }}
-                        >
-                          Reject
-                        </Button>
-                      </>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-
-          {approvedCount === DOCUMENTS.length ? (
-            <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">
-              <p className="font-medium">Verified archive complete</p>
-              <p>All six documents remain visible here for future COO reference.</p>
+                );
+              })}
             </div>
-          ) : null}
+          </div>
+
+          <div className="rounded-xl border p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <FileCheck className="h-4 w-4 text-slate-600" />
+              <p className="font-medium">Step 2 upload: Certified Matric Certificate</p>
+            </div>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <p>Status: {matricStatus.replace("_", " ")}</p>
+              {application?.doc2SubmissionUploadedAt ? (
+                <p>Uploaded {new Date(application.doc2SubmissionUploadedAt).toLocaleString()}</p>
+              ) : null}
+              {application?.doc2SubmissionUrl ? (
+                <a href={application.doc2SubmissionUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+                  View certified Matric certificate
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              ) : (
+                <p>No certified Matric certificate uploaded yet.</p>
+              )}
+              {matricStatus === "rejected" ? (
+                <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                  {application?.doc2SubmissionRejectionReason || application?.doc_2_submission_rejection_reason || "Please request a valid certified Matric certificate upload."}
+                </div>
+              ) : null}
+            </div>
+            {matricStatus === "pending_review" ? (
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Button disabled={reviewMutation.isPending} onClick={() => reviewMutation.mutate({ step: 2, approved: true })}>
+                  {reviewMutation.isPending && reviewStep === 2 ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      Approve Matric Certificate
+                    </>
+                  )}
+                </Button>
+                <Button variant="outline" disabled={reviewMutation.isPending} onClick={() => openRejectDialog(2)}>
+                  <XCircle className="mr-2 h-4 w-4" />
+                  Reject Matric Certificate
+                </Button>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="rounded-xl border p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <FileCheck className="h-4 w-4 text-slate-600" />
+              <p className="font-medium">Step 6 upload: Certified ID Copy</p>
+            </div>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <p>Status: {idStatus.replace("_", " ")}</p>
+              {application?.doc6SubmissionUploadedAt ? (
+                <p>Uploaded {new Date(application.doc6SubmissionUploadedAt).toLocaleString()}</p>
+              ) : null}
+              {application?.doc6SubmissionUrl ? (
+                <a href={application.doc6SubmissionUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+                  View certified ID upload
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              ) : (
+                <p>No certified ID file uploaded yet.</p>
+              )}
+              {idStatus === "rejected" ? (
+                <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                  {application?.doc6SubmissionRejectionReason || application?.doc_6_submission_rejection_reason || "Please request a corrected upload."}
+                </div>
+              ) : null}
+            </div>
+            {idStatus === "pending_review" ? (
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Button disabled={reviewMutation.isPending} onClick={() => reviewMutation.mutate({ step: 6, approved: true })}>
+                  {reviewMutation.isPending && reviewStep === 6 ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      Approve ID Copy
+                    </>
+                  )}
+                </Button>
+                <Button variant="outline" disabled={reviewMutation.isPending} onClick={() => openRejectDialog(6)}>
+                  <XCircle className="mr-2 h-4 w-4" />
+                  Reject ID Copy
+                </Button>
+              </div>
+            ) : null}
+          </div>
         </CardContent>
       </Card>
 
-      <Dialog open={rejectStep !== null} onOpenChange={(open) => !open && setRejectStep(null)}>
+      <Dialog open={reviewStep !== null} onOpenChange={(open) => !open && setReviewStep(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Return Document for Revision</DialogTitle>
-            <DialogDescription>Explain what the tutor needs to correct before re-uploading.</DialogDescription>
+            <DialogTitle>{reviewStep === 2 ? "Reject Matric Certificate" : "Reject Certified ID Copy"}</DialogTitle>
+            <DialogDescription>Explain exactly what the tutor must correct before uploading again.</DialogDescription>
           </DialogHeader>
           <Textarea
-            placeholder="Example: Signature is missing on page 2. Please re-sign and resubmit."
             value={rejectionReason}
             onChange={(event) => setRejectionReason(event.target.value)}
+            placeholder={reviewStep === 2 ? "Example: Upload a certified copy of the official National Senior Certificate." : "Example: Certification stamp is unclear. Upload a clearer certified copy."}
             className="min-h-24"
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectStep(null)}>
+            <Button variant="outline" onClick={() => setReviewStep(null)}>
               Cancel
             </Button>
             <Button
-              disabled={!rejectStep || !rejectionReason.trim() || reviewMutation.isPending}
-              onClick={() => {
-                if (!rejectStep) return;
-                reviewMutation.mutate({
-                  step: rejectStep,
-                  approved: false,
-                  rejectionReason,
-                });
-              }}
+              disabled={!reviewStep || !rejectionReason.trim() || reviewMutation.isPending}
+              onClick={() => reviewStep && reviewMutation.mutate({ step: reviewStep, approved: false, rejectionReason })}
             >
-              {reviewMutation.isPending ? "Sending..." : "Send Back to Tutor"}
+              {reviewMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                "Send Back to Tutor"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

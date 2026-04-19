@@ -67,6 +67,9 @@ export const enrollmentStatusEnum = pgEnum("enrollment_status", [
   "confirmed",
 ]);
 export const reportTypeEnum = pgEnum("report_type", ["weekly", "monthly"]);
+export const onboardingAcceptanceMethodEnum = pgEnum("onboarding_acceptance_method", [
+  "checkbox_typed_name",
+]);
 
 // ============================================
 // SESSION STORAGE (Required for Replit Auth)
@@ -554,6 +557,65 @@ export const insertTutorApplicationSchema = createInsertSchema(tutorApplications
   reviewedAt: true,
   rejectionReason: true,
 });
+
+export const tutorOnboardingAcceptances = pgTable("tutor_onboarding_acceptances", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  applicationId: varchar("application_id").notNull().references(() => tutorApplications.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  documentStep: integer("document_step").notNull(),
+  documentCode: varchar("document_code").notNull(),
+  documentTitle: varchar("document_title").notNull(),
+  documentVersion: varchar("document_version").notNull(),
+  documentEffectiveDate: varchar("document_effective_date"),
+  documentLastUpdatedAt: timestamp("document_last_updated_at"),
+  documentSnapshot: text("document_snapshot").notNull(),
+  documentChecksum: varchar("document_checksum").notNull(),
+  acceptedAt: timestamp("accepted_at").defaultNow().notNull(),
+  acceptedTimezone: varchar("accepted_timezone"),
+  acceptanceMethod: onboardingAcceptanceMethodEnum("acceptance_method").notNull().default("checkbox_typed_name"),
+  typedFullName: varchar("typed_full_name").notNull(),
+  accountEmail: varchar("account_email").notNull(),
+  phoneNumberSnapshot: varchar("phone_number_snapshot"),
+  ipAddress: varchar("ip_address"),
+  userAgent: text("user_agent"),
+  deviceType: varchar("device_type"),
+  platform: varchar("platform"),
+  sessionId: varchar("session_id"),
+  locale: varchar("locale"),
+  sourceFlow: varchar("source_flow"),
+  acceptedClausesJson: jsonb("accepted_clauses_json").$type<string[]>().default(sql`'[]'::jsonb`),
+  scrollCompletionPercent: integer("scroll_completion_percent"),
+  viewStartedAt: timestamp("view_started_at"),
+  viewCompletedAt: timestamp("view_completed_at"),
+  acceptClickedAt: timestamp("accept_clicked_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const tutorOnboardingClauseAcknowledgements = pgTable("tutor_onboarding_clause_acknowledgements", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  acceptanceId: varchar("acceptance_id").notNull().references(() => tutorOnboardingAcceptances.id),
+  clauseKey: varchar("clause_key").notNull(),
+  clauseLabel: text("clause_label").notNull(),
+  acknowledgedAt: timestamp("acknowledged_at").defaultNow().notNull(),
+});
+
+export const tutorOnboardingAcceptanceEvents = pgTable("tutor_onboarding_acceptance_events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  acceptanceId: varchar("acceptance_id").references(() => tutorOnboardingAcceptances.id),
+  applicationId: varchar("application_id").notNull().references(() => tutorApplications.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  documentStep: integer("document_step").notNull(),
+  eventType: varchar("event_type").notNull(),
+  payload: jsonb("payload"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type TutorOnboardingAcceptance = typeof tutorOnboardingAcceptances.$inferSelect;
+export type InsertTutorOnboardingAcceptance = typeof tutorOnboardingAcceptances.$inferInsert;
+export type TutorOnboardingClauseAcknowledgement = typeof tutorOnboardingClauseAcknowledgements.$inferSelect;
+export type InsertTutorOnboardingClauseAcknowledgement = typeof tutorOnboardingClauseAcknowledgements.$inferInsert;
+export type TutorOnboardingAcceptanceEvent = typeof tutorOnboardingAcceptanceEvents.$inferSelect;
+export type InsertTutorOnboardingAcceptanceEvent = typeof tutorOnboardingAcceptanceEvents.$inferInsert;
 
 // ============================================
 // BROADCASTS TABLE

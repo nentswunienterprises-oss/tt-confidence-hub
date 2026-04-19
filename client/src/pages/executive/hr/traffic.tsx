@@ -84,22 +84,24 @@ function areAllDocumentsApproved(application: any) {
 
 function hasPendingReview(application: any) {
   const documentsStatus = getDocumentsStatus(application);
-  return Object.values(documentsStatus).some((status) => String(status) === "pending_review");
+  return ["2", "6"].some((step) => String(documentsStatus[step] || "") === "pending_review");
 }
 
 function hasMissingCompletedTemplate(application: any) {
   const documentsStatus = getDocumentsStatus(application);
-  const completedTemplateUrls: Record<string, string | null | undefined> = {
-    "1": application?.doc1CompletedTemplateUrl,
-    "2": application?.doc2CompletedTemplateUrl,
-    "3": application?.doc3CompletedTemplateUrl,
-    "4": application?.doc4CompletedTemplateUrl,
-    "5": application?.doc5CompletedTemplateUrl,
-  };
+  const hasDoc2Acceptance = Boolean(application?.onboardingAcceptanceMap?.["2"]);
+  const waitingForMatricUpload = hasDoc2Acceptance && String(documentsStatus["2"] || "") === "pending_upload";
+  const waitingForIdUpload =
+    ["1", "2", "3", "4", "5"].every((step) => String(documentsStatus[step] || "") === "approved") &&
+    String(documentsStatus["6"] || "") === "pending_upload";
+  return (waitingForMatricUpload || waitingForIdUpload) && !hasPendingReview(application);
+}
 
-  return ["1", "2", "3", "4", "5"].some(
-    (step) => documentsStatus[step] === "approved" && !completedTemplateUrls[step]
-  );
+function isWaitingOnTutorAction(application: any) {
+  if (areAllDocumentsApproved(application)) return false;
+  if (hasPendingReview(application)) return false;
+  if (hasMissingCompletedTemplate(application)) return false;
+  return true;
 }
 
 export default function ExecutiveHRTraffic() {
@@ -187,12 +189,9 @@ export default function ExecutiveHRTraffic() {
   const approvedApplications = applications.filter((app: any) => app.status === "approved");
   const rejectedApplications = applications.filter((app: any) => app.status === "rejected");
 
-  const verificationPendingUploadApplications = approvedApplications.filter((app: any) => {
-    if (areAllDocumentsApproved(app)) return false;
-    if (hasPendingReview(app)) return false;
-    if (hasMissingCompletedTemplate(app)) return false;
-    return true;
-  });
+  const verificationPendingUploadApplications = approvedApplications.filter((app: any) =>
+    isWaitingOnTutorAction(app)
+  );
   const verificationUnderReviewApplications = approvedApplications.filter((app: any) => {
     if (areAllDocumentsApproved(app)) return false;
     return hasPendingReview(app);
@@ -606,21 +605,21 @@ export default function ExecutiveHRTraffic() {
                 <TabsTrigger value="verification" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
                   <span className="inline-flex items-center gap-1.5">
                     <FileCheck className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                    <span>Pending Upload</span>
+                    <span>Tutor Action</span>
                   </span>
                   <span className="text-[10px] sm:text-xs text-muted-foreground">{verificationPendingUploadApplications.length}</span>
                 </TabsTrigger>
                 <TabsTrigger value="verification-review" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
                   <span className="inline-flex items-center gap-1.5">
                     <FileCheck className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                    <span>Under Review</span>
+                    <span>Upload Review</span>
                   </span>
                   <span className="text-[10px] sm:text-xs text-muted-foreground">{verificationUnderReviewApplications.length}</span>
                 </TabsTrigger>
                 <TabsTrigger value="verification-awaiting-tt" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
                   <span className="inline-flex items-center gap-1.5">
                     <FileText className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                    <span>Awaiting TT</span>
+                    <span>Waiting On Final ID</span>
                   </span>
                   <span className="text-[10px] sm:text-xs text-muted-foreground">{verificationAwaitingTTApplications.length}</span>
                 </TabsTrigger>
@@ -700,7 +699,7 @@ export default function ExecutiveHRTraffic() {
                   {verificationPendingUploadApplications.length === 0 ? (
                     <Card className="p-12 text-center">
                       <FileCheck className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-                      <p className="text-muted-foreground">No tutors are currently waiting to upload the next document</p>
+                      <p className="text-muted-foreground">No tutors are currently blocked on tutor-side onboarding action</p>
                     </Card>
                   ) : (
                     <div className="grid gap-4">
@@ -722,7 +721,7 @@ export default function ExecutiveHRTraffic() {
                   {verificationUnderReviewApplications.length === 0 ? (
                     <Card className="p-12 text-center">
                       <FileCheck className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-                      <p className="text-muted-foreground">No documents are currently pending COO review</p>
+                      <p className="text-muted-foreground">No Matric certificate or certified ID uploads are currently pending COO review</p>
                     </Card>
                   ) : (
                     <div className="grid gap-4">
@@ -744,7 +743,7 @@ export default function ExecutiveHRTraffic() {
                   {verificationAwaitingTTApplications.length === 0 ? (
                     <Card className="p-12 text-center">
                       <FileText className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-                      <p className="text-muted-foreground">No tutors are waiting for TT internal copy completion</p>
+                      <p className="text-muted-foreground">No tutors have cleared agreement and Matric verification while still waiting on the final certified ID upload</p>
                     </Card>
                   ) : (
                     <div className="grid gap-4">

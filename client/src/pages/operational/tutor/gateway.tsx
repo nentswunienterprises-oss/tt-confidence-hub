@@ -342,19 +342,21 @@ export default function TutorGateway() {
                   <p className="text-sm sm:text-base text-muted-foreground">
                     Application received. Under review.
                   </p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
-                    Due to commitment to fit, acceptance is limited and not guaranteed.
-                  </p>
-                  <div className="bg-muted/30 rounded-lg p-3 sm:p-4 text-left">
-                    <p className="text-xs sm:text-sm font-medium mb-2">What happens next:</p>
-                    <ul className="text-xs sm:text-sm text-muted-foreground space-y-1 ml-4 list-disc">
-                      <li>We assess fit</li>
-                      <li>If accepted, upload verification documents</li>
-                      <li>Once verified, you're assigned to a pod</li>
-                      <li>System training begins</li>
-                    </ul>
-                  </div>
-                </>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      Due to commitment to fit, acceptance is limited and not guaranteed.
+                    </p>
+                    <div className="bg-muted/30 rounded-lg p-3 sm:p-4 text-left">
+                      <p className="text-xs sm:text-sm font-medium mb-2">What happens next:</p>
+                      <ul className="text-xs sm:text-sm text-muted-foreground space-y-1 ml-4 list-disc">
+                        <li>We assess fit</li>
+                        <li>If accepted, complete the TT agreements inside the app</li>
+                        <li>Doc 2 also requires a certified Matric certificate upload after in-app acceptance</li>
+                        <li>Upload your certified ID copy as the final verification step</li>
+                        <li>Once verified, you're assigned to a pod</li>
+                        <li>System training begins</li>
+                      </ul>
+                    </div>
+                  </>
               )}
 
               {(applicationStatus.status === "approved" || applicationStatus.status === "verification") && (

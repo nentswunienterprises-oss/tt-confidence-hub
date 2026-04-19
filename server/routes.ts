@@ -4,6 +4,7 @@ import { existsSync } from "fs";
 import { createServer, type Server } from "http";
 import { join, resolve } from "path";
 import { storage, supabase, createAffiliateCode } from "./storage";
+import { getTutorOnboardingDocumentDefinition, loadTutorOnboardingDocument, TUTOR_ONBOARDING_DOCUMENTS } from "./tutorOnboardingDocuments";
 import { setupAuth, isAuthenticated } from "./supabaseAuth";
 import { fileURLToPath } from "url";
 import {
@@ -3387,6 +3388,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ========================================
   // TUTOR ROUTES
   // ========================================
+    const buildTutorOnboardingStatuses = (rawStatuses: any) => ({
+      "1": "pending_upload",
+      "2": "not_started",
+      "3": "not_started",
+      "4": "not_started",
+      "5": "not_started",
+      "6": "not_started",
+      ...(rawStatuses && typeof rawStatuses === "object" ? rawStatuses : {}),
+    });
+
+    const deriveTutorGatewayApplicationStatus = (latestApp: any) => {
+      const documentsStatus = buildTutorOnboardingStatuses(latestApp?.documentsStatus || latestApp?.documents_status);
+      const allSequentialDocumentsApproved = ["1", "2", "3", "4", "5", "6"].every(
+        (step) => String(documentsStatus[step] || "") === "approved"
+      );
+      const hasPendingReview = ["2", "6"].some(
+        (step) => String(documentsStatus[step] || "") === "pending_review"
+      );
+      const hasRejectedUpload = ["2", "6"].some(
+        (step) => String(documentsStatus[step] || "") === "rejected"
+      );
+      let status = latestApp.status;
+
+      if (allSequentialDocumentsApproved) {
+        status = "confirmed";
+      } else if (status === "approved" && (hasPendingReview || hasRejectedUpload)) {
+        status = "verification";
+      }
+
+      return {
+        ...latestApp,
+        status,
+        applicationId: latestApp.id,
+        isUnder18: latestApp.age < 18,
+        documentSubmissionStep: latestApp.documentSubmissionStep || latestApp.document_submission_step || 1,
+        documentsStatus,
+        onboardingCompletedAt: latestApp.onboardingCompletedAt ?? latestApp.onboarding_completed_at ?? null,
+      };
+    };
+
+    const inferDeviceType = (userAgent: string | undefined) => {
+      const normalized = String(userAgent || "").toLowerCase();
+      if (!normalized) return "unknown";
+      if (/mobile|iphone|android/.test(normalized)) return "mobile";
+      if (/ipad|tablet/.test(normalized)) return "tablet";
+      return "desktop";
+    };
+
+    const extractRequestIp = (req: Request) => {
+      const forwarded = req.headers["x-forwarded-for"];
+      if (Array.isArray(forwarded)) {
+        return forwarded[0] || req.ip || null;
+      }
+      if (typeof forwarded === "string") {
+        return forwarded.split(",")[0]?.trim() || req.ip || null;
+      }
+      return req.ip || null;
+    };
+
     // Aggregated gateway session endpoint
     app.get(
       "/api/tutor/gateway-session",
@@ -3421,41 +3481,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const latestApp = tutorApplications && tutorApplications.length > 0 ? tutorApplications[0] : null;
           let applicationStatus = null;
           if (latestApp) {
-            const fallbackDocumentsStatus = {
-              "1": "pending_upload",
-              "2": "not_started",
-              "3": "not_started",
-              "4": "not_started",
-              "5": "not_started",
-              "6": "not_started",
-            };
-            const documentsStatus = latestApp.documentsStatus && typeof latestApp.documentsStatus === "object"
-              ? { ...fallbackDocumentsStatus, ...latestApp.documentsStatus }
-              : fallbackDocumentsStatus;
-            const sequentialDocSteps = ["1", "2", "3", "4", "5", "6"];
-            const sequentialReviewStarted = sequentialDocSteps.some((step) => {
-              const docStatus = String((documentsStatus as any)?.[step] || "");
-              return docStatus === "pending_review" || docStatus === "approved" || docStatus === "rejected";
-            });
-            const allSequentialDocumentsApproved = sequentialDocSteps.every(
-              (step) => String((documentsStatus as any)?.[step] || "") === "approved"
-            );
-            let status = latestApp.status;
-            const isUnder18 = latestApp.age < 18;
-            if (allSequentialDocumentsApproved) {
-              status = "confirmed" as any;
-            } else if (status === "approved" && sequentialReviewStarted) {
-              status = "verification" as any;
-            }
-            applicationStatus = {
-              ...latestApp,
-              status,
-              applicationId: latestApp.id,
-              isUnder18,
-              documentSubmissionStep: latestApp.documentSubmissionStep || (latestApp.status === "approved" ? 1 : 0),
-              documentsStatus,
-              onboardingCompletedAt: latestApp.onboardingCompletedAt ?? null,
-            };
+            applicationStatus = deriveTutorGatewayApplicationStatus(latestApp);
           }
     // Add route for singular 'student' to match frontend
     app.get(
@@ -9833,6 +9859,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log("📝 User has no applications, returning not_applied");
           return res.json({ status: "not_applied" });
         }
+
+        const applicationStatus = deriveTutorGatewayApplicationStatus(applications[0]);
+        console.log("✅ Returning status:", applicationStatus.status, "for user:", userId);
+        return res.json(applicationStatus);
         
         // Get the most recent application
         const latestApp = applications[0];
@@ -9899,6 +9929,179 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  app.get(
+    "/api/tutor/onboarding-documents",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req.session as any).userId;
+        const applications = await storage.getTutorApplicationsByUser(userId);
+        const latestApp = applications[0];
+
+        if (!latestApp) {
+          return res.status(404).json({ message: "Tutor application not found" });
+        }
+
+        const documents = await Promise.all(
+          TUTOR_ONBOARDING_DOCUMENTS.map(async (document) => {
+            if (!document.requiresAcceptance) {
+              return document;
+            }
+
+            const loaded = await loadTutorOnboardingDocument(document.step);
+            return {
+              step: loaded.step,
+              code: loaded.code,
+              title: loaded.title,
+              version: loaded.version,
+              effectiveDate: loaded.effectiveDate ?? null,
+              lastUpdatedAt: loaded.lastUpdatedAt ?? null,
+              requiresAcceptance: loaded.requiresAcceptance,
+              requiresUpload: loaded.requiresUpload,
+              mandatoryClauses: loaded.mandatoryClauses,
+              content: loaded.content,
+              contentHash: loaded.contentHash,
+            };
+          })
+        );
+
+        res.json({
+          applicationId: latestApp.id,
+          documents,
+        });
+      } catch (error) {
+        console.error("Error fetching tutor onboarding documents:", error);
+        res.status(500).json({ message: "Failed to fetch onboarding documents" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/tutor/onboarding-documents/:docStep/accept",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req.session as any).userId;
+        const docStep = Number(req.params.docStep);
+        const {
+          applicationId,
+          documentVersion,
+          documentHash,
+          typedFullName,
+          acceptedTimezone,
+          locale,
+          platform,
+          sourceFlow,
+          acceptedClauseKeys,
+          scrollCompletionPercent,
+          viewStartedAt,
+          viewCompletedAt,
+          acceptClickedAt,
+        } = req.body ?? {};
+
+        if (!applicationId || !Number.isInteger(docStep) || docStep < 1 || docStep > 5) {
+          return res.status(400).json({ message: "Invalid onboarding acceptance request" });
+        }
+
+        if (!typedFullName || !String(typedFullName).trim()) {
+          return res.status(400).json({ message: "Typed full name is required" });
+        }
+
+        const applications = await storage.getTutorApplicationsByUser(userId);
+        const application = applications.find((entry) => entry.id === applicationId);
+        if (!application) {
+          return res.status(403).json({ message: "Application not found or access denied" });
+        }
+
+        const definition = getTutorOnboardingDocumentDefinition(docStep);
+        if (!definition.requiresAcceptance) {
+          return res.status(400).json({ message: "This onboarding step does not use in-app acceptance." });
+        }
+
+        const loaded = await loadTutorOnboardingDocument(docStep);
+        if (documentVersion && documentVersion !== loaded.version) {
+          return res.status(409).json({ message: "Document version mismatch" });
+        }
+        if (documentHash && documentHash !== loaded.contentHash) {
+          return res.status(409).json({ message: "Document content hash mismatch" });
+        }
+
+        const acceptedClauseKeySet = new Set(
+          Array.isArray(acceptedClauseKeys) ? acceptedClauseKeys.map((value) => String(value)) : []
+        );
+        const missingClause = definition.mandatoryClauses.find((clause) => !acceptedClauseKeySet.has(clause.key));
+        if (missingClause) {
+          return res.status(400).json({ message: `Mandatory clause not acknowledged: ${missingClause.label}` });
+        }
+
+        const parsedViewStartedAt = viewStartedAt ? new Date(viewStartedAt) : null;
+        const parsedViewCompletedAt = viewCompletedAt ? new Date(viewCompletedAt) : null;
+        const parsedAcceptClickedAt = acceptClickedAt ? new Date(acceptClickedAt) : new Date();
+
+        const result = await storage.createTutorOnboardingAcceptance({
+          applicationId,
+          userId,
+          documentStep: docStep,
+          documentCode: loaded.code,
+          documentTitle: loaded.title,
+          documentVersion: loaded.version,
+          documentEffectiveDate: loaded.effectiveDate ?? null,
+          documentLastUpdatedAt: loaded.lastUpdatedAt ? new Date(loaded.lastUpdatedAt) : null,
+          documentSnapshot: loaded.content,
+          documentChecksum: loaded.contentHash,
+          typedFullName: String(typedFullName).trim(),
+          accountEmail: application.email,
+          phoneNumberSnapshot: application.phone ?? null,
+          acceptedTimezone: acceptedTimezone ? String(acceptedTimezone) : null,
+          ipAddress: extractRequestIp(req),
+          userAgent: req.headers["user-agent"] || null,
+          deviceType: inferDeviceType(req.headers["user-agent"]),
+          platform: platform ? String(platform) : "web",
+          sessionId: req.sessionID || null,
+          locale: locale ? String(locale) : null,
+          sourceFlow: sourceFlow ? String(sourceFlow) : "tutor_onboarding_step",
+          acceptedClauses: definition.mandatoryClauses.filter((clause) => acceptedClauseKeySet.has(clause.key)),
+          scrollCompletionPercent:
+            typeof scrollCompletionPercent === "number"
+              ? Math.max(0, Math.min(100, Math.round(scrollCompletionPercent)))
+              : null,
+          viewStartedAt: parsedViewStartedAt && !Number.isNaN(parsedViewStartedAt.getTime()) ? parsedViewStartedAt : null,
+          viewCompletedAt:
+            parsedViewCompletedAt && !Number.isNaN(parsedViewCompletedAt.getTime()) ? parsedViewCompletedAt : null,
+          acceptClickedAt:
+            parsedAcceptClickedAt && !Number.isNaN(parsedAcceptClickedAt.getTime()) ? parsedAcceptClickedAt : new Date(),
+        });
+
+        if (!result.application || !result.acceptance) {
+          return res.status(500).json({ message: "Failed to create onboarding acceptance" });
+        }
+
+        res.json({
+          success: true,
+          application: result.application,
+          acceptance: result.acceptance,
+          receipt: {
+            acceptedAt: result.acceptance.acceptedAt,
+            documentCode: result.acceptance.documentCode,
+            documentVersion: result.acceptance.documentVersion,
+            documentChecksum: result.acceptance.documentChecksum,
+          },
+        });
+      } catch (error) {
+        console.error("Error accepting tutor onboarding document:", error);
+        if (
+          error instanceof Error &&
+          /(step order violation|already been accepted|required|mandatory clause)/i.test(error.message)
+        ) {
+          return res.status(400).json({ message: error.message });
+        }
+        res.status(500).json({ message: "Failed to accept onboarding document" });
+      }
+    }
+  );
+
   // Upload tutor onboarding document
   app.post(
     "/api/tutor/onboarding-documents/upload",
@@ -9909,10 +10112,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userId = (req.session as any).userId;
         const { applicationId, docStep, fileName, fileData, fileType } = req.body;
         const parsedDocStep = typeof docStep === "number" ? docStep : Number(docStep);
-        const isSequentialUpload = Number.isInteger(parsedDocStep) && parsedDocStep >= 1 && parsedDocStep <= 6;
+        const isSequentialUpload = parsedDocStep === 2 || parsedDocStep === 6;
 
         if (!applicationId || !fileName || !fileData || !isSequentialUpload) {
-          return res.status(400).json({ message: "Missing required fields" });
+          return res.status(400).json({ message: "Only doc step 2 (Matric certificate) and doc step 6 (certified ID) accept file uploads." });
         }
 
         // Verify the application belongs to this user
@@ -9920,6 +10123,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const app = applications.find(a => a.id === applicationId);
         if (!app) {
           return res.status(403).json({ message: "Application not found or access denied" });
+        }
+        if (parsedDocStep === 2 && !app?.onboardingAcceptanceMap?.["2"]) {
+          return res.status(400).json({ message: "You must accept TT-EQV-002 in app before uploading your certified Matric certificate." });
         }
 
         // Decode base64 file data
@@ -10078,8 +10284,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { fileName, fileData, fileType } = req.body;
 
         if (!Number.isInteger(docStep) || docStep < 1 || docStep > 5) {
-          return res.status(400).json({ message: "Completed template upload is only valid for steps 1 to 5." });
+          return res.status(400).json({ message: "Completed template upload is only valid for legacy steps 1 to 5." });
         }
+
+        return res.status(410).json({ message: "TT internal copy uploads are no longer used. Agreement steps now use in-app acceptance." });
         if (!fileName || !fileData) {
           return res.status(400).json({ message: "Missing required file payload for completed template upload." });
         }
@@ -10150,8 +10358,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { approved, rejectionReason, completedDocumentUrl } = req.body;
         const reviewerId = (req.session as any).userId;
 
-        if (!Number.isInteger(docStep) || docStep < 1 || docStep > 6) {
-          return res.status(400).json({ message: "Invalid document step" });
+        if (docStep !== 2 && docStep !== 6) {
+          return res.status(400).json({ message: "Only step 2 Matric certificate uploads and step 6 certified ID uploads require COO review." });
         }
 
         if (typeof approved !== "boolean") {
@@ -10190,7 +10398,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: approved
             ? docStep === 6 && Object.values(updated.documentsStatus || {}).every((status) => status === "approved")
               ? "Document approved. Tutor onboarding is complete."
-              : `Document ${docStep} approved. Tutor can move to the next document.`
+              : docStep === 2
+                ? "Matric certificate approved. Tutor can move to the next agreement."
+                : `Document ${docStep} approved. Tutor can move to the next document.`
             : `Document ${docStep} rejected. Tutor must resubmit this step.`,
         });
       } catch (error) {
