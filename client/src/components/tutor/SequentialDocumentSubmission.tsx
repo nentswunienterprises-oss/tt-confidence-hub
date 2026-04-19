@@ -44,6 +44,74 @@ interface FieldDefinition {
   readOnly?: boolean;
 }
 
+interface DocumentRenderRules {
+  nonListColonLines?: RegExp[];
+  numberedListIntroLines?: RegExp[];
+  plainListIntroLines?: RegExp[];
+  listItemLines?: RegExp[];
+}
+
+const DOCUMENT_RENDER_RULES: Record<string, DocumentRenderRules> = {
+  "TT-TCF-001": {
+    nonListColonLines: [/^Document Reference:/i],
+    numberedListIntroLines: [],
+    plainListIntroLines: [/^[A-Z][A-Za-z0-9'().,\s/-]+:$/],
+    listItemLines: [/^[A-Za-z0-9][A-Za-z0-9'()\-/,.\s]+$/],
+  },
+  "TT-EQV-002": {
+    nonListColonLines: [/^Document Reference:/i],
+    numberedListIntroLines: [],
+    plainListIntroLines: [
+      /^Once verified and accepted, the Contractor's continued participation is governed by:$/i,
+      /^The following are not accepted:$/i,
+      /^By accepting this form, the Contractor confirms all of the following:$/i,
+      /^I understand that once my entry qualification is verified and accepted, my continued participation in the TT Leadership Programme is governed by:$/i,
+      /^By accepting this form in the TT platform, the Contractor confirms:$/i,
+    ],
+    listItemLines: [/^[A-Za-z0-9][A-Za-z0-9'()\-/,.\s]+$/],
+  },
+  "TT-ICA-003": {
+    nonListColonLines: [/^This Agreement is entered into between:$/i, /^Document Reference:/i],
+    numberedListIntroLines: [/^\d+\.\d+\s+.+:$/],
+    plainListIntroLines: [/^By accepting this Agreement in the TT platform, the Contractor confirms:$/i],
+    listItemLines: [/^[A-Za-z0-9][A-Za-z0-9'()\-/,.\s]+$/],
+  },
+  "TT-SCP-004": {
+    nonListColonLines: [/^Document Reference:/i],
+    numberedListIntroLines: [/^\d+\.\d+\s+.+:$/],
+    plainListIntroLines: [
+      /^All conduct must prioritize:$/i,
+      /^All tutor conduct must remain:$/i,
+      /^Tutors are not:$/i,
+      /^The following are strictly prohibited:$/i,
+      /^This includes:$/i,
+      /^The following are prohibited during sessions:$/i,
+      /^Tutors must:$/i,
+      /^Tutors may not:$/i,
+      /^The following result in immediate suspension or termination:$/i,
+      /^By accepting this policy in the TT platform, the Contractor confirms:$/i,
+    ],
+    listItemLines: [/^[A-Za-z0-9][A-Za-z0-9'()\-/,.\s]+$/],
+  },
+  "TT-DPC-005": {
+    nonListColonLines: [/^Document Reference:/i],
+    numberedListIntroLines: [
+      /^\d+\.\d+\s+(Personal Information|Learner Data|Session Data|Technical Data)$/i,
+      /^\d+\.\d+\s+.+:$/i,
+    ],
+    plainListIntroLines: [
+      /^TT collects and processes the following:$/i,
+      /^Data is collected and used strictly to:$/i,
+      /^Users have the right to:$/i,
+      /^Requests may be submitted to:$/i,
+      /^Note:$/i,
+      /^Users may not:$/i,
+      /^By accepting this agreement in the TT platform, the user confirms:$/i,
+    ],
+    listItemLines: [/^[A-Za-z0-9][A-Za-z0-9'()\-/,.\s:.]+$/],
+  },
+};
+
 function formatCurrentSituation(value: string) {
   const normalized = String(value || "").trim();
   const labels: Record<string, string> = {
@@ -261,8 +329,9 @@ function tokenizeAgreementLinesStrict(content: string) {
 
     if (
       next &&
+      current.length >= 90 &&
       !/:$/.test(current) &&
-      !/^(SECTION [A-Z]|[0-9]+\.)/i.test(current) &&
+      !/^(SECTION [A-Z]|\d+\.)/i.test(current) &&
       !/^[A-Z][A-Z0-9\s/&(),.-]{8,}$/.test(next) &&
       /^[a-z(]/.test(next)
     ) {
@@ -278,11 +347,26 @@ function tokenizeAgreementLinesStrict(content: string) {
   return lines;
 }
 
-function renderAgreementHtmlStrict(content: string) {
+function renderAgreementHtmlStrict(content: string, documentCode?: string) {
   const lines = tokenizeAgreementLinesStrict(content);
   const blocks: string[] = [];
   let listItems: string[] = [];
   let listMode = false;
+  const rules = DOCUMENT_RENDER_RULES[documentCode || ""] || {};
+  const isDocumentHeading = (value: string) => /^SECTION [A-Z]/.test(value) || /^\d+\.\s+[A-Z]/.test(value);
+  const isNumberedClauseLine = (value: string) => /^\d+\.\d+\s+/.test(value);
+  const matchesAny = (value: string, patterns: RegExp[] | undefined) => (patterns || []).some((pattern) => pattern.test(value));
+  const isPotentialListItem = (value: string) => {
+    const cleaned = value.trim();
+    if (!cleaned) return false;
+    if (/^(and|or)$/i.test(cleaned)) return false;
+    if (/[.!?]$/.test(cleaned)) return false;
+    if (isNumberedClauseLine(cleaned)) return false;
+    if (protectedFieldLine.test(cleaned)) return false;
+    if (cleaned.length > 110) return false;
+    if (matchesAny(cleaned, rules.listItemLines)) return true;
+    return false;
+  };
 
   const flushList = () => {
     if (!listItems.length) return;
@@ -295,20 +379,42 @@ function renderAgreementHtmlStrict(content: string) {
 
   for (const rawLine of lines) {
     const line = rawLine.trim();
+    const isProtectedFieldLine = protectedFieldLine.test(line);
 
-    if (/^(SECTION [A-Z]|[0-9]+\.)/.test(line) || /^[A-Z][A-Z0-9\s/&(),.-]{8,}$/.test(line)) {
+    if (isDocumentHeading(line) || /^[A-Z][A-Z0-9\s/&(),.-]{8,}$/.test(line)) {
       flushList();
-      const tag = /^(SECTION [A-Z]|[0-9]+\.)/.test(line) ? "h2" : "h1";
+      const tag = isDocumentHeading(line) ? "h2" : "h1";
       blocks.push(`<${tag}>${escapeHtml(line)}</${tag}>`);
       listMode = false;
       continue;
     }
 
+    if (isProtectedFieldLine) {
+      flushList();
+      listMode = false;
+      blocks.push(`<p>${escapeHtml(line)}</p>`);
+      continue;
+    }
+
+    if (isNumberedClauseLine(line) && !matchesAny(line, rules.numberedListIntroLines)) {
+      flushList();
+      listMode = false;
+      blocks.push(`<p>${escapeHtml(line)}</p>`);
+      continue;
+    }
+
     const inlineColonMatch = line.match(/^([A-Z][A-Za-z0-9\s()/-]{2,48}:)\s+(.+)$/);
-    if (inlineColonMatch && !protectedFieldLine.test(line)) {
+    if (inlineColonMatch && !isProtectedFieldLine) {
       flushList();
       blocks.push(`<p>${escapeHtml(inlineColonMatch[1])}</p>`);
       listItems.push(inlineColonMatch[2]);
+      listMode = true;
+      continue;
+    }
+
+    if (matchesAny(line, rules.numberedListIntroLines)) {
+      flushList();
+      blocks.push(`<p>${escapeHtml(line)}</p>`);
       listMode = true;
       continue;
     }
@@ -320,23 +426,20 @@ function renderAgreementHtmlStrict(content: string) {
       continue;
     }
 
-    if (/:$/.test(line)) {
+    if (matchesAny(line, rules.plainListIntroLines)) {
       flushList();
       blocks.push(`<p>${escapeHtml(line)}</p>`);
       listMode = true;
       continue;
     }
 
-    const isLikelyListItem =
-      listMode ||
-      /^[A-Z][a-z][^.!?]{0,110}$/.test(cleanedCheckboxLine) ||
-      /^(employment|partnership|joint venture|agency|conduct|session execution|platform discipline|non-compliance|platform violations|session integrity issues|copy|reproduce|distribute|teach outside TT|income|student allocation|session volume|withhold payment|reverse payment|adjust payment|audit sessions|review recordings|evaluate performance|compliance|quality control|system integrity|accurate|honest|complete|placement|earnings|references|long-term engagement)$/i.test(cleanedCheckboxLine) ||
-      /^(deliver|conduct|maintain|required|execute|record|model|apply|guide|top-down camera|clear, step-by-step visual execution|conditioning phases|stability states|tt drill system|no private communication|no acceptance of payment|consistent execution|tt-os compliance|platform discipline|session quality failure|structural violations|misreporting or dishonest observation|platform misuse|conduct issues|may occur without prior notice|immediately halts all payment eligibility|all tt decisions regarding compliance are final|contractor income stability|academic or career outcomes|personal financial obligations|all tax obligations \(including sars compliance\)|placement|earnings|references|long-term engagement)$/i.test(cleanedCheckboxLine);
-
-    if (isLikelyListItem) {
-      listItems.push(cleanedCheckboxLine);
-      listMode = true;
-      continue;
+    if (listMode) {
+      if (isPotentialListItem(cleanedCheckboxLine)) {
+        listItems.push(cleanedCheckboxLine);
+        continue;
+      }
+      flushList();
+      listMode = false;
     }
 
     flushList();
@@ -545,7 +648,7 @@ function buildAcceptedCopyHtml(params: {
 
     <section class="section">
       <h2 class="section-title">Accepted Agreement Text</h2>
-      <div class="agreement-body">${renderAgreementHtmlStrict(hydrateDocumentContent(document.content || "", { ...formData, legalName: acceptedName }))}</div>
+      <div class="agreement-body">${renderAgreementHtmlStrict(hydrateDocumentContent(document.content || "", { ...formData, legalName: acceptedName }), document.code)}</div>
     </section>
 
     <section class="signature">
@@ -710,6 +813,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
     () => hydrateDocumentContent(currentDocument?.content || "", { ...effectiveInitialFormData, ...formData, legalName: typedFullName || effectiveInitialFormData.legalName || "" }),
     [currentDocument, effectiveInitialFormData, formData, typedFullName]
   );
+  const acceptanceResetKey = `${currentStep}:${currentAcceptance?.acceptedAt || currentAcceptance?.accepted_at || "pending"}`;
 
   useEffect(() => {
     const fallbackName = liveApplication?.fullName || liveApplication?.full_name || "";
@@ -724,7 +828,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
     setHasCompletedReading(Boolean(currentAcceptance));
     setViewStartedAt(null);
     setViewCompletedAt(null);
-  }, [currentStep, currentAcceptance, currentDocument, liveApplication, effectiveInitialFormData]);
+  }, [acceptanceResetKey, currentDocument?.step]);
 
   useEffect(() => {
     setSelectedFile(null);
@@ -824,10 +928,13 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
       setViewCompletedAt((current) => current || new Date().toISOString());
       return;
     }
-    const maxScroll = Math.max(node.scrollHeight - node.clientHeight, 1);
-    const percent = Math.min(100, Math.round((node.scrollTop / maxScroll) * 100));
+    const visibleBottom = node.scrollTop + node.clientHeight;
+    const reachedEnd = visibleBottom >= node.scrollHeight - 24;
+    const percent = reachedEnd
+      ? 100
+      : Math.min(99, Math.max(1, Math.round((visibleBottom / node.scrollHeight) * 100)));
     setReaderPercent(percent);
-    if (percent >= 99) setViewCompletedAt((current) => current || new Date().toISOString());
+    if (reachedEnd) setViewCompletedAt((current) => current || new Date().toISOString());
   };
 
   useEffect(() => {
@@ -1180,7 +1287,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                 ) : null}
                 <div
                   className="agreement-reader mt-8"
-                  dangerouslySetInnerHTML={{ __html: renderAgreementHtmlStrict(hydratedDocumentContent || "No document content available.") }}
+                  dangerouslySetInnerHTML={{ __html: renderAgreementHtmlStrict(hydratedDocumentContent || "No document content available.", currentDocument.code) }}
                 />
               </div>
             </div>
