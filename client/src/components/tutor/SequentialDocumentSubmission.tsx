@@ -561,22 +561,6 @@ function buildAcceptedCopyHtml(params: {
 </html>`;
 }
 
-function openAcceptedCopyPrintWindow(html: string, title: string) {
-  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const printWindow = window.open(url, "_blank", "width=960,height=720");
-  if (!printWindow) return false;
-  window.setTimeout(() => {
-    try {
-      printWindow.document.title = title;
-      printWindow.focus();
-    } catch {}
-    printWindow.print();
-    window.setTimeout(() => URL.revokeObjectURL(url), 60000);
-  }, 250);
-  return true;
-}
-
 const DEFAULT_DOCUMENT_STATUSES: Record<string, DocumentStatus> = {
   "1": "pending_upload",
   "2": "not_started",
@@ -739,9 +723,18 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
     setHasCompletedReading(Boolean(currentAcceptance));
     setViewStartedAt(null);
     setViewCompletedAt(null);
-    setSelectedFile(null);
     setReaderOpen(false);
   }, [currentStep, currentAcceptance, currentDocument, liveApplication, effectiveInitialFormData]);
+
+  useEffect(() => {
+    setSelectedFile(null);
+  }, [currentStep]);
+
+  useEffect(() => {
+    if (currentStatus === "pending_review" || currentStatus === "approved") {
+      setSelectedFile(null);
+    }
+  }, [currentStatus]);
 
   const acceptMutation = useMutation({
     mutationFn: async () => {
@@ -863,22 +856,6 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
     URL.revokeObjectURL(url);
   };
 
-  const printAcceptedCopy = () => {
-    if (!currentDocument?.content || !currentAcceptance) return;
-    const storedFormData = currentAcceptance?.formSnapshotJson || currentAcceptance?.form_snapshot_json || formData;
-    const html = buildAcceptedCopyHtml({
-      document: currentDocument,
-      acceptance: currentAcceptance,
-      typedFullName,
-      formData: storedFormData,
-      fields: currentFormFields,
-    });
-    const opened = openAcceptedCopyPrintWindow(html, `${currentDocument.code}-accepted-copy`);
-    if (!opened) {
-      toast({ title: "Popup blocked", description: "Allow popups to print or save the accepted copy as PDF.", variant: "destructive" });
-    }
-  };
-
   const downloadAcceptedCopyFor = (docDefinition: OnboardingDocumentDefinition, acceptance: any) => {
     if (!docDefinition?.content || !acceptance) return;
     const storedFormData = acceptance?.formSnapshotJson || acceptance?.form_snapshot_json || {};
@@ -896,22 +873,6 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
     link.download = `${docDefinition.code}-accepted-copy.html`;
     link.click();
     URL.revokeObjectURL(url);
-  };
-
-  const printAcceptedCopyFor = (docDefinition: OnboardingDocumentDefinition, acceptance: any) => {
-    if (!docDefinition?.content || !acceptance) return;
-    const storedFormData = acceptance?.formSnapshotJson || acceptance?.form_snapshot_json || {};
-    const html = buildAcceptedCopyHtml({
-      document: docDefinition,
-      acceptance,
-      typedFullName: acceptance?.typedFullName || acceptance?.typed_full_name || "",
-      formData: storedFormData,
-      fields: DOCUMENT_FORM_FIELDS[docDefinition.step] || [],
-    });
-    const opened = openAcceptedCopyPrintWindow(html, `${docDefinition.code}-accepted-copy`);
-    if (!opened) {
-      toast({ title: "Popup blocked", description: "Allow popups to print or save the accepted copy as PDF.", variant: "destructive" });
-    }
   };
 
   if (isLoading || !currentDocument) {
@@ -1013,7 +974,6 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                 <div className="flex flex-wrap gap-2">
                   <Button variant="outline" onClick={openReader}><FileText className="mr-2 h-4 w-4" />Review again</Button>
                   <Button variant="outline" disabled={!acceptanceAlreadyRecorded} onClick={downloadCopy}><Download className="mr-2 h-4 w-4" />Download accepted copy</Button>
-                  <Button variant="outline" disabled={!acceptanceAlreadyRecorded} onClick={printAcceptedCopy}><FileCheck className="mr-2 h-4 w-4" />Print / Save PDF</Button>
                 </div>
               </div>
             </div>
@@ -1024,13 +984,21 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
               <p className="font-medium">{currentDocument.uploadTitle || "Required upload"}</p>
               <p className="mt-1 text-sm text-muted-foreground">{currentDocument.uploadDescription}</p>
               {currentStep === 2 && !uploadReady ? <p className="mt-3 text-sm text-amber-700">Accept TT-EQV-002 first. The certified Matric certificate upload unlocks immediately after acceptance.</p> : null}
+              {currentStep === 2 && uploadReady && currentStatus !== "pending_review" ? (
+                <p className="mt-3 text-sm text-muted-foreground">Choose the certified Matric certificate, then upload it for COO review. Step 3 opens only after COO approves this certificate.</p>
+              ) : null}
               <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Input type="file" accept=".pdf,.png,.jpg,.jpeg" disabled={!uploadReady || uploadMutation.isPending || currentStatus === "pending_review"} onChange={(event) => setSelectedFile(event.target.files?.[0] || null)} />
-                <Button disabled={!selectedFile || !uploadReady || uploadMutation.isPending || currentStatus === "pending_review"} onClick={() => uploadMutation.mutate()}>
+                <Button className="w-full sm:w-auto" disabled={!selectedFile || !uploadReady || uploadMutation.isPending || currentStatus === "pending_review"} onClick={() => uploadMutation.mutate()}>
                   {uploadMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
                   Upload file
                 </Button>
               </div>
+              {selectedFile ? (
+                <p className="mt-3 text-sm text-[#6B5B52]">
+                  Selected file: <span className="font-medium text-[#1A1A1A]">{selectedFile.name}</span>
+                </p>
+              ) : null}
               {currentStatus === "pending_review" ? <p className="mt-3 text-sm text-muted-foreground">Your upload is with COO for review now.</p> : null}
               {currentStatus === "rejected" ? <p className="mt-3 text-sm text-red-700">{liveApplication?.[`doc${currentStep}SubmissionRejectionReason`] || liveApplication?.[`doc_${currentStep}_submission_rejection_reason`] || "Your upload was rejected. Review the reason and upload a corrected file."}</p> : null}
             </div>
@@ -1063,10 +1031,6 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                           <Button variant="outline" className="w-full sm:w-auto" onClick={() => downloadAcceptedCopyFor(document, acceptance)}>
                             <Download className="mr-2 h-4 w-4" />
                             Download accepted copy
-                          </Button>
-                          <Button variant="outline" className="w-full sm:w-auto" onClick={() => printAcceptedCopyFor(document, acceptance)}>
-                            <FileCheck className="mr-2 h-4 w-4" />
-                            Print / Save PDF
                           </Button>
                         </div>
                       </div>
