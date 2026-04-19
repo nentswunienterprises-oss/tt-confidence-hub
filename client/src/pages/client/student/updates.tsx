@@ -11,6 +11,7 @@ export default function StudentUpdates() {
         queryKey={["/api/student/communications"]}
         getPath="/api/student/communications"
         postPath="/api/student/communications"
+        unreadCountPath="/api/student/communications/unread-count"
         updatesContent={
           <NotificationInbox
             title="Updates"

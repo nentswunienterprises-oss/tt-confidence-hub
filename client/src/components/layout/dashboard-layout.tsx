@@ -118,7 +118,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     retry: false,
   });
 
-  const usesNotificationInbox = !!effectiveUser && (isTutor(effectiveUser) || isParent(effectiveUser) || effectiveUser.role === "student" || isCOO(effectiveUser));
+  const usesNotificationInbox = !!effectiveUser && (isTutor(effectiveUser) || isParent(effectiveUser) || isCOO(effectiveUser));
 
   const { data: notificationUnreadData } = useQuery<{ unreadCount: number }>({
     queryKey: ["/api/notifications/unread-count"],
@@ -135,6 +135,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { data: parentCommunicationUnreadData } = useQuery<{ unreadCount: number }>({
     queryKey: ["/api/parent/communications/unread-count"],
     enabled: effectiveIsAuth && !!effectiveUser && isParent(effectiveUser),
+    refetchInterval: 15000,
+  });
+
+  const { data: studentCommunicationUnreadData } = useQuery<{ unreadCount: number }>({
+    queryKey: ["/api/student/communications/unread-count"],
+    enabled: effectiveIsAuth && !!effectiveUser && effectiveUser.role === "student",
     refetchInterval: 15000,
   });
 
@@ -208,6 +214,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     ? (isParent(effectiveUser)
         ? visibleNotificationUnreadCount + Number(parentCommunicationUnreadData?.unreadCount || 0)
         : (notificationUnreadData?.unreadCount || 0))
+    : effectiveUser?.role === "student"
+      ? Number(studentCommunicationUnreadData?.unreadCount || 0)
     : unreadBroadcasts.length;
 
   // Mark broadcast as read mutation

@@ -13532,6 +13532,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/student/communications/unread-count", async (req: Request, res: Response) => {
+    try {
+      const studentUserId = (req.session as any).studentUserId;
+      if (!studentUserId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { data: studentUser, error } = await supabase
+        .from("student_users")
+        .select("id, student_id")
+        .eq("id", studentUserId)
+        .single();
+
+      if (error || !studentUser?.student_id) {
+        return res.json({ unreadCount: 0 });
+      }
+
+      const student = await storage.getStudent(studentUser.student_id);
+      if (!student || !student.tutorId) {
+        return res.json({ unreadCount: 0 });
+      }
+
+      const thread = await ensureStudentCommunicationThread({
+        studentId: student.id,
+        tutorId: student.tutorId,
+        parentId: await resolveParentIdForStudent(student, student.tutorId),
+        audience: "student",
+      });
+
+      const { data, error: unreadError } = await supabase
+        .from("student_communication_messages")
+        .select("id")
+        .eq("thread_id", thread.id)
+        .neq("sender_role", "student")
+        .is("read_by_student_at", null);
+
+      if (unreadError) throw unreadError;
+
+      res.json({ unreadCount: (data || []).length });
+    } catch (error) {
+      console.error("Error fetching student communication unread count:", error);
+      res.status(500).json({ message: "Failed to fetch unread count" });
+    }
+  });
+
   app.post("/api/student/communications", async (req: Request, res: Response) => {
     try {
       const studentUserId = (req.session as any).studentUserId;
