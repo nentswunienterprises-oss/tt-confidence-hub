@@ -56,7 +56,7 @@ restrict platform access
 at its sole discretion.
 
 6. PAYMENT STRUCTURE
-6.1 Payment is made per completed session.
+6.1 Payment is made per completed session package.
 6.2 Payment structure is defined by TT and may be updated at any time with notice.
 6.3 Payment is conditional on:
 session package completion

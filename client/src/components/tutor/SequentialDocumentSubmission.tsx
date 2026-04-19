@@ -219,19 +219,42 @@ function tokenizeAgreementLinesStrict(content: string) {
     .map((line) => line.trim())
     .filter(Boolean);
   const lines: string[] = [];
+  let pendingSectionHeading: string | null = null;
+
+  const isAllCapsHeadingFragment = (value: string) => /^[A-Z][A-Z\s()/-]+$/.test(value);
+
+  const flushPendingHeading = () => {
+    if (!pendingSectionHeading) return;
+    lines.push(pendingSectionHeading);
+    pendingSectionHeading = null;
+  };
 
   for (let index = 0; index < rawLines.length; index += 1) {
     let current = rawLines[index];
     const next = rawLines[index + 1];
 
-    if (/^SECTION [A-Z]:$/i.test(current) && next && /^[A-Z][A-Z\s()/-]+$/.test(next)) {
-      lines.push(`${current} ${next}`);
+    if (/^SECTION [A-Z]:/i.test(current) && (!/[.!?]$/.test(current) || /[:,-]$/.test(current))) {
+      pendingSectionHeading = current;
+      continue;
+    }
+
+    if (pendingSectionHeading) {
+      if (isAllCapsHeadingFragment(current)) {
+        pendingSectionHeading = `${pendingSectionHeading} ${current}`;
+        continue;
+      }
+
+      flushPendingHeading();
+    }
+
+    if (/^SECTION [A-Z]:$/i.test(current) && next && isAllCapsHeadingFragment(next)) {
+      pendingSectionHeading = `${current} ${next}`;
       index += 1;
       continue;
     }
 
-    if (/^[A-Z][A-Z\s()/-]+$/.test(current) && next && /^[A-Z][A-Z\s()/-]+$/.test(next) && !/^SECTION [A-Z]:/i.test(next)) {
-      lines.push(`${current} ${next}`);
+    if (isAllCapsHeadingFragment(current) && next && isAllCapsHeadingFragment(next) && !/^SECTION [A-Z]:/i.test(next)) {
+      pendingSectionHeading = `${current} ${next}`;
       index += 1;
       continue;
     }
@@ -249,6 +272,8 @@ function tokenizeAgreementLinesStrict(content: string) {
 
     lines.push(current);
   }
+
+  flushPendingHeading();
 
   return lines;
 }
@@ -352,7 +377,7 @@ function buildInitialFormData(fields: FieldDefinition[], application: any, accep
     emailAddress: normalizeValue(application?.email),
     phoneNumber: normalizeValue(application?.phone),
     idNumber: applicationIdNumber,
-    dateOfBirth: normalizeValue(application?.dateOfBirth || application?.date_of_birth) || deriveDateOfBirthFromSouthAfricanId(applicationIdNumber),
+    dateOfBirth: deriveDateOfBirthFromSouthAfricanId(applicationIdNumber),
     matricYear: normalizeValue(application?.matricYear || application?.matric_year),
     schoolName: applicationSchool,
     currentStatus: applicationCurrentSituation,
@@ -367,6 +392,31 @@ function buildInitialFormData(fields: FieldDefinition[], application: any, accep
   }
 
   return Object.fromEntries(fields.map((field) => [field.key, initial[field.key] || ""]));
+}
+
+function buildApplicationLockedFormData(application: any) {
+  const applicationIdNumber = normalizeValue(application?.idNumber || application?.id_number);
+  return {
+    legalName: normalizeValue(application?.fullName || application?.full_name),
+    emailAddress: normalizeValue(application?.email),
+    phoneNumber: normalizeValue(application?.phone),
+    idNumber: applicationIdNumber,
+    dateOfBirth: deriveDateOfBirthFromSouthAfricanId(applicationIdNumber),
+    matricYear: normalizeValue(application?.matricYear || application?.matric_year),
+    schoolName: normalizeValue(
+      application?.schoolAttended ||
+      application?.school_attended ||
+      application?.school ||
+      application?.schoolName ||
+      application?.school_name
+    ),
+    currentStatus: normalizeValue(
+      application?.currentSituationOther ||
+      application?.current_situation_other ||
+      formatCurrentSituation(application?.currentSituation || application?.current_situation)
+    ),
+    examNumber: normalizeValue(application?.examNumber || application?.exam_number),
+  };
 }
 
 function hydrateDocumentContent(content: string, fieldValues: Record<string, string>) {
@@ -501,7 +551,7 @@ const DEFAULT_DOCUMENT_STATUSES: Record<string, DocumentStatus> = {
 const DOCUMENT_FORM_FIELDS: Record<number, FieldDefinition[]> = {
   1: [
     { key: "legalName", label: "Full legal name", placeholder: "Enter your full legal name" },
-    { key: "dateOfBirth", label: "Date of birth", placeholder: "YYYY-MM-DD" },
+    { key: "dateOfBirth", label: "Date of birth", placeholder: "Derived from your SA ID number", readOnly: true },
     { key: "emailAddress", label: "Email address", placeholder: "Loaded from your TT account", readOnly: true },
     { key: "phoneNumber", label: "Phone number", placeholder: "Enter your contact number" },
     { key: "idNumber", label: "ID number", placeholder: "Enter your South African ID number" },
@@ -510,7 +560,7 @@ const DOCUMENT_FORM_FIELDS: Record<number, FieldDefinition[]> = {
   ],
   2: [
     { key: "legalName", label: "Full legal name", placeholder: "Enter your full legal name" },
-    { key: "dateOfBirth", label: "Date of birth", placeholder: "YYYY-MM-DD" },
+    { key: "dateOfBirth", label: "Date of birth", placeholder: "Derived from your SA ID number", readOnly: true },
     { key: "emailAddress", label: "Email address", placeholder: "Loaded from your TT account", readOnly: true },
     { key: "phoneNumber", label: "Phone number", placeholder: "Enter your contact number" },
     { key: "idNumber", label: "ID number", placeholder: "Enter your South African ID number" },
@@ -601,6 +651,10 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
   const initialFormData = useMemo(
     () => buildInitialFormData(currentFormFields, liveApplication, currentAcceptance),
     [currentFormFields, liveApplication, currentAcceptance]
+  );
+  const applicationLockedFormData = useMemo(
+    () => buildApplicationLockedFormData(liveApplication),
+    [liveApplication]
   );
   const hydratedDocumentContent = useMemo(
     () => hydrateDocumentContent(currentDocument?.content || "", { ...initialFormData, ...formData, legalName: typedFullName || initialFormData.legalName || "" }),
@@ -939,9 +993,19 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                       {currentFormFields.map((field) => (
                         <div key={field.key} className="space-y-2">
                           <label className="text-sm font-medium text-[#1A1A1A]">{field.label}</label>
+                          {(() => {
+                            const fieldValue = field.key === "legalName" ? typedFullName : formData[field.key] || "";
+                            const applicationProvidedValue =
+                              field.key === "legalName"
+                                ? applicationLockedFormData.legalName
+                                : applicationLockedFormData[field.key as keyof typeof applicationLockedFormData];
+                            const isLockedFromApplication = Boolean(applicationProvidedValue);
+                            const isDisabled = acceptanceAlreadyRecorded || field.readOnly || isLockedFromApplication;
+
+                            return (
                           <Input
-                            value={field.key === "legalName" ? typedFullName : formData[field.key] || ""}
-                            disabled={acceptanceAlreadyRecorded || field.readOnly}
+                            value={fieldValue}
+                            disabled={isDisabled}
                             onChange={(event) => {
                               if (field.key === "legalName") {
                                 setTypedFullName(event.target.value);
@@ -953,15 +1017,24 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                                 setFormData((value) => ({
                                   ...value,
                                   idNumber: nextId,
-                                  dateOfBirth: value.dateOfBirth || deriveDateOfBirthFromSouthAfricanId(nextId),
+                                  dateOfBirth: deriveDateOfBirthFromSouthAfricanId(nextId),
                                 }));
                                 return;
                               }
                               setFormData((value) => ({ ...value, [field.key]: event.target.value }));
                             }}
                             placeholder={field.placeholder}
-                            className={field.readOnly ? "border-[#E7D5C8] bg-[#F7EFE7] text-[#8A7A70]" : "border-[#E7D5C8] bg-white"}
+                            className={isDisabled ? "border-[#E7D5C8] bg-[#F7EFE7] text-[#8A7A70]" : "border-[#E7D5C8] bg-white"}
                           />
+                            );
+                          })()}
+                          {Boolean(
+                            (field.key === "legalName"
+                              ? applicationLockedFormData.legalName
+                              : applicationLockedFormData[field.key as keyof typeof applicationLockedFormData]) && !acceptanceAlreadyRecorded
+                          ) ? (
+                            <p className="text-xs text-[#8A7A70]">Locked to the tutor application record.</p>
+                          ) : null}
                         </div>
                       ))}
                     </div>
