@@ -352,6 +352,13 @@ function normalizeValue(value: unknown) {
   return String(value ?? "").trim();
 }
 
+function normalizeDisplayedVersion(value: unknown) {
+  const normalized = String(value ?? "").trim();
+  if (!normalized) return "1";
+  if (/^TT-[A-Z]+-\d{3}$/i.test(normalized)) return "1";
+  return normalized;
+}
+
 function buildInitialFormData(fields: FieldDefinition[], application: any, acceptance: any) {
   const savedForm = acceptance?.formSnapshotJson || acceptance?.form_snapshot_json || {};
   const applicationIdNumber = normalizeValue(application?.idNumber || application?.id_number);
@@ -466,7 +473,7 @@ function buildAcceptedCopyHtml(params: {
   const acceptedAt = acceptance?.acceptedAt || acceptance?.accepted_at || null;
   const acceptedName = acceptance?.typedFullName || acceptance?.typed_full_name || typedFullName || "Not available";
   const documentHash = acceptance?.documentChecksum || acceptance?.document_checksum || document.contentHash || "Not available";
-  const documentVersion = acceptance?.documentVersion || acceptance?.document_version || document.version;
+  const documentVersion = normalizeDisplayedVersion(acceptance?.documentVersion || acceptance?.document_version || document.version);
   const clauseKeys = acceptance?.acceptedClausesJson || acceptance?.accepted_clauses_json || [];
   const tutorDetailsRows = fields
     .map((field) => {
@@ -661,7 +668,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
     currentStep === 2 && currentStatus === "pending_upload" && currentAcceptance
       ? "accepted - waiting for certificate upload"
       : currentStep !== 6 && currentStatus === "pending_upload"
-        ? "awaiting acceptance"
+        ? "Awaiting Acceptance"
         : String(currentStatus).replace(/_/g, " ");
 
   const initialFormData = useMemo(
@@ -874,7 +881,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
             </div>
             <div className="flex flex-wrap gap-2">
               <Badge variant="outline">{currentDocument.code}</Badge>
-              <Badge variant="outline">Version {currentDocument.version}</Badge>
+              <Badge variant="outline">Version {normalizeDisplayedVersion(currentDocument.version)}</Badge>
               <Badge variant="outline">{statusLabel}</Badge>
             </div>
           </div>
@@ -993,7 +1000,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                         <div className="min-w-0">
                           <p className="font-medium">{document.title}</p>
                           <p className="text-sm text-muted-foreground">
-                            {document.code} • Version {acceptance?.documentVersion || acceptance?.document_version || document.version}
+                            {document.code} • Version {normalizeDisplayedVersion(acceptance?.documentVersion || acceptance?.document_version || document.version)}
                           </p>
                           {acceptedAt ? (
                             <p className="text-xs text-muted-foreground">Accepted {new Date(acceptedAt).toLocaleString()}</p>
@@ -1063,7 +1070,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
           <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl bg-[#FFF5ED] text-[#1A1A1A]">
             <DialogHeader className="shrink-0 border-b border-[#E7D5C8] bg-white px-4 py-4 text-left sm:px-6 sm:py-5">
               <DialogTitle className="pr-8 text-xl sm:text-2xl">{currentDocument.title}</DialogTitle>
-              <DialogDescription className="text-[#6B5B52]">{currentDocument.code} • version {currentDocument.version}</DialogDescription>
+              <DialogDescription className="text-[#6B5B52]">{currentDocument.code} • version {normalizeDisplayedVersion(currentDocument.version)}</DialogDescription>
             </DialogHeader>
             <div ref={readerRef} onScroll={handleReaderScroll} className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-[#FFF5ED] px-3 py-4 touch-pan-y sm:px-6 sm:py-6">
               <div className="mx-auto max-w-4xl rounded-2xl border border-[#E7D5C8] bg-white px-4 py-6 text-[#1A1A1A] shadow-[0_18px_50px_rgba(230,57,70,0.08)] sm:px-10 sm:py-10">
@@ -1071,7 +1078,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                   <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#E63946]">Territorial Tutoring Onboarding Document</p>
                   <h1 className="mt-3 text-2xl font-semibold tracking-tight text-[#1A1A1A] sm:text-3xl">{currentDocument.title}</h1>
                   <p className="mt-2 text-xs text-[#6B5B52] sm:text-sm">
-                    {currentDocument.code} • Version {currentDocument.version}
+                    {currentDocument.code} • Version {normalizeDisplayedVersion(currentDocument.version)}
                   </p>
                 </div>
                 {currentFormFields.length > 0 ? (

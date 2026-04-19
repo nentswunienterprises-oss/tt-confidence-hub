@@ -45,10 +45,17 @@ function escapeHtml(value: string) {
     .replace(/'/g, "&#39;");
 }
 
+function normalizeDisplayedVersion(value: unknown) {
+  const normalized = String(value ?? "").trim();
+  if (!normalized) return "1";
+  if (/^TT-[A-Z]+-\d{3}$/i.test(normalized)) return "1";
+  return normalized;
+}
+
 function buildAcceptedAgreementHtml(item: { code: string; title: string }, acceptance: any) {
   const acceptedAt = acceptance?.acceptedAt || acceptance?.accepted_at || "";
   const acceptedName = acceptance?.typedFullName || acceptance?.typed_full_name || "Unknown";
-  const documentVersion = acceptance?.documentVersion || acceptance?.document_version || "1";
+  const documentVersion = normalizeDisplayedVersion(acceptance?.documentVersion || acceptance?.document_version || "1");
   const documentChecksum = acceptance?.documentChecksum || acceptance?.document_checksum || "";
   const documentSnapshot = acceptance?.documentSnapshot || acceptance?.document_snapshot || "";
   const formSnapshot = acceptance?.formSnapshotJson || acceptance?.form_snapshot_json || {};
@@ -263,7 +270,7 @@ export function TutorDocumentReview({ application, onReview }: TutorDocumentRevi
                             Accepted {new Date(acceptance.acceptedAt).toLocaleString()} by {acceptance.typedFullName}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Version {acceptance.documentVersion} • Hash {String(acceptance.documentChecksum || "").slice(0, 16)}...
+                            Version {normalizeDisplayedVersion(acceptance.documentVersion || acceptance.document_version)} • Hash {String(acceptance.documentChecksum || acceptance.document_checksum || "").slice(0, 16)}...
                           </p>
                           {Array.isArray(acceptance.acceptedClausesJson) && acceptance.acceptedClausesJson.length > 0 ? (
                             <p className="text-xs text-muted-foreground">
