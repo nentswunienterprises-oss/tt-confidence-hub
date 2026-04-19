@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_URL } from "@/lib/config";
-import { CheckCircle2, ExternalLink, FileCheck, Loader2, ShieldCheck, XCircle } from "lucide-react";
+import { CheckCircle2, Download, ExternalLink, FileCheck, Loader2, ShieldCheck, XCircle } from "lucide-react";
 
 interface TutorDocumentReviewProps {
   application: any;
@@ -35,6 +35,77 @@ const AGREEMENT_STEPS = [
   { step: 4, code: "TT-SCP-004", title: "Safeguarding and Conduct Policy" },
   { step: 5, code: "TT-DPC-005", title: "Data Protection / POPIA Consent" },
 ] as const;
+
+function escapeHtml(value: string) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function buildAcceptedAgreementHtml(item: { code: string; title: string }, acceptance: any) {
+  const acceptedAt = acceptance?.acceptedAt || acceptance?.accepted_at || "";
+  const acceptedName = acceptance?.typedFullName || acceptance?.typed_full_name || "Unknown";
+  const documentVersion = acceptance?.documentVersion || acceptance?.document_version || "1";
+  const documentChecksum = acceptance?.documentChecksum || acceptance?.document_checksum || "";
+  const documentSnapshot = acceptance?.documentSnapshot || acceptance?.document_snapshot || "";
+  const formSnapshot = acceptance?.formSnapshotJson || acceptance?.form_snapshot_json || {};
+  const acceptedClauses = acceptance?.acceptedClausesJson || acceptance?.accepted_clauses_json || [];
+
+  const formRows = Object.entries(formSnapshot)
+    .filter(([, value]) => String(value || "").trim())
+    .map(([key, value]) => `<tr><th>${escapeHtml(key)}</th><td>${escapeHtml(String(value))}</td></tr>`)
+    .join("");
+
+  const clauseItems = Array.isArray(acceptedClauses)
+    ? acceptedClauses.map((value: string) => `<li>${escapeHtml(String(value))}</li>`).join("")
+    : "";
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>${escapeHtml(item.code)} Accepted Copy</title>
+  <style>
+    @page { size: A4; margin: 18mm 16mm; }
+    body { margin: 0; background: #efe7d8; color: #1f2933; font-family: Georgia, "Times New Roman", serif; }
+    .page { width: 210mm; min-height: 297mm; margin: 0 auto; background: #fffdf8; padding: 18mm 16mm; box-sizing: border-box; }
+    .eyebrow { font: 600 11px/1.4 Arial, sans-serif; letter-spacing: 0.16em; text-transform: uppercase; color: #8b2c1f; }
+    h1 { margin: 8px 0 6px; font-size: 28px; line-height: 1.15; }
+    .subhead { margin: 0; font: 500 13px/1.6 Arial, sans-serif; color: #52606d; }
+    .section { margin-top: 20px; }
+    .section-title { margin: 0 0 10px; padding-bottom: 6px; border-bottom: 1px solid #d8cfc2; font: 700 14px/1.4 Arial, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: #7b341e; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 9px 10px; border: 1px solid #ddd3c5; vertical-align: top; }
+    th { width: 34%; background: #f6efe4; text-align: left; font: 600 12px/1.5 Arial, sans-serif; color: #243b53; }
+    td, p, li { font: 400 13px/1.6 Arial, sans-serif; }
+    ul { margin: 0 0 0 18px; padding: 0; }
+    pre { white-space: pre-wrap; font: 400 13px/1.7 Arial, sans-serif; color: #243b53; margin: 0; }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="eyebrow">Territorial Tutoring Accepted Agreement Copy</div>
+    <h1>${escapeHtml(item.title)}</h1>
+    <p class="subhead">${escapeHtml(item.code)} | Version ${escapeHtml(String(documentVersion))}</p>
+    <section class="section">
+      <h2 class="section-title">Acceptance Record</h2>
+      <p>Accepted by: ${escapeHtml(String(acceptedName))}</p>
+      <p>Accepted at: ${escapeHtml(String(acceptedAt))}</p>
+      <p>Document hash: ${escapeHtml(String(documentChecksum))}</p>
+    </section>
+    ${formRows ? `<section class="section"><h2 class="section-title">Captured Form Data</h2><table>${formRows}</table></section>` : ""}
+    ${clauseItems ? `<section class="section"><h2 class="section-title">Acknowledged Clauses</h2><ul>${clauseItems}</ul></section>` : ""}
+    <section class="section">
+      <h2 class="section-title">Accepted Agreement Text</h2>
+      <pre>${escapeHtml(String(documentSnapshot))}</pre>
+    </section>
+  </main>
+</body>
+</html>`;
+}
 
 export function TutorDocumentReview({ application, onReview }: TutorDocumentReviewProps) {
   const { toast } = useToast();
@@ -100,6 +171,17 @@ export function TutorDocumentReview({ application, onReview }: TutorDocumentRevi
         ? application?.doc2SubmissionRejectionReason || application?.doc_2_submission_rejection_reason || ""
         : application?.doc6SubmissionRejectionReason || application?.doc_6_submission_rejection_reason || ""
     );
+  };
+
+  const downloadAcceptedAgreement = (item: (typeof AGREEMENT_STEPS)[number], acceptance: any) => {
+    const html = buildAcceptedAgreementHtml(item, acceptance);
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${item.code}-accepted-copy.html`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -188,6 +270,12 @@ export function TutorDocumentReview({ application, onReview }: TutorDocumentRevi
                               Clauses acknowledged: {acceptance.acceptedClausesJson.join(", ")}
                             </p>
                           ) : null}
+                          <div className="pt-2">
+                            <Button variant="outline" size="sm" onClick={() => downloadAcceptedAgreement(item, acceptance)}>
+                              <Download className="mr-2 h-3 w-3" />
+                              Download accepted copy
+                            </Button>
+                          </div>
                         </>
                       ) : (
                         <p className="text-xs text-muted-foreground">No acceptance recorded yet.</p>

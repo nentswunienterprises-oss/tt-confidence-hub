@@ -394,6 +394,21 @@ function buildInitialFormData(fields: FieldDefinition[], application: any, accep
   return Object.fromEntries(fields.map((field) => [field.key, initial[field.key] || ""]));
 }
 
+function buildAcceptanceDerivedFormData(acceptance: any) {
+  const savedForm = acceptance?.formSnapshotJson || acceptance?.form_snapshot_json || {};
+  return {
+    legalName: normalizeValue(acceptance?.typedFullName || acceptance?.typed_full_name || savedForm.legalName),
+    emailAddress: normalizeValue(savedForm.emailAddress),
+    phoneNumber: normalizeValue(savedForm.phoneNumber),
+    idNumber: normalizeValue(savedForm.idNumber),
+    dateOfBirth: normalizeValue(savedForm.dateOfBirth),
+    matricYear: normalizeValue(savedForm.matricYear),
+    schoolName: normalizeValue(savedForm.schoolName),
+    currentStatus: normalizeValue(savedForm.currentStatus),
+    examNumber: normalizeValue(savedForm.examNumber),
+  };
+}
+
 function buildApplicationLockedFormData(application: any) {
   const applicationIdNumber = normalizeValue(application?.idNumber || application?.id_number);
   return {
@@ -630,6 +645,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
     [liveApplication]
   );
   const acceptanceMap = liveApplication?.onboardingAcceptanceMap || {};
+  const doc1Acceptance = acceptanceMap["1"];
   const currentStep = getCurrentStep(documentsStatus);
   const currentDocument = data?.documents?.find((entry) => entry.step === currentStep);
   const currentAcceptance = acceptanceMap[String(currentStep)];
@@ -652,19 +668,41 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
     () => buildInitialFormData(currentFormFields, liveApplication, currentAcceptance),
     [currentFormFields, liveApplication, currentAcceptance]
   );
+  const previousAcceptanceDerivedFormData = useMemo(
+    () => buildAcceptanceDerivedFormData(currentStep === 2 ? doc1Acceptance : null),
+    [currentStep, doc1Acceptance]
+  );
   const applicationLockedFormData = useMemo(
     () => buildApplicationLockedFormData(liveApplication),
     [liveApplication]
   );
+  const canonicalLockedFormData = useMemo(
+    () => ({
+      ...applicationLockedFormData,
+      ...(currentStep === 2 ? previousAcceptanceDerivedFormData : {}),
+    }),
+    [applicationLockedFormData, currentStep, previousAcceptanceDerivedFormData]
+  );
+  const effectiveInitialFormData = useMemo(
+    () => ({
+      ...initialFormData,
+      ...(currentStep === 2
+        ? Object.fromEntries(
+            Object.entries(previousAcceptanceDerivedFormData).filter(([, value]) => Boolean(String(value || "").trim()))
+          )
+        : {}),
+    }),
+    [initialFormData, currentStep, previousAcceptanceDerivedFormData]
+  );
   const hydratedDocumentContent = useMemo(
-    () => hydrateDocumentContent(currentDocument?.content || "", { ...initialFormData, ...formData, legalName: typedFullName || initialFormData.legalName || "" }),
-    [currentDocument, initialFormData, formData, typedFullName]
+    () => hydrateDocumentContent(currentDocument?.content || "", { ...effectiveInitialFormData, ...formData, legalName: typedFullName || effectiveInitialFormData.legalName || "" }),
+    [currentDocument, effectiveInitialFormData, formData, typedFullName]
   );
 
   useEffect(() => {
     const fallbackName = liveApplication?.fullName || liveApplication?.full_name || "";
-    setTypedFullName(currentAcceptance?.typedFullName || currentAcceptance?.typed_full_name || initialFormData.legalName || fallbackName);
-    setFormData(initialFormData);
+    setTypedFullName(currentAcceptance?.typedFullName || currentAcceptance?.typed_full_name || effectiveInitialFormData.legalName || fallbackName);
+    setFormData(effectiveInitialFormData);
     setGeneralRead(false);
     setGeneralBound(false);
     setClauseChecks(
@@ -676,7 +714,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
     setViewCompletedAt(null);
     setSelectedFile(null);
     setReaderOpen(false);
-  }, [currentStep, currentAcceptance, currentDocument, liveApplication, initialFormData]);
+  }, [currentStep, currentAcceptance, currentDocument, liveApplication, effectiveInitialFormData]);
 
   const acceptMutation = useMutation({
     mutationFn: async () => {
@@ -794,6 +832,25 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
     const link = document.createElement("a");
     link.href = url;
     link.download = `${currentDocument.code}-accepted-copy.html`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadAcceptedCopyFor = (document: OnboardingDocumentDefinition, acceptance: any) => {
+    if (!document?.content || !acceptance) return;
+    const storedFormData = acceptance?.formSnapshotJson || acceptance?.form_snapshot_json || {};
+    const html = buildAcceptedCopyHtml({
+      document,
+      acceptance,
+      typedFullName: acceptance?.typedFullName || acceptance?.typed_full_name || "",
+      formData: storedFormData,
+      fields: DOCUMENT_FORM_FIELDS[document.step] || [],
+    });
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${document.code}-accepted-copy.html`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -918,6 +975,40 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
               {currentStatus === "rejected" ? <p className="mt-3 text-sm text-red-700">{liveApplication?.[`doc${currentStep}SubmissionRejectionReason`] || liveApplication?.[`doc_${currentStep}_submission_rejection_reason`] || "Your upload was rejected. Review the reason and upload a corrected file."}</p> : null}
             </div>
           ) : null}
+
+          {data?.documents?.some((document) => document.requiresAcceptance && acceptanceMap[String(document.step)]) ? (
+            <div className="rounded-2xl border p-4">
+              <div className="mb-4">
+                <p className="font-medium">Accepted documents</p>
+                <p className="text-sm text-muted-foreground">Download a clean accepted copy for any agreement you have already completed.</p>
+              </div>
+              <div className="space-y-3">
+                {data.documents
+                  .filter((document) => document.requiresAcceptance && acceptanceMap[String(document.step)])
+                  .map((document) => {
+                    const acceptance = acceptanceMap[String(document.step)];
+                    const acceptedAt = acceptance?.acceptedAt || acceptance?.accepted_at;
+                    return (
+                      <div key={document.step} className="flex flex-col gap-3 rounded-xl border p-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="min-w-0">
+                          <p className="font-medium">{document.title}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {document.code} • Version {acceptance?.documentVersion || acceptance?.document_version || document.version}
+                          </p>
+                          {acceptedAt ? (
+                            <p className="text-xs text-muted-foreground">Accepted {new Date(acceptedAt).toLocaleString()}</p>
+                          ) : null}
+                        </div>
+                        <Button variant="outline" className="w-full sm:w-auto" onClick={() => downloadAcceptedCopyFor(document, acceptance)}>
+                          <Download className="mr-2 h-4 w-4" />
+                          Download accepted copy
+                        </Button>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          ) : null}
         </CardContent>
       </Card>
 
@@ -997,8 +1088,8 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                             const fieldValue = field.key === "legalName" ? typedFullName : formData[field.key] || "";
                             const applicationProvidedValue =
                               field.key === "legalName"
-                                ? applicationLockedFormData.legalName
-                                : applicationLockedFormData[field.key as keyof typeof applicationLockedFormData];
+                                ? canonicalLockedFormData.legalName
+                                : canonicalLockedFormData[field.key as keyof typeof canonicalLockedFormData];
                             const isLockedFromApplication = Boolean(applicationProvidedValue);
                             const isDisabled = acceptanceAlreadyRecorded || field.readOnly || isLockedFromApplication;
 
@@ -1030,10 +1121,10 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                           })()}
                           {Boolean(
                             (field.key === "legalName"
-                              ? applicationLockedFormData.legalName
-                              : applicationLockedFormData[field.key as keyof typeof applicationLockedFormData]) && !acceptanceAlreadyRecorded
+                              ? canonicalLockedFormData.legalName
+                              : canonicalLockedFormData[field.key as keyof typeof canonicalLockedFormData]) && !acceptanceAlreadyRecorded
                           ) ? (
-                            <p className="text-xs text-[#8A7A70]">Locked to the tutor application record.</p>
+                            <p className="text-xs text-[#8A7A70]">{currentStep === 2 && previousAcceptanceDerivedFormData[field.key as keyof typeof previousAcceptanceDerivedFormData] ? "Locked to the accepted details from Step 1." : "Locked to the tutor application record."}</p>
                           ) : null}
                         </div>
                       ))}
