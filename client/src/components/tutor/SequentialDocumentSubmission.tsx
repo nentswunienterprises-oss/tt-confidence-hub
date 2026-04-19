@@ -1111,9 +1111,9 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                   <p>Version: {currentDocument.version}</p>
                   <p>Hash: {String(currentDocument.contentHash || "").slice(0, 16)}...</p>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button type="button" variant="outline" onClick={openReader}><FileText className="mr-2 h-4 w-4" />Review again</Button>
-                  <Button type="button" variant="outline" disabled={!acceptanceAlreadyRecorded} onClick={downloadCopy}><Download className="mr-2 h-4 w-4" />Download accepted copy</Button>
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                  <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={openReader}><FileText className="mr-2 h-4 w-4" />Review again</Button>
+                  <Button type="button" variant="outline" className="w-full sm:w-auto whitespace-normal text-left sm:whitespace-nowrap sm:text-center" disabled={!acceptanceAlreadyRecorded} onClick={downloadCopy}><Download className="mr-2 h-4 w-4 shrink-0" />Download accepted copy</Button>
                 </div>
               </div>
             </div>
@@ -1167,9 +1167,9 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                             <p className="text-xs text-muted-foreground">Accepted {new Date(acceptedAt).toLocaleString()}</p>
                           ) : null}
                         </div>
-                        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-                          <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => downloadAcceptedCopyFor(document, acceptance)}>
-                            <Download className="mr-2 h-4 w-4" />
+                        <div className="w-full sm:w-auto">
+                          <Button type="button" variant="outline" className="w-full whitespace-normal text-left sm:w-auto sm:whitespace-nowrap sm:text-center" onClick={() => downloadAcceptedCopyFor(document, acceptance)}>
+                            <Download className="mr-2 h-4 w-4 shrink-0" />
                             Download accepted copy
                           </Button>
                         </div>
