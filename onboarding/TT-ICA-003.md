@@ -62,11 +62,7 @@ at its sole discretion.
 session package completion
 TT-OS compliance
 accurate reporting
-6.4 TT may:
-withhold payment
-reverse payment
-adjust payment
-where:
+6.4 TT may withhold, reverse, or adjust payment where:
 sessions are non-compliant
 reporting is inaccurate
 platform rules are violated
@@ -99,11 +95,10 @@ session frameworks
 stability progression logic
 reporting systems
 8.2 The Contractor may not:
-copy
-reproduce
-distribute
-teach outside TT
-any TT system or material
+copy TT systems or materials
+reproduce TT systems or materials
+distribute TT systems or materials
+teach TT systems or materials outside TT
 8.3 All session data, recordings, and learner information belong to TT.
 
 9. CONFIDENTIALITY
