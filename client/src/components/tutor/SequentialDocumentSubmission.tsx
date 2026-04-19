@@ -662,6 +662,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
   const isUploadStep = currentStep === 2 || currentStep === 6;
   const isAcceptanceStep = Boolean(currentDocument?.requiresAcceptance);
   const acceptanceAlreadyRecorded = Boolean(currentAcceptance);
+  const isPendingCooReview = currentStatus === "pending_review";
   const allApproved = Object.values(documentsStatus).every((value) => value === "approved");
 
   const statusLabel =
@@ -902,7 +903,20 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {isAcceptanceStep ? (
+          {isPendingCooReview ? (
+            <div className="rounded-2xl border border-[#E7D5C8] bg-[#FFF5ED] p-4 text-[#1A1A1A] sm:p-5">
+              <div className="space-y-2">
+                <p className="text-sm font-medium">This step is with COO for review</p>
+                <p className="text-sm text-[#6B5B52]">
+                  {currentStep === 2
+                    ? "Your accepted TT-EQV-002 record and certified Matric certificate are now with COO. Step 3 will open after the certificate is approved."
+                    : "Your certified ID copy is now with COO for review. You do not need to take any further action on this step right now."}
+                </p>
+              </div>
+            </div>
+          ) : null}
+
+          {isAcceptanceStep && !isPendingCooReview ? (
             <div className="rounded-2xl border border-[#E7D5C8] bg-[#FFF5ED] p-4 text-[#1A1A1A] sm:p-5">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-1">
@@ -921,7 +935,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
             </div>
           ) : null}
 
-          {isAcceptanceStep ? (
+          {isAcceptanceStep && !isPendingCooReview ? (
             <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
               <div className="space-y-4 rounded-2xl border p-4">
                 <div>
@@ -979,7 +993,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
             </div>
           ) : null}
 
-          {isUploadStep ? (
+          {isUploadStep && !isPendingCooReview ? (
             <div className="rounded-2xl border p-4">
               <p className="font-medium">{currentDocument.uploadTitle || "Required upload"}</p>
               <p className="mt-1 text-sm text-muted-foreground">{currentDocument.uploadDescription}</p>
