@@ -186,23 +186,25 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   console.log("👨‍👩‍👧 Parent student info:", parentStudentInfo);
 
+  const usesBroadcastInbox = effectiveIsAuth && !!effectiveUser && effectiveUser.role !== "student";
+
   // Fetch unread broadcast count
   const { data: unreadData } = useQuery<{ unreadCount: number }>({
     queryKey: ["/api/broadcasts/unread-count"],
-    enabled: effectiveIsAuth && !!effectiveUser,
+    enabled: usesBroadcastInbox,
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   // Fetch all broadcasts to filter unread ones
   const { data: broadcasts } = useQuery<any[]>({
     queryKey: ["/api/broadcasts"],
-    enabled: effectiveIsAuth && !!effectiveUser,
+    enabled: usesBroadcastInbox,
   });
 
   // Fetch read broadcasts list
   const { data: readData } = useQuery<{ readBroadcasts: string[] }>({
     queryKey: ["/api/broadcasts/read-list"],
-    enabled: effectiveIsAuth && !!effectiveUser,
+    enabled: usesBroadcastInbox,
   });
 
   // Filter unread broadcasts
