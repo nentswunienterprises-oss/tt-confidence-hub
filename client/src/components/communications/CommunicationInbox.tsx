@@ -151,10 +151,19 @@ export function CommunicationInbox({
   });
 
   useEffect(() => {
+    if (activeTab === "messages") {
+      queryClient.invalidateQueries({ queryKey });
+    }
     if (activeTab === "messages" && unreadCountPath) {
       queryClient.invalidateQueries({ queryKey: unreadCountQueryKey });
     }
-  }, [activeTab, queryClient, unreadCountPath, unreadCountQueryKey]);
+  }, [activeTab, queryClient, queryKey, unreadCountPath, unreadCountQueryKey]);
+
+  useEffect(() => {
+    if (activeTab === "messages" && data && unreadCountPath) {
+      queryClient.invalidateQueries({ queryKey: unreadCountQueryKey });
+    }
+  }, [activeTab, data, queryClient, unreadCountPath, unreadCountQueryKey]);
 
   return (
     <div className="space-y-6">
