@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_URL } from "@/lib/config";
-import { CheckCircle2, Download, ExternalLink, FileCheck, Loader2, ShieldCheck, XCircle } from "lucide-react";
+import { CheckCircle2, ChevronDown, Download, ExternalLink, FileCheck, Loader2, ShieldCheck, XCircle } from "lucide-react";
 
 interface TutorDocumentReviewProps {
   application: any;
@@ -114,6 +114,114 @@ function buildAcceptedAgreementHtml(item: { code: string; title: string }, accep
 </html>`;
 }
 
+function formatDocStatus(value: string) {
+  return String(value || "not_started").replace(/_/g, " ");
+}
+
+function getReviewStepLabel(step: string) {
+  const labels: Record<string, string> = {
+    "1": "TCF",
+    "2": "EQV",
+    "3": "ICA",
+    "4": "SCP",
+    "5": "DPC",
+    "6": "CID",
+  };
+  return labels[step] || step;
+}
+
+function getReviewStepStatusLabel(params: {
+  step: string;
+  status: DocumentStatus;
+  acceptanceMap: Record<string, any>;
+}) {
+  const { step, status, acceptanceMap } = params;
+  const isAgreementOnlyStep = ["1", "3", "4", "5"].includes(step);
+
+  if (isAgreementOnlyStep) {
+    if (acceptanceMap[step]) return "Accepted";
+    if (status === "rejected") return "Rejected";
+    return "Pending";
+  }
+
+  if (step === "2") {
+    if (!acceptanceMap["2"]) return "Pending";
+    if (status === "approved") return "Approved";
+    if (status === "pending_review") return "Review";
+    if (status === "rejected") return "Rejected";
+    return "Waiting";
+  }
+
+  if (step === "6") {
+    if (status === "approved") return "Approved";
+    if (status === "pending_review") return "Review";
+    if (status === "rejected") return "Rejected";
+    return "Waiting";
+  }
+
+  return formatDocStatus(status);
+}
+
+function getCurrentActionSummary(documentsStatus: Record<string, DocumentStatus>, acceptanceMap: Record<string, any>) {
+  const matricStatus = documentsStatus["2"];
+  const idStatus = documentsStatus["6"];
+  const hasDoc2Acceptance = Boolean(acceptanceMap["2"]);
+
+  if (matricStatus === "pending_review") {
+    return {
+      queueLabel: "Needs review",
+      stageTitle: "Certified Matric certificate review",
+      stageDescription: "COO review is required now before step 3 can continue.",
+    };
+  }
+
+  if (idStatus === "pending_review") {
+    return {
+      queueLabel: "Needs review",
+      stageTitle: "Certified ID review",
+      stageDescription: "COO review is required now before onboarding can close out.",
+    };
+  }
+
+  if (["1", "2", "3", "4", "5", "6"].every((step) => documentsStatus[step] === "approved")) {
+    return {
+      queueLabel: "Complete",
+      stageTitle: "Onboarding complete",
+      stageDescription: "All agreement and upload steps are verified.",
+    };
+  }
+
+  if (!acceptanceMap["1"]) {
+    return {
+      queueLabel: "Waiting on tutor",
+      stageTitle: "Agreement 1 not yet accepted",
+      stageDescription: "The tutor still needs to begin the in-app onboarding agreements.",
+    };
+  }
+
+  if (hasDoc2Acceptance && matricStatus === "pending_upload") {
+    return {
+      queueLabel: "Waiting on tutor",
+      stageTitle: "Waiting for certified Matric certificate",
+      stageDescription: "The tutor accepted TT-EQV-002 but has not uploaded the certified Matric certificate yet.",
+    };
+  }
+
+  if (["1", "2", "3", "4", "5"].every((step) => documentsStatus[step] === "approved") && idStatus === "pending_upload") {
+    return {
+      queueLabel: "Waiting on tutor",
+      stageTitle: "Waiting for certified ID copy",
+      stageDescription: "All agreements and Matric verification are done. The final certified ID upload is still outstanding.",
+    };
+  }
+
+  return {
+    queueLabel: "Waiting on tutor",
+    stageTitle: "Agreement flow in progress",
+    stageDescription: "The tutor is still working through the in-app onboarding steps.",
+  };
+}
+
 export function TutorDocumentReview({ application, onReview }: TutorDocumentReviewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -136,6 +244,14 @@ export function TutorDocumentReview({ application, onReview }: TutorDocumentRevi
   const acceptedCount = ["1", "3", "4", "5"].filter((step) => documentsStatus[step] === "approved").length;
   const matricStatus = documentsStatus["2"];
   const idStatus = documentsStatus["6"];
+  const currentAction = getCurrentActionSummary(documentsStatus, acceptanceMap);
+  const currentUploadStep = matricStatus === "pending_review" ? 2 : idStatus === "pending_review" ? 6 : null;
+  const queueBadgeClass =
+    currentAction.queueLabel === "Needs review"
+      ? "bg-amber-100 text-amber-900 border-amber-200"
+      : currentAction.queueLabel === "Complete"
+        ? "bg-green-100 text-green-800 border-green-200"
+        : "bg-slate-100 text-slate-700 border-slate-200";
 
   const reviewMutation = useMutation({
     mutationFn: async ({ step, approved, rejectionReason: reason }: { step: 2 | 6; approved: boolean; rejectionReason?: string }) => {
@@ -200,40 +316,150 @@ export function TutorDocumentReview({ application, onReview }: TutorDocumentRevi
               <CardTitle className="text-lg sm:text-xl">{fullName}</CardTitle>
               <CardDescription className="break-all">{email}</CardDescription>
               <p className="text-xs text-muted-foreground">Application Ref: {application.id}</p>
+              <p className="text-sm font-medium text-foreground">{currentAction.stageTitle}</p>
+              <p className="text-sm text-muted-foreground">{currentAction.stageDescription}</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Badge variant="outline">{acceptedCount}/4 pure agreement steps accepted</Badge>
-              <Badge variant="outline">Doc 2 is hybrid</Badge>
+              <Badge className={queueBadgeClass}>{currentAction.queueLabel}</Badge>
+              <Badge variant="outline">{acceptedCount}/4 agreements accepted</Badge>
             </div>
           </div>
 
-          <div className="grid gap-2 sm:grid-cols-3">
-            <div className="rounded-lg border p-3">
-              <p className="text-xs text-muted-foreground">Agreement acceptance record</p>
-              <p className="text-lg font-semibold">{acceptedCount}/4</p>
-            </div>
-            <div className="rounded-lg border p-3">
-              <p className="text-xs text-muted-foreground">Matric review</p>
-              <p className="text-lg font-semibold">
-                {matricStatus === "approved" ? "Verified" : matricStatus === "pending_review" ? "Review" : matricStatus === "rejected" ? "Rejected" : "Waiting"}
-              </p>
-            </div>
-            <div className="rounded-lg border p-3">
-              <p className="text-xs text-muted-foreground">Certified ID review</p>
-              <p className="text-lg font-semibold">
-                {idStatus === "approved" ? "Verified" : idStatus === "pending_review" ? "Review" : idStatus === "rejected" ? "Rejected" : "Waiting"}
-              </p>
-            </div>
+          <div className="grid grid-cols-2 gap-2 lg:grid-cols-6">
+            {[
+              { step: "1", label: "TCF" },
+              { step: "2", label: "EQV" },
+              { step: "3", label: "ICA" },
+              { step: "4", label: "SCP" },
+              { step: "5", label: "DPC" },
+              { step: "6", label: "CID" },
+            ].map((item) => {
+              const status = documentsStatus[item.step];
+              const tone =
+                status === "approved"
+                  ? "border-green-200 bg-green-50 text-green-800"
+                  : status === "pending_review"
+                    ? "border-amber-200 bg-amber-50 text-amber-900"
+                    : status === "rejected"
+                      ? "border-red-200 bg-red-50 text-red-700"
+                      : "border-slate-200 bg-white text-slate-700";
+
+              return (
+                <div key={item.step} className={`rounded-lg border p-3 ${tone}`}>
+                  <p className="text-[11px] uppercase tracking-wide opacity-80">Step {item.step}</p>
+                  <p className="font-medium">{item.label}</p>
+                  <p className="text-xs capitalize">{getReviewStepStatusLabel({ step: item.step, status, acceptanceMap })}</p>
+                </div>
+              );
+            })}
           </div>
         </CardHeader>
 
         <CardContent className="space-y-4">
           <div className="rounded-xl border p-4">
             <div className="mb-3 flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-slate-600" />
-              <p className="font-medium">In-app acceptance evidence</p>
+              <FileCheck className="h-4 w-4 text-slate-600" />
+              <p className="font-medium">Current review item</p>
             </div>
-            <div className="space-y-3">
+
+            {currentUploadStep === 2 ? (
+              <>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <p className="font-medium text-foreground">Certified Matric certificate</p>
+                  <p>Status: {formatDocStatus(matricStatus)}</p>
+                  {application?.doc2SubmissionUploadedAt ? (
+                    <p>Uploaded {new Date(application.doc2SubmissionUploadedAt).toLocaleString()}</p>
+                  ) : null}
+                  {application?.doc2SubmissionUrl ? (
+                    <a href={application.doc2SubmissionUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+                      View certified Matric certificate
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  ) : null}
+                </div>
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <Button disabled={reviewMutation.isPending} onClick={() => reviewMutation.mutate({ step: 2, approved: true })}>
+                    {reviewMutation.isPending && reviewStep === 2 ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                        Approve Matric certificate
+                      </>
+                    )}
+                  </Button>
+                  <Button variant="outline" disabled={reviewMutation.isPending} onClick={() => openRejectDialog(2)}>
+                    <XCircle className="mr-2 h-4 w-4" />
+                    Reject upload
+                  </Button>
+                </div>
+              </>
+            ) : currentUploadStep === 6 ? (
+              <>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <p className="font-medium text-foreground">Certified ID copy</p>
+                  <p>Status: {formatDocStatus(idStatus)}</p>
+                  {application?.doc6SubmissionUploadedAt ? (
+                    <p>Uploaded {new Date(application.doc6SubmissionUploadedAt).toLocaleString()}</p>
+                  ) : null}
+                  {application?.doc6SubmissionUrl ? (
+                    <a href={application.doc6SubmissionUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+                      View certified ID upload
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  ) : null}
+                </div>
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <Button disabled={reviewMutation.isPending} onClick={() => reviewMutation.mutate({ step: 6, approved: true })}>
+                    {reviewMutation.isPending && reviewStep === 6 ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                        Approve certified ID
+                      </>
+                    )}
+                  </Button>
+                  <Button variant="outline" disabled={reviewMutation.isPending} onClick={() => openRejectDialog(6)}>
+                    <XCircle className="mr-2 h-4 w-4" />
+                    Reject upload
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p>No COO action is required on this tutor right now.</p>
+                <p>{currentAction.stageDescription}</p>
+              </div>
+            )}
+
+            {(matricStatus === "rejected" || idStatus === "rejected") ? (
+              <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                {matricStatus === "rejected"
+                  ? application?.doc2SubmissionRejectionReason || application?.doc_2_submission_rejection_reason || "The Matric certificate needs correction."
+                  : application?.doc6SubmissionRejectionReason || application?.doc_6_submission_rejection_reason || "The certified ID copy needs correction."}
+              </div>
+            ) : null}
+          </div>
+
+          <details className="rounded-xl border p-4">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-slate-600" />
+                <div>
+                  <p className="font-medium">Agreement evidence</p>
+                  <p className="text-sm text-muted-foreground">Accepted agreements, timestamps, and audit summary.</p>
+                </div>
+              </div>
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            </summary>
+            <div className="mt-4 space-y-3">
               {AGREEMENT_STEPS.map((item) => {
                 const acceptance = acceptanceMap[String(item.step)];
                 const stepStatus = documentsStatus[String(item.step)];
@@ -256,29 +482,27 @@ export function TutorDocumentReview({ application, onReview }: TutorDocumentRevi
                   <div key={item.step} className="rounded-lg border p-3">
                     <div className="space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-sm font-medium">
-                          Step {item.step}: {item.code}
-                        </p>
+                          <p className="text-sm font-medium">Step {item.step}: {getReviewStepLabel(String(item.step))}</p>
                         <Badge className={stepStatus === "approved" ? "bg-green-100 text-green-800 border-green-200" : "bg-slate-100 text-slate-700 border-slate-200"}>
                           {badgeText}
                         </Badge>
                       </div>
-                      <p className="text-xs text-muted-foreground">{item.title}</p>
+                      <p className="text-xs text-muted-foreground">{item.code}</p>
                       {acceptance ? (
                         <>
                           <p className="text-xs text-muted-foreground">
                             Accepted {new Date(acceptance.acceptedAt).toLocaleString()} by {acceptance.typedFullName}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Version {normalizeDisplayedVersion(acceptance.documentVersion || acceptance.document_version)} • Hash {String(acceptance.documentChecksum || acceptance.document_checksum || "").slice(0, 16)}...
+                            Version {acceptance.documentVersion} • Hash {String(acceptance.documentChecksum || "").slice(0, 16)}...
                           </p>
                           {Array.isArray(acceptance.acceptedClausesJson) && acceptance.acceptedClausesJson.length > 0 ? (
                             <p className="text-xs text-muted-foreground">
                               Clauses acknowledged: {acceptance.acceptedClausesJson.join(", ")}
                             </p>
                           ) : null}
-                          <div className="flex flex-wrap gap-2 pt-2">
-                            <Button variant="outline" size="sm" onClick={() => downloadAcceptedAgreement(item, acceptance)}>
+                          <div className="pt-2">
+                            <Button type="button" variant="outline" size="sm" onClick={() => downloadAcceptedAgreement(item, acceptance)}>
                               <Download className="mr-2 h-3 w-3" />
                               Download accepted copy
                             </Button>
@@ -292,101 +516,7 @@ export function TutorDocumentReview({ application, onReview }: TutorDocumentRevi
                 );
               })}
             </div>
-          </div>
-
-          <div className="rounded-xl border p-4">
-            <div className="mb-3 flex items-center gap-2">
-              <FileCheck className="h-4 w-4 text-slate-600" />
-              <p className="font-medium">Step 2 upload: Certified Matric Certificate</p>
-            </div>
-            <div className="space-y-2 text-sm text-muted-foreground">
-              <p>Status: {matricStatus.replace("_", " ")}</p>
-              {application?.doc2SubmissionUploadedAt ? (
-                <p>Uploaded {new Date(application.doc2SubmissionUploadedAt).toLocaleString()}</p>
-              ) : null}
-              {application?.doc2SubmissionUrl ? (
-                <a href={application.doc2SubmissionUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
-                  View certified Matric certificate
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              ) : (
-                <p>No certified Matric certificate uploaded yet.</p>
-              )}
-              {matricStatus === "rejected" ? (
-                <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                  {application?.doc2SubmissionRejectionReason || application?.doc_2_submission_rejection_reason || "Please request a valid certified Matric certificate upload."}
-                </div>
-              ) : null}
-            </div>
-            {matricStatus === "pending_review" ? (
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Button disabled={reviewMutation.isPending} onClick={() => reviewMutation.mutate({ step: 2, approved: true })}>
-                  {reviewMutation.isPending && reviewStep === 2 ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="mr-2 h-4 w-4" />
-                      Approve Matric Certificate
-                    </>
-                  )}
-                </Button>
-                <Button variant="outline" disabled={reviewMutation.isPending} onClick={() => openRejectDialog(2)}>
-                  <XCircle className="mr-2 h-4 w-4" />
-                  Reject Matric Certificate
-                </Button>
-              </div>
-            ) : null}
-          </div>
-
-          <div className="rounded-xl border p-4">
-            <div className="mb-3 flex items-center gap-2">
-              <FileCheck className="h-4 w-4 text-slate-600" />
-              <p className="font-medium">Step 6 upload: Certified ID Copy</p>
-            </div>
-            <div className="space-y-2 text-sm text-muted-foreground">
-              <p>Status: {idStatus.replace("_", " ")}</p>
-              {application?.doc6SubmissionUploadedAt ? (
-                <p>Uploaded {new Date(application.doc6SubmissionUploadedAt).toLocaleString()}</p>
-              ) : null}
-              {application?.doc6SubmissionUrl ? (
-                <a href={application.doc6SubmissionUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
-                  View certified ID upload
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              ) : (
-                <p>No certified ID file uploaded yet.</p>
-              )}
-              {idStatus === "rejected" ? (
-                <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                  {application?.doc6SubmissionRejectionReason || application?.doc_6_submission_rejection_reason || "Please request a corrected upload."}
-                </div>
-              ) : null}
-            </div>
-            {idStatus === "pending_review" ? (
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Button disabled={reviewMutation.isPending} onClick={() => reviewMutation.mutate({ step: 6, approved: true })}>
-                  {reviewMutation.isPending && reviewStep === 6 ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="mr-2 h-4 w-4" />
-                      Approve ID Copy
-                    </>
-                  )}
-                </Button>
-                <Button variant="outline" disabled={reviewMutation.isPending} onClick={() => openRejectDialog(6)}>
-                  <XCircle className="mr-2 h-4 w-4" />
-                  Reject ID Copy
-                </Button>
-              </div>
-            ) : null}
-          </div>
+          </details>
         </CardContent>
       </Card>
 

@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Loader2, User, Phone, MapPin, BookOpen, Users, GraduationCap, CheckCircle2, Clock, XCircle, FileCheck, ShieldCheck, FileText, CheckCircle } from "lucide-react";
+import { Loader2, User, Phone, MapPin, BookOpen, Users, GraduationCap, CheckCircle2, Clock, XCircle, FileCheck, ShieldCheck, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface TrafficStats {
@@ -204,6 +204,10 @@ export default function ExecutiveHRTraffic() {
     if (!areAllDocumentsApproved(app)) return false;
     return !hasMissingCompletedTemplate(app);
   });
+  const verificationWaitingOnTutorApplications = [
+    ...verificationPendingUploadApplications,
+    ...verificationAwaitingTTApplications,
+  ];
   const verificationTotalApplications =
     verificationPendingUploadApplications.length +
     verificationUnderReviewApplications.length +
@@ -580,20 +584,37 @@ export default function ExecutiveHRTraffic() {
             </Card>
           ) : (
             <Tabs value={tutorAppSubTab} onValueChange={setTutorAppSubTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 h-auto rounded-xl border border-primary/15 bg-muted/20 p-1 gap-1">
+              <div className="grid gap-3 md:grid-cols-3">
+                <Card className="border-amber-200 bg-amber-50">
+                  <CardContent className="p-4">
+                    <p className="text-xs uppercase tracking-wide text-amber-800">Needs Review</p>
+                    <p className="mt-1 text-2xl font-semibold text-amber-950">{verificationUnderReviewApplications.length}</p>
+                    <p className="text-xs text-amber-900/80">COO action required right now</p>
+                  </CardContent>
+                </Card>
+                <Card className="border-slate-200">
+                  <CardContent className="p-4">
+                    <p className="text-xs uppercase tracking-wide text-slate-700">Waiting On Tutor</p>
+                    <p className="mt-1 text-2xl font-semibold text-slate-950">{verificationWaitingOnTutorApplications.length}</p>
+                    <p className="text-xs text-slate-600">Tutor still needs to upload or finish a step</p>
+                  </CardContent>
+                </Card>
+                <Card className="border-green-200 bg-green-50">
+                  <CardContent className="p-4">
+                    <p className="text-xs uppercase tracking-wide text-green-800">Complete</p>
+                    <p className="mt-1 text-2xl font-semibold text-green-950">{verificationVerifiedApplications.length}</p>
+                    <p className="text-xs text-green-900/80">Ready for the next operational stage</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 h-auto rounded-xl border border-primary/15 bg-muted/20 p-1 gap-1">
                 <TabsTrigger value="pending" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
                   <span className="inline-flex items-center gap-1.5">
                     <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                     <span>Pending</span>
                   </span>
                   <span className="text-[10px] sm:text-xs text-muted-foreground">{pendingApplications.length}</span>
-                </TabsTrigger>
-                <TabsTrigger value="approved" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
-                  <span className="inline-flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                    <span>Approved</span>
-                  </span>
-                  <span className="text-[10px] sm:text-xs text-muted-foreground">{approvedApplications.length}</span>
                 </TabsTrigger>
                 <TabsTrigger value="rejected" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
                   <span className="inline-flex items-center gap-1.5">
@@ -602,31 +623,24 @@ export default function ExecutiveHRTraffic() {
                   </span>
                   <span className="text-[10px] sm:text-xs text-muted-foreground">{rejectedApplications.length}</span>
                 </TabsTrigger>
-                <TabsTrigger value="verification" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
+                <TabsTrigger value="review-queue" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
                   <span className="inline-flex items-center gap-1.5">
                     <FileCheck className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                    <span>Tutor Action</span>
-                  </span>
-                  <span className="text-[10px] sm:text-xs text-muted-foreground">{verificationPendingUploadApplications.length}</span>
-                </TabsTrigger>
-                <TabsTrigger value="verification-review" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
-                  <span className="inline-flex items-center gap-1.5">
-                    <FileCheck className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                    <span>Upload Review</span>
+                    <span>Needs Review</span>
                   </span>
                   <span className="text-[10px] sm:text-xs text-muted-foreground">{verificationUnderReviewApplications.length}</span>
                 </TabsTrigger>
-                <TabsTrigger value="verification-awaiting-tt" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
+                <TabsTrigger value="waiting-on-tutor" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
                   <span className="inline-flex items-center gap-1.5">
-                    <FileText className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                    <span>Waiting On Final ID</span>
+                    <FileCheck className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span>Waiting On Tutor</span>
                   </span>
-                  <span className="text-[10px] sm:text-xs text-muted-foreground">{verificationAwaitingTTApplications.length}</span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground">{verificationWaitingOnTutorApplications.length}</span>
                 </TabsTrigger>
-                <TabsTrigger value="verified-docs" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2 col-span-2 sm:col-span-1">
+                <TabsTrigger value="complete" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2 col-span-2 sm:col-span-1">
                   <span className="inline-flex items-center gap-1.5">
                     <ShieldCheck className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                    <span>Verified</span>
+                    <span>Complete</span>
                   </span>
                   <span className="text-[10px] sm:text-xs text-muted-foreground">{verificationVerifiedApplications.length}</span>
                 </TabsTrigger>
@@ -657,25 +671,6 @@ export default function ExecutiveHRTraffic() {
                 )}
               </TabsContent>
 
-              <TabsContent value="approved" className="space-y-4 mt-4">
-                {approvedApplications.length === 0 ? (
-                  <Card className="p-12 text-center">
-                    <CheckCircle2 className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-                    <p className="text-muted-foreground">No approved applications</p>
-                  </Card>
-                ) : (
-                  <div className="grid gap-4">
-                    {approvedApplications.map((application: any) => (
-                      <TutorApplicationCard
-                        key={application.id}
-                        application={application}
-                        onViewDetails={() => setSelectedApplication(application)}
-                      />
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-
               <TabsContent value="rejected" className="space-y-4 mt-4">
                 {rejectedApplications.length === 0 ? (
                   <Card className="p-12 text-center">
@@ -695,33 +690,11 @@ export default function ExecutiveHRTraffic() {
                 )}
               </TabsContent>
 
-                <TabsContent value="verification" className="space-y-4 mt-4">
-                  {verificationPendingUploadApplications.length === 0 ? (
-                    <Card className="p-12 text-center">
-                      <FileCheck className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-                      <p className="text-muted-foreground">No tutors are currently blocked on tutor-side onboarding action</p>
-                    </Card>
-                  ) : (
-                    <div className="grid gap-4">
-                      {verificationPendingUploadApplications.map((application: any) => (
-                        <TutorDocumentReview
-                          key={application.id}
-                          application={application}
-                          onReview={() => {
-                            queryClient.invalidateQueries({ queryKey: ["/api/coo/tutor-applications"] });
-                            refetchVerificationData();
-                          }}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </TabsContent>
-
-                <TabsContent value="verification-review" className="space-y-4 mt-4">
+                <TabsContent value="review-queue" className="space-y-4 mt-4">
                   {verificationUnderReviewApplications.length === 0 ? (
                     <Card className="p-12 text-center">
                       <FileCheck className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-                      <p className="text-muted-foreground">No Matric certificate or certified ID uploads are currently pending COO review</p>
+                      <p className="text-muted-foreground">No tutor uploads currently need COO review.</p>
                     </Card>
                   ) : (
                     <div className="grid gap-4">
@@ -739,15 +712,15 @@ export default function ExecutiveHRTraffic() {
                   )}
                 </TabsContent>
 
-                <TabsContent value="verification-awaiting-tt" className="space-y-4 mt-4">
-                  {verificationAwaitingTTApplications.length === 0 ? (
+                <TabsContent value="waiting-on-tutor" className="space-y-4 mt-4">
+                  {verificationWaitingOnTutorApplications.length === 0 ? (
                     <Card className="p-12 text-center">
-                      <FileText className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-                      <p className="text-muted-foreground">No tutors have cleared agreement and Matric verification while still waiting on the final certified ID upload</p>
+                      <FileCheck className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                      <p className="text-muted-foreground">No tutors are currently waiting on tutor-side onboarding action.</p>
                     </Card>
                   ) : (
                     <div className="grid gap-4">
-                      {verificationAwaitingTTApplications.map((application: any) => (
+                      {verificationWaitingOnTutorApplications.map((application: any) => (
                         <TutorDocumentReview
                           key={application.id}
                           application={application}
@@ -761,11 +734,11 @@ export default function ExecutiveHRTraffic() {
                   )}
                 </TabsContent>
 
-                <TabsContent value="verified-docs" className="space-y-4 mt-4">
+                <TabsContent value="complete" className="space-y-4 mt-4">
                   {verificationVerifiedApplications.length === 0 ? (
                     <Card className="p-12 text-center">
                       <ShieldCheck className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-                      <p className="text-muted-foreground">No verified docs yet</p>
+                      <p className="text-muted-foreground">No completed onboarding records yet.</p>
                     </Card>
                   ) : (
                     <div className="grid gap-4">
