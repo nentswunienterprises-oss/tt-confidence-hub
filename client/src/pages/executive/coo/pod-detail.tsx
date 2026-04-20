@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import "./pod-detail.mobile.css";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -16,12 +17,10 @@ import {
   ArrowLeft,
   Users,
   Calendar,
-  Zap,
   Settings,
   Trash2,
   Plus,
   Mail,
-  Award,
   ChevronDown,
   FileText,
   UserMinus,
@@ -452,34 +451,31 @@ export default function PodDetail() {
         </div>
 
         {/* Statistics Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-          <Card className="p-4 sm:p-6 border">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs sm:text-sm font-medium text-muted-foreground uppercase">Tutors</p>
-                <p className="text-2xl sm:text-3xl font-bold mt-1 sm:mt-2">{podStats?.totalTutors || 0}</p>
-              </div>
-              <Award className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 opacity-50" />
+        <div className="coo-pod-stats grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+          <Card className="border-primary/15 bg-background shadow-sm">
+            <div className="px-4 py-4 sm:px-5 sm:py-5">
+              <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Tutors</p>
+              <p className="mt-2 text-3xl font-semibold tabular-nums text-foreground sm:text-4xl">
+                {podStats?.totalTutors || 0}
+              </p>
             </div>
           </Card>
 
-          <Card className="p-4 sm:p-6 border">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs sm:text-sm font-medium text-muted-foreground uppercase">Students</p>
-                <p className="text-2xl sm:text-3xl font-bold mt-1 sm:mt-2">{podStats?.totalStudents || 0}</p>
-              </div>
-              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 opacity-50" />
+          <Card className="border-primary/15 bg-background shadow-sm">
+            <div className="px-4 py-4 sm:px-5 sm:py-5">
+              <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Students</p>
+              <p className="mt-2 text-3xl font-semibold tabular-nums text-foreground sm:text-4xl">
+                {podStats?.totalStudents || 0}
+              </p>
             </div>
           </Card>
           
-          <Card className="p-4 sm:p-6 border">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs sm:text-sm font-medium text-muted-foreground uppercase">Sessions</p>
-                <p className="text-2xl sm:text-3xl font-bold mt-1 sm:mt-2">{podStats?.sessionsCompleted || 0}</p>
-              </div>
-              <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 opacity-50" />
+          <Card className="border-primary/15 bg-background shadow-sm">
+            <div className="px-4 py-4 sm:px-5 sm:py-5">
+              <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Sessions Done</p>
+              <p className="mt-2 text-3xl font-semibold tabular-nums text-foreground sm:text-4xl">
+                {podStats?.sessionsCompleted || 0}
+              </p>
             </div>
           </Card>
         </div>
