@@ -1655,15 +1655,32 @@ export class SupabaseStorage implements IStorage {
   async getApprovedTutors(): Promise<User[]> {
     const { data: eligibleApplications } = await supabase
       .from("tutor_applications")
-      .select("user_id")
+      .select("user_id, onboarding_completed_at, documents_status")
       .in("status", ["approved", "confirmed"])
-      .not("onboarding_completed_at", "is", null);
+      .not("user_id", "is", null);
 
     if (!eligibleApplications || eligibleApplications.length === 0) {
       return [];
     }
 
-    const approvedUserIds = [...new Set(eligibleApplications.map((app) => app.user_id).filter(Boolean))];
+    const approvedUserIds = [
+      ...new Set(
+        eligibleApplications
+          .filter((app) => {
+            if (app.onboarding_completed_at) return true;
+            const statuses = normalizeTutorDocumentStatuses(app.documents_status);
+            return ["1", "2", "3", "4", "5", "6"].every(
+              (step) => String(statuses[step] || "") === "approved"
+            );
+          })
+          .map((app) => app.user_id)
+          .filter(Boolean)
+      ),
+    ];
+
+    if (approvedUserIds.length === 0) {
+      return [];
+    }
 
     const { data: users } = await supabase
       .from("users")
@@ -2109,6 +2126,14 @@ export class SupabaseStorage implements IStorage {
       } else {
         updateData.document_submission_step = 6;
       }
+
+      const allSequentialDocumentsApproved = ["1", "2", "3", "4", "5", "6"].every(
+        (step) => String(documentsStatus[step] || "") === "approved"
+      );
+      if (allSequentialDocumentsApproved) {
+        updateData.onboarding_completed_at = new Date();
+      }
+
       if (fields.completedTemplateUrl && effectiveCompletedUrl) {
         updateData[fields.completedTemplateUrl] = effectiveCompletedUrl;
       }
