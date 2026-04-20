@@ -42,7 +42,26 @@ interface FieldDefinition {
   label: string;
   placeholder: string;
   readOnly?: boolean;
+  required?: boolean;
 }
+
+interface FieldResolution {
+  canEdit: boolean;
+  helperText: string | null;
+  missingRequirement: string | null;
+}
+
+const FIELD_CAPTURE_STEP: Record<string, number> = {
+  legalName: 1,
+  emailAddress: 1,
+  phoneNumber: 1,
+  idNumber: 1,
+  dateOfBirth: 1,
+  schoolName: 1,
+  currentStatus: 1,
+  matricYear: 2,
+  examNumber: 2,
+};
 
 interface DocumentRenderRules {
   nonListColonLines?: RegExp[];
@@ -691,7 +710,7 @@ const DOCUMENT_FORM_FIELDS: Record<number, FieldDefinition[]> = {
     { key: "idNumber", label: "ID number", placeholder: "Enter your South African ID number" },
     { key: "matricYear", label: "Matric year", placeholder: "Enter the year you completed Matric" },
     { key: "schoolName", label: "School name", placeholder: "Enter the school where you completed Matric" },
-    { key: "examNumber", label: "Exam number", placeholder: "Enter your exam or candidate number if shown" },
+    { key: "examNumber", label: "Exam number", placeholder: "Enter your exam or candidate number if shown", required: false },
   ],
 };
 
@@ -716,6 +735,58 @@ function readFileAsBase64(file: File): Promise<string> {
     reader.onerror = () => reject(new Error("Failed to read file"));
     reader.readAsDataURL(file);
   });
+}
+
+function resolveFieldBehavior(params: {
+  field: FieldDefinition;
+  currentStep: number;
+  acceptanceAlreadyRecorded: boolean;
+  fieldValue: string;
+  lockedValue: string;
+}) {
+  const { field, currentStep, acceptanceAlreadyRecorded, fieldValue, lockedValue } = params;
+  const captureStep = FIELD_CAPTURE_STEP[field.key] || currentStep;
+
+  if (acceptanceAlreadyRecorded) {
+    return {
+      canEdit: false,
+      helperText: null,
+      missingRequirement: null,
+    } satisfies FieldResolution;
+  }
+
+  if (field.key === "dateOfBirth") {
+    return {
+      canEdit: false,
+      helperText: fieldValue ? "Derived from the current South African ID number." : "Enter a valid South African ID number to derive date of birth.",
+      missingRequirement: fieldValue ? null : "Enter a valid South African ID number to derive date of birth.",
+    } satisfies FieldResolution;
+  }
+
+  if (lockedValue) {
+    return {
+      canEdit: false,
+      helperText: currentStep > captureStep ? `Locked from the earlier onboarding step where this detail was first captured.` : "Locked to the existing onboarding record.",
+      missingRequirement: null,
+    } satisfies FieldResolution;
+  }
+
+  if (field.readOnly && !lockedValue) {
+    return {
+      canEdit: false,
+      helperText: "This field is system-filled when available.",
+      missingRequirement: null,
+    } satisfies FieldResolution;
+  }
+
+  return {
+    canEdit: true,
+    helperText: captureStep < currentStep ? `Complete this once here if it was missing earlier. Later steps will inherit and lock it.` : null,
+    missingRequirement:
+      field.required === false || fieldValue
+        ? null
+        : `Complete ${field.label.toLowerCase()}.`,
+  } satisfies FieldResolution;
 }
 
 export function SequentialDocumentSubmission({ applicationId, applicationStatus }: SequentialDocumentSubmissionProps) {
@@ -814,6 +885,27 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
     [currentDocument, effectiveInitialFormData, formData, typedFullName]
   );
   const acceptanceResetKey = `${currentStep}:${currentAcceptance?.acceptedAt || currentAcceptance?.accepted_at || "pending"}`;
+  const fieldResolutions = useMemo(() => {
+    return Object.fromEntries(
+      currentFormFields.map((field) => {
+        const fieldValue = field.key === "legalName" ? typedFullName.trim() : String(formData[field.key] || "").trim();
+        const lockedValue =
+          field.key === "legalName"
+            ? String(canonicalLockedFormData.legalName || "").trim()
+            : String(canonicalLockedFormData[field.key as keyof typeof canonicalLockedFormData] || "").trim();
+        return [
+          field.key,
+          resolveFieldBehavior({
+            field,
+            currentStep,
+            acceptanceAlreadyRecorded,
+            fieldValue,
+            lockedValue,
+          }),
+        ];
+      })
+    ) as Record<string, FieldResolution>;
+  }, [acceptanceAlreadyRecorded, canonicalLockedFormData, currentFormFields, currentStep, formData, typedFullName]);
 
   useEffect(() => {
     const fallbackName = liveApplication?.fullName || liveApplication?.full_name || "";
@@ -931,33 +1023,10 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
   const mandatoryClausesAccepted = (currentDocument?.mandatoryClauses || []).every((clause) => clauseChecks[clause.key]);
   const missingFieldRequirements = useMemo(() => {
     return currentFormFields.flatMap((field) => {
-      const fieldValue = field.key === "legalName" ? typedFullName : String(formData[field.key] || "").trim();
-      const lockedValue =
-        field.key === "legalName"
-          ? String(canonicalLockedFormData.legalName || "").trim()
-          : String(canonicalLockedFormData[field.key as keyof typeof canonicalLockedFormData] || "").trim();
-      const isLockedFromApplication = Boolean(lockedValue);
-      const isDisabled = acceptanceAlreadyRecorded || field.readOnly || isLockedFromApplication;
-
-      if (field.key === "dateOfBirth") {
-        if (String(formData.dateOfBirth || "").trim()) return [];
-        return ["Enter a valid South African ID number to derive date of birth."];
-      }
-
-      if (field.key === "emailAddress") {
-        return [];
-      }
-
-      if (field.key === "legalName") {
-        return typedFullName.trim() ? [] : ["Complete the full legal name field in the document reader."];
-      }
-
-      if (fieldValue) return [];
-      if (isDisabled) return [];
-
-      return [`Complete ${field.label.toLowerCase()}.`];
+      const resolution = fieldResolutions[field.key];
+      return resolution?.missingRequirement ? [resolution.missingRequirement] : [];
     });
-  }, [acceptanceAlreadyRecorded, canonicalLockedFormData, currentFormFields, formData, typedFullName]);
+  }, [currentFormFields, fieldResolutions]);
   const requiredFieldsComplete = missingFieldRequirements.length === 0;
   const canAccept = hasCompletedReading && generalRead && generalBound && mandatoryClausesAccepted && typedFullName.trim() && requiredFieldsComplete;
 
@@ -1295,12 +1364,8 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                           <label className="text-sm font-medium text-[#1A1A1A]">{field.label}</label>
                           {(() => {
                             const fieldValue = field.key === "legalName" ? typedFullName : formData[field.key] || "";
-                            const applicationProvidedValue =
-                              field.key === "legalName"
-                                ? canonicalLockedFormData.legalName
-                                : canonicalLockedFormData[field.key as keyof typeof canonicalLockedFormData];
-                            const isLockedFromApplication = Boolean(applicationProvidedValue);
-                            const isDisabled = acceptanceAlreadyRecorded || field.readOnly || isLockedFromApplication;
+                            const resolution = fieldResolutions[field.key];
+                            const isDisabled = !resolution?.canEdit;
 
                             return (
                           <Input
@@ -1328,12 +1393,8 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                           />
                             );
                           })()}
-                          {Boolean(
-                            (field.key === "legalName"
-                              ? canonicalLockedFormData.legalName
-                              : canonicalLockedFormData[field.key as keyof typeof canonicalLockedFormData]) && !acceptanceAlreadyRecorded
-                          ) ? (
-                            <p className="text-xs text-[#8A7A70]">{currentStep === 2 && previousAcceptanceDerivedFormData[field.key as keyof typeof previousAcceptanceDerivedFormData] ? "Locked to the accepted details from Step 1." : "Locked to the tutor application record."}</p>
+                          {fieldResolutions[field.key]?.helperText ? (
+                            <p className="text-xs text-[#8A7A70]">{fieldResolutions[field.key]?.helperText}</p>
                           ) : null}
                         </div>
                       ))}
