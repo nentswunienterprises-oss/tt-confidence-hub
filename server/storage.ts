@@ -1653,17 +1653,17 @@ export class SupabaseStorage implements IStorage {
   }
 
   async getApprovedTutors(): Promise<User[]> {
-    const { data: confirmedApplications } = await supabase
+    const { data: eligibleApplications } = await supabase
       .from("tutor_applications")
       .select("user_id")
-      .eq("status", "confirmed")
+      .in("status", ["approved", "confirmed"])
       .not("onboarding_completed_at", "is", null);
 
-    if (!confirmedApplications || confirmedApplications.length === 0) {
+    if (!eligibleApplications || eligibleApplications.length === 0) {
       return [];
     }
 
-    const approvedUserIds = [...new Set(confirmedApplications.map((app) => app.user_id).filter(Boolean))];
+    const approvedUserIds = [...new Set(eligibleApplications.map((app) => app.user_id).filter(Boolean))];
 
     const { data: users } = await supabase
       .from("users")
