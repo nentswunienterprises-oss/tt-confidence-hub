@@ -29,12 +29,13 @@ export function NotificationInbox({
 }) {
   const qc = useQueryClient();
   const initialized = useRef(false);
-  const { data: notifications = [], isLoading } = useQuery<NotificationItem[]>({
+  const { data: notifications, isLoading } = useQuery<NotificationItem[] | null>({
     queryKey: ["/api/notifications"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
     refetchInterval: 30000,
   });
+  const notificationList = Array.isArray(notifications) ? notifications : [];
   const markRead = useMutation({
     mutationFn: async (id: string) => apiRequest("POST", `/api/notifications/${id}/read`, {}),
     onSuccess: () => {
@@ -43,8 +44,8 @@ export function NotificationInbox({
     },
   });
   const visibleNotifications = useMemo(
-    () => notifications.filter((n) => !excludeEntityTypes.includes(n.entityType || "")),
-    [excludeEntityTypes, notifications]
+    () => notificationList.filter((n) => !excludeEntityTypes.includes(n.entityType || "")),
+    [excludeEntityTypes, notificationList]
   );
   const unread = useMemo(() => visibleNotifications.filter((n) => !n.isRead), [visibleNotifications]);
   useEffect(() => {
