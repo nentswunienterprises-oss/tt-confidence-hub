@@ -31,6 +31,7 @@ export default function TutorGateway() {
   const navigate = useNavigate();
   const [step, setStep] = useState<"application" | "submitted" | "loading">("loading");
   const [showApplicationForm, setShowApplicationForm] = useState(false);
+  const [isContinuing, setIsContinuing] = useState(false);
   const justSubmittedRef = useRef(false);
 
   // Fetch current user data
@@ -123,7 +124,8 @@ export default function TutorGateway() {
 
   // Mark onboarding complete (tutor clicked Continue to Dashboard)
   const completeOnboarding = async () => {
-    if (!applicationStatus?.applicationId) return;
+    if (!applicationStatus?.applicationId || isContinuing) return;
+    setIsContinuing(true);
     try {
       const res = await fetch(`${API_URL}/api/tutor/complete-onboarding`, {
         method: "POST",
@@ -152,6 +154,7 @@ export default function TutorGateway() {
       }
       navigate("/tutor/pod", { replace: true });
     } catch (err: any) {
+      setIsContinuing(false);
       toast({ title: "Error", description: err.message || "Failed to continue", variant: "destructive" });
     }
   };
@@ -423,8 +426,14 @@ export default function TutorGateway() {
                   </p>
 
                   <div className="flex justify-center">
-                    <Button size="lg" className="rounded-full" style={{ backgroundColor: "#E63946" }} onClick={completeOnboarding}>
-                      Continue to Dashboard
+                    <Button
+                      size="lg"
+                      className="rounded-full"
+                      style={{ backgroundColor: "#E63946" }}
+                      onClick={completeOnboarding}
+                      disabled={isContinuing}
+                    >
+                      {isContinuing ? "Continuing..." : "Continue to Dashboard"}
                     </Button>
                   </div>
                 </>
