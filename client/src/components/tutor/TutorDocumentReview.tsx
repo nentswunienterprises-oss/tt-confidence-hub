@@ -516,6 +516,54 @@ export function TutorDocumentReview({ application, onReview }: TutorDocumentRevi
                 );
               })}
             </div>
+
+            <div className="mt-4 space-y-3 border-t pt-4">
+              <div className="rounded-lg border p-3">
+                <div className="space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-medium">Step 2: EQV upload</p>
+                    <Badge className={matricStatus === "approved" ? "bg-green-100 text-green-800 border-green-200" : matricStatus === "pending_review" ? "bg-amber-100 text-amber-900 border-amber-200" : matricStatus === "rejected" ? "bg-red-100 text-red-700 border-red-200" : "bg-slate-100 text-slate-700 border-slate-200"}>
+                      {getReviewStepStatusLabel({ step: "2", status: matricStatus, acceptanceMap })}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Certified Matric certificate</p>
+                  {application?.doc2SubmissionUploadedAt ? (
+                    <p className="text-xs text-muted-foreground">Uploaded {new Date(application.doc2SubmissionUploadedAt).toLocaleString()}</p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">No upload recorded yet.</p>
+                  )}
+                  {application?.doc2SubmissionUrl ? (
+                    <a href={application.doc2SubmissionUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm text-primary hover:underline">
+                      View certified Matric certificate
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="rounded-lg border p-3">
+                <div className="space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-medium">Step 6: CID upload</p>
+                    <Badge className={idStatus === "approved" ? "bg-green-100 text-green-800 border-green-200" : idStatus === "pending_review" ? "bg-amber-100 text-amber-900 border-amber-200" : idStatus === "rejected" ? "bg-red-100 text-red-700 border-red-200" : "bg-slate-100 text-slate-700 border-slate-200"}>
+                      {getReviewStepStatusLabel({ step: "6", status: idStatus, acceptanceMap })}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Certified ID copy</p>
+                  {application?.doc6SubmissionUploadedAt ? (
+                    <p className="text-xs text-muted-foreground">Uploaded {new Date(application.doc6SubmissionUploadedAt).toLocaleString()}</p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">No upload recorded yet.</p>
+                  )}
+                  {application?.doc6SubmissionUrl ? (
+                    <a href={application.doc6SubmissionUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm text-primary hover:underline">
+                      View certified ID upload
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  ) : null}
+                </div>
+              </div>
+            </div>
           </details>
         </CardContent>
       </Card>
