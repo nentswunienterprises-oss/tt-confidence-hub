@@ -8756,13 +8756,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const parentId = await resolveParentIdForStudent(student, tutorId);
+        const bundle = await buildStudentCommunicationBundle({ student, parentId });
         await Promise.all(
           COMMUNICATION_AUDIENCES.map((audience) =>
             markCommunicationThreadRead({ studentId, audience, viewerRole: "tutor" })
           )
         );
 
-        res.json(await buildStudentCommunicationBundle({ student, parentId }));
+        res.json(bundle);
       } catch (error) {
         console.error("Error fetching tutor communications:", error);
         res.status(500).json({ message: "Failed to fetch communications" });
@@ -13787,9 +13788,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const parentId = await resolveParentIdForStudent(student, student.tutorId);
-      await markCommunicationThreadRead({ studentId: student.id, audience: "student", viewerRole: "student" });
-
       const bundle = await buildStudentCommunicationBundle({ student, parentId });
+      await markCommunicationThreadRead({ studentId: student.id, audience: "student", viewerRole: "student" });
       res.json({
         student: bundle.student,
         tutor: bundle.tutor,
@@ -15350,9 +15350,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Student not found" });
       }
 
-      await markCommunicationThreadRead({ studentId: student.id, audience: "parent", viewerRole: "parent" });
-
       const bundle = await buildStudentCommunicationBundle({ student, parentId });
+      await markCommunicationThreadRead({ studentId: student.id, audience: "parent", viewerRole: "parent" });
       res.json({
         student: bundle.student,
         tutor: bundle.tutor,

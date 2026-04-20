@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MessageSquare, Reply, Send, X } from "lucide-react";
+import { MessageSquare, Send, X } from "lucide-react";
 
 interface CommunicationMessage {
   id: string;
@@ -20,6 +20,8 @@ interface CommunicationMessage {
   } | null;
   message: string;
   createdAt: string;
+  readByParentAt?: string | null;
+  readByStudentAt?: string | null;
 }
 
 interface CommunicationInboxResponse {
@@ -68,15 +70,31 @@ function MessageList({
     );
   }
 
+  const firstUnreadMessageId = messages.find((message) => {
+    if (message.senderRole === selfRole) return false;
+    if (selfRole === "parent") return !message.readByParentAt;
+    return !message.readByStudentAt;
+  })?.id;
+
   return (
     <div ref={messagesRef} className="space-y-3">
       {messages.map((message) => (
-        <MessageBubble
-          key={message.id}
-          message={message}
-          own={message.senderRole === selfRole}
-          onReply={onReply}
-        />
+        <div key={message.id} className="space-y-3">
+          {message.id === firstUnreadMessageId && (
+            <div className="flex items-center gap-3 py-1">
+              <div className="h-px flex-1 bg-destructive/30" />
+              <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-destructive">
+                Unread Messages
+              </span>
+              <div className="h-px flex-1 bg-destructive/30" />
+            </div>
+          )}
+          <MessageBubble
+            message={message}
+            own={message.senderRole === selfRole}
+            onReply={onReply}
+          />
+        </div>
       ))}
     </div>
   );
@@ -139,16 +157,6 @@ function MessageBubble({
           )}
           <p className="whitespace-pre-wrap break-words">{message.message}</p>
         </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-7 px-2 text-[11px] text-muted-foreground"
-          onClick={() => onReply(message)}
-        >
-          <Reply className="mr-1 h-3.5 w-3.5" />
-          Reply
-        </Button>
       </div>
     </div>
   );

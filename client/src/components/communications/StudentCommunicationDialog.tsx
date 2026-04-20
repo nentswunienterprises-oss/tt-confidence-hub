@@ -12,7 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MessageSquare, Reply, Send, X } from "lucide-react";
+import { MessageSquare, Send, X } from "lucide-react";
 
 type Audience = "parent" | "student";
 
@@ -28,6 +28,9 @@ interface CommunicationMessage {
   } | null;
   message: string;
   createdAt: string;
+  readByTutorAt?: string | null;
+  readByParentAt?: string | null;
+  readByStudentAt?: string | null;
 }
 
 interface CommunicationThread {
@@ -90,6 +93,9 @@ function ThreadPanel({
   disabled?: boolean;
 }) {
   const messagesRef = useRef<HTMLDivElement | null>(null);
+  const firstUnreadMessageId = messages.find(
+    (message) => message.senderRole !== "tutor" && !message.readByTutorAt
+  )?.id;
 
   useEffect(() => {
     if (!messagesRef.current) return;
@@ -113,49 +119,68 @@ function ThreadPanel({
           <div className="space-y-3">
             {messages.map((message) => {
               const isTutor = message.senderRole === "tutor";
+              const touchStartRef = { current: null as { x: number; y: number } | null };
 
               return (
-                <div
-                  key={message.id}
-                  className={`flex ${isTutor ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-[88%] rounded-2xl px-3 py-2 shadow-sm sm:max-w-[75%] ${
-                      isTutor
-                        ? "bg-primary text-primary-foreground"
-                        : "border border-border/60 bg-background text-foreground"
-                    }`}
-                  >
-                    <div className="mb-1 flex items-center justify-between gap-3 text-[11px] opacity-80">
-                      <span className="font-medium">{message.senderName}</span>
-                      <span>{formatTimestamp(message.createdAt)}</span>
+                <div key={message.id} className="space-y-3">
+                  {message.id === firstUnreadMessageId && (
+                    <div className="flex items-center gap-3 py-1">
+                      <div className="h-px flex-1 bg-destructive/30" />
+                      <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-destructive">
+                        Unread Messages
+                      </span>
+                      <div className="h-px flex-1 bg-destructive/30" />
                     </div>
-                    {message.replyTo && (
+                  )}
+                  <div
+                    className={`flex ${isTutor ? "justify-end" : "justify-start"}`}
+                  >
+                    <div
+                      className={`max-w-[88%] sm:max-w-[75%] ${isTutor ? "items-end" : "items-start"} flex flex-col gap-1`}
+                      onTouchStart={(event) => {
+                        const touch = event.touches[0];
+                        touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+                      }}
+                      onTouchEnd={(event) => {
+                        const start = touchStartRef.current;
+                        const touch = event.changedTouches[0];
+                        if (!start || !touch || readOnly) return;
+
+                        const deltaX = touch.clientX - start.x;
+                        const deltaY = Math.abs(touch.clientY - start.y);
+
+                        if (deltaX > 64 && deltaY < 28) {
+                          onReply(message);
+                        }
+                      }}
+                    >
                       <div
-                        className={`mb-2 rounded-xl border-l-2 px-2 py-1.5 text-xs ${
+                        className={`rounded-2xl px-3 py-2 shadow-sm ${
                           isTutor
-                            ? "border-primary-foreground/50 bg-primary-foreground/10 text-primary-foreground"
-                            : "border-primary/40 bg-muted/70 text-muted-foreground"
+                            ? "bg-primary text-primary-foreground"
+                            : "border border-border/60 bg-background text-foreground"
                         }`}
                       >
-                        <p className="font-medium">{message.replyTo.senderName}</p>
-                        <p className="line-clamp-2 whitespace-pre-wrap break-words">{message.replyTo.message}</p>
+                        <div className="mb-1 flex items-center justify-between gap-3 text-[11px] opacity-80">
+                          <span className="font-medium">{message.senderName}</span>
+                          <span>{formatTimestamp(message.createdAt)}</span>
+                        </div>
+                        {message.replyTo && (
+                          <div
+                            className={`mb-2 rounded-xl border-l-2 px-2 py-1.5 text-xs ${
+                              isTutor
+                                ? "border-primary-foreground/50 bg-primary-foreground/10 text-primary-foreground"
+                                : "border-primary/40 bg-muted/70 text-muted-foreground"
+                            }`}
+                          >
+                            <p className="font-medium">{message.replyTo.senderName}</p>
+                            <p className="line-clamp-2 whitespace-pre-wrap break-words">{message.replyTo.message}</p>
+                          </div>
+                        )}
+                        <p className="whitespace-pre-wrap break-words text-sm">{message.message}</p>
                       </div>
-                    )}
-                    <p className="whitespace-pre-wrap break-words text-sm">{message.message}</p>
+                    </div>
                   </div>
-                  {!readOnly && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="mt-1 h-7 px-2 text-[11px] text-muted-foreground"
-                      onClick={() => onReply(message)}
-                    >
-                      <Reply className="mr-1 h-3.5 w-3.5" />
-                      Reply
-                    </Button>
-                  )}
                 </div>
               );
             })}
