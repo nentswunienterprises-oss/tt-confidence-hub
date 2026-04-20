@@ -1655,7 +1655,7 @@ export class SupabaseStorage implements IStorage {
   async getApprovedTutors(): Promise<User[]> {
     const { data: eligibleApplications } = await supabase
       .from("tutor_applications")
-      .select("user_id, onboarding_completed_at, documents_status")
+      .select("user_id, full_name, email, phone, city, documents_status")
       .in("status", ["approved", "confirmed"])
       .not("user_id", "is", null);
 
@@ -1667,7 +1667,6 @@ export class SupabaseStorage implements IStorage {
       ...new Set(
         eligibleApplications
           .filter((app) => {
-            if (app.onboarding_completed_at) return true;
             const statuses = normalizeTutorDocumentStatuses(app.documents_status);
             return ["1", "2", "3", "4", "5", "6"].every(
               (step) => String(statuses[step] || "") === "approved"
@@ -1685,10 +1684,33 @@ export class SupabaseStorage implements IStorage {
     const { data: users } = await supabase
       .from("users")
       .select("*")
-      .in("id", approvedUserIds)
-      .eq("role", "tutor");
+      .in("id", approvedUserIds);
 
-    return users ?? [];
+    const usersById = new Map((users || []).map((user: any) => [user.id, user]));
+
+    return approvedUserIds.map((userId) => {
+      const existingUser = usersById.get(userId);
+      if (existingUser) return existingUser as User;
+
+      const application = eligibleApplications.find((app) => app.user_id === userId);
+      return {
+        id: userId,
+        email: application?.email || "",
+        firstName: null,
+        lastName: null,
+        phone: application?.phone || null,
+        bio: null,
+        profileImageUrl: null,
+        password: null,
+        role: "tutor",
+        name: application?.full_name || application?.email || "Tutor",
+        grade: null,
+        school: null,
+        verified: false,
+        createdAt: null,
+        updatedAt: null,
+      } as User;
+    });
   }
 
   async updateTutorSequentialDocument(
