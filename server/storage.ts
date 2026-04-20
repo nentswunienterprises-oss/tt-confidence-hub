@@ -1656,7 +1656,7 @@ export class SupabaseStorage implements IStorage {
     const { data: eligibleApplications } = await supabase
       .from("tutor_applications")
       .select("user_id, full_name, email, phone, city, documents_status")
-      .in("status", ["approved", "confirmed"])
+      .eq("status", "approved")
       .not("user_id", "is", null);
 
     if (!eligibleApplications || eligibleApplications.length === 0) {
