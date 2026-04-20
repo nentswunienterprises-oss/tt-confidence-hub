@@ -564,7 +564,7 @@ export function StudentCard({
                   setTrackingDialogOpen(true);
                 }}
               >
-                View Tracking Systems
+                Tracking Systems
               </Button>
               <Button
                 className="w-full sm:col-span-2"

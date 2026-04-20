@@ -928,7 +928,7 @@ function TutorStudentsSection({
                       onClick={() => onViewTrackingSystems(student.id, student.name)}
                     >
                       <Calendar className="w-3 h-3 mr-1.5" />
-                      View Tracking Systems
+                      Tracking Systems
                     </Button>
                     <Button
                       variant="outline"
