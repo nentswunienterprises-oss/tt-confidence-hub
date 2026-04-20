@@ -929,7 +929,36 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
   });
 
   const mandatoryClausesAccepted = (currentDocument?.mandatoryClauses || []).every((clause) => clauseChecks[clause.key]);
-  const requiredFieldsComplete = currentFormFields.every((field) => String(formData[field.key] || "").trim());
+  const missingFieldRequirements = useMemo(() => {
+    return currentFormFields.flatMap((field) => {
+      const fieldValue = field.key === "legalName" ? typedFullName : String(formData[field.key] || "").trim();
+      const lockedValue =
+        field.key === "legalName"
+          ? String(canonicalLockedFormData.legalName || "").trim()
+          : String(canonicalLockedFormData[field.key as keyof typeof canonicalLockedFormData] || "").trim();
+      const isLockedFromApplication = Boolean(lockedValue);
+      const isDisabled = acceptanceAlreadyRecorded || field.readOnly || isLockedFromApplication;
+
+      if (field.key === "dateOfBirth") {
+        if (String(formData.dateOfBirth || "").trim()) return [];
+        return ["Enter a valid South African ID number to derive date of birth."];
+      }
+
+      if (field.key === "emailAddress") {
+        return [];
+      }
+
+      if (field.key === "legalName") {
+        return typedFullName.trim() ? [] : ["Complete the full legal name field in the document reader."];
+      }
+
+      if (fieldValue) return [];
+      if (isDisabled) return [];
+
+      return [`Complete ${field.label.toLowerCase()}.`];
+    });
+  }, [acceptanceAlreadyRecorded, canonicalLockedFormData, currentFormFields, formData, typedFullName]);
+  const requiredFieldsComplete = missingFieldRequirements.length === 0;
   const canAccept = hasCompletedReading && generalRead && generalBound && mandatoryClausesAccepted && typedFullName.trim() && requiredFieldsComplete;
 
   const openReader = () => {
@@ -1099,6 +1128,16 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                   {acceptMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileCheck className="mr-2 h-4 w-4" />}
                   Accept and continue
                 </Button>
+                {!acceptanceAlreadyRecorded && missingFieldRequirements.length > 0 ? (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                    <p className="font-medium">Still required before acceptance:</p>
+                    <ul className="mt-2 list-disc pl-5">
+                      {missingFieldRequirements.map((requirement) => (
+                        <li key={requirement}>{requirement}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
               </div>
 
               <div className="space-y-4 rounded-2xl border p-4">
