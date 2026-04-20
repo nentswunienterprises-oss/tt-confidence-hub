@@ -5842,6 +5842,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     );
   };
 
+  const getCommunicationSenderName = ({
+    row,
+    tutor,
+    parent,
+    student,
+  }: {
+    row: any;
+    tutor: any;
+    parent: any;
+    student: any;
+  }) => {
+    if (row.sender_role === "tutor") return getDisplayNameForUser(tutor, "Tutor");
+    if (row.sender_role === "parent") return getDisplayNameForUser(parent, "Parent");
+    if (row.sender_role === "student") return String(student?.name || "Student").trim() || "Student";
+    return String(row.sender_role || "User").toUpperCase();
+  };
+
   const ensureStudentCommunicationThread = async ({
     studentId,
     tutorId,
@@ -5968,18 +5985,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       student: [],
     };
 
+    const messageRowsById = new Map<string, any>(
+      (messageRows || []).map((row: any) => [String(row.id), row])
+    );
+
     for (const row of messageRows || []) {
       const audience = String(row.audience || "") as CommunicationAudience;
       if (!COMMUNICATION_AUDIENCES.includes(audience)) continue;
 
-      const senderName =
-        row.sender_role === "tutor"
-          ? getDisplayNameForUser(tutor, "Tutor")
-          : row.sender_role === "parent"
-            ? getDisplayNameForUser(parent, "Parent")
-            : row.sender_role === "student"
-              ? String(student?.name || "Student").trim() || "Student"
-              : String(row.sender_role || "User").toUpperCase();
+      const senderName = getCommunicationSenderName({ row, tutor, parent, student });
+      const replyTarget = row.reply_to_message_id
+        ? messageRowsById.get(String(row.reply_to_message_id))
+        : null;
 
       messagesByAudience[audience].push({
         id: row.id,
@@ -5992,6 +6009,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         senderUserId: row.sender_user_id,
         senderStudentUserId: row.sender_student_user_id,
         senderName,
+        replyToMessageId: row.reply_to_message_id || null,
+        replyTo: replyTarget
+          ? {
+              id: replyTarget.id,
+              senderName: getCommunicationSenderName({
+                row: replyTarget,
+                tutor,
+                parent,
+                student,
+              }),
+              message: replyTarget.message,
+            }
+          : null,
         message: row.message,
         createdAt: row.created_at,
         readByTutorAt: row.read_by_tutor_at,
@@ -6045,6 +6075,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     senderRole,
     senderUserId,
     senderStudentUserId,
+    replyToMessageId,
     message,
   }: {
     student: any;
@@ -6053,6 +6084,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     senderRole: "tutor" | "parent" | "student";
     senderUserId?: string | null;
     senderStudentUserId?: string | null;
+    replyToMessageId?: string | null;
     message: string;
   }) => {
     const thread = await ensureStudentCommunicationThread({
@@ -6061,6 +6093,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       parentId,
       audience,
     });
+
+    let normalizedReplyToMessageId: string | null = null;
+    if (replyToMessageId) {
+      const { data: replyTarget, error: replyTargetError } = await supabase
+        .from("student_communication_messages")
+        .select("id")
+        .eq("id", replyToMessageId)
+        .eq("thread_id", thread.id)
+        .eq("student_id", student.id)
+        .eq("audience", audience)
+        .maybeSingle();
+
+      if (replyTargetError) throw replyTargetError;
+      if (!replyTarget) {
+        throw new Error("Reply target is no longer available");
+      }
+
+      normalizedReplyToMessageId = replyTarget.id;
+    }
 
     const timestamp = new Date().toISOString();
     const payload: Record<string, any> = {
@@ -6072,6 +6123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       sender_role: senderRole,
       sender_user_id: senderUserId || null,
       sender_student_user_id: senderStudentUserId || null,
+      reply_to_message_id: normalizedReplyToMessageId,
       message,
     };
 
@@ -8775,6 +8827,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           audience: parsed.audience,
           senderRole: "tutor",
           senderUserId: tutorId,
+          replyToMessageId: parsed.replyToMessageId,
           message: parsed.message,
         });
 
@@ -13824,6 +13877,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         audience: "student",
         senderRole: "student",
         senderStudentUserId: studentUser.id,
+        replyToMessageId: parsed.replyToMessageId,
         message: parsed.message,
       });
 
@@ -15379,6 +15433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         audience: "parent",
         senderRole: "parent",
         senderUserId: parentId,
+        replyToMessageId: parsed.replyToMessageId,
         message: parsed.message,
       });
 

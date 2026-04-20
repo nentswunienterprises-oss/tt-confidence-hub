@@ -717,6 +717,7 @@ export const studentCommunicationMessages = pgTable("student_communication_messa
   senderRole: roleEnum("sender_role").notNull(),
   senderUserId: varchar("sender_user_id").references(() => users.id),
   senderStudentUserId: varchar("sender_student_user_id").references(() => studentUsers.id),
+  replyToMessageId: varchar("reply_to_message_id").references((): any => studentCommunicationMessages.id),
   message: text("message").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   readByTutorAt: timestamp("read_by_tutor_at"),
@@ -729,6 +730,7 @@ export type InsertStudentCommunicationMessage = typeof studentCommunicationMessa
 
 export const insertStudentCommunicationMessageSchema = z.object({
   audience: z.enum(["parent", "student"]),
+  replyToMessageId: z.string().min(1).optional(),
   message: z.string().trim().min(1, "Message is required").max(4000, "Message is too long"),
 });
 

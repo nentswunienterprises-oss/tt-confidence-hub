@@ -6,12 +6,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MessageSquare, Send } from "lucide-react";
+import { MessageSquare, Reply, Send, X } from "lucide-react";
 
 interface CommunicationMessage {
   id: string;
   senderRole: string;
   senderName: string;
+  replyToMessageId?: string | null;
+  replyTo?: {
+    id: string;
+    senderName: string;
+    message: string;
+  } | null;
   message: string;
   createdAt: string;
 }
@@ -40,9 +46,11 @@ function formatTimestamp(value: string) {
 function MessageList({
   messages,
   selfRole,
+  onReply,
 }: {
   messages: CommunicationMessage[];
   selfRole: "parent" | "student";
+  onReply: (message: CommunicationMessage) => void;
 }) {
   const messagesRef = useRef<HTMLDivElement | null>(null);
 
@@ -62,26 +70,86 @@ function MessageList({
 
   return (
     <div ref={messagesRef} className="space-y-3">
-      {messages.map((message) => {
-        const own = message.senderRole === selfRole;
-        return (
-          <div key={message.id} className={`flex ${own ? "justify-end" : "justify-start"}`}>
+      {messages.map((message) => (
+        <MessageBubble
+          key={message.id}
+          message={message}
+          own={message.senderRole === selfRole}
+          onReply={onReply}
+        />
+      ))}
+    </div>
+  );
+}
+
+function MessageBubble({
+  message,
+  own,
+  onReply,
+}: {
+  message: CommunicationMessage;
+  own: boolean;
+  onReply: (message: CommunicationMessage) => void;
+}) {
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  return (
+    <div className={`flex ${own ? "justify-end" : "justify-start"}`}>
+      <div
+        className={`max-w-[88%] sm:max-w-[75%] ${own ? "items-end" : "items-start"} flex flex-col gap-1`}
+        onTouchStart={(event) => {
+          const touch = event.touches[0];
+          touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+        }}
+        onTouchEnd={(event) => {
+          const start = touchStartRef.current;
+          const touch = event.changedTouches[0];
+          if (!start || !touch) return;
+
+          const deltaX = touch.clientX - start.x;
+          const deltaY = Math.abs(touch.clientY - start.y);
+
+          if (deltaX > 64 && deltaY < 28) {
+            onReply(message);
+          }
+        }}
+      >
+        <div
+          className={`rounded-2xl px-3 py-2 text-sm shadow-sm ${
+            own
+              ? "bg-primary text-primary-foreground"
+              : "border border-border/60 bg-background text-foreground"
+          }`}
+        >
+          <div className="mb-1 flex items-center justify-between gap-3 text-[11px] opacity-80">
+            <span className="font-medium">{message.senderName}</span>
+            <span>{formatTimestamp(message.createdAt)}</span>
+          </div>
+          {message.replyTo && (
             <div
-              className={`max-w-[88%] rounded-2xl px-3 py-2 text-sm shadow-sm sm:max-w-[75%] ${
+              className={`mb-2 rounded-xl border-l-2 px-2 py-1.5 text-xs ${
                 own
-                  ? "bg-primary text-primary-foreground"
-                  : "border border-border/60 bg-background text-foreground"
+                  ? "border-primary-foreground/50 bg-primary-foreground/10 text-primary-foreground"
+                  : "border-primary/40 bg-muted/70 text-muted-foreground"
               }`}
             >
-              <div className="mb-1 flex items-center justify-between gap-3 text-[11px] opacity-80">
-                <span className="font-medium">{message.senderName}</span>
-                <span>{formatTimestamp(message.createdAt)}</span>
-              </div>
-              <p className="whitespace-pre-wrap break-words">{message.message}</p>
+              <p className="font-medium">{message.replyTo.senderName}</p>
+              <p className="line-clamp-2 whitespace-pre-wrap break-words">{message.replyTo.message}</p>
             </div>
-          </div>
-        );
-      })}
+          )}
+          <p className="whitespace-pre-wrap break-words">{message.message}</p>
+        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-7 px-2 text-[11px] text-muted-foreground"
+          onClick={() => onReply(message)}
+        >
+          <Reply className="mr-1 h-3.5 w-3.5" />
+          Reply
+        </Button>
+      </div>
     </div>
   );
 }
@@ -110,12 +178,13 @@ export function CommunicationInbox({
     updatesContent ? "updates" : "messages"
   );
   const [draft, setDraft] = useState("");
+  const [replyTarget, setReplyTarget] = useState<CommunicationMessage | null>(null);
   const unreadCountQueryKey = useMemo(
     () => (unreadCountPath ? [unreadCountPath] : []),
     [unreadCountPath]
   );
 
-  const { data: unreadCountData } = useQuery<{ unreadCount: number }>({
+  const { data: unreadCountData, refetch: refetchUnreadCount } = useQuery<{ unreadCount: number }>({
     queryKey: unreadCountQueryKey,
     enabled: !!unreadCountPath,
     queryFn: async () => {
@@ -127,7 +196,7 @@ export function CommunicationInbox({
 
   const unreadCount = Number(unreadCountData?.unreadCount || 0);
 
-  const { data, isLoading, error } = useQuery<CommunicationInboxResponse>({
+  const { data, isLoading, error, refetch: refetchThread } = useQuery<CommunicationInboxResponse>({
     queryKey,
     enabled: activeTab === "messages",
     queryFn: async () => {
@@ -138,32 +207,44 @@ export function CommunicationInbox({
 
   const sendMessage = useMutation({
     mutationFn: async (message: string) => {
-      const res = await apiRequest("POST", postPath, { message, audience });
+      const res = await apiRequest("POST", postPath, {
+        message,
+        audience,
+        replyToMessageId: replyTarget?.id,
+      });
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       setDraft("");
-      queryClient.invalidateQueries({ queryKey });
+      setReplyTarget(null);
       if (unreadCountPath) {
         queryClient.invalidateQueries({ queryKey: unreadCountQueryKey });
+      }
+      await refetchThread();
+      if (unreadCountPath) {
+        await refetchUnreadCount();
       }
     },
   });
 
   useEffect(() => {
-    if (activeTab === "messages") {
-      queryClient.invalidateQueries({ queryKey });
-    }
-    if (activeTab === "messages" && unreadCountPath) {
-      queryClient.invalidateQueries({ queryKey: unreadCountQueryKey });
-    }
-  }, [activeTab, queryClient, queryKey, unreadCountPath, unreadCountQueryKey]);
+    if (activeTab !== "messages") return;
+
+    const syncMessages = async () => {
+      await refetchThread();
+      if (unreadCountPath) {
+        await refetchUnreadCount();
+      }
+    };
+
+    void syncMessages();
+  }, [activeTab, refetchThread, refetchUnreadCount, unreadCountPath]);
 
   useEffect(() => {
     if (activeTab === "messages" && data && unreadCountPath) {
-      queryClient.invalidateQueries({ queryKey: unreadCountQueryKey });
+      void refetchUnreadCount();
     }
-  }, [activeTab, data, queryClient, unreadCountPath, unreadCountQueryKey]);
+  }, [activeTab, data, refetchUnreadCount, unreadCountPath]);
 
   return (
     <div className="space-y-6">
@@ -233,14 +314,41 @@ export function CommunicationInbox({
                     {error instanceof Error ? error.message : "Unable to load messages."}
                   </div>
                 ) : (
-                  <MessageList messages={data?.thread.messages || []} selfRole={audience} />
+                  <MessageList
+                    messages={data?.thread.messages || []}
+                    selfRole={audience}
+                    onReply={(message) => setReplyTarget(message)}
+                  />
                 )}
               </div>
               <div className="space-y-3">
+                {replyTarget && (
+                  <div className="rounded-xl border border-primary/20 bg-muted/20 px-3 py-2">
+                    <div className="mb-1 flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-medium text-foreground">
+                          Replying to {replyTarget.senderName}
+                        </p>
+                        <p className="line-clamp-2 whitespace-pre-wrap break-words text-xs text-muted-foreground">
+                          {replyTarget.message}
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => setReplyTarget(null)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
                 <Textarea
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
-                  placeholder="Send a message through TT..."
+                  placeholder={replyTarget ? `Reply to ${replyTarget.senderName}...` : "Send a message through TT..."}
                   className="min-h-[96px] resize-none"
                   disabled={sendMessage.isPending || activeTab !== "messages" || !!error}
                 />

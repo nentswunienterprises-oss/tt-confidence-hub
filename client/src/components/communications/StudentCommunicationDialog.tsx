@@ -12,7 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MessageSquare, Send } from "lucide-react";
+import { MessageSquare, Reply, Send, X } from "lucide-react";
 
 type Audience = "parent" | "student";
 
@@ -20,6 +20,12 @@ interface CommunicationMessage {
   id: string;
   senderRole: "tutor" | "parent" | "student" | string;
   senderName: string;
+  replyToMessageId?: string | null;
+  replyTo?: {
+    id: string;
+    senderName: string;
+    message: string;
+  } | null;
   message: string;
   createdAt: string;
 }
@@ -62,6 +68,9 @@ function ThreadPanel({
   messages,
   composerValue,
   onComposerChange,
+  replyTarget,
+  onReply,
+  onClearReply,
   onSend,
   isSending,
   readOnly,
@@ -72,6 +81,9 @@ function ThreadPanel({
   messages: CommunicationMessage[];
   composerValue: string;
   onComposerChange: (value: string) => void;
+  replyTarget: CommunicationMessage | null;
+  onReply: (message: CommunicationMessage) => void;
+  onClearReply: () => void;
   onSend: () => void;
   isSending: boolean;
   readOnly: boolean;
@@ -118,8 +130,32 @@ function ThreadPanel({
                       <span className="font-medium">{message.senderName}</span>
                       <span>{formatTimestamp(message.createdAt)}</span>
                     </div>
+                    {message.replyTo && (
+                      <div
+                        className={`mb-2 rounded-xl border-l-2 px-2 py-1.5 text-xs ${
+                          isTutor
+                            ? "border-primary-foreground/50 bg-primary-foreground/10 text-primary-foreground"
+                            : "border-primary/40 bg-muted/70 text-muted-foreground"
+                        }`}
+                      >
+                        <p className="font-medium">{message.replyTo.senderName}</p>
+                        <p className="line-clamp-2 whitespace-pre-wrap break-words">{message.replyTo.message}</p>
+                      </div>
+                    )}
                     <p className="whitespace-pre-wrap break-words text-sm">{message.message}</p>
                   </div>
+                  {!readOnly && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="mt-1 h-7 px-2 text-[11px] text-muted-foreground"
+                      onClick={() => onReply(message)}
+                    >
+                      <Reply className="mr-1 h-3.5 w-3.5" />
+                      Reply
+                    </Button>
+                  )}
                 </div>
               );
             })}
@@ -132,10 +168,37 @@ function ThreadPanel({
           <p className="text-xs text-muted-foreground">Read-only COO view.</p>
         ) : (
           <div className="space-y-3">
+            {replyTarget && (
+              <div className="rounded-xl border border-primary/20 bg-muted/20 px-3 py-2">
+                <div className="mb-1 flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-medium text-foreground">
+                      Replying to {replyTarget.senderName}
+                    </p>
+                    <p className="line-clamp-2 whitespace-pre-wrap break-words text-xs text-muted-foreground">
+                      {replyTarget.message}
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={onClearReply}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
             <Textarea
               value={composerValue}
               onChange={(e) => onComposerChange(e.target.value)}
-              placeholder={`Type a message for ${title.toLowerCase()}...`}
+              placeholder={
+                replyTarget
+                  ? `Reply to ${replyTarget.senderName}...`
+                  : `Type a message for ${title.toLowerCase()}...`
+              }
               className="min-h-[88px] resize-none"
               disabled={disabled || isSending}
             />
@@ -173,6 +236,10 @@ export default function StudentCommunicationDialog({
     parent: "",
     student: "",
   });
+  const [replyTargets, setReplyTargets] = useState<Record<Audience, CommunicationMessage | null>>({
+    parent: null,
+    student: null,
+  });
 
   const queryKey = useMemo(
     () => [apiBasePath, "students", studentId, "communications"],
@@ -195,15 +262,25 @@ export default function StudentCommunicationDialog({
   }, [open, studentId]);
 
   const sendMessage = useMutation({
-    mutationFn: async ({ audience, message }: { audience: Audience; message: string }) => {
+    mutationFn: async ({
+      audience,
+      message,
+      replyToMessageId,
+    }: {
+      audience: Audience;
+      message: string;
+      replyToMessageId?: string | null;
+    }) => {
       const res = await apiRequest("POST", `${apiBasePath}/students/${studentId}/communications`, {
         audience,
         message,
+        replyToMessageId,
       });
       return res.json();
     },
     onSuccess: (_data, variables) => {
       setDrafts((current) => ({ ...current, [variables.audience]: "" }));
+      setReplyTargets((current) => ({ ...current, [variables.audience]: null }));
       queryClient.invalidateQueries({ queryKey });
     },
   });
@@ -261,8 +338,19 @@ export default function StudentCommunicationDialog({
                 messages={parentThread?.messages || []}
                 composerValue={drafts.parent}
                 onComposerChange={(value) => setDrafts((current) => ({ ...current, parent: value }))}
+                replyTarget={replyTargets.parent}
+                onReply={(message) =>
+                  setReplyTargets((current) => ({ ...current, parent: message }))
+                }
+                onClearReply={() =>
+                  setReplyTargets((current) => ({ ...current, parent: null }))
+                }
                 onSend={() =>
-                  sendMessage.mutate({ audience: "parent", message: drafts.parent.trim() })
+                  sendMessage.mutate({
+                    audience: "parent",
+                    message: drafts.parent.trim(),
+                    replyToMessageId: replyTargets.parent?.id,
+                  })
                 }
                 isSending={sendMessage.isPending && sendMessage.variables?.audience === "parent"}
                 readOnly={readOnly}
@@ -279,8 +367,19 @@ export default function StudentCommunicationDialog({
                 onComposerChange={(value) =>
                   setDrafts((current) => ({ ...current, student: value }))
                 }
+                replyTarget={replyTargets.student}
+                onReply={(message) =>
+                  setReplyTargets((current) => ({ ...current, student: message }))
+                }
+                onClearReply={() =>
+                  setReplyTargets((current) => ({ ...current, student: null }))
+                }
                 onSend={() =>
-                  sendMessage.mutate({ audience: "student", message: drafts.student.trim() })
+                  sendMessage.mutate({
+                    audience: "student",
+                    message: drafts.student.trim(),
+                    replyToMessageId: replyTargets.student?.id,
+                  })
                 }
                 isSending={sendMessage.isPending && sendMessage.variables?.audience === "student"}
                 readOnly={readOnly}
