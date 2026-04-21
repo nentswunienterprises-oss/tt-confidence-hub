@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Workflow } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -6,27 +6,27 @@ import { Card } from "@/components/ui/card";
 const sessionTypes = [
   {
     title: "Adaptive Intro Diagnosis",
-    purpose: "Verify starting phase and stop when placement is found.",
-    notFor: "Do not turn this into a full teaching session.",
+    purpose: "This is how the training journey begins. The system verifies starting phase and stops when placement is found.",
+    notFor: "Do not turn this into a teaching session.",
   },
   {
     title: "Active Training",
-    purpose: "Build stability inside the student's current topic and phase.",
-    notFor: "Do not use training flow to re-place the student every session.",
+    purpose: "The system runs a drill matched to the student's current topic, phase, and stability. The tutor prepares exactly what the drill requires and records observations.",
+    notFor: "Do not choose drills from tutor judgment. Do not re-place the student every session.",
   },
   {
     title: "Tutor Handover Verification",
-    purpose: "Verify inherited topic-state after tutor reassignment.",
+    purpose: "This is what happens if a tutor is replaced and a new tutor is assigned. The system verifies inherited topic-state before training continues.",
     notFor: "Do not treat this like a fresh intro or a reset.",
   },
 ];
 
 const activeTrainingFlow = [
-  "Prepare using the student's current topic-state and recent evidence.",
-  "Model only what the student needs next.",
-  "Let the student apply independently.",
-  "Guide tightly where the response breaks.",
-  "Use challenge work only when the student's current phase allows it.",
+  "The system selects the drill based on the student's topic, phase, and stability.",
+  "The tutor reviews the session instructions and prepares the required problem type and count.",
+  "The tutor runs the drill exactly as written.",
+  "The tutor records only what the student actually does.",
+  "The system uses those observations to determine the next step.",
 ];
 
 const introFlow = [
@@ -43,11 +43,25 @@ const handoverFlow = [
   "Either continue, adjust, or trigger more targeted verification.",
 ];
 
+const phaseTrainingNotes = [
+  {
+    title: "Clarity training",
+    detail:
+      "Clarity is where vocabulary, method, reason, and the main MAG-style teaching loop are most visible. This is the phase where teaching structure is most explicit.",
+  },
+  {
+    title: "Execution phases",
+    detail:
+      "Structured Execution, Controlled Discomfort, and Time Pressure Stability are execution training phases. The tutor is mainly running the drill conditions, holding the rules, and logging what happens.",
+  },
+];
+
 const guardrails = [
-  "Model -> Apply -> Guide is not a universal law for every TT session type.",
+  "The system chooses the drill. The tutor does not pick drills from preference or instinct.",
+  "Model -> Apply -> Guide is mainly a Clarity teaching structure, not a universal law for every phase.",
   "Boss Battles are not used in every training drill and not used in every session type.",
-  "Timed pressure belongs only when the student's phase and current drill design support it.",
-  "Verification sessions should stay light. Training sessions can be more developmental.",
+  "Timed pressure belongs only when the current phase and drill design require it.",
+  "Verification sessions stay light. Training sessions follow the drill rules for that phase.",
 ];
 
 export default function ResponseConditioningSessionFlowControl() {
@@ -87,7 +101,7 @@ export default function ResponseConditioningSessionFlowControl() {
         <Card className="p-6 space-y-4 border-2 border-primary/20 bg-primary/5">
           <h2 className="text-2xl font-bold">Start With Session Type</h2>
           <p className="text-muted-foreground">
-            Session flow is no longer one universal loop. The first question is always:
+            The first question is always:
           </p>
           <p className="text-lg font-semibold">What kind of session is this?</p>
           <p className="text-muted-foreground">
@@ -120,13 +134,16 @@ export default function ResponseConditioningSessionFlowControl() {
           <p className="font-semibold">
             Intro is verification. It should end when placement is found.
           </p>
+          <p className="text-sm text-muted-foreground">
+            See <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/intro-session-structure">Intro Session Structure</Link> and{" "}
+            <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/logging-system">Logging System</Link>.
+          </p>
         </Card>
 
         <Card className="p-6 space-y-4">
           <h2 className="text-2xl font-bold">Active Training Flow</h2>
           <p className="text-muted-foreground">
-            This is where the tutor uses teaching structure more fully. Even here, the tutor must
-            still respect the student's current phase and the drill's actual design.
+            Active training is system-led. The tutor is executing the drill that the system has already chosen.
           </p>
           <ol className="space-y-1 pl-5 text-muted-foreground">
             {activeTrainingFlow.map((step, index) => (
@@ -135,8 +152,27 @@ export default function ResponseConditioningSessionFlowControl() {
               </li>
             ))}
           </ol>
-          <p className="font-semibold">
-            Model -&gt; Apply -&gt; Guide is a training tool, not a universal session law.
+        </Card>
+
+        <Card className="p-6 space-y-4">
+          <h2 className="text-2xl font-bold">How Training Differs By Phase</h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            {phaseTrainingNotes.map((note) => (
+              <div key={note.title} className="rounded-xl border bg-card p-4">
+                <h3 className="text-lg font-semibold">{note.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{note.detail}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-sm text-muted-foreground">
+            The tutor should not read every phase through the Clarity teaching lens. Once Clarity is locked,
+            the later phases are mainly execution conditioning.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            See <Link className="underline underline-offset-2" to="/responseconditioningsystem/clarity">Clarity</Link>,{" "}
+            <Link className="underline underline-offset-2" to="/responseconditioningsystem/structured-execution">Structured Execution</Link>,{" "}
+            <Link className="underline underline-offset-2" to="/responseconditioningsystem/controlled-discomfort">Controlled Discomfort</Link>, and{" "}
+            <Link className="underline underline-offset-2" to="/responseconditioningsystem/time-pressure-stability">Time Pressure Stability</Link>.
           </p>
         </Card>
 
@@ -154,6 +190,10 @@ export default function ResponseConditioningSessionFlowControl() {
             ))}
           </ol>
           <p className="font-semibold">Handover is verification, not re-onboarding.</p>
+          <p className="text-sm text-muted-foreground">
+            See <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/handover-verification">Handover Verification</Link> and{" "}
+            <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/logging-system">Logging System</Link>.
+          </p>
         </Card>
 
         <Card className="p-6 space-y-4">
@@ -170,15 +210,15 @@ export default function ResponseConditioningSessionFlowControl() {
           <div className="space-y-3">
             <div className="rounded-xl border p-4">
               <p className="font-semibold">If this is intro:</p>
-              <p className="text-sm text-muted-foreground">verify starting phase</p>
+              <p className="text-sm text-muted-foreground">this is how the training journey begins, so verify starting phase</p>
             </div>
             <div className="rounded-xl border p-4">
               <p className="font-semibold">If this is active training:</p>
-              <p className="text-sm text-muted-foreground">build stability inside the current phase</p>
+              <p className="text-sm text-muted-foreground">run the system-selected drill and record observations</p>
             </div>
             <div className="rounded-xl border p-4">
               <p className="font-semibold">If this is handover:</p>
-              <p className="text-sm text-muted-foreground">verify inherited state and continue</p>
+              <p className="text-sm text-muted-foreground">this is what happens after tutor replacement, so verify inherited state and continue</p>
             </div>
           </div>
         </Card>
@@ -186,8 +226,8 @@ export default function ResponseConditioningSessionFlowControl() {
         <Card className="p-6 border-2 border-primary/20 space-y-4">
           <h2 className="text-2xl font-bold">Operational Standard</h2>
           <p className="text-muted-foreground">
-            Tutors should not memorize one dramatic universal flow. Tutors should identify the
-            session type, respect that session's purpose, and execute the correct evidence path.
+            Tutors should identify the session type, respect that session's purpose, and execute the
+            system path already defined for that student.
           </p>
           <p className="font-semibold">
             The cleaner the session purpose, the cleaner the tutor execution.

@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -67,9 +67,9 @@ export default function ResponseConditioningIntroSessionStructure() {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-8">
         <Card className="p-6 space-y-4 border-2 border-primary/20 bg-primary/5">
-          <h2 className="text-2xl font-bold">What Intro Is Now</h2>
+          <h2 className="text-2xl font-bold">What Intro Is</h2>
           <p className="text-muted-foreground">
-            The intro session is now an adaptive placement session. Its job is to verify the
+            The intro session is an adaptive placement session. Its job is to verify the
             student's starting phase, not to run a full teaching cycle.
           </p>
           <p className="font-medium">The intro session must answer one question:</p>
@@ -100,6 +100,9 @@ export default function ResponseConditioningIntroSessionStructure() {
           </ul>
           <p className="font-medium">
             That recommendation is a starting hypothesis, not the final answer.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            See <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/logging-system">Logging System</Link> for how each verification block is recorded.
           </p>
         </Card>
 

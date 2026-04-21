@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -67,6 +67,9 @@ export default function ResponseConditioningHandoverVerification() {
           </p>
           <p className="text-lg font-semibold">
             The student is continuing. The new tutor is verifying where to continue from.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            See <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/logging-system">Logging System</Link> for how continuity-check evidence is recorded.
           </p>
         </Card>
 

@@ -22,10 +22,12 @@ type DrillSetConfig = {
   repObservationBlocks?: ObservationField[][];
 };
 
+type DemoMode = "diagnosis" | "training";
+
 type DemoSummary = {
   phase: PhaseLabel;
   stability: StabilityLabel;
-  diagnosisScore: number;
+  phaseScore: number;
   nextAction: string;
   constraint: string | null;
   highGuardPasses: boolean;
@@ -317,6 +319,195 @@ const DIAGNOSIS_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
   ],
 };
 
+const TRAINING_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
+  Clarity: [
+    {
+      setName: "Modeling",
+      reps: 1,
+      purpose: "Build the mental map before drilling.",
+      repInstruction: "Teach Vocabulary -> Method -> Reason, then ask the student to explain back.",
+      activeRules: ["Tutor models first", "Student does not solve yet", "Use Vocabulary -> Method -> Reason"],
+    },
+    {
+      setName: "Identification",
+      reps: 3,
+      purpose: "Recognition without solving. Student names terms, identifies type, states steps, and explains why.",
+      repInstruction: "Show the problem. Ask student to name the terms, identify the type, state the steps, and explain why it works.",
+      activeRules: ["No solving yet", "Push for vocabulary precision", "Check all four layers"],
+      repObservationBlocks: [
+        [
+          { key: "vocabulary", label: "Type Recognition (Rep 1)", options: ["wrong", "hesitant", "correct"] },
+          { key: "method", label: "Step Recall (Rep 1)", options: ["missing", "partial", "clear"] },
+          { key: "reason", label: "Reason Recall (Rep 1)", options: ["none", "weak", "clear"] },
+          { key: "immediateApply", label: "Response Behavior (Rep 1)", options: ["avoids answering", "unsure but tries", "confident"] },
+        ],
+        [
+          { key: "vocabulary", label: "Type Recognition (Rep 2)", options: ["wrong", "hesitant", "correct"] },
+          { key: "method", label: "Step Recall (Rep 2)", options: ["missing", "partial", "clear"] },
+          { key: "reason", label: "Reason Recall (Rep 2)", options: ["none", "weak", "clear"] },
+          { key: "immediateApply", label: "Response Behavior (Rep 2)", options: ["avoids answering", "unsure but tries", "confident"] },
+        ],
+        [
+          { key: "vocabulary", label: "Type Recognition (Rep 3)", options: ["wrong", "hesitant", "correct"] },
+          { key: "method", label: "Step Recall (Rep 3)", options: ["missing", "partial", "clear"] },
+          { key: "reason", label: "Reason Recall (Rep 3)", options: ["none", "weak", "clear"] },
+          { key: "immediateApply", label: "Response Behavior (Rep 3)", options: ["avoids answering", "unsure but tries", "confident"] },
+        ],
+      ],
+    },
+    {
+      setName: "Light Apply",
+      reps: 3,
+      purpose: "Test clarity under active solving with minimal guidance.",
+      repInstruction: "Ask student to solve. Minimal guidance only.",
+      activeRules: ["Minimal guidance only", "No step-by-step help", "Observe whether clarity holds under solving"],
+      repObservationBlocks: [
+        [
+          { key: "vocabulary", label: "Vocabulary Usage (Rep 1)", options: ["incorrect", "partial", "correct"] },
+          { key: "method", label: "Step Execution (Rep 1)", options: ["skips", "inconsistent", "structured"] },
+          { key: "reason", label: "Reason Usage (Rep 1)", options: ["absent", "weak", "present"] },
+          { key: "immediateApply", label: "Start Behavior (Rep 1)", options: ["delayed", "hesitant", "immediate"] },
+        ],
+        [
+          { key: "vocabulary", label: "Vocabulary Usage (Rep 2)", options: ["incorrect", "partial", "correct"] },
+          { key: "method", label: "Step Execution (Rep 2)", options: ["skips", "inconsistent", "structured"] },
+          { key: "reason", label: "Reason Usage (Rep 2)", options: ["absent", "weak", "present"] },
+          { key: "immediateApply", label: "Start Behavior (Rep 2)", options: ["delayed", "hesitant", "immediate"] },
+        ],
+        [
+          { key: "vocabulary", label: "Vocabulary Usage (Rep 3)", options: ["incorrect", "partial", "correct"] },
+          { key: "method", label: "Step Execution (Rep 3)", options: ["skips", "inconsistent", "structured"] },
+          { key: "reason", label: "Reason Usage (Rep 3)", options: ["absent", "weak", "present"] },
+          { key: "immediateApply", label: "Start Behavior (Rep 3)", options: ["delayed", "hesitant", "immediate"] },
+        ],
+      ],
+    },
+  ],
+  "Structured Execution": [
+    {
+      setName: "Forced Structure",
+      reps: 3,
+      purpose: "Student must state all steps first, then solve.",
+      repInstruction: "State steps first. Then solve.",
+      activeRules: ["Steps must be stated first", "No skipping steps", "Correct step order required"],
+      observationBlock: [
+        { key: "startBehavior", label: "Start", options: ["delayed", "hesitant", "immediate"] },
+        { key: "stepExecution", label: "Step Discipline", options: ["skips", "partial", "full"] },
+        { key: "repeatability", label: "Correction Response", options: ["resists", "accepts", "adjusts"] },
+        { key: "independence", label: "Independence", options: ["needs help", "light support", "independent"] },
+      ],
+    },
+    {
+      setName: "Independent Execution",
+      reps: 3,
+      purpose: "Full independent execution without help.",
+      repInstruction: "Solve independently.",
+      activeRules: ["No help from tutor", "Full independence expected", "Watch consistency and error handling"],
+      observationBlock: [
+        { key: "independence", label: "Independence", options: ["needs help", "light support", "independent"] },
+        { key: "repeatability", label: "Consistency", options: ["breaks", "inconsistent", "stable"] },
+        { key: "stepExecution", label: "Error Handling", options: ["guesses", "partial correction", "structured correction"] },
+        { key: "startBehavior", label: "Start", options: ["delayed", "hesitant", "immediate"] },
+      ],
+    },
+    {
+      setName: "Variation Control",
+      reps: 3,
+      purpose: "Test transfer to a slightly different form using the same method.",
+      repInstruction: "Solve slightly different form.",
+      activeRules: ["Same method, different form", "Test transfer, not memorization", "No hints on what changed"],
+      observationBlock: [
+        { key: "stepExecution", label: "Transfer", options: ["cannot adapt", "partial", "adapts"] },
+        { key: "repeatability", label: "Step Retention", options: ["lost", "partial", "stable"] },
+        { key: "independence", label: "Completion", options: ["fails", "partial", "complete"] },
+        { key: "startBehavior", label: "Start", options: ["delayed", "hesitant", "immediate"] },
+      ],
+    },
+  ],
+  "Controlled Discomfort": [
+    {
+      setName: "Controlled Entry",
+      reps: 3,
+      purpose: "Build controlled entry under difficulty.",
+      repInstruction: "Pause. Then state the first step.",
+      activeRules: ["Force a pause before starting", "First step must be stated out loud", "Do not let them jump in"],
+      observationBlock: [
+        { key: "initialResponse", label: "Start Control", options: ["freeze", "hesitant", "controlled"] },
+        { key: "firstStepControl", label: "First-Step Accuracy", options: ["wrong", "partial", "correct"] },
+        { key: "discomfortTolerance", label: "Stability", options: ["breaks", "unstable", "stable"] },
+        { key: "rescueDependence", label: "Rescue Behavior", options: ["frequent", "occasional", "none"] },
+      ],
+    },
+    {
+      setName: "No Rescue",
+      reps: 3,
+      purpose: "Build independence under difficulty with no rescue.",
+      repInstruction: "Continue. No full help.",
+      activeRules: ["No rescue allowed", "Hold the discomfort", "Observe rescue-seeking pattern"],
+      observationBlock: [
+        { key: "rescueDependence", label: "Independence", options: ["dependent", "partial", "independent"] },
+        { key: "discomfortTolerance", label: "Stability", options: ["breaks", "unstable", "stable"] },
+        { key: "initialResponse", label: "Recovery", options: ["collapses", "partial", "recovers"] },
+        { key: "firstStepControl", label: "First-Step Control", options: ["none", "prompted", "independent"] },
+      ],
+    },
+    {
+      setName: "Repeat Exposure",
+      reps: 3,
+      purpose: "Repeat exposure to build tolerance at the same difficulty.",
+      repInstruction: "Another similar difficulty.",
+      activeRules: ["Same difficulty level", "Repeat exposure", "Observe consistency of response"],
+      observationBlock: [
+        { key: "discomfortTolerance", label: "Consistency", options: ["breaks", "inconsistent", "stable"] },
+        { key: "initialResponse", label: "Recovery", options: ["collapses", "partial", "recovers"] },
+        { key: "rescueDependence", label: "Rescue Behavior", options: ["frequent", "occasional", "none"] },
+        { key: "firstStepControl", label: "First-Step Control", options: ["none", "prompted", "independent"] },
+      ],
+    },
+  ],
+  "Time Pressure Stability": [
+    {
+      setName: "Structure Under Timer",
+      reps: 3,
+      purpose: "Build structured execution under a timer.",
+      repInstruction: "Focus on method, not speed.",
+      activeRules: ["Timer active", "Method first", "Structure must be maintained"],
+      observationBlock: [
+        { key: "startUnderTime", label: "Start", options: ["panic", "hesitant", "controlled"] },
+        { key: "structureUnderTime", label: "Structure", options: ["lost", "partial", "maintained"] },
+        { key: "paceControl", label: "Pace", options: ["rushed", "uneven", "controlled"] },
+        { key: "completionIntegrity", label: "Completion", options: ["fails", "partial", "complete"] },
+      ],
+    },
+    {
+      setName: "Repeated Timed Execution",
+      reps: 3,
+      purpose: "Build consistency under repeated timed execution.",
+      repInstruction: "Repeat under timer.",
+      activeRules: ["Same timer", "Build consistency", "Observe pace regulation"],
+      observationBlock: [
+        { key: "completionIntegrity", label: "Consistency", options: ["breaks", "inconsistent", "stable"] },
+        { key: "paceControl", label: "Pace", options: ["rushed", "uneven", "controlled"] },
+        { key: "structureUnderTime", label: "Structure", options: ["lost", "partial", "maintained"] },
+        { key: "startUnderTime", label: "Start", options: ["panic", "hesitant", "controlled"] },
+      ],
+    },
+    {
+      setName: "Full Constraint",
+      reps: 3,
+      purpose: "Full constraint drill with tighter time.",
+      repInstruction: "Solve under tighter time.",
+      activeRules: ["Tighter timer", "No relief", "Structure and completion both matter"],
+      observationBlock: [
+        { key: "completionIntegrity", label: "Completion", options: ["fails", "partial", "complete"] },
+        { key: "structureUnderTime", label: "Integrity", options: ["collapses", "unstable", "stable"] },
+        { key: "paceControl", label: "Pace", options: ["rushed", "uneven", "controlled"] },
+        { key: "startUnderTime", label: "Start", options: ["panic", "hesitant", "controlled"] },
+      ],
+    },
+  ],
+};
+
 const INTRO_PHASE_WEIGHTS: Record<PhaseLabel, Array<{ aliases: string[]; weight: number }>> = {
   Clarity: [
     { aliases: ["vocabulary"], weight: 30 },
@@ -486,13 +677,13 @@ function buildDemoSummary(
     }
   });
 
-  const diagnosisScore = setScores.length > 0
+  const phaseScore = setScores.length > 0
     ? Math.round(setScores.reduce((sum, score) => sum + score, 0) / setScores.length)
     : 0;
 
   let stability: StabilityLabel = "Low";
-  if (diagnosisScore <= 49) stability = "Low";
-  else if (diagnosisScore <= 69) stability = "Medium";
+  if (phaseScore <= 49) stability = "Low";
+  else if (phaseScore <= 69) stability = "Medium";
   else stability = highGuardPasses ? "High" : "Medium";
 
   const nextActionData = getNextActionData(phase, stability);
@@ -518,7 +709,7 @@ function buildDemoSummary(
   return {
     phase,
     stability,
-    diagnosisScore,
+    phaseScore,
     nextAction: nextActionData.primaryAction,
     constraint: nextActionData.rules[0] || null,
     highGuardPasses,
@@ -532,14 +723,16 @@ function buildDemoSummary(
 
 function DemoRunnerOverlay({
   phase,
+  mode,
   open,
   onClose,
 }: {
   phase: PhaseLabel;
+  mode: DemoMode;
   open: boolean;
   onClose: () => void;
 }) {
-  const drillStructure = DIAGNOSIS_SETS_BY_PHASE[phase];
+  const drillStructure = mode === "training" ? TRAINING_SETS_BY_PHASE[phase] : DIAGNOSIS_SETS_BY_PHASE[phase];
   const [currentSet, setCurrentSet] = useState(0);
   const [currentRep, setCurrentRep] = useState(0);
   const [observations, setObservations] = useState<Record<string, string>>({});
@@ -613,7 +806,9 @@ function DemoRunnerOverlay({
         <div className="border-b bg-card/95">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
             <div className="min-w-0">
-              <h2 className="text-2xl font-bold tracking-tight">Adaptive Intro Diagnosis - {phase}</h2>
+              <h2 className="text-2xl font-bold tracking-tight">
+                {mode === "training" ? `Training Drill - ${phase}` : `Adaptive Intro Diagnosis - ${phase}`}
+              </h2>
               <p className="mt-2 text-sm text-muted-foreground">Demo runner</p>
             </div>
             <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close demo runner">
@@ -629,11 +824,15 @@ function DemoRunnerOverlay({
                 <div className="mb-4 p-3 rounded-md border border-primary/20 bg-primary/5">
                   <p className="font-semibold mb-1">Instructions:</p>
                   <ul className="list-disc pl-5 text-sm text-foreground/90 space-y-1">
-                    <li>This diagnosis block is a demo of the live runner flow. Complete the current phase verification block exactly as shown.</li>
-                    <li><strong>Before you begin:</strong> Prepare <span className="font-semibold">3 distinct problems</span> for the current phase block.</li>
+                    <li>
+                      {mode === "training"
+                        ? "This training drill is a demo of the live runner flow. Complete each set exactly as shown."
+                        : "This diagnosis block is a demo of the live runner flow. Complete the current phase verification block exactly as shown."}
+                    </li>
+                    <li><strong>Before you begin:</strong> Prepare <span className="font-semibold">3 distinct problems</span> for the current {mode === "training" ? "drill" : "phase block"}.</li>
                     <li>Choose problem difficulty based on the student's current control in this phase.</li>
-                    <li>You cannot skip steps or edit outside the verification structure. Complete each observation in order.</li>
-                    <li>Submit to see the result summary for this block.</li>
+                    <li>You cannot skip steps or edit outside the {mode === "training" ? "drill" : "verification"} structure. Complete each observation in order.</li>
+                    <li>Submit to see the result summary for this {mode === "training" ? "drill" : "block"}.</li>
                   </ul>
                 </div>
                 <div className="mb-4 p-3 rounded-xl border border-primary/20 bg-primary/5 text-sm">
@@ -817,8 +1016,10 @@ function DemoRunnerOverlay({
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                   <Card className="border-primary/15 bg-background shadow-sm">
                     <div className="p-4">
-                      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Diagnosis Score</p>
-                      <p className="mt-2 text-3xl font-semibold tabular-nums">{summary.diagnosisScore}/100</p>
+                      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+                        {mode === "training" ? "Session Score" : "Diagnosis Score"}
+                      </p>
+                      <p className="mt-2 text-3xl font-semibold tabular-nums">{summary.phaseScore}/100</p>
                     </div>
                   </Card>
                   <Card className="border-primary/15 bg-background shadow-sm">
@@ -852,7 +1053,7 @@ function DemoRunnerOverlay({
                     <div className="grid gap-4 lg:grid-cols-2">
                       <div className="rounded-xl border border-primary/15 bg-background p-4">
                         <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Drill Total</p>
-                        <p className="mt-2 text-3xl font-semibold">{summary.diagnosisScore}/100</p>
+                        <p className="mt-2 text-3xl font-semibold">{summary.phaseScore}/100</p>
                         <p className="mt-3 text-sm text-muted-foreground">Resolved Stability</p>
                         <p className="mt-1 font-semibold">{summary.stability}</p>
                       </div>
@@ -955,6 +1156,7 @@ function DemoRunnerOverlay({
 export default function ResponseConditioningLoggingSystem() {
   const navigate = useNavigate();
   const [selectedPhase, setSelectedPhase] = useState<PhaseLabel>("Structured Execution");
+  const [demoMode, setDemoMode] = useState<DemoMode>("training");
   const [demoOpen, setDemoOpen] = useState(false);
 
   return (
@@ -1024,9 +1226,8 @@ export default function ResponseConditioningLoggingSystem() {
           <div className="space-y-2">
             <h2 className="text-2xl font-bold">What This Page Shows</h2>
             <p className="max-w-4xl text-muted-foreground">
-              This page shows how a phase-verification runner captures observation evidence. It is a
-              teaching demo for structured logging, not a claim that every live session uses the same
-              block design.
+              This page shows how tutors use the drill runner in both intro diagnosis and active training.
+              You can switch modes, open the runner, complete reps, and review the result screen.
             </p>
           </div>
 
@@ -1034,15 +1235,46 @@ export default function ResponseConditioningLoggingSystem() {
             <div className="space-y-6">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div className="max-w-3xl">
-                  <h3 className="text-xl font-bold">Choose a Phase</h3>
+                  <h3 className="text-xl font-bold">Choose a Mode and Phase</h3>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Pick one of the four TT phases, then open the runner demo.
+                    Switch between training and intro diagnosis, then pick the phase you want to explore.
                   </p>
                 </div>
                 <Button onClick={() => setDemoOpen(true)} className="w-full sm:w-auto">
                   <Expand className="mr-2 h-4 w-4" />
                   Open Demo
                 </Button>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={() => setDemoMode("training")}
+                  className={`rounded-xl border p-4 text-left transition-colors ${
+                    demoMode === "training"
+                      ? "border-primary bg-primary/5 shadow-sm"
+                      : "border-border bg-background hover:border-primary/30 hover:bg-muted/20"
+                  }`}
+                >
+                  <p className="text-sm font-semibold">Training</p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Use the active training drill flow for the selected phase.
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDemoMode("diagnosis")}
+                  className={`rounded-xl border p-4 text-left transition-colors ${
+                    demoMode === "diagnosis"
+                      ? "border-primary bg-primary/5 shadow-sm"
+                      : "border-border bg-background hover:border-primary/30 hover:bg-muted/20"
+                  }`}
+                >
+                  <p className="text-sm font-semibold">Intro Diagnosis</p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Use the intro diagnosis flow to verify starting phase placement.
+                  </p>
+                </button>
               </div>
 
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -1076,7 +1308,9 @@ export default function ResponseConditioningLoggingSystem() {
               <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
                 <div className="rounded-2xl border border-primary/15 bg-background p-4 shadow-sm">
                   <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Selected Demo</p>
-                  <h4 className="mt-2 text-xl font-semibold">{selectedPhase}</h4>
+                  <h4 className="mt-2 text-xl font-semibold">
+                    {demoMode === "training" ? "Training" : "Intro Diagnosis"}: {selectedPhase}
+                  </h4>
                   <p className="mt-2 text-sm text-muted-foreground">{PHASE_CONTEXT[selectedPhase].purpose}</p>
                   <div className="mt-4 flex flex-wrap gap-2">
                     {PHASE_CONTEXT[selectedPhase].constraints.map((rule) => (
@@ -1094,7 +1328,7 @@ export default function ResponseConditioningLoggingSystem() {
                   <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">In This Demo</p>
                   <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
                     <li>Tutor prep before the drill starts</li>
-                    <li>A phase-based verification block</li>
+                    <li>{demoMode === "training" ? "A phase-based training drill" : "A phase verification block"}</li>
                     <li>Clickable observation choices for each rep</li>
                     <li>A result screen with totals, system output, reason, and next step</li>
                   </ul>
@@ -1175,6 +1409,7 @@ export default function ResponseConditioningLoggingSystem() {
 
       <DemoRunnerOverlay
         phase={selectedPhase}
+        mode={demoMode}
         open={demoOpen}
         onClose={() => setDemoOpen(false)}
       />
