@@ -533,8 +533,10 @@ export function StudentCard({
             symptomSignals={symptomSignals}
             suggestedTopic={suggestedTopic}
             suggestedSymptoms={suggestedSymptoms}
+            responseSignalBreakdown={responseSignalBreakdown}
             recommendedStartingPhase={recommendedStartingPhase}
             recommendedStartingReason={recommendedStartingReason}
+            secondarySignal={secondarySignal}
           />
         )}
 
@@ -665,8 +667,10 @@ function IntroDiagnosticTopicSection({
   symptomSignals,
   suggestedTopic,
   suggestedSymptoms,
+  responseSignalBreakdown,
   recommendedStartingPhase,
   recommendedStartingReason,
+  secondarySignal,
 }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [diagnosticTopic, setDiagnosticTopic] = useState("");
