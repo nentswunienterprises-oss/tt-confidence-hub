@@ -664,7 +664,7 @@ export default function ParentGateway() {
             <CardContent className="space-y-6 sm:space-y-8 px-4 sm:px-6">
               {/* Introduction */}
               <div className="rounded-xl p-4 sm:p-5 space-y-2 sm:space-y-3" style={{ backgroundColor: "#FFF0F0" }}>
-                <h3 className="font-semibold text-sm sm:text-base" style={{ color: "#E63946" }}>"We train how students respond when certainty disappears."</h3>
+                <h3 className="font-semibold text-sm sm:text-base" style={{ color: "#E63946" }}>We train how students respond when certainty disappears.</h3>
                 <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
                   This is the Founding Cohort. Limited families. Serious about response training.
                 </p>
@@ -819,34 +819,10 @@ export default function ParentGateway() {
                 </div>
               </div>
 
-              {/* Background Questions */}
+              {/* Symptom Mapping */}
               <div className="space-y-3 sm:space-y-4">
-                <h4 className="font-semibold text-xs sm:text-sm uppercase tracking-wide" style={{ color: "#E63946" }}>Background</h4>
+                <h4 className="font-semibold text-xs sm:text-sm uppercase tracking-wide" style={{ color: "#E63946" }}>Symptom Mapping</h4>
                 <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-2">Has your child ever received tutoring before? *</label>
-                    <div className="space-y-2">
-                      {[
-                        { value: "formal", label: "Yes - formal paid tutoring" },
-                        { value: "informal", label: "Yes - informal help from friends/family" },
-                        { value: "no", label: "No - this will be their first time" },
-                      ].map((option) => (
-                        <button
-                          key={option.value}
-                          onClick={() => handleInputChange("previousTutoring", option.value)}
-                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border-2 text-xs sm:text-sm text-left transition"
-                          style={{
-                            backgroundColor: formData.previousTutoring === option.value ? "#E63946" : "#FFF0F0",
-                            color: formData.previousTutoring === option.value ? "white" : "#1A1A1A",
-                            borderColor: formData.previousTutoring === option.value ? "#E63946" : "#FFF0F0"
-                          }}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
                   <div className="space-y-3 pt-2">
                     <label className="block text-xs sm:text-sm font-medium" style={{ color: "#1A1A1A" }}>
                       What does the struggle usually look like when your child is working? *
@@ -919,6 +895,37 @@ export default function ParentGateway() {
                         </div>
                       </div>
                     ) : null}
+                  </div>
+
+                </div>
+              </div>
+
+              {/* Background Questions */}
+              <div className="space-y-3 sm:space-y-4">
+                <h4 className="font-semibold text-xs sm:text-sm uppercase tracking-wide" style={{ color: "#E63946" }}>Background</h4>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium mb-2">Has your child ever received tutoring before? *</label>
+                    <div className="space-y-2">
+                      {[
+                        { value: "formal", label: "Yes - formal paid tutoring" },
+                        { value: "informal", label: "Yes - informal help from friends/family" },
+                        { value: "no", label: "No - this will be their first time" },
+                      ].map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => handleInputChange("previousTutoring", option.value)}
+                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border-2 text-xs sm:text-sm text-left transition"
+                          style={{
+                            backgroundColor: formData.previousTutoring === option.value ? "#E63946" : "#FFF0F0",
+                            color: formData.previousTutoring === option.value ? "white" : "#1A1A1A",
+                            borderColor: formData.previousTutoring === option.value ? "#E63946" : "#FFF0F0"
+                          }}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   <div>
