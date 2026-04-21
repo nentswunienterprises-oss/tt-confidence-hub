@@ -163,7 +163,8 @@ export default function ResponseConditioningLoggingSystem() {
             </p>
           </div>
 
-          <div className="rounded-2xl border bg-card/60 p-4 md:p-6 space-y-6">
+          <div className="rounded-2xl border bg-card/60 p-4 md:p-6">
+            <div className="mx-auto max-w-3xl space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 className="text-xl font-bold">Live Runner Demo</h3>
@@ -174,34 +175,34 @@ export default function ResponseConditioningLoggingSystem() {
               <Badge variant="outline">Rep 1 view</Badge>
             </div>
 
-            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm">
               <div className="font-semibold text-foreground text-sm">Phase: Structured Execution</div>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-xs text-muted-foreground mb-2">
                 Test and build ability to execute the known method independently. Student knows. Now prove they can do it alone, repeatably.
               </div>
-              <div className="flex flex-wrap gap-2 text-xs">
-                <span className="rounded border bg-background px-2 py-1">State steps before solving</span>
-                <span className="rounded border bg-background px-2 py-1">No guessing tolerated</span>
-                <span className="rounded border bg-background px-2 py-1">No skipping steps</span>
+              <div className="flex flex-wrap gap-1">
+                <span className="rounded border border-primary/20 bg-background px-2 py-0.5 text-xs font-medium">State steps before solving</span>
+                <span className="rounded border border-primary/20 bg-background px-2 py-0.5 text-xs font-medium">No guessing tolerated</span>
+                <span className="rounded border border-primary/20 bg-background px-2 py-0.5 text-xs font-medium">No skipping steps</span>
               </div>
             </div>
 
-            <div className="rounded-xl border bg-background p-4 space-y-4 shadow-sm">
-              <div className="flex items-center justify-between gap-3">
+            <div className="rounded-xl border border-primary/15 bg-background p-3 shadow-sm">
+              <div className="mb-2 flex items-center justify-between gap-3">
                 <div className="font-semibold text-sm">Set 1 / 2: Start + Structure</div>
                 <div className="text-sm font-medium text-muted-foreground">Rep 1 / 3</div>
               </div>
-              <div className="text-xs text-muted-foreground">
+              <div className="mb-3 text-xs text-muted-foreground">
                 Test ability to execute from a cold start with no assistance. Observe whether structure exists from the first move.
               </div>
-              <div className="rounded-md border border-primary/20 bg-primary/5 p-3">
-                <div className="text-xs font-semibold text-primary mb-1">Rep instruction</div>
+              <div className="mb-3 rounded-md border border-primary/20 bg-primary/5 p-2">
+                <div className="mb-0.5 text-xs font-semibold text-primary">Rep instruction</div>
                 <div className="text-sm font-medium">Solve the problem. No help for 10 seconds.</div>
               </div>
-              <div className="flex flex-wrap gap-2 text-xs">
-                <span className="rounded border px-2 py-1">No help for 10 seconds</span>
-                <span className="rounded border px-2 py-1">Observe cold start behavior</span>
-                <span className="rounded border px-2 py-1">Record exactly what happens</span>
+              <div className="flex flex-wrap gap-1">
+                <span className="rounded border border-primary/15 px-2 py-0.5 text-xs text-muted-foreground">No help for 10 seconds</span>
+                <span className="rounded border border-primary/15 px-2 py-0.5 text-xs text-muted-foreground">Observe cold start behavior</span>
+                <span className="rounded border border-primary/15 px-2 py-0.5 text-xs text-muted-foreground">Record exactly what happens</span>
               </div>
             </div>
 
@@ -219,12 +220,14 @@ export default function ResponseConditioningLoggingSystem() {
                       <p className="font-medium">{row.field}</p>
                       <Badge variant="secondary">{row.level}</Badge>
                     </div>
-                    <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+                    <div className="flex flex-wrap gap-2">
                       {row.options.map((option) => (
                         <span
                           key={option}
-                          className={`rounded border px-2 py-1 ${
-                            option === row.selected ? "border-primary bg-primary/10 text-foreground" : ""
+                          className={`rounded-md border px-3 py-1 text-sm transition-colors ${
+                            option === row.selected
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-primary/20 bg-background text-foreground"
                           }`}
                         >
                           {option}
@@ -282,6 +285,7 @@ export default function ResponseConditioningLoggingSystem() {
                   </div>
                 ))}
               </div>
+            </div>
             </div>
           </div>
         </Card>
