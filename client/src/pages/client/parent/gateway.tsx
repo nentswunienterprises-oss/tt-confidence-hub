@@ -819,9 +819,8 @@ export default function ParentGateway() {
                 </div>
               </div>
 
-              {/* Symptom Mapping */}
+              {/* Response symptoms */}
               <div className="space-y-3 sm:space-y-4">
-                <h4 className="font-semibold text-xs sm:text-sm uppercase tracking-wide" style={{ color: "#E63946" }}>Symptom Mapping</h4>
                 <div className="space-y-3">
                   <div className="space-y-3 pt-2">
                     <label className="block text-xs sm:text-sm font-medium" style={{ color: "#1A1A1A" }}>
