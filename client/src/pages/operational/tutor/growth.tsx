@@ -7,10 +7,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Calendar, Plus, TrendingUp, ClipboardList } from "lucide-react";
+import { Calendar, Plus, ClipboardList } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import type { Reflection } from "@shared/schema";
@@ -20,7 +19,6 @@ export default function TutorGrowth() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
   const { toast } = useToast();
   const [reflectionText, setReflectionText] = useState("");
-  const [habitScore, setHabitScore] = useState([5]);
   const [checkInDialogOpen, setCheckInDialogOpen] = useState(false);
   const [checkInData, setCheckInData] = useState({
     sessionsSummary: "",
@@ -75,13 +73,12 @@ export default function TutorGrowth() {
   }, [error, toast]);
 
   const createReflection = useMutation({
-    mutationFn: async (data: { reflectionText: string; habitScore: number }) => {
+    mutationFn: async (data: { reflectionText: string }) => {
       await apiRequest("POST", "/api/tutor/reflections", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tutor/reflections"] });
       setReflectionText("");
-      setHabitScore([5]);
       toast({
         title: "Reflection saved",
         description: "Your reflection has been recorded successfully.",
@@ -155,7 +152,6 @@ export default function TutorGrowth() {
     }
     createReflection.mutate({
       reflectionText: reflectionText.trim(),
-      habitScore: habitScore[0],
     });
   };
 
@@ -171,11 +167,6 @@ export default function TutorGrowth() {
     );
   }
 
-  const avgHabitScore =
-    reflections && reflections.length > 0
-      ? reflections.reduce((sum, r) => sum + (r.habitScore || 0), 0) / reflections.length
-      : 0;
-
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -185,31 +176,10 @@ export default function TutorGrowth() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-2 sm:gap-6">
-          <Card className="p-3 sm:p-6 border">
-            <div className="flex items-center justify-between mb-2 sm:mb-4">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-              </div>
-            </div>
-            <div className="space-y-1 text-center sm:text-left">
-              <p className="text-xl sm:text-2xl font-bold">{reflections?.length || 0}</p>
-              <p className="text-[10px] sm:text-sm text-muted-foreground">Total Reflections</p>
-            </div>
-          </Card>
-
-          <Card className="p-3 sm:p-6 border">
-            <div className="flex items-center justify-between mb-2 sm:mb-4">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
-              </div>
-            </div>
-            <div className="space-y-1 text-center sm:text-left">
-              <p className="text-xl sm:text-2xl font-bold">{avgHabitScore.toFixed(1)}</p>
-              <p className="text-[10px] sm:text-sm text-muted-foreground">Avg Habit Score</p>
-            </div>
-          </Card>
-        </div>
+        <Card className="border p-4 sm:p-6">
+          <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground sm:text-xs">Reflections Logged</p>
+          <p className="mt-2 text-2xl font-bold sm:text-3xl">{reflections?.length || 0}</p>
+        </Card>
 
         {/* New Reflection Form */}
         <Card className="p-6 border">
@@ -227,29 +197,6 @@ export default function TutorGrowth() {
                 data-testid="input-reflection-text"
               />
             </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="habit-score" className="text-base font-semibold">
-                  Habit Score
-                </Label>
-                <span className="text-2xl font-bold text-primary">{habitScore[0]}/10</span>
-              </div>
-              <Slider
-                id="habit-score"
-                min={1}
-                max={10}
-                step={1}
-                value={habitScore}
-                onValueChange={setHabitScore}
-                className="py-4"
-                data-testid="input-habit-score"
-              />
-              <p className="text-xs text-muted-foreground">
-                Rate your consistency and discipline today (1 = poor, 10 = excellent)
-              </p>
-            </div>
-
             <Button
               type="submit"
               className="w-full gap-2"
@@ -282,21 +229,11 @@ export default function TutorGrowth() {
                   data-testid={`reflection-${reflection.id}`}
                 >
                   <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
+                    <div className="flex-1">
                       <p className="text-sm text-muted-foreground mb-2">
                         {format(new Date(reflection.date), "MMMM d, yyyy 'at' h:mm a")}
                       </p>
                       <p className="leading-relaxed">{reflection.reflectionText}</p>
-                    </div>
-                    <div className="flex flex-col items-center gap-1 min-w-[60px]">
-                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-lg font-bold text-primary">
-                          {reflection.habitScore}
-                        </span>
-                      </div>
-                      <span className="text-2xs text-muted-foreground uppercase tracking-wide">
-                        Score
-                      </span>
                     </div>
                   </div>
                 </div>

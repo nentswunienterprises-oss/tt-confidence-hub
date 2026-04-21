@@ -993,8 +993,7 @@ export class SupabaseStorage implements IStorage {
       tutor_id: reflection.tutorId,
       date: reflection.date,
       reflection_text: reflection.reflectionText,
-      habit_score: reflection.habitScore,
-    }).select("id, tutor_id, date, reflection_text, habit_score, created_at");
+    }).select("id, tutor_id, date, reflection_text, created_at");
     
     if (!data || data.length === 0) throw new Error("Failed to create reflection");
     
@@ -1003,7 +1002,6 @@ export class SupabaseStorage implements IStorage {
       id: row.id,
       tutorId: row.tutor_id,
       reflectionText: row.reflection_text,
-      habitScore: row.habit_score,
       date: row.date,
       createdAt: row.created_at,
     } as Reflection;
@@ -1012,7 +1010,7 @@ export class SupabaseStorage implements IStorage {
   async getReflectionsByTutor(tutorId: string): Promise<Reflection[]> {
     const { data } = await supabase
       .from("reflections")
-      .select("id, tutor_id, date, reflection_text, habit_score, created_at")
+      .select("id, tutor_id, date, reflection_text, created_at")
       .eq("tutor_id", tutorId)
       .order("date", { ascending: false });
     
@@ -1022,7 +1020,6 @@ export class SupabaseStorage implements IStorage {
       id: row.id,
       tutorId: row.tutor_id,
       reflectionText: row.reflection_text,
-      habitScore: row.habit_score,
       date: row.date,
       createdAt: row.created_at,
     } as Reflection));

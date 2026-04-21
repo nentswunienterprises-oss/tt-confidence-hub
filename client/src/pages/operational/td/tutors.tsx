@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
-import { Users, Calendar, TrendingUp } from "lucide-react";
+import { Users } from "lucide-react";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import type { User, TutorAssignment, Student, Session } from "@shared/schema";
 
@@ -18,7 +18,6 @@ interface TutorProfile {
   students: Student[];
   sessions: Session[];
   reflectionCount: number;
-  avgHabitScore: number;
 }
 
 export default function TDTutors() {
@@ -162,16 +161,6 @@ export default function TDTutors() {
                     </div>
                     <Progress value={progress} className="h-2" />
                   </div>
-
-                  {/* Habit Score */}
-                  {profile.avgHabitScore > 0 && (
-                    <div className="flex items-center justify-between pt-4 border-t">
-                      <span className="text-sm text-muted-foreground">Avg. Habit Score</span>
-                      <span className="text-lg font-bold text-primary">
-                        {profile.avgHabitScore.toFixed(1)}/10
-                      </span>
-                    </div>
-                  )}
                 </Card>
               );
             })

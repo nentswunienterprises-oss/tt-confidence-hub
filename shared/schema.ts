@@ -266,7 +266,6 @@ export const reflections = pgTable("reflections", {
     .references(() => users.id),
   date: timestamp("date").notNull(),
   reflectionText: text("reflection_text").notNull(),
-  habitScore: integer("habit_score"), // 1-10 scale
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

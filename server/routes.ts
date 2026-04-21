@@ -6993,7 +6993,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           tutorId,
           date: new Date(),
           reflectionText: req.body.reflectionText,
-          habitScore: req.body.habitScore,
         });
         res.json(reflection);
       } catch (error) {
@@ -8140,12 +8139,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const students = await storage.getStudentsByTutor(tutor.id);
             const sessions = await getTutorSessionFeed(tutor.id);
             const reflections = await storage.getReflectionsByTutor(tutor.id);
-            
-            const avgHabitScore =
-              reflections.length > 0
-                ? reflections.reduce((sum, r) => sum + (r.habitScore || 0), 0) /
-                  reflections.length
-                : 0;
 
             return {
               tutor,
@@ -8153,7 +8146,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
               students,
               sessions,
               reflectionCount: reflections.length,
-              avgHabitScore,
             };
           })
         );
