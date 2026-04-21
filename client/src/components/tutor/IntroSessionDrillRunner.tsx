@@ -4,6 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { observationLevelFromOptionIndex } from "@shared/observationScoring";
 import { tryParsePhase } from "@shared/topicConditioningEngine";
+import {
+  computeAdaptiveDiagnosisPhaseSummary,
+  getAdjacentDiagnosisPhase,
+} from "@shared/adaptiveDiagnosis";
 import { useStudentWorkflowState } from "@/hooks/useStudentWorkflowState";
 
 type PhaseLabel = "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability";
@@ -469,6 +473,13 @@ const TRAINING_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
   ],
 };
 
+const ADAPTIVE_DIAGNOSIS_BLOCK_BY_PHASE: Record<PhaseLabel, DrillSetConfig> = {
+  Clarity: DIAGNOSIS_SETS_BY_PHASE.Clarity[0],
+  "Structured Execution": DIAGNOSIS_SETS_BY_PHASE["Structured Execution"][0],
+  "Controlled Discomfort": DIAGNOSIS_SETS_BY_PHASE["Controlled Discomfort"][0],
+  "Time Pressure Stability": DIAGNOSIS_SETS_BY_PHASE["Time Pressure Stability"][0],
+};
+
 function normalizePhase(value: string | null): PhaseLabel {
   return tryParsePhase(value) || "Clarity";
 }
@@ -504,6 +515,13 @@ export default function IntroSessionDrillRunner() {
   const rawPhase = searchParams.get("phase");
   const parsedLaunchPhase = tryParsePhase(rawPhase);
   const phase = parsedLaunchPhase || "Clarity";
+  const [activeDiagnosisPhase, setActiveDiagnosisPhase] = useState<PhaseLabel>(phase);
+  const [adaptiveDiagnosisBlocks, setAdaptiveDiagnosisBlocks] = useState<Array<{
+    phase: PhaseLabel;
+    setName: string;
+    observations: Array<Record<string, string>>;
+  }>>([]);
+  const [adaptiveDiagnosisMessage, setAdaptiveDiagnosisMessage] = useState<string | null>(null);
   const previousStability = String(searchParams.get("stability") || "").trim() || null;
 
   const introTopic = useMemo(() => {
@@ -554,11 +572,19 @@ export default function IntroSessionDrillRunner() {
   const scheduledSession = drillSessionAccess?.session || null;
 
   const modeToUse: DrillMode = isSessionMode ? "training" : drillMode;
+  const isAdaptiveDiagnosisMode = modeToUse === "diagnosis";
   const drillStructure = useMemo(() => {
     if (isSessionMode && topicDataLoading) return null;
+    if (isAdaptiveDiagnosisMode) {
+      return [ADAPTIVE_DIAGNOSIS_BLOCK_BY_PHASE[activeDiagnosisPhase]];
+    }
     const phaseToUse = (isSessionMode ? currentTopicPhase : phase) as PhaseLabel;
     return buildDrillStructure(modeToUse, phaseToUse);
-  }, [isSessionMode, modeToUse, currentTopicPhase, phase, topicDataLoading]);
+  }, [isSessionMode, modeToUse, currentTopicPhase, phase, topicDataLoading, isAdaptiveDiagnosisMode, activeDiagnosisPhase]);
+
+  const displayPhase: PhaseLabel = isAdaptiveDiagnosisMode
+    ? activeDiagnosisPhase
+    : ((isSessionMode ? currentTopicPhase : phase) as PhaseLabel);
 
   const hasIntroTopic = !!introTopic;
 
@@ -612,6 +638,17 @@ export default function IntroSessionDrillRunner() {
     if (submitting || submitSuccess) return;
     if (!isFirstRep) {
       setCurrentRep((r) => r - 1);
+      return;
+    }
+    if (isAdaptiveDiagnosisMode && adaptiveDiagnosisBlocks.length > 0) {
+      const previousBlock = adaptiveDiagnosisBlocks[adaptiveDiagnosisBlocks.length - 1];
+      const previousSet = ADAPTIVE_DIAGNOSIS_BLOCK_BY_PHASE[previousBlock.phase];
+      setAdaptiveDiagnosisBlocks((prev) => prev.slice(0, -1));
+      setActiveDiagnosisPhase(previousBlock.phase);
+      setCurrentSet(0);
+      setCurrentRep(Math.max(0, previousSet.reps - 1));
+      setObservations(hydrateObservationsFromSet(previousSet, previousBlock));
+      setAdaptiveDiagnosisMessage(null);
       return;
     }
     if (!isFirstSet) {
@@ -669,6 +706,21 @@ export default function IntroSessionDrillRunner() {
 
   const getSubmissionRepCount = (setConfig: DrillSetConfig) => {
     return setConfig.reps;
+  };
+
+  const hydrateObservationsFromSet = (setConfig: DrillSetConfig, serializedSet: { observations?: Array<Record<string, string>> }) => {
+    const nextObservations: Record<string, string> = {};
+    const reps = Array.isArray(serializedSet?.observations) ? serializedSet.observations : [];
+    reps.forEach((repObs, repIdx) => {
+      const observationBlock = getObservationBlockForRep(setConfig, repIdx);
+      observationBlock.forEach((field) => {
+        const selectedLabel = String(repObs?.[field.key] || "").trim();
+        if (selectedLabel) {
+          nextObservations[`set0_rep${repIdx}_${field.key}`] = selectedLabel;
+        }
+      });
+    });
+    return nextObservations;
   };
 
   const serializeSetForSubmission = (setConfig: DrillSetConfig, setIndex: number) => {
@@ -733,6 +785,87 @@ export default function IntroSessionDrillRunner() {
     } else if (!isLastSet) {
       setCurrentSet((s) => s + 1);
       setCurrentRep(0);
+    } else if (isAdaptiveDiagnosisMode) {
+      const serializedSet = serializeSetForSubmission(set, currentSet);
+      const phaseSummary = computeAdaptiveDiagnosisPhaseSummary(activeDiagnosisPhase, serializedSet.observations);
+      const currentBlock = {
+        phase: activeDiagnosisPhase,
+        setName: set.setName,
+        observations: serializedSet.observations,
+      };
+      const nextPhase =
+        phaseSummary.band === "de-escalate"
+          ? getAdjacentDiagnosisPhase(activeDiagnosisPhase, "previous")
+          : phaseSummary.band === "escalate"
+            ? getAdjacentDiagnosisPhase(activeDiagnosisPhase, "next")
+            : null;
+      const shouldStop = !nextPhase || phaseSummary.band === "place";
+
+      if (!shouldStop) {
+        setAdaptiveDiagnosisBlocks((prev) => [...prev, currentBlock]);
+        setAdaptiveDiagnosisMessage(
+          `${activeDiagnosisPhase} scored ${phaseSummary.phaseScore}/100. ${
+            phaseSummary.band === "escalate" ? `Moving up to ${nextPhase}.` : `Dropping to ${nextPhase}.`
+          }`
+        );
+        setActiveDiagnosisPhase(nextPhase);
+        setCurrentSet(0);
+        setCurrentRep(0);
+        setObservations({});
+        return;
+      }
+
+      const finalAdaptiveBlocks = [...adaptiveDiagnosisBlocks, currentBlock];
+
+      setSubmitting(true);
+      setSubmitError(null);
+      setSubmitSuccess(false);
+      setScoring(null);
+      try {
+        const payload = {
+          studentId,
+          introTopic,
+          startingPhase: phase,
+          adaptiveBlocks: finalAdaptiveBlocks,
+          scheduledSessionId,
+        };
+        const res = await axios.post("/api/tutor/intro-session-drill", payload);
+
+        const queryClient = (window as any).__queryClient;
+        if (queryClient) {
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ["/api/tutor/pod"] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/tutor/sessions"] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/tutor/topic-conditioning", studentId] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/tutor/students", studentId, "topic-conditioning-activations"] }),
+            queryClient.invalidateQueries({ queryKey: [`/api/tutor/students/${studentId}/reports-center`] }),
+            queryClient.invalidateQueries({ queryKey: [`/api/tutor/students/${studentId}/assignments`] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/parent/reports"] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/parent/dashboard-student"] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/parent/dashboard-topic-states"] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/parent/assigned-tutor"] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/parent/intro-session"] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/parent/proposal"] }),
+          ]);
+          await Promise.all([
+            queryClient.refetchQueries({ queryKey: ["/api/tutor/pod"] }),
+            queryClient.refetchQueries({ queryKey: [`/api/tutor/students/${studentId}/reports-center`] }),
+          ]);
+        }
+
+        setAdaptiveDiagnosisMessage(
+          `${phaseSummary.phaseScore}/100 in ${activeDiagnosisPhase}. Diagnosis locked at ${res.data?.summary?.phase || activeDiagnosisPhase}.`
+        );
+        setSubmitSuccess(true);
+        setScoring(res.data?.scoring || null);
+      } catch (err: any) {
+        console.error("Adaptive intro diagnosis submission error:", err);
+        const errorMessage = err?.response?.data?.message || err?.message || "Submission failed. Please try again.";
+        const statusCode = err?.response?.status;
+        setSubmitError(statusCode ? `${errorMessage} (${statusCode})` : errorMessage);
+      } finally {
+        setSubmitting(false);
+      }
     } else {
       // Last rep of last set - either submit or move to next topic in session
       if (isSessionMode && sessionTopicIndex < sessionTopics.length - 1) {
@@ -964,6 +1097,9 @@ export default function IntroSessionDrillRunner() {
             ? "text-yellow-700"
             : "text-red-700";
         const resultLabelFor = (row: any, topicName: string) => {
+          if (drillMode === "diagnosis" && row?.bandLabel) {
+            return `${topicName}: placed in ${row?.phase} at ${row?.stability} stability`;
+          }
           const transitionReason = String(row?.transitionReason || row?.phaseDecision || "remain").toLowerCase();
           if ((transitionReason === "phase progress" || row?.phaseDecision === "advance") && row?.phaseBefore !== row?.phase) {
             return `${topicName}: phase advanced to ${row?.phase} at ${row?.stability} stability`;
@@ -1090,6 +1226,11 @@ export default function IntroSessionDrillRunner() {
           {submitError}
         </div>
       )}
+      {adaptiveDiagnosisMessage && !submitSuccess && isAdaptiveDiagnosisMode && (
+        <div className="mb-4 p-3 rounded-md border border-primary/20 bg-primary/5 text-sm text-foreground">
+          {adaptiveDiagnosisMessage}
+        </div>
+      )}
       {drillStructure && set && (
         <>
           <h2 className="text-2xl font-bold mb-2">
@@ -1097,7 +1238,7 @@ export default function IntroSessionDrillRunner() {
               ? `Training Session - Topic ${sessionTopicIndex + 1} of ${sessionTopics.length}`
               : drillMode === "training"
               ? `Training Drill - ${phase}`
-              : `Intro Session - ${phase} Diagnostic Drill`}
+              : `Adaptive Intro Diagnosis - ${displayPhase}`}
           </h2>
       <p className="mb-2 text-sm">
         <span className="font-semibold">
@@ -1134,22 +1275,22 @@ export default function IntroSessionDrillRunner() {
         <p className="font-semibold mb-1">Instructions:</p>
         <ul className="list-disc pl-5 text-sm text-foreground/90 space-y-1">
           <li>
-            This drill is for system-driven diagnostics. Follow the structure exactly.
+            This diagnosis is adaptive. Complete the current phase verification block exactly as shown.
           </li>
-          <li><strong>Before you begin:</strong> Prepare <span className="font-semibold">3 distinct problems</span> for each drill set.</li>
-          <li>For each set and rep, present the prepared problem, observe the student, and select the option that best matches their behavior for each field.</li>
-          <li>You cannot skip steps or edit outside the drill structure. Complete each observation in order.</li>
-          <li>When finished, observations are submitted for automated scoring and proposal linkage.</li>
+          <li><strong>Before you begin:</strong> Prepare <span className="font-semibold">3 distinct problems</span> for the current phase block.</li>
+          <li>The system will move up, place here, or move down after each phase block based on the score band.</li>
+          <li>You cannot skip steps or edit outside the verification structure. Complete each observation in order.</li>
+          <li>Diagnosis stops automatically once the correct entry phase is verified.</li>
         </ul>
       </div>
       )}
 
       {/* Phase-level context bar — shown only on set 1 */}
       {isFirstSet && isFirstRep && <div className="mb-4 p-3 rounded-xl border border-primary/20 bg-primary/5 text-sm">
-        <div className="font-semibold text-foreground mb-1">Phase: {phase}</div>
-        <div className="text-muted-foreground text-xs mb-2">{PHASE_CONTEXT[phase].purpose}</div>
+        <div className="font-semibold text-foreground mb-1">Phase: {displayPhase}</div>
+        <div className="text-muted-foreground text-xs mb-2">{PHASE_CONTEXT[displayPhase].purpose}</div>
         <div className="flex flex-wrap gap-1">
-          {PHASE_CONTEXT[phase].constraints.map((c, i) => (
+          {PHASE_CONTEXT[displayPhase].constraints.map((c, i) => (
             <span key={i} className="px-2 py-0.5 bg-background border border-primary/20 text-foreground rounded text-xs font-medium">✕ {c}</span>
           ))}
         </div>
@@ -1236,6 +1377,8 @@ export default function IntroSessionDrillRunner() {
             ? "Submitted"
             : submitting
             ? "Submitting..."
+            : isAdaptiveDiagnosisMode && isLastRep
+            ? "Verify Phase"
             : isLastSet && isLastRep
             ? "Submit Drill"
             : set?.isModelingSet && isLastRep

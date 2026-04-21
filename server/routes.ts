@@ -39,6 +39,11 @@ import {
   type ObservationSignal,
 } from "@shared/topicConditioningEngine";
 import { normalizeObservationLevelValue } from "@shared/observationScoring";
+import {
+  computeAdaptiveDiagnosisPhaseSummary,
+  getAdjacentDiagnosisPhase,
+  type AdaptiveDiagnosisBand,
+} from "@shared/adaptiveDiagnosis";
 import { z } from "zod";
 import {
   isGoogleMeetIntegrationAvailable,
@@ -71,6 +76,11 @@ const requireRole = (roles: string[]) => {
     next();
   };
 };
+
+async function getTutorOperationalMode(tutorId: string): Promise<"training" | "certified_live"> {
+  const assignment = await storage.getTutorAssignment(tutorId);
+  return (assignment?.operationalMode as "training" | "certified_live" | undefined) || "training";
+}
 
 async function safeSendPush(
   userId: string | null | undefined,
@@ -399,6 +409,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return [];
           };
 
+          const normalizeAdaptiveDiagnosisBlocks = (
+            raw: any
+          ): Array<{
+            phase: TopicPhase;
+            setName: string;
+            observations: Array<Record<string, string>>;
+          }> => {
+            if (!Array.isArray(raw)) return [];
+
+            return raw
+              .map((block: any) => {
+                const phase = parseAuthoritativePhase(block?.phase);
+                if (!phase) return null;
+                return {
+                  phase,
+                  setName: String(block?.setName || "Verification Block"),
+                  observations: Array.isArray(block?.observations) ? block.observations : [],
+                };
+              })
+              .filter(Boolean) as Array<{
+              phase: TopicPhase;
+              setName: string;
+              observations: Array<Record<string, string>>;
+            }>;
+          };
+
           const EXACT_SET_LIBRARY: Record<
             "diagnosis" | "training",
             Record<
@@ -446,6 +482,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 { setName: "Full Constraint", reps: 3 },
               ],
             },
+          };
+
+          const ADAPTIVE_DIAGNOSIS_SET_LIBRARY: Record<TopicPhase, { setName: string; reps: number }> = {
+            Clarity: { setName: "Recognition Probe", reps: 3 },
+            "Structured Execution": { setName: "Start + Structure", reps: 3 },
+            "Controlled Discomfort": { setName: "First Contact", reps: 3 },
+            "Time Pressure Stability": { setName: "Light Timer", reps: 3 },
           };
 
           const validateDrillStructure = (
@@ -496,6 +539,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   }
                   if (!["weak", "partial", "clear"].includes(explicitLevel)) {
                     return `Set ${setIndex + 1}, rep ${repIndex + 1} has invalid observation level`;
+                  }
+                }
+              }
+            }
+
+            return null;
+          };
+
+          const validateAdaptiveDiagnosisBlocks = (
+            blocks: Array<{
+              phase: TopicPhase;
+              setName: string;
+              observations: Array<Record<string, string>>;
+            }>
+          ): string | null => {
+            if (!blocks.length) {
+              return "Adaptive diagnosis must include at least one phase verification block";
+            }
+
+            for (let blockIndex = 0; blockIndex < blocks.length; blockIndex += 1) {
+              const block = blocks[blockIndex];
+              const expectedSet = ADAPTIVE_DIAGNOSIS_SET_LIBRARY[block.phase];
+              const observations = Array.isArray(block.observations) ? block.observations : [];
+              const phaseFields = INTRO_PHASE_WEIGHTS[block.phase] || [];
+
+              if (!expectedSet) {
+                return `Adaptive diagnosis block ${blockIndex + 1} has an invalid phase`;
+              }
+
+              if (String(block.setName || "").trim() !== expectedSet.setName) {
+                return `Adaptive diagnosis block ${blockIndex + 1} must be "${expectedSet.setName}"`;
+              }
+
+              if (observations.length !== expectedSet.reps) {
+                return `Adaptive diagnosis block ${blockIndex + 1} must include exactly ${expectedSet.reps} reps`;
+              }
+
+              for (let repIndex = 0; repIndex < observations.length; repIndex += 1) {
+                const rep = observations[repIndex] || {};
+                for (const field of phaseFields) {
+                  const explicitLevel = field.aliases
+                    .map((alias) => String(rep?.[`${alias}_level`] || "").trim())
+                    .find(Boolean);
+                  if (!explicitLevel) {
+                    return `Adaptive diagnosis block ${blockIndex + 1}, rep ${repIndex + 1} is missing required observation level`;
+                  }
+                  if (!["weak", "partial", "clear"].includes(explicitLevel)) {
+                    return `Adaptive diagnosis block ${blockIndex + 1}, rep ${repIndex + 1} has invalid observation level`;
                   }
                 }
               }
@@ -647,6 +738,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
               setScores,
               highGuardPasses,
             };
+          };
+
+          const labelAdaptiveDiagnosisBand = (band: AdaptiveDiagnosisBand) => {
+            if (band === "de-escalate") return "Phase too advanced";
+            if (band === "escalate") return "Phase too easy";
+            return "Phase match";
+          };
+
+          const computeAdaptiveDiagnosisSummary = (
+            startingPhase: TopicPhase,
+            blocks: Array<{
+              phase: TopicPhase;
+              setName: string;
+              observations: Array<Record<string, string>>;
+            }>
+          ) => {
+            const phaseChecks = blocks.map((block) => {
+              const phaseSummary = computeAdaptiveDiagnosisPhaseSummary(block.phase, block.observations);
+              const nextPhase =
+                phaseSummary.band === "de-escalate"
+                  ? getAdjacentDiagnosisPhase(block.phase, "previous")
+                  : phaseSummary.band === "escalate"
+                    ? getAdjacentDiagnosisPhase(block.phase, "next")
+                    : null;
+
+              return {
+                phase: block.phase,
+                setName: block.setName,
+                phaseScore: phaseSummary.phaseScore,
+                band: phaseSummary.band,
+                stability: phaseSummary.stability,
+                nextPhase,
+                repRows: phaseSummary.repRows,
+              };
+            });
+
+            const finalCheck = phaseChecks[phaseChecks.length - 1];
+            const finalPhase = finalCheck?.phase || startingPhase;
+            const finalStability = finalCheck?.stability || "Low";
+            const nextActionConfig = (NEXT_ACTION_ENGINE as any)?.[finalPhase]?.[finalStability] || null;
+
+            return {
+              startingPhase,
+              pathLength: phaseChecks.length,
+              phaseChecks,
+              phase: finalPhase,
+              stability: finalStability,
+              diagnosisScore: finalCheck?.phaseScore || 0,
+              finalBand: finalCheck?.band || "place",
+              finalBandLabel: labelAdaptiveDiagnosisBand(finalCheck?.band || "place"),
+              nextAction: nextActionConfig?.primaryAction || null,
+              constraint: nextActionConfig?.rules?.[0] || null,
+            };
+          };
+
+          const validateAdaptiveDiagnosisPath = (
+            startingPhase: TopicPhase,
+            summary: ReturnType<typeof computeAdaptiveDiagnosisSummary>
+          ): string | null => {
+            if (!summary.phaseChecks.length) {
+              return "Adaptive diagnosis path is empty";
+            }
+
+            if (summary.phaseChecks[0]?.phase !== startingPhase) {
+              return "Adaptive diagnosis must begin at the selected starting phase";
+            }
+
+            for (let index = 0; index < summary.phaseChecks.length - 1; index += 1) {
+              const current = summary.phaseChecks[index];
+              const next = summary.phaseChecks[index + 1];
+
+              if (current.band === "place") {
+                return "Adaptive diagnosis cannot continue after a placement match";
+              }
+
+              if (!current.nextPhase) {
+                return "Adaptive diagnosis cannot continue after reaching a phase boundary";
+              }
+
+              if (current.nextPhase !== next.phase) {
+                return "Adaptive diagnosis path must move only to the adjacent recommended phase";
+              }
+            }
+
+            return null;
           };
 
           const computeTrainingSessionSummary = (
@@ -2029,22 +2205,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
           app.post("/api/tutor/intro-session-drill", isAuthenticated, requireRole(["tutor"]), async (req: Request, res: Response) => {
             try {
               const tutorId = (req as any).dbUser.id;
-              const { studentId, drill, introTopic, phase: rawPhase, scheduledSessionId } = req.body;
+              const { studentId, drill, introTopic, phase: rawPhase, startingPhase: rawStartingPhase, adaptiveBlocks: rawAdaptiveBlocks, scheduledSessionId } = req.body;
               const drillSets = normalizeIntroDrillSets(drill);
+              const adaptiveBlocks = normalizeAdaptiveDiagnosisBlocks(rawAdaptiveBlocks);
               const drillPhase = parseAuthoritativePhase(rawPhase);
+              const startingPhase = parseAuthoritativePhase(rawStartingPhase) || drillPhase;
               const normalizedIntroTopic = String(introTopic || "").trim();
+              const isAdaptiveDiagnosis = adaptiveBlocks.length > 0;
 
-              if (!studentId || drillSets.length === 0) {
+              if (!studentId || (!isAdaptiveDiagnosis && drillSets.length === 0)) {
                 return res.status(400).json({ message: "Missing or invalid studentId or drill data" });
               }
-              if (!drillPhase) {
+              if (!isAdaptiveDiagnosis && !drillPhase) {
                 return res.status(400).json({ message: "Invalid or missing diagnostic phase" });
+              }
+              if (isAdaptiveDiagnosis && !startingPhase) {
+                return res.status(400).json({ message: "Adaptive diagnosis requires a valid starting phase" });
               }
               if (!normalizedIntroTopic) {
                 return res.status(400).json({ message: "Diagnostic topic is required before intro drill submission" });
               }
 
-              const drillValidationError = validateDrillStructure("diagnosis", drillPhase, drillSets);
+              const drillValidationError = isAdaptiveDiagnosis
+                ? validateAdaptiveDiagnosisBlocks(adaptiveBlocks)
+                : validateDrillStructure("diagnosis", drillPhase!, drillSets);
               if (drillValidationError) {
                 return res.status(400).json({ message: drillValidationError });
               }
@@ -2089,7 +2273,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 return res.status(400).json({ message: "Intro drill submission is blocked until the intro session is confirmed." });
               }
 
-              const diagnosisSummary = computeIntroDiagnosisSummary(drillPhase, drillSets);
+              const diagnosisSummary = isAdaptiveDiagnosis
+                ? computeAdaptiveDiagnosisSummary(startingPhase!, adaptiveBlocks)
+                : computeIntroDiagnosisSummary(drillPhase!, drillSets);
+              if (isAdaptiveDiagnosis) {
+                const adaptivePathError = validateAdaptiveDiagnosisPath(startingPhase!, diagnosisSummary as ReturnType<typeof computeAdaptiveDiagnosisSummary>);
+                if (adaptivePathError) {
+                  return res.status(400).json({ message: adaptivePathError });
+                }
+              }
 
               // Store drill results in intro_session_drills table
               const id = uuidv4();
@@ -2101,10 +2293,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   tutor_id: tutorId,
                   drill: JSON.stringify({
                     introTopic: normalizedIntroTopic,
-                    phase: drillPhase,
+                    phase: diagnosisSummary.phase,
+                    startingPhase: isAdaptiveDiagnosis ? startingPhase : drillPhase,
                     drillType: "diagnosis",
+                    diagnosisMode: isAdaptiveDiagnosis ? "adaptive" : "legacy",
                     scheduledSessionId: scheduledSession.id,
-                    sets: drillSets,
+                    sets: isAdaptiveDiagnosis ? adaptiveBlocks : drillSets,
                     summary: diagnosisSummary,
                   }),
                   scheduled_session_id: scheduledSession.id,
@@ -2132,27 +2326,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 } as any);
               }
 
-              const scoringResults = diagnosisSummary.repRows.map((row) => {
-                const setIndex = diagnosisSummary.repRows.findIndex(
-                  (candidate) => candidate.set === row.set && candidate.rep === row.rep
-                );
-                const scoredSetIndex = Math.max(0, Math.floor(setIndex / 3));
-                const setScore = diagnosisSummary.setScores[scoredSetIndex] ?? row.repScore;
+              const scoringResults = isAdaptiveDiagnosis
+                ? diagnosisSummary.phaseChecks.flatMap((check: any) =>
+                    check.repRows.map((row: any) => ({
+                      set: check.setName,
+                      rep: row.rep,
+                      score: row.repScore,
+                      setScore: check.phaseScore,
+                      setPoints: check.phaseScore,
+                      setMaxPoints: 100,
+                      sessionScore: check.phaseScore,
+                      phase: check.phase,
+                      stability: check.stability,
+                      band: check.band,
+                      bandLabel: labelAdaptiveDiagnosisBand(check.band),
+                      nextPhase: check.nextPhase,
+                      nextAction: diagnosisSummary.nextAction,
+                      constraint: diagnosisSummary.constraint,
+                    }))
+                  )
+                : diagnosisSummary.repRows.map((row) => {
+                    const setIndex = diagnosisSummary.repRows.findIndex(
+                      (candidate) => candidate.set === row.set && candidate.rep === row.rep
+                    );
+                    const scoredSetIndex = Math.max(0, Math.floor(setIndex / 3));
+                    const setScore = diagnosisSummary.setScores[scoredSetIndex] ?? row.repScore;
 
-                return {
-                  set: row.set,
-                  rep: row.rep,
-                  score: row.repScore,
-                  setScore,
-                  setPoints: setScore,
-                  setMaxPoints: 100,
-                  sessionScore: diagnosisSummary.diagnosisScore,
-                  phase: diagnosisSummary.phase,
-                  stability: diagnosisSummary.stability,
-                  nextAction: diagnosisSummary.nextAction,
-                  constraint: diagnosisSummary.constraint,
-                };
-              });
+                    return {
+                      set: row.set,
+                      rep: row.rep,
+                      score: row.repScore,
+                      setScore,
+                      setPoints: setScore,
+                      setMaxPoints: 100,
+                      sessionScore: diagnosisSummary.diagnosisScore,
+                      phase: diagnosisSummary.phase,
+                      stability: diagnosisSummary.stability,
+                      nextAction: diagnosisSummary.nextAction,
+                      constraint: diagnosisSummary.constraint,
+                    };
+                  });
 
               const conceptMastery: any =
                 student.conceptMastery && typeof student.conceptMastery === "object"
@@ -2195,8 +2408,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     observationNotes: `Intro diagnosis update. Score ${diagnosisSummary.diagnosisScore}.`,
                     structuredObservation: {
                       drillType: "diagnosis",
-                      observedPhase: drillPhase,
+                      observedPhase: isAdaptiveDiagnosis ? diagnosisSummary.phase : drillPhase,
+                      startingPhase: isAdaptiveDiagnosis ? startingPhase : drillPhase,
+                      diagnosisMode: isAdaptiveDiagnosis ? "adaptive" : "legacy",
                       diagnosisScore: diagnosisSummary.diagnosisScore,
+                      finalBand: isAdaptiveDiagnosis ? diagnosisSummary.finalBand : null,
+                      pathLength: isAdaptiveDiagnosis ? diagnosisSummary.pathLength : null,
                       nextAction: diagnosisSummary.nextAction,
                       constraint: diagnosisSummary.constraint,
                     },
@@ -4038,6 +4255,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: Request, res: Response) => {
       try {
         const tutorId = (req as any).dbUser.id;
+        const operationalMode = await getTutorOperationalMode(tutorId);
         const weekStartParam = String(req.query.weekStart || "").trim();
 
         const baseDate = weekStartParam ? new Date(`${weekStartParam}T00:00:00`) : new Date();
@@ -4053,6 +4271,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekEnd.getDate() + 6);
         weekEnd.setHours(23, 59, 59, 999);
+
+        if (operationalMode === "training") {
+          return res.json({
+            weekStart: weekStart.toISOString(),
+            weekEnd: weekEnd.toISOString(),
+            sessions: [],
+            operationalMode,
+            sessionSchedulingEnabled: false,
+          });
+        }
 
         const { data: sessions, error } = await supabase
           .from("scheduled_sessions")
@@ -4091,6 +4319,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({
           weekStart: weekStart.toISOString(),
           weekEnd: weekEnd.toISOString(),
+          operationalMode,
+          sessionSchedulingEnabled: true,
           sessions: (sessions || []).map((session: any) => ({
             ...session,
             student: studentsById.get(String(session.student_id || "")) || null,
@@ -4888,6 +5118,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const { studentId, sessionId } = req.params;
         const tutorId = (req as any).dbUser.id;
+        const operationalMode = await getTutorOperationalMode(tutorId);
+
+        if (operationalMode === "training") {
+          return res.status(400).json({
+            message: "Meet sync is disabled while this tutor is in training mode.",
+          });
+        }
+
         const student = await storage.getStudent(studentId);
 
         if (!student || student.tutorId !== tutorId) {
@@ -9006,6 +9244,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               tutorEmail: tutor?.email || "",
               student_count: activeStudentCount || 0,
               studentCount: activeStudentCount || 0,
+              operational_mode: assignment.operationalMode || "training",
             };
           })
         );
@@ -9971,6 +10210,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error("❌ Error fetching tutor application status:", error);
         res.status(500).json({ message: "Failed to fetch application status" });
+      }
+    }
+  );
+
+  app.patch(
+    "/api/coo/pods/:podId/tutors/:assignmentId/operational-mode",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { podId, assignmentId } = req.params;
+        const operationalMode =
+          req.body?.operationalMode === "certified_live" ? "certified_live" : "training";
+
+        const assignments = await storage.getTutorAssignmentsByPod(podId);
+        const assignment = assignments.find((item) => item.id === assignmentId);
+        if (!assignment) {
+          return res.status(404).json({ message: "Tutor assignment not found for this pod." });
+        }
+
+        await storage.updateTutorOperationalMode(assignmentId, operationalMode);
+        res.json({ message: "Tutor operational mode updated.", operationalMode });
+      } catch (error) {
+        console.error("Error updating tutor operational mode:", error);
+        res.status(500).json({ message: "Failed to update tutor operational mode" });
       }
     }
   );
