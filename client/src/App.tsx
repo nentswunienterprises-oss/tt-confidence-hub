@@ -350,15 +350,15 @@ function Router() {
 
       {/* Tutor Routes */}
       <Route path="/operational/tutor/gateway" element={<TutorGateway />} />
-      <Route path="/operational/tutor/dashboard" element={<DashboardLayout><OperationalTutorDashboard /></DashboardLayout>} />
-      <Route path="/operational/tutor/my-pod" element={<DashboardLayout><OperationalTutorDashboard /></DashboardLayout>} />
+      <Route path="/operational/tutor/dashboard" element={<Navigate to="/tutor/pod" replace />} />
+      <Route path="/operational/tutor/my-pod" element={<Navigate to="/tutor/pod" replace />} />
       <Route path="/tutor/blueprint" element={<DashboardLayout><TutorBlueprint /></DashboardLayout>} />
       <Route path="/operational/tutor/tt-os" element={<TTOS />} />
-      <Route path="/operational/tutor/growth" element={<DashboardLayout><TutorGrowth /></DashboardLayout>} />
-      <Route path="/operational/tutor/academic-tracker" element={<DashboardLayout><TutorAcademics /></DashboardLayout>} />
-      <Route path="/operational/tutor/sessions" element={<TutorSessions />} />
-      <Route path="/operational/tutor/profile" element={<DashboardLayout><TutorProfile /></DashboardLayout>} />
-      <Route path="/operational/tutor/updates" element={<DashboardLayout><TutorUpdates /></DashboardLayout>} />
+      <Route path="/operational/tutor/growth" element={<Navigate to="/tutor/growth" replace />} />
+      <Route path="/operational/tutor/academic-tracker" element={<Navigate to="/tutor/academics" replace />} />
+      <Route path="/operational/tutor/sessions" element={<Navigate to="/tutor/sessions" replace />} />
+      <Route path="/operational/tutor/profile" element={<Navigate to="/tutor/profile" replace />} />
+      <Route path="/operational/tutor/updates" element={<Navigate to="/tutor/updates" replace />} />
 
       {/* TD Routes */}
       <Route path="/operational/td/dashboard" element={<DashboardLayout><OperationalTDDashboard /></DashboardLayout>} />
