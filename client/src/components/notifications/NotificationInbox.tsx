@@ -21,11 +21,13 @@ export function NotificationInbox({
   description,
   emptyMessage,
   excludeEntityTypes = [],
+  showHeader = true,
 }: {
   title: string;
   description: string;
   emptyMessage: string;
   excludeEntityTypes?: string[];
+  showHeader?: boolean;
 }) {
   const qc = useQueryClient();
   const initialized = useRef(false);
@@ -56,10 +58,12 @@ export function NotificationInbox({
   if (isLoading) return <div className="flex items-center justify-center h-48 sm:h-64"><div className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>;
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="mb-4 sm:mb-8 flex items-center justify-between gap-2">
-        <div><h1 className="text-xl sm:text-3xl font-bold flex items-center gap-2"><Bell className="w-5 h-5 sm:w-8 sm:h-8" />{title}</h1><p className="text-xs sm:text-base text-muted-foreground">{description}</p></div>
-        {unread.length > 0 && <Badge variant="destructive" className="text-sm sm:text-lg px-2 sm:px-4 py-1 sm:py-2">{unread.length} New</Badge>}
-      </div>
+      {showHeader && (
+        <div className="mb-4 sm:mb-8 flex items-center justify-between gap-2">
+          <div><h1 className="text-xl sm:text-3xl font-bold flex items-center gap-2"><Bell className="w-5 h-5 sm:w-8 sm:h-8" />{title}</h1><p className="text-xs sm:text-base text-muted-foreground">{description}</p></div>
+          {unread.length > 0 && <Badge variant="destructive" className="text-sm sm:text-lg px-2 sm:px-4 py-1 sm:py-2">{unread.length} New</Badge>}
+        </div>
+      )}
       {visibleNotifications.length === 0 ? (
         <Card><CardContent className="p-4 sm:pt-6 text-center text-sm sm:text-base text-muted-foreground"><Bell className="w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 opacity-50" /><p>{emptyMessage}</p></CardContent></Card>
       ) : (
