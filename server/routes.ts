@@ -5208,10 +5208,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const tutorId = (req as any).dbUser.id;
         const kind = req.query.kind === "training" ? "training" : "intro";
         const sessionId = typeof req.query.sessionId === "string" ? req.query.sessionId : null;
+        const operationalMode = await getTutorOperationalMode(tutorId);
 
         const student = await storage.getStudent(studentId);
         if (!student || student.tutorId !== tutorId) {
           return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
+        }
+
+        if (operationalMode === "training") {
+          return res.json({
+            canLaunch: true,
+            operationalMode,
+            session: null,
+            googleMeetConfigured: false,
+          });
         }
 
         if (kind === "training") {
