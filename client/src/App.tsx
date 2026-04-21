@@ -422,12 +422,12 @@ function Router() {
 
       {/* ==================== LEGACY ROUTES (Backwards Compatibility) ==================== */}
       {/* Legacy Tutor Routes */}
-      <Route path="/tutor/pod" element={<TutorPod />} />
-      <Route path="/tutor/growth" element={<TutorGrowth />} />
-      <Route path="/tutor/academics" element={<TutorAcademics />} />
-      <Route path="/tutor/sessions" element={<TutorSessions />} />
-      <Route path="/tutor/profile" element={<TutorProfile />} />
-      <Route path="/tutor/updates" element={<TutorUpdates />} />
+      <Route path="/tutor/pod" element={<DashboardLayout><TutorPod /></DashboardLayout>} />
+      <Route path="/tutor/growth" element={<DashboardLayout><TutorGrowth /></DashboardLayout>} />
+      <Route path="/tutor/academics" element={<DashboardLayout><TutorAcademics /></DashboardLayout>} />
+      <Route path="/tutor/sessions" element={<DashboardLayout><TutorSessions /></DashboardLayout>} />
+      <Route path="/tutor/profile" element={<DashboardLayout><TutorProfile /></DashboardLayout>} />
+      <Route path="/tutor/updates" element={<DashboardLayout><TutorUpdates /></DashboardLayout>} />
 
       {/* Legacy TD Routes */}
       <Route path="/td/no-pod" element={<TDNoPod />} />
