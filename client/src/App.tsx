@@ -52,6 +52,7 @@ import ResponseConditioningBeforeVsAfter from "@/pages/responseconditioningsyste
 import ResponseConditioningIntroSessionStructure from "@/pages/responseconditioningsystem/session-infrastructure/intro-session-structure";
 import ResponseConditioningSessionFlowControl from "@/pages/responseconditioningsystem/session-infrastructure/session-flow-control";
 import ResponseConditioningLoggingSystem from "@/pages/responseconditioningsystem/session-infrastructure/logging-system";
+import ResponseConditioningHandoverVerification from "@/pages/responseconditioningsystem/session-infrastructure/handover-verification";
 import ResponseConditioningToolsRequired from "@/pages/responseconditioningsystem/session-infrastructure/tools-required";
 import ResponseConditioningTopicConditioning from "@/pages/responseconditioningsystem/session-infrastructure/topic-conditioning";
 
@@ -314,6 +315,14 @@ function Router() {
       <Route
         path="/responseconditioningsystem/session-infrastructure/logging-system"
         element={<ResponseConditioningLoggingSystem />}
+      />
+      <Route
+        path="/responseconditioningsystem/handover-verification"
+        element={<ResponseConditioningHandoverVerification />}
+      />
+      <Route
+        path="/responseconditioningsystem/session-infrastructure/handover-verification"
+        element={<ResponseConditioningHandoverVerification />}
       />
       <Route
         path="/responseconditioningsystem/tools-required"

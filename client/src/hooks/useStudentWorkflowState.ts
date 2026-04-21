@@ -5,6 +5,9 @@ export interface StudentWorkflowState {
   assignmentAccepted: boolean;
   introConfirmed: boolean;
   introCompleted: boolean;
+  handoverVerificationRequired: boolean;
+  handoverSessionConfirmed: boolean;
+  handoverCompleted: boolean;
   identitySaved: boolean;
   proposalSent: boolean;
   proposalAccepted: boolean;
@@ -19,6 +22,9 @@ export function useStudentWorkflowState(studentId: string) {
           assignmentAccepted: false,
           introConfirmed: false,
           introCompleted: false,
+          handoverVerificationRequired: false,
+          handoverSessionConfirmed: false,
+          handoverCompleted: false,
           identitySaved: false,
           proposalSent: false,
           proposalAccepted: false,
@@ -60,6 +66,32 @@ export function useMarkIntroCompleted(studentId: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tutor/students", studentId, "workflow-state"] });
+    },
+  });
+}
+
+export function useMarkHandoverCompleted(studentId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`${API_URL}/api/tutor/students/${studentId}/workflow/handover-completed`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!res.ok) {
+        const errorBody = await res.json().catch(() => ({}));
+        throw new Error(errorBody?.message || "Failed to mark handover completed");
+      }
+
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tutor/students", studentId, "workflow-state"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tutor/students/intro-session-details", studentId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tutor/pod"] });
     },
   });
 }

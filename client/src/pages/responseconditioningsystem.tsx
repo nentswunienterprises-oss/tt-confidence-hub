@@ -113,6 +113,10 @@ const modules = [
         href: "/responseconditioningsystem/session-infrastructure/logging-system",
       },
       {
+        label: "Handover verification",
+        href: "/responseconditioningsystem/session-infrastructure/handover-verification",
+      },
+      {
         label: "Tools required",
         href: "/responseconditioningsystem/session-infrastructure/tools-required",
       },
@@ -141,8 +145,8 @@ export default function ResponseConditioningSystem() {
                 The Response Conditioning System
               </h1>
               <p className="text-base md:text-lg text-muted-foreground max-w-3xl">
-                Mechanism gate. This is the system map: enter each module, study the protocol,
-                and execute with precision.
+                This is the internal operating map. Open the deep dives, learn the session logic,
+                and execute the system clearly.
               </p>
             </div>
           </div>
@@ -157,8 +161,9 @@ export default function ResponseConditioningSystem() {
               <div className="space-y-2">
                 <h2 className="font-bold text-lg">Gate Access</h2>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  TT-OS is what separates us from every other tutoring company. What you're about to learn is not shared with parents, not discussed publicly, and not optional. This is the system. You execute it with precision. This page is the entry point. Each section below links to its own deep-dive
-                  protocol page. Use this as the operating index, not a summary.
+                  TT-OS is the internal operating system tutors are expected to follow. This page is
+                  the entry point. Each section below links to a deeper operating page. Use this as
+                  the map, not as a shortcut summary.
                 </p>
               </div>
             </div>

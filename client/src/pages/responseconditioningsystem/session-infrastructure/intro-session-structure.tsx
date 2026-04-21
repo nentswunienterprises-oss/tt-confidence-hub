@@ -3,6 +3,35 @@ import { ArrowLeft, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
+const sessionRules = [
+  "Intro is for placement verification, not teaching volume.",
+  "Use one phase verification block at a time.",
+  "Let the score band decide whether to move up, move down, or stop.",
+  "Do not turn the intro into a full training lesson.",
+];
+
+const scoreBands = [
+  { range: "0-44", meaning: "Too weak for this phase. De-escalate and verify the earlier phase." },
+  { range: "45-79", meaning: "This phase is the match. Place here and stop diagnosis." },
+  { range: "80-100", meaning: "Too strong for this phase. Escalate and verify the next phase." },
+];
+
+const sessionFlow = [
+  "Review the recommended starting phase and the parent signal before the session begins.",
+  "Choose one topic that represents the student's real friction point.",
+  "Run the verification block for the starting phase only.",
+  "Score that phase block out of 100.",
+  "Move up, move down, or stop based on the score band.",
+  "End the intro as soon as the correct entry point is found.",
+];
+
+const tutorWatchpoints = [
+  "The student may be clear in a topic but unstable when working alone.",
+  "The student may execute calmly until discomfort appears.",
+  "The student may stay stable until a timer is introduced.",
+  "A high score does not mean the session should become training. It means verify the next phase.",
+];
+
 export default function ResponseConditioningIntroSessionStructure() {
   const navigate = useNavigate();
 
@@ -37,111 +66,122 @@ export default function ResponseConditioningIntroSessionStructure() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-8">
-        <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">THE INTRO SESSION</h2>
-          <h3 className="text-xl font-bold">Purpose</h3>
-          <p className="font-medium">The Intro Session has only three objectives:</p>
-          <ul className="space-y-1 pl-4 text-muted-foreground">
-            <li>Understand how the student currently responds to difficulty</li>
-            <li>Identify the broken learning layer</li>
-            <li>Establish the TT working structure</li>
-          </ul>
-          <p className="font-semibold">The Intro Session is diagnostic, not intensive teaching.</p>
+        <Card className="p-6 space-y-4 border-2 border-primary/20 bg-primary/5">
+          <h2 className="text-2xl font-bold">What Intro Is Now</h2>
+          <p className="text-muted-foreground">
+            The intro session is now an adaptive placement session. Its job is to verify the
+            student's starting phase, not to run a full teaching cycle.
+          </p>
+          <p className="font-medium">The intro session must answer one question:</p>
+          <p className="text-lg font-semibold">
+            Where should this student's training begin in this topic?
+          </p>
         </Card>
 
         <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">Intro Session Structure</h2>
-          <p className="text-muted-foreground">The session runs in three phases.</p>
-          <ol className="space-y-1 pl-4">
-            <li>1. Orientation</li>
-            <li>2. Surface the Pattern</li>
-            <li>3. Diagnose the Layer</li>
+          <h2 className="text-2xl font-bold">Primary Purpose</h2>
+          <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
+            <li>Verify the student's entry phase in a real topic.</li>
+            <li>Confirm whether the recommended starting phase is too low, correct, or too high.</li>
+            <li>Lock the entry point with the least friction possible.</li>
+          </ul>
+          <p className="font-semibold">Intro is diagnostic verification, not intensive teaching.</p>
+        </Card>
+
+        <Card className="p-6 space-y-4">
+          <h2 className="text-2xl font-bold">What The Tutor Brings In</h2>
+          <p className="text-muted-foreground">
+            The tutor does not start from a blank slate anymore. The tutor starts with:
+          </p>
+          <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
+            <li>parent-reported topic friction</li>
+            <li>parent-reported response symptoms</li>
+            <li>system-recommended starting phase</li>
+          </ul>
+          <p className="font-medium">
+            That recommendation is a starting hypothesis, not the final answer.
+          </p>
+        </Card>
+
+        <Card className="p-6 space-y-4">
+          <h2 className="text-2xl font-bold">Live Intro Flow</h2>
+          <ol className="space-y-1 pl-5 text-muted-foreground">
+            {sessionFlow.map((step, index) => (
+              <li key={step}>
+                {index + 1}. {step}
+              </li>
+            ))}
           </ol>
         </Card>
 
         <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">Phase 1 - Orientation</h2>
-          <p className="font-medium">Goal: Establish the working tone and remove performance anxiety.</p>
-          <p className="text-muted-foreground">Keep this section short and structured.</p>
-
-          <div className="space-y-2">
-            <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">Example Questions</p>
-            <ul className="space-y-1 pl-4 text-muted-foreground">
-              <li>"Which math topics usually feel easiest for you?"</li>
-              <li>"Which topics tend to confuse you the most?"</li>
-              <li>"When a question looks unfamiliar, what usually happens first?"</li>
-              <li>"Do you usually rush, freeze, or guess?"</li>
-            </ul>
-          </div>
-
-          <p className="font-medium">You are identifying the student's default response pattern.</p>
-          <p className="text-muted-foreground">Do not over-personalize this conversation.</p>
-          <p className="font-semibold">The goal is clarity, not therapy.</p>
-        </Card>
-
-        <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">Phase 2 - Surface the Pattern</h2>
-          <p className="text-muted-foreground">Now focus directly on math.</p>
-
-          <div className="space-y-2">
-            <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">Ask Questions Like</p>
-            <ul className="space-y-1 pl-4 text-muted-foreground">
-              <li>"Which math topic never quite made sense?"</li>
-              <li>"Are there moments in math where your mind goes blank?"</li>
-              <li>"Which type of question usually causes problems?"</li>
-            </ul>
-          </div>
-
-          <p className="font-semibold">Write down two problem areas.</p>
-          <p className="text-muted-foreground">These will guide the diagnostic.</p>
-        </Card>
-
-        <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">Phase 3 - Diagnose the Layer</h2>
+          <h2 className="text-2xl font-bold">Score Bands</h2>
           <p className="text-muted-foreground">
-            Give the student 1-2 short problems related to the topics they mentioned.
+            Each phase verification block resolves to a score out of 100. That score decides the next move.
           </p>
-          <p className="font-medium">Observe silently.</p>
-          <p className="font-medium">Do not interrupt.</p>
-          <p className="font-semibold">Your job is to identify which learning layer is unstable.</p>
+          <div className="grid gap-3 md:grid-cols-3">
+            {scoreBands.map((band) => (
+              <div key={band.range} className="rounded-xl border bg-card p-4">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Band</p>
+                <p className="mt-2 text-xl font-semibold">{band.range}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{band.meaning}</p>
+              </div>
+            ))}
+          </div>
         </Card>
 
-        <Card className="p-6 space-y-5">
-          <h2 className="text-2xl font-bold">The 3-Layer Lens</h2>
-          <p className="text-muted-foreground">Every math concept has three layers.</p>
+        <Card className="p-6 space-y-4">
+          <h2 className="text-2xl font-bold">What The Tutor Must Not Do</h2>
+          <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
+            {sessionRules.map((rule) => (
+              <li key={rule}>{rule}</li>
+            ))}
+          </ul>
+        </Card>
 
-          <div className="border-l-4 border-primary pl-4 space-y-2">
-            <h3 className="text-xl font-bold">Vocabulary</h3>
-            <p className="text-muted-foreground">Do they understand the terms being used?</p>
-            <p className="font-medium">Example failure:</p>
-            <p className="font-semibold">"What is a denominator again?"</p>
+        <Card className="p-6 space-y-4">
+          <h2 className="text-2xl font-bold">How To Think About Phase vs Concept</h2>
+          <p className="text-muted-foreground">
+            The intro is deciding the student's <span className="font-medium text-foreground">phase</span>, not
+            just identifying a weak concept explanation.
+          </p>
+          <div className="space-y-3">
+            <div className="rounded-xl border p-4">
+              <p className="font-semibold">Phase</p>
+              <p className="text-sm text-muted-foreground">
+                The response stage where the student breaks: Clarity, Structured Execution,
+                Controlled Discomfort, or Time Pressure Stability.
+              </p>
+            </div>
+            <div className="rounded-xl border p-4">
+              <p className="font-semibold">Concept Lens</p>
+              <p className="text-sm text-muted-foreground">
+                Vocabulary, method, and reason. This lens helps the tutor understand the concept work
+                inside a problem, but it is not the same thing as the placement phase.
+              </p>
+            </div>
           </div>
+        </Card>
 
-          <div className="border-l-4 border-primary pl-4 space-y-2">
-            <h3 className="text-xl font-bold">Method</h3>
-            <p className="text-muted-foreground">Do they know the correct sequence of steps?</p>
-            <p className="font-medium">Example failure:</p>
-            <p className="font-semibold">They jump between random operations.</p>
-          </div>
-
-          <div className="border-l-4 border-primary pl-4 space-y-2">
-            <h3 className="text-xl font-bold">Reason</h3>
-            <p className="text-muted-foreground">Do they understand why the steps work?</p>
-            <p className="font-medium">Example failure:</p>
-            <p className="font-semibold">They memorized a trick but cannot explain it.</p>
-          </div>
+        <Card className="p-6 space-y-4">
+          <h2 className="text-2xl font-bold">Tutor Watchpoints</h2>
+          <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
+            {tutorWatchpoints.map((point) => (
+              <li key={point}>{point}</li>
+            ))}
+          </ul>
         </Card>
 
         <Card className="p-6 border-2 border-primary/20 space-y-4">
-          <h2 className="text-2xl font-bold">Outcome of the Intro Session</h2>
-          <p className="font-medium">By the end of the session, the tutor must know:</p>
-          <ul className="space-y-1 pl-4 text-muted-foreground">
-            <li>The student's main difficulty topic</li>
-            <li>Which learning layer is unstable</li>
-            <li>How the student responds when confused</li>
+          <h2 className="text-2xl font-bold">Intro Outcome</h2>
+          <p className="font-medium">By the end of intro, the system should know:</p>
+          <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
+            <li>the topic used for verification</li>
+            <li>the student's entry phase in that topic</li>
+            <li>the student's starting stability in that phase</li>
           </ul>
-          <p className="text-lg font-semibold">
-            This becomes the starting point for the Transformation Process.
+          <p className="font-semibold">
+            Once the entry point is locked, intro stops and active training begins later.
           </p>
         </Card>
       </div>

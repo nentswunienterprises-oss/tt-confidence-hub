@@ -3,6 +3,53 @@ import { ArrowLeft, Workflow } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
+const sessionTypes = [
+  {
+    title: "Adaptive Intro Diagnosis",
+    purpose: "Verify starting phase and stop when placement is found.",
+    notFor: "Do not turn this into a full teaching session.",
+  },
+  {
+    title: "Active Training",
+    purpose: "Build stability inside the student's current topic and phase.",
+    notFor: "Do not use training flow to re-place the student every session.",
+  },
+  {
+    title: "Tutor Handover Verification",
+    purpose: "Verify inherited topic-state after tutor reassignment.",
+    notFor: "Do not treat this like a fresh intro or a reset.",
+  },
+];
+
+const activeTrainingFlow = [
+  "Prepare using the student's current topic-state and recent evidence.",
+  "Model only what the student needs next.",
+  "Let the student apply independently.",
+  "Guide tightly where the response breaks.",
+  "Use challenge work only when the student's current phase allows it.",
+];
+
+const introFlow = [
+  "Start from the recommended phase.",
+  "Run one verification block.",
+  "Score the block.",
+  "Escalate, de-escalate, or stop.",
+];
+
+const handoverFlow = [
+  "Review inherited topic, phase, and stability.",
+  "Run the continuity check.",
+  "Verify whether the carry-over state still holds.",
+  "Either continue, adjust, or trigger more targeted verification.",
+];
+
+const guardrails = [
+  "Model -> Apply -> Guide is not a universal law for every TT session type.",
+  "Boss Battles are not used in every training drill and not used in every session type.",
+  "Timed pressure belongs only when the student's phase and current drill design support it.",
+  "Verification sessions should stay light. Training sessions can be more developmental.",
+];
+
 export default function ResponseConditioningSessionFlowControl() {
   const navigate = useNavigate();
 
@@ -37,238 +84,114 @@ export default function ResponseConditioningSessionFlowControl() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-8">
-        <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">THE TRANSFORMATION PROCESS</h2>
+        <Card className="p-6 space-y-4 border-2 border-primary/20 bg-primary/5">
+          <h2 className="text-2xl font-bold">Start With Session Type</h2>
           <p className="text-muted-foreground">
-            The Transformation Process is how TT conditions reliable responses to difficult math problems.
+            Session flow is no longer one universal loop. The first question is always:
           </p>
-          <p className="font-medium">It consists of four components.</p>
-          <p className="text-lg font-semibold">
-            3-Layer Lens (clarity)
-            <br />+
-            <br />Model - Apply - Guide (structured execution)
-            <br />+
-            <br />Boss Battles (controlled discomfort)
-            <br />+
-            <br />Timed Execution (pressure stability)
-            <br />=
-            <br />Conditioned Response
-          </p>
-          <p className="font-medium">Each component serves a specific purpose.</p>
-        </Card>
-
-        <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">1 - The 3-Layer Lens</h2>
-          <p className="text-muted-foreground">The 3-Layer Lens is used to teach and diagnose every concept.</p>
-
-          <div className="border-l-4 border-primary pl-4 space-y-2">
-            <h3 className="text-xl font-bold">Vocabulary</h3>
-            <p className="text-muted-foreground">Students must understand the terms used in the problem.</p>
-            <p className="font-medium">Tutors ask:</p>
-            <ul className="space-y-1 pl-4 text-muted-foreground">
-              <li>"What is this part called?"</li>
-              <li>"What does this term mean?"</li>
-            </ul>
-            <p className="font-semibold">
-              Without vocabulary clarity, students cannot interpret the problem correctly.
-            </p>
-          </div>
-
-          <div className="border-l-4 border-primary pl-4 space-y-2">
-            <h3 className="text-xl font-bold">Method</h3>
-            <p className="text-muted-foreground">Students must follow a clear, repeatable sequence of steps.</p>
-            <p className="font-medium">Tutor asks:</p>
-            <ul className="space-y-1 pl-4 text-muted-foreground">
-              <li>"What is the first step?"</li>
-              <li>"What happens next?"</li>
-            </ul>
-            <p className="font-semibold">Students should learn methods as structured procedures, not guesses.</p>
-          </div>
-
-          <div className="border-l-4 border-primary pl-4 space-y-2">
-            <h3 className="text-xl font-bold">Reason</h3>
-            <p className="text-muted-foreground">Students must understand why the method works.</p>
-            <p className="font-medium">Tutor questions:</p>
-            <ul className="space-y-1 pl-4 text-muted-foreground">
-              <li>"Why does this step work?"</li>
-              <li>"Why do we divide here?"</li>
-            </ul>
-            <p className="font-semibold">Reasoning prevents blind memorization.</p>
-          </div>
-        </Card>
-
-        <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">2 - Model, Apply, Guide</h2>
-          <p className="text-muted-foreground">This loop is how skills are learned during the session.</p>
-
-          <div className="space-y-2">
-            <h3 className="text-xl font-bold">Model</h3>
-            <p className="text-muted-foreground">The tutor solves a problem out loud.</p>
-            <p className="font-medium">The tutor clearly states:</p>
-            <ul className="space-y-1 pl-4 text-muted-foreground">
-              <li>the vocabulary</li>
-              <li>the steps</li>
-              <li>the reasoning</li>
-            </ul>
-            <p className="font-semibold">The student observes.</p>
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="text-xl font-bold">Apply</h3>
-            <p className="text-muted-foreground">The student attempts a similar problem.</p>
-            <p className="font-medium">The tutor does not take over.</p>
-            <p className="font-medium">Struggle is allowed.</p>
-            <p className="font-semibold">This stage builds ownership of the method.</p>
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="text-xl font-bold">Guide</h3>
-            <p className="text-muted-foreground">The tutor corrects and refines the student's attempt.</p>
-            <p className="font-medium">The tutor identifies which learning layer broke:</p>
-            <ul className="space-y-1 pl-4 text-muted-foreground">
-              <li>Vocabulary</li>
-              <li>Method</li>
-              <li>Reason</li>
-            </ul>
-            <p className="font-semibold">Then the tutor fixes that specific layer.</p>
-          </div>
-        </Card>
-
-        <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">3 - Boss Battles</h2>
+          <p className="text-lg font-semibold">What kind of session is this?</p>
           <p className="text-muted-foreground">
-            Once the student understands the concept, introduce a harder problem.
-          </p>
-          <p className="font-medium">This is called a Boss Battle.</p>
-          <p className="font-medium">Boss Battles test whether the student can:</p>
-          <ul className="space-y-1 pl-4 text-muted-foreground">
-            <li>recognize the concept</li>
-            <li>follow the method</li>
-            <li>explain the reasoning</li>
-          </ul>
-          <p className="font-semibold">without assistance.</p>
-          <p className="text-muted-foreground">
-            Boss Battles simulate the moment when difficulty increases unexpectedly.
+            Once that is clear, the correct flow becomes obvious.
           </p>
         </Card>
 
         <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">4 - Timed Execution</h2>
-          <p className="text-muted-foreground">As students improve, Boss Battles become timed.</p>
-          <p className="font-medium">This introduces controlled pressure.</p>
-          <p className="font-medium">Students must:</p>
-          <ul className="space-y-1 pl-4 text-muted-foreground">
-            <li>read the question carefully</li>
-            <li>identify known information</li>
-            <li>execute the method calmly</li>
-          </ul>
-          <p className="font-semibold">The goal is to train stable execution under pressure.</p>
+          <h2 className="text-2xl font-bold">The Three Live Session Types</h2>
+          <div className="grid gap-4 md:grid-cols-3">
+            {sessionTypes.map((session) => (
+              <div key={session.title} className="rounded-xl border bg-card p-4 space-y-2">
+                <h3 className="text-lg font-semibold">{session.title}</h3>
+                <p className="text-sm text-muted-foreground">{session.purpose}</p>
+                <p className="text-sm font-medium">{session.notFor}</p>
+              </div>
+            ))}
+          </div>
         </Card>
 
         <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">THE SESSION OPERATING SYSTEM</h2>
-          <p className="text-muted-foreground">Every TT tutoring session follows the same structure.</p>
-          <ol className="space-y-1 pl-4">
-            <li>1. Prepare</li>
-            <li>2. Model</li>
-            <li>3. Apply</li>
-            <li>4. Guide</li>
-            <li>5. Boss Battle</li>
+          <h2 className="text-2xl font-bold">Adaptive Intro Diagnosis Flow</h2>
+          <ol className="space-y-1 pl-5 text-muted-foreground">
+            {introFlow.map((step, index) => (
+              <li key={step}>
+                {index + 1}. {step}
+              </li>
+            ))}
           </ol>
-          <p className="font-semibold">This sequence repeats every session.</p>
-        </Card>
-
-        <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">Step 1 - Prepare</h2>
-          <p className="font-medium">Before the session begins:</p>
-          <p className="font-medium">The tutor reviews:</p>
-          <ul className="space-y-1 pl-4 text-muted-foreground">
-            <li>the student's previous session notes</li>
-            <li>previous Boss Battles</li>
-            <li>areas needing reinforcement</li>
-          </ul>
-          <p className="font-semibold">The tutor selects one clear concept for the session.</p>
-          <p className="text-muted-foreground">Preparation prevents improvisation.</p>
-        </Card>
-
-        <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">Step 2 - Model</h2>
-          <p className="text-muted-foreground">
-            The tutor demonstrates the concept using the 3-Layer Lens.
-          </p>
-          <p className="font-medium">The tutor:</p>
-          <ul className="space-y-1 pl-4 text-muted-foreground">
-            <li>writes the example clearly</li>
-            <li>explains each step</li>
-            <li>explains the reasoning</li>
-          </ul>
-          <p className="font-semibold">Students see exactly what correct execution looks like.</p>
-        </Card>
-
-        <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">Step 3 - Apply</h2>
-          <p className="text-muted-foreground">The student attempts a similar problem.</p>
-          <p className="font-medium">The tutor observes carefully.</p>
-          <p className="font-semibold">This is where learning actually happens.</p>
-        </Card>
-
-        <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">Step 4 - Guide</h2>
-          <p className="text-muted-foreground">The tutor corrects the student's work.</p>
-          <p className="font-medium">The tutor identifies which layer broke:</p>
-          <ul className="space-y-1 pl-4 text-muted-foreground">
-            <li>Vocabulary</li>
-            <li>Method</li>
-            <li>Reason</li>
-          </ul>
-          <p className="font-semibold">Then the tutor reinforces that layer.</p>
-        </Card>
-
-        <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">Step 5 - Boss Battle</h2>
-          <p className="text-muted-foreground">An intentionally more difficult challenge... still solvable.</p>
-          <p className="font-medium">The student attempts it independently.</p>
-          <p className="font-semibold">This confirms whether the skill is stabilizing.</p>
-        </Card>
-
-        <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">The Core Response Protocol</h2>
-          <p className="text-muted-foreground">
-            When a student encounters a difficult problem, they are trained to follow this sequence.
-          </p>
-          <ol className="space-y-1 pl-4">
-            <li>1. Read the full question</li>
-            <li>2. Identify what is known</li>
-            <li>3. Select the first step of the method</li>
-            <li>4. Execute calmly</li>
-            <li>5. Continue step by step</li>
-          </ol>
-          <p className="font-medium">This response pattern is practiced repeatedly.</p>
           <p className="font-semibold">
-            Over time, the student stops freezing and begins executing automatically.
+            Intro is verification. It should end when placement is found.
           </p>
+        </Card>
+
+        <Card className="p-6 space-y-4">
+          <h2 className="text-2xl font-bold">Active Training Flow</h2>
+          <p className="text-muted-foreground">
+            This is where the tutor uses teaching structure more fully. Even here, the tutor must
+            still respect the student's current phase and the drill's actual design.
+          </p>
+          <ol className="space-y-1 pl-5 text-muted-foreground">
+            {activeTrainingFlow.map((step, index) => (
+              <li key={step}>
+                {index + 1}. {step}
+              </li>
+            ))}
+          </ol>
+          <p className="font-semibold">
+            `Model -> Apply -> Guide` is a training tool, not a universal session law.
+          </p>
+        </Card>
+
+        <Card className="p-6 space-y-4">
+          <h2 className="text-2xl font-bold">Tutor Handover Verification Flow</h2>
+          <p className="text-muted-foreground">
+            When a tutor is reassigned, the system should preserve continuity. The new tutor verifies
+            inherited state before normal training resumes.
+          </p>
+          <ol className="space-y-1 pl-5 text-muted-foreground">
+            {handoverFlow.map((step, index) => (
+              <li key={step}>
+                {index + 1}. {step}
+              </li>
+            ))}
+          </ol>
+          <p className="font-semibold">Handover is verification, not re-onboarding.</p>
+        </Card>
+
+        <Card className="p-6 space-y-4">
+          <h2 className="text-2xl font-bold">Guardrails</h2>
+          <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
+            {guardrails.map((rule) => (
+              <li key={rule}>{rule}</li>
+            ))}
+          </ul>
+        </Card>
+
+        <Card className="p-6 space-y-4">
+          <h2 className="text-2xl font-bold">Simple Tutor Mental Model</h2>
+          <div className="space-y-3">
+            <div className="rounded-xl border p-4">
+              <p className="font-semibold">If this is intro:</p>
+              <p className="text-sm text-muted-foreground">verify starting phase</p>
+            </div>
+            <div className="rounded-xl border p-4">
+              <p className="font-semibold">If this is active training:</p>
+              <p className="text-sm text-muted-foreground">build stability inside the current phase</p>
+            </div>
+            <div className="rounded-xl border p-4">
+              <p className="font-semibold">If this is handover:</p>
+              <p className="text-sm text-muted-foreground">verify inherited state and continue</p>
+            </div>
+          </div>
         </Card>
 
         <Card className="p-6 border-2 border-primary/20 space-y-4">
-          <h2 className="text-2xl font-bold">The Standard</h2>
-          <p className="font-medium">TT tutors are not improvising teachers.</p>
-          <p className="font-semibold">They are operators of a system.</p>
-          <p className="text-muted-foreground">Every session must follow the same structure.</p>
-          <p className="text-muted-foreground">Every concept must be taught through the 3-Layer Lens.</p>
-          <p className="text-muted-foreground">Every session must include independent execution.</p>
-          <p className="font-semibold">Consistency is what produces reliable outcomes.</p>
-        </Card>
-
-        <Card className="p-6 bg-primary/5 border-primary/30 border-2 space-y-4">
-          <h2 className="text-2xl font-bold">The TT Principle</h2>
-          <p className="text-muted-foreground">Schools teach concepts.</p>
-          <p className="text-muted-foreground">Tutors explain methods.</p>
-          <p className="font-semibold">
-            Territorial Tutoring trains execution when difficulty appears.
+          <h2 className="text-2xl font-bold">Operational Standard</h2>
+          <p className="text-muted-foreground">
+            Tutors should not memorize one dramatic universal flow. Tutors should identify the
+            session type, respect that session's purpose, and execute the correct evidence path.
           </p>
-          <p className="font-medium">Math is the arena.</p>
-          <p className="font-medium">Pressure is the environment.</p>
-          <p className="text-lg font-semibold">Response is the craft.</p>
+          <p className="font-semibold">
+            The cleaner the session purpose, the cleaner the tutor execution.
+          </p>
         </Card>
       </div>
     </div>

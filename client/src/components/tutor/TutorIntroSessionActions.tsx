@@ -3,7 +3,7 @@ import { useScheduledSession, useTutorRespondToSession } from "@/hooks/useSchedu
 import { useParentIntroSessionStatus } from "@/hooks/useParentIntroSessionStatus";
 import { useState } from "react";
 
-export function TutorIntroSessionActions({ studentId, parentId, tutorId }) {
+export function TutorIntroSessionActions({ studentId, parentId, tutorId, sessionLabelOverride }) {
   // Use parent/tutor-based hook if no studentId yet
   const { data, isLoading, error } = studentId
     ? useScheduledSession(studentId)
@@ -15,10 +15,13 @@ export function TutorIntroSessionActions({ studentId, parentId, tutorId }) {
   const [newTime, setNewTime] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const sessionLabel = data?.type === "handover" ? "continuity check" : (sessionLabelOverride || "intro session");
 
   if (isLoading) return <div className="text-xs text-muted-foreground">Loading...</div>;
   if (error) return <div className="text-xs text-red-600">Error loading session</div>;
-  if (!data || !data.scheduled_time) return <div className="text-xs text-muted-foreground">No intro session proposed.</div>;
+  if (!data || !data.scheduled_time) {
+    return <div className="text-xs text-muted-foreground">No {sessionLabel} proposed.</div>;
+  }
 
   const proposed = new Date(data.scheduled_time);
   const formatted = proposed.toLocaleString();
@@ -94,7 +97,7 @@ export function TutorIntroSessionActions({ studentId, parentId, tutorId }) {
         <div className="space-y-1">
           <div className="text-[11px] text-green-700">Session confirmed!</div>
           <div className="text-[11px] text-muted-foreground">
-            Intro session is confirmed. Open the drill runner when you are ready.
+            {sessionLabel.charAt(0).toUpperCase() + sessionLabel.slice(1)} is confirmed. Open the next TT step when you are ready.
           </div>
         </div>
       )}

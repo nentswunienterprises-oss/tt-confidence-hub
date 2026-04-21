@@ -7,7 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { buildTopics } from "./topicUtils";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useStudentWorkflowState, useMarkIntroCompleted, useRespondToAssignment } from "@/hooks/useStudentWorkflowState";
+import { useStudentWorkflowState, useMarkHandoverCompleted, useRespondToAssignment } from "@/hooks/useStudentWorkflowState";
 import { TutorIntroSessionActions } from "./TutorIntroSessionActions";
 import { useScheduledSession } from "@/hooks/useScheduledSession";
 import { Input } from "@/components/ui/input";
@@ -75,6 +75,9 @@ function formatRelativeTime(date) {
 function getWorkflowLabel(workflow) {
   if (!workflow) return "Loading";
   if (!workflow.assignmentAccepted) return "Assignment Pending";
+  if (workflow.handoverVerificationRequired && !workflow.handoverCompleted) {
+    return workflow.handoverSessionConfirmed ? "Continuity Check Booked" : "Continuity Check";
+  }
   if (!workflow.introConfirmed) return "Intro Booking";
   if (!workflow.introCompleted) return "Intro Confirmed";
   if (workflow.proposalAccepted && workflow.introCompleted) return "Active Training";
@@ -138,7 +141,7 @@ export function StudentCard({
     .slice(0, 2);
 
   const { data: workflow, isLoading: workflowLoading } = useStudentWorkflowState(student.id);
-  const markIntroCompleted = useMarkIntroCompleted(student.id);
+  const markHandoverCompleted = useMarkHandoverCompleted(student.id);
   const respondToAssignment = useRespondToAssignment(student.id);
   const { data: introSessionDetails } = useScheduledSession(student.id);
 
@@ -395,6 +398,9 @@ export function StudentCard({
   const hasTopicConditioningTimestamp = !!(
     topicConditioningLastUpdated && !Number.isNaN(topicConditioningLastUpdated.getTime())
   );
+  const handoverVerificationActive = Boolean(
+    effectiveWorkflow?.handoverVerificationRequired && !effectiveWorkflow?.handoverCompleted
+  );
   const workflowLabel = getWorkflowLabel(effectiveWorkflow);
 
   return (
@@ -490,6 +496,27 @@ export function StudentCard({
           </>
         )}
 
+        {handoverVerificationActive && (
+          <HandoverVerificationSection
+            studentName={student.name}
+            session={introSessionDetails}
+            displayTopic={displayTopic}
+            displayPhase={displayPhase}
+            displayStability={displayStability}
+            recommendedStartingPhase={recommendedStartingPhase}
+            recommendedStartingReason={recommendedStartingReason}
+            onMarkCompleted={() => markHandoverCompleted.mutate()}
+            isMarkingCompleted={markHandoverCompleted.isPending}
+            completionError={
+              markHandoverCompleted.isError
+                ? markHandoverCompleted.error instanceof Error
+                  ? markHandoverCompleted.error.message
+                  : "Failed to mark continuity check complete"
+                : ""
+            }
+          />
+        )}
+
 
         {effectiveWorkflow && !effectiveWorkflow.assignmentAccepted && (
           <div className="pt-4 border-t border-border/60 space-y-2">
@@ -523,8 +550,16 @@ export function StudentCard({
           />
         )}
 
+        {effectiveWorkflow?.assignmentAccepted && handoverVerificationActive && (
+          <TutorIntroSessionActions
+            studentId={student.id}
+            parentId={student.parentInfo?.parent_id}
+            tutorId={student.tutor_id}
+            sessionLabelOverride="continuity check"
+          />
+        )}
 
-        {effectiveWorkflow?.assignmentAccepted && (operationalMode === "training" || effectiveWorkflow?.introConfirmed) && !effectiveWorkflow.introCompleted && (
+        {!handoverVerificationActive && effectiveWorkflow?.assignmentAccepted && (operationalMode === "training" || effectiveWorkflow?.introConfirmed) && !effectiveWorkflow.introCompleted && (
           <IntroDiagnosticTopicSection
             student={student}
             introSession={introSessionDetails}
@@ -566,7 +601,7 @@ export function StudentCard({
           </div>
         )}
 
-        {workflow?.proposalAccepted && (
+        {workflow?.proposalAccepted && !handoverVerificationActive && (
           <div className="pt-4 border-t border-border/60 space-y-3">
             <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Systems</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -616,6 +651,14 @@ export function StudentCard({
             </div>
           </div>
         )}
+
+        {workflow?.proposalAccepted && handoverVerificationActive && (
+          <div className="pt-4 border-t border-border/60 space-y-2">
+            <p className="text-xs text-muted-foreground text-center">
+              Core training systems stay gated until the continuity check is completed. This keeps inherited topic-state intact while the new tutor verifies where work should resume.
+            </p>
+          </div>
+        )}
       </div>
 
       <Dialog open={assignmentModalOpen} onOpenChange={setAssignmentModalOpen}>
@@ -655,6 +698,98 @@ export function StudentCard({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function HandoverVerificationSection({
+  studentName,
+  session,
+  displayTopic,
+  displayPhase,
+  displayStability,
+  recommendedStartingPhase,
+  recommendedStartingReason,
+  onMarkCompleted,
+  isMarkingCompleted,
+  completionError,
+}) {
+  const sessionStatus = String(session?.status || "");
+  const sessionConfirmed = ["confirmed", "ready", "live", "scheduled", "completed"].includes(sessionStatus);
+  const sessionLabel = session?.type === "handover" ? "continuity check" : "handover verification";
+
+  return (
+    <div className="pt-4 border-t border-border/60 space-y-3">
+      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Tutor Handover Verification</p>
+
+      <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 space-y-2">
+        <p className="text-sm font-semibold text-blue-950">Inherited training state is active for {studentName}.</p>
+        <p className="text-xs text-blue-900">
+          This student is not being re-onboarded. Use the continuity check to verify the carry-over topic-state before resuming standard training actions.
+        </p>
+      </div>
+
+      <div className="rounded-xl border border-border/60 bg-muted/20 px-4 py-3 space-y-2">
+        <p className="text-[11px] font-medium text-foreground">Carry-Over State</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div className="rounded-lg border border-primary/15 bg-background/80 px-3 py-2">
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Topic</p>
+            <p className="mt-1 text-sm font-medium text-foreground">{displayTopic}</p>
+          </div>
+          <div className="rounded-lg border border-primary/15 bg-background/80 px-3 py-2">
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Phase</p>
+            <p className="mt-1 text-sm font-medium text-foreground">{displayPhase}</p>
+          </div>
+          <div className="rounded-lg border border-primary/15 bg-background/80 px-3 py-2">
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Stability</p>
+            <p className="mt-1 text-sm font-medium text-foreground">{displayStability}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 space-y-1">
+        <p className="text-[11px] font-semibold text-foreground">System Watchpoint</p>
+        <p className="text-xs text-muted-foreground">
+          Re-enter verification around <span className="font-medium text-foreground">{recommendedStartingPhase}</span>.
+        </p>
+        <p className="text-xs text-muted-foreground">{recommendedStartingReason}</p>
+      </div>
+
+      {session?.scheduled_time ? (
+        <div className="rounded-xl border border-primary/20 bg-muted/20 px-4 py-3 space-y-1">
+          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Scheduled {sessionLabel}</p>
+          <p className="text-sm text-foreground">{new Date(session.scheduled_time).toLocaleString()}</p>
+          <p className="text-xs text-muted-foreground">Status: {sessionStatus || "pending"}</p>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="text-sm font-medium text-amber-900">Waiting for parent schedule proposal.</p>
+          <p className="mt-1 text-xs text-amber-800">
+            Once the parent proposes a time, confirm or adjust it here just like an intro booking.
+          </p>
+        </div>
+      )}
+
+      {sessionConfirmed && (
+        <div className="space-y-2">
+          <Button
+            className="w-full"
+            variant="default"
+            size="sm"
+            onClick={onMarkCompleted}
+            disabled={isMarkingCompleted}
+          >
+            {isMarkingCompleted ? "Saving..." : "Mark Continuity Check Complete"}
+          </Button>
+          <p className="text-xs text-muted-foreground text-center">
+            Use this after verifying where training should resume. It preserves the inherited history and clears the handover gate.
+          </p>
+        </div>
+      )}
+
+      {completionError ? (
+        <p className="text-xs text-red-600 text-center">{completionError}</p>
+      ) : null}
     </div>
   );
 }
