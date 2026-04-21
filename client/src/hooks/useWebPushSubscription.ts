@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabaseClient";
 type PushSupportState = {
   supported: boolean;
   subscribed: boolean;
+  resolved: boolean;
   permission: NotificationPermission | "unsupported";
   loading: boolean;
   enable: () => Promise<void>;
@@ -44,6 +45,7 @@ export function useWebPushSubscription(enabled: boolean): PushSupportState {
     [],
   );
   const [subscribed, setSubscribed] = useState(false);
+  const [resolved, setResolved] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [permission, setPermission] = useState<NotificationPermission | "unsupported">(
@@ -51,12 +53,22 @@ export function useWebPushSubscription(enabled: boolean): PushSupportState {
   );
 
   const syncExistingSubscription = useCallback(async () => {
-    if (!enabled || !supported || Notification.permission !== "granted") return;
+    if (!enabled || !supported) {
+      setResolved(true);
+      return;
+    }
+
+    if (Notification.permission !== "granted") {
+      setSubscribed(false);
+      setResolved(true);
+      return;
+    }
 
     const registration = await navigator.serviceWorker.register("/sw.js");
     const subscription = await registration.pushManager.getSubscription();
     if (!subscription) {
       setSubscribed(false);
+      setResolved(true);
       return;
     }
 
@@ -67,6 +79,7 @@ export function useWebPushSubscription(enabled: boolean): PushSupportState {
       body: JSON.stringify({ subscription: subscriptionJson }),
     });
     setSubscribed(true);
+    setResolved(true);
   }, [enabled, supported]);
 
   useEffect(() => {
@@ -79,6 +92,7 @@ export function useWebPushSubscription(enabled: boolean): PushSupportState {
     syncExistingSubscription().catch((syncError) => {
       console.error("Failed to sync browser push subscription:", syncError);
       setError("Could not connect browser notifications.");
+      setResolved(true);
     });
   }, [enabled, supported, syncExistingSubscription]);
 
@@ -99,6 +113,7 @@ export function useWebPushSubscription(enabled: boolean): PushSupportState {
 
       if (nextPermission !== "granted") {
         setSubscribed(false);
+        setResolved(true);
         setError(nextPermission === "denied"
           ? "Notifications are blocked in this browser. Enable them in browser settings."
           : "Notification permission was not granted.");
@@ -131,9 +146,11 @@ export function useWebPushSubscription(enabled: boolean): PushSupportState {
 
       setPermission("granted");
       setSubscribed(true);
+      setResolved(true);
     } catch (enableError: any) {
       console.error("Failed to enable browser push:", enableError);
       setError(enableError?.message || "Could not enable browser notifications.");
+      setResolved(true);
     } finally {
       setLoading(false);
     }
@@ -142,6 +159,7 @@ export function useWebPushSubscription(enabled: boolean): PushSupportState {
   return {
     supported,
     subscribed,
+    resolved,
     permission,
     loading,
     enable,

@@ -14,7 +14,7 @@ export function PushOptInCard({
 }) {
   const push = useWebPushSubscription(enabled);
 
-  if (!enabled || !push.supported || push.subscribed) {
+  if (!enabled || !push.supported || !push.resolved || push.subscribed) {
     return null;
   }
 
