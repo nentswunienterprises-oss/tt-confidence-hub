@@ -36,6 +36,8 @@ type DemoSummary = {
   systemDecision: string;
   transitionReason: string;
   tutorMeaning: string;
+  phaseBefore: string | null;
+  stabilityBefore: string | null;
 };
 
 type DemoPrepPlan = {
@@ -566,6 +568,10 @@ function getObservationBlockForRep(setConfig: DrillSetConfig, repIndex: number):
   return setConfig.observationBlock || [];
 }
 
+function hasScoredObservations(setConfig: DrillSetConfig): boolean {
+  return setConfig.reps > 0 && getObservationBlockForRep(setConfig, 0).length > 0;
+}
+
 function weightedScoreFor(weight: number, optionIndex: number, optionCount: number) {
   const level = observationLevelFromOptionIndex(optionIndex, optionCount);
   if (level === "clear") return weight;
@@ -614,12 +620,15 @@ function buildDemoSummary(
   phase: PhaseLabel,
   sets: DrillSetConfig[],
   observations: Record<string, string>,
+  mode: DemoMode,
 ): DemoSummary {
   const repRows: Array<{ set: string; rep: number; repScore: number }> = [];
   const setScores: number[] = [];
   let highGuardPasses = true;
 
-  sets.slice(0, 2).forEach((setConfig, setIndex) => {
+  sets.forEach((setConfig, setIndex) => {
+    if (!hasScoredObservations(setConfig)) return;
+
     const repScores: number[] = [];
     const repObservations: Record<string, string>[] = [];
 
@@ -682,6 +691,8 @@ function buildDemoSummary(
       : stability === "Medium"
       ? "The student is improving, but the phase is not stable enough to move on. The tutor should keep drilling this response pattern."
       : "The student is still unstable in the target behavior. The tutor needs another reinforcement pass before expecting reliable carryover.";
+  const phaseBefore = mode === "diagnosis" ? null : phase;
+  const stabilityBefore = mode === "diagnosis" ? null : "Starting Point";
 
   return {
     phase,
@@ -695,6 +706,8 @@ function buildDemoSummary(
     systemDecision,
     transitionReason,
     tutorMeaning,
+    phaseBefore,
+    stabilityBefore,
   };
 }
 
@@ -816,7 +829,29 @@ function DemoRunnerOverlay({
     return Boolean(observations[observationKey(currentSet, currentRep, field.key)]);
   });
 
-  const summary = useMemo(() => buildDemoSummary(phase, drillStructure, observations), [phase, drillStructure, observations]);
+  const summary = useMemo(() => buildDemoSummary(phase, drillStructure, observations, mode), [phase, drillStructure, observations, mode]);
+  const stabilityColor =
+    summary.stability === "High Maintenance"
+      ? "text-blue-700"
+      : summary.stability === "High"
+      ? "text-green-700"
+      : summary.stability === "Medium"
+      ? "text-yellow-700"
+      : "text-red-700";
+  const resultLabel =
+    mode === "diagnosis"
+      ? `Placed in ${summary.phase} at ${summary.stability} stability`
+      : summary.systemDecision === "Advance signal" && summary.phase !== "Time Pressure Stability"
+      ? `Phase is ready to progress from ${summary.phase}`
+      : summary.systemDecision === "Hold current phase"
+      ? `Stability is holding in ${summary.phase}`
+      : `Reinforcement is still needed in ${summary.phase}`;
+  const formatState = (phaseValue?: string | null, stabilityValue?: string | null) => {
+    if (!phaseValue && !stabilityValue) return "Not recorded";
+    if (!phaseValue) return String(stabilityValue || "Not recorded");
+    if (!stabilityValue) return String(phaseValue || "Not recorded");
+    return `${phaseValue} (${stabilityValue})`;
+  };
 
   const handleObservation = (fieldKey: string, option: string) => {
     setObservations((prev) => ({
@@ -1033,114 +1068,106 @@ function DemoRunnerOverlay({
                 </form>
               </>
             ) : (
-              <div className="space-y-6">
-                <Card className="border-primary/20 bg-primary/5 shadow-sm">
-                  <div className="space-y-3 p-5">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge className="bg-background text-primary hover:bg-background">Drill Submitted</Badge>
-                      <Badge variant="outline">{phase}</Badge>
-                    </div>
-                    <h3 className="text-2xl font-bold">Drill Result</h3>
-                    <p className="max-w-3xl text-sm text-muted-foreground">
-                      This screen shows the drill outcome after all required sets and reps are completed.
-                    </p>
-                  </div>
-                </Card>
-
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                  <Card className="border-primary/15 bg-background shadow-sm">
-                    <div className="p-4">
-                      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
-                        {mode === "training" ? "Session Score" : mode === "handover" ? "Continuity Score" : "Diagnosis Score"}
-                      </p>
-                      <p className="mt-2 text-3xl font-semibold tabular-nums">{summary.phaseScore}/100</p>
-                    </div>
-                  </Card>
-                  <Card className="border-primary/15 bg-background shadow-sm">
-                    <div className="p-4">
-                      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Set 1 Total</p>
-                      <p className="mt-2 text-3xl font-semibold">{summary.setScores[0] || 0}/100</p>
-                    </div>
-                  </Card>
-                  <Card className="border-primary/15 bg-background shadow-sm">
-                    <div className="p-4">
-                      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Set 2 Total</p>
-                      <p className="mt-2 text-3xl font-semibold">{summary.setScores[1] || 0}/100</p>
-                    </div>
-                  </Card>
-                  <Card className="border-primary/15 bg-background shadow-sm">
-                    <div className="p-4">
-                      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">System Decision</p>
-                      <p className="mt-2 font-semibold">{summary.systemDecision}</p>
-                    </div>
-                  </Card>
+              <div className="mb-6 space-y-4">
+                <div className="rounded-md border border-primary/25 bg-primary/10 p-3 font-medium text-foreground">
+                  Drill submitted. Scoring complete.
                 </div>
 
-                <Card className="border-primary/15 bg-background shadow-sm">
-                  <div className="space-y-4 p-5">
-                    <div>
-                      <p className="font-semibold">Drill Summary</p>
-                      <p className="text-sm text-muted-foreground">
-                        This view shows set totals, drill total, system decision, reason, tutor meaning, and next action.
-                      </p>
-                    </div>
-                    <div className="grid gap-4 lg:grid-cols-2">
-                      <div className="rounded-xl border border-primary/15 bg-background p-4">
-                        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Drill Total</p>
-                        <p className="mt-2 text-3xl font-semibold">{summary.phaseScore}/100</p>
-                        <p className="mt-3 text-sm text-muted-foreground">Resolved Stability</p>
-                        <p className="mt-1 font-semibold">{summary.stability}</p>
-                      </div>
-                      <div className="rounded-xl border border-primary/15 bg-background p-4">
-                        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Reason</p>
-                        <p className="mt-2 font-medium">{summary.transitionReason}</p>
-                      </div>
-                      <div className="rounded-xl border border-primary/15 bg-background p-4 lg:col-span-2">
-                        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Tutor Meaning</p>
-                        <p className="mt-2 font-medium">{summary.tutorMeaning}</p>
-                      </div>
-                      <div className="rounded-xl border border-primary/15 bg-background p-4 lg:col-span-2">
-                        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Next Action</p>
-                        <p className="mt-2 font-semibold">{summary.nextAction}</p>
-                        <p className="mt-3 text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Constraint</p>
-                        <p className="mt-1 font-medium">{summary.constraint || "Follow phase constraints"}</p>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-
-                <Card className="border-primary/15 bg-background shadow-sm">
-                  <div className="space-y-4 p-5">
-                    <div>
-                      <p className="font-semibold">Set and Rep Breakdown</p>
-                      <p className="text-sm text-muted-foreground">
-                        This section shows the set totals and the rep-level scores that produced the drill result.
-                      </p>
-                    </div>
-                    <div className="grid gap-3 lg:grid-cols-2">
-                      {drillStructure.slice(0, 2).map((setConfig, index) => (
-                        <div key={setConfig.setName} className="overflow-hidden rounded-xl border border-primary/15 bg-background">
-                          <div className="flex items-center justify-between bg-primary/5 px-4 py-2">
-                            <span className="font-semibold text-sm">{setConfig.setName}</span>
-                            <span className="text-sm text-muted-foreground">
-                              Set Total: <strong>{summary.setScores[index] || 0}/100</strong>
-                            </span>
-                          </div>
-                          <div className="divide-y">
-                            {summary.repRows
-                              .filter((row) => row.set === setConfig.setName)
-                              .map((row) => (
-                                <div key={`${row.set}-${row.rep}`} className="flex items-center justify-between px-4 py-2 text-sm">
-                                  <span className="text-muted-foreground">Rep {row.rep}</span>
-                                  <span className="font-medium">{row.repScore}/100</span>
-                                </div>
-                              ))}
-                          </div>
+                {drillStructure
+                  .filter((setConfig) => hasScoredObservations(setConfig))
+                  .map((setConfig, index) => {
+                    const rows = summary.repRows.filter((row) => row.set === setConfig.setName);
+                    const setPercent = summary.setScores[index] || 0;
+                    return (
+                      <div key={setConfig.setName} className="overflow-hidden rounded-xl border border-primary/15 bg-background">
+                        <div className="flex items-center justify-between bg-primary/5 px-4 py-2">
+                          <span className="text-sm font-semibold">{setConfig.setName}</span>
+                          <span className="text-sm text-muted-foreground">
+                            Set Total: <strong>{setPercent}/100</strong>
+                            <span className="ml-2 text-xs">({setPercent}%)</span>
+                          </span>
                         </div>
-                      ))}
-                    </div>
+                        <div className="divide-y">
+                          {rows.map((row) => (
+                            <div key={`${row.set}-${row.rep}`} className="flex items-center justify-between bg-background px-4 py-2 text-sm">
+                              <span className="text-muted-foreground">Rep {row.rep}</span>
+                              <span
+                                className={`font-medium ${
+                                  row.repScore >= 70 ? "text-green-700" : row.repScore >= 45 ? "text-yellow-700" : "text-red-700"
+                                }`}
+                              >
+                                {row.repScore}/100
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                <div className="flex items-center justify-between rounded-xl border border-primary/15 bg-background px-4 py-3">
+                  <span className="font-semibold">
+                    {mode === "training" ? "Session Total" : mode === "handover" ? "Verification Total" : "Diagnosis Total"}
+                  </span>
+                  <span
+                    className={`text-lg font-bold ${
+                      summary.phaseScore >= 70 ? "text-green-700" : summary.phaseScore >= 45 ? "text-yellow-700" : "text-red-700"
+                    }`}
+                  >
+                    {summary.phaseScore}/100
+                  </span>
+                </div>
+
+                <div className="overflow-hidden rounded-xl border border-primary/15 bg-background">
+                  <div className="bg-primary/5 px-4 py-2">
+                    <span className="text-sm font-semibold">System Direction</span>
                   </div>
-                </Card>
+                  <div className="space-y-3 px-4 py-3 text-sm">
+                    <div>
+                      <p className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">This Session Result</p>
+                      <p className={`font-semibold ${stabilityColor}`}>{resultLabel}</p>
+                    </div>
+                    <div className="flex items-center justify-between border-t pt-1">
+                      <span className="text-muted-foreground">Topic Score</span>
+                      <span
+                        className={`font-bold ${
+                          summary.phaseScore >= 70 ? "text-green-700" : summary.phaseScore >= 45 ? "text-yellow-700" : "text-red-700"
+                        }`}
+                      >
+                        {summary.phaseScore}/100
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Before</span>
+                      <span className="font-medium">{formatState(summary.phaseBefore, summary.stabilityBefore)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Now</span>
+                      <span className="font-medium">{formatState(summary.phase, summary.stability)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Phase</span>
+                      <span className="font-medium">{summary.phase}</span>
+                    </div>
+                    <div className="border-t pt-2">
+                      <p className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">Next Session Focus</p>
+                      <p className="font-semibold text-blue-700">{summary.nextAction}</p>
+                    </div>
+                    <div className="border-t pt-2">
+                      <p className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">Reason</p>
+                      <p className="font-medium">{summary.transitionReason}</p>
+                    </div>
+                    <div className="border-t pt-2">
+                      <p className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">Tutor Meaning</p>
+                      <p className="font-medium">{summary.tutorMeaning}</p>
+                    </div>
+                    {summary.constraint && (
+                      <div className="mt-1 border-t pt-2 text-xs text-muted-foreground">
+                        Constraint: {summary.constraint}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
           </div>
