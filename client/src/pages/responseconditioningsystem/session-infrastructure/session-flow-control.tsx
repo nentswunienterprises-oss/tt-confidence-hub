@@ -136,7 +136,7 @@ export default function ResponseConditioningSessionFlowControl() {
             ))}
           </ol>
           <p className="font-semibold">
-            `Model -> Apply -> Guide` is a training tool, not a universal session law.
+            Model -&gt; Apply -&gt; Guide is a training tool, not a universal session law.
           </p>
         </Card>
 
