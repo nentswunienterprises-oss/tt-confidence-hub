@@ -22,7 +22,7 @@ type DrillSetConfig = {
   repObservationBlocks?: ObservationField[][];
 };
 
-type DemoMode = "diagnosis" | "training";
+type DemoMode = "diagnosis" | "training" | "handover";
 
 type DemoSummary = {
   phase: PhaseLabel;
@@ -38,6 +38,12 @@ type DemoSummary = {
   tutorMeaning: string;
 };
 
+type DemoPrepPlan = {
+  drillType: string;
+  setPlans: Array<{ label: string; problems: number; difficulty: string }>;
+  prepNotes: string[];
+};
+
 const PHASES: PhaseLabel[] = [
   "Clarity",
   "Structured Execution",
@@ -48,23 +54,23 @@ const PHASES: PhaseLabel[] = [
 const PHASE_CONTEXT: Record<PhaseLabel, { purpose: string; constraints: string[] }> = {
   Clarity: {
     purpose:
-      "This phase checks whether the student understands the problem before trying to solve it.",
+      "Can the student see the problem clearly before solving? Clarity is naming what's there, recognizing the method, understanding why. If this fails - everything else collapses.",
     constraints: ["No Boss Battles", "No time pressure", "No skipping layers"],
   },
   "Structured Execution": {
     purpose:
-      "This phase checks whether the student can follow the method on their own, in the right order, without guessing.",
+      "Test and build ability to execute the known method independently. Student knows - now prove they can do it alone, repeatably.",
     constraints: ["State steps before solving", "No guessing tolerated", "No skipping steps"],
   },
   "Controlled Discomfort": {
     purpose:
-      "This phase checks how the student responds when the work feels hard or uncomfortable.",
+      "Test and stabilize behavior under uncertainty and difficulty. Does the student persist - or shut down?",
     constraints: ["No full rescue", "Hold discomfort window", "One-step confirmation max"],
   },
   "Time Pressure Stability": {
     purpose:
-      "This phase checks whether the student can keep their structure while working under time pressure.",
-    constraints: ["Method over speed", "Timer is active", "Structured response required"],
+      "Maintain method structure under urgency. Structure is the target - speed is secondary.",
+    constraints: ["Method over speed", "Timer is active", "Structured response required - no panic tolerance"],
   },
 };
 
@@ -303,14 +309,15 @@ const TRAINING_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
       reps: 1,
       purpose: "Build the mental map before drilling.",
       repInstruction: "Teach Vocabulary -> Method -> Reason, then ask the student to explain back.",
+      isModelingSet: true,
       activeRules: ["Tutor models first", "Student does not solve yet", "Use Vocabulary -> Method -> Reason"],
     },
     {
       setName: "Identification",
       reps: 3,
-      purpose: "Recognition without solving. Student names terms, identifies type, states steps, and explains why.",
-      repInstruction: "Show the problem. Ask student to name the terms, identify the type, state the steps, and explain why it works.",
-      activeRules: ["No solving yet", "Push for vocabulary precision", "Check all four layers"],
+      purpose: "Recognition without solving. Student names terms, identifies type, states steps, explains why.",
+      repInstruction: "Show the problem. Ask student to: name the terms, identify the type, state the steps, explain why it works. No solving allowed.",
+      activeRules: ["No solving allowed", "Push for vocabulary precision", "All 4 layers: terms, type, steps, reason"],
       repObservationBlocks: [
         [
           { key: "vocabulary", label: "Type Recognition (Rep 1)", options: ["wrong", "hesitant", "correct"] },
@@ -691,6 +698,84 @@ function buildDemoSummary(
   };
 }
 
+function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null {
+  if (mode === "diagnosis") {
+    return null;
+  }
+
+  const baseDifficulty = "Simple/Normal";
+  const drillType = mode === "handover" ? `${phase} Verification` : `${phase} Drill`;
+  const continuityNote =
+    mode === "handover"
+      ? ["Use the inherited phase as the starting point. Verify it before changing it."]
+      : [];
+
+  if (phase === "Clarity") {
+    return {
+      drillType,
+      setPlans: [
+        { label: "Set 1: Modeling", problems: 2, difficulty: baseDifficulty },
+        { label: "Set 2: Identification", problems: 3, difficulty: baseDifficulty },
+        { label: "Set 3: Light Apply", problems: 3, difficulty: baseDifficulty },
+      ],
+      prepNotes: [
+        "Set 1 is teaching only; no scored observations.",
+        "Prepare 8 total problems (2 model + 6 drill reps).",
+        "No boss battles and no timed pressure in Clarity.",
+        "Difficulty: keep all problems at Simple/Normal level.",
+        ...continuityNote,
+      ],
+    };
+  }
+
+  if (phase === "Structured Execution") {
+    return {
+      drillType,
+      setPlans: [
+        { label: "Set 1", problems: 3, difficulty: baseDifficulty },
+        { label: "Set 2", problems: 3, difficulty: baseDifficulty },
+        { label: "Set 3", problems: 3, difficulty: baseDifficulty },
+      ],
+      prepNotes: [
+        "Prepare 9 total problems (3 sets x 3 reps).",
+        "Focus on independent starts and full step sequence.",
+        "Difficulty: keep all problems at Simple/Normal level.",
+        ...continuityNote,
+      ],
+    };
+  }
+
+  if (phase === "Controlled Discomfort") {
+    return {
+      drillType,
+      setPlans: [
+        { label: "Set 1", problems: 3, difficulty: "Hard" },
+        { label: "Set 2", problems: 3, difficulty: "Challenging (but solvable)" },
+        { label: "Set 3", problems: 3, difficulty: "Challenging (but solvable)" },
+      ],
+      prepNotes: [
+        "Prepare 9 total problems with controlled challenge increase.",
+        "No rescue beyond first-step guidance.",
+        ...continuityNote,
+      ],
+    };
+  }
+
+  return {
+    drillType,
+    setPlans: [
+      { label: "Set 1", problems: 3, difficulty: "Hard" },
+      { label: "Set 2", problems: 3, difficulty: "Challenging (but solvable)" },
+      { label: "Set 3", problems: 3, difficulty: "Challenging (but solvable)" },
+    ],
+    prepNotes: [
+      "Prepare 9 total timed problems.",
+      "Keep pressure controlled; preserve structure over speed.",
+      ...continuityNote,
+    ],
+  };
+}
+
 function DemoRunnerOverlay({
   phase,
   mode,
@@ -703,6 +788,7 @@ function DemoRunnerOverlay({
   onClose: () => void;
 }) {
   const drillStructure = mode === "training" ? TRAINING_SETS_BY_PHASE[phase] : DIAGNOSIS_SETS_BY_PHASE[phase];
+  const prepPlan = demoPrepPlanFor(phase, mode);
   const [currentSet, setCurrentSet] = useState(0);
   const [currentRep, setCurrentRep] = useState(0);
   const [observations, setObservations] = useState<Record<string, string>>({});
@@ -724,6 +810,7 @@ function DemoRunnerOverlay({
   const isFirstRep = currentRep === 0;
   const isLastSet = currentSet === drillStructure.length - 1;
   const isLastRep = currentRep === currentSetConfig.reps - 1;
+  const isModelingSet = !!currentSetConfig?.isModelingSet;
 
   const canAdvance = fields.every((field) => {
     return Boolean(observations[observationKey(currentSet, currentRep, field.key)]);
@@ -777,9 +864,19 @@ function DemoRunnerOverlay({
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
             <div className="min-w-0">
               <h2 className="text-2xl font-bold tracking-tight">
-                {mode === "training" ? `Training Drill - ${phase}` : `Adaptive Intro Diagnosis - ${phase}`}
+                {mode === "training"
+                  ? `Training Drill - ${phase}`
+                  : mode === "handover"
+                  ? `Handover Verification - ${phase}`
+                  : `Adaptive Intro Diagnosis - ${phase}`}
               </h2>
-              <p className="mt-2 text-sm text-muted-foreground">Demo runner</p>
+              <p className="mb-2 mt-2 text-sm">
+                <span className="font-semibold">
+                  {mode === "training" ? "Current Topic:" : "Diagnostic Topic:"}
+                </span>{" "}
+                Selected Practice Topic
+              </p>
+              <p className="mb-4 text-sm text-muted-foreground">Practice Student</p>
             </div>
             <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close demo runner">
               <X className="h-5 w-5" />
@@ -791,180 +888,161 @@ function DemoRunnerOverlay({
           <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
             {!submitSuccess && !prepComplete ? (
               <div className="mx-auto max-w-4xl">
-                <div className="mb-4 p-3 rounded-md border border-primary/20 bg-primary/5">
-                  <p className="font-semibold mb-1">Instructions:</p>
-                  <ul className="list-disc pl-5 text-sm text-foreground/90 space-y-1">
-                    {mode === "training" ? (
-                      <>
-                        <li>This is a training drill. Follow the structure exactly as shown.</li>
-                        <li><strong>Before you begin:</strong> Prepare <span className="font-semibold">3 distinct problems</span> for each drill set.</li>
-                        <li>For each set and rep, present the prepared problem, observe the student, and select the option that best matches their behavior for each field.</li>
-                        <li>You cannot skip steps or edit outside the drill structure. Complete each observation in order.</li>
-                        <li>When finished, submit the drill to see the result summary.</li>
-                      </>
-                    ) : (
-                      <>
-                        <li>This diagnosis is adaptive. Complete the current phase verification block exactly as shown.</li>
-                        <li><strong>Before you begin:</strong> Prepare <span className="font-semibold">3 distinct problems</span> for the current phase block.</li>
-                        <li>The system will move up, place here, or move down after each phase block based on the score band.</li>
-                        <li>You cannot skip steps or edit outside the verification structure. Complete each observation in order.</li>
-                        <li>Diagnosis stops automatically once the correct entry phase is verified.</li>
-                      </>
-                    )}
-                  </ul>
-                </div>
+                {mode === "diagnosis" ? (
+                  <div className="mb-4 rounded-md border border-primary/20 bg-primary/5 p-3">
+                    <p className="mb-1 font-semibold">Instructions:</p>
+                    <ul className="list-disc space-y-1 pl-5 text-sm text-foreground/90">
+                      <li>
+                        This diagnosis is adaptive. Complete the current phase verification block exactly as shown.
+                      </li>
+                      <li>
+                        <strong>Before you begin:</strong> Prepare{" "}
+                        <span className="font-semibold">3 distinct problems</span> for the current phase block.
+                      </li>
+                      <li>The system will move up, place here, or move down after each phase block based on the score band.</li>
+                      <li>You cannot skip steps or edit outside the verification structure. Complete each observation in order.</li>
+                      <li>Diagnosis stops automatically once the correct entry phase is verified.</li>
+                    </ul>
+                  </div>
+                ) : prepPlan ? (
+                  <div className="rounded-md border border-primary/30 bg-primary/5 p-3 space-y-3">
+                      <p className="text-sm font-medium">
+                        {mode === "handover" ? "Tutor Prep For Handover Verification" : "Tutor Prep For Next Session"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Drill type: {prepPlan.drillType}</p>
+                      <div className="space-y-1.5">
+                        {prepPlan.setPlans.map((setPlan) => (
+                          <div key={setPlan.label} className="rounded border border-primary/20 bg-background/70 px-2 py-1.5 text-xs">
+                            <p className="font-medium text-foreground">{setPlan.label}</p>
+                            <p className="text-muted-foreground">Problems: {setPlan.problems}</p>
+                            <p className="text-muted-foreground">Difficulty: {setPlan.difficulty}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <div>
+                        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Prep Rules</p>
+                        <ul className="space-y-0.5 text-xs text-muted-foreground">
+                          {prepPlan.prepNotes.map((note) => (
+                            <li key={note} className="flex items-start gap-1.5">
+                              <span className="shrink-0 text-foreground/40">-</span>
+                              <span>{note}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                  </div>
+                ) : null}
               </div>
             ) : !submitSuccess ? (
-              <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-                <div className="space-y-4">
-                  <Card className="border-primary/15 bg-background shadow-sm">
-                    <div className="space-y-4 p-4 sm:p-5">
-                      {isFirstSet && isFirstRep && (
-                        <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm">
-                          <div className="mb-1 font-semibold text-foreground">Phase: {phase}</div>
-                          <div className="mb-2 text-xs text-muted-foreground">{PHASE_CONTEXT[phase].purpose}</div>
-                          <div className="flex flex-wrap gap-1">
-                            {PHASE_CONTEXT[phase].constraints.map((rule) => (
-                              <span
-                                key={rule}
-                                className="rounded border border-primary/20 bg-background px-2 py-0.5 text-xs font-medium"
-                              >
-                                {rule}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+              <>
+                {isFirstSet && isFirstRep && (
+                  <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm">
+                    <div className="mb-1 font-semibold text-foreground">Phase: {phase}</div>
+                    <div className="mb-2 text-xs text-muted-foreground">{PHASE_CONTEXT[phase].purpose}</div>
+                    <div className="flex flex-wrap gap-1">
+                      {PHASE_CONTEXT[phase].constraints.map((rule) => (
+                        <span
+                          key={rule}
+                          className="rounded border border-primary/20 bg-background px-2 py-0.5 text-xs font-medium"
+                        >
+                          {rule}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-                      <div className="rounded-xl border border-primary/15 bg-background p-3 shadow-sm">
+                {isModelingSet && (
+                  <div className="mb-4 rounded-xl border border-primary/25 bg-primary/10 p-4">
+                    <div className="mb-1 text-sm font-bold text-foreground">MODELING STEP</div>
+                    <div className="text-xs leading-relaxed text-muted-foreground">
+                      Tutor teaches first. Student does <strong>NOT</strong> solve yet.
+                      <br />
+                      Run <strong>Vocabulary -&gt; Method -&gt; Reason</strong>, then ask the student to explain back.
+                      <br />
+                      Sets 2 and 3 are the scored drill sets.
+                    </div>
+                  </div>
+                )}
+
+                <div className="mb-4 rounded-xl border border-primary/15 bg-background p-3 shadow-sm">
+                  <div className="mb-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm font-semibold">
+                      Set {currentSet + 1} / {drillStructure.length}: {currentSetConfig.setName}
+                    </div>
+                    <div className="text-sm font-medium text-muted-foreground">
+                      {isModelingSet ? "Pre-Drill Step" : `Rep ${currentRep + 1} / ${currentSetConfig.reps}`}
+                    </div>
+                  </div>
+                  <div className="mb-3 text-xs text-muted-foreground">{currentSetConfig.purpose}</div>
+                  <div className="mb-3 rounded-md border border-primary/20 bg-primary/5 p-2">
+                    <div className="mb-0.5 text-xs font-semibold text-primary">Rep instruction</div>
+                    <div className="text-sm font-medium text-foreground">{currentSetConfig.repInstruction}</div>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {currentSetConfig.activeRules.map((rule) => (
+                      <span
+                        key={rule}
+                        className="rounded border border-primary/15 bg-background px-2 py-0.5 text-xs text-muted-foreground"
+                      >
+                        {rule}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <form className="space-y-4">
+                  {fields.length === 0 && (
+                    <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-sm">
+                      No observations are captured for this step. Continue when pre-drill teaching is complete.
+                    </div>
+                  )}
+                  {fields.map((field) => {
+                    const selected = observations[observationKey(currentSet, currentRep, field.key)] || "";
+                    const selectedIndex = field.options.indexOf(selected);
+                    const selectedLevel =
+                      selectedIndex >= 0
+                        ? observationLevelFromOptionIndex(selectedIndex, field.options.length)
+                        : null;
+
+                    return (
+                      <div key={field.key}>
                         <div className="mb-2 flex items-center justify-between gap-3">
-                          <div className="font-semibold text-sm">
-                            Set {currentSet + 1} / {drillStructure.length}: {currentSetConfig.setName}
-                          </div>
-                          <div className="text-sm font-medium text-muted-foreground">
-                            Rep {currentRep + 1} / {currentSetConfig.reps}
-                          </div>
+                          <label className="block font-medium">{field.label}</label>
+                          {selectedLevel && <Badge variant="secondary">{selectedLevel}</Badge>}
                         </div>
-                        <div className="mb-3 text-xs text-muted-foreground">{currentSetConfig.purpose}</div>
-                        <div className="mb-3 rounded-md border border-primary/20 bg-primary/5 p-2">
-                          <div className="mb-0.5 text-xs font-semibold text-primary">Rep instruction</div>
-                          <div className="text-sm font-medium">{currentSetConfig.repInstruction}</div>
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {currentSetConfig.activeRules.map((rule) => (
-                            <span
-                              key={rule}
-                              className="rounded border border-primary/15 px-2 py-0.5 text-xs text-muted-foreground"
+                        <div className="flex gap-2">
+                          {field.options.map((option) => (
+                            <button
+                              type="button"
+                              key={option}
+                              className={`rounded-md border px-3 py-1 transition-colors ${
+                                selected === option
+                                  ? "border-primary bg-primary text-primary-foreground"
+                                  : "border-primary/20 bg-background hover:bg-primary/5"
+                              }`}
+                              onClick={() => handleObservation(field.key, option)}
                             >
-                              {rule}
-                            </span>
+                              {option}
+                            </button>
                           ))}
                         </div>
                       </div>
-                    </div>
-                  </Card>
-
-                  <Card className="border-primary/15 bg-background shadow-sm">
-                    <div className="space-y-4 p-4 sm:p-5">
-                      <div>
-                        <p className="font-semibold">Rep Observation Capture</p>
-                        <p className="text-sm text-muted-foreground">
-                          Select what happened in this rep. The demo follows the same one-row-per-field structure as the live runner.
-                        </p>
-                      </div>
-
-                      <form className="space-y-4">
-                        {fields.map((field) => {
-                          const selected = observations[observationKey(currentSet, currentRep, field.key)] || "";
-                          const selectedIndex = field.options.indexOf(selected);
-                          const selectedLevel = selectedIndex >= 0
-                            ? observationLevelFromOptionIndex(selectedIndex, field.options.length)
-                            : null;
-
-                          return (
-                            <div key={field.key}>
-                              <div className="mb-2 flex items-center justify-between gap-3">
-                                <label className="block font-medium">{field.label}</label>
-                                {selectedLevel && <Badge variant="secondary">{selectedLevel}</Badge>}
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                {field.options.map((option) => (
-                                  <button
-                                    type="button"
-                                    key={option}
-                                    className={`rounded-md border px-3 py-1 text-sm transition-colors ${
-                                      selected === option
-                                        ? "border-primary bg-primary text-primary-foreground"
-                                        : "border-primary/20 bg-background hover:bg-primary/5"
-                                    }`}
-                                    onClick={() => handleObservation(field.key, option)}
-                                  >
-                                    {option}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </form>
-                    </div>
-                  </Card>
-                </div>
-
-                <div className="space-y-4">
-                  <Card className="border-primary/15 bg-background shadow-sm">
-                    <div className="space-y-3 p-4 sm:p-5">
-                      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Runner Progress</p>
-                      <div className="grid grid-cols-3 gap-3">
-                        <div className="rounded-lg border bg-muted/20 p-3">
-                          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Set</p>
-                          <p className="mt-1 text-2xl font-semibold">{currentSet + 1}</p>
-                        </div>
-                        <div className="rounded-lg border bg-muted/20 p-3">
-                          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Rep</p>
-                          <p className="mt-1 text-2xl font-semibold">{currentRep + 1}</p>
-                        </div>
-                        <div className="rounded-lg border bg-muted/20 p-3">
-                          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Fields</p>
-                          <p className="mt-1 text-2xl font-semibold">{fields.length}</p>
-                        </div>
-                      </div>
-                      <div className="rounded-lg border bg-primary/5 p-3 text-sm text-muted-foreground">
-                        Submit is local only. It opens a demo result screen and does not update any student, topic, or report data.
-                      </div>
-                    </div>
-                  </Card>
-
-                  <Card className="border-primary/15 bg-background shadow-sm">
-                    <div className="space-y-3 p-4 sm:p-5">
-                      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Resolved Demo Direction</p>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Current projected stability</p>
-                        <p className="text-lg font-semibold">{summary.stability}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Next action</p>
-                        <p className="font-semibold">{summary.nextAction}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Constraint</p>
-                        <p className="font-medium">{summary.constraint || "Follow phase constraints"}</p>
-                      </div>
-                    </div>
-                  </Card>
-                </div>
-              </div>
+                    );
+                  })}
+                </form>
+              </>
             ) : (
               <div className="space-y-6">
                 <Card className="border-primary/20 bg-primary/5 shadow-sm">
                   <div className="space-y-3 p-5">
                     <div className="flex flex-wrap items-center gap-2">
-                      <Badge className="bg-background text-primary hover:bg-background">Demo Submitted</Badge>
+                      <Badge className="bg-background text-primary hover:bg-background">Drill Submitted</Badge>
                       <Badge variant="outline">{phase}</Badge>
                     </div>
-                    <h3 className="text-2xl font-bold">Demo Result Screen</h3>
+                    <h3 className="text-2xl font-bold">Drill Result</h3>
                     <p className="max-w-3xl text-sm text-muted-foreground">
-                      This mirrors the post-submit feel of the live runner, but it is local-only. No session is recorded, no topic state changes, and no backend call is made.
+                      This screen shows the drill outcome after all required sets and reps are completed.
                     </p>
                   </div>
                 </Card>
@@ -973,7 +1051,7 @@ function DemoRunnerOverlay({
                   <Card className="border-primary/15 bg-background shadow-sm">
                     <div className="p-4">
                       <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
-                        {mode === "training" ? "Session Score" : "Diagnosis Score"}
+                        {mode === "training" ? "Session Score" : mode === "handover" ? "Continuity Score" : "Diagnosis Score"}
                       </p>
                       <p className="mt-2 text-3xl font-semibold tabular-nums">{summary.phaseScore}/100</p>
                     </div>
@@ -1003,7 +1081,7 @@ function DemoRunnerOverlay({
                     <div>
                       <p className="font-semibold">Drill Summary</p>
                       <p className="text-sm text-muted-foreground">
-                        The demo runner scores option positions locally and rolls them into set totals, drill total, system decision, and explanatory output.
+                        This view shows set totals, drill total, system decision, reason, tutor meaning, and next action.
                       </p>
                     </div>
                     <div className="grid gap-4 lg:grid-cols-2">
@@ -1231,6 +1309,20 @@ export default function ResponseConditioningLoggingSystem() {
                     Use the intro diagnosis flow to verify starting phase placement.
                   </p>
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setDemoMode("handover")}
+                  className={`rounded-xl border p-4 text-left transition-colors ${
+                    demoMode === "handover"
+                      ? "border-primary bg-primary/5 shadow-sm"
+                      : "border-border bg-background hover:border-primary/30 hover:bg-muted/20"
+                  }`}
+                >
+                  <p className="text-sm font-semibold">Handover</p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Use the continuity-check flow to verify where training should resume with a new tutor.
+                  </p>
+                </button>
               </div>
 
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -1265,7 +1357,7 @@ export default function ResponseConditioningLoggingSystem() {
                 <div className="rounded-2xl border border-primary/15 bg-background p-4 shadow-sm">
                   <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Selected Demo</p>
                   <h4 className="mt-2 text-xl font-semibold">
-                    {demoMode === "training" ? "Training" : "Intro Diagnosis"}: {selectedPhase}
+                    {demoMode === "training" ? "Training" : demoMode === "handover" ? "Handover" : "Intro Diagnosis"}: {selectedPhase}
                   </h4>
                   <p className="mt-2 text-sm text-muted-foreground">{PHASE_CONTEXT[selectedPhase].purpose}</p>
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -1284,7 +1376,13 @@ export default function ResponseConditioningLoggingSystem() {
                   <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">In This Demo</p>
                   <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
                     <li>Tutor prep before the drill starts</li>
-                    <li>{demoMode === "training" ? "A phase-based training drill" : "A phase verification block"}</li>
+                    <li>
+                      {demoMode === "training"
+                        ? "A phase-based training drill"
+                        : demoMode === "handover"
+                        ? "A continuity-check verification block"
+                        : "A phase verification block"}
+                    </li>
                     <li>Clickable observation choices for each rep</li>
                     <li>A result screen with totals, system output, reason, and next step</li>
                   </ul>
