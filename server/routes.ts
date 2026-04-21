@@ -124,6 +124,34 @@ async function safeSendPush(
   }
 }
 
+function getEffectiveScheduledSessionStatus(session: any): string {
+  const rawStatus = String(session?.status || "").toLowerCase();
+  const parentConfirmed = !!session?.parent_confirmed;
+  const tutorConfirmed = !!session?.tutor_confirmed;
+
+  if (["completed", "live", "ready"].includes(rawStatus)) {
+    return rawStatus;
+  }
+
+  if (parentConfirmed && tutorConfirmed) {
+    return "confirmed";
+  }
+
+  if (parentConfirmed && !tutorConfirmed) {
+    return "pending_tutor_confirmation";
+  }
+
+  if (!parentConfirmed && tutorConfirmed) {
+    return "pending_parent_confirmation";
+  }
+
+  if (rawStatus === "pending_parent_confirmation" || rawStatus === "pending_tutor_confirmation") {
+    return rawStatus;
+  }
+
+  return "not_scheduled";
+}
+
 const SCHEDULED_SESSION_SELECT = [
   "id",
   "scheduled_time",
@@ -3204,7 +3232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             scheduled_time: resolvedSession.scheduled_time,
             scheduled_end: resolvedSession.scheduled_end,
             timezone: resolvedSession.timezone,
-            status: resolvedSession.status,
+            status: getEffectiveScheduledSessionStatus(resolvedSession),
             parent_confirmed: resolvedSession.parent_confirmed,
             tutor_confirmed: resolvedSession.tutor_confirmed,
             recording_status: resolvedSession.recording_status,
@@ -3441,7 +3469,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json({ status: "not_scheduled" });
         }
 
-        const assignedStudent = await resolveCanonicalStudentForEnrollment(enrollmentData);
+        let assignedStudent = null;
+        try {
+          assignedStudent = await resolveCanonicalStudentForEnrollment(enrollmentData);
+        } catch (studentResolutionError) {
+          console.error("[intro-session-confirmation] canonical student resolution failed", {
+            userId,
+            enrollmentId: enrollmentData.id,
+            tutorId: enrollmentData.assigned_tutor_id,
+            error: studentResolutionError,
+          });
+        }
 
 
         // Find all intro sessions for this parent/tutor
@@ -3500,13 +3538,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           : {};
         const introCompleted = !!assignedStudentWorkflow.introCompletedAt;
 
-        const effectiveStatus = session.status === "pending_tutor_confirmation" || session.status === "pending_parent_confirmation" || session.status === "confirmed" || session.status === "ready" || session.status === "live" || session.status === "completed"
-          ? session.status
-          : !session.tutor_confirmed
-            ? "pending_tutor_confirmation"
-            : !session.parent_confirmed
-              ? "pending_parent_confirmation"
-              : "confirmed";
+        const effectiveStatus = getEffectiveScheduledSessionStatus(session);
 
         const responseObj = {
           id: session.id,
@@ -3527,7 +3559,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(responseObj);
       } catch (error) {
         console.error("Error in intro-session-confirmation:", error);
-        res.status(500).json({ status: "error", message: "Failed to fetch intro session confirmation status" });
+        return res.json({
+          status: "not_scheduled",
+          degraded: true,
+        });
       }
     });
 
@@ -3558,7 +3593,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (session.parent_id !== userId) {
         return res.status(403).json({ message: "Unauthorized" });
       }
-      if (session.status !== "pending_parent_confirmation") {
+      const effectiveStatus = getEffectiveScheduledSessionStatus(session);
+      if (effectiveStatus !== "pending_parent_confirmation") {
         return res.status(400).json({ message: "Session is not waiting for parent confirmation" });
       }
 
@@ -4547,7 +4583,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({
           id: resolvedSession.id,
           scheduled_time: resolvedSession.scheduled_time,
-          status: resolvedSession.status,
+          status: getEffectiveScheduledSessionStatus(resolvedSession),
           parent_confirmed: resolvedSession.parent_confirmed,
           tutor_confirmed: resolvedSession.tutor_confirmed,
           created_at: resolvedSession.created_at,
@@ -4612,8 +4648,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (action === "accept") {
         updateFields = {
           tutor_confirmed: true,
-          parent_confirmed: true,
-          status: "confirmed",
+          parent_confirmed: false,
+          status: "pending_parent_confirmation",
           updated_at: new Date().toISOString(),
         };
       } else if (action === "propose_adjustment") {
@@ -4708,8 +4744,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (action === "accept") {
         updateFields = {
           tutor_confirmed: true,
-          parent_confirmed: true,
-          status: "confirmed",
+          parent_confirmed: false,
+          status: "pending_parent_confirmation",
           updated_at: new Date().toISOString(),
         };
       } else if (action === "propose_adjustment") {
