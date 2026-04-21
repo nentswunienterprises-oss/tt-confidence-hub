@@ -613,14 +613,8 @@ function DemoRunnerOverlay({
         <div className="border-b bg-card/95">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="outline">{phase}</Badge>
-                <Badge variant="outline">Demo</Badge>
-              </div>
-              <h2 className="mt-2 text-2xl font-bold tracking-tight">Drill Runner Demo</h2>
-              <p className="text-sm text-muted-foreground">
-                Walk through the drill the same way a tutor would: prep first, run reps, then review the result screen.
-              </p>
+              <h2 className="text-2xl font-bold tracking-tight">Adaptive Intro Diagnosis - {phase}</h2>
+              <p className="mt-2 text-sm text-muted-foreground">Demo runner</p>
             </div>
             <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close demo runner">
               <X className="h-5 w-5" />
@@ -632,58 +626,37 @@ function DemoRunnerOverlay({
           <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
             {!submitSuccess && !prepComplete ? (
               <div className="mx-auto max-w-4xl">
-                  <Card className="border-primary/15 bg-background shadow-sm">
-                    <div className="space-y-4 p-4 sm:p-5">
-                      <div>
-                        <h3 className="text-2xl font-bold">Instructions</h3>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          Review this before you start the drill.
-                        </p>
-                      </div>
-                      <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-sm">
-                        <div className="mb-1 font-semibold text-foreground">Phase: {phase}</div>
-                        <div className="mb-2 text-xs text-muted-foreground">{PHASE_CONTEXT[phase].purpose}</div>
-                        <div className="flex flex-wrap gap-1">
-                          {PHASE_CONTEXT[phase].constraints.map((rule) => (
-                            <span
-                              key={rule}
-                              className="rounded border border-primary/20 bg-background px-2 py-0.5 text-xs font-medium"
-                            >
-                              {rule}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="rounded-md border border-primary/20 bg-primary/5 p-3">
-                        <p className="mb-1 font-semibold">Before you begin:</p>
-                        <ul className="list-disc space-y-1 pl-5 text-sm text-foreground/90">
-                          {prepSteps.map((step) => (
-                            <li key={step}>{step}</li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div className="rounded-md border border-primary/20 bg-primary/5 p-3">
-                        <p className="mb-1 font-semibold">Difficulty:</p>
-                        <ul className="list-disc space-y-1 pl-5 text-sm text-foreground/90">
-                          {DIFFICULTY_GUIDANCE[phase].map((item) => (
-                            <li key={item}>{item}</li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div className="rounded-md border bg-background p-4">
-                        <p className="font-semibold">Current block:</p>
-                        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                          {drillStructure.map((setConfig, index) => (
-                            <div key={setConfig.setName} className="rounded-lg border bg-muted/20 p-3">
-                              <p className="font-medium">Set {index + 1}: {setConfig.setName}</p>
-                              <p className="mt-1 text-sm text-muted-foreground">{setConfig.purpose}</p>
-                              <p className="mt-2 text-xs text-muted-foreground">Rep instruction: {setConfig.repInstruction}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
+                <div className="mb-4 p-3 rounded-md border border-primary/20 bg-primary/5">
+                  <p className="font-semibold mb-1">Instructions:</p>
+                  <ul className="list-disc pl-5 text-sm text-foreground/90 space-y-1">
+                    <li>This diagnosis block is a demo of the live runner flow. Complete the current phase verification block exactly as shown.</li>
+                    <li><strong>Before you begin:</strong> Prepare <span className="font-semibold">3 distinct problems</span> for the current phase block.</li>
+                    <li>Choose problem difficulty based on the student's current control in this phase.</li>
+                    <li>You cannot skip steps or edit outside the verification structure. Complete each observation in order.</li>
+                    <li>Submit to see the result summary for this block.</li>
+                  </ul>
+                </div>
+                <div className="mb-4 p-3 rounded-xl border border-primary/20 bg-primary/5 text-sm">
+                  <div className="font-semibold text-foreground mb-1">Phase: {phase}</div>
+                  <div className="text-muted-foreground text-xs mb-2">{PHASE_CONTEXT[phase].purpose}</div>
+                  <div className="flex flex-wrap gap-1">
+                    {PHASE_CONTEXT[phase].constraints.map((rule) => (
+                      <span
+                        key={rule}
+                        className="px-2 py-0.5 bg-background border border-primary/20 text-foreground rounded text-xs font-medium"
+                      >
+                        {rule}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="mb-4 p-3 rounded-md border border-primary/20 bg-primary/5">
+                  <p className="font-semibold mb-1">Difficulty:</p>
+                  <ul className="list-disc pl-5 text-sm text-foreground/90 space-y-1">
+                    {DIFFICULTY_GUIDANCE[phase].map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             ) : !submitSuccess ? (
@@ -1045,8 +1018,7 @@ export default function ResponseConditioningLoggingSystem() {
 
         <Card className="space-y-6 border-2 border-primary/20 p-6 md:p-8">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline">Demo</Badge>
-            <Badge variant="outline">Phase verification</Badge>
+            <Badge variant="outline">Phase Verification Demo</Badge>
           </div>
 
           <div className="space-y-2">
@@ -1064,12 +1036,12 @@ export default function ResponseConditioningLoggingSystem() {
                 <div className="max-w-3xl">
                   <h3 className="text-xl font-bold">Choose a Phase</h3>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Pick one of the four TT phases, then open the demo runner. The flow is prep, reps, then result.
+                    Pick one of the four TT phases, then open the runner demo.
                   </p>
                 </div>
                 <Button onClick={() => setDemoOpen(true)} className="w-full sm:w-auto">
                   <Expand className="mr-2 h-4 w-4" />
-                  Open Runner Demo
+                  Open Demo
                 </Button>
               </div>
 
