@@ -423,6 +423,15 @@ export function sanitizeTopic(value?: string | null): string | null {
   return cleaned;
 }
 
+function normalizeTopicLabel(value?: string | null): string | null {
+  return sanitizeTopic(value);
+}
+
+function normalizeTopicKey(value?: string | null): string | null {
+  const normalized = normalizeTopicLabel(value);
+  return normalized ? normalized.toLowerCase() : null;
+}
+
 function clamp(min: number, value: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
@@ -1008,26 +1017,28 @@ export default function StudentTopicConditioningDialog({
   // Merge activations into the topic list
   const activationTopics = useMemo(() => {
     if (!activationsData?.activations) return [];
-    // Only include unique topic names
+    // Only include unique topic names, case-insensitively.
     const seen = new Set<string>();
     return activationsData.activations.filter((a: any) => {
-      if (!a.topic) return false;
-      const t = String(a.topic).trim();
-      if (seen.has(t)) return false;
-      seen.add(t);
+      const t = normalizeTopicLabel(a?.topic);
+      const topicKey = normalizeTopicKey(a?.topic);
+      if (!t || !topicKey) return false;
+      if (seen.has(topicKey)) return false;
+      seen.add(topicKey);
       return true;
-    }).map((a: any) => ({ topic: a.topic, activatedAt: a.created_at }));
+    }).map((a: any) => ({ topic: normalizeTopicLabel(a?.topic)!, activatedAt: a.created_at }));
   }, [activationsData]);
 
   const topics = useMemo(
     () => {
       // Build the normal topics
       const baseTopics = buildTopics(parentTopics, topicConditioning, persistedTopicStates, studentSessions);
-      // Add any activation topics not already present
-      const baseTopicNames = new Set(baseTopics.map(t => t.topic));
+      // Add any activation topics not already present, case-insensitively.
+      const baseTopicNames = new Set(baseTopics.map((t) => normalizeTopicKey(t.topic)).filter(Boolean));
       const merged = [...baseTopics];
       activationTopics.forEach(({ topic, activatedAt }) => {
-        if (!baseTopicNames.has(topic)) {
+        const topicKey = normalizeTopicKey(topic);
+        if (topicKey && !baseTopicNames.has(topicKey)) {
           merged.push({
             topic,
             phase: "Clarity",
@@ -1040,6 +1051,7 @@ export default function StudentTopicConditioningDialog({
             recentLogs: [],
             timeline: [],
           });
+          baseTopicNames.add(topicKey);
         }
       });
       return merged;

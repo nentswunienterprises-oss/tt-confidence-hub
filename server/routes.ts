@@ -2921,12 +2921,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!studentId || !topic || !reason || !tutorId) {
           return res.status(400).json({ message: "Missing required fields" });
         }
+
+        const normalizedTopic = String(topic || "").trim().toLowerCase();
+        if (!normalizedTopic) {
+          return res.status(400).json({ message: "Topic is required" });
+        }
+
+        const { data: existingActivations, error: existingError } = await supabase
+          .from("topic_conditioning_activations")
+          .select("id, student_id, tutor_id, topic, reason, created_at")
+          .eq("student_id", studentId)
+          .eq("tutor_id", tutorId)
+          .order("created_at", { ascending: false });
+
+        if (existingError) {
+          console.error("Error checking existing topic activations:", existingError);
+          return res.status(500).json({ message: "Failed to activate topic" });
+        }
+
+        const existingActivation = (existingActivations || []).find(
+          (entry: any) => String(entry?.topic || "").trim().toLowerCase() === normalizedTopic
+        );
+
+        if (existingActivation) {
+          return res.json({ activation: existingActivation, duplicate: true });
+        }
+
         const { data, error } = await supabase
           .from("topic_conditioning_activations")
           .insert({
             student_id: studentId,
             tutor_id: tutorId,
-            topic,
+            topic: String(topic).trim(),
             reason,
           })
           .select()
