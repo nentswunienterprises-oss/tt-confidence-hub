@@ -52,6 +52,45 @@ interface PodData {
   students: any[];
 }
 
+function getTutorTrafficDocumentsStatus(application: any) {
+  return {
+    "1": "pending_upload",
+    "2": "not_started",
+    "3": "not_started",
+    "4": "not_started",
+    "5": "not_started",
+    "6": "not_started",
+    ...(application?.documentsStatus || application?.documents_status || {}),
+  } as Record<string, string>;
+}
+
+function isTutorTrafficFullyApproved(application: any) {
+  const documentsStatus = getTutorTrafficDocumentsStatus(application);
+  return Array.from({ length: 6 }, (_, index) => String(index + 1)).every(
+    (step) => documentsStatus[step] === "approved"
+  );
+}
+
+function hasTutorTrafficPendingReview(application: any) {
+  const documentsStatus = getTutorTrafficDocumentsStatus(application);
+  return ["2", "6"].some((step) => String(documentsStatus[step] || "") === "pending_review");
+}
+
+function hasTutorTrafficWaitingOnTutor(application: any) {
+  if (isTutorTrafficFullyApproved(application)) return false;
+  if (hasTutorTrafficPendingReview(application)) return false;
+
+  const documentsStatus = getTutorTrafficDocumentsStatus(application);
+  const hasDoc2Acceptance = Boolean(application?.onboardingAcceptanceMap?.["2"]);
+  const waitingForMatricUpload = hasDoc2Acceptance && String(documentsStatus["2"] || "") === "pending_upload";
+  const waitingForIdUpload =
+    ["1", "2", "3", "4", "5"].every((step) => String(documentsStatus[step] || "") === "approved") &&
+    String(documentsStatus["6"] || "") === "pending_upload";
+
+  if (waitingForMatricUpload || waitingForIdUpload) return true;
+  return true;
+}
+
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, isAuthenticated } = useAuth();
   const location = useLocation();
@@ -117,6 +156,23 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     enabled: effectiveIsAuth && !!effectiveUser && isParent(effectiveUser),
     retry: false,
   });
+
+  const { data: cooTutorApplications = [] } = useQuery<any[]>({
+    queryKey: ["/api/coo/tutor-applications"],
+    enabled: effectiveIsAuth && !!effectiveUser && isCOO(effectiveUser),
+    retry: false,
+    refetchInterval: 5000,
+    refetchIntervalInBackground: true,
+  });
+
+  const cooTrafficActionCount = useMemo(() => {
+    if (!effectiveUser || !isCOO(effectiveUser)) return 0;
+    const pendingApplications = cooTutorApplications.filter((app: any) => app.status === "pending").length;
+    const approvedApplications = cooTutorApplications.filter((app: any) => app.status === "approved");
+    const needsReview = approvedApplications.filter((app: any) => hasTutorTrafficPendingReview(app)).length;
+    const waitingOnTutor = approvedApplications.filter((app: any) => hasTutorTrafficWaitingOnTutor(app)).length;
+    return pendingApplications + needsReview + waitingOnTutor;
+  }, [cooTutorApplications, effectiveUser]);
 
   const usesNotificationInbox = !!effectiveUser && (isTutor(effectiveUser) || isParent(effectiveUser) || isCOO(effectiveUser));
 
@@ -454,6 +510,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   {item.label === "Updates" && navUnreadCount > 0 && (
                     <Badge variant="destructive" className="absolute -top-2 -right-2 text-xs">
                       {navUnreadCount > 9 ? "9+" : navUnreadCount}
+                    </Badge>
+                  )}
+                  {item.label === "Traffic" && cooTrafficActionCount > 0 && (
+                    <Badge variant="destructive" className="absolute -top-2 -right-2 text-xs">
+                      {cooTrafficActionCount > 99 ? "99+" : cooTrafficActionCount}
                     </Badge>
                   )}
                 </Button>

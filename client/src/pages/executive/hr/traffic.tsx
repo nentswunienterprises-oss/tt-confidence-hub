@@ -213,6 +213,10 @@ export default function ExecutiveHRTraffic() {
     verificationUnderReviewApplications.length +
     verificationAwaitingTTApplications.length +
     verificationVerifiedApplications.length;
+  const tutorTrafficActionCount =
+    pendingApplications.length +
+    verificationUnderReviewApplications.length +
+    verificationWaitingOnTutorApplications.length;
 
   const appPendingVerificationTutors = approvedApplications
     .filter((app: any) => hasPendingReview(app))
@@ -567,7 +571,12 @@ export default function ExecutiveHRTraffic() {
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="tutor-applications" className="gap-2">
             <GraduationCap className="w-4 h-4" />
-            Tutor Applications
+            <span>Tutor Applications</span>
+            {tutorTrafficActionCount > 0 ? (
+              <Badge variant="destructive" className="ml-1 h-5 min-w-5 px-1.5 text-[10px]">
+                {tutorTrafficActionCount > 99 ? "99+" : tutorTrafficActionCount}
+              </Badge>
+            ) : null}
           </TabsTrigger>
           <TabsTrigger value="parent-enrollments" className="gap-2">
             <Users className="w-4 h-4" />
@@ -614,7 +623,13 @@ export default function ExecutiveHRTraffic() {
                     <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                     <span>Pending</span>
                   </span>
-                  <span className="text-[10px] sm:text-xs text-muted-foreground">{pendingApplications.length}</span>
+                  {pendingApplications.length > 0 ? (
+                    <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-[10px]">
+                      {pendingApplications.length > 99 ? "99+" : pendingApplications.length}
+                    </Badge>
+                  ) : (
+                    <span className="text-[10px] sm:text-xs text-muted-foreground">0</span>
+                  )}
                 </TabsTrigger>
                 <TabsTrigger value="rejected" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
                   <span className="inline-flex items-center gap-1.5">
@@ -628,14 +643,26 @@ export default function ExecutiveHRTraffic() {
                     <FileCheck className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                     <span>Needs Review</span>
                   </span>
-                  <span className="text-[10px] sm:text-xs text-muted-foreground">{verificationUnderReviewApplications.length}</span>
+                  {verificationUnderReviewApplications.length > 0 ? (
+                    <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-[10px]">
+                      {verificationUnderReviewApplications.length > 99 ? "99+" : verificationUnderReviewApplications.length}
+                    </Badge>
+                  ) : (
+                    <span className="text-[10px] sm:text-xs text-muted-foreground">0</span>
+                  )}
                 </TabsTrigger>
                 <TabsTrigger value="waiting-on-tutor" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
                   <span className="inline-flex items-center gap-1.5">
                     <FileCheck className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                     <span>Waiting On Tutor</span>
                   </span>
-                  <span className="text-[10px] sm:text-xs text-muted-foreground">{verificationWaitingOnTutorApplications.length}</span>
+                  {verificationWaitingOnTutorApplications.length > 0 ? (
+                    <Badge className="h-5 min-w-5 bg-amber-100 px-1.5 text-[10px] text-amber-900 border border-amber-200">
+                      {verificationWaitingOnTutorApplications.length > 99 ? "99+" : verificationWaitingOnTutorApplications.length}
+                    </Badge>
+                  ) : (
+                    <span className="text-[10px] sm:text-xs text-muted-foreground">0</span>
+                  )}
                 </TabsTrigger>
                 <TabsTrigger value="complete" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2 col-span-2 sm:col-span-1">
                   <span className="inline-flex items-center gap-1.5">
