@@ -66,11 +66,27 @@ const PHASE_CONTEXT: Record<PhaseLabel, { purpose: string; constraints: string[]
   },
 };
 
-const DIFFICULTY_LEVELS: Record<PhaseLabel, string[]> = {
-  Clarity: ["Easy recognition", "Mixed recognition", "Recognition under light variation"],
-  "Structured Execution": ["Straight method", "Similar method again", "Same method with slight variation"],
-  "Controlled Discomfort": ["Manageable stretch", "Uncomfortable stretch", "Sustained pressure"],
-  "Time Pressure Stability": ["Light timer", "Repeat same timer", "Tighter timer"],
+const DIFFICULTY_GUIDANCE: Record<PhaseLabel, string[]> = {
+  Clarity: [
+    "Start with a problem the student should be able to recognize.",
+    "If that is too easy, use a less familiar version next.",
+    "Do not raise difficulty so fast that recognition collapses.",
+  ],
+  "Structured Execution": [
+    "Start with a clean version of the method.",
+    "Repeat with a similar problem before changing the form.",
+    "Only add variation if the student is still keeping the full structure.",
+  ],
+  "Controlled Discomfort": [
+    "Choose a problem that creates strain but is still workable.",
+    "Keep the difficulty steady while you watch the response pattern.",
+    "Do not make the work easier just because the student is uncomfortable.",
+  ],
+  "Time Pressure Stability": [
+    "Start with a timer the student can realistically work under.",
+    "Keep the same timer long enough to see the pattern clearly.",
+    "Only tighten the timer if the student is still keeping structure.",
+  ],
 };
 
 const DIAGNOSIS_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
@@ -329,11 +345,11 @@ const INTRO_PHASE_WEIGHTS: Record<PhaseLabel, Array<{ aliases: string[]; weight:
 };
 
 const flow = [
-  "Open the drill and review the tutor prep step first.",
-  "Run the rep exactly as written.",
+  "Open the verification block and review the tutor prep step first.",
+  "Run each rep exactly as written.",
   "Choose the option that best matches what the student actually did.",
-  "Finish all reps in the set.",
-  "Submit the drill to see the set totals, drill total, and system decision.",
+  "Finish the block without rewriting what happened.",
+  "Submit to see the evidence summary and system output.",
 ];
 
 const rules = [
@@ -347,7 +363,7 @@ const scoringRules = [
   "The first option is the weakest response.",
   "The middle option is partial.",
   "The last option is the strongest response.",
-  "The selected options roll up into rep scores, set totals, and the final drill result.",
+  "The selected options roll up into rep scores, set totals, and the final phase summary.",
 ];
 
 const prepSteps = [
@@ -357,17 +373,11 @@ const prepSteps = [
   "Know what you are watching for in each observation row.",
 ];
 
-const tutorPrepSideNotes = [
-  "Difficulty should stretch the student, not overwhelm them.",
-  "Use fresh examples across reps where the drill expects it.",
-  "Keep the tutor language tight and consistent.",
-];
-
 const resultOutputs = [
   "Set 1 total",
   "Set 2 total",
-  "Drill total",
-  "System decision",
+  "Phase total",
+  "System output",
   "Reason",
   "Tutor meaning",
   "Next action",
@@ -604,11 +614,10 @@ function DemoRunnerOverlay({
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <Badge className="bg-primary/10 text-primary hover:bg-primary/10">Interactive Demo</Badge>
                 <Badge variant="outline">{phase}</Badge>
-                <Badge variant="outline">Practice view</Badge>
+                <Badge variant="outline">Demo</Badge>
               </div>
-              <h2 className="mt-2 text-2xl font-bold tracking-tight">Full-Screen Drill Runner Demo</h2>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight">Drill Runner Demo</h2>
               <p className="text-sm text-muted-foreground">
                 Walk through the drill the same way a tutor would: prep first, run reps, then review the result screen.
               </p>
@@ -622,22 +631,16 @@ function DemoRunnerOverlay({
         <div className="flex-1 overflow-y-auto">
           <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
             {!submitSuccess && !prepComplete ? (
-              <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-                <div className="space-y-4">
+              <div className="mx-auto max-w-4xl">
                   <Card className="border-primary/15 bg-background shadow-sm">
                     <div className="space-y-4 p-4 sm:p-5">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge className="bg-primary/10 text-primary hover:bg-primary/10">Tutor Prep</Badge>
-                        <Badge variant="outline">{phase}</Badge>
-                        <Badge variant="outline">Before running the drill</Badge>
-                      </div>
                       <div>
-                        <h3 className="text-2xl font-bold">Tutor Prep</h3>
+                        <h3 className="text-2xl font-bold">Instructions</h3>
                         <p className="mt-1 text-sm text-muted-foreground">
-                          This is the step before the drill starts. The tutor sets the difficulty, prepares the problems, and gets clear on what this drill is checking.
+                          Review this before you start the drill.
                         </p>
                       </div>
-                      <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm">
+                      <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-sm">
                         <div className="mb-1 font-semibold text-foreground">Phase: {phase}</div>
                         <div className="mb-2 text-xs text-muted-foreground">{PHASE_CONTEXT[phase].purpose}</div>
                         <div className="flex flex-wrap gap-1">
@@ -651,27 +654,24 @@ function DemoRunnerOverlay({
                           ))}
                         </div>
                       </div>
-                      <div className="rounded-xl border bg-muted/20 p-4">
-                        <p className="font-semibold">Before you begin:</p>
-                        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                      <div className="rounded-md border border-primary/20 bg-primary/5 p-3">
+                        <p className="mb-1 font-semibold">Before you begin:</p>
+                        <ul className="list-disc space-y-1 pl-5 text-sm text-foreground/90">
                           {prepSteps.map((step) => (
                             <li key={step}>{step}</li>
                           ))}
                         </ul>
                       </div>
-                      <div className="rounded-xl border bg-background p-4">
-                        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Difficulty Levels</p>
-                        <div className="mt-3 grid gap-2 sm:grid-cols-3">
-                          {DIFFICULTY_LEVELS[phase].map((level, index) => (
-                            <div key={level} className="rounded-lg border bg-muted/20 p-3">
-                              <p className="text-sm font-medium">Level {index + 1}</p>
-                              <p className="mt-1 text-xs text-muted-foreground">{level}</p>
-                            </div>
+                      <div className="rounded-md border border-primary/20 bg-primary/5 p-3">
+                        <p className="mb-1 font-semibold">Difficulty:</p>
+                        <ul className="list-disc space-y-1 pl-5 text-sm text-foreground/90">
+                          {DIFFICULTY_GUIDANCE[phase].map((item) => (
+                            <li key={item}>{item}</li>
                           ))}
-                        </div>
+                        </ul>
                       </div>
-                      <div className="rounded-xl border bg-background p-4">
-                        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Loaded Sets</p>
+                      <div className="rounded-md border bg-background p-4">
+                        <p className="font-semibold">Current block:</p>
                         <div className="mt-3 grid gap-3 sm:grid-cols-2">
                           {drillStructure.map((setConfig, index) => (
                             <div key={setConfig.setName} className="rounded-lg border bg-muted/20 p-3">
@@ -681,21 +681,6 @@ function DemoRunnerOverlay({
                             </div>
                           ))}
                         </div>
-                      </div>
-                    </div>
-                  </Card>
-                </div>
-
-                <div className="space-y-4">
-                  <Card className="border-primary/15 bg-background shadow-sm">
-                    <div className="space-y-3 p-4 sm:p-5">
-                      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Prep Notes</p>
-                      <div className="grid gap-3">
-                        {tutorPrepSideNotes.map((note) => (
-                          <div key={note} className="rounded-lg border bg-muted/20 p-3">
-                            <p className="text-sm text-muted-foreground">{note}</p>
-                          </div>
-                        ))}
                       </div>
                     </div>
                   </Card>
@@ -1022,7 +1007,7 @@ export default function ResponseConditioningLoggingSystem() {
               </p>
               <h1 className="mt-1 text-3xl font-bold tracking-tight md:text-4xl">Logging System</h1>
               <p className="mt-1 text-muted-foreground">
-                Drill-runner observation capture, scoring, and deterministic session output
+                Evidence capture, score resolution, and system-led output
               </p>
             </div>
           </div>
@@ -1030,18 +1015,46 @@ export default function ResponseConditioningLoggingSystem() {
       </div>
 
       <div className="mx-auto max-w-6xl space-y-8 px-4 py-10 sm:px-6">
+        <Card className="space-y-4 border-2 border-primary/20 bg-primary/5 p-6">
+          <h2 className="text-2xl font-bold">What Logging Is For</h2>
+          <p className="text-muted-foreground">
+            Tutors do not log opinions. Tutors log what actually happened. The system uses that
+            evidence to decide whether to hold, place, or move.
+          </p>
+          <div className="grid gap-3 md:grid-cols-3">
+            <div className="rounded-xl border bg-card p-4">
+              <p className="font-semibold">Intro diagnosis</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Logging supports phase verification and placement.
+              </p>
+            </div>
+            <div className="rounded-xl border bg-card p-4">
+              <p className="font-semibold">Active training</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Logging supports continuity, reinforcement, and next-step selection.
+              </p>
+            </div>
+            <div className="rounded-xl border bg-card p-4">
+              <p className="font-semibold">Handover verification</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Logging supports continuity checks after tutor reassignment.
+              </p>
+            </div>
+          </div>
+        </Card>
+
         <Card className="space-y-6 border-2 border-primary/20 p-6 md:p-8">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge className="bg-primary/10 text-primary hover:bg-primary/10">Interactive Demo</Badge>
-            <Badge variant="outline">Full-screen runner sandbox</Badge>
-            <Badge variant="outline">No persistence</Badge>
+            <Badge variant="outline">Demo</Badge>
+            <Badge variant="outline">Phase verification</Badge>
           </div>
 
           <div className="space-y-2">
             <h2 className="text-2xl font-bold">What This Page Shows</h2>
             <p className="max-w-4xl text-muted-foreground">
-              This page shows how tutors use the drill runner: choose a drill, prepare the session,
-              select what happened in each rep, and read the result at the end.
+              This page shows how a phase-verification runner captures observation evidence. It is a
+              teaching demo for structured logging, not a claim that every live session uses the same
+              block design.
             </p>
           </div>
 
@@ -1049,14 +1062,14 @@ export default function ResponseConditioningLoggingSystem() {
             <div className="space-y-6">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div className="max-w-3xl">
-                  <h3 className="text-xl font-bold">Choose a Drill and Open the Demo</h3>
+                  <h3 className="text-xl font-bold">Choose a Phase</h3>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Pick one of the four TT phases, then open the full-screen demo. You can step through the prep screen, run reps, choose observations, and see the result screen.
+                    Pick one of the four TT phases, then open the demo runner. The flow is prep, reps, then result.
                   </p>
                 </div>
                 <Button onClick={() => setDemoOpen(true)} className="w-full sm:w-auto">
                   <Expand className="mr-2 h-4 w-4" />
-                  Open Demo
+                  Open Runner Demo
                 </Button>
               </div>
 
@@ -1109,9 +1122,9 @@ export default function ResponseConditioningLoggingSystem() {
                   <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">In This Demo</p>
                   <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
                     <li>Tutor prep before the drill starts</li>
-                    <li>The same set and rep flow tutors see in the runner</li>
+                    <li>A phase-based verification block</li>
                     <li>Clickable observation choices for each rep</li>
-                    <li>A result screen with totals, decision, reason, and next step</li>
+                    <li>A result screen with totals, system output, reason, and next step</li>
                   </ul>
                 </div>
               </div>
@@ -1164,17 +1177,17 @@ export default function ResponseConditioningLoggingSystem() {
             Rep behavior observed
             <br />-&gt; option selected
             <br />-&gt; weak / partial / clear normalization
-            <br />-&gt; set and session score
-            <br />-&gt; transition result
-            <br />-&gt; next drill direction
+            <br />-&gt; set and phase score
+            <br />-&gt; system output
+            <br />-&gt; next step
           </p>
         </Card>
 
         <Card className="space-y-4 border-2 border-primary/20 p-6">
           <h2 className="text-2xl font-bold">Audit Relevance</h2>
           <p className="text-muted-foreground">
-            Because TT logging is tied directly to drill observation and scoring, dishonest logging
-            means dishonest observation capture. That is a compliance issue, not a note-taking issue.
+            Because TT logging is tied directly to evidence and system output, dishonest logging
+            means dishonest evidence capture. That is a compliance issue, not a note-taking issue.
           </p>
           <ul className="space-y-1 pl-4 text-muted-foreground">
             {auditRisks.map((risk) => (
@@ -1182,7 +1195,7 @@ export default function ResponseConditioningLoggingSystem() {
             ))}
           </ul>
           <p className="font-medium">
-            If the observation record is manipulated, the session output is compromised and the tutor
+            If the observation record is manipulated, the system output is compromised and the tutor
             can be flagged for audit failure.
           </p>
         </Card>
