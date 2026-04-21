@@ -153,6 +153,7 @@ function getEffectiveScheduledSessionStatus(session: any): string {
 }
 
 const REASSIGNMENT_RESUME_PREFIX = "reassignment_resume:";
+const HANDOVER_STEP_PREFIX = "handover_";
 
 function buildReassignmentResumeStep(status: string | null | undefined): string {
   const normalized = String(status || "").trim().toLowerCase();
@@ -165,6 +166,20 @@ function extractReassignmentResumeStatus(currentStep: string | null | undefined)
   if (!value.startsWith(REASSIGNMENT_RESUME_PREFIX)) return null;
   const restored = value.slice(REASSIGNMENT_RESUME_PREFIX.length).trim();
   return restored || null;
+}
+
+function isHandoverStep(currentStep: string | null | undefined): boolean {
+  return String(currentStep || "").trim().toLowerCase().startsWith(HANDOVER_STEP_PREFIX);
+}
+
+function getEnrollmentSessionType(enrollment: any): "intro" | "handover" {
+  return isHandoverStep(enrollment?.current_step) ? "handover" : "intro";
+}
+
+function getSessionDisplayLabel(sessionType: string | null | undefined): string {
+  return String(sessionType || "").trim().toLowerCase() === "handover"
+    ? "continuity check"
+    : "intro session";
 }
 
 const SCHEDULED_SESSION_SELECT = [
@@ -3184,6 +3199,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (student.tutorId !== dbUser.id) {
             return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
           }
+          const studentWorkflow = ((student.personalProfile as any) || {}).workflow || {};
+          const sessionType = studentWorkflow.handoverRequiredAt && !studentWorkflow.handoverCompletedAt
+            ? "handover"
+            : "intro";
           // DEBUG: Print all scheduled_sessions for this tutor and student
           const { data: debugSessions, error: debugSessionsError } = await supabase
             .from("scheduled_sessions")
@@ -3197,7 +3216,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .select(SCHEDULED_SESSION_SELECT)
             .eq("tutor_id", dbUser.id)
             .eq("student_id", studentId)
-            .eq("type", "intro")
+            .eq("type", sessionType)
             .order("created_at", { ascending: false })
             .maybeSingle();
 
@@ -3212,7 +3231,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 .select(SCHEDULED_SESSION_SELECT)
                 .eq("tutor_id", dbUser.id)
                 .eq("parent_id", parentId)
-                .eq("type", "intro")
+                .eq("type", sessionType)
                 .order("created_at", { ascending: false })
                 .maybeSingle();
 
@@ -3248,6 +3267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             scheduled_end: resolvedSession.scheduled_end,
             timezone: resolvedSession.timezone,
             status: getEffectiveScheduledSessionStatus(resolvedSession),
+            type: resolvedSession.type,
             parent_confirmed: resolvedSession.parent_confirmed,
             tutor_confirmed: resolvedSession.tutor_confirmed,
             recording_status: resolvedSession.recording_status,
@@ -3309,7 +3329,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (enrollmentError || !enrollmentData) {
         return res.status(400).json({ message: "Failed to fetch enrollment" });
       }
-      if (!enrollmentData.assigned_tutor_id || (enrollmentData.status !== "assigned" && enrollmentData.status !== "awaiting_tutor_acceptance")) {
+      const sessionType = getEnrollmentSessionType(enrollmentData);
+      const sessionLabel = getSessionDisplayLabel(sessionType);
+      const allowHandoverBooking = sessionType === "handover" && !!enrollmentData.assigned_tutor_id;
+      if (!enrollmentData.assigned_tutor_id || ((enrollmentData.status !== "assigned" && enrollmentData.status !== "awaiting_tutor_acceptance") && !allowHandoverBooking)) {
         return res.status(400).json({ message: "You must be assigned a tutor before booking a session." });
       }
 
@@ -3333,7 +3356,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .select(SCHEDULED_SESSION_SELECT)
         .eq("parent_id", userId)
         .eq("tutor_id", enrollmentData.assigned_tutor_id)
-        .eq("type", "intro")
+        .eq("type", sessionType)
         .in("status", ["pending_tutor_confirmation", "pending_parent_confirmation"])
         .order("created_at", { ascending: false })
         .limit(1);
@@ -3354,7 +3377,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             scheduled_time: `${proposedDate}T${proposedTime}`,
             scheduled_end: addMinutesToIso(`${proposedDate}T${proposedTime}`, INTRO_SESSION_DURATION_MINUTES),
             timezone: String(req.body?.timezone || "Africa/Johannesburg"),
-            workflow_stage: "intro_booking",
+            workflow_stage: sessionType === "handover" ? "handover_verification_booking" : "intro_booking",
             parent_confirmed: true,
             tutor_confirmed: false,
             status: "pending_tutor_confirmation",
@@ -3387,13 +3410,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Update enrollment current_step to intro_session_booked
         await supabase
           .from("parent_enrollments")
-          .update({ current_step: "intro_session_booked", updated_at: new Date().toISOString() })
+          .update({ current_step: sessionType === "handover" ? "handover_session_booked" : "intro_session_booked", updated_at: new Date().toISOString() })
           .eq("id", enrollmentData.id);
 
         return res.status(200).json({
           id: existingSession.id,
           student_id: assignedStudent?.id || null,
           status: "pending_tutor_confirmation",
+          type: sessionType,
           scheduled_time: `${proposedDate}T${proposedTime}`,
           parent_confirmed: true,
           tutor_confirmed: false,
@@ -3411,8 +3435,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             scheduled_time: `${proposedDate}T${proposedTime}`,
             scheduled_end: addMinutesToIso(`${proposedDate}T${proposedTime}`, INTRO_SESSION_DURATION_MINUTES),
             timezone: String(req.body?.timezone || "Africa/Johannesburg"),
-            type: "intro",
-            workflow_stage: "intro_booking",
+            type: sessionType,
+            workflow_stage: sessionType === "handover" ? "handover_verification_booking" : "intro_booking",
             status: "pending_tutor_confirmation",
             parent_confirmed: true,
             tutor_confirmed: false,
@@ -3436,7 +3460,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update enrollment current_step to intro_session_booked
       await supabase
         .from("parent_enrollments")
-        .update({ current_step: "intro_session_booked", updated_at: new Date().toISOString() })
+        .update({ current_step: sessionType === "handover" ? "handover_session_booked" : "intro_session_booked", updated_at: new Date().toISOString() })
         .eq("id", enrollmentData.id);
 
       const insertedSession = Array.isArray(sessionInsert) ? sessionInsert[0] : sessionInsert;
@@ -3445,6 +3469,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: insertedSession?.id || null,
         student_id: assignedStudent?.id || null,
         status: "pending_tutor_confirmation",
+        type: sessionType,
         scheduled_time: `${proposedDate}T${proposedTime}`,
         parent_confirmed: true,
         tutor_confirmed: false,
@@ -3468,8 +3493,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const { data: enrollmentData, error: enrollmentError } = await selectLatestParentEnrollment({
           parentId: userId,
-          primarySelect: "id, user_id, assigned_tutor_id, assigned_student_id, status, student_full_name, parent_email, student_grade",
-          fallbackSelect: "id, user_id, assigned_tutor_id, status, student_full_name, parent_email, student_grade",
+          primarySelect: "id, user_id, assigned_tutor_id, assigned_student_id, status, current_step, student_full_name, parent_email, student_grade",
+          fallbackSelect: "id, user_id, assigned_tutor_id, status, current_step, student_full_name, parent_email, student_grade",
         });
 
         if (enrollmentError || !enrollmentData || !enrollmentData.assigned_tutor_id) {
@@ -3496,6 +3521,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
+        const sessionType = getEnrollmentSessionType(enrollmentData);
+        const sessionLabel = getSessionDisplayLabel(sessionType);
+
 
         // Find all intro sessions for this parent/tutor
         let { data: allSessions, error: allSessionsError } = await supabase
@@ -3503,7 +3531,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .select(SCHEDULED_SESSION_SELECT)
           .eq("parent_id", userId)
           .eq("tutor_id", enrollmentData.assigned_tutor_id)
-          .eq("type", "intro")
+          .eq("type", sessionType)
           .order("updated_at", { ascending: false })
           .order("created_at", { ascending: false });
 
@@ -3514,7 +3542,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .select(SCHEDULED_SESSION_SELECT)
             .eq("student_id", assignedStudent.id)
             .eq("tutor_id", enrollmentData.assigned_tutor_id)
-            .eq("type", "intro")
+            .eq("type", sessionType)
             .order("updated_at", { ascending: false })
             .order("created_at", { ascending: false });
 
@@ -3543,9 +3571,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return res.json({
               status: "not_scheduled",
               introCompleted: false,
+              type: sessionType,
+              sessionLabel,
             });
           }
-          return res.json({ status: "not_scheduled" });
+          return res.json({ status: "not_scheduled", type: sessionType, sessionLabel });
         }
 
         const assignedStudentWorkflow = assignedStudent
@@ -3558,6 +3588,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const responseObj = {
           id: session.id,
           status: effectiveStatus,
+          type: session.type,
+          sessionLabel,
           scheduled_time: session.scheduled_time,
           scheduled_end: session.scheduled_end,
           timezone: session.timezone,
@@ -3634,12 +3666,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedSession?.tutor_id,
         {
           title: "Session confirmed",
-          body: "A parent confirmed the intro session. Open TT for the latest schedule.",
+          body: `A parent confirmed the ${getSessionDisplayLabel(updatedSession?.type)}. Open TT for the latest schedule.`,
           url: "/operational/tutor/pod",
           tag: `tutor-intro-session-confirmed-${sessionId}`,
         },
         "tutor intro session confirmed by parent",
       );
+
+      if (String(updatedSession?.type || "").toLowerCase() === "handover") {
+        await supabase
+          .from("parent_enrollments")
+          .update({ current_step: "handover_session_confirmed", updated_at: new Date().toISOString() })
+          .eq("user_id", userId)
+          .eq("assigned_tutor_id", updatedSession?.tutor_id || null);
+      }
 
       res.json({
         success: true,
@@ -4623,13 +4663,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { studentId } = req.params;
       const dbUser = (req as any).dbUser;
       const { action, newDate, newTime } = req.body;
+      const student = await storage.getStudent(studentId);
+      const studentWorkflow = ((student?.personalProfile as any) || {}).workflow || {};
+      const sessionType = studentWorkflow.handoverRequiredAt && !studentWorkflow.handoverCompletedAt ? "handover" : "intro";
       // Try to find the intro session for this tutor/student
       let { data: session, error: sessionError } = await supabase
         .from("scheduled_sessions")
         .select(SCHEDULED_SESSION_SELECT)
         .eq("tutor_id", dbUser.id)
         .eq("student_id", studentId)
-        .eq("type", "intro")
+        .eq("type", sessionType)
         .order("created_at", { ascending: false })
         .maybeSingle();
       // If not found, try fallback: find by parent_id where student_id is null
@@ -4648,7 +4691,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .eq("tutor_id", dbUser.id)
             .eq("parent_id", parentId)
             .is("student_id", null)
-            .eq("type", "intro")
+            .eq("type", sessionType)
             .order("created_at", { ascending: false })
             .maybeSingle();
           if (fallbackSession) {
@@ -4697,7 +4740,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           session.parent_id,
           {
             title: "Session needs confirmation",
-            body: "Your tutor proposed a new intro-session time. Open TT to confirm or respond.",
+            body: `Your tutor proposed a new ${getSessionDisplayLabel(sessionType)} time. Open TT to confirm or respond.`,
             url: "/client/parent/gateway",
             tag: `parent-intro-session-confirmation-${session.id}`,
           },
@@ -4719,13 +4762,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { studentId } = req.params;
       const dbUser = (req as any).dbUser;
       const { action, newDate, newTime } = req.body;
+      const student = await storage.getStudent(studentId);
+      const studentWorkflow = ((student?.personalProfile as any) || {}).workflow || {};
+      const sessionType = studentWorkflow.handoverRequiredAt && !studentWorkflow.handoverCompletedAt ? "handover" : "intro";
       // Try to find the intro session for this tutor/student
       let { data: session, error: sessionError } = await supabase
         .from("scheduled_sessions")
         .select(SCHEDULED_SESSION_SELECT)
         .eq("tutor_id", dbUser.id)
         .eq("student_id", studentId)
-        .eq("type", "intro")
+        .eq("type", sessionType)
         .order("created_at", { ascending: false })
         .maybeSingle();
       // If not found, try fallback: find by parent_id where student_id is null
@@ -4744,7 +4790,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .eq("tutor_id", dbUser.id)
             .eq("parent_id", parentId)
             .is("student_id", null)
-            .eq("type", "intro")
+            .eq("type", sessionType)
             .order("created_at", { ascending: false })
             .maybeSingle();
           if (fallbackSession) {
@@ -4793,7 +4839,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           session.parent_id,
           {
             title: "Session needs confirmation",
-            body: "Your tutor proposed a new intro-session time. Open TT to confirm or respond.",
+            body: `Your tutor proposed a new ${getSessionDisplayLabel(sessionType)} time. Open TT to confirm or respond.`,
             url: "/client/parent/gateway",
             tag: `parent-intro-session-confirmation-${session.id}`,
           },
@@ -7949,6 +7995,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const personalProfile = (student.personalProfile as any) || {};
         const workflow = personalProfile.workflow || {};
+        const handoverVerificationRequired = !!workflow.handoverRequiredAt && !workflow.handoverCompletedAt;
+
+        let handoverSession: { status: string } | null = null;
+        if (handoverVerificationRequired) {
+          const { data: handoverByStudent } = await supabase
+            .from("scheduled_sessions")
+            .select("status")
+            .eq("tutor_id", dbUser.id)
+            .eq("student_id", studentId)
+            .eq("type", "handover")
+            .order("created_at", { ascending: false })
+            .maybeSingle();
+          handoverSession = handoverByStudent;
+
+          if (!handoverSession) {
+            const parentId = (student as any).parentId || null;
+            if (parentId) {
+              const { data: handoverByParent } = await supabase
+                .from("scheduled_sessions")
+                .select("status")
+                .eq("tutor_id", dbUser.id)
+                .eq("parent_id", parentId)
+                .eq("type", "handover")
+                .order("created_at", { ascending: false })
+                .maybeSingle();
+              handoverSession = handoverByParent;
+            }
+          }
+        }
 
         const inferredIntroCompleted = !!(
           workflow.introCompletedAt ||
@@ -7973,6 +8048,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           assignmentAccepted,
           introConfirmed: ["confirmed", "ready", "live", "completed"].includes(String(introSession?.status || "")),
           introCompleted: inferredIntroCompleted,
+          handoverVerificationRequired,
+          handoverSessionConfirmed: ["confirmed", "ready", "live", "completed"].includes(String(handoverSession?.status || "")),
+          handoverCompleted: !!workflow.handoverCompletedAt,
           identitySaved: !!student.identitySheetCompletedAt,
           proposalSent: !!latestProposal?.sent_at,
           proposalAccepted: !!latestProposal?.accepted_at,
@@ -8019,6 +8097,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ...workflow,
               assignmentAcceptedAt: workflow.assignmentAcceptedAt || new Date().toISOString(),
               assignmentDeclinedAt: null,
+              handoverRequiredAt:
+                resumedStatus && resumedStatus !== "assigned"
+                  ? new Date().toISOString()
+                  : workflow.handoverRequiredAt || null,
+              handoverCompletedAt:
+                resumedStatus && resumedStatus !== "assigned"
+                  ? null
+                  : workflow.handoverCompletedAt || null,
             },
           };
 
@@ -8063,12 +8149,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
               extractReassignmentResumeStatus(parentEnrollment.current_step) ||
               null;
             const nextEnrollmentStatus = resumedStatus || "assigned";
+            const nextCurrentStep =
+              resumedStatus && resumedStatus !== "assigned"
+                ? "handover_not_scheduled"
+                : nextEnrollmentStatus;
 
             await supabase
               .from("parent_enrollments")
               .update({
                 status: nextEnrollmentStatus,
-                current_step: nextEnrollmentStatus,
+                current_step: nextCurrentStep,
                 updated_at: new Date().toISOString(),
               })
               .eq("id", parentEnrollment.id);
@@ -8079,7 +8169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 title: "Tutor accepted",
                 body:
                   resumedStatus && resumedStatus !== "assigned"
-                    ? "Your new tutor accepted the reassignment. TT will continue from the student's existing training state."
+                    ? "Your new tutor accepted the reassignment. Book a continuity check so TT can resume from the student's existing training state."
                     : "Your tutor accepted the assignment. TT onboarding can now move forward.",
                 url: "/client/parent/gateway",
                 tag: `parent-tutor-accepted-${parentEnrollment.id}`,
@@ -8223,6 +8313,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error("Error marking intro completed:", error);
         res.status(500).json({ message: "Failed to mark intro completed" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/tutor/students/:studentId/workflow/handover-completed",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { studentId } = req.params;
+        const dbUser = (req as any).dbUser;
+
+        const student = await storage.getStudent(studentId);
+        if (!student) {
+          return res.status(404).json({ message: "Student not found" });
+        }
+
+        if (student.tutorId !== dbUser.id) {
+          return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
+        }
+
+        const existingProfile = (student.personalProfile as any) || {};
+        const workflow = existingProfile.workflow || {};
+        if (!workflow.handoverRequiredAt) {
+          return res.status(400).json({ message: "This student does not require handover verification." });
+        }
+
+        const { data: handoverSession } = await supabase
+          .from("scheduled_sessions")
+          .select("id, status")
+          .eq("tutor_id", dbUser.id)
+          .eq("student_id", studentId)
+          .eq("type", "handover")
+          .order("created_at", { ascending: false })
+          .maybeSingle();
+
+        if (!["confirmed", "ready", "live", "completed"].includes(String(handoverSession?.status || ""))) {
+          return res.status(400).json({ message: "Handover session must be confirmed before completing verification." });
+        }
+
+        const updatedProfile = {
+          ...existingProfile,
+          workflow: {
+            ...workflow,
+            handoverCompletedAt: new Date().toISOString(),
+          },
+        };
+
+        const updated = await storage.updateStudent(studentId, {
+          personalProfile: updatedProfile,
+        } as any);
+
+        const parentId = (student as any).parentId || null;
+        if (parentId) {
+          await safeSendPush(
+            parentId,
+            {
+              title: "Continuity check complete",
+              body: "Your child's new tutor completed the continuity check and training can continue.",
+              url: "/client/parent/gateway",
+              tag: `parent-handover-complete-${studentId}`,
+            },
+            "parent handover verification completed",
+          );
+        }
+
+        res.json({
+          success: true,
+          handoverCompleted: true,
+          student: updated,
+        });
+      } catch (error) {
+        console.error("Error marking handover completed:", error);
+        res.status(500).json({ message: "Failed to mark handover verification completed" });
       }
     }
   );
@@ -12765,7 +12930,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         stuckAreas,
         mathStruggleAreas,
         previousTutoring,
-        confidenceLevel,
         internetAccess,
         responseSymptoms: rawResponseSymptoms,
         parentMotivation,
@@ -12778,10 +12942,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const reportedTopics = buildReportedTopics(stuckAreas, mathStruggleAreas);
       const normalizedResponseSymptoms = normalizeResponseSymptoms(rawResponseSymptoms);
-      const fallbackSymptoms =
-        normalizedResponseSymptoms.length > 0 ? normalizedResponseSymptoms : buildResponseSymptoms(confidenceLevel);
-      const responseRecommendation = recommendStartingPhaseFromSymptoms(fallbackSymptoms);
-      const responseSymptoms = getResponseSymptomLabels(fallbackSymptoms);
+      const responseRecommendation = recommendStartingPhaseFromSymptoms(normalizedResponseSymptoms);
+      const responseSymptoms = getResponseSymptomLabels(normalizedResponseSymptoms);
 
       const normalizedMathStruggleAreas =
         reportedTopics.length > 0 ? reportedTopics.join(", ") : mathStruggleAreas;
@@ -12810,9 +12972,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         !studentGrade ||
         !schoolName ||
         !mathStruggleAreas ||
-        fallbackSymptoms.length === 0 ||
+        normalizedResponseSymptoms.length === 0 ||
         !previousTutoring ||
-        !confidenceLevel ||
         !internetAccess ||
         !agreedToTerms
       ) {
@@ -12925,11 +13086,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           student_grade: studentGrade,
           school_name: schoolName,
           math_struggle_areas: normalizedMathStruggleAreas,
-          response_symptoms: fallbackSymptoms,
+          response_symptoms: normalizedResponseSymptoms,
           response_signal_scores: responseRecommendation.scores,
           recommended_starting_phase: responseRecommendation.phase,
           previous_tutoring: previousTutoring,
-          confidence_level: confidenceLevel,
+          confidence_level: null,
           internet_access: internetAccess,
           parent_motivation: normalizedParentMotivation,
           status: "awaiting_assignment",

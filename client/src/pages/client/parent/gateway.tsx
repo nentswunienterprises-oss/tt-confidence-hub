@@ -27,6 +27,10 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns/format";
 import { supabase } from "@/lib/supabaseClient";
+import {
+  RESPONSE_SYMPTOM_GROUPS,
+  getResponseSymptomLabels,
+} from "@shared/responseSymptomMapping";
 
 interface EnrollmentStatus {
   status: "not_enrolled" | "awaiting_assignment" | "awaiting_tutor_acceptance" | "assigned" | "proposal_sent" | "session_booked" | "report_received" | "confirmed";
@@ -39,6 +43,8 @@ interface IntroSessionConfirmation {
   scheduled_time?: string;
   id?: string;
   introCompleted?: boolean;
+  type?: "intro" | "handover";
+  sessionLabel?: string;
 }
 
 export default function ParentGateway() {
@@ -83,7 +89,13 @@ export default function ParentGateway() {
   const { data: assignedTutor } = useQuery<any>({
     queryKey: ["/api/parent/assigned-tutor"],
     queryFn: getQueryFn({ on401: "returnNull" }),
-    enabled: !!user && (enrollmentStatus?.status === "assigned" || enrollmentStatus?.status === "proposal_sent"),
+    enabled:
+      !!user &&
+      (
+        enrollmentStatus?.status === "assigned" ||
+        enrollmentStatus?.status === "proposal_sent" ||
+        String(enrollmentStatus?.step || "").startsWith("handover_")
+      ),
     staleTime: 0,
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
@@ -201,6 +213,12 @@ export default function ParentGateway() {
 
     return introSessionConfirmation || bookedIntroSessionOverride;
   }, [bookedIntroSessionOverride, introSessionConfirmation]);
+  const isHandoverFlow =
+    String(enrollmentStatus?.step || "").startsWith("handover_") ||
+    effectiveIntroSessionConfirmation?.type === "handover";
+  const sessionLabel = isHandoverFlow ? "continuity check" : "intro session";
+  const sessionTitle = isHandoverFlow ? "Continuity Check" : "Introductory Session";
+  const sessionCompletedLabel = isHandoverFlow ? "continuity check" : "introductory session";
 
   // Auto-set step based on enrollment status and intro session confirmation
   useEffect(() => {
@@ -236,7 +254,6 @@ export default function ParentGateway() {
     mathStruggleAreas: "",
     responseSymptoms: [] as string[],
     previousTutoring: "",
-    confidenceLevel: "",
     internetAccess: "",
     parentMotivation: "",
     processAlignment: "",
@@ -271,8 +288,8 @@ export default function ParentGateway() {
       formData.studentGrade &&
       formData.schoolName &&
       formData.mathStruggleAreas &&
+      formData.responseSymptoms.length > 0 &&
       formData.previousTutoring &&
-      formData.confidenceLevel &&
       formData.internetAccess &&
       formData.agreedToTerms
     );
@@ -445,8 +462,8 @@ export default function ParentGateway() {
       const sessionData = await response.json();
 
       toast({
-        title: "Session Proposed",
-        description: "Your tutor will confirm the time shortly.",
+        title: `${sessionTitle} Proposed`,
+        description: `Your tutor will confirm the ${sessionLabel} time shortly.`,
       });
 
       setIsBookingDialogOpen(false);
@@ -830,29 +847,78 @@ export default function ParentGateway() {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-2">When your child hits uncertainty in math, what happens? *</label>
-                    <div className="space-y-2">
-                      {[
-                        { value: "very_low", label: "They freeze - can't proceed without help" },
-                        { value: "low", label: "They rush or guess - emotion hijacks thinking" },
-                        { value: "average", label: "They try but break under time pressure" },
-                        { value: "high", label: "They execute a trained response and stay calm" },
-                      ].map((option) => (
-                        <button
-                          key={option.value}
-                          onClick={() => handleInputChange("confidenceLevel", option.value)}
-                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border-2 text-xs sm:text-sm text-left transition"
-                          style={{
-                            backgroundColor: formData.confidenceLevel === option.value ? "#E63946" : "#FFF0F0",
-                            color: formData.confidenceLevel === option.value ? "white" : "#1A1A1A",
-                            borderColor: formData.confidenceLevel === option.value ? "#E63946" : "#FFF0F0"
-                          }}
-                        >
-                          {option.label}
-                        </button>
+                  <div className="space-y-3 pt-2">
+                    <label className="block text-xs sm:text-sm font-medium" style={{ color: "#1A1A1A" }}>
+                      What does the struggle usually look like when your child is working? *
+                    </label>
+                    <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
+                      Select the behaviours you notice most often. You do not need to diagnose the cause.
+                    </p>
+                    <div className="space-y-4">
+                      {RESPONSE_SYMPTOM_GROUPS.map((group) => (
+                        <div key={group.id} className="rounded-xl border border-[#F6D8DA] bg-[#FFF8F8] p-3 sm:p-4 space-y-2">
+                          <div>
+                            <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-wide" style={{ color: "#E63946" }}>
+                              {group.title}
+                            </p>
+                            <p className="text-xs sm:text-sm mt-1" style={{ color: "#5A5A5A" }}>
+                              {group.prompt}
+                            </p>
+                          </div>
+                          <div className="space-y-2">
+                            {group.options.map((option) => {
+                              const selected = formData.responseSymptoms.includes(option.id);
+                              return (
+                                <button
+                                  key={option.id}
+                                  type="button"
+                                  onClick={() => {
+                                    const nextSymptoms = selected
+                                      ? formData.responseSymptoms.filter((item) => item !== option.id)
+                                      : [...formData.responseSymptoms, option.id];
+                                    handleInputChange("responseSymptoms", nextSymptoms);
+                                  }}
+                                  className="w-full px-3 sm:px-4 py-3 rounded-xl border-2 text-xs sm:text-sm text-left transition flex items-start gap-2"
+                                  style={{
+                                    backgroundColor: selected ? "#E63946" : "white",
+                                    color: selected ? "white" : "#1A1A1A",
+                                    borderColor: selected ? "#E63946" : "#F2D7DA",
+                                  }}
+                                >
+                                  <div
+                                    className="w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5"
+                                    style={{
+                                      borderColor: selected ? "white" : "#E5E5E5",
+                                      backgroundColor: selected ? "white" : "transparent",
+                                    }}
+                                  >
+                                    {selected && <Check className="w-3 h-3" style={{ color: "#E63946" }} />}
+                                  </div>
+                                  <div className="space-y-1">
+                                    <p>{option.label}</p>
+                                    <p className="text-[11px] sm:text-xs" style={{ color: selected ? "rgba(255,255,255,0.85)" : "#6B7280" }}>
+                                      {option.description}
+                                    </p>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
                       ))}
                     </div>
+                    {formData.responseSymptoms.length > 0 ? (
+                      <div className="rounded-xl border border-primary/20 bg-muted/20 p-3">
+                        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Selected Behaviour Signals</p>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {getResponseSymptomLabels(formData.responseSymptoms).map((label) => (
+                            <span key={label} className="rounded-full border border-primary/20 bg-background px-2 py-1 text-[10px] text-foreground">
+                              {label}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
 
                   <div>
@@ -969,14 +1035,22 @@ export default function ParentGateway() {
               <CardTitle className="flex items-center justify-center gap-2 text-sm sm:text-lg" style={{ color: "#1A1A1A" }}>
                 <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: "#E63946" }} />
                 {enrollmentStatus.status === "awaiting_assignment" && "Application Being Assessed"}
-                {enrollmentStatus.status === "assigned" && "Your tutor has been assigned"}
+                {enrollmentStatus.status === "assigned" && (isHandoverFlow ? "Tutor Reassignment In Progress" : "Your tutor has been assigned")}
                 {enrollmentStatus.status === "proposal_sent" && "Training Proposal Ready"}
-                {enrollmentStatus.status === "session_booked" && "Proposal Accepted"}
-                {enrollmentStatus.status === "report_received" && "Awaiting Report"}
-                {enrollmentStatus.status === "confirmed" && "Active"}
+                {enrollmentStatus.status === "session_booked" && (isHandoverFlow ? "Continuity Check Scheduled" : "Proposal Accepted")}
+                {enrollmentStatus.status === "report_received" && (isHandoverFlow ? "Continuity Review In Progress" : "Awaiting Report")}
+                {enrollmentStatus.status === "confirmed" && (isHandoverFlow ? "Tutor Reassignment In Progress" : "Active")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {isHandoverFlow && (
+                <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-left">
+                  <p className="font-medium text-blue-900">Training history is being preserved.</p>
+                  <p className="mt-2 text-sm text-blue-800">
+                    Your child is not being re-onboarded. The new tutor will run a short continuity check to verify where training should resume using the existing progress and topic history.
+                  </p>
+                </div>
+              )}
               {enrollmentStatus.status === "awaiting_assignment" && (
                 <>
                   <p className="text-muted-foreground">
@@ -996,7 +1070,7 @@ export default function ParentGateway() {
                   </div>
                 </>
               )}
-              {enrollmentStatus.status === "assigned" && (
+              {(enrollmentStatus.status === "assigned" || isHandoverFlow) && (
                 <>
                   {/* Always show assigned tutor info when assigned */}
                   {assignedTutor && (
@@ -1029,9 +1103,13 @@ export default function ParentGateway() {
 
                   {(effectiveIntroSessionConfirmation?.status === "not_scheduled" || !effectiveIntroSessionConfirmation?.status) && (
                     <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <p className="font-medium text-yellow-900">Your tutor has been assigned.</p>
+                      <p className="font-medium text-yellow-900">
+                        {isHandoverFlow ? "Your new tutor is ready." : "Your tutor has been assigned."}
+                      </p>
                       <p className="text-sm text-yellow-700 mt-2">
-                        Book your intro session below once ready.
+                        {isHandoverFlow
+                          ? "Book your continuity check below once ready."
+                          : "Book your intro session below once ready."}
                       </p>
                     </div>
                   )}
@@ -1040,7 +1118,9 @@ export default function ParentGateway() {
                     <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                       <p className="font-medium text-red-900">Tutor training mode is active</p>
                       <p className="text-sm text-red-700 mt-2">
-                        Google Meet intro-session booking is temporarily disabled while your tutor is being trained inside the TT system. TT will run the training flow directly instead of using a booked lesson window.
+                        {isHandoverFlow
+                          ? "Google Meet continuity-check booking is temporarily disabled while your tutor is being trained inside the TT system. TT will run the verification flow directly instead of using a booked lesson window."
+                          : "Google Meet intro-session booking is temporarily disabled while your tutor is being trained inside the TT system. TT will run the training flow directly instead of using a booked lesson window."}
                       </p>
                     </div>
                   )}
@@ -1053,7 +1133,9 @@ export default function ParentGateway() {
                         <div>
                           <p className="font-medium text-red-900">Waiting for tutor confirmation</p>
                           {effectiveIntroSessionConfirmation.scheduled_time && (
-                            <p className="text-xs text-red-700 mt-1">Proposed time: {new Date(effectiveIntroSessionConfirmation.scheduled_time).toLocaleString()}</p>
+                            <p className="text-xs text-red-700 mt-1">
+                              Proposed {sessionLabel}: {new Date(effectiveIntroSessionConfirmation.scheduled_time).toLocaleString()}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -1064,9 +1146,13 @@ export default function ParentGateway() {
                       <div className="flex items-center gap-3">
                         <div className="w-6 h-6 border-3 border-yellow-400/30 border-t-yellow-600 rounded-full animate-spin flex-shrink-0" />
                         <div>
-                          <p className="font-medium text-yellow-900">Tutor proposed a different schedule. Please confirm.</p>
+                          <p className="font-medium text-yellow-900">
+                            Tutor proposed a different {sessionLabel} schedule. Please confirm.
+                          </p>
                           {effectiveIntroSessionConfirmation.scheduled_time && (
-                            <p className="text-xs text-yellow-700 mt-1">Proposed schedule: {new Date(effectiveIntroSessionConfirmation.scheduled_time).toLocaleString()}</p>
+                            <p className="text-xs text-yellow-700 mt-1">
+                              Proposed schedule: {new Date(effectiveIntroSessionConfirmation.scheduled_time).toLocaleString()}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -1090,7 +1176,10 @@ export default function ParentGateway() {
                                 body: JSON.stringify({ sessionId: effectiveIntroSessionConfirmation.id }),
                               });
                               if (!response.ok) throw new Error("Failed to confirm session");
-                              toast({ title: "Session Confirmed", description: "Your session is now confirmed." });
+                              toast({
+                                title: `${sessionTitle} Confirmed`,
+                                description: `Your ${sessionLabel} is now confirmed.`,
+                              });
                               await refetchIntroSessionConfirmation();
                               // Also refetch enrollment status in case proposal was sent
                               await queryClient.invalidateQueries({ queryKey: ["/api/parent/enrollment-status"] });
@@ -1110,18 +1199,28 @@ export default function ParentGateway() {
                     <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                       {effectiveIntroSessionConfirmation.introCompleted ? (
                         <>
-                          <p className="font-medium text-green-900">Your introductory session has been conducted</p>
+                          <p className="font-medium text-green-900">
+                            Your {sessionCompletedLabel} has been conducted
+                          </p>
                           <p className="text-sm text-green-700 mt-2">
-                            Tutor is now preparing your training proposal. You'll see it here once it has been sent.
+                            {isHandoverFlow
+                              ? "The new tutor is now locking in the best restart point before normal training resumes."
+                              : "Tutor is now preparing your training proposal. You'll see it here once it has been sent."}
                           </p>
                         </>
                       ) : (
                         <>
-                          <p className="font-medium text-green-900">Your session has been confirmed</p>
+                          <p className="font-medium text-green-900">Your {sessionLabel} has been confirmed</p>
                           {effectiveIntroSessionConfirmation.scheduled_time && (
-                            <p className="text-sm text-green-700 mt-2">Scheduled for: {new Date(effectiveIntroSessionConfirmation.scheduled_time).toLocaleString()}</p>
+                            <p className="text-sm text-green-700 mt-2">
+                              Scheduled for: {new Date(effectiveIntroSessionConfirmation.scheduled_time).toLocaleString()}
+                            </p>
                           )}
-                          <p className="text-sm text-green-700 mt-2">You will receive an introductory report and proposal here after you've had your intro session</p>
+                          <p className="text-sm text-green-700 mt-2">
+                            {isHandoverFlow
+                              ? "The new tutor will verify continuity and resume training from the strongest confirmed point."
+                              : "You will receive an introductory report and proposal here after you've had your intro session"}
+                          </p>
                         </>
                       )}
                     </div>
@@ -1132,8 +1231,8 @@ export default function ParentGateway() {
                     <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                       <p className="font-medium mb-4 text-red-900">
                         {effectiveIntroSessionConfirmation?.status === "not_scheduled"
-                          ? "Schedule your introductory session"
-                          : "Adjust your introductory session schedule"}
+                          ? `Schedule your ${sessionLabel}`
+                          : `Adjust your ${sessionLabel} schedule`}
                       </p>
                       <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
                         {(effectiveIntroSessionConfirmation?.status === "not_scheduled" || effectiveIntroSessionConfirmation?.status === "pending_parent_confirmation") && (
@@ -1145,16 +1244,16 @@ export default function ParentGateway() {
                               title={undefined}
                             >
                               {effectiveIntroSessionConfirmation?.status === "not_scheduled"
-                                ? "Book Introductory Session"
+                                ? `Book ${sessionTitle}`
                                 : "Adjust Schedule"}
                             </Button>
                           </DialogTrigger>
                         )}
                         <DialogContent>
                           <DialogHeader>
-                            <DialogTitle>Propose Session Time</DialogTitle>
+                            <DialogTitle>Propose {sessionTitle} Time</DialogTitle>
                             <DialogDescription>
-                              Select a date and time for your introductory session with {assignedTutor?.name}
+                              Select a date and time for your {sessionLabel} with {assignedTutor?.name}
                             </DialogDescription>
                           </DialogHeader>
                           <div className="space-y-4">
