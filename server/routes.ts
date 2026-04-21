@@ -152,6 +152,21 @@ function getEffectiveScheduledSessionStatus(session: any): string {
   return "not_scheduled";
 }
 
+const REASSIGNMENT_RESUME_PREFIX = "reassignment_resume:";
+
+function buildReassignmentResumeStep(status: string | null | undefined): string {
+  const normalized = String(status || "").trim().toLowerCase();
+  if (!normalized) return `${REASSIGNMENT_RESUME_PREFIX}assigned`;
+  return `${REASSIGNMENT_RESUME_PREFIX}${normalized}`;
+}
+
+function extractReassignmentResumeStatus(currentStep: string | null | undefined): string | null {
+  const value = String(currentStep || "").trim().toLowerCase();
+  if (!value.startsWith(REASSIGNMENT_RESUME_PREFIX)) return null;
+  const restored = value.slice(REASSIGNMENT_RESUME_PREFIX.length).trim();
+  return restored || null;
+}
+
 const SCHEDULED_SESSION_SELECT = [
   "id",
   "scheduled_time",
@@ -8026,7 +8041,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (studentId) {
             // Try assigned_student_id
             query = query.eq("assigned_student_id", studentId);
-            const { data } = await query.select("id, user_id").maybeSingle();
+            const { data } = await query.select("id, user_id, status, current_step, proposal_id").maybeSingle();
             parentEnrollment = data;
           }
           if (!parentEnrollment) {
@@ -8036,7 +8051,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (studentName) {
               const { data } = await supabase
                 .from("parent_enrollments")
-                .select("id, user_id")
+                .select("id, user_id, status, current_step, proposal_id")
                 .eq("assigned_tutor_id", dbUser.id)
                 .eq("student_full_name", studentName)
                 .maybeSingle();
@@ -8044,16 +8059,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
           if (parentEnrollment && parentEnrollment.id) {
+            const resumedStatus =
+              extractReassignmentResumeStatus(parentEnrollment.current_step) ||
+              null;
+            const nextEnrollmentStatus = resumedStatus || "assigned";
+
             await supabase
               .from("parent_enrollments")
-              .update({ status: "assigned", current_step: "assigned", updated_at: new Date().toISOString() })
+              .update({
+                status: nextEnrollmentStatus,
+                current_step: nextEnrollmentStatus,
+                updated_at: new Date().toISOString(),
+              })
               .eq("id", parentEnrollment.id);
 
             await safeSendPush(
               parentEnrollment.user_id,
               {
                 title: "Tutor accepted",
-                body: "Your tutor accepted the assignment. TT onboarding can now move forward.",
+                body:
+                  resumedStatus && resumedStatus !== "assigned"
+                    ? "Your new tutor accepted the reassignment. TT will continue from the student's existing training state."
+                    : "Your tutor accepted the assignment. TT onboarding can now move forward.",
                 url: "/client/parent/gateway",
                 tag: `parent-tutor-accepted-${parentEnrollment.id}`,
               },
@@ -11368,7 +11395,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         let { data: enrollment, error: enrollmentError } = await supabase
           .from("parent_enrollments")
-          .select("id, user_id, student_full_name, assigned_tutor_id, assigned_student_id, status")
+          .select("id, user_id, student_full_name, assigned_tutor_id, assigned_student_id, status, proposal_id, current_step")
           .eq("id", enrollmentId)
           .maybeSingle();
 
@@ -11377,7 +11404,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (message.includes("assigned_student_id")) {
             const fallback = await supabase
               .from("parent_enrollments")
-              .select("id, user_id, student_full_name, assigned_tutor_id, status")
+              .select("id, user_id, student_full_name, assigned_tutor_id, status, proposal_id, current_step")
               .eq("id", enrollmentId)
               .maybeSingle();
             enrollment = fallback.data as any;
@@ -11399,14 +11426,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const previousTutorId = enrollment.assigned_tutor_id;
         const nowIso = new Date().toISOString();
+        const preserveTrainingProgress = !!enrollment.proposal_id;
+        const preservedCurrentStep = preserveTrainingProgress
+          ? buildReassignmentResumeStep(enrollment.status || enrollment.current_step || "assigned")
+          : "awaiting_assignment";
 
         let { error: unassignError } = await supabase
           .from("parent_enrollments")
           .update({
             assigned_tutor_id: null,
             status: "awaiting_assignment",
-            current_step: "awaiting_assignment",
-            proposal_id: null,
+            current_step: preservedCurrentStep,
+            proposal_id: preserveTrainingProgress ? enrollment.proposal_id : null,
             updated_at: nowIso,
           })
           .eq("id", enrollment.id);
@@ -11423,6 +11454,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .update({
                 assigned_tutor_id: null,
                 status: "awaiting_assignment",
+                proposal_id: preserveTrainingProgress ? enrollment.proposal_id : null,
                 updated_at: nowIso,
               })
               .eq("id", enrollment.id);
@@ -11444,56 +11476,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const existingProfile = (student.personalProfile as any) || {};
             const updatedProfile = {
               ...existingProfile,
-              workflow: {},
+              workflow: {
+                ...(existingProfile.workflow || {}),
+                assignmentAcceptedAt: null,
+                assignmentDeclinedAt: null,
+              },
             };
 
             const parentId = (student as any).parentId || null;
 
-            // Clear intro sessions for this tutor/student combination
-            await supabase
+            const staleSessionIds = new Set<string>();
+
+            const { data: tutorStudentSessions } = await supabase
               .from("scheduled_sessions")
-              .delete()
+              .select("id, status")
               .eq("tutor_id", previousTutorId)
               .eq("student_id", studentId)
-              .eq("type", "intro");
+              .in("type", ["intro", "training"]);
 
-            // Clear intro sessions that were stored by parent only
+            for (const row of tutorStudentSessions || []) {
+              if (String(row.status || "").toLowerCase() !== "completed") {
+                staleSessionIds.add(String(row.id));
+              }
+            }
+
             if (parentId) {
-              await supabase
+              const { data: parentOnlyIntroSessions } = await supabase
                 .from("scheduled_sessions")
-                .delete()
+                .select("id, status")
                 .eq("tutor_id", previousTutorId)
                 .eq("parent_id", parentId)
                 .is("student_id", null)
                 .eq("type", "intro");
+
+              for (const row of parentOnlyIntroSessions || []) {
+                if (String(row.status || "").toLowerCase() !== "completed") {
+                  staleSessionIds.add(String(row.id));
+                }
+              }
             }
 
-            // Clear intro session drills
-            await supabase
-              .from("intro_session_drills")
-              .delete()
-              .eq("tutor_id", previousTutorId)
-              .eq("student_id", studentId);
-
-            // Clear onboarding proposals tied to this student and enrollment
-            await supabase
-              .from("onboarding_proposals")
-              .delete()
-              .eq("tutor_id", previousTutorId)
-              .eq("student_id", studentId);
-
-            if (enrollment.id) {
+            if (staleSessionIds.size > 0) {
               await supabase
-                .from("onboarding_proposals")
+                .from("scheduled_sessions")
                 .delete()
-                .eq("tutor_id", previousTutorId)
-                .eq("enrollment_id", enrollment.id);
+                .in("id", Array.from(staleSessionIds));
             }
 
-            // Reset identity sheet completion
+            // Preserve TT training state while clearing tutor ownership.
             await storage.updateStudent(studentId, {
               personalProfile: updatedProfile,
-              identitySheetCompletedAt: null,
               tutorId: null,
               updatedAt: nowIso,
             } as any);
