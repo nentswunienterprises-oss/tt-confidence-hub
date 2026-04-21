@@ -46,24 +46,31 @@ const PHASES: PhaseLabel[] = [
 const PHASE_CONTEXT: Record<PhaseLabel, { purpose: string; constraints: string[] }> = {
   Clarity: {
     purpose:
-      "Can the student see the problem clearly before solving? Clarity is naming what's there, recognizing the method, understanding why. If this fails, everything else collapses.",
+      "This phase checks whether the student understands the problem before trying to solve it.",
     constraints: ["No Boss Battles", "No time pressure", "No skipping layers"],
   },
   "Structured Execution": {
     purpose:
-      "Test and build ability to execute the known method independently. Student knows, now prove they can do it alone, repeatably.",
+      "This phase checks whether the student can follow the method on their own, in the right order, without guessing.",
     constraints: ["State steps before solving", "No guessing tolerated", "No skipping steps"],
   },
   "Controlled Discomfort": {
     purpose:
-      "Test and stabilize behavior under uncertainty and difficulty. Does the student persist, or shut down?",
+      "This phase checks how the student responds when the work feels hard or uncomfortable.",
     constraints: ["No full rescue", "Hold discomfort window", "One-step confirmation max"],
   },
   "Time Pressure Stability": {
     purpose:
-      "Maintain method structure under urgency. Structure is the target, speed is secondary.",
+      "This phase checks whether the student can keep their structure while working under time pressure.",
     constraints: ["Method over speed", "Timer is active", "Structured response required"],
   },
+};
+
+const DIFFICULTY_LEVELS: Record<PhaseLabel, string[]> = {
+  Clarity: ["Easy recognition", "Mixed recognition", "Recognition under light variation"],
+  "Structured Execution": ["Straight method", "Similar method again", "Same method with slight variation"],
+  "Controlled Discomfort": ["Manageable stretch", "Uncomfortable stretch", "Sustained pressure"],
+  "Time Pressure Stability": ["Light timer", "Repeat same timer", "Tighter timer"],
 };
 
 const DIAGNOSIS_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
@@ -322,37 +329,49 @@ const INTRO_PHASE_WEIGHTS: Record<PhaseLabel, Array<{ aliases: string[]; weight:
 };
 
 const flow = [
-  "Runner loads phase context, active set, rep instruction, and allowed observation fields.",
-  "Tutor presents the rep exactly as configured by the drill library.",
-  "Tutor selects one option per observation field based on what actually happened in the rep.",
-  "The runner normalizes option position into weak, partial, or clear.",
-  "The system scores reps, computes set totals, and resolves next-session direction.",
-  "The session output is shown in deterministic language for tracking and audit understanding.",
+  "Open the drill and review the tutor prep step first.",
+  "Run the rep exactly as written.",
+  "Choose the option that best matches what the student actually did.",
+  "Finish all reps in the set.",
+  "Submit the drill to see the set totals, drill total, and system decision.",
 ];
 
 const rules = [
-  "Logging begins inside the drill runner, not after the session in a separate narrative form.",
-  "Only the phase-specific observation blocks count as primary session evidence.",
-  "Free interpretation does not override option selection, scoring, or phase decision.",
-  "If the tutor did not observe it in the rep, it does not belong in the core log.",
+  "Only log what the student actually did.",
+  "Do not guess or fill gaps with your own interpretation.",
+  "Use the drill options exactly as they are written.",
+  "If you did not see it happen, do not log it.",
 ];
 
 const scoringRules = [
-  "First option in an observation block maps to weak.",
-  "Middle option maps to partial.",
-  "Last option maps to clear.",
-  "Observation families are phase-specific and drill-specific.",
-  "The drill total is what drives stability movement and next-step direction.",
+  "The first option is the weakest response.",
+  "The middle option is partial.",
+  "The last option is the strongest response.",
+  "The selected options roll up into rep scores, set totals, and the final drill result.",
 ];
 
-const outputs = [
-  "Rep score",
-  "Set score",
-  "Diagnosis score",
-  "Resolved stability",
+const prepSteps = [
+  "Choose the right difficulty for the phase.",
+  "Prepare three problems for each set.",
+  "Read the rep instruction before starting.",
+  "Know what you are watching for in each observation row.",
+];
+
+const tutorPrepSideNotes = [
+  "Difficulty should stretch the student, not overwhelm them.",
+  "Use fresh examples across reps where the drill expects it.",
+  "Keep the tutor language tight and consistent.",
+];
+
+const resultOutputs = [
+  "Set 1 total",
+  "Set 2 total",
+  "Drill total",
+  "System decision",
+  "Reason",
+  "Tutor meaning",
   "Next action",
   "Constraint",
-  "Demo-only deterministic output",
 ];
 
 const auditRisks = [
@@ -587,11 +606,11 @@ function DemoRunnerOverlay({
               <div className="flex flex-wrap items-center gap-2">
                 <Badge className="bg-primary/10 text-primary hover:bg-primary/10">Interactive Demo</Badge>
                 <Badge variant="outline">{phase}</Badge>
-                <Badge variant="outline">Demo only. Nothing is saved.</Badge>
+                <Badge variant="outline">Practice view</Badge>
               </div>
-              <h2 className="mt-2 text-2xl font-bold tracking-tight">Full-Screen Drill Runner Sandbox</h2>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight">Full-Screen Drill Runner Demo</h2>
               <p className="text-sm text-muted-foreground">
-                Explore the live drill flow, select observations, and submit a demo result with no persistence.
+                Walk through the drill the same way a tutor would: prep first, run reps, then review the result screen.
               </p>
             </div>
             <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close demo runner">
@@ -613,9 +632,9 @@ function DemoRunnerOverlay({
                         <Badge variant="outline">Before running the drill</Badge>
                       </div>
                       <div>
-                        <h3 className="text-2xl font-bold">Tutor Prep Modal Flow</h3>
+                        <h3 className="text-2xl font-bold">Tutor Prep</h3>
                         <p className="mt-1 text-sm text-muted-foreground">
-                          This is the pre-run setup step that frames the live runner. The tutor prepares problems, reviews the phase constraints, and enters the drill with the right operating standard.
+                          This is the step before the drill starts. The tutor sets the difficulty, prepares the problems, and gets clear on what this drill is checking.
                         </p>
                       </div>
                       <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm">
@@ -635,11 +654,21 @@ function DemoRunnerOverlay({
                       <div className="rounded-xl border bg-muted/20 p-4">
                         <p className="font-semibold">Before you begin:</p>
                         <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-                          <li>Prepare 3 distinct problems for each drill set.</li>
-                          <li>Present each rep exactly as configured by the drill.</li>
-                          <li>Select only what was actually observed in the rep.</li>
-                          <li>Do not improvise scoring language outside the observation fields.</li>
+                          {prepSteps.map((step) => (
+                            <li key={step}>{step}</li>
+                          ))}
                         </ul>
+                      </div>
+                      <div className="rounded-xl border bg-background p-4">
+                        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Difficulty Levels</p>
+                        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                          {DIFFICULTY_LEVELS[phase].map((level, index) => (
+                            <div key={level} className="rounded-lg border bg-muted/20 p-3">
+                              <p className="text-sm font-medium">Level {index + 1}</p>
+                              <p className="mt-1 text-xs text-muted-foreground">{level}</p>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                       <div className="rounded-xl border bg-background p-4">
                         <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Loaded Sets</p>
@@ -660,20 +689,13 @@ function DemoRunnerOverlay({
                 <div className="space-y-4">
                   <Card className="border-primary/15 bg-background shadow-sm">
                     <div className="space-y-3 p-4 sm:p-5">
-                      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Prep Checklist</p>
+                      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Prep Notes</p>
                       <div className="grid gap-3">
-                        <div className="rounded-lg border bg-muted/20 p-3">
-                          <p className="text-sm font-medium">Problems ready</p>
-                          <p className="mt-1 text-xs text-muted-foreground">{drillStructure.length * 3} example reps available across the loaded sets.</p>
-                        </div>
-                        <div className="rounded-lg border bg-muted/20 p-3">
-                          <p className="text-sm font-medium">Observation model</p>
-                          <p className="mt-1 text-xs text-muted-foreground">Ordered options normalize to weak, partial, and clear.</p>
-                        </div>
-                        <div className="rounded-lg border bg-muted/20 p-3">
-                          <p className="text-sm font-medium">Persistence</p>
-                          <p className="mt-1 text-xs text-muted-foreground">This sandbox never writes data to any session, student, or report record.</p>
-                        </div>
+                        {tutorPrepSideNotes.map((note) => (
+                          <div key={note} className="rounded-lg border bg-muted/20 p-3">
+                            <p className="text-sm text-muted-foreground">{note}</p>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </Card>
@@ -1016,11 +1038,10 @@ export default function ResponseConditioningLoggingSystem() {
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold">What Logging Is in TT</h2>
+            <h2 className="text-2xl font-bold">What This Page Shows</h2>
             <p className="max-w-4xl text-muted-foreground">
-              Logging is the observation spine inside the drill runner. It is not a free-text tutor
-              form. It is the capture of rep behavior, the scoring of that behavior, and the system
-              output that follows from that score.
+              This page shows how tutors use the drill runner: choose a drill, prepare the session,
+              select what happened in each rep, and read the result at the end.
             </p>
           </div>
 
@@ -1028,16 +1049,14 @@ export default function ResponseConditioningLoggingSystem() {
             <div className="space-y-6">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div className="max-w-3xl">
-                  <h3 className="text-xl font-bold">Choose a Drill and Open the Runner</h3>
+                  <h3 className="text-xl font-bold">Choose a Drill and Open the Demo</h3>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Pick one of the four TT phases, then open a full-screen interactive drill runner.
-                    You can move through sets and reps, select observations, and submit a demo result
-                    without changing any real data.
+                    Pick one of the four TT phases, then open the full-screen demo. You can step through the prep screen, run reps, choose observations, and see the result screen.
                   </p>
                 </div>
                 <Button onClick={() => setDemoOpen(true)} className="w-full sm:w-auto">
                   <Expand className="mr-2 h-4 w-4" />
-                  Open Full-Screen Demo
+                  Open Demo
                 </Button>
               </div>
 
@@ -1087,12 +1106,12 @@ export default function ResponseConditioningLoggingSystem() {
                 </div>
 
                 <div className="rounded-2xl border border-primary/15 bg-background p-4 shadow-sm">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">What Opens</p>
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">In This Demo</p>
                   <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                    <li>Real set and rep flow from the phase drill structure</li>
-                    <li>Interactive observation buttons for every rep field</li>
-                    <li>Back and next navigation just like the live runner</li>
-                    <li>Demo-only submit screen with local scoring and next action</li>
+                    <li>Tutor prep before the drill starts</li>
+                    <li>The same set and rep flow tutors see in the runner</li>
+                    <li>Clickable observation choices for each rep</li>
+                    <li>A result screen with totals, decision, reason, and next step</li>
                   </ul>
                 </div>
               </div>
@@ -1110,7 +1129,7 @@ export default function ResponseConditioningLoggingSystem() {
         </Card>
 
         <Card className="space-y-4 p-6">
-          <h2 className="text-2xl font-bold">Observation Scoring Logic</h2>
+          <h2 className="text-2xl font-bold">How Choices Turn Into a Result</h2>
           <ul className="space-y-1 pl-4 text-muted-foreground">
             {scoringRules.map((rule) => (
               <li key={rule}>{rule}</li>
@@ -1119,7 +1138,7 @@ export default function ResponseConditioningLoggingSystem() {
         </Card>
 
         <Card className="space-y-4 p-6">
-          <h2 className="text-2xl font-bold">Logging Flow in the Runner</h2>
+          <h2 className="text-2xl font-bold">What Tutors Do in the Runner</h2>
           <ol className="space-y-1 pl-4 text-muted-foreground">
             {flow.map((step, index) => (
               <li key={step}>
@@ -1130,9 +1149,9 @@ export default function ResponseConditioningLoggingSystem() {
         </Card>
 
         <Card className="space-y-4 p-6">
-          <h2 className="text-2xl font-bold">What the Runner Produces</h2>
+          <h2 className="text-2xl font-bold">What the Result Screen Shows</h2>
           <ul className="space-y-1 pl-4 text-muted-foreground">
-            {outputs.map((output) => (
+            {resultOutputs.map((output) => (
               <li key={output}>{output}</li>
             ))}
           </ul>
