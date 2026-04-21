@@ -68,29 +68,6 @@ const PHASE_CONTEXT: Record<PhaseLabel, { purpose: string; constraints: string[]
   },
 };
 
-const DIFFICULTY_GUIDANCE: Record<PhaseLabel, string[]> = {
-  Clarity: [
-    "Start with a problem the student should be able to recognize.",
-    "If that is too easy, use a less familiar version next.",
-    "Do not raise difficulty so fast that recognition collapses.",
-  ],
-  "Structured Execution": [
-    "Start with a clean version of the method.",
-    "Repeat with a similar problem before changing the form.",
-    "Only add variation if the student is still keeping the full structure.",
-  ],
-  "Controlled Discomfort": [
-    "Choose a problem that creates strain but is still workable.",
-    "Keep the difficulty steady while you watch the response pattern.",
-    "Do not make the work easier just because the student is uncomfortable.",
-  ],
-  "Time Pressure Stability": [
-    "Start with a timer the student can realistically work under.",
-    "Keep the same timer long enough to see the pattern clearly.",
-    "Only tighten the timer if the student is still keeping structure.",
-  ],
-};
-
 const DIAGNOSIS_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
   Clarity: [
     {
@@ -557,13 +534,6 @@ const scoringRules = [
   "The selected options roll up into rep scores, set totals, and the final phase summary.",
 ];
 
-const prepSteps = [
-  "Choose the right difficulty for the phase.",
-  "Prepare three problems for each set.",
-  "Read the rep instruction before starting.",
-  "Know what you are watching for in each observation row.",
-];
-
 const resultOutputs = [
   "Set 1 total",
   "Set 2 total",
@@ -824,37 +794,23 @@ function DemoRunnerOverlay({
                 <div className="mb-4 p-3 rounded-md border border-primary/20 bg-primary/5">
                   <p className="font-semibold mb-1">Instructions:</p>
                   <ul className="list-disc pl-5 text-sm text-foreground/90 space-y-1">
-                    <li>
-                      {mode === "training"
-                        ? "This training drill is a demo of the live runner flow. Complete each set exactly as shown."
-                        : "This diagnosis block is a demo of the live runner flow. Complete the current phase verification block exactly as shown."}
-                    </li>
-                    <li><strong>Before you begin:</strong> Prepare <span className="font-semibold">3 distinct problems</span> for the current {mode === "training" ? "drill" : "phase block"}.</li>
-                    <li>Choose problem difficulty based on the student's current control in this phase.</li>
-                    <li>You cannot skip steps or edit outside the {mode === "training" ? "drill" : "verification"} structure. Complete each observation in order.</li>
-                    <li>Submit to see the result summary for this {mode === "training" ? "drill" : "block"}.</li>
-                  </ul>
-                </div>
-                <div className="mb-4 p-3 rounded-xl border border-primary/20 bg-primary/5 text-sm">
-                  <div className="font-semibold text-foreground mb-1">Phase: {phase}</div>
-                  <div className="text-muted-foreground text-xs mb-2">{PHASE_CONTEXT[phase].purpose}</div>
-                  <div className="flex flex-wrap gap-1">
-                    {PHASE_CONTEXT[phase].constraints.map((rule) => (
-                      <span
-                        key={rule}
-                        className="px-2 py-0.5 bg-background border border-primary/20 text-foreground rounded text-xs font-medium"
-                      >
-                        {rule}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div className="mb-4 p-3 rounded-md border border-primary/20 bg-primary/5">
-                  <p className="font-semibold mb-1">Difficulty:</p>
-                  <ul className="list-disc pl-5 text-sm text-foreground/90 space-y-1">
-                    {DIFFICULTY_GUIDANCE[phase].map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
+                    {mode === "training" ? (
+                      <>
+                        <li>This is a training drill. Follow the structure exactly as shown.</li>
+                        <li><strong>Before you begin:</strong> Prepare <span className="font-semibold">3 distinct problems</span> for each drill set.</li>
+                        <li>For each set and rep, present the prepared problem, observe the student, and select the option that best matches their behavior for each field.</li>
+                        <li>You cannot skip steps or edit outside the drill structure. Complete each observation in order.</li>
+                        <li>When finished, submit the drill to see the result summary.</li>
+                      </>
+                    ) : (
+                      <>
+                        <li>This diagnosis is adaptive. Complete the current phase verification block exactly as shown.</li>
+                        <li><strong>Before you begin:</strong> Prepare <span className="font-semibold">3 distinct problems</span> for the current phase block.</li>
+                        <li>The system will move up, place here, or move down after each phase block based on the score band.</li>
+                        <li>You cannot skip steps or edit outside the verification structure. Complete each observation in order.</li>
+                        <li>Diagnosis stops automatically once the correct entry phase is verified.</li>
+                      </>
+                    )}
                   </ul>
                 </div>
               </div>
@@ -1374,19 +1330,6 @@ export default function ResponseConditioningLoggingSystem() {
               <li key={output}>{output}</li>
             ))}
           </ul>
-        </Card>
-
-        <Card className="space-y-4 border-2 border-primary/20 p-6">
-          <h2 className="text-2xl font-bold">The Core Formula</h2>
-          <p className="font-medium">The TT logging spine is:</p>
-          <p className="text-xl font-semibold">
-            Rep behavior observed
-            <br />-&gt; option selected
-            <br />-&gt; weak / partial / clear normalization
-            <br />-&gt; set and phase score
-            <br />-&gt; system output
-            <br />-&gt; next step
-          </p>
         </Card>
 
         <Card className="space-y-4 border-2 border-primary/20 p-6">
