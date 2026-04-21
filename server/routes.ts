@@ -44,6 +44,12 @@ import {
   getAdjacentDiagnosisPhase,
   type AdaptiveDiagnosisBand,
 } from "@shared/adaptiveDiagnosis";
+import {
+  buildStartingPhaseRationale,
+  getResponseSymptomLabels,
+  normalizeResponseSymptoms,
+  recommendStartingPhaseFromSymptoms,
+} from "@shared/responseSymptomMapping";
 import { z } from "zod";
 import {
   isGoogleMeetIntegrationAvailable,
@@ -80,6 +86,23 @@ const requireRole = (roles: string[]) => {
 async function getTutorOperationalMode(tutorId: string): Promise<"training" | "certified_live"> {
   const assignment = await storage.getTutorAssignment(tutorId);
   return (assignment?.operationalMode as "training" | "certified_live" | undefined) || "training";
+}
+
+async function getParentAssignedTutorOperationalMode(parentId: string): Promise<"training" | "certified_live"> {
+  const { data: enrollment } = await selectLatestParentEnrollment({
+    parentId,
+    primarySelect: "assigned_tutor_id",
+    fallbackSelect: "assigned_tutor_id",
+  });
+
+  if (!enrollment?.assigned_tutor_id) return "training";
+  return getTutorOperationalMode(String(enrollment.assigned_tutor_id));
+}
+
+async function getStudentOperationalMode(studentId: string): Promise<"training" | "certified_live"> {
+  const student = await storage.getStudent(studentId);
+  if (!student?.tutorId) return "training";
+  return getTutorOperationalMode(student.tutorId);
 }
 
 async function safeSendPush(
@@ -3208,17 +3231,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/parent/intro-session/propose", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const userId = (req as any).dbUser.id;
+      const operationalMode = await getParentAssignedTutorOperationalMode(userId);
+      if (operationalMode === "training") {
+        return res.status(400).json({
+          message: "Intro session booking is disabled while your assigned tutor is in training mode.",
+          operationalMode,
+        });
+      }
       const { proposedDate, proposedTime } = req.body;
       if (!proposedDate || !proposedTime) {
         return res.status(400).json({ message: "Missing date or time" });
       }
 
       // Get parent's enrollment to find assigned tutor
-      const { data: enrollmentData, error: enrollmentError } = await supabase
+      const activeEnrollmentStatuses = [
+        "assigned",
+        "awaiting_tutor_acceptance",
+        "proposal_sent",
+        "session_booked",
+        "report_received",
+        "confirmed",
+      ];
+
+      const { data: enrollmentRows, error: enrollmentError } = await supabase
         .from("parent_enrollments")
         .select("*")
         .eq("user_id", userId)
-        .maybeSingle();
+        .in("status", activeEnrollmentStatuses)
+        .order("updated_at", { ascending: false })
+        .limit(1);
+
+      const enrollmentData = enrollmentRows?.[0] || null;
 
       if (enrollmentError || !enrollmentData) {
         return res.status(400).json({ message: "Failed to fetch enrollment" });
@@ -3242,7 +3285,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
       // Check for existing pending intro session for this parent/tutor
-      const { data: existingSession, error: existingSessionError } = await supabase
+      const { data: existingSessions, error: existingSessionError } = await supabase
         .from("scheduled_sessions")
         .select(SCHEDULED_SESSION_SELECT)
         .eq("parent_id", userId)
@@ -3250,7 +3293,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .eq("type", "intro")
         .in("status", ["pending_tutor_confirmation", "pending_parent_confirmation"])
         .order("created_at", { ascending: false })
-        .maybeSingle();
+        .limit(1);
+
+      const existingSession = existingSessions?.[0] || null;
+
+      if (existingSessionError) {
+        console.error("Error fetching existing intro session:", existingSessionError);
+        return res.status(500).json({ message: "Failed to propose session" });
+      }
 
       if (existingSession) {
         // If a pending session exists, update it with the new proposed time and confirmation flags
@@ -3367,6 +3417,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.get("/api/parent/intro-session-confirmation", isAuthenticated, async (req: Request, res: Response) => {
       try {
         const userId = (req as any).dbUser.id;
+        const operationalMode = await getParentAssignedTutorOperationalMode(userId);
+
+        if (operationalMode === "training") {
+          return res.json({ status: "training_mode", operationalMode });
+        }
 
         const { data: enrollmentData, error: enrollmentError } = await selectLatestParentEnrollment({
           parentId: userId,
@@ -3479,6 +3534,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/parent/intro-session-confirm", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const userId = (req as any).dbUser.id;
+      const operationalMode = await getParentAssignedTutorOperationalMode(userId);
+      if (operationalMode === "training") {
+        return res.status(400).json({
+          message: "Intro session confirmation is disabled while your assigned tutor is in training mode.",
+          operationalMode,
+        });
+      }
       const { sessionId } = req.body;
       if (!sessionId) {
         return res.status(400).json({ message: "Missing sessionId" });
@@ -3842,13 +3904,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const buildResponseSymptoms = (confidenceLevel: unknown): string[] => {
     switch (confidenceLevel) {
       case "very_low":
-        return ["Freezes when questions look unfamiliar", "Seeks help early"];
+        return ["freezes_unfamiliar", "asks_help_immediately"];
       case "low":
-        return ["Rushes under pressure", "Guesses without full structure"];
+        return ["rushes_under_time", "guesses_without_method"];
       case "average":
-        return ["Breaks under time pressure"];
+        return ["untimed_ok_timed_breaks"];
       case "high":
-        return ["Stays structured under uncertainty"];
+        return [];
       default:
         return [];
     }
@@ -3856,13 +3918,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const buildIntakeSignals = (enrollment: any) => {
     const reportedTopics = buildReportedTopics([], enrollment?.math_struggle_areas);
-    const responseSymptoms = buildResponseSymptoms(enrollment?.confidence_level);
+    const normalizedSymptoms = normalizeResponseSymptoms(
+      enrollment?.response_symptoms || buildResponseSymptoms(enrollment?.confidence_level)
+    );
+    const recommendation = recommendStartingPhaseFromSymptoms(normalizedSymptoms);
+    const recommendedStartingPhase =
+      tryParsePhase(enrollment?.recommended_starting_phase) || recommendation.phase;
     return {
       reported_topics: reportedTopics,
-      response_symptoms: responseSymptoms,
+      response_symptoms: getResponseSymptomLabels(normalizedSymptoms),
+      response_symptom_ids: normalizedSymptoms,
+      response_signal_scores: enrollment?.response_signal_scores || recommendation.scores,
+      recommended_starting_phase: recommendedStartingPhase,
+      recommended_starting_reason: buildStartingPhaseRationale(
+        recommendedStartingPhase,
+        recommendation.supportingSymptoms
+      ),
       diagnostic_focus: {
         start_with: reportedTopics[0] || null,
-        watch_for: responseSymptoms.slice(0, 2),
+        watch_for: getResponseSymptomLabels(normalizedSymptoms).slice(0, 2),
       },
     };
   };
@@ -5288,6 +5362,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/parent/training-sessions", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const userId = (req as any).dbUser.id;
+      const operationalMode = await getParentAssignedTutorOperationalMode(userId);
+
+      if (operationalMode === "training") {
+        return res.json({
+          sessions: [],
+          operationalMode,
+          sessionSchedulingEnabled: false,
+        });
+      }
 
       const { data: enrollment, error: enrollmentError } = await selectLatestParentEnrollment({
         parentId: userId,
@@ -5341,6 +5424,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       res.json({
+        operationalMode,
+        sessionSchedulingEnabled: true,
         sessions: sessionsWithArtifacts.map((session: any) => ({
           ...session,
           launch: getSessionLaunchState(session, "training"),
@@ -5355,6 +5440,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/parent/training-sessions/schedule-week", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const userId = (req as any).dbUser.id;
+      const operationalMode = await getParentAssignedTutorOperationalMode(userId);
+      if (operationalMode === "training") {
+        return res.status(400).json({
+          message: "Weekly training-session booking is disabled while your tutor is in training mode.",
+          operationalMode,
+        });
+      }
       const rawSlots = Array.isArray(req.body?.slots) ? req.body.slots : [];
       const timezone = String(req.body?.timezone || "Africa/Johannesburg");
       const weekdayLookup: Record<string, number> = {
@@ -5546,6 +5638,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/parent/training-sessions/respond", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const userId = (req as any).dbUser.id;
+      const operationalMode = await getParentAssignedTutorOperationalMode(userId);
+      if (operationalMode === "training") {
+        return res.status(400).json({
+          message: "Training-session confirmation is disabled while your tutor is in training mode.",
+          operationalMode,
+        });
+      }
       const { sessionId, action, scheduledStart } = req.body as {
         sessionId?: string;
         action?: "confirm" | "reschedule";
@@ -12600,6 +12699,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         previousTutoring,
         confidenceLevel,
         internetAccess,
+        responseSymptoms: rawResponseSymptoms,
         parentMotivation,
         processAlignment,
         agreedToTerms,
@@ -12609,7 +12709,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } = req.body;
 
       const reportedTopics = buildReportedTopics(stuckAreas, mathStruggleAreas);
-      const responseSymptoms = buildResponseSymptoms(confidenceLevel);
+      const normalizedResponseSymptoms = normalizeResponseSymptoms(rawResponseSymptoms);
+      const fallbackSymptoms =
+        normalizedResponseSymptoms.length > 0 ? normalizedResponseSymptoms : buildResponseSymptoms(confidenceLevel);
+      const responseRecommendation = recommendStartingPhaseFromSymptoms(fallbackSymptoms);
+      const responseSymptoms = getResponseSymptomLabels(fallbackSymptoms);
 
       const normalizedMathStruggleAreas =
         reportedTopics.length > 0 ? reportedTopics.join(", ") : mathStruggleAreas;
@@ -12638,6 +12742,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         !studentGrade ||
         !schoolName ||
         !mathStruggleAreas ||
+        fallbackSymptoms.length === 0 ||
         !previousTutoring ||
         !confidenceLevel ||
         !internetAccess ||
@@ -12752,6 +12857,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           student_grade: studentGrade,
           school_name: schoolName,
           math_struggle_areas: normalizedMathStruggleAreas,
+          response_symptoms: fallbackSymptoms,
+          response_signal_scores: responseRecommendation.scores,
+          recommended_starting_phase: responseRecommendation.phase,
           previous_tutoring: previousTutoring,
           confidence_level: confidenceLevel,
           internet_access: internetAccess,
@@ -14165,6 +14273,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Student not found" });
       }
 
+      const operationalMode = await getStudentOperationalMode(studentUser.student_id);
+      if (operationalMode === "training") {
+        return res.json({
+          sessions: [],
+          operationalMode,
+          sessionSchedulingEnabled: false,
+        });
+      }
+
       const { data: sessions, error } = await supabase
         .from("scheduled_sessions")
         .select("id, scheduled_time, scheduled_end, timezone, status, type, workflow_stage, parent_confirmed, tutor_confirmed, google_meet_url, created_at, updated_at")
@@ -14177,7 +14294,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "Failed to fetch student sessions" });
       }
 
-      res.json({ sessions: sessions || [] });
+      res.json({
+        sessions: sessions || [],
+        operationalMode,
+        sessionSchedulingEnabled: true,
+      });
     } catch (error) {
       console.error("Error fetching student sessions:", error);
       res.status(500).json({ message: "Failed to fetch student sessions" });

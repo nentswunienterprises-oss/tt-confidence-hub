@@ -292,6 +292,7 @@ export interface IStorage {
   getTutorAssignment(tutorId: string): Promise<(TutorAssignment & { pod: Pod }) | undefined>;
   getTutorAssignmentsByPod(podId: string): Promise<TutorAssignment[]>;
   updateCertificationStatus(id: string, status: string): Promise<void>;
+  updateTutorOperationalMode(id: string, operationalMode: "training" | "certified_live"): Promise<void>;
   deleteTutorAssignment(id: string): Promise<void>;
 
   createStudent(student: InsertStudent): Promise<Student>;
@@ -759,6 +760,7 @@ export class SupabaseStorage implements IStorage {
       pod_id: assignment.podId,
       student_count: assignment.studentCount || 0,
       certification_status: assignment.certificationStatus,
+      operational_mode: assignment.operationalMode || "training",
     };
     const { data } = await supabase.from("tutor_assignments").insert(dbAssignment).select().single();
     if (!data) throw new Error("Failed to create tutor assignment");
@@ -769,6 +771,7 @@ export class SupabaseStorage implements IStorage {
       podId: data.pod_id,
       studentCount: data.student_count,
       certificationStatus: data.certification_status,
+      operationalMode: data.operational_mode,
       createdAt: data.created_at,
     };
   }
@@ -796,6 +799,7 @@ export class SupabaseStorage implements IStorage {
       podId: data.pod_id,
       studentCount: data.student_count,
       certificationStatus: data.certification_status,
+      operationalMode: data.operational_mode,
       createdAt: data.created_at,
       pod,
     };
@@ -811,12 +815,17 @@ export class SupabaseStorage implements IStorage {
       podId: assignment.pod_id,
       studentCount: assignment.student_count,
       certificationStatus: assignment.certification_status,
+      operationalMode: assignment.operational_mode,
       createdAt: assignment.created_at,
     }));
   }
 
   async updateCertificationStatus(id: string, status: string): Promise<void> {
     await supabase.from("tutor_assignments").update({ certification_status: status }).eq("id", id);
+  }
+
+  async updateTutorOperationalMode(id: string, operationalMode: "training" | "certified_live"): Promise<void> {
+    await supabase.from("tutor_assignments").update({ operational_mode: operationalMode }).eq("id", id);
   }
 
   async deleteTutorAssignment(id: string): Promise<void> {

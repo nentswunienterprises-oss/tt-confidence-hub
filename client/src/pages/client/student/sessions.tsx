@@ -18,6 +18,12 @@ type StudentSession = {
   google_meet_url?: string | null;
 };
 
+type StudentSessionsResponse = {
+  sessions: StudentSession[];
+  operationalMode?: "training" | "certified_live";
+  sessionSchedulingEnabled?: boolean;
+};
+
 function getWeekRange(now = new Date()) {
   const start = new Date(now);
   const mondayOffset = (start.getDay() + 6) % 7;
@@ -86,7 +92,7 @@ function canJoinMeet(session: StudentSession) {
 }
 
 export default function StudentSessions() {
-  const { data, isLoading } = useQuery<{ sessions: StudentSession[] }>({
+  const { data, isLoading } = useQuery<StudentSessionsResponse>({
     queryKey: ["/api/student/sessions"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
@@ -94,6 +100,7 @@ export default function StudentSessions() {
   });
 
   const sessions = data?.sessions || [];
+  const schedulingEnabled = data?.sessionSchedulingEnabled ?? true;
   const now = new Date();
   const { start, end } = getWeekRange(now);
 
@@ -130,8 +137,26 @@ export default function StudentSessions() {
     <div className="space-y-5">
       <div>
         <h1 className="text-2xl font-semibold tracking-[-0.01em]">Sessions</h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">Your full TT schedule for the current week.</p>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          {schedulingEnabled
+            ? "Your full TT schedule for the current week."
+            : "Live lesson scheduling is currently disabled while your tutor is in TT training mode."}
+        </p>
       </div>
+
+      {!schedulingEnabled ? (
+        <Card className="border-primary/20 bg-background shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-medium tracking-[-0.01em]">Training Mode Active</CardTitle>
+            <CardDescription>Booked Google Meet lesson windows are currently turned off.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+              Your tutor is currently being trained inside TT, so sessions are being run directly in the TT system instead of through scheduled Meet links.
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card className="border-primary/20 bg-background shadow-sm">
         <CardHeader className="pb-3">

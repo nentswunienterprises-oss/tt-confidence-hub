@@ -31,6 +31,8 @@ type TutorWeeklyScheduleSession = {
 type TutorWeeklyScheduleResponse = {
   weekStart: string;
   weekEnd: string;
+  operationalMode?: "training" | "certified_live";
+  sessionSchedulingEnabled?: boolean;
   sessions: TutorWeeklyScheduleSession[];
 };
 
@@ -92,6 +94,9 @@ function sessionLabel(type?: string | null) {
 export default function TutorSessions() {
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [selectedLogSession, setSelectedLogSession] = useState<TutorWeeklyScheduleSession | null>(null);
+  const { data: podData } = useQuery<any>({
+    queryKey: ["/api/tutor/pod"],
+  });
 
   const weekKey = format(weekStart, "yyyy-MM-dd");
   const { data, isLoading } = useQuery<TutorWeeklyScheduleResponse>({
@@ -128,6 +133,9 @@ export default function TutorSessions() {
     };
   }, [data?.sessions]);
 
+  const operationalMode = data?.operationalMode || podData?.assignment?.operationalMode || "training";
+  const schedulingEnabled = data?.sessionSchedulingEnabled ?? operationalMode === "certified_live";
+
   const { data: sessionLog, isLoading: sessionLogLoading } = useQuery<SessionLogResponse>({
     queryKey: ["/api/tutor/scheduled-sessions/log", selectedLogSession?.id],
     queryFn: async () => {
@@ -145,7 +153,9 @@ export default function TutorSessions() {
           <div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Sessions</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Weekly tutor schedule from the live TT planning table.
+              {operationalMode === "training"
+                ? "Training mode is active. Live scheduling and Google Meet windows are hidden for this tutor."
+                : "Weekly tutor schedule from the live TT planning table."}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -161,12 +171,24 @@ export default function TutorSessions() {
           </div>
         </div>
 
-        {isLoading ? (
+        {!schedulingEnabled ? (
+          <Card className="p-5 sm:p-6 border">
+            <p className="text-sm font-medium text-foreground">Live session scheduling is disabled</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              This tutor is currently in training mode. Run intro and training drills from the student workflow surfaces instead of using booked Google Meet lesson windows.
+            </p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Dev note: re-enable the schedule grid automatically when COO switches this tutor to <span className="font-medium text-foreground">certified_live</span>.
+            </p>
+          </Card>
+        ) : null}
+
+        {schedulingEnabled && isLoading ? (
           <div className="space-y-4">
             <Skeleton className="h-28 w-full" />
             <Skeleton className="h-72 w-full" />
           </div>
-        ) : (
+        ) : schedulingEnabled ? (
           <>
             <div className="grid grid-cols-3 gap-3 sm:gap-6">
               <Card className="p-4 sm:p-6 border">
@@ -262,7 +284,7 @@ export default function TutorSessions() {
               </div>
             </Card>
           </>
-        )}
+        ) : null}
       </div>
 
       <Dialog open={!!selectedLogSession} onOpenChange={(open) => !open && setSelectedLogSession(null)}>

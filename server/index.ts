@@ -11,7 +11,7 @@ const isDev = process.env.NODE_ENV === 'development';
 const app = express();
 
 // CORS configuration - allow localhost for dev, same-origin in production
-app.use(cors({
+const corsOptions = {
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
     const allowedOrigins = [
@@ -31,16 +31,18 @@ app.use(cors({
     callback(new Error(`Not allowed by CORS: ${origin}`));
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
-}));
+};
+
+app.use(cors(corsOptions));
 
 
 // Session configuration is handled by setupAuth() in supabaseAuth.ts
 // DO NOT add session middleware here - it will conflict with the one in setupAuth()
 
 // Handle all OPTIONS preflight requests globally to ensure CORS headers are sent
-app.options('*', cors());
+app.options('*', cors(corsOptions));
 
 declare module 'http' {
   interface IncomingMessage {

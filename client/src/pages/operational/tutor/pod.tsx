@@ -46,6 +46,7 @@ interface PodTeamMember {
   bio: string | null;
   profileImageUrl: string | null;
   certificationStatus: string;
+  operationalMode?: "training" | "certified_live";
 }
 
 interface PodTeamData {
@@ -471,6 +472,7 @@ export default function TutorPod() {
                   <StudentCard
                     key={student.id}
                     student={student}
+                    operationalMode={(assignment as any).operationalMode || "training"}
                     setSelectedStudentId={setSelectedStudentId}
                     setSelectedStudentName={setSelectedStudentName}
                     setIdentitySheetOpen={setIdentitySheetOpen}
@@ -570,6 +572,7 @@ export default function TutorPod() {
           onOpenChange={setTopicConditioningDialogOpen}
           studentId={selectedStudentId}
           studentName={selectedStudentName}
+          operationalMode={(assignment as any).operationalMode || "training"}
           studentGrade={selectedStudent?.grade || null}
           parentTopics={selectedStudent?.parentInfo?.math_struggle_areas || ""}
           topicConditioning={selectedStudent?.topicConditioning || null}

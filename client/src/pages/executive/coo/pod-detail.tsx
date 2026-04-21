@@ -289,6 +289,35 @@ export default function PodDetail() {
     },
   });
 
+  const updateTutorOperationalModeMutation = useMutation({
+    mutationFn: async ({
+      assignmentId,
+      operationalMode,
+    }: {
+      assignmentId: string;
+      operationalMode: "training" | "certified_live";
+    }) => {
+      await apiRequest("PATCH", `/api/coo/pods/${podId}/tutors/${assignmentId}/operational-mode`, {
+        operationalMode,
+      });
+    },
+    onSuccess: () => {
+      refetchPodTutors();
+      queryClient.invalidateQueries({ queryKey: ["/api/coo/pods"] });
+      toast({
+        title: "Tutor mode updated",
+        description: "Tutor operational mode was updated successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Mode update failed",
+        description: "Failed to update tutor operational mode.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Delete Pod mutation (soft delete) ✅
   const deletePodMutation = useMutation({
     mutationFn: async () => {
@@ -611,13 +640,16 @@ export default function PodDetail() {
                             {/* Expanded Details */}
                             {isExpanded && (
                               <TutorStudentsSection 
+                                assignmentId={assignment.id}
                                 tutorId={assignment.tutorId}
                                 tutorName={assignment.tutorName}
                                 certificationStatus={assignment.certification_status || "pending"}
+                                operationalMode={assignment.operational_mode || assignment.operationalMode || "training"}
                                 studentCount={assignment.student_count || 0}
                                 maxStudentsPerTutor={maxStudentsPerTutor}
                                 awaitingAssignments={awaitingAssignments}
                                 getCertificationColor={getCertificationColor}
+                                updateTutorOperationalModeMutation={updateTutorOperationalModeMutation}
                                 unassignStudentMutation={unassignStudentMutation}
                                 assignAwaitingEnrollmentMutation={assignAwaitingEnrollmentMutation}
                                 onViewTrackingSystems={(studentId, studentName) => {
@@ -802,13 +834,16 @@ export default function PodDetail() {
 
 // Component to display tutor's students in expanded section
 interface TutorStudentsSectionProps {
+  assignmentId: string;
   tutorId: string;
   tutorName: string;
   certificationStatus: string;
+  operationalMode: "training" | "certified_live";
   studentCount: number;
   maxStudentsPerTutor: number;
   awaitingAssignments: ParentEnrollment[];
   getCertificationColor: (status: string) => string;
+  updateTutorOperationalModeMutation: any;
   unassignStudentMutation: any;
   assignAwaitingEnrollmentMutation: any;
   onViewTrackingSystems: (studentId: string, studentName: string) => void;
@@ -817,13 +852,16 @@ interface TutorStudentsSectionProps {
 }
 
 function TutorStudentsSection({
+  assignmentId,
   tutorId,
   tutorName,
   certificationStatus,
+  operationalMode,
   studentCount,
   maxStudentsPerTutor,
   awaitingAssignments,
   getCertificationColor,
+  updateTutorOperationalModeMutation,
   unassignStudentMutation,
   assignAwaitingEnrollmentMutation,
   onViewTrackingSystems,
@@ -856,6 +894,44 @@ function TutorStudentsSection({
           <p className="text-xs font-medium text-muted-foreground uppercase">Students</p>
           <p className="font-semibold mt-2">{activeStudentCount}/{maxStudentsPerTutor}</p>
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <p className="text-xs font-medium text-muted-foreground uppercase">Tutor Mode</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant={operationalMode === "training" ? "secondary" : "default"}>
+            {operationalMode === "training" ? "Training Mode" : "Certified Live"}
+          </Badge>
+          <Button
+            size="sm"
+            variant={operationalMode === "training" ? "secondary" : "outline"}
+            disabled={updateTutorOperationalModeMutation.isPending || operationalMode === "training"}
+            onClick={() =>
+              updateTutorOperationalModeMutation.mutate({
+                assignmentId,
+                operationalMode: "training",
+              })
+            }
+          >
+            Set Training Mode
+          </Button>
+          <Button
+            size="sm"
+            variant={operationalMode === "certified_live" ? "secondary" : "outline"}
+            disabled={updateTutorOperationalModeMutation.isPending || operationalMode === "certified_live"}
+            onClick={() =>
+              updateTutorOperationalModeMutation.mutate({
+                assignmentId,
+                operationalMode: "certified_live",
+              })
+            }
+          >
+            Enable Live Sessions
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Training mode removes tutor-side booking and Google Meet gating. Certified live restores the full lesson wrapper.
+        </p>
       </div>
 
       {/* Students List */}

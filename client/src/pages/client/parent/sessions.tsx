@@ -23,6 +23,12 @@ type ParentTrainingSession = {
   tutor_confirmed?: boolean;
 };
 
+type ParentTrainingSessionsResponse = {
+  sessions: ParentTrainingSession[];
+  operationalMode?: "training" | "certified_live";
+  sessionSchedulingEnabled?: boolean;
+};
+
 export default function ParentSessions() {
   const navigate = useNavigate();
   const { user, isLoading } = useAuth();
@@ -103,7 +109,7 @@ export default function ParentSessions() {
     }
   }, [user, isLoading, navigate]);
 
-  const { data, isLoading: sessionsLoading } = useQuery<{ sessions: ParentTrainingSession[] }>({
+  const { data, isLoading: sessionsLoading } = useQuery<ParentTrainingSessionsResponse>({
     queryKey: ["/api/parent/training-sessions"],
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -303,6 +309,7 @@ export default function ParentSessions() {
   };
 
   const sessions = data?.sessions || [];
+  const schedulingEnabled = data?.sessionSchedulingEnabled ?? true;
   const actionableSessions = sessions.filter(
     (session) => !["completed", "cancelled", "flagged"].includes(String(session.status || "")),
   );
@@ -312,6 +319,15 @@ export default function ParentSessions() {
       <div className="flex items-center justify-between">
         <h1 className="text-xl sm:text-3xl font-bold">Sessions</h1>
       </div>
+
+      {!schedulingEnabled ? (
+        <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
+          <p className="text-base font-semibold text-foreground">Live session booking is disabled</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Your assigned tutor is currently in TT training mode, so Google Meet scheduling is off for now. Training is being run directly inside TT instead of through booked lesson windows.
+          </p>
+        </div>
+      ) : null}
 
       <div className="grid gap-4 sm:gap-6">
         <div className="rounded-lg border border-border bg-card p-4 sm:p-6 space-y-4">
@@ -379,8 +395,8 @@ export default function ParentSessions() {
             </div>
           </div>
 
-          <Button onClick={handleScheduleWeek} disabled={isSubmitting}>
-            {isSubmitting ? "Scheduling..." : "Schedule Week"}
+          <Button onClick={handleScheduleWeek} disabled={isSubmitting || !schedulingEnabled}>
+            {!schedulingEnabled ? "Scheduling Disabled" : isSubmitting ? "Scheduling..." : "Schedule Week"}
           </Button>
         </div>
 

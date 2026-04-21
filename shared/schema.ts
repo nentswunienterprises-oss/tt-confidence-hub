@@ -45,6 +45,10 @@ export const certificationStatusEnum = pgEnum("certification_status", [
   "passed",
   "failed",
 ]);
+export const tutorOperationalModeEnum = pgEnum("tutor_operational_mode", [
+  "training",
+  "certified_live",
+]);
 export const verificationStatusEnum = pgEnum("verification_status", [
   "pending",
   "verified",
@@ -172,6 +176,9 @@ export const tutorAssignments = pgTable("tutor_assignments", {
   certificationStatus: certificationStatusEnum("certification_status")
     .notNull()
     .default("pending"),
+  operationalMode: tutorOperationalModeEnum("operational_mode")
+    .notNull()
+    .default("training"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -1043,6 +1050,9 @@ export const parentEnrollments = pgTable("parent_enrollments", {
   studentGrade: varchar("student_grade").notNull(),
   schoolName: varchar("school_name").notNull(),
   mathStruggleAreas: text("math_struggle_areas").notNull(),
+  responseSymptoms: jsonb("response_symptoms"),
+  responseSignalScores: jsonb("response_signal_scores"),
+  recommendedStartingPhase: varchar("recommended_starting_phase"),
   // Background
   previousTutoring: varchar("previous_tutoring").notNull(),
   confidenceLevel: varchar("confidence_level").notNull(),

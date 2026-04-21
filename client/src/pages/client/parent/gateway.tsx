@@ -27,10 +27,22 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns/format";
 import { supabase } from "@/lib/supabaseClient";
+import {
+  RESPONSE_SYMPTOM_GROUPS,
+  getResponseSymptomLabels,
+} from "@shared/responseSymptomMapping";
 
 interface EnrollmentStatus {
   status: "not_enrolled" | "awaiting_assignment" | "awaiting_tutor_acceptance" | "assigned" | "proposal_sent" | "session_booked" | "report_received" | "confirmed";
   step?: string;
+}
+
+interface IntroSessionConfirmation {
+  status?: string;
+  operationalMode?: "training" | "certified_live";
+  scheduled_time?: string;
+  id?: string;
+  introCompleted?: boolean;
 }
 
 export default function ParentGateway() {
@@ -87,7 +99,7 @@ export default function ParentGateway() {
   const {
     data: introSessionConfirmation,
     refetch: refetchIntroSessionConfirmation,
-  } = useQuery<any>({
+  } = useQuery<IntroSessionConfirmation>({
     queryKey: ["/api/parent/intro-session-confirmation"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled:
@@ -226,6 +238,7 @@ export default function ParentGateway() {
     schoolName: "",
     stuckAreas: [] as string[],
     mathStruggleAreas: "",
+    responseSymptoms: [] as string[],
     previousTutoring: "",
     confidenceLevel: "",
     internetAccess: "",
@@ -262,6 +275,7 @@ export default function ParentGateway() {
       formData.studentGrade &&
       formData.schoolName &&
       formData.mathStruggleAreas &&
+      formData.responseSymptoms.length > 0 &&
       formData.previousTutoring &&
       formData.confidenceLevel &&
       formData.internetAccess &&
@@ -790,6 +804,79 @@ export default function ParentGateway() {
                       autoComplete="off"
                     />
                   </div>
+                  <div className="space-y-3 pt-2">
+                    <label className="block text-xs sm:text-sm font-medium" style={{ color: "#1A1A1A" }}>
+                      What does the struggle usually look like when your child is working? *
+                    </label>
+                    <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
+                      Select the behaviours you notice most often. You do not need to diagnose the cause.
+                    </p>
+                    <div className="space-y-4">
+                      {RESPONSE_SYMPTOM_GROUPS.map((group) => (
+                        <div key={group.id} className="rounded-xl border border-[#F6D8DA] bg-[#FFF8F8] p-3 sm:p-4 space-y-2">
+                          <div>
+                            <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-wide" style={{ color: "#E63946" }}>
+                              {group.title}
+                            </p>
+                            <p className="text-xs sm:text-sm mt-1" style={{ color: "#5A5A5A" }}>
+                              {group.prompt}
+                            </p>
+                          </div>
+                          <div className="space-y-2">
+                            {group.options.map((option) => {
+                              const selected = formData.responseSymptoms.includes(option.id);
+                              return (
+                                <button
+                                  key={option.id}
+                                  type="button"
+                                  onClick={() => {
+                                    const nextSymptoms = selected
+                                      ? formData.responseSymptoms.filter((item) => item !== option.id)
+                                      : [...formData.responseSymptoms, option.id];
+                                    handleInputChange("responseSymptoms", nextSymptoms);
+                                  }}
+                                  className="w-full px-3 sm:px-4 py-3 rounded-xl border-2 text-xs sm:text-sm text-left transition flex items-start gap-2"
+                                  style={{
+                                    backgroundColor: selected ? "#E63946" : "white",
+                                    color: selected ? "white" : "#1A1A1A",
+                                    borderColor: selected ? "#E63946" : "#F2D7DA",
+                                  }}
+                                >
+                                  <div
+                                    className="w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5"
+                                    style={{
+                                      borderColor: selected ? "white" : "#E5E5E5",
+                                      backgroundColor: selected ? "white" : "transparent",
+                                    }}
+                                  >
+                                    {selected && <Check className="w-3 h-3" style={{ color: "#E63946" }} />}
+                                  </div>
+                                  <div className="space-y-1">
+                                    <p>{option.label}</p>
+                                    <p className="text-[11px] sm:text-xs" style={{ color: selected ? "rgba(255,255,255,0.85)" : "#6B7280" }}>
+                                      {option.description}
+                                    </p>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {formData.responseSymptoms.length > 0 ? (
+                      <div className="rounded-xl border border-primary/20 bg-muted/20 p-3">
+                        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Selected Behaviour Signals</p>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {getResponseSymptomLabels(formData.responseSymptoms).map((label) => (
+                            <span key={label} className="rounded-full border border-primary/20 bg-background px-2 py-1 text-[10px] text-foreground">
+                              {label}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
               </div>
 
@@ -1023,6 +1110,15 @@ export default function ParentGateway() {
                       <p className="font-medium text-yellow-900">Your tutor has been assigned.</p>
                       <p className="text-sm text-yellow-700 mt-2">
                         Book your intro session below once ready.
+                      </p>
+                    </div>
+                  )}
+
+                  {effectiveIntroSessionConfirmation?.status === "training_mode" && (
+                    <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <p className="font-medium text-red-900">Tutor training mode is active</p>
+                      <p className="text-sm text-red-700 mt-2">
+                        Google Meet intro-session booking is temporarily disabled while your tutor is being trained inside the TT system. TT will run the training flow directly instead of using a booked lesson window.
                       </p>
                     </div>
                   )}

@@ -50,6 +50,12 @@ function normalizeTopicKey(rawValue) {
   return normalized ? normalized.toLowerCase() : null;
 }
 
+function scoreTone(score) {
+  if (score >= 6) return "text-red-700 border-red-200 bg-red-50";
+  if (score >= 3) return "text-amber-700 border-amber-200 bg-amber-50";
+  return "text-slate-600 border-slate-200 bg-slate-50";
+}
+
 function formatRelativeTime(date) {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "Unknown";
   const diffMs = Date.now() - date.getTime();
@@ -103,6 +109,7 @@ function inferReportedSymptoms({ struggleAreas, parentMotivation }) {
 
 export function StudentCard({
   student,
+  operationalMode = "training",
   setSelectedStudentId,
   setSelectedStudentName,
   setIdentitySheetOpen,
@@ -227,6 +234,22 @@ export function StudentCard({
 
   const suggestedTopic = reportedTopics[0] || "Current class topic with highest friction";
   const suggestedSymptoms = symptomSignals.slice(0, 2);
+  const recommendedStartingPhase = normalizePhaseLabel(student.parentInfo?.recommended_starting_phase) || "Clarity";
+  const recommendedStartingReason =
+    String(student.parentInfo?.recommended_starting_reason || "").trim() ||
+    "Use parent-reported response patterns as the starting hypothesis, then verify performance through adaptive diagnosis.";
+  const responseSignalScoresRaw =
+    student.parentInfo?.response_signal_scores && typeof student.parentInfo.response_signal_scores === "object"
+      ? student.parentInfo.response_signal_scores
+      : {};
+  const responseSignalBreakdown = [
+    { phase: "Clarity", score: Number(responseSignalScoresRaw.Clarity || 0) },
+    { phase: "Structured Execution", score: Number(responseSignalScoresRaw["Structured Execution"] || 0) },
+    { phase: "Controlled Discomfort", score: Number(responseSignalScoresRaw["Controlled Discomfort"] || 0) },
+    { phase: "Time Pressure Stability", score: Number(responseSignalScoresRaw["Time Pressure Stability"] || 0) },
+  ];
+  const rankedResponseSignals = [...responseSignalBreakdown].sort((a, b) => b.score - a.score);
+  const secondarySignal = rankedResponseSignals.find((entry) => entry.phase !== recommendedStartingPhase && entry.score > 0) || null;
   const topicConditioning = student.topicConditioning;
 
   // Prefer live session-derived topic states over the immutable proposal snapshot
@@ -492,7 +515,7 @@ export function StudentCard({
           </div>
         )}
 
-        {effectiveWorkflow?.assignmentAccepted && !effectiveWorkflow.introConfirmed && (
+        {effectiveWorkflow?.assignmentAccepted && operationalMode !== "training" && !effectiveWorkflow.introConfirmed && (
           <TutorIntroSessionActions
             studentId={student.id}
             parentId={student.parentInfo?.parent_id}
@@ -501,14 +524,17 @@ export function StudentCard({
         )}
 
 
-        {effectiveWorkflow?.assignmentAccepted && effectiveWorkflow?.introConfirmed && !effectiveWorkflow.introCompleted && (
+        {effectiveWorkflow?.assignmentAccepted && (operationalMode === "training" || effectiveWorkflow?.introConfirmed) && !effectiveWorkflow.introCompleted && (
           <IntroDiagnosticTopicSection
             student={student}
             introSession={introSessionDetails}
+            operationalMode={operationalMode}
             reportedTopics={reportedTopics}
             symptomSignals={symptomSignals}
             suggestedTopic={suggestedTopic}
             suggestedSymptoms={suggestedSymptoms}
+            recommendedStartingPhase={recommendedStartingPhase}
+            recommendedStartingReason={recommendedStartingReason}
           />
         )}
 
@@ -634,10 +660,13 @@ export function StudentCard({
 function IntroDiagnosticTopicSection({
   student,
   introSession,
+  operationalMode = "training",
   reportedTopics,
   symptomSignals,
   suggestedTopic,
   suggestedSymptoms,
+  recommendedStartingPhase,
+  recommendedStartingReason,
 }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [diagnosticTopic, setDiagnosticTopic] = useState("");
@@ -709,6 +738,39 @@ function IntroDiagnosticTopicSection({
               Watch for: <span className="text-foreground font-medium">{suggestedSymptoms.length > 0 ? suggestedSymptoms.join(" + ") : "Freezing + early help-seeking"}</span>
             </p>
           </div>
+
+          <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 space-y-3">
+            <p className="text-[11px] font-semibold text-foreground">System-Recommended Starting Phase</p>
+            <p className="text-xs text-muted-foreground">
+              Start adaptive diagnosis at: <span className="text-foreground font-medium">{recommendedStartingPhase}</span>
+            </p>
+            <p className="text-xs text-muted-foreground">{recommendedStartingReason}</p>
+            {secondarySignal ? (
+              <p className="text-xs text-muted-foreground">
+                Secondary watchpoint: <span className="text-foreground font-medium">{secondarySignal.phase}</span>
+              </p>
+            ) : null}
+            <div className="rounded-lg border border-primary/15 bg-background/80 p-2.5 space-y-2">
+              <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Response Signal Breakdown</p>
+              <div className="grid grid-cols-1 gap-1.5">
+                {responseSignalBreakdown.map(({ phase, score }) => (
+                  <div
+                    key={phase}
+                    className={`flex items-center justify-between rounded-md border px-2 py-1.5 text-[11px] ${scoreTone(score)}`}
+                  >
+                    <span className="font-medium">{phase}</span>
+                    <span className="tabular-nums">{score}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-lg border border-primary/15 bg-background/80 p-2.5">
+              <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Tutor Launch Rule</p>
+              <p className="mt-1 text-xs text-foreground">
+                Start at <span className="font-medium">{recommendedStartingPhase}</span>, but let adaptive diagnosis verify it. Do not treat this recommendation as final placement.
+              </p>
+            </div>
+          </div>
         </div>
 
         <Button
@@ -748,7 +810,7 @@ function IntroDiagnosticTopicSection({
 
   return (
     <div className="pt-4 border-t border-border/60 space-y-2">
-      {introSession?.scheduled_time ? (
+      {operationalMode !== "training" && introSession?.scheduled_time ? (
         <div className="rounded-xl border border-primary/20 bg-muted/20 p-3 space-y-1">
           <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Scheduled Intro Lesson</p>
           <p className="text-sm text-foreground">
@@ -762,17 +824,27 @@ function IntroDiagnosticTopicSection({
         size="sm"
         onClick={() => {
           const topicParam = encodeURIComponent(activatedTopic);
-          const sessionParam = introSession?.id ? `&scheduledSessionId=${encodeURIComponent(introSession.id)}` : "";
-          window.location.href = `/tutor/intro-session/${student.id}?topic=${topicParam}${sessionParam}`;
+          const phaseParam = `&phase=${encodeURIComponent(recommendedStartingPhase)}`;
+          const sessionParam =
+            operationalMode === "training"
+              ? ""
+              : introSession?.id
+                ? `&scheduledSessionId=${encodeURIComponent(introSession.id)}`
+                : "";
+          window.location.href = `/tutor/intro-session/${student.id}?topic=${topicParam}${phaseParam}${sessionParam}`;
         }}
-        disabled={!introSession?.id || !["confirmed", "ready", "live", "scheduled"].includes(String(introSession?.status || ""))}
+        disabled={
+          operationalMode === "training"
+            ? false
+            : !introSession?.id || !["confirmed", "ready", "live", "scheduled"].includes(String(introSession?.status || ""))
+        }
       >
         Open Intro Drill
       </Button>
       <p className="text-xs text-muted-foreground text-center">
         Intro Diagnostic Topic: <span className="font-semibold text-foreground">{activatedTopic}</span>
       </p>
-      {!introSession?.id || !["confirmed", "ready", "live", "scheduled"].includes(String(introSession?.status || "")) ? (
+      {operationalMode !== "training" && (!introSession?.id || !["confirmed", "ready", "live", "scheduled"].includes(String(introSession?.status || ""))) ? (
         <p className="text-xs text-amber-700 text-center">
           Confirm the intro lesson before entering the drill runner.
         </p>
@@ -806,7 +878,9 @@ function IntroDiagnosticTopicSection({
         </DialogContent>
       </Dialog>
       <p className="text-xs text-muted-foreground text-center">
-        Launch the structured Intro Session drill. Scoring and next actions remain system-driven.
+        {operationalMode === "training"
+          ? "Training mode is active. Launch the intro drill directly without waiting for a booked lesson window."
+          : `Launch the adaptive Intro Session diagnosis starting at ${recommendedStartingPhase}. Scoring and next actions remain system-driven.`}
       </p>
     </div>
   );

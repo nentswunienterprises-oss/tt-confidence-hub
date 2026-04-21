@@ -348,6 +348,7 @@ interface StudentTopicConditioningDialogProps {
   studentId: string;
   studentName: string;
   studentGrade?: string | null;
+  operationalMode?: "training" | "certified_live";
   readOnly?: boolean;
   mapOnly?: boolean;
   apiBasePath?: string;
@@ -833,6 +834,7 @@ export default function StudentTopicConditioningDialog({
   studentId,
   studentName,
   studentGrade,
+  operationalMode = "training",
   readOnly = false,
   mapOnly = false,
   apiBasePath = "/api/tutor",
@@ -842,6 +844,7 @@ export default function StudentTopicConditioningDialog({
 }: StudentTopicConditioningDialogProps) {
   const { data: workflow } = useStudentWorkflowState(studentId);
   const assignmentAccepted = workflow?.assignmentAccepted ?? true;
+  const isTrainingMode = operationalMode === "training";
   // Fetch topic activations for this student (must be inside component to access studentId)
   const { data: activationsData, refetch: refetchActivations } = useQuery({
     queryKey: [apiBasePath, "students", studentId, "topic-conditioning-activations"],
@@ -963,6 +966,12 @@ export default function StudentTopicConditioningDialog({
   const handleStartTrainingSession = () => {
     if (!assignmentAccepted) return;
     if (selectedSessionTopics.size === 0) return;
+    if (isTrainingMode) {
+      // Dev note: when the full live session flow is re-enabled for this tutor,
+      // switch back to requiring a scheduled session window before launch.
+      launchTrainingSession(null);
+      return;
+    }
     const activeSession = trainingSessionsData?.sessions?.find((session: any) => session.launch?.canLaunch);
     if (activeSession) {
       launchTrainingSession(activeSession.id);
@@ -1821,6 +1830,79 @@ export default function StudentTopicConditioningDialog({
           <TabsContent value="session-form" className="space-y-4 sm:space-y-6">
             <Card className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 md:p-5 shadow-sm space-y-4">
               {topics.length > 0 ? (
+                isTrainingMode ? (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium">Training Operations</h4>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => setSessionTopicsModalOpen(true)}
+                      disabled={!assignmentAccepted}
+                      title={!assignmentAccepted ? "Accept the assignment before running training sessions." : undefined}
+                    >
+                      Start Session
+                    </Button>
+                  </div>
+                  <div className="rounded-md border border-primary/20 bg-primary/5 p-3 space-y-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium">Training Mode</p>
+                        <p className="text-xs text-muted-foreground">
+                          Google Meet windows and lesson-booking gates are disabled for this tutor.
+                        </p>
+                      </div>
+                      <div className="text-right text-xs text-muted-foreground">
+                        Start the TT drill session directly from here.
+                      </div>
+                    </div>
+                    <div className="rounded border border-primary/20 bg-background px-3 py-2 text-xs space-y-2">
+                      <p className="font-medium text-foreground">Direct drill launch active</p>
+                      <p className="text-muted-foreground">
+                        Use Start Session to choose topics and enter the runner immediately.
+                      </p>
+                      <p className="text-muted-foreground">
+                        Dev note: restore the live lesson wrapper here when this tutor is switched back to <span className="font-medium text-foreground">certified_live</span>.
+                      </p>
+                    </div>
+                  </div>
+                  {!assignmentAccepted && (
+                    <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                      This student is assigned to you, but training access stays locked until you accept the assignment.
+                    </div>
+                  )}
+                  {latestCompletedTrainingSession ? (
+                    <div className="rounded-md border border-border/70 bg-background p-3 text-sm space-y-2">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="font-medium text-foreground">Latest Completed Lesson</p>
+                          <p className="text-muted-foreground">{formatLessonTime(latestCompletedTrainingSession.scheduled_time)}</p>
+                        </div>
+                        {latestCompletedTrainingSession.recording_file_id ? (
+                          <a
+                            href={latestCompletedTrainingSession.recording_file_id}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex text-primary underline underline-offset-2"
+                          >
+                            Open Recording
+                          </a>
+                        ) : null}
+                      </div>
+                      <div className="grid gap-1 text-xs text-muted-foreground">
+                        <p>Recording: <span className="font-medium text-foreground">{latestCompletedTrainingSession.recording_file_id ? "uploaded" : formatArtifactStatus(latestCompletedTrainingSession.recording_status)}</span></p>
+                        <p>Transcript: <span className="font-medium text-foreground">manual not tracked</span></p>
+                        {latestCompletedTrainingSession.recording_detected_at ? (
+                          <p>Submitted: <span className="font-medium text-foreground">{formatLessonTime(latestCompletedTrainingSession.recording_detected_at)}</span></p>
+                        ) : null}
+                      </div>
+                    </div>
+                  ) : null}
+                  <div className="rounded-md border border-dashed border-border/70 bg-muted/10 p-3 text-sm text-muted-foreground">
+                    Topic selection happens inside <span className="font-medium text-foreground">Start Session</span>. Use the <span className="font-medium text-foreground">Map</span> tab to review active topics and activate new ones.
+                  </div>
+                </div>
+                ) : (
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <h4 className="font-medium">Training Operations</h4>
@@ -2205,6 +2287,7 @@ export default function StudentTopicConditioningDialog({
                     Use the <span className="font-medium text-foreground">Map</span> tab to review active topics and activate new ones.
                   </div>
                 </div>
+                )
               ) : (
                 <div className="text-sm text-muted-foreground">No active topics. Activate a topic to begin.</div>
               )}
