@@ -31,6 +31,9 @@ type DemoSummary = {
   highGuardPasses: boolean;
   setScores: number[];
   repRows: Array<{ set: string; rep: number; repScore: number }>;
+  systemDecision: string;
+  transitionReason: string;
+  tutorMeaning: string;
 };
 
 const PHASES: PhaseLabel[] = [
@@ -464,6 +467,24 @@ function buildDemoSummary(
   else stability = highGuardPasses ? "High" : "Medium";
 
   const nextActionData = getNextActionData(phase, stability);
+  const systemDecision =
+    stability === "High"
+      ? "Advance signal"
+      : stability === "Medium"
+      ? "Hold current phase"
+      : "Reinforce before advancing";
+  const transitionReason =
+    stability === "High"
+      ? "Observation totals cleared the drill threshold and the high guard held."
+      : stability === "Medium"
+      ? "The drill showed partial stability, but not enough repeatable proof for a clean advance."
+      : "The drill still shows breakdowns strong enough to block progression.";
+  const tutorMeaning =
+    stability === "High"
+      ? "The student is showing repeatable control in this phase. The tutor can prepare the next drill direction, but should still respect the system constraint."
+      : stability === "Medium"
+      ? "The student is improving, but the phase is not stable enough to move on. The tutor should keep drilling this response pattern."
+      : "The student is still unstable in the target behavior. The tutor needs another reinforcement pass before expecting reliable carryover.";
 
   return {
     phase,
@@ -474,6 +495,9 @@ function buildDemoSummary(
     highGuardPasses,
     setScores,
     repRows,
+    systemDecision,
+    transitionReason,
+    tutorMeaning,
   };
 }
 
@@ -491,6 +515,7 @@ function DemoRunnerOverlay({
   const [currentRep, setCurrentRep] = useState(0);
   const [observations, setObservations] = useState<Record<string, string>>({});
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [prepComplete, setPrepComplete] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -498,6 +523,7 @@ function DemoRunnerOverlay({
     setCurrentRep(0);
     setObservations({});
     setSubmitSuccess(false);
+    setPrepComplete(false);
   }, [open, phase]);
 
   const currentSetConfig = drillStructure[currentSet];
@@ -576,7 +602,84 @@ function DemoRunnerOverlay({
 
         <div className="flex-1 overflow-y-auto">
           <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
-            {!submitSuccess ? (
+            {!submitSuccess && !prepComplete ? (
+              <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+                <div className="space-y-4">
+                  <Card className="border-primary/15 bg-background shadow-sm">
+                    <div className="space-y-4 p-4 sm:p-5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge className="bg-primary/10 text-primary hover:bg-primary/10">Tutor Prep</Badge>
+                        <Badge variant="outline">{phase}</Badge>
+                        <Badge variant="outline">Before running the drill</Badge>
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold">Tutor Prep Modal Flow</h3>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          This is the pre-run setup step that frames the live runner. The tutor prepares problems, reviews the phase constraints, and enters the drill with the right operating standard.
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm">
+                        <div className="mb-1 font-semibold text-foreground">Phase: {phase}</div>
+                        <div className="mb-2 text-xs text-muted-foreground">{PHASE_CONTEXT[phase].purpose}</div>
+                        <div className="flex flex-wrap gap-1">
+                          {PHASE_CONTEXT[phase].constraints.map((rule) => (
+                            <span
+                              key={rule}
+                              className="rounded border border-primary/20 bg-background px-2 py-0.5 text-xs font-medium"
+                            >
+                              {rule}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="rounded-xl border bg-muted/20 p-4">
+                        <p className="font-semibold">Before you begin:</p>
+                        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                          <li>Prepare 3 distinct problems for each drill set.</li>
+                          <li>Present each rep exactly as configured by the drill.</li>
+                          <li>Select only what was actually observed in the rep.</li>
+                          <li>Do not improvise scoring language outside the observation fields.</li>
+                        </ul>
+                      </div>
+                      <div className="rounded-xl border bg-background p-4">
+                        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Loaded Sets</p>
+                        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                          {drillStructure.map((setConfig, index) => (
+                            <div key={setConfig.setName} className="rounded-lg border bg-muted/20 p-3">
+                              <p className="font-medium">Set {index + 1}: {setConfig.setName}</p>
+                              <p className="mt-1 text-sm text-muted-foreground">{setConfig.purpose}</p>
+                              <p className="mt-2 text-xs text-muted-foreground">Rep instruction: {setConfig.repInstruction}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+
+                <div className="space-y-4">
+                  <Card className="border-primary/15 bg-background shadow-sm">
+                    <div className="space-y-3 p-4 sm:p-5">
+                      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Prep Checklist</p>
+                      <div className="grid gap-3">
+                        <div className="rounded-lg border bg-muted/20 p-3">
+                          <p className="text-sm font-medium">Problems ready</p>
+                          <p className="mt-1 text-xs text-muted-foreground">{drillStructure.length * 3} example reps available across the loaded sets.</p>
+                        </div>
+                        <div className="rounded-lg border bg-muted/20 p-3">
+                          <p className="text-sm font-medium">Observation model</p>
+                          <p className="mt-1 text-xs text-muted-foreground">Ordered options normalize to weak, partial, and clear.</p>
+                        </div>
+                        <div className="rounded-lg border bg-muted/20 p-3">
+                          <p className="text-sm font-medium">Persistence</p>
+                          <p className="mt-1 text-xs text-muted-foreground">This sandbox never writes data to any session, student, or report record.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              </div>
+            ) : !submitSuccess ? (
               <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
                 <div className="space-y-4">
                   <Card className="border-primary/15 bg-background shadow-sm">
@@ -740,20 +843,20 @@ function DemoRunnerOverlay({
                   </Card>
                   <Card className="border-primary/15 bg-background shadow-sm">
                     <div className="p-4">
-                      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Resolved Stability</p>
-                      <p className="mt-2 text-3xl font-semibold">{summary.stability}</p>
+                      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Set 1 Total</p>
+                      <p className="mt-2 text-3xl font-semibold">{summary.setScores[0] || 0}/100</p>
                     </div>
                   </Card>
                   <Card className="border-primary/15 bg-background shadow-sm">
                     <div className="p-4">
-                      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Next Action</p>
-                      <p className="mt-2 font-semibold">{summary.nextAction}</p>
+                      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Set 2 Total</p>
+                      <p className="mt-2 text-3xl font-semibold">{summary.setScores[1] || 0}/100</p>
                     </div>
                   </Card>
                   <Card className="border-primary/15 bg-background shadow-sm">
                     <div className="p-4">
-                      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">High Guard</p>
-                      <p className="mt-2 text-3xl font-semibold">{summary.highGuardPasses ? "Pass" : "Fail"}</p>
+                      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">System Decision</p>
+                      <p className="mt-2 font-semibold">{summary.systemDecision}</p>
                     </div>
                   </Card>
                 </div>
@@ -761,9 +864,42 @@ function DemoRunnerOverlay({
                 <Card className="border-primary/15 bg-background shadow-sm">
                   <div className="space-y-4 p-5">
                     <div>
-                      <p className="font-semibold">Per-Rep Scoring</p>
+                      <p className="font-semibold">Drill Summary</p>
                       <p className="text-sm text-muted-foreground">
-                        The demo runner scores option positions locally and rolls them into rep and set totals using the same phase weight model.
+                        The demo runner scores option positions locally and rolls them into set totals, drill total, system decision, and explanatory output.
+                      </p>
+                    </div>
+                    <div className="grid gap-4 lg:grid-cols-2">
+                      <div className="rounded-xl border border-primary/15 bg-background p-4">
+                        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Drill Total</p>
+                        <p className="mt-2 text-3xl font-semibold">{summary.diagnosisScore}/100</p>
+                        <p className="mt-3 text-sm text-muted-foreground">Resolved Stability</p>
+                        <p className="mt-1 font-semibold">{summary.stability}</p>
+                      </div>
+                      <div className="rounded-xl border border-primary/15 bg-background p-4">
+                        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Reason</p>
+                        <p className="mt-2 font-medium">{summary.transitionReason}</p>
+                      </div>
+                      <div className="rounded-xl border border-primary/15 bg-background p-4 lg:col-span-2">
+                        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Tutor Meaning</p>
+                        <p className="mt-2 font-medium">{summary.tutorMeaning}</p>
+                      </div>
+                      <div className="rounded-xl border border-primary/15 bg-background p-4 lg:col-span-2">
+                        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Next Action</p>
+                        <p className="mt-2 font-semibold">{summary.nextAction}</p>
+                        <p className="mt-3 text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Constraint</p>
+                        <p className="mt-1 font-medium">{summary.constraint || "Follow phase constraints"}</p>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card className="border-primary/15 bg-background shadow-sm">
+                  <div className="space-y-4 p-5">
+                    <div>
+                      <p className="font-semibold">Set and Rep Breakdown</p>
+                      <p className="text-sm text-muted-foreground">
+                        This section shows the set totals and the rep-level scores that produced the drill result.
                       </p>
                     </div>
                     <div className="grid gap-3 lg:grid-cols-2">
@@ -788,10 +924,6 @@ function DemoRunnerOverlay({
                         </div>
                       ))}
                     </div>
-                    <div className="rounded-lg border bg-muted/20 p-4">
-                      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Constraint</p>
-                      <p className="mt-1 font-medium">{summary.constraint || "Follow phase constraints"}</p>
-                    </div>
                   </div>
                 </Card>
               </div>
@@ -801,7 +933,7 @@ function DemoRunnerOverlay({
 
         <div className="border-t bg-card/95">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
-            <Button variant="outline" onClick={handleBack} disabled={!submitSuccess && isFirstSet && isFirstRep}>
+            <Button variant="outline" onClick={handleBack} disabled={!submitSuccess && !prepComplete && isFirstSet && isFirstRep}>
               Back
             </Button>
             <div className="flex items-center gap-3">
@@ -812,14 +944,24 @@ function DemoRunnerOverlay({
                     setCurrentRep(0);
                     setObservations({});
                     setSubmitSuccess(false);
+                    setPrepComplete(false);
                   }}>
                     Restart Demo
                   </Button>
                   <Button onClick={onClose}>Close Demo</Button>
                 </>
               ) : (
-                <Button onClick={handleNext} disabled={!canAdvance}>
-                  {isLastSet && isLastRep ? "Submit Demo Drill" : "Next"}
+                <Button
+                  onClick={() => {
+                    if (!prepComplete) {
+                      setPrepComplete(true);
+                      return;
+                    }
+                    handleNext();
+                  }}
+                  disabled={prepComplete ? !canAdvance : false}
+                >
+                  {!prepComplete ? "Start Demo Drill" : isLastSet && isLastRep ? "Submit Demo Drill" : "Next"}
                 </Button>
               )}
             </div>
