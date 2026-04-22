@@ -531,15 +531,16 @@ function tutorPrepPlanFor(
 
   if (!hasObservedState) {
     return {
-      drillType,
+      drillType: "Adaptive Diagnosis",
       setPlans: [
-        { label: "Set 1: Recognition Probe", problems: 3, difficulty: baseDifficulty },
-        { label: "Set 2: Light Apply Probe", problems: 3, difficulty: baseDifficulty },
+        { label: "Adaptive Diagnosis Set 1: Recognition Probe", problems: 3, difficulty: baseDifficulty },
+        { label: "Adaptive Diagnosis Set 2: Light Apply Probe", problems: 3, difficulty: baseDifficulty },
       ],
       prepNotes: [
         "Prepare 6 total problems (2 sets x 3 reps).",
         "Use simple/normal versions only; no time pressure.",
-        "Goal is classification, not progression teaching.",
+        "Goal is adaptive diagnosis and first placement, not phase progression.",
+        "Do not assume Clarity, Structured Execution, or any stability level before the first scored result.",
         "Difficulty guidance: keep all problems at Simple/Normal level.",
       ],
     };
@@ -954,6 +955,21 @@ export default function StudentTopicConditioningDialog({
     const selectedTopics = Array.from(selectedSessionTopics);
     if (selectedTopics.length === 0) return;
 
+    const selectedTopicStates = selectedTopics
+      .map((topicName) => topics.find((topic) => topic.topic === topicName))
+      .filter((topic): topic is TopicRow => !!topic);
+    const unobservedTopics = selectedTopicStates.filter((topic) => !topic.hasObservedState);
+
+    if (unobservedTopics.length > 1) {
+      setTrainingSessionMeetMessage("Newly activated topics must be placed one at a time. Select a single unobserved topic and run diagnosis first.");
+      return;
+    }
+
+    if (unobservedTopics.length === 1 && selectedTopicStates.length > 1) {
+      setTrainingSessionMeetMessage(`Training session launch blocked. ${unobservedTopics[0].topic} has no observed state yet and must complete diagnosis before mixed-topic training.`);
+      return;
+    }
+
     if (selectedTopics.length === 1) {
       const topicState = topics.find((topic) => topic.topic === selectedTopics[0]);
       if (!topicState) return;
@@ -962,6 +978,10 @@ export default function StudentTopicConditioningDialog({
       const stabilityParam = encodeURIComponent(topicState.stability);
       const sessionParam = sessionId ? `&scheduledSessionId=${encodeURIComponent(sessionId)}` : "";
       setSessionTopicsModalOpen(false);
+      if (!topicState.hasObservedState) {
+        window.location.href = `/tutor/intro-session/${studentId}?topic=${topicParam}&phase=${phaseParam}&stability=${stabilityParam}${sessionParam}`;
+        return;
+      }
       window.location.href = `/tutor/intro-session/${studentId}?mode=training&topic=${topicParam}&phase=${phaseParam}&stability=${stabilityParam}${sessionParam}`;
       return;
     }
@@ -1266,10 +1286,16 @@ export default function StudentTopicConditioningDialog({
         topic: topicName,
         phase: topicState.phase,
         stability: topicState.stability,
+        hasObservedState: topicState.hasObservedState,
         prepPlan: tutorPrepPlanFor(topicState.phase, topicState.stability, topicState.hasObservedState),
       };
     })
     .filter((entry): entry is NonNullable<typeof entry> => !!entry);
+  const selectedSessionUnknownTopics = selectedSessionPrepPlans.filter((entry) => !entry.hasObservedState);
+  const selectedSessionStartLabel =
+    selectedSessionUnknownTopics.length === 1 && selectedSessionPrepPlans.length === 1
+      ? "Start Diagnosis"
+      : "Start Session";
   const actionableTrainingSessions = (trainingSessionsData?.sessions || []).filter(
     (session: any) => !["completed", "cancelled", "flagged"].includes(String(session.status || "")),
   );
@@ -1486,7 +1512,7 @@ export default function StudentTopicConditioningDialog({
                         </p>
 
                         <p className="text-sm text-foreground font-medium">
-                          Next Move: {row.hasObservedState ? topicIntel.nextAction : "Run diagnosis or first scored training drill"}
+                          Next Move: {row.hasObservedState ? topicIntel.nextAction : "Run adaptive diagnosis to establish first placement."}
                         </p>
 
                         <p className="text-sm text-muted-foreground">
@@ -1591,40 +1617,48 @@ export default function StudentTopicConditioningDialog({
                 <h3 className="font-semibold">Stability Tracker</h3>
                 {selectedRow ? (
                   <>
-                    <p className="text-sm text-muted-foreground">
-                      Stability: {selectedRow.stability}
-                    </p>
-                    <Progress value={stabilityPercent(selectedRow.stability)} />
-                    <div className="space-y-1.5">
-                      <p className="text-sm font-medium">Recent Logs (Last 3 Sessions)</p>
-                      {(selectedRow.recentLogs || []).length === 0 ? (
-                        <p className="text-sm text-muted-foreground">No observations recorded yet for this topic.</p>
-                      ) : (
-                        <ul className="text-sm text-muted-foreground space-y-1">
-                          {(selectedRow.recentLogs || []).map((log) => (
-                            <li key={log}>{log}</li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="rounded-md border p-3 bg-primary/5 border-primary/20">
-                        <p className="text-xs uppercase font-semibold text-primary mb-2">Do</p>
-                        <ul className="text-sm text-foreground space-y-1">
-                          {guidance.doItems.map((item) => (
-                            <li key={item}>{item}</li>
-                          ))}
-                        </ul>
+                    {hasObservedSelection ? (
+                      <>
+                        <p className="text-sm text-muted-foreground">
+                          Stability: {selectedRow.stability}
+                        </p>
+                        <Progress value={stabilityPercent(selectedRow.stability)} />
+                        <div className="space-y-1.5">
+                          <p className="text-sm font-medium">Recent Logs (Last 3 Sessions)</p>
+                          {(selectedRow.recentLogs || []).length === 0 ? (
+                            <p className="text-sm text-muted-foreground">No observations recorded yet for this topic.</p>
+                          ) : (
+                            <ul className="text-sm text-muted-foreground space-y-1">
+                              {(selectedRow.recentLogs || []).map((log) => (
+                                <li key={log}>{log}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                        <div className="grid sm:grid-cols-2 gap-4">
+                          <div className="rounded-md border p-3 bg-primary/5 border-primary/20">
+                            <p className="text-xs uppercase font-semibold text-primary mb-2">Do</p>
+                            <ul className="text-sm text-foreground space-y-1">
+                              {guidance.doItems.map((item) => (
+                                <li key={item}>{item}</li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div className="rounded-md border p-3 bg-muted/50 border-muted">
+                            <p className="text-xs uppercase font-semibold text-foreground/60 mb-2">Do Not</p>
+                            <ul className="text-sm text-muted-foreground space-y-1">
+                              {guidance.avoidItems.map((item) => (
+                                <li key={item}>{item}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                        Stability tracking unlocks after the first scored diagnosis or training drill. Until then, this topic remains unplaced.
                       </div>
-                      <div className="rounded-md border p-3 bg-muted/50 border-muted">
-                        <p className="text-xs uppercase font-semibold text-foreground/60 mb-2">Do Not</p>
-                        <ul className="text-sm text-muted-foreground space-y-1">
-                          {guidance.avoidItems.map((item) => (
-                            <li key={item}>{item}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
+                    )}
                   </>
                 ) : (
                   <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
@@ -1690,7 +1724,7 @@ export default function StudentTopicConditioningDialog({
                           </div>
                         </>
                       ) : (
-                        <p className="text-sm text-muted-foreground">Run a diagnosis or first scored training drill to generate deterministic next actions.</p>
+                        <p className="text-sm text-muted-foreground">Run adaptive diagnosis first to generate deterministic next actions.</p>
                       )}
                     </>
                   ) : (
@@ -1769,7 +1803,7 @@ export default function StudentTopicConditioningDialog({
                     <p><span className="font-medium">Transition Status:</span> {selectedInterpretation?.transitionStatus || "Awaiting Observation"}</p>
                     <p><span className="font-medium">Tutor Meaning:</span> {selectedInterpretation?.tutorMeaning || "Topic is active but not yet observed."}</p>
                     <p><span className="font-medium">Parent Meaning:</span> {selectedInterpretation?.parentMeaning || "Observed state will appear after first scored drill/session."}</p>
-                    <p><span className="font-medium">Direction:</span> {selectedInterpretation?.direction || "Run diagnosis first"}</p>
+                    <p><span className="font-medium">Direction:</span> {selectedInterpretation?.direction || "Run adaptive diagnosis first."}</p>
                     <p><span className="font-medium">Constraint:</span> {selectedInterpretation?.rules[0] || "Do not infer phase movement without observations."}</p>
                     <p><span className="font-medium">Entry Diagnosis:</span> {selectedRow.entryDiagnosis}</p>
                   </div>
@@ -2322,13 +2356,13 @@ export default function StudentTopicConditioningDialog({
                 <DialogHeader>
                   <DialogTitle>Start Session</DialogTitle>
                   <DialogDescription>
-                    Select one or more topics for this lesson. One topic runs as a single-topic session; multiple topics run as a multi-topic session.
+                    Select one or more topics for this lesson. Unobserved topics are diagnosis-first and cannot enter training until first placement exists.
                   </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-3">
                   <p className="text-sm text-muted-foreground">
-                    Choose the topics you want to cover in this lesson, then enter the runner in the correct session mode automatically.
+                    Choose the topics you want to cover in this lesson. A single unobserved topic launches diagnosis. Observed topics launch training. Mixed launches are blocked until placement is complete.
                   </p>
                   <div className="grid gap-2 max-h-60 overflow-y-auto">
                     {topics.map((topic) => (
@@ -2352,12 +2386,24 @@ export default function StudentTopicConditioningDialog({
                           htmlFor={`session-topic-${topic.topic}`}
                           className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                         >
-                          {topic.topic} ({topic.phase} - {topic.stability})
+                          {topic.topic} ({topic.hasObservedState ? `${topic.phase} - ${topic.stability}` : "Unobserved - Diagnosis First"})
                         </label>
                       </div>
                     ))}
                   </div>
                 </div>
+
+                {selectedSessionUnknownTopics.length > 1 ? (
+                  <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                    More than one unobserved topic is selected. Entry placement must run one topic at a time.
+                  </div>
+                ) : null}
+
+                {selectedSessionUnknownTopics.length === 1 && selectedSessionPrepPlans.length > 1 ? (
+                  <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                    {selectedSessionUnknownTopics[0].topic} is still unobserved. Run diagnosis first before combining it with training topics.
+                  </div>
+                ) : null}
 
                 {selectedSessionPrepPlans.length > 0 ? (
                   <div className="rounded-md border border-primary/20 bg-primary/5 p-3 space-y-3">
@@ -2366,7 +2412,7 @@ export default function StudentTopicConditioningDialog({
                       Review the exact drill load before you enter the lesson. Each selected topic still needs its own problem prep.
                     </p>
                     <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
-                      {selectedSessionPrepPlans.map(({ topic, phase, stability, prepPlan }) => (
+                      {selectedSessionPrepPlans.map(({ topic, phase, stability, hasObservedState, prepPlan }) => (
                         <div key={`session-prep-${topic}`} className="rounded-md border border-primary/20 bg-background p-3 space-y-2">
                           <div>
                             <p className="font-medium text-sm">{topic}</p>
@@ -2412,7 +2458,7 @@ export default function StudentTopicConditioningDialog({
                     onClick={handleStartTrainingSession}
                     disabled={selectedSessionTopics.size === 0}
                   >
-                    Start Session ({selectedSessionTopics.size} topics)
+                    {selectedSessionStartLabel} ({selectedSessionTopics.size} topics)
                   </Button>
                 </div>
               </DialogContent>
