@@ -3,6 +3,12 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Check, X } from "lucide-react";
+import {
+  getParentDashboardCopyByState,
+  NEXT_ACTION_ENGINE,
+  type TopicPhase,
+  type TopicStability,
+} from "@shared/topicConditioningEngine";
 
 interface ProposalData {
   id: string;
@@ -159,81 +165,6 @@ export default function ProposalView({
     return diagnosisPhase;
   };
 
-  const PARENT_STATE_ENGINE: Record<PhaseLabel, Record<StabilityLabel, { status: string; meaning: string }>> = {
-    Clarity: {
-      Low: {
-        status: `${studentFirstName} did not consistently identify terms, problem type, or starting structure during diagnosis.`,
-        meaning: `${studentFirstName} needs clearer recognition before independent execution can be trained.`,
-      },
-      Medium: {
-        status: `${studentFirstName} showed partial recognition of terms and structure across the diagnosis sets.`,
-        meaning: `${studentFirstName} can follow parts of the method but still needs reinforcement for consistent clarity.`,
-      },
-      High: {
-        status: `${studentFirstName} demonstrated clear recognition and explanation patterns in the diagnosis topic.`,
-        meaning: `${studentFirstName} begins training in Clarity with system scoring determining remain, regress, or advance.`,
-      },
-      "High Maintenance": {
-        status: `${studentFirstName} has shown repeated high consistency in Clarity across strong sessions.`,
-        meaning: `${studentFirstName} is at the gate where one more strong session can trigger progression to Structured Execution.`,
-      },
-    },
-    "Structured Execution": {
-      Low: {
-        status: `${studentFirstName} did not execute the method consistently without support.`,
-        meaning: `${studentFirstName} needs repetition of start behavior and step order to stabilize execution.`,
-      },
-      Medium: {
-        status: `${studentFirstName} executed parts of the method correctly but showed inconsistency across attempts.`,
-        meaning: `${studentFirstName} needs stronger independent repetition before phase pressure increases.`,
-      },
-      High: {
-        status: `${studentFirstName} maintained method execution consistently across attempts.`,
-        meaning: `${studentFirstName} begins training in Structured Execution with transitions handled by session scoring.`,
-      },
-      "High Maintenance": {
-        status: `${studentFirstName} has repeatedly sustained stable independent execution across sets.`,
-        meaning: `${studentFirstName} is at the gate where one more strong session can trigger progression to Controlled Discomfort.`,
-      },
-    },
-    "Controlled Discomfort": {
-      Low: {
-        status: `${studentFirstName} destabilized when problems became less familiar or more difficult.`,
-        meaning: `${studentFirstName} needs structured exposure to difficulty while preserving method control.`,
-      },
-      Medium: {
-        status: `${studentFirstName} stayed structured in some higher-friction prompts but not consistently.`,
-        meaning: `${studentFirstName} needs more discomfort reps before timed pressure is introduced.`,
-      },
-      High: {
-        status: `${studentFirstName} stayed structured during challenge-heavy prompts.`,
-        meaning: `${studentFirstName} begins training in Controlled Discomfort with transitions handled by session scoring.`,
-      },
-      "High Maintenance": {
-        status: `${studentFirstName} has repeatedly held structure under discomfort across strong sessions.`,
-        meaning: `${studentFirstName} is at the gate where one more strong session can trigger progression to Time Pressure Stability.`,
-      },
-    },
-    "Time Pressure Stability": {
-      Low: {
-        status: `${studentFirstName} lost structure when time pressure increased.`,
-        meaning: `${studentFirstName} needs controlled timed reps to stabilize pace and method integrity.`,
-      },
-      Medium: {
-        status: `${studentFirstName} retained structure in parts of timed work but showed instability across attempts.`,
-        meaning: `${studentFirstName} needs continued timed conditioning for consistent performance.`,
-      },
-      High: {
-        status: `${studentFirstName} maintained structured execution under timed conditions.`,
-        meaning: `${studentFirstName} can now sustain method integrity under pressure.`,
-      },
-      "High Maintenance": {
-        status: `${studentFirstName} has repeatedly sustained structured execution under timed pressure.`,
-        meaning: `${studentFirstName} is in maintenance mode and will continue with mixed practice to preserve transfer-ready stability.`,
-      },
-    },
-  };
-
   const normalizePhaseLabel = (phase?: string | null): PhaseLabel | null => {
     if (!phase) return null;
     const normalized = phase.trim().toLowerCase();
@@ -254,6 +185,19 @@ export default function ProposalView({
     "Clarity";
   const normalizedStability = normalizeStabilityLabel(topicConditioning.stability);
   const trainingStartPhase = deriveTrainingEntryPhase(normalizedDiagnosisPhase, normalizedStability);
+
+  const personalizeCopy = (text: string) =>
+    text
+      .replace(/^Your child has\b/i, `${studentFirstName} has`)
+      .replace(/^Your child is\b/i, `${studentFirstName} is`)
+      .replace(/^Your child can\b/i, `${studentFirstName} can`)
+      .replace(/^Your child now\b/i, `${studentFirstName} now`)
+      .replace(/^Your child\b/i, studentFirstName)
+      .replace(/^They have\b/i, `${studentFirstName} has`)
+      .replace(/^They are\b/i, `${studentFirstName} is`)
+      .replace(/^They can\b/i, `${studentFirstName} can`)
+      .replace(/^They\b/i, studentFirstName)
+      .replace(/\bYour child\b/gi, studentFirstName);
 
   const normalizedLiveTopicStates = Array.from(
     topicStates
@@ -283,28 +227,9 @@ export default function ProposalView({
   const currentLiveTopicStates = activeLiveTopicStates.length > 0 ? activeLiveTopicStates : normalizedLiveTopicStates;
   const isLiveTrainingView = currentLiveTopicStates.length > 0;
 
-  const formatTrainingStateSummary = (items: ProposalTopicState[]) => {
-    const groups = Array.from(
-      items.reduce((map, item) => {
-        const phase = normalizePhaseLabel(item.phase) || "Unknown";
-        const stability = item.stability ? normalizeStabilityLabel(item.stability) : null;
-        const key = `${phase}__${stability}`;
-        const existing = map.get(key) || { phase, stability, topics: [] as string[] };
-        existing.topics.push(item.topic);
-        map.set(key, existing);
-        return map;
-      }, new Map<string, { phase: string; stability: string | null; topics: string[] }>())
-      .values()
-    );
-
-    return formatListWithAnd(
-      groups.map((group) => `${group.phase} with ${group.stability || "Unknown"} stability in ${formatListWithAnd(group.topics)}`)
-    );
-  };
-
   const currentTopicNames = currentLiveTopicStates.map((item) => item.topic);
   const currentTopicSummary = formatListWithAnd(currentTopicNames);
-  const liveTrainingStateSummary = formatTrainingStateSummary(currentLiveTopicStates);
+  const hasMultipleLiveTopics = currentLiveTopicStates.length > 1;
 
   const getCurrentBreakdown = (phase: PhaseLabel) => {
     switch (phase) {
@@ -321,35 +246,154 @@ export default function ProposalView({
     }
   };
 
-  const getLiveProgressSignals = (topic: string, phase: PhaseLabel, stability: StabilityLabel) => {
-    const phaseSignals: Record<PhaseLabel, string[]> = {
+  const getPhaseMeaning = (phase: PhaseLabel, stability: StabilityLabel) => {
+    if (stability === "High Maintenance") {
+      switch (phase) {
+        case "Clarity":
+          return "she is recognising what the question is asking consistently, and we are now confirming that the next layer can be introduced cleanly.";
+        case "Structured Execution":
+          return "she is consistently applying the correct method, and we are now confirming that it holds under repetition.";
+        case "Controlled Discomfort":
+          return "she is handling harder work with stability, and we are now confirming that timed pressure can be introduced safely.";
+        case "Time Pressure Stability":
+          return "she is keeping structure intact under pace pressure, and we are now preserving that standard across repeated sessions.";
+      }
+    }
+
+    switch (phase) {
+      case "Clarity":
+        return "she is still learning to recognise what the question is asking and to choose the right structure early.";
+      case "Structured Execution":
+        return "she can see the correct method, but it still needs to hold independently and consistently.";
+      case "Controlled Discomfort":
+        return "the method now needs to hold when the work becomes harder or less familiar.";
+      case "Time Pressure Stability":
+        return "the method now needs to stay intact when pace pressure is introduced.";
+      default:
+        return "the current training layer still needs to stabilise before the next one is added.";
+    }
+  };
+
+  const getLivePositionText = (phase: PhaseLabel, stability: StabilityLabel) => {
+    const nextAction = NEXT_ACTION_ENGINE[phase as TopicPhase][stability as TopicStability];
+
+    if (stability === "High Maintenance") {
+      return nextAction.advanceTo
+        ? `${studentFirstName} is no longer learning how to solve. ${pronounCapitalized} is now proving that execution holds under repetition.`
+        : `${studentFirstName} is now holding a stable standard, and the current job is to confirm that it continues to hold over time.`;
+    }
+
+    if (stability === "High") {
+      return `${studentFirstName} is showing stable performance here, but it still needs to hold across repeated sessions before it can be treated as secure.`;
+    }
+
+    switch (phase) {
+      case "Clarity":
+        return `${studentFirstName} is still building reliable recognition before faster or harder execution is added.`;
+      case "Structured Execution":
+        return `${studentFirstName} is no longer just recognising the method. The work now is making that execution hold independently from start to finish.`;
+      case "Controlled Discomfort":
+        return `${studentFirstName} can work through the method, but the next job is keeping that structure when difficulty rises.`;
+      case "Time Pressure Stability":
+        return `${studentFirstName} can already work with structure. The current job is keeping that structure intact when time pressure increases.`;
+      default:
+        return `${studentFirstName} is still stabilising this training layer before progression.`;
+    }
+  };
+
+  const getLiveObservationLines = (phase: PhaseLabel, stability: StabilityLabel, includeTopic = false, topic?: string) => {
+    const topicPrefix = includeTopic && topic ? `${topic}: ` : "";
+    const linesByPhase: Record<PhaseLabel, string[]> = {
       Clarity: [
-        `Clearer recognition of what ${topic} questions are asking`,
-        `Earlier correct method selection in ${topic}`,
+        `${topicPrefix}Clear recognition of what the question is asking`,
+        `${topicPrefix}Clear identification of the right structure`,
+        `${topicPrefix}Minimal hesitation before the first step`,
       ],
       "Structured Execution": [
-        `Earlier independent starts in ${topic}`,
-        `More consistent step order in ${topic}`,
+        `${topicPrefix}Clear, repeatable method execution`,
+        `${topicPrefix}Consistent step order across sessions`,
+        `${topicPrefix}Minimal breakdown during guided work`,
       ],
       "Controlled Discomfort": [
-        `Calmer starts when ${topic} questions become unfamiliar`,
-        `More stable structure in harder ${topic} work`,
+        `${topicPrefix}Calm control when the work becomes less familiar`,
+        `${topicPrefix}Stable structure as difficulty increases`,
+        `${topicPrefix}Minimal emotional drift once the question pushes back`,
       ],
       "Time Pressure Stability": [
-        `Stronger structure while ${topic} work is timed`,
-        `Fewer rushed breakdowns in ${topic}`,
+        `${topicPrefix}Clear structure under pace pressure`,
+        `${topicPrefix}Minimal rushed breakdowns`,
+        `${topicPrefix}Reliable decisions while timed`,
+      ],
+    };
+
+    const stabilityLine =
+      stability === "High Maintenance"
+        ? `${topicPrefix}Consistency is visible across repeated sessions`
+        : stability === "High"
+          ? `${topicPrefix}Stable performance is visible across repeated sessions`
+          : `${topicPrefix}The current response is not yet fully stable`;
+
+    return [...linesByPhase[phase], stabilityLine];
+  };
+
+  const getLiveDirectionText = (phase: PhaseLabel, stability: StabilityLabel) => {
+    const nextAction = NEXT_ACTION_ENGINE[phase as TopicPhase][stability as TopicStability];
+
+    if (stability === "High Maintenance" && nextAction.advanceTo) {
+      return `We are running maintenance checks to confirm that this stability is reliable enough to introduce pressure. ${nextAction.advanceTo} will only begin once this level is consistently maintained.`;
+    }
+
+    switch (phase) {
+      case "Clarity":
+        return "Sessions are focused on recognition, language, and first-step structure before speed or pressure are added.";
+      case "Structured Execution":
+        return "Sessions are now focused on holding performance steady, not increasing difficulty yet.";
+      case "Controlled Discomfort":
+        return "Sessions are now increasing difficulty carefully while protecting structure and calm execution.";
+      case "Time Pressure Stability":
+        return "Sessions are now introducing pace pressure while keeping structure and decision quality intact.";
+      default:
+        return `The current action is: ${nextAction.primaryAction}.`;
+    }
+  };
+
+  const getLiveProgressSignals = (phase: PhaseLabel, stability: StabilityLabel, includeTopic = false, topic?: string) => {
+    const topicSuffix = includeTopic && topic ? ` in ${topic}` : "";
+    const phaseSignals: Record<PhaseLabel, string[]> = {
+      Clarity: [
+        `Clearer recognition of what questions are asking${topicSuffix}`,
+        `Earlier correct method selection${topicSuffix}`,
+      ],
+      "Structured Execution": [
+        `Faster independent starts${topicSuffix}`,
+        `More consistent step order without correction${topicSuffix}`,
+      ],
+      "Controlled Discomfort": [
+        `Calmer starts when questions become less familiar${topicSuffix}`,
+        `Better structure holding in harder work${topicSuffix}`,
+      ],
+      "Time Pressure Stability": [
+        `Stronger structure while work is timed${topicSuffix}`,
+        `Fewer rushed breakdowns${topicSuffix}`,
       ],
     };
 
     const stabilitySignal =
       stability === "High" || stability === "High Maintenance"
-        ? `Sustained consistency across repeated ${topic} sessions`
-        : `Less volatility from one ${topic} session to the next`;
+        ? `Stability holding across repeated sessions${topicSuffix}`
+        : `Less volatility from one session to the next${topicSuffix}`;
 
     return [...phaseSignals[phase], stabilitySignal];
   };
 
-  const stateCopy = PARENT_STATE_ENGINE[trainingStartPhase][normalizedStability];
+  const pronounForStudent = "she";
+  const pronounCapitalized = "She";
+
+  const stateCopy = {
+    status: personalizeCopy(getParentDashboardCopyByState(trainingStartPhase as TopicPhase, normalizedStability as TopicStability).status),
+    meaning: personalizeCopy(getParentDashboardCopyByState(trainingStartPhase as TopicPhase, normalizedStability as TopicStability).meaning),
+    focus: personalizeCopy(getParentDashboardCopyByState(trainingStartPhase as TopicPhase, normalizedStability as TopicStability).focus),
+  };
   const derivedObserved = [stateCopy.status, stateCopy.meaning];
 
   const observedResponse = [
@@ -366,26 +410,6 @@ export default function ProposalView({
 
   const expectedChanges = splitList(proposal.childWillWin);
   const diagnosisTopic = topicConditioning.topic || focusTopics[0] || "Current school topic";
-
-  const getFocusAreaText = () => {
-    const trainingPhase = trainingStartPhase;
-    const diagnosisPhase = normalizedDiagnosisPhase;
-    const stability = normalizedStability;
-    const diagnosisContext = `Diagnosis result: ${diagnosisPhase} with ${stability} stability.`;
-
-    switch (trainingPhase) {
-      case "Clarity":
-        return `${diagnosisContext} Training starts at Clarity to strengthen vocabulary precision, method recognition, and reason understanding.`;
-      case "Structured Execution":
-        return `${diagnosisContext} Training starts at Structured Execution because Clarity-level recognition is present and execution consistency now needs to be stabilized.`;
-      case "Controlled Discomfort":
-        return `${diagnosisContext} Training starts at Controlled Discomfort because baseline execution is present and ${studentFirstName} now needs stability when difficulty increases.`;
-      case "Time Pressure Stability":
-        return `${diagnosisContext} Training starts at Time Pressure Stability because method structure is present and ${studentFirstName} now needs to retain it under timed pressure.`;
-      default:
-        return `${diagnosisContext} Training starts in the current phase to stabilize response patterns before progression.`;
-    }
-  };
 
   const getFirstBreakdown = () => {
     switch (trainingStartPhase) {
@@ -426,68 +450,78 @@ export default function ProposalView({
         "Better calm under difficulty",
       ];
 
-  const liveObservedResponse = Array.from(
-    new Set(
-      currentLiveTopicStates.flatMap((item) => {
-        const phase = normalizePhaseLabel(item.phase);
-        const stability = item.stability ? normalizeStabilityLabel(item.stability) : null;
-        if (!phase || !stability) {
-          return [`${item.topic} is active in training and the next scored session will confirm its current breakpoint more precisely.`];
-        }
+  const liveTopicBlocks = currentLiveTopicStates.map((item) => {
+    const phase = normalizePhaseLabel(item.phase) || "Clarity";
+    const stability = item.stability ? normalizeStabilityLabel(item.stability) : "Low";
 
-        const copy = PARENT_STATE_ENGINE[phase][stability];
-        return [`In ${item.topic}, ${copy.status}`, `In ${item.topic}, ${copy.meaning}`];
-      })
-    )
-  );
+      return {
+        topic: item.topic,
+        phase,
+        stability,
+        stateLabel: `${phase} (${stability})`,
+        meaning: getPhaseMeaning(phase, stability).replace(/\bshe\b/i, pronounForStudent),
+        position: getLivePositionText(phase, stability),
+        observations: getLiveObservationLines(phase, stability, false),
+        direction: getLiveDirectionText(phase, stability),
+        progressSignals: getLiveProgressSignals(phase, stability, false),
+      };
+  });
 
-  const liveTrainingPath = Array.from(
-    new Set(
-      currentLiveTopicStates.flatMap((item) => {
-        const phase = normalizePhaseLabel(item.phase);
-        const stability = item.stability ? normalizeStabilityLabel(item.stability) : null;
-        if (!phase || !stability) {
-          return [`TT is using the next scored session to confirm the right operating point in ${item.topic}.`];
-        }
-
-        const copy = PARENT_STATE_ENGINE[phase][stability];
-        return [`In ${item.topic}, ${copy.focus}`];
-      })
-    )
-  );
-
+  const primaryLiveTopicBlock = liveTopicBlocks[0] || null;
   const liveProgressMarkers = Array.from(
     new Set(
-      currentLiveTopicStates.flatMap((item) => {
-        const phase = normalizePhaseLabel(item.phase);
-        const stability = item.stability ? normalizeStabilityLabel(item.stability) : null;
-        if (!phase || !stability) {
-          return [`A scored session confirms the current phase and stability in ${item.topic}`];
-        }
-
-        return getLiveProgressSignals(item.topic, phase, stability);
-      })
+      liveTopicBlocks.flatMap((item) =>
+        item.progressSignals.map((signal) =>
+          hasMultipleLiveTopics ? `${item.topic}: ${signal}` : signal
+        )
+      )
     )
   );
 
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-6 rounded-lg">
-        <h2 className="text-2xl font-bold text-foreground mb-2">Training Plan</h2>
+        <h2 className="text-2xl font-bold text-foreground mb-2">{studentFirstName} Training Plan</h2>
         <p className="text-muted-foreground">
-          {isLiveTrainingView ? `Live operating plan for ${studentName}` : `Structured plan for ${studentName}`}
+          {isLiveTrainingView ? "Live Operating Plan" : `Structured plan for ${studentName}`}
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>{isLiveTrainingView ? "Current Training Context" : "Diagnosis Context"}</CardTitle>
+          <CardTitle>{isLiveTrainingView ? "Current Focus" : "Diagnosis Context"}</CardTitle>
         </CardHeader>
         <CardContent>
           {isLiveTrainingView ? (
-            <p className="text-sm text-muted-foreground">
-              TT is currently conditioning <span className="text-foreground font-medium">{currentTopicSummary}</span> based on the latest active topic-conditioning state.
-            </p>
+            hasMultipleLiveTopics ? (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  {studentFirstName} is currently training across {currentTopicSummary}.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Each topic is being handled from its current position.
+                </p>
+                <div className="space-y-3">
+                  {liveTopicBlocks.map((item) => (
+                    <div key={item.topic} className="rounded-lg border bg-muted/20 p-4 space-y-3">
+                      <p className="text-base font-semibold text-foreground">{item.topic}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {pronounCapitalized} is operating at <Badge variant="secondary" className="align-middle ml-1">{item.stateLabel}</Badge> <span className="ml-1">meaning {item.meaning}</span>
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : primaryLiveTopicBlock ? (
+              <div className="space-y-3 text-sm text-muted-foreground">
+                <p>
+                  {studentFirstName} is currently training in <span className="text-foreground font-medium">{primaryLiveTopicBlock.topic}</span>.
+                </p>
+                <p>
+                  {pronounCapitalized} is operating at <span className="text-foreground font-medium">{primaryLiveTopicBlock.stateLabel}</span> - meaning {primaryLiveTopicBlock.meaning}
+                </p>
+              </div>
+            ) : null
           ) : (
             <p className="text-sm text-muted-foreground">
               Diagnosis ran on: <span className="text-foreground font-medium">{diagnosisTopic}</span>
@@ -496,37 +530,25 @@ export default function ProposalView({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Focus Area</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-foreground font-medium mb-2">
-            {isLiveTrainingView ? `Training Is At: ${liveTrainingStateSummary}` : `Training Starts At: ${trainingStartPhase}`}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            {isLiveTrainingView
-              ? `TT is operating from ${studentFirstName}'s current breakpoint inside ${currentTopicSummary}. Current session decisions now follow the live topic-conditioning state rather than the original intro-only entry point.`
-              : getFocusAreaText()}
-          </p>
-        </CardContent>
-      </Card>
-
       {(isLiveTrainingView || normalizedStability === "Low" || normalizedStability === "Medium") && (
         <Card>
           <CardHeader>
-            <CardTitle>Where {studentFirstName} Currently Gets Stuck</CardTitle>
+            <CardTitle>{isLiveTrainingView ? "Current Position" : `Where ${studentFirstName} Currently Gets Stuck`}</CardTitle>
           </CardHeader>
           <CardContent>
             {isLiveTrainingView ? (
-              <ul className="text-sm text-muted-foreground space-y-1">
-                {currentLiveTopicStates.map((item) => {
-                  const phase = normalizePhaseLabel(item.phase);
-                  return (
-                    <li key={`${item.topic}-${item.phase}-${item.stability}`}>- In {item.topic}, {getCurrentBreakdown(phase || "Clarity")}</li>
-                  );
-                })}
-              </ul>
+              hasMultipleLiveTopics ? (
+                <div className="space-y-3">
+                  {liveTopicBlocks.map((item) => (
+                    <div key={item.topic} className="rounded-lg border bg-muted/20 p-4">
+                      <p className="text-sm font-medium text-foreground mb-1">{item.topic}</p>
+                      <p className="text-sm text-muted-foreground">{item.position}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : primaryLiveTopicBlock ? (
+                <p className="text-sm text-muted-foreground">{primaryLiveTopicBlock.position}</p>
+              ) : null
             ) : (
               <p className="text-sm text-muted-foreground">{getFirstBreakdown()}</p>
             )}
@@ -536,15 +558,38 @@ export default function ProposalView({
 
       <Card>
         <CardHeader>
-          <CardTitle>What We Have Observed</CardTitle>
+          <CardTitle>{isLiveTrainingView ? "What We Are Observing" : "What We Have Observed"}</CardTitle>
         </CardHeader>
         <CardContent>
-          {(isLiveTrainingView ? liveObservedResponse : observedResponse).length > 0 ? (
-            <ul className="text-sm text-muted-foreground space-y-1">
-              {(isLiveTrainingView ? liveObservedResponse : Array.from(new Set(observedResponse))).map((item) => (
-                <li key={item}>- {item}</li>
-              ))}
-            </ul>
+          {(isLiveTrainingView ? liveTopicBlocks : Array.from(new Set(observedResponse))).length > 0 ? (
+            isLiveTrainingView ? (
+              hasMultipleLiveTopics ? (
+                <div className="space-y-3">
+                  {liveTopicBlocks.map((item) => (
+                    <div key={item.topic} className="rounded-lg border bg-muted/20 p-4">
+                      <p className="text-sm font-medium text-foreground mb-2">{item.topic}</p>
+                      <ul className="text-sm text-muted-foreground space-y-1">
+                        {item.observations.map((line) => (
+                          <li key={`${item.topic}-${line}`}>- {line}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              ) : primaryLiveTopicBlock ? (
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  {primaryLiveTopicBlock.observations.map((item) => (
+                    <li key={item}>- {item}</li>
+                  ))}
+                </ul>
+              ) : null
+            ) : (
+              <ul className="text-sm text-muted-foreground space-y-1">
+                {Array.from(new Set(observedResponse)).map((item) => (
+                  <li key={item}>- {item}</li>
+                ))}
+              </ul>
+            )
           ) : (
             <p className="text-sm text-muted-foreground">
               {isLiveTrainingView ? "Live topic-conditioning observations will appear here as the current state updates." : "Observed response patterns captured during intro session."}
@@ -555,15 +600,22 @@ export default function ProposalView({
 
       <Card>
         <CardHeader>
-          <CardTitle>Training Path</CardTitle>
+          <CardTitle>{isLiveTrainingView ? "Training Direction" : "Training Path"}</CardTitle>
         </CardHeader>
         <CardContent>
           {isLiveTrainingView ? (
-            <ul className="text-sm text-muted-foreground space-y-1">
-              {liveTrainingPath.map((item) => (
-                <li key={item}>- {item}</li>
-              ))}
-            </ul>
+            hasMultipleLiveTopics ? (
+              <div className="space-y-3">
+                {liveTopicBlocks.map((item) => (
+                  <div key={item.topic} className="rounded-lg border bg-muted/20 p-4">
+                    <p className="text-sm font-medium text-foreground mb-1">{item.topic}</p>
+                    <p className="text-sm text-muted-foreground">{item.direction}</p>
+                  </div>
+                ))}
+              </div>
+            ) : primaryLiveTopicBlock ? (
+              <p className="text-sm text-muted-foreground">{primaryLiveTopicBlock.direction}</p>
+            ) : null
           ) : (
             <p className="text-sm text-muted-foreground">{getFirstPriority()}</p>
           )}
@@ -572,22 +624,32 @@ export default function ProposalView({
 
       <Card>
         <CardHeader>
-          <CardTitle>Conditioning Structure</CardTitle>
+          <CardTitle>{isLiveTrainingView ? "Structure" : "Conditioning Structure"}</CardTitle>
         </CardHeader>
         <CardContent>
-          <ul className="text-sm text-muted-foreground space-y-1">
-            <li>- Cadence: 2 sessions per week (8 sessions per month)</li>
-            <li>- Clear explanation of the problem structure</li>
-            <li>- Guided practice with immediate correction</li>
-            <li>- Repeated method-building in the active topic-conditioning set</li>
-            <li>- Gradual increase in difficulty when readiness improves</li>
-          </ul>
+          {isLiveTrainingView ? (
+            <ul className="text-sm text-muted-foreground space-y-1">
+              <li>- 2 sessions per week (8 per month)</li>
+              <li>- Method-first execution</li>
+              <li>- Immediate correction where needed</li>
+              <li>- Repetition within the active training set</li>
+              <li>- Difficulty increases only after stability is proven</li>
+            </ul>
+          ) : (
+            <ul className="text-sm text-muted-foreground space-y-1">
+              <li>- Cadence: 2 sessions per week (8 sessions per month)</li>
+              <li>- Clear explanation of the problem structure</li>
+              <li>- Guided practice with immediate correction</li>
+              <li>- Repeated method-building in the active topic-conditioning set</li>
+              <li>- Gradual increase in difficulty when readiness improves</li>
+            </ul>
+          )}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>How We Will Know It Is Improving</CardTitle>
+          <CardTitle>{isLiveTrainingView ? "How Progress Will Show" : "How We Will Know It Is Improving"}</CardTitle>
         </CardHeader>
         <CardContent>
           {(isLiveTrainingView ? liveProgressMarkers : progressSignals).length > 0 ? (
@@ -609,17 +671,31 @@ export default function ProposalView({
 
       <Card className="bg-gradient-to-r from-primary/10 to-primary/5">
         <CardContent className="pt-6">
-          <h3 className="font-bold text-lg mb-2">Parent Alignment</h3>
-          <p className="text-sm text-muted-foreground">
-            {isLiveTrainingView
-              ? `This training plan now reflects ${studentFirstName}'s live topic-conditioning state. TT is working from the current breakpoint in ${currentTopicSummary}, and the plan updates its meaning from that active state.`
-              : `This training focuses on how ${studentFirstName} responds when work becomes difficult.
+          <h3 className="font-bold text-lg mb-2">{isLiveTrainingView ? "Parent Note" : "Parent Alignment"}</h3>
+          {isLiveTrainingView ? (
+            <ul className="text-sm text-muted-foreground space-y-1">
+              {hasMultipleLiveTopics ? (
+                <>
+                  <li>- This plan reflects {studentFirstName}'s current live training position across {currentTopicSummary}.</li>
+                  <li>- Each topic advances according to its own stability.</li>
+                </>
+              ) : (
+                <>
+                  <li>- This plan reflects {studentFirstName}'s current training position, not a fixed program.</li>
+                  <li>- As her execution stabilizes, the training phase will advance.</li>
+                </>
+              )}
+            </ul>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">{`This training focuses on how ${studentFirstName} responds when work becomes difficult.
             The goal is to build structured thinking, independent execution, and stability
-            under pressure.`}
-          </p>
-          <p className="text-sm text-muted-foreground mt-2">
-            Progress is measured through behavior and response, not only marks.
-          </p>
+            under pressure.`}</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Progress is measured through behavior and response, not only marks.
+              </p>
+            </>
+          )}
         </CardContent>
       </Card>
 
