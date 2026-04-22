@@ -33,6 +33,18 @@ type VerificationPrepSpec = {
   checklist: string[];
 };
 
+type AdaptiveTransitionState = {
+  currentPhase: PhaseLabel;
+  nextPhase: PhaseLabel;
+  phaseScore: number;
+  direction: "escalate" | "de-escalate";
+  currentBlock: {
+    phase: PhaseLabel;
+    setName: string;
+    observations: Array<Record<string, string>>;
+  };
+};
+
 type StudentListEntry = {
   id: string | number;
   fullName?: string | null;
@@ -598,6 +610,7 @@ export default function IntroSessionDrillRunner() {
   const [prepChecks, setPrepChecks] = useState<Record<string, boolean>>({});
 
   const requestedMode = searchParams.get("mode");
+  const requestedContext = searchParams.get("context");
   const handoverReDiagnosisMode = requestedMode === "handover" && searchParams.get("rediagnosis") === "1";
   const drillMode: DrillMode =
     requestedMode === "training"
@@ -619,6 +632,7 @@ export default function IntroSessionDrillRunner() {
     observations: Array<Record<string, string>>;
   }>>([]);
   const [adaptiveDiagnosisMessage, setAdaptiveDiagnosisMessage] = useState<string | null>(null);
+  const [adaptiveTransition, setAdaptiveTransition] = useState<AdaptiveTransitionState | null>(null);
   const previousStability = String(searchParams.get("stability") || "").trim() || null;
 
   const introTopic = useMemo(() => {
@@ -649,7 +663,9 @@ export default function IntroSessionDrillRunner() {
     : introTopic;
   const { data: workflow, isLoading: workflowLoading } = useStudentWorkflowState(studentId || "");
   const assignmentAccepted = workflow?.assignmentAccepted ?? true;
-  const sessionKind = drillMode === "diagnosis" ? "intro" : drillMode === "handover" ? "handover" : "training";
+  const diagnosisSessionKind = requestedContext === "training" ? "training" : "intro";
+  const sessionKind =
+    drillMode === "diagnosis" ? diagnosisSessionKind : drillMode === "handover" ? "handover" : "training";
 
   const {
     data: drillSessionAccess,
@@ -744,6 +760,7 @@ export default function IntroSessionDrillRunner() {
   useEffect(() => {
     setPrepReady(false);
     setPrepChecks({});
+    setAdaptiveTransition(null);
   }, [drillMode, handoverReDiagnosisMode, phase, introTopic, sessionTopicIndex]);
 
   const handleExitToPod = () => {
@@ -752,6 +769,11 @@ export default function IntroSessionDrillRunner() {
 
   const handleBackStep = () => {
     if (submitting || submitSuccess) return;
+    if (adaptiveTransition) {
+      setAdaptiveTransition(null);
+      setAdaptiveDiagnosisMessage(null);
+      return;
+    }
     if (!isFirstRep) {
       setCurrentRep((r) => r - 1);
       return;
@@ -792,10 +814,30 @@ export default function IntroSessionDrillRunner() {
 
   const handleObservation = (field: string, value: string) => {
     setSubmitError(null);
+    if (adaptiveTransition) {
+      setAdaptiveTransition(null);
+    }
     setObservations((prev: any) => ({
       ...prev,
       [`set${currentSet}_rep${currentRep}_${field}`]: value,
     }));
+  };
+
+  const handleContinueAdaptiveTransition = () => {
+    if (!adaptiveTransition) return;
+    setAdaptiveDiagnosisBlocks((prev) => [...prev, adaptiveTransition.currentBlock]);
+    setAdaptiveDiagnosisMessage(
+      `${adaptiveTransition.currentPhase} scored ${adaptiveTransition.phaseScore}/100. ${
+        adaptiveTransition.direction === "escalate"
+          ? `Moving up to ${adaptiveTransition.nextPhase}.`
+          : `Dropping to ${adaptiveTransition.nextPhase}.`
+      }`
+    );
+    setActiveDiagnosisPhase(adaptiveTransition.nextPhase);
+    setCurrentSet(0);
+    setCurrentRep(0);
+    setObservations({});
+    setAdaptiveTransition(null);
   };
 
   const getMissingFieldsForRep = (setIndex: number, repIndex: number) => {
@@ -918,16 +960,13 @@ export default function IntroSessionDrillRunner() {
       const shouldStop = !nextPhase || phaseSummary.band === "place";
 
       if (!shouldStop) {
-        setAdaptiveDiagnosisBlocks((prev) => [...prev, currentBlock]);
-        setAdaptiveDiagnosisMessage(
-          `${activeDiagnosisPhase} scored ${phaseSummary.phaseScore}/100. ${
-            phaseSummary.band === "escalate" ? `Moving up to ${nextPhase}.` : `Dropping to ${nextPhase}.`
-          }`
-        );
-        setActiveDiagnosisPhase(nextPhase);
-        setCurrentSet(0);
-        setCurrentRep(0);
-        setObservations({});
+        setAdaptiveTransition({
+          currentPhase: activeDiagnosisPhase,
+          nextPhase,
+          phaseScore: phaseSummary.phaseScore,
+          direction: phaseSummary.band === "escalate" ? "escalate" : "de-escalate",
+          currentBlock,
+        });
         return;
       }
 
@@ -1378,6 +1417,43 @@ export default function IntroSessionDrillRunner() {
           {adaptiveDiagnosisMessage}
         </div>
       )}
+      {adaptiveTransition && !submitSuccess && isAdaptiveVerificationFlow && (
+        <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-5 space-y-4">
+          <div>
+            <p className="text-sm font-semibold text-foreground">System Transition</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              The current phase block is complete. Review the decision before opening the next diagnosis block.
+            </p>
+          </div>
+          <div className="rounded-lg border border-primary/15 bg-background/80 p-4 space-y-2 text-sm">
+            <p>
+              <span className="font-medium text-foreground">Current Phase:</span> {adaptiveTransition.currentPhase}
+            </p>
+            <p>
+              <span className="font-medium text-foreground">Phase Score:</span> {adaptiveTransition.phaseScore}/100
+            </p>
+            <p>
+              <span className="font-medium text-foreground">System Decision:</span>{" "}
+              {adaptiveTransition.direction === "escalate"
+                ? `Move up to ${adaptiveTransition.nextPhase}`
+                : `Drop to ${adaptiveTransition.nextPhase}`}
+            </p>
+            <p>
+              <span className="font-medium text-foreground">What happens next:</span>{" "}
+              The drill screen will reset and open the {adaptiveTransition.nextPhase} diagnosis block.
+            </p>
+          </div>
+          <div className="flex justify-end">
+            <button
+              type="button"
+              className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+              onClick={handleContinueAdaptiveTransition}
+            >
+              Continue to {adaptiveTransition.nextPhase}
+            </button>
+          </div>
+        </div>
+      )}
       {(isAdaptiveDiagnosisMode || isHandoverMode) && !submitSuccess && !prepReady && (
         <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
           <div>
@@ -1462,7 +1538,7 @@ export default function IntroSessionDrillRunner() {
         </div>
       )}
       {drillStructure && set && (
-        !((isAdaptiveDiagnosisMode || isHandoverMode) && !submitSuccess && !prepReady) && (
+        !((isAdaptiveDiagnosisMode || isHandoverMode) && !submitSuccess && (!prepReady || !!adaptiveTransition)) && (
         <>
           <h2 className="text-2xl font-bold mb-2">
             {isSessionMode
@@ -1611,7 +1687,7 @@ export default function IntroSessionDrillRunner() {
         </>
         )
       )}
-      {(!((isAdaptiveDiagnosisMode || isHandoverMode) && !submitSuccess && !prepReady)) && (
+      {(!((isAdaptiveDiagnosisMode || isHandoverMode) && !submitSuccess && (!prepReady || !!adaptiveTransition))) && (
       <div className="mt-6 flex justify-end">
         {!submitSuccess && (
           <button
