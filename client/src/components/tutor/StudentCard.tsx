@@ -476,9 +476,11 @@ export function StudentCard({
                 {topicsInConditioning.map((topic) => (
                   <div key={topic.topic} className="rounded-xl border border-primary/20 bg-muted/20 px-4 py-3">
                     <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{topic.topic}</p>
-                    <div className="flex flex-row items-center gap-2 mt-2">
-                      <span className="text-sm font-medium text-foreground">{topic.phase}</span>
-                      <span className="text-xs px-2 py-0.5 rounded-full border border-primary/20 bg-muted/40 text-foreground">{topic.stability}</span>
+                    <div className="mt-2 flex flex-wrap items-start gap-2">
+                      <span className="min-w-0 text-sm font-medium leading-5 text-foreground">{topic.phase}</span>
+                      <span className="shrink-0 whitespace-nowrap text-xs px-2 py-0.5 rounded-full border border-primary/20 bg-muted/40 text-foreground">
+                        {topic.stability}
+                      </span>
                     </div>
                   </div>
                 ))}
