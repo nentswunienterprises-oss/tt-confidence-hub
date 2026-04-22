@@ -3,6 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ClipboardList, Expand, X } from "lucide-react";
 import { observationLevelFromOptionIndex } from "@shared/observationScoring";
 import {
+  computeAdaptiveDiagnosisPhaseSummary,
+  getAdjacentDiagnosisPhase,
+} from "@shared/adaptiveDiagnosis";
+import {
   getNextActionData,
   type PhaseLabel,
   type StabilityLabel,
@@ -38,6 +42,13 @@ type DemoSummary = {
   tutorMeaning: string;
   phaseBefore: string | null;
   stabilityBefore: string | null;
+};
+
+type DemoAdaptiveStep = {
+  phase: PhaseLabel;
+  phaseScore: number;
+  band: "de-escalate" | "place" | "escalate";
+  nextPhase: PhaseLabel | null;
 };
 
 type DemoPrepPlan = {
@@ -498,6 +509,13 @@ const TRAINING_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
   ],
 };
 
+const ADAPTIVE_DIAGNOSIS_BLOCK_BY_PHASE: Record<PhaseLabel, DrillSetConfig> = {
+  Clarity: DIAGNOSIS_SETS_BY_PHASE.Clarity[0],
+  "Structured Execution": DIAGNOSIS_SETS_BY_PHASE["Structured Execution"][0],
+  "Controlled Discomfort": DIAGNOSIS_SETS_BY_PHASE["Controlled Discomfort"][0],
+  "Time Pressure Stability": DIAGNOSIS_SETS_BY_PHASE["Time Pressure Stability"][0],
+};
+
 const INTRO_PHASE_WEIGHTS: Record<PhaseLabel, Array<{ aliases: string[]; weight: number }>> = {
   Clarity: [
     { aliases: ["vocabulary"], weight: 30 },
@@ -713,6 +731,21 @@ function buildDemoSummary(
     phaseBefore,
     stabilityBefore,
   };
+}
+
+function serializeDemoSetObservations(
+  setConfig: DrillSetConfig,
+  setIndex: number,
+  observations: Record<string, string>,
+): Array<Record<string, string>> {
+  return Array.from({ length: setConfig.reps }, (_, repIndex) => {
+    const fields = getObservationBlockForRep(setConfig, repIndex);
+    const repObs: Record<string, string> = {};
+    fields.forEach((field) => {
+      repObs[field.key] = observations[observationKey(setIndex, repIndex, field.key)] || "";
+    });
+    return repObs;
+  });
 }
 
 function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null {
@@ -934,22 +967,34 @@ function DemoRunnerOverlay({
   open: boolean;
   onClose: () => void;
 }) {
-  const drillStructure = mode === "training" ? TRAINING_SETS_BY_PHASE[phase] : DIAGNOSIS_SETS_BY_PHASE[phase];
-  const prepPlan = demoPrepPlanFor(phase, mode);
+  const [activeDiagnosisPhase, setActiveDiagnosisPhase] = useState<PhaseLabel>(phase);
   const [currentSet, setCurrentSet] = useState(0);
   const [currentRep, setCurrentRep] = useState(0);
   const [observations, setObservations] = useState<Record<string, string>>({});
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [prepComplete, setPrepComplete] = useState(false);
+  const [adaptiveTrail, setAdaptiveTrail] = useState<DemoAdaptiveStep[]>([]);
+  const [adaptiveMessage, setAdaptiveMessage] = useState<string | null>(null);
+  const [finalSummary, setFinalSummary] = useState<DemoSummary | null>(null);
+  const displayPhase = mode === "diagnosis" ? activeDiagnosisPhase : phase;
+  const drillStructure =
+    mode === "training"
+      ? TRAINING_SETS_BY_PHASE[displayPhase]
+      : [ADAPTIVE_DIAGNOSIS_BLOCK_BY_PHASE[displayPhase]];
+  const prepPlan = demoPrepPlanFor(displayPhase, mode);
 
   useEffect(() => {
     if (!open) return;
+    setActiveDiagnosisPhase(phase);
     setCurrentSet(0);
     setCurrentRep(0);
     setObservations({});
     setSubmitSuccess(false);
     setPrepComplete(false);
-  }, [open, phase]);
+    setAdaptiveTrail([]);
+    setAdaptiveMessage(null);
+    setFinalSummary(null);
+  }, [open, phase, mode]);
 
   const currentSetConfig = drillStructure[currentSet];
   const fields = currentSetConfig ? getObservationBlockForRep(currentSetConfig, currentRep) : [];
@@ -963,23 +1008,27 @@ function DemoRunnerOverlay({
     return Boolean(observations[observationKey(currentSet, currentRep, field.key)]);
   });
 
-  const summary = useMemo(() => buildDemoSummary(phase, drillStructure, observations, mode), [phase, drillStructure, observations, mode]);
+  const summary = useMemo(
+    () => buildDemoSummary(displayPhase, drillStructure, observations, mode),
+    [displayPhase, drillStructure, observations, mode],
+  );
+  const displaySummary = finalSummary || summary;
   const stabilityColor =
-    summary.stability === "High Maintenance"
+    displaySummary.stability === "High Maintenance"
       ? "text-blue-700"
-      : summary.stability === "High"
+      : displaySummary.stability === "High"
       ? "text-green-700"
-      : summary.stability === "Medium"
+      : displaySummary.stability === "Medium"
       ? "text-yellow-700"
       : "text-red-700";
   const resultLabel =
     mode === "diagnosis"
-      ? `Placed in ${summary.phase} at ${summary.stability} stability`
-      : summary.systemDecision === "Advance signal" && summary.phase !== "Time Pressure Stability"
-      ? `Phase is ready to progress from ${summary.phase}`
-      : summary.systemDecision === "Hold current phase"
-      ? `Stability is holding in ${summary.phase}`
-      : `Reinforcement is still needed in ${summary.phase}`;
+      ? `Placed in ${displaySummary.phase} at ${displaySummary.stability} stability`
+      : displaySummary.systemDecision === "Advance signal" && displaySummary.phase !== "Time Pressure Stability"
+      ? `Phase is ready to progress from ${displaySummary.phase}`
+      : displaySummary.systemDecision === "Hold current phase"
+      ? `Stability is holding in ${displaySummary.phase}`
+      : `Reinforcement is still needed in ${displaySummary.phase}`;
   const formatState = (phaseValue?: string | null, stabilityValue?: string | null) => {
     if (!phaseValue && !stabilityValue) return "Not recorded";
     if (!phaseValue) return String(stabilityValue || "Not recorded");
@@ -997,6 +1046,7 @@ function DemoRunnerOverlay({
   const handleBack = () => {
     if (submitSuccess) {
       setSubmitSuccess(false);
+      setFinalSummary(null);
       setCurrentSet(drillStructure.length - 1);
       setCurrentRep(drillStructure[drillStructure.length - 1].reps - 1);
       return;
@@ -1013,6 +1063,62 @@ function DemoRunnerOverlay({
 
   const handleNext = () => {
     if (isLastSet && isLastRep) {
+      if (mode === "diagnosis") {
+        const diagnosisBlock = ADAPTIVE_DIAGNOSIS_BLOCK_BY_PHASE[displayPhase];
+        const phaseSummary = computeAdaptiveDiagnosisPhaseSummary(
+          displayPhase,
+          serializeDemoSetObservations(diagnosisBlock, 0, observations),
+        );
+        const nextPhase =
+          phaseSummary.band === "de-escalate"
+            ? getAdjacentDiagnosisPhase(displayPhase, "previous")
+            : phaseSummary.band === "escalate"
+              ? getAdjacentDiagnosisPhase(displayPhase, "next")
+              : null;
+        const currentStep: DemoAdaptiveStep = {
+          phase: displayPhase,
+          phaseScore: phaseSummary.phaseScore,
+          band: phaseSummary.band,
+          nextPhase,
+        };
+        const nextTrail = [...adaptiveTrail, currentStep];
+
+        if (nextPhase && phaseSummary.band !== "place") {
+          setAdaptiveTrail(nextTrail);
+          setAdaptiveMessage(
+            `${displayPhase} scored ${phaseSummary.phaseScore}/100. ${
+              phaseSummary.band === "escalate" ? `Moving up to ${nextPhase}.` : `Dropping to ${nextPhase}.`
+            }`,
+          );
+          setActiveDiagnosisPhase(nextPhase);
+          setCurrentSet(0);
+          setCurrentRep(0);
+          setObservations({});
+          return;
+        }
+
+        const finalTransitionReason =
+          nextTrail.length > 1
+            ? `Adaptive path: ${nextTrail
+                .map((step) =>
+                  `${step.phase} ${step.phaseScore}/100${step.nextPhase ? ` -> ${step.nextPhase}` : " -> place"}`
+                )
+                .join(" | ")}. Diagnosis locked here.`
+            : "This verification block was enough to lock placement here.";
+
+        setAdaptiveTrail(nextTrail);
+        setAdaptiveMessage(`${displayPhase} scored ${phaseSummary.phaseScore}/100. Diagnosis locked at ${displayPhase}.`);
+        setFinalSummary({
+          ...summary,
+          phase: displayPhase,
+          phaseBefore: null,
+          stabilityBefore: null,
+          systemDecision: "Placed by adaptive diagnosis",
+          transitionReason: finalTransitionReason,
+        });
+        setSubmitSuccess(true);
+        return;
+      }
       setSubmitSuccess(true);
       return;
     }
@@ -1034,10 +1140,10 @@ function DemoRunnerOverlay({
             <div className="min-w-0">
               <h2 className="text-2xl font-bold tracking-tight">
                 {mode === "training"
-                  ? `Training Drill - ${phase}`
+                  ? `Training Drill - ${displayPhase}`
                   : mode === "handover"
-                  ? `Handover Verification - ${phase}`
-                  : `Adaptive Intro Diagnosis - ${phase}`}
+                  ? `Handover Verification - ${displayPhase}`
+                  : `Adaptive Intro Diagnosis - ${displayPhase}`}
               </h2>
               <p className="mb-2 mt-2 text-sm">
                 <span className="font-semibold">
@@ -1139,12 +1245,17 @@ function DemoRunnerOverlay({
               </div>
             ) : !submitSuccess ? (
               <>
+                {adaptiveMessage && mode === "diagnosis" && (
+                  <div className="mb-4 rounded-md border border-primary/20 bg-primary/5 p-3 text-sm text-foreground">
+                    {adaptiveMessage}
+                  </div>
+                )}
                 {isFirstSet && isFirstRep && (
                   <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm">
-                    <div className="mb-1 font-semibold text-foreground">Phase: {phase}</div>
-                    <div className="mb-2 text-xs text-muted-foreground">{PHASE_CONTEXT[phase].purpose}</div>
+                    <div className="mb-1 font-semibold text-foreground">Phase: {displayPhase}</div>
+                    <div className="mb-2 text-xs text-muted-foreground">{PHASE_CONTEXT[displayPhase].purpose}</div>
                     <div className="flex flex-wrap gap-1">
-                      {PHASE_CONTEXT[phase].constraints.map((rule) => (
+                      {PHASE_CONTEXT[displayPhase].constraints.map((rule) => (
                         <span
                           key={rule}
                           className="rounded border border-primary/20 bg-background px-2 py-0.5 text-xs font-medium"
@@ -1245,8 +1356,8 @@ function DemoRunnerOverlay({
                 {drillStructure
                   .filter((setConfig) => hasScoredObservations(setConfig))
                   .map((setConfig, index) => {
-                    const rows = summary.repRows.filter((row) => row.set === setConfig.setName);
-                    const setPercent = summary.setScores[index] || 0;
+                    const rows = displaySummary.repRows.filter((row) => row.set === setConfig.setName);
+                    const setPercent = displaySummary.setScores[index] || 0;
                     return (
                       <div key={setConfig.setName} className="overflow-hidden rounded-xl border border-primary/15 bg-background">
                         <div className="flex items-center justify-between bg-primary/5 px-4 py-2">
@@ -1280,10 +1391,10 @@ function DemoRunnerOverlay({
                   </span>
                   <span
                     className={`text-lg font-bold ${
-                      summary.phaseScore >= 70 ? "text-green-700" : summary.phaseScore >= 45 ? "text-yellow-700" : "text-red-700"
+                      displaySummary.phaseScore >= 70 ? "text-green-700" : displaySummary.phaseScore >= 45 ? "text-yellow-700" : "text-red-700"
                     }`}
                   >
-                    {summary.phaseScore}/100
+                    {displaySummary.phaseScore}/100
                   </span>
                 </div>
 
@@ -1300,43 +1411,57 @@ function DemoRunnerOverlay({
                       <span className="text-muted-foreground">Topic Score</span>
                       <span
                         className={`font-bold ${
-                          summary.phaseScore >= 70 ? "text-green-700" : summary.phaseScore >= 45 ? "text-yellow-700" : "text-red-700"
+                          displaySummary.phaseScore >= 70 ? "text-green-700" : displaySummary.phaseScore >= 45 ? "text-yellow-700" : "text-red-700"
                         }`}
                       >
-                        {summary.phaseScore}/100
+                        {displaySummary.phaseScore}/100
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Before</span>
-                      <span className="font-medium">{formatState(summary.phaseBefore, summary.stabilityBefore)}</span>
+                      <span className="font-medium">{formatState(displaySummary.phaseBefore, displaySummary.stabilityBefore)}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Now</span>
-                      <span className="font-medium">{formatState(summary.phase, summary.stability)}</span>
+                      <span className="font-medium">{formatState(displaySummary.phase, displaySummary.stability)}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Phase</span>
-                      <span className="font-medium">{summary.phase}</span>
+                      <span className="font-medium">{displaySummary.phase}</span>
                     </div>
                     <div className="border-t pt-2">
                       <p className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">Next Session Focus</p>
-                      <p className="font-semibold text-blue-700">{summary.nextAction}</p>
+                      <p className="font-semibold text-blue-700">{displaySummary.nextAction}</p>
                     </div>
                     <div className="border-t pt-2">
                       <p className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">Reason</p>
-                      <p className="font-medium">{summary.transitionReason}</p>
+                      <p className="font-medium">{displaySummary.transitionReason}</p>
                     </div>
                     <div className="border-t pt-2">
                       <p className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">Tutor Meaning</p>
-                      <p className="font-medium">{summary.tutorMeaning}</p>
+                      <p className="font-medium">{displaySummary.tutorMeaning}</p>
                     </div>
-                    {summary.constraint && (
+                    {displaySummary.constraint && (
                       <div className="mt-1 border-t pt-2 text-xs text-muted-foreground">
-                        Constraint: {summary.constraint}
+                        Constraint: {displaySummary.constraint}
                       </div>
                     )}
                   </div>
                 </div>
+                {mode === "diagnosis" && adaptiveTrail.length > 0 && (
+                  <div className="overflow-hidden rounded-xl border border-primary/15 bg-background">
+                    <div className="bg-primary/5 px-4 py-2">
+                      <span className="text-sm font-semibold">Adaptive Path</span>
+                    </div>
+                    <div className="space-y-2 px-4 py-3 text-sm">
+                      {adaptiveTrail.map((step, index) => (
+                        <p key={`${step.phase}-${index}`} className="text-muted-foreground">
+                          {step.phase}: {step.phaseScore}/100. {step.band === "place" ? "Placed here." : step.nextPhase ? `Moved to ${step.nextPhase}.` : "Stopped here."}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -1456,7 +1581,7 @@ export default function ResponseConditioningLoggingSystem() {
           <div className="space-y-2">
             <h2 className="text-2xl font-bold">What This Page Shows</h2>
             <p className="max-w-4xl text-muted-foreground">
-              This page shows how tutors use the drill runner in both intro diagnosis and active training.
+              This page shows how tutors use the drill runner in intro diagnosis, active training, and handover verification.
               You can switch modes, open the runner, complete reps, and review the result screen.
             </p>
           </div>
@@ -1467,7 +1592,7 @@ export default function ResponseConditioningLoggingSystem() {
                 <div className="max-w-3xl">
                   <h3 className="text-xl font-bold">Choose a Mode and Phase</h3>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Switch between training and intro diagnosis, then pick the phase you want to explore.
+                    Switch between training, diagnosis, and handover. For diagnosis, the selected phase is the starting point, not the final placement.
                   </p>
                 </div>
                 <Button onClick={() => setDemoOpen(true)} className="w-full sm:w-auto">
@@ -1500,9 +1625,9 @@ export default function ResponseConditioningLoggingSystem() {
                       : "border-border bg-background hover:border-primary/30 hover:bg-muted/20"
                   }`}
                 >
-                  <p className="text-sm font-semibold">Intro Diagnosis</p>
+                  <p className="text-sm font-semibold">Diagnosis</p>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Use the intro diagnosis flow to verify starting phase placement.
+                    Use the diagnosis flow to start from a phase block and let the system move up, place, or move down.
                   </p>
                 </button>
                 <button
@@ -1537,7 +1662,7 @@ export default function ResponseConditioningLoggingSystem() {
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="text-sm font-semibold">{phase}</p>
+                    <p className="text-sm font-semibold">{phase}</p>
                           <p className="mt-2 text-sm text-muted-foreground">
                             {PHASE_CONTEXT[phase].purpose}
                           </p>
@@ -1553,7 +1678,7 @@ export default function ResponseConditioningLoggingSystem() {
                 <div className="rounded-2xl border border-primary/15 bg-background p-4 shadow-sm">
                   <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Selected Demo</p>
                   <h4 className="mt-2 text-xl font-semibold">
-                    {demoMode === "training" ? "Training" : demoMode === "handover" ? "Handover" : "Intro Diagnosis"}: {selectedPhase}
+                    {demoMode === "training" ? "Training" : demoMode === "handover" ? "Handover" : "Intro Diagnosis Start"}: {selectedPhase}
                   </h4>
                   <p className="mt-2 text-sm text-muted-foreground">{PHASE_CONTEXT[selectedPhase].purpose}</p>
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -1577,10 +1702,10 @@ export default function ResponseConditioningLoggingSystem() {
                         ? "A phase-based training drill"
                         : demoMode === "handover"
                         ? "A continuity-check verification block"
-                        : "A phase verification block"}
+                        : "An adaptive phase verification block"}
                     </li>
                     <li>Clickable observation choices for each rep</li>
-                    <li>A result screen with totals, system output, reason, and next step</li>
+                    <li>A result screen that mirrors the live runner more closely</li>
                   </ul>
                 </div>
               </div>
