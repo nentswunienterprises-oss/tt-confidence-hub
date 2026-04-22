@@ -59,6 +59,18 @@ type DemoAdaptiveTransition = {
   currentStep: DemoAdaptiveStep;
 };
 
+function explainAdaptiveTransition(
+  currentPhase: PhaseLabel,
+  nextPhase: PhaseLabel,
+  direction: "escalate" | "de-escalate",
+) {
+  if (direction === "escalate") {
+    return `The student is already looking strong in ${currentPhase}, so the system is moving up to check how they hold in ${nextPhase}.`;
+  }
+
+  return `The student is not holding cleanly enough in ${currentPhase}, so the system is dropping down to ${nextPhase} to find the correct entry point.`;
+}
+
 type DemoPrepPlan = {
   title: string;
   drillType: string;
@@ -1302,6 +1314,14 @@ function DemoRunnerOverlay({
                         {adaptiveTransition.direction === "escalate"
                           ? `Move up to ${adaptiveTransition.nextPhase}`
                           : `Drop to ${adaptiveTransition.nextPhase}`}
+                      </p>
+                      <p>
+                        <span className="font-medium text-foreground">Why:</span>{" "}
+                        {explainAdaptiveTransition(
+                          adaptiveTransition.currentPhase,
+                          adaptiveTransition.nextPhase,
+                          adaptiveTransition.direction,
+                        )}
                       </p>
                       <p>
                         <span className="font-medium text-foreground">What happens next:</span>{" "}
