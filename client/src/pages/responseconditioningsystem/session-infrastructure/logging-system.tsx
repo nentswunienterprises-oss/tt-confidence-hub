@@ -801,6 +801,13 @@ function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null
             : "Phase-appropriate challenge",
     },
   ];
+  const previousPhase = getAdjacentDiagnosisPhase(phase, "previous");
+  const nextPhase = getAdjacentDiagnosisPhase(phase, "next");
+  const adaptiveCoverage = [previousPhase, phase, nextPhase].filter(Boolean) as PhaseLabel[];
+  const adaptiveCoverageNotes = adaptiveCoverage.map((coveragePhase) => {
+    const coverageBlock = ADAPTIVE_DIAGNOSIS_BLOCK_BY_PHASE[coveragePhase];
+    return `${coveragePhase}: ${coverageBlock.reps} ${coverageBlock.setName} problems`;
+  });
 
   if (phase === "Clarity") {
     return {
@@ -817,7 +824,15 @@ function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null
       prepNotes: [
         ...(isVerificationMode
           ? [
-              "Prepare exactly 3 clean Clarity phase-block problems.",
+              ...(mode === "diagnosis"
+                ? [
+                    "Prepare bidirectionally before the session starts.",
+                    ...adaptiveCoverageNotes,
+                    "The tutor should be ready for the starting phase and the immediate adjacent phase the system may move into.",
+                  ]
+                : [
+                    "Prepare exactly 3 clean Clarity phase-block problems.",
+                  ]),
               "Use the Clarity phase target, but strip the system down to verification only.",
               "No full teaching cycle and no normal training expansion.",
             ]
@@ -830,7 +845,9 @@ function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null
       ],
       checklist: isVerificationMode
         ? [
-            "I prepared exactly 3 clean Clarity verification problems.",
+            mode === "diagnosis"
+              ? `I prepared bidirectional diagnosis coverage for ${adaptiveCoverage.join(", ")}.`
+              : "I prepared exactly 3 clean Clarity verification problems.",
             mode === "diagnosis"
               ? "I will use this to place the topic, not to run a normal training session."
               : "I will use this to verify inherited state, not to restart or train forward.",
@@ -842,7 +859,9 @@ function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null
             "I will hold the phase rules exactly as shown.",
           ],
       derivedFrom: isVerificationMode
-        ? "Derived from the Clarity training lane and reduced to a single phase verification block."
+        ? mode === "diagnosis"
+          ? "Derived from the Clarity training lane and expanded to bidirectional adaptive diagnosis coverage."
+          : "Derived from the Clarity training lane and reduced to a single phase verification block."
         : "Full Clarity training structure.",
     };
   }
@@ -862,7 +881,15 @@ function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null
       prepNotes: [
         ...(isVerificationMode
           ? [
-              "Prepare exactly 3 clean Structured Execution phase-block problems.",
+              ...(mode === "diagnosis"
+                ? [
+                    "Prepare bidirectionally before the session starts.",
+                    ...adaptiveCoverageNotes,
+                    "The tutor should be ready for the starting phase and both adjacent phases where they exist.",
+                  ]
+                : [
+                    "Prepare exactly 3 clean Structured Execution phase-block problems.",
+                  ]),
               "Use the same cold-start execution target as training, but only for verification.",
               "No extra tutor prompting beyond the phase rules.",
             ]
@@ -874,7 +901,9 @@ function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null
       ],
       checklist: isVerificationMode
         ? [
-            "I prepared exactly 3 Structured Execution verification problems.",
+            mode === "diagnosis"
+              ? `I prepared bidirectional diagnosis coverage for ${adaptiveCoverage.join(", ")}.`
+              : "I prepared exactly 3 Structured Execution verification problems.",
             "I will hold the no-help start window and structure target.",
             mode === "diagnosis"
               ? "I will place the topic only."
@@ -886,7 +915,9 @@ function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null
             "I will hold the phase rules exactly as shown.",
           ],
       derivedFrom: isVerificationMode
-        ? "Derived from the Structured Execution training lane and reduced to a single phase verification block."
+        ? mode === "diagnosis"
+          ? "Derived from the Structured Execution training lane and expanded to bidirectional adaptive diagnosis coverage."
+          : "Derived from the Structured Execution training lane and reduced to a single phase verification block."
         : "Full Structured Execution training structure.",
     };
   }
@@ -906,7 +937,15 @@ function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null
       prepNotes: [
         ...(isVerificationMode
           ? [
-              "Prepare exactly 3 clean Controlled Discomfort verification problems.",
+              ...(mode === "diagnosis"
+                ? [
+                    "Prepare bidirectionally before the session starts.",
+                    ...adaptiveCoverageNotes,
+                    "The tutor should be ready for the starting phase and both adjacent phases where they exist.",
+                  ]
+                : [
+                    "Prepare exactly 3 clean Controlled Discomfort verification problems.",
+                  ]),
               "Problems should be challenging enough to expose discomfort behavior, but still solvable.",
               "No rescue beyond the phase allowance.",
             ]
@@ -917,7 +956,9 @@ function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null
       ],
       checklist: isVerificationMode
         ? [
-            "I prepared exactly 3 Controlled Discomfort verification problems.",
+            mode === "diagnosis"
+              ? `I prepared bidirectional diagnosis coverage for ${adaptiveCoverage.join(", ")}.`
+              : "I prepared exactly 3 Controlled Discomfort verification problems.",
             "The problems are challenging enough to test the phase honestly.",
             mode === "diagnosis"
               ? "I will classify the topic only."
@@ -929,7 +970,9 @@ function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null
             "I will hold the phase rules exactly as shown.",
           ],
       derivedFrom: isVerificationMode
-        ? "Derived from the Controlled Discomfort training lane and reduced to a single phase verification block."
+        ? mode === "diagnosis"
+          ? "Derived from the Controlled Discomfort training lane and expanded to bidirectional adaptive diagnosis coverage."
+          : "Derived from the Controlled Discomfort training lane and reduced to a single phase verification block."
         : "Full Controlled Discomfort training structure.",
     };
   }
@@ -948,7 +991,15 @@ function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null
     prepNotes: [
       ...(isVerificationMode
         ? [
-            "Prepare exactly 3 clean Time Pressure Stability verification problems.",
+            ...(mode === "diagnosis"
+              ? [
+                  "Prepare bidirectionally before the session starts.",
+                  ...adaptiveCoverageNotes,
+                  "The tutor should be ready for the starting phase and the immediate lower phase the system may drop into.",
+                ]
+              : [
+                  "Prepare exactly 3 clean Time Pressure Stability verification problems.",
+                ]),
             "Use timed pressure only to verify whether structure survives urgency.",
             "Keep pressure controlled. Structure matters more than speed.",
           ]
@@ -959,7 +1010,9 @@ function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null
     ],
     checklist: isVerificationMode
       ? [
-          "I prepared exactly 3 Time Pressure Stability verification problems.",
+          mode === "diagnosis"
+            ? `I prepared bidirectional diagnosis coverage for ${adaptiveCoverage.join(", ")}.`
+            : "I prepared exactly 3 Time Pressure Stability verification problems.",
           "I will keep pressure controlled and score structure honestly.",
           mode === "diagnosis"
             ? "I will place the topic only."
@@ -971,7 +1024,9 @@ function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null
           "I will hold the phase rules exactly as shown.",
         ],
     derivedFrom: isVerificationMode
-      ? "Derived from the Time Pressure Stability training lane and reduced to a single phase verification block."
+      ? mode === "diagnosis"
+        ? "Derived from the Time Pressure Stability training lane and expanded to bidirectional adaptive diagnosis coverage."
+        : "Derived from the Time Pressure Stability training lane and reduced to a single phase verification block."
       : "Full Time Pressure Stability training structure.",
   };
 }

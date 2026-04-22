@@ -539,20 +539,31 @@ function buildVerificationPrepSpec(
   const phasePurpose = PHASE_CONTEXT[phase].purpose;
   const phaseRules = PHASE_CONTEXT[phase].constraints;
   const verificationRules = diagnosisBlock.activeRules;
+  const previousPhase = getAdjacentDiagnosisPhase(phase, "previous");
+  const nextPhase = getAdjacentDiagnosisPhase(phase, "next");
+  const adaptiveCoverage = [previousPhase, phase, nextPhase].filter(Boolean) as PhaseLabel[];
+  const adaptiveCoveragePlan = adaptiveCoverage
+    .map((coveragePhase) => {
+      const coverageBlock = ADAPTIVE_DIAGNOSIS_BLOCK_BY_PHASE[coveragePhase];
+      return `${coveragePhase}: ${coverageBlock.reps} ${coverageBlock.setName} problems`;
+    })
+    .join(" | ");
 
   if (mode === "diagnosis") {
     return {
       title: "Diagnosis Prep",
       objective: `Place the topic correctly inside ${phase}. ${phasePurpose}`,
-      problemPlan: `Prepare exactly ${diagnosisBlock.reps} clean ${phase} phase-block problems. Use the same phase target as training, but strip the block down to verification only.`,
+      problemPlan: `Prepare bidirectionally before the session starts. Cover the starting ${phase} block and any adjacent phase the system may move into: ${adaptiveCoveragePlan}.`,
       tutorRules: [
         ...verificationRules,
         ...phaseRules,
+        "Diagnosis is adaptive, so prep for the starting phase plus the immediate lower and higher phase where they exist.",
         "Do not expand into full training volume.",
       ],
-      derivedFrom: `Derived from the ${phase} training lane and reduced to the ${diagnosisBlock.setName} verification block. Training reference: ${trainingReference}.`,
+      derivedFrom: `Derived from the ${phase} training lane and reduced to adaptive verification coverage around the ${diagnosisBlock.setName} block. Training reference: ${trainingReference}.`,
       checklist: [
-        `I prepared exactly ${diagnosisBlock.reps} clean ${phase} verification problems.`,
+        `I prepared the starting ${phase} block and the adjacent adaptive diagnosis blocks the system may move into.`,
+        `My diagnosis prep covers: ${adaptiveCoverage.join(", ")}.`,
         "I will keep this as placement verification, not normal training.",
         `I will hold the ${phase} phase rules exactly as shown by the system.`,
       ],
