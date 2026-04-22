@@ -498,6 +498,7 @@ export function StudentCard({
 
         {handoverVerificationActive && (
           <HandoverVerificationSection
+            studentId={student.id}
             studentName={student.name}
             session={introSessionDetails}
             displayTopic={displayTopic}
@@ -703,6 +704,7 @@ export function StudentCard({
 }
 
 function HandoverVerificationSection({
+  studentId,
   studentName,
   session,
   displayTopic,
@@ -717,6 +719,10 @@ function HandoverVerificationSection({
   const sessionStatus = String(session?.status || "");
   const sessionConfirmed = ["confirmed", "ready", "live", "scheduled", "completed"].includes(sessionStatus);
   const sessionLabel = session?.type === "handover" ? "continuity check" : "handover verification";
+  const latestVerification = session?.latestHandoverVerification || null;
+  const latestSummary = latestVerification?.summary || null;
+  const reDiagnosisRequired = !!latestSummary?.reDiagnosisRequired;
+  const canMarkComplete = sessionConfirmed && !!latestSummary && !reDiagnosisRequired;
 
   return (
     <div className="pt-4 border-t border-border/60 space-y-3">
@@ -770,19 +776,82 @@ function HandoverVerificationSection({
         </div>
       )}
 
+      {latestSummary ? (
+        <div className={`rounded-xl border px-4 py-3 space-y-2 ${reDiagnosisRequired ? "border-amber-200 bg-amber-50" : "border-emerald-200 bg-emerald-50"}`}>
+          <p className="text-[11px] font-semibold text-foreground">Latest Handover Result</p>
+          <p className="text-sm font-medium text-foreground">{latestSummary.verificationOutcomeLabel || "Verification submitted"}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="rounded-lg border border-primary/15 bg-background/80 px-3 py-2">
+              <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Score</p>
+              <p className="mt-1 text-sm font-medium text-foreground">{latestSummary.verificationScore ?? "-"}/100</p>
+            </div>
+            <div className="rounded-lg border border-primary/15 bg-background/80 px-3 py-2">
+              <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Resulting Phase</p>
+              <p className="mt-1 text-sm font-medium text-foreground">{latestSummary.resultingPhase || "-"}</p>
+            </div>
+            <div className="rounded-lg border border-primary/15 bg-background/80 px-3 py-2">
+              <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Resulting Stability</p>
+              <p className="mt-1 text-sm font-medium text-foreground">{latestSummary.resultingStability || "-"}</p>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">{latestSummary.nextAction || "No next action recorded."}</p>
+          {latestSummary.constraint ? (
+            <p className="text-xs text-muted-foreground">Constraint: <span className="font-medium text-foreground">{latestSummary.constraint}</span></p>
+          ) : null}
+        </div>
+      ) : null}
+
       {sessionConfirmed && (
         <div className="space-y-2">
+          <Button
+            className="w-full"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const topicParam = encodeURIComponent(displayTopic);
+              const phaseParam = `&phase=${encodeURIComponent(displayPhase)}`;
+              const stabilityParam = `&stability=${encodeURIComponent(displayStability)}`;
+              const sessionParam = session?.id
+                ? `&scheduledSessionId=${encodeURIComponent(session.id)}`
+                : "";
+              window.location.href = `/tutor/intro-session/${studentId}?mode=handover&topic=${topicParam}${phaseParam}${stabilityParam}${sessionParam}`;
+            }}
+            disabled={!session?.id}
+          >
+            Open Handover Verification
+          </Button>
+          {reDiagnosisRequired ? (
+            <Button
+              className="w-full"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const topicParam = encodeURIComponent(latestVerification?.topic || displayTopic);
+                const phaseParam = `&phase=${encodeURIComponent(latestSummary?.resultingPhase || latestSummary?.phase || displayPhase)}`;
+                const stabilityParam = `&stability=${encodeURIComponent(latestSummary?.resultingStability || latestSummary?.previousStability || displayStability)}`;
+                const sessionParam = session?.id
+                  ? `&scheduledSessionId=${encodeURIComponent(session.id)}`
+                  : "";
+                window.location.href = `/tutor/intro-session/${studentId}?mode=handover&rediagnosis=1&topic=${topicParam}${phaseParam}${stabilityParam}${sessionParam}`;
+              }}
+              disabled={!session?.id}
+            >
+              Open Targeted Re-Diagnosis
+            </Button>
+          ) : null}
           <Button
             className="w-full"
             variant="default"
             size="sm"
             onClick={onMarkCompleted}
-            disabled={isMarkingCompleted}
+            disabled={isMarkingCompleted || !canMarkComplete}
           >
             {isMarkingCompleted ? "Saving..." : "Mark Continuity Check Complete"}
           </Button>
           <p className="text-xs text-muted-foreground text-center">
-            Use this after verifying where training should resume. It preserves the inherited history and clears the handover gate.
+            {reDiagnosisRequired
+              ? "Targeted re-diagnosis is required before continuity check can be completed."
+              : "Submit a clean handover result, then mark continuity check complete to clear the handover gate."}
           </p>
         </div>
       )}

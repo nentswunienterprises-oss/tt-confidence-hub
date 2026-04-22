@@ -41,9 +41,13 @@ type DemoSummary = {
 };
 
 type DemoPrepPlan = {
+  title: string;
   drillType: string;
   setPlans: Array<{ label: string; problems: number; difficulty: string }>;
+  objective: string;
   prepNotes: string[];
+  checklist: string[];
+  derivedFrom: string;
 };
 
 const PHASES: PhaseLabel[] = [
@@ -712,80 +716,210 @@ function buildDemoSummary(
 }
 
 function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null {
-  if (mode === "diagnosis") {
-    return null;
-  }
-
   const baseDifficulty = "Simple/Normal";
-  const drillType = mode === "handover" ? `${phase} Verification` : `${phase} Drill`;
-  const continuityNote =
-    mode === "handover"
-      ? ["Use the inherited phase as the starting point. Verify it before changing it."]
-      : [];
+  const drillType =
+    mode === "diagnosis"
+      ? `${phase} Diagnosis Block`
+      : mode === "handover"
+        ? `${phase} Verification Block`
+        : `${phase} Drill`;
+  const isVerificationMode = mode === "diagnosis" || mode === "handover";
+  const title =
+    mode === "diagnosis"
+      ? "Diagnosis Prep"
+      : mode === "handover"
+        ? "Handover Prep"
+        : "Training Prep";
+  const objective =
+    mode === "diagnosis"
+      ? `Place the topic correctly in ${phase}.`
+      : mode === "handover"
+        ? `Verify whether the inherited ${phase} topic-state still holds.`
+        : `Run the correct ${phase} training drill for the current topic-state.`;
+  const verificationSetPlan = [
+    {
+      label: mode === "handover" ? "Verification Block" : "Diagnosis Block",
+      problems: 3,
+      difficulty:
+        phase === "Clarity"
+          ? "Simple/Normal"
+          : phase === "Structured Execution"
+            ? "Simple/Normal"
+            : "Phase-appropriate challenge",
+    },
+  ];
 
   if (phase === "Clarity") {
     return {
+      title,
       drillType,
-      setPlans: [
-        { label: "Set 1: Modeling", problems: 2, difficulty: baseDifficulty },
-        { label: "Set 2: Identification", problems: 3, difficulty: baseDifficulty },
-        { label: "Set 3: Light Apply", problems: 3, difficulty: baseDifficulty },
-      ],
+      setPlans: isVerificationMode
+        ? verificationSetPlan
+        : [
+            { label: "Set 1: Modeling", problems: 2, difficulty: baseDifficulty },
+            { label: "Set 2: Identification", problems: 3, difficulty: baseDifficulty },
+            { label: "Set 3: Light Apply", problems: 3, difficulty: baseDifficulty },
+          ],
+      objective,
       prepNotes: [
-        "Set 1 is teaching only; no scored observations.",
-        "Prepare 8 total problems (2 model + 6 drill reps).",
-        "No boss battles and no timed pressure in Clarity.",
-        "Difficulty: keep all problems at Simple/Normal level.",
-        ...continuityNote,
+        ...(isVerificationMode
+          ? [
+              "Prepare exactly 3 clean Clarity phase-block problems.",
+              "Use the Clarity phase target, but strip the system down to verification only.",
+              "No full teaching cycle and no normal training expansion.",
+            ]
+          : [
+              "Set 1 is teaching only; no scored observations.",
+              "Prepare 8 total problems (2 model + 6 drill reps).",
+              "No boss battles and no timed pressure in Clarity.",
+              "Difficulty: keep all problems at Simple/Normal level.",
+            ]),
       ],
+      checklist: isVerificationMode
+        ? [
+            "I prepared exactly 3 clean Clarity verification problems.",
+            mode === "diagnosis"
+              ? "I will use this to place the topic, not to run a normal training session."
+              : "I will use this to verify inherited state, not to restart or train forward.",
+            "I will hold the Clarity phase rules exactly as shown.",
+          ]
+        : [
+            "I prepared the full drill problem count.",
+            "I am ready to run the full training structure.",
+            "I will hold the phase rules exactly as shown.",
+          ],
+      derivedFrom: isVerificationMode
+        ? "Derived from the Clarity training lane and reduced to a single phase verification block."
+        : "Full Clarity training structure.",
     };
   }
 
   if (phase === "Structured Execution") {
     return {
+      title,
       drillType,
-      setPlans: [
-        { label: "Set 1", problems: 3, difficulty: baseDifficulty },
-        { label: "Set 2", problems: 3, difficulty: baseDifficulty },
-        { label: "Set 3", problems: 3, difficulty: baseDifficulty },
-      ],
+      setPlans: isVerificationMode
+        ? verificationSetPlan
+        : [
+            { label: "Set 1", problems: 3, difficulty: baseDifficulty },
+            { label: "Set 2", problems: 3, difficulty: baseDifficulty },
+            { label: "Set 3", problems: 3, difficulty: baseDifficulty },
+          ],
+      objective,
       prepNotes: [
-        "Prepare 9 total problems (3 sets x 3 reps).",
-        "Focus on independent starts and full step sequence.",
-        "Difficulty: keep all problems at Simple/Normal level.",
-        ...continuityNote,
+        ...(isVerificationMode
+          ? [
+              "Prepare exactly 3 clean Structured Execution phase-block problems.",
+              "Use the same cold-start execution target as training, but only for verification.",
+              "No extra tutor prompting beyond the phase rules.",
+            ]
+          : [
+              "Prepare 9 total problems (3 sets x 3 reps).",
+              "Focus on independent starts and full step sequence.",
+              "Difficulty: keep all problems at Simple/Normal level.",
+            ]),
       ],
+      checklist: isVerificationMode
+        ? [
+            "I prepared exactly 3 Structured Execution verification problems.",
+            "I will hold the no-help start window and structure target.",
+            mode === "diagnosis"
+              ? "I will place the topic only."
+              : "I will verify continuity only.",
+          ]
+        : [
+            "I prepared the full drill problem count.",
+            "I am ready to run the full training structure.",
+            "I will hold the phase rules exactly as shown.",
+          ],
+      derivedFrom: isVerificationMode
+        ? "Derived from the Structured Execution training lane and reduced to a single phase verification block."
+        : "Full Structured Execution training structure.",
     };
   }
 
   if (phase === "Controlled Discomfort") {
     return {
+      title,
       drillType,
-      setPlans: [
-        { label: "Set 1", problems: 3, difficulty: "Hard" },
-        { label: "Set 2", problems: 3, difficulty: "Challenging (but solvable)" },
-        { label: "Set 3", problems: 3, difficulty: "Challenging (but solvable)" },
-      ],
+      setPlans: isVerificationMode
+        ? verificationSetPlan
+        : [
+            { label: "Set 1", problems: 3, difficulty: "Hard" },
+            { label: "Set 2", problems: 3, difficulty: "Challenging (but solvable)" },
+            { label: "Set 3", problems: 3, difficulty: "Challenging (but solvable)" },
+          ],
+      objective,
       prepNotes: [
-        "Prepare 9 total problems with controlled challenge increase.",
-        "No rescue beyond first-step guidance.",
-        ...continuityNote,
+        ...(isVerificationMode
+          ? [
+              "Prepare exactly 3 clean Controlled Discomfort verification problems.",
+              "Problems should be challenging enough to expose discomfort behavior, but still solvable.",
+              "No rescue beyond the phase allowance.",
+            ]
+          : [
+              "Prepare 9 total problems with controlled challenge increase.",
+              "No rescue beyond first-step guidance.",
+            ]),
       ],
+      checklist: isVerificationMode
+        ? [
+            "I prepared exactly 3 Controlled Discomfort verification problems.",
+            "The problems are challenging enough to test the phase honestly.",
+            mode === "diagnosis"
+              ? "I will classify the topic only."
+              : "I will verify inherited state only.",
+          ]
+        : [
+            "I prepared the full drill problem count.",
+            "I am ready to run the full training structure.",
+            "I will hold the phase rules exactly as shown.",
+          ],
+      derivedFrom: isVerificationMode
+        ? "Derived from the Controlled Discomfort training lane and reduced to a single phase verification block."
+        : "Full Controlled Discomfort training structure.",
     };
   }
 
   return {
+    title,
     drillType,
-    setPlans: [
-      { label: "Set 1", problems: 3, difficulty: "Hard" },
-      { label: "Set 2", problems: 3, difficulty: "Challenging (but solvable)" },
-      { label: "Set 3", problems: 3, difficulty: "Challenging (but solvable)" },
-    ],
+    setPlans: isVerificationMode
+      ? verificationSetPlan
+      : [
+          { label: "Set 1", problems: 3, difficulty: "Hard" },
+          { label: "Set 2", problems: 3, difficulty: "Challenging (but solvable)" },
+          { label: "Set 3", problems: 3, difficulty: "Challenging (but solvable)" },
+        ],
+    objective,
     prepNotes: [
-      "Prepare 9 total timed problems.",
-      "Keep pressure controlled; preserve structure over speed.",
-      ...continuityNote,
+      ...(isVerificationMode
+        ? [
+            "Prepare exactly 3 clean Time Pressure Stability verification problems.",
+            "Use timed pressure only to verify whether structure survives urgency.",
+            "Keep pressure controlled. Structure matters more than speed.",
+          ]
+        : [
+            "Prepare 9 total timed problems.",
+            "Keep pressure controlled; preserve structure over speed.",
+          ]),
     ],
+    checklist: isVerificationMode
+      ? [
+          "I prepared exactly 3 Time Pressure Stability verification problems.",
+          "I will keep pressure controlled and score structure honestly.",
+          mode === "diagnosis"
+            ? "I will place the topic only."
+            : "I will verify inherited state only.",
+        ]
+      : [
+          "I prepared the full drill problem count.",
+          "I am ready to run the full training structure.",
+          "I will hold the phase rules exactly as shown.",
+        ],
+    derivedFrom: isVerificationMode
+      ? "Derived from the Time Pressure Stability training lane and reduced to a single phase verification block."
+      : "Full Time Pressure Stability training structure.",
   };
 }
 
@@ -924,27 +1058,11 @@ function DemoRunnerOverlay({
             {!submitSuccess && !prepComplete ? (
               <div className="mx-auto max-w-4xl">
                 {mode === "diagnosis" ? (
-                  <div className="mb-4 rounded-md border border-primary/20 bg-primary/5 p-3">
-                    <p className="mb-1 font-semibold">Instructions:</p>
-                    <ul className="list-disc space-y-1 pl-5 text-sm text-foreground/90">
-                      <li>
-                        This diagnosis is adaptive. Complete the current phase verification block exactly as shown.
-                      </li>
-                      <li>
-                        <strong>Before you begin:</strong> Prepare{" "}
-                        <span className="font-semibold">3 distinct problems</span> for the current phase block.
-                      </li>
-                      <li>The system will move up, place here, or move down after each phase block based on the score band.</li>
-                      <li>You cannot skip steps or edit outside the verification structure. Complete each observation in order.</li>
-                      <li>Diagnosis stops automatically once the correct entry phase is verified.</li>
-                    </ul>
-                  </div>
-                ) : prepPlan ? (
+                  prepPlan ? (
                   <div className="rounded-md border border-primary/30 bg-primary/5 p-3 space-y-3">
-                      <p className="text-sm font-medium">
-                        {mode === "handover" ? "Tutor Prep For Handover Verification" : "Tutor Prep For Next Session"}
-                      </p>
+                      <p className="text-sm font-medium">{prepPlan.title}</p>
                       <p className="text-xs text-muted-foreground">Drill type: {prepPlan.drillType}</p>
+                      <p className="text-xs text-foreground">{prepPlan.objective}</p>
                       <div className="space-y-1.5">
                         {prepPlan.setPlans.map((setPlan) => (
                           <div key={setPlan.label} className="rounded border border-primary/20 bg-background/70 px-2 py-1.5 text-xs">
@@ -965,6 +1083,57 @@ function DemoRunnerOverlay({
                           ))}
                         </ul>
                       </div>
+                      <div>
+                        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Required Confirmations</p>
+                        <ul className="space-y-0.5 text-xs text-muted-foreground">
+                          {prepPlan.checklist.map((item) => (
+                            <li key={item} className="flex items-start gap-1.5">
+                              <span className="shrink-0 text-foreground/40">[ ]</span>
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">{prepPlan.derivedFrom}</p>
+                  </div>
+                ) : null
+                ) : prepPlan ? (
+                  <div className="rounded-md border border-primary/30 bg-primary/5 p-3 space-y-3">
+                      <p className="text-sm font-medium">{prepPlan.title}</p>
+                      <p className="text-xs text-muted-foreground">Drill type: {prepPlan.drillType}</p>
+                      <p className="text-xs text-foreground">{prepPlan.objective}</p>
+                      <div className="space-y-1.5">
+                        {prepPlan.setPlans.map((setPlan) => (
+                          <div key={setPlan.label} className="rounded border border-primary/20 bg-background/70 px-2 py-1.5 text-xs">
+                            <p className="font-medium text-foreground">{setPlan.label}</p>
+                            <p className="text-muted-foreground">Problems: {setPlan.problems}</p>
+                            <p className="text-muted-foreground">Difficulty: {setPlan.difficulty}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <div>
+                        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Prep Rules</p>
+                        <ul className="space-y-0.5 text-xs text-muted-foreground">
+                          {prepPlan.prepNotes.map((note) => (
+                            <li key={note} className="flex items-start gap-1.5">
+                              <span className="shrink-0 text-foreground/40">-</span>
+                              <span>{note}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Required Confirmations</p>
+                        <ul className="space-y-0.5 text-xs text-muted-foreground">
+                          {prepPlan.checklist.map((item) => (
+                            <li key={item} className="flex items-start gap-1.5">
+                              <span className="shrink-0 text-foreground/40">[ ]</span>
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">{prepPlan.derivedFrom}</p>
                   </div>
                 ) : null}
               </div>

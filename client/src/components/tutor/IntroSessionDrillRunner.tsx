@@ -11,7 +11,7 @@ import {
 import { useStudentWorkflowState } from "@/hooks/useStudentWorkflowState";
 
 type PhaseLabel = "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability";
-type DrillMode = "diagnosis" | "training" | "session";
+type DrillMode = "diagnosis" | "training" | "session" | "handover";
 type ObservationField = { key: string; label: string; options: string[] };
 type DrillSetConfig = {
   setName: string;
@@ -22,6 +22,15 @@ type DrillSetConfig = {
   activeRules: string[];
   observationBlock?: ObservationField[];
   repObservationBlocks?: ObservationField[][];
+};
+
+type VerificationPrepSpec = {
+  title: string;
+  objective: string;
+  problemPlan: string;
+  tutorRules: string[];
+  derivedFrom: string;
+  checklist: string[];
 };
 
 type StudentListEntry = {
@@ -485,7 +494,84 @@ function normalizePhase(value: string | null): PhaseLabel {
 }
 
 function buildDrillStructure(mode: DrillMode, phase: PhaseLabel) {
-  return mode === "training" ? TRAINING_SETS_BY_PHASE[phase] : DIAGNOSIS_SETS_BY_PHASE[phase];
+  if (mode === "training") {
+    return TRAINING_SETS_BY_PHASE[phase];
+  }
+  if (mode === "handover") {
+    return [ADAPTIVE_DIAGNOSIS_BLOCK_BY_PHASE[phase]];
+  }
+  return DIAGNOSIS_SETS_BY_PHASE[phase];
+}
+
+function buildVerificationPrepSpec(
+  phase: PhaseLabel,
+  mode: "diagnosis" | "handover" | "handover_rediagnosis"
+): VerificationPrepSpec {
+  const diagnosisBlock = ADAPTIVE_DIAGNOSIS_BLOCK_BY_PHASE[phase];
+  const trainingSets = TRAINING_SETS_BY_PHASE[phase];
+  const trainingReference = trainingSets
+    .map((set) => set.setName)
+    .join(" -> ");
+  const phasePurpose = PHASE_CONTEXT[phase].purpose;
+  const phaseRules = PHASE_CONTEXT[phase].constraints;
+  const verificationRules = diagnosisBlock.activeRules;
+
+  if (mode === "diagnosis") {
+    return {
+      title: "Diagnosis Prep",
+      objective: `Place the topic correctly inside ${phase}. ${phasePurpose}`,
+      problemPlan: `Prepare exactly ${diagnosisBlock.reps} clean ${phase} phase-block problems. Use the same phase target as training, but strip the block down to verification only.`,
+      tutorRules: [
+        ...verificationRules,
+        ...phaseRules,
+        "Do not expand into full training volume.",
+      ],
+      derivedFrom: `Derived from the ${phase} training lane and reduced to the ${diagnosisBlock.setName} verification block. Training reference: ${trainingReference}.`,
+      checklist: [
+        `I prepared exactly ${diagnosisBlock.reps} clean ${phase} verification problems.`,
+        "I will keep this as placement verification, not normal training.",
+        `I will hold the ${phase} phase rules exactly as shown by the system.`,
+      ],
+    };
+  }
+
+  if (mode === "handover") {
+    return {
+      title: "Handover Prep",
+      objective: `Verify whether the inherited ${phase} topic-state is still trustworthy. ${phasePurpose}`,
+      problemPlan: `Prepare exactly ${diagnosisBlock.reps} clean verification problems at the inherited ${phase} level. Keep the same phase target the training system would use, but do not open the full training drill.`,
+      tutorRules: [
+        ...verificationRules,
+        ...phaseRules,
+        "Do not reteach from scratch.",
+        "Do not progress the student during verification.",
+      ],
+      derivedFrom: `Derived from the ${phase} training lane and reduced to the ${diagnosisBlock.setName} continuity-check block. Training reference: ${trainingReference}.`,
+      checklist: [
+        `I reviewed the inherited ${phase} / ${phase === "Clarity" ? "concept-entry" : "response-state"} before starting.`,
+        `I prepared exactly ${diagnosisBlock.reps} clean ${phase} verification problems.`,
+        "I will verify continuity only and will not restart or train forward.",
+      ],
+    };
+  }
+
+  return {
+    title: "Targeted Re-Diagnosis Prep",
+    objective: `Reclassify the current topic state inside ${phase} with no drift. ${phasePurpose}`,
+    problemPlan: `Prepare exactly ${diagnosisBlock.reps} clean ${phase} phase-block problems and let the adaptive path resolve from there. This is the same phase-block logic as diagnosis, triggered from handover because inherited state failed verification.`,
+    tutorRules: [
+      ...verificationRules,
+      ...phaseRules,
+      "Resolve classification only for this flagged topic.",
+      "Do not turn this into standard training.",
+    ],
+    derivedFrom: `Derived from the ${phase} diagnosis block, which itself is anchored to the ${phase} training structure. Training reference: ${trainingReference}.`,
+    checklist: [
+      `I prepared exactly ${diagnosisBlock.reps} clean ${phase} phase-block problems.`,
+      "I will use this only to reclassify the flagged topic.",
+      "I will not turn this targeted re-diagnosis into normal training.",
+    ],
+  };
 }
 
 function getObservationBlockForRep(setConfig: DrillSetConfig, repIndex: number): ObservationField[] {
@@ -508,8 +594,19 @@ export default function IntroSessionDrillRunner() {
   const [scoring, setScoring] = useState<any[] | null>(null);
   const [sessionTopicIndex, setSessionTopicIndex] = useState(0);
   const [sessionResults, setSessionResults] = useState<any[]>([]);
+  const [prepReady, setPrepReady] = useState(false);
+  const [prepChecks, setPrepChecks] = useState<Record<string, boolean>>({});
 
-  const drillMode: DrillMode = searchParams.get("mode") === "training" ? "training" : searchParams.get("mode") === "session" ? "session" : "diagnosis";
+  const requestedMode = searchParams.get("mode");
+  const handoverReDiagnosisMode = requestedMode === "handover" && searchParams.get("rediagnosis") === "1";
+  const drillMode: DrillMode =
+    requestedMode === "training"
+      ? "training"
+      : requestedMode === "session"
+        ? "session"
+        : requestedMode === "handover"
+          ? "handover"
+          : "diagnosis";
   const isSessionMode = drillMode === "session";
   const scheduledSessionId = searchParams.get("scheduledSessionId") || "";
   const rawPhase = searchParams.get("phase");
@@ -552,7 +649,7 @@ export default function IntroSessionDrillRunner() {
     : introTopic;
   const { data: workflow, isLoading: workflowLoading } = useStudentWorkflowState(studentId || "");
   const assignmentAccepted = workflow?.assignmentAccepted ?? true;
-  const sessionKind = drillMode === "diagnosis" ? "intro" : "training";
+  const sessionKind = drillMode === "diagnosis" ? "intro" : drillMode === "handover" ? "handover" : "training";
 
   const {
     data: drillSessionAccess,
@@ -573,18 +670,32 @@ export default function IntroSessionDrillRunner() {
 
   const modeToUse: DrillMode = isSessionMode ? "training" : drillMode;
   const isAdaptiveDiagnosisMode = modeToUse === "diagnosis";
+  const isHandoverMode = modeToUse === "handover";
+  const isAdaptiveVerificationFlow = isAdaptiveDiagnosisMode || (isHandoverMode && handoverReDiagnosisMode);
   const drillStructure = useMemo(() => {
     if (isSessionMode && topicDataLoading) return null;
-    if (isAdaptiveDiagnosisMode) {
+    if (isAdaptiveVerificationFlow) {
       return [ADAPTIVE_DIAGNOSIS_BLOCK_BY_PHASE[activeDiagnosisPhase]];
     }
     const phaseToUse = (isSessionMode ? currentTopicPhase : phase) as PhaseLabel;
     return buildDrillStructure(modeToUse, phaseToUse);
-  }, [isSessionMode, modeToUse, currentTopicPhase, phase, topicDataLoading, isAdaptiveDiagnosisMode, activeDiagnosisPhase]);
+  }, [isSessionMode, modeToUse, currentTopicPhase, phase, topicDataLoading, isAdaptiveVerificationFlow, activeDiagnosisPhase]);
 
-  const displayPhase: PhaseLabel = isAdaptiveDiagnosisMode
+  const displayPhase: PhaseLabel = isAdaptiveVerificationFlow
     ? activeDiagnosisPhase
     : ((isSessionMode ? currentTopicPhase : phase) as PhaseLabel);
+  const verificationPrepSpec = useMemo(
+    () =>
+      buildVerificationPrepSpec(
+        displayPhase,
+        isAdaptiveDiagnosisMode
+          ? "diagnosis"
+          : handoverReDiagnosisMode
+            ? "handover_rediagnosis"
+            : "handover"
+      ),
+    [displayPhase, isAdaptiveDiagnosisMode, handoverReDiagnosisMode]
+  );
 
   const hasIntroTopic = !!introTopic;
 
@@ -630,6 +741,11 @@ export default function IntroSessionDrillRunner() {
     }
   }, [drillStructure, currentSet, currentRep, set]);
 
+  useEffect(() => {
+    setPrepReady(false);
+    setPrepChecks({});
+  }, [drillMode, handoverReDiagnosisMode, phase, introTopic, sessionTopicIndex]);
+
   const handleExitToPod = () => {
     navigate("/tutor/pod");
   };
@@ -640,7 +756,7 @@ export default function IntroSessionDrillRunner() {
       setCurrentRep((r) => r - 1);
       return;
     }
-    if (isAdaptiveDiagnosisMode && adaptiveDiagnosisBlocks.length > 0) {
+    if (isAdaptiveVerificationFlow && adaptiveDiagnosisBlocks.length > 0) {
       const previousBlock = adaptiveDiagnosisBlocks[adaptiveDiagnosisBlocks.length - 1];
       const previousSet = ADAPTIVE_DIAGNOSIS_BLOCK_BY_PHASE[previousBlock.phase];
       setAdaptiveDiagnosisBlocks((prev) => prev.slice(0, -1));
@@ -785,7 +901,7 @@ export default function IntroSessionDrillRunner() {
     } else if (!isLastSet) {
       setCurrentSet((s) => s + 1);
       setCurrentRep(0);
-    } else if (isAdaptiveDiagnosisMode) {
+    } else if (isAdaptiveVerificationFlow) {
       const serializedSet = serializeSetForSubmission(set, currentSet);
       const phaseSummary = computeAdaptiveDiagnosisPhaseSummary(activeDiagnosisPhase, serializedSet.observations);
       const currentBlock = {
@@ -822,20 +938,36 @@ export default function IntroSessionDrillRunner() {
       setSubmitSuccess(false);
       setScoring(null);
       try {
-        const payload = {
-          studentId,
-          introTopic,
-          startingPhase: phase,
-          adaptiveBlocks: finalAdaptiveBlocks,
-          scheduledSessionId,
-        };
-        const res = await axios.post("/api/tutor/intro-session-drill", payload);
+        const payload = isHandoverMode
+          ? {
+              studentId,
+              handoverTopic: introTopic,
+              phase,
+              startingPhase: phase,
+              stability: previousStability,
+              adaptiveBlocks: finalAdaptiveBlocks,
+              scheduledSessionId,
+              rediagnosis: true,
+            }
+          : {
+              studentId,
+              introTopic,
+              startingPhase: phase,
+              adaptiveBlocks: finalAdaptiveBlocks,
+              scheduledSessionId,
+            };
+        const res = await axios.post(
+          isHandoverMode ? "/api/tutor/handover-verification-drill" : "/api/tutor/intro-session-drill",
+          payload
+        );
 
         const queryClient = (window as any).__queryClient;
         if (queryClient) {
           await Promise.all([
             queryClient.invalidateQueries({ queryKey: ["/api/tutor/pod"] }),
             queryClient.invalidateQueries({ queryKey: ["/api/tutor/sessions"] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/tutor/students/intro-session-details", studentId] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/tutor/students", studentId, "workflow-state"] }),
             queryClient.invalidateQueries({ queryKey: ["/api/tutor/topic-conditioning", studentId] }),
             queryClient.invalidateQueries({ queryKey: ["/api/tutor/students", studentId, "topic-conditioning-activations"] }),
             queryClient.invalidateQueries({ queryKey: [`/api/tutor/students/${studentId}/reports-center`] }),
@@ -854,7 +986,9 @@ export default function IntroSessionDrillRunner() {
         }
 
         setAdaptiveDiagnosisMessage(
-          `${phaseSummary.phaseScore}/100 in ${activeDiagnosisPhase}. Diagnosis locked at ${res.data?.summary?.phase || activeDiagnosisPhase}.`
+          isHandoverMode
+            ? `${phaseSummary.phaseScore}/100 in ${activeDiagnosisPhase}. Targeted re-diagnosis resolved to ${res.data?.summary?.resultingPhase || activeDiagnosisPhase}.`
+            : `${phaseSummary.phaseScore}/100 in ${activeDiagnosisPhase}. Diagnosis locked at ${res.data?.summary?.phase || activeDiagnosisPhase}.`
         );
         setSubmitSuccess(true);
         setScoring(res.data?.scoring || null);
@@ -918,7 +1052,11 @@ export default function IntroSessionDrillRunner() {
           : [currentDrill];
 
         const isDiagnosisMode = modeToUse === "diagnosis";
-        const endpoint = isDiagnosisMode ? "/api/tutor/intro-session-drill" : "/api/tutor/training-session-drill";
+        const endpoint = isDiagnosisMode
+          ? "/api/tutor/intro-session-drill"
+          : isHandoverMode
+            ? "/api/tutor/handover-verification-drill"
+            : "/api/tutor/training-session-drill";
         const payload = isDiagnosisMode
           ? {
               studentId,
@@ -927,7 +1065,16 @@ export default function IntroSessionDrillRunner() {
               phase: currentDrill.phase,
               scheduledSessionId,
             }
-          : {
+          : isHandoverMode
+            ? {
+                studentId,
+                drill: currentDrill.drill,
+                handoverTopic: currentDrill.trainingTopic,
+                phase: currentDrill.phase,
+                stability: currentDrill.previousStability,
+                scheduledSessionId,
+              }
+            : {
               studentId,
               sessionDrills: allDrills,
               scheduledSessionId,
@@ -1226,23 +1373,111 @@ export default function IntroSessionDrillRunner() {
           {submitError}
         </div>
       )}
-      {adaptiveDiagnosisMessage && !submitSuccess && isAdaptiveDiagnosisMode && (
+      {adaptiveDiagnosisMessage && !submitSuccess && isAdaptiveVerificationFlow && (
         <div className="mb-4 p-3 rounded-md border border-primary/20 bg-primary/5 text-sm text-foreground">
           {adaptiveDiagnosisMessage}
         </div>
       )}
+      {(isAdaptiveDiagnosisMode || isHandoverMode) && !submitSuccess && !prepReady && (
+        <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+          <div>
+            <p className="text-sm font-semibold text-foreground">
+              {verificationPrepSpec.title}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {isAdaptiveDiagnosisMode
+                ? "Diagnosis prep is verification-readiness prep, not training prep."
+                : handoverReDiagnosisMode
+                  ? "Targeted re-diagnosis prep is for resolving one flagged inherited topic, not for normal training."
+                  : "Handover prep is continuity-check prep, not intro prep and not training prep."}
+            </p>
+          </div>
+          <div className="rounded-lg border border-primary/15 bg-background/80 p-3 space-y-2 text-sm text-muted-foreground">
+            <p>
+              <span className="font-medium text-foreground">Topic:</span> {hasIntroTopic ? introTopic : "Not set"}
+            </p>
+              <p>
+                <span className="font-medium text-foreground">Phase:</span> {displayPhase}
+              </p>
+              {!isAdaptiveDiagnosisMode && (
+              <p>
+                <span className="font-medium text-foreground">Inherited Stability:</span> {previousStability || "Not recorded"}
+              </p>
+            )}
+            <p>
+              <span className="font-medium text-foreground">Objective:</span> {verificationPrepSpec.objective}
+            </p>
+            <p>
+              <span className="font-medium text-foreground">Problem Prep:</span> {verificationPrepSpec.problemPlan}
+            </p>
+          </div>
+          <ul className="list-disc pl-5 text-sm text-foreground/90 space-y-1">
+            {verificationPrepSpec.tutorRules.map((rule) => (
+              <li key={rule}>{rule}</li>
+            ))}
+          </ul>
+          <div className="rounded-lg border border-primary/15 bg-background/80 p-3 space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Required Confirmations</p>
+            <div className="space-y-2">
+              {verificationPrepSpec.checklist.map((item, index) => {
+                const checkKey = `prep-${index}`;
+                const checked = !!prepChecks[checkKey];
+                return (
+                  <button
+                    type="button"
+                    key={item}
+                    className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
+                      checked
+                        ? "border-primary bg-primary/10 text-foreground"
+                        : "border-primary/15 bg-background hover:bg-primary/5 text-muted-foreground"
+                    }`}
+                    onClick={() =>
+                      setPrepChecks((prev) => ({
+                        ...prev,
+                        [checkKey]: !checked,
+                      }))
+                    }
+                  >
+                    <span className="font-medium">{checked ? "[x]" : "[ ]"}</span> {item}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">{verificationPrepSpec.derivedFrom}</p>
+          <div className="flex justify-end">
+            <button
+              type="button"
+              className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+              onClick={() => setPrepReady(true)}
+              disabled={!verificationPrepSpec.checklist.every((_, index) => prepChecks[`prep-${index}`])}
+            >
+              {isAdaptiveDiagnosisMode
+                ? "Start Diagnosis"
+                : handoverReDiagnosisMode
+                  ? "Start Re-Diagnosis"
+                  : "Start Verification"}
+            </button>
+          </div>
+        </div>
+      )}
       {drillStructure && set && (
+        !((isAdaptiveDiagnosisMode || isHandoverMode) && !submitSuccess && !prepReady) && (
         <>
           <h2 className="text-2xl font-bold mb-2">
             {isSessionMode
               ? `Training Session - Topic ${sessionTopicIndex + 1} of ${sessionTopics.length}`
               : drillMode === "training"
               ? `Training Drill - ${phase}`
-              : `Adaptive Intro Diagnosis - ${displayPhase}`}
+              : drillMode === "handover"
+                ? handoverReDiagnosisMode
+                  ? `Targeted Re-Diagnosis - ${displayPhase}`
+                  : `Handover Verification - ${displayPhase}`
+                : `Adaptive Intro Diagnosis - ${displayPhase}`}
           </h2>
       <p className="mb-2 text-sm">
         <span className="font-semibold">
-          {isSessionMode ? "Current Topic:" : "Diagnostic Topic:"}
+          {isSessionMode ? "Current Topic:" : drillMode === "handover" ? "Carry-Over Topic:" : "Diagnostic Topic:"}
         </span>{" "}
         {isSessionMode ? currentTopicName : hasIntroTopic ? introTopic : "Not set"}
         {isSessionMode && currentSessionTopic && (
@@ -1253,7 +1488,9 @@ export default function IntroSessionDrillRunner() {
       </p>
       {!hasIntroTopic && !isSessionMode && (
         <div className="mb-4 p-3 rounded-md border border-primary/20 bg-primary/5 text-sm">
-          No diagnostic topic was provided. Go back to the student card and use Add Diagnostic Topic before opening the intro session.
+          {drillMode === "handover"
+            ? "No carry-over topic was provided. Go back to the student card and open handover verification from the inherited topic state."
+            : "No diagnostic topic was provided. Go back to the student card and use Add Diagnostic Topic before opening the intro session."}
         </div>
       )}
       <p className="mb-4 text-muted-foreground">{studentName || studentId}</p>
@@ -1281,6 +1518,25 @@ export default function IntroSessionDrillRunner() {
           <li>The system will move up, place here, or move down after each phase block based on the score band.</li>
           <li>You cannot skip steps or edit outside the verification structure. Complete each observation in order.</li>
           <li>Diagnosis stops automatically once the correct entry phase is verified.</li>
+        </ul>
+      </div>
+      )}
+      {drillMode === "handover" && (
+      <div className="mb-4 p-3 rounded-md border border-primary/20 bg-primary/5">
+        <p className="font-semibold mb-1">Instructions:</p>
+        <ul className="list-disc pl-5 text-sm text-foreground/90 space-y-1">
+          <li>
+            {handoverReDiagnosisMode
+              ? "This is targeted re-diagnosis inside handover. The inherited topic-state was not trustworthy enough to continue from."
+              : "This is handover verification. You are checking whether the inherited topic-state is still trustworthy."}
+          </li>
+          <li><strong>Before you begin:</strong> Prepare <span className="font-semibold">3 distinct problems</span> for this phase verification block.</li>
+          <li>Do not turn this into normal training.</li>
+          <li>
+            {handoverReDiagnosisMode
+              ? "Run adaptive diagnosis only for this flagged topic until the correct current phase is clear."
+              : "Run the single verification block exactly as shown, score it honestly, and let the system decide whether the inherited state holds."}
+          </li>
         </ul>
       </div>
       )}
@@ -1353,7 +1609,9 @@ export default function IntroSessionDrillRunner() {
         ))}
       </form>
         </>
+        )
       )}
+      {(!((isAdaptiveDiagnosisMode || isHandoverMode) && !submitSuccess && !prepReady)) && (
       <div className="mt-6 flex justify-end">
         {!submitSuccess && (
           <button
@@ -1377,8 +1635,10 @@ export default function IntroSessionDrillRunner() {
             ? "Submitted"
             : submitting
             ? "Submitting..."
-            : isAdaptiveDiagnosisMode && isLastRep
+            : isAdaptiveVerificationFlow && isLastRep
             ? "Verify Phase"
+            : isHandoverMode && isLastSet && isLastRep
+            ? "Submit Verification"
             : isLastSet && isLastRep
             ? "Submit Drill"
             : set?.isModelingSet && isLastRep
@@ -1386,6 +1646,7 @@ export default function IntroSessionDrillRunner() {
             : "Next"}
         </button>
       </div>
+      )}
       {submitSuccess && (
         <div className="mt-4 flex flex-wrap gap-2 justify-end">
           <button

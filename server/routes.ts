@@ -253,7 +253,7 @@ function shouldReconcileSessionArtifacts(session: any) {
   return endMs <= Date.now() && hasPendingArtifacts;
 }
 
-function getSessionLaunchState(session: any, kind: "intro" | "training") {
+function getSessionLaunchState(session: any, kind: "intro" | "handover" | "training") {
   const startMs = new Date(session?.scheduled_time || 0).getTime();
   const endMs = new Date(getScheduledSessionEndIso(session)).getTime();
   const nowMs = Date.now();
@@ -263,7 +263,7 @@ function getSessionLaunchState(session: any, kind: "intro" | "training") {
   const allowedStatuses = new Set(["confirmed", "scheduled", "ready", "live"]);
   const hasOperationalStatus = allowedStatuses.has(String(session?.status || ""));
 
-  if (kind === "intro") {
+  if (kind === "intro" || kind === "handover") {
     return {
       canLaunch: hasOperationalStatus,
       isLive,
@@ -418,7 +418,7 @@ function getMeetSyncResponsePayload(syncResult: any) {
 async function resolveTutorScheduledSession(
   tutorId: string,
   studentId: string,
-  kind: "intro" | "training",
+  kind: "intro" | "handover" | "training",
   sessionId?: string | null
 ) {
   let query = supabase
@@ -906,6 +906,122 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return null;
           };
 
+          const reduceHandoverStability = (stability: TopicStability): TopicStability => {
+            if (stability === "High Maintenance") return "High";
+            if (stability === "High") return "Medium";
+            if (stability === "Medium") return "Low";
+            return "Low";
+          };
+
+          const computeHandoverVerificationSummary = (
+            phase: TopicPhase,
+            previousStability: TopicStability,
+            observations: Array<Record<string, string>>
+          ) => {
+            const phaseSummary = computeAdaptiveDiagnosisPhaseSummary(phase, observations);
+            const verificationScore = phaseSummary.phaseScore;
+
+            let verificationOutcome:
+              | "hold"
+              | "stability_adjust"
+              | "targeted_re_diagnosis_required" = "hold";
+            let confidence: "low" | "normal" | "strong" = "normal";
+            let resultingPhase: TopicPhase = phase;
+            let resultingStability: TopicStability = previousStability;
+
+            if (verificationScore <= 39) {
+              verificationOutcome = "targeted_re_diagnosis_required";
+              confidence = "low";
+            } else if (verificationScore <= 59) {
+              verificationOutcome = "stability_adjust";
+              resultingStability = reduceHandoverStability(previousStability);
+            } else if (verificationScore <= 84) {
+              verificationOutcome = "hold";
+              confidence = "normal";
+            } else {
+              verificationOutcome = "hold";
+              confidence = "strong";
+            }
+
+            const nextActionConfig =
+              verificationOutcome === "targeted_re_diagnosis_required"
+                ? null
+                : (NEXT_ACTION_ENGINE as any)?.[resultingPhase]?.[resultingStability] || null;
+
+            const verificationOutcomeLabel =
+              verificationOutcome === "targeted_re_diagnosis_required"
+                ? "Targeted re-diagnosis required"
+                : verificationOutcome === "stability_adjust"
+                  ? "Stability adjust"
+                  : confidence === "strong"
+                    ? "Hold with strong confidence"
+                    : "Hold";
+
+            const nextAction =
+              verificationOutcome === "targeted_re_diagnosis_required"
+                ? "Run targeted re-diagnosis on this topic before standard training resumes."
+                : verificationOutcome === "stability_adjust"
+                  ? `Adjust stability to ${resultingStability} and continue with reinforcement from the current phase.`
+                  : nextActionConfig?.primaryAction || "Continue training from the inherited state.";
+
+            const constraint =
+              verificationOutcome === "targeted_re_diagnosis_required"
+                ? "Do not resume normal training until targeted re-diagnosis is completed."
+                : nextActionConfig?.rules?.[0] || null;
+
+            return {
+              phase,
+              previousStability,
+              verificationScore,
+              verificationOutcome,
+              verificationOutcomeLabel,
+              confidence,
+              resultingPhase,
+              resultingStability,
+              reDiagnosisRequired: verificationOutcome === "targeted_re_diagnosis_required",
+              nextAction,
+              constraint,
+              repRows: phaseSummary.repRows,
+            };
+          };
+
+          const computeHandoverRediagnosisSummary = (
+            startingPhase: TopicPhase,
+            previousStability: TopicStability,
+            blocks: Array<{
+              phase: TopicPhase;
+              setName: string;
+              observations: Array<Record<string, string>>;
+            }>
+          ) => {
+            const diagnosisSummary = computeAdaptiveDiagnosisSummary(startingPhase, blocks);
+            const nextActionConfig =
+              (NEXT_ACTION_ENGINE as any)?.[diagnosisSummary.phase]?.[diagnosisSummary.stability] || null;
+
+            return {
+              phase: startingPhase,
+              previousStability,
+              verificationScore: diagnosisSummary.diagnosisScore,
+              verificationOutcome: "targeted_re_diagnosis_completed" as const,
+              verificationOutcomeLabel: "Targeted re-diagnosis completed",
+              confidence: "normal" as const,
+              resultingPhase: diagnosisSummary.phase,
+              resultingStability: diagnosisSummary.stability as TopicStability,
+              reDiagnosisRequired: false,
+              nextAction:
+                diagnosisSummary.nextAction ||
+                nextActionConfig?.primaryAction ||
+                "Continue from the re-diagnosed topic state.",
+              constraint: diagnosisSummary.constraint || nextActionConfig?.rules?.[0] || null,
+              repRows: diagnosisSummary.phaseChecks.flatMap((check: any) => check.repRows),
+              startingPhase: diagnosisSummary.startingPhase,
+              pathLength: diagnosisSummary.pathLength,
+              phaseChecks: diagnosisSummary.phaseChecks,
+              finalBand: diagnosisSummary.finalBand,
+              finalBandLabel: diagnosisSummary.finalBandLabel,
+            };
+          };
+
           const computeTrainingSessionSummary = (
             observedPhase: "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability",
             previousStability: "Low" | "Medium" | "High" | "High Maintenance",
@@ -1087,9 +1203,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             if (!parsed || typeof parsed !== "object") return null;
 
-            const drillType = String(parsed.drillType || "diagnosis").toLowerCase() === "training"
-              ? "training"
-              : "diagnosis";
+            const normalizedDrillType = String(parsed.drillType || "diagnosis").trim().toLowerCase();
+            const drillType =
+              normalizedDrillType === "training"
+                ? "training"
+                : normalizedDrillType === "handover_verification"
+                  ? "handover_verification"
+                  : "diagnosis";
+
+            if (drillType === "handover_verification") {
+              return null;
+            }
 
             if (drillType === "diagnosis") {
               const topic = String(parsed.introTopic || parsed.trainingTopic || "").trim();
@@ -2542,6 +2666,254 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           });
 
+          app.post("/api/tutor/handover-verification-drill", isAuthenticated, requireRole(["tutor"]), async (req: Request, res: Response) => {
+            try {
+              const tutorId = (req as any).dbUser.id;
+              const {
+                studentId,
+                drill,
+                handoverTopic,
+                phase: rawPhase,
+                startingPhase: rawStartingPhase,
+                stability: rawStability,
+                adaptiveBlocks: rawAdaptiveBlocks,
+                scheduledSessionId,
+                rediagnosis,
+              } = req.body;
+              const handoverBlocks = normalizeAdaptiveDiagnosisBlocks(
+                Array.isArray(drill)
+                  ? drill.map((set: any) => ({
+                      phase: rawPhase,
+                      setName: set?.setName,
+                      observations: set?.observations,
+                    }))
+                  : []
+              );
+              const adaptiveBlocks = normalizeAdaptiveDiagnosisBlocks(rawAdaptiveBlocks);
+              const isTargetedRediagnosis = !!rediagnosis || adaptiveBlocks.length > 0;
+              const verificationBlocks = isTargetedRediagnosis ? adaptiveBlocks : handoverBlocks;
+              const verificationPhase = parseAuthoritativePhase(rawPhase);
+              const startingPhase = parseAuthoritativePhase(rawStartingPhase) || verificationPhase;
+              const previousStability = normalizeStability(rawStability || "Low");
+              const normalizedTopic = String(handoverTopic || "").trim();
+
+              if (!studentId || verificationBlocks.length === 0) {
+                return res.status(400).json({ message: "Missing or invalid studentId or verification drill data" });
+              }
+              if (!verificationPhase) {
+                return res.status(400).json({ message: "Handover verification requires a valid inherited phase" });
+              }
+              if (isTargetedRediagnosis && !startingPhase) {
+                return res.status(400).json({ message: "Targeted re-diagnosis requires a valid starting phase" });
+              }
+              if (!normalizedTopic) {
+                return res.status(400).json({ message: "Handover verification topic is required" });
+              }
+              if (!isTargetedRediagnosis && verificationBlocks.length !== 1) {
+                return res.status(400).json({ message: "Handover verification must submit exactly one phase verification block" });
+              }
+
+              const verificationValidationError = isTargetedRediagnosis
+                ? validateAdaptiveDiagnosisBlocks(verificationBlocks)
+                : validateAdaptiveDiagnosisBlocks(verificationBlocks);
+              if (verificationValidationError) {
+                return res.status(400).json({ message: verificationValidationError });
+              }
+
+              const student = await storage.getStudent(studentId);
+              if (!student || student.tutorId !== tutorId) {
+                return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
+              }
+
+              const assignmentAccepted = await isTutorAssignmentAcceptedForStudent(student, tutorId);
+              if (!assignmentAccepted) {
+                return res.status(403).json({ message: "Accept this assignment before running handover verification." });
+              }
+
+              const workflow = ((student.personalProfile as any) || {}).workflow || {};
+              if (!workflow.handoverRequiredAt || workflow.handoverCompletedAt) {
+                return res.status(400).json({ message: "This student is not currently in handover verification." });
+              }
+
+              const { session: scheduledSession, error: scheduledSessionError } = await resolveTutorScheduledSession(
+                tutorId,
+                studentId,
+                "handover",
+                typeof scheduledSessionId === "string" ? scheduledSessionId : null
+              );
+              if (scheduledSessionError) {
+                return res.status(500).json({ message: "Failed to validate handover session context" });
+              }
+              if (!scheduledSession) {
+                return res.status(400).json({ message: "A confirmed continuity check session is required before handover verification can submit." });
+              }
+
+              const handoverLaunch = getSessionLaunchState(scheduledSession, "handover");
+              if (!handoverLaunch.canLaunch) {
+                return res.status(400).json({ message: "Handover verification is blocked until the continuity check session is confirmed." });
+              }
+
+              let handoverSummary:
+                | ReturnType<typeof computeHandoverVerificationSummary>
+                | ReturnType<typeof computeHandoverRediagnosisSummary>;
+              let verificationBlock = verificationBlocks[0];
+
+              if (isTargetedRediagnosis) {
+                const adaptiveSummary = computeAdaptiveDiagnosisSummary(startingPhase!, verificationBlocks);
+                const adaptivePathError = validateAdaptiveDiagnosisPath(startingPhase!, adaptiveSummary);
+                if (adaptivePathError) {
+                  return res.status(400).json({ message: adaptivePathError });
+                }
+                handoverSummary = computeHandoverRediagnosisSummary(
+                  startingPhase!,
+                  previousStability,
+                  verificationBlocks
+                );
+              } else {
+                handoverSummary = computeHandoverVerificationSummary(
+                  verificationPhase,
+                  previousStability,
+                  verificationBlock.observations
+                );
+              }
+
+              const id = uuidv4();
+              const { data: inserted, error } = await supabase
+                .from("intro_session_drills")
+                .insert({
+                  id,
+                  student_id: studentId,
+                  tutor_id: tutorId,
+                  drill: JSON.stringify({
+                    handoverTopic: normalizedTopic,
+                    phase: verificationPhase,
+                    startingPhase: startingPhase,
+                    previousStability,
+                    drillType: "handover_verification",
+                    handoverMode: isTargetedRediagnosis ? "targeted_re_diagnosis" : "verification",
+                    scheduledSessionId: scheduledSession.id,
+                    sets: verificationBlocks,
+                    summary: handoverSummary,
+                  }),
+                  scheduled_session_id: scheduledSession.id,
+                  submitted_at: new Date().toISOString(),
+                })
+                .select()
+                .single();
+              if (error) {
+                console.error("Error inserting handover verification drill:", error);
+                return res.status(500).json({ message: "Failed to store handover verification results" });
+              }
+
+              const conceptMastery: any =
+                student.conceptMastery && typeof student.conceptMastery === "object"
+                  ? { ...(student.conceptMastery as any) }
+                  : {};
+              const topicConditioningStore: any =
+                conceptMastery.topicConditioning && typeof conceptMastery.topicConditioning === "object"
+                  ? { ...conceptMastery.topicConditioning }
+                  : {};
+              const topicsStore: Record<string, any> =
+                topicConditioningStore.topics && typeof topicConditioningStore.topics === "object"
+                  ? { ...topicConditioningStore.topics }
+                  : {};
+              const existingTopic = topicsStore[normalizedTopic] && typeof topicsStore[normalizedTopic] === "object"
+                ? topicsStore[normalizedTopic]
+                : {};
+              const existingHistory = Array.isArray(existingTopic.history) ? [...existingTopic.history] : [];
+              const nowIso = new Date().toISOString();
+
+              topicsStore[normalizedTopic] = {
+                ...existingTopic,
+                topic: normalizedTopic,
+                phase: handoverSummary.resultingPhase,
+                stability: handoverSummary.resultingStability,
+                lastUpdated: nowIso,
+                nextAction: handoverSummary.nextAction,
+                observationNotes: [
+                  `Handover Verification Score: ${handoverSummary.verificationScore}`,
+                  `Outcome: ${handoverSummary.verificationOutcomeLabel}`,
+                  handoverSummary.constraint ? `Constraint: ${handoverSummary.constraint}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" | "),
+                history: [
+                  ...existingHistory,
+                  {
+                    date: nowIso,
+                    phase: handoverSummary.resultingPhase,
+                    stability: handoverSummary.resultingStability,
+                    nextAction: handoverSummary.nextAction,
+                    observationNotes: `Handover verification update. Score ${handoverSummary.verificationScore}.`,
+                    structuredObservation: {
+                      drillType: "handover_verification",
+                      handoverMode: isTargetedRediagnosis ? "targeted_re_diagnosis" : "verification",
+                      observedPhase: handoverSummary.phase,
+                      previousStability: handoverSummary.previousStability,
+                      verificationScore: handoverSummary.verificationScore,
+                      verificationOutcome: handoverSummary.verificationOutcome,
+                      verificationOutcomeLabel: handoverSummary.verificationOutcomeLabel,
+                      verificationConfidence: handoverSummary.confidence,
+                      resultingPhase: handoverSummary.resultingPhase,
+                      resultingStability: handoverSummary.resultingStability,
+                      reDiagnosisRequired: handoverSummary.reDiagnosisRequired,
+                      nextAction: handoverSummary.nextAction,
+                      constraint: handoverSummary.constraint,
+                    },
+                    drillId: inserted.id,
+                  },
+                ].slice(-60),
+              };
+
+              topicConditioningStore.topics = topicsStore;
+              topicConditioningStore.lastUpdatedAt = nowIso;
+              conceptMastery.topicConditioning = topicConditioningStore;
+
+              await storage.updateStudent(studentId, { conceptMastery });
+
+              await supabase
+                .from("scheduled_sessions")
+                .update({
+                  status: "completed",
+                  attendance_status: "both_joined",
+                  recording_status: scheduledSession.recording_file_id ? "recording_uploaded" : "recording_required",
+                  transcript_status: "manual_not_tracked",
+                  updated_at: new Date().toISOString(),
+                })
+                .eq("id", scheduledSession.id);
+
+              const scoring = handoverSummary.repRows.map((row) => ({
+                set: verificationBlocks[0]?.setName || verificationBlock?.setName || "Verification Block",
+                rep: row.rep,
+                score: row.repScore,
+                setScore: handoverSummary.verificationScore,
+                setPoints: handoverSummary.verificationScore,
+                setMaxPoints: 100,
+                sessionScore: handoverSummary.verificationScore,
+                phase: handoverSummary.phase,
+                stability: handoverSummary.resultingStability,
+                previousStability: handoverSummary.previousStability,
+                verificationOutcome: handoverSummary.verificationOutcome,
+                verificationOutcomeLabel: handoverSummary.verificationOutcomeLabel,
+                confidence: handoverSummary.confidence,
+                reDiagnosisRequired: handoverSummary.reDiagnosisRequired,
+                nextAction: handoverSummary.nextAction,
+                constraint: handoverSummary.constraint,
+              }));
+
+              res.json({
+                success: true,
+                id: inserted.id,
+                handoverTopic: normalizedTopic,
+                scoring,
+                summary: handoverSummary,
+              });
+            } catch (err) {
+              console.error("Exception in handover verification submission:", err);
+              res.status(500).json({ message: "Internal server error" });
+            }
+          });
+
           app.post("/api/tutor/training-session-drill", isAuthenticated, requireRole(["tutor"]), async (req: Request, res: Response) => {
             try {
               const tutorId = (req as any).dbUser.id;
@@ -3287,6 +3659,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
               resolvedSession = refreshedSession;
             }
           }
+          let latestHandoverVerification: any = null;
+          if (sessionType === "handover") {
+            const { data: handoverDrillRows } = await supabase
+              .from("intro_session_drills")
+              .select("id, drill, submitted_at")
+              .eq("student_id", studentId)
+              .eq("tutor_id", dbUser.id)
+              .eq("scheduled_session_id", resolvedSession.id)
+              .order("submitted_at", { ascending: false })
+              .limit(5);
+
+            const parsedLatest = (handoverDrillRows || [])
+              .map((row: any) => {
+                try {
+                  const parsed = row?.drill && typeof row.drill === "object"
+                    ? row.drill
+                    : JSON.parse(typeof row?.drill === "string" ? row.drill : "{}");
+                  if (String(parsed?.drillType || "").trim().toLowerCase() !== "handover_verification") {
+                    return null;
+                  }
+                  return {
+                    id: row.id,
+                    submitted_at: row.submitted_at,
+                    topic: parsed?.handoverTopic || null,
+                    phase: parsed?.phase || null,
+                    startingPhase: parsed?.startingPhase || null,
+                    handoverMode: parsed?.handoverMode || "verification",
+                    summary: parsed?.summary || null,
+                  };
+                } catch {
+                  return null;
+                }
+              })
+              .filter(Boolean)[0] || null;
+
+            latestHandoverVerification = parsedLatest;
+          }
           res.json({
             id: resolvedSession.id,
             scheduled_time: resolvedSession.scheduled_time,
@@ -3300,6 +3709,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             transcript_status: resolvedSession.transcript_status,
             created_at: resolvedSession.created_at,
             updated_at: resolvedSession.updated_at,
+            latestHandoverVerification,
             debug: {
               tutor_id: resolvedSession.tutor_id,
               student_id: resolvedSession.student_id,
@@ -5232,7 +5642,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const { studentId } = req.params;
         const tutorId = (req as any).dbUser.id;
-        const kind = req.query.kind === "training" ? "training" : "intro";
+        const kind =
+          req.query.kind === "training"
+            ? "training"
+            : req.query.kind === "handover"
+              ? "handover"
+              : "intro";
         const sessionId = typeof req.query.sessionId === "string" ? req.query.sessionId : null;
         const operationalMode = await getTutorOperationalMode(tutorId);
 
@@ -5283,7 +5698,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             message:
               kind === "training"
                 ? "Create or attach a TT training lesson before opening the drill runner."
-                : "A confirmed intro session is required before opening the intro drill.",
+                : kind === "handover"
+                  ? "A confirmed continuity check session is required before opening handover verification."
+                  : "A confirmed intro session is required before opening the intro drill.",
           });
         }
 
@@ -5294,7 +5711,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             message:
               kind === "training"
                 ? "Training drills must launch from an active or imminently scheduled TT lesson."
-                : "Intro drills must launch from a confirmed TT intro session.",
+                : kind === "handover"
+                  ? "Handover verification must launch from a confirmed continuity check session."
+                  : "Intro drills must launch from a confirmed TT intro session.",
             session: {
               ...session,
               launch,
@@ -8388,6 +8807,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (!["confirmed", "ready", "live", "completed"].includes(String(handoverSession?.status || ""))) {
           return res.status(400).json({ message: "Handover session must be confirmed before completing verification." });
+        }
+
+        const { data: handoverDrillRows, error: handoverDrillError } = await supabase
+          .from("intro_session_drills")
+          .select("id, drill, scheduled_session_id, submitted_at")
+          .eq("student_id", studentId)
+          .eq("tutor_id", dbUser.id)
+          .eq("scheduled_session_id", handoverSession.id)
+          .order("submitted_at", { ascending: false });
+
+        if (handoverDrillError) {
+          return res.status(500).json({ message: "Failed to validate handover verification evidence." });
+        }
+
+        const latestHandoverVerification = (handoverDrillRows || [])
+          .map((row: any) => {
+            try {
+              const parsed = row?.drill && typeof row.drill === "object"
+                ? row.drill
+                : JSON.parse(typeof row?.drill === "string" ? row.drill : "{}");
+              if (String(parsed?.drillType || "").trim().toLowerCase() !== "handover_verification") {
+                return null;
+              }
+              return {
+                id: row.id,
+                submitted_at: row.submitted_at,
+                handoverMode: parsed?.handoverMode || "verification",
+                summary: parsed?.summary || null,
+              };
+            } catch {
+              return null;
+            }
+          })
+          .filter(Boolean)[0] || null;
+
+        if (!latestHandoverVerification) {
+          return res.status(400).json({ message: "Run and submit handover verification before marking continuity check complete." });
+        }
+
+        if (latestHandoverVerification.summary?.reDiagnosisRequired) {
+          return res.status(400).json({ message: "Targeted re-diagnosis is required before continuity check can be completed." });
         }
 
         const updatedProfile = {
