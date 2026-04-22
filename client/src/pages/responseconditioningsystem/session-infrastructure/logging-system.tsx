@@ -51,6 +51,14 @@ type DemoAdaptiveStep = {
   nextPhase: PhaseLabel | null;
 };
 
+type DemoAdaptiveTransition = {
+  currentPhase: PhaseLabel;
+  nextPhase: PhaseLabel;
+  phaseScore: number;
+  direction: "escalate" | "de-escalate";
+  currentStep: DemoAdaptiveStep;
+};
+
 type DemoPrepPlan = {
   title: string;
   drillType: string;
@@ -975,6 +983,7 @@ function DemoRunnerOverlay({
   const [prepComplete, setPrepComplete] = useState(false);
   const [adaptiveTrail, setAdaptiveTrail] = useState<DemoAdaptiveStep[]>([]);
   const [adaptiveMessage, setAdaptiveMessage] = useState<string | null>(null);
+  const [adaptiveTransition, setAdaptiveTransition] = useState<DemoAdaptiveTransition | null>(null);
   const [finalSummary, setFinalSummary] = useState<DemoSummary | null>(null);
   const displayPhase = mode === "diagnosis" ? activeDiagnosisPhase : phase;
   const drillStructure =
@@ -993,6 +1002,7 @@ function DemoRunnerOverlay({
     setPrepComplete(false);
     setAdaptiveTrail([]);
     setAdaptiveMessage(null);
+    setAdaptiveTransition(null);
     setFinalSummary(null);
   }, [open, phase, mode]);
 
@@ -1037,6 +1047,9 @@ function DemoRunnerOverlay({
   };
 
   const handleObservation = (fieldKey: string, option: string) => {
+    if (adaptiveTransition) {
+      setAdaptiveTransition(null);
+    }
     setObservations((prev) => ({
       ...prev,
       [observationKey(currentSet, currentRep, fieldKey)]: option,
@@ -1044,6 +1057,11 @@ function DemoRunnerOverlay({
   };
 
   const handleBack = () => {
+    if (adaptiveTransition) {
+      setAdaptiveTransition(null);
+      setAdaptiveMessage(null);
+      return;
+    }
     if (submitSuccess) {
       setSubmitSuccess(false);
       setFinalSummary(null);
@@ -1059,6 +1077,23 @@ function DemoRunnerOverlay({
     const previousSet = drillStructure[currentSet - 1];
     setCurrentSet((prev) => prev - 1);
     setCurrentRep(previousSet.reps - 1);
+  };
+
+  const handleContinueAdaptiveTransition = () => {
+    if (!adaptiveTransition) return;
+    setAdaptiveTrail((prev) => [...prev, adaptiveTransition.currentStep]);
+    setAdaptiveMessage(
+      `${adaptiveTransition.currentPhase} scored ${adaptiveTransition.phaseScore}/100. ${
+        adaptiveTransition.direction === "escalate"
+          ? `Moving up to ${adaptiveTransition.nextPhase}.`
+          : `Dropping to ${adaptiveTransition.nextPhase}.`
+      }`,
+    );
+    setActiveDiagnosisPhase(adaptiveTransition.nextPhase);
+    setCurrentSet(0);
+    setCurrentRep(0);
+    setObservations({});
+    setAdaptiveTransition(null);
   };
 
   const handleNext = () => {
@@ -1084,16 +1119,13 @@ function DemoRunnerOverlay({
         const nextTrail = [...adaptiveTrail, currentStep];
 
         if (nextPhase && phaseSummary.band !== "place") {
-          setAdaptiveTrail(nextTrail);
-          setAdaptiveMessage(
-            `${displayPhase} scored ${phaseSummary.phaseScore}/100. ${
-              phaseSummary.band === "escalate" ? `Moving up to ${nextPhase}.` : `Dropping to ${nextPhase}.`
-            }`,
-          );
-          setActiveDiagnosisPhase(nextPhase);
-          setCurrentSet(0);
-          setCurrentRep(0);
-          setObservations({});
+          setAdaptiveTransition({
+            currentPhase: displayPhase,
+            nextPhase,
+            phaseScore: phaseSummary.phaseScore,
+            direction: phaseSummary.band === "escalate" ? "escalate" : "de-escalate",
+            currentStep,
+          });
           return;
         }
 
@@ -1250,7 +1282,35 @@ function DemoRunnerOverlay({
                     {adaptiveMessage}
                   </div>
                 )}
-                {isFirstSet && isFirstRep && (
+                {adaptiveTransition && mode === "diagnosis" && (
+                  <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-5 space-y-4">
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">System Transition</p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        The current phase block is complete. Review the decision before opening the next diagnosis block.
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-primary/15 bg-background/80 p-4 space-y-2 text-sm">
+                      <p>
+                        <span className="font-medium text-foreground">Current Phase:</span> {adaptiveTransition.currentPhase}
+                      </p>
+                      <p>
+                        <span className="font-medium text-foreground">Phase Score:</span> {adaptiveTransition.phaseScore}/100
+                      </p>
+                      <p>
+                        <span className="font-medium text-foreground">System Decision:</span>{" "}
+                        {adaptiveTransition.direction === "escalate"
+                          ? `Move up to ${adaptiveTransition.nextPhase}`
+                          : `Drop to ${adaptiveTransition.nextPhase}`}
+                      </p>
+                      <p>
+                        <span className="font-medium text-foreground">What happens next:</span>{" "}
+                        The demo will reset and open the {adaptiveTransition.nextPhase} diagnosis block.
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {!adaptiveTransition && isFirstSet && isFirstRep && (
                   <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm">
                     <div className="mb-1 font-semibold text-foreground">Phase: {displayPhase}</div>
                     <div className="mb-2 text-xs text-muted-foreground">{PHASE_CONTEXT[displayPhase].purpose}</div>
@@ -1267,7 +1327,7 @@ function DemoRunnerOverlay({
                   </div>
                 )}
 
-                {isModelingSet && (
+                {!adaptiveTransition && isModelingSet && (
                   <div className="mb-4 rounded-xl border border-primary/25 bg-primary/10 p-4">
                     <div className="mb-1 text-sm font-bold text-foreground">MODELING STEP</div>
                     <div className="text-xs leading-relaxed text-muted-foreground">
@@ -1280,6 +1340,7 @@ function DemoRunnerOverlay({
                   </div>
                 )}
 
+                {!adaptiveTransition && (
                 <div className="mb-4 rounded-xl border border-primary/15 bg-background p-3 shadow-sm">
                   <div className="mb-2 flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm font-semibold">
@@ -1305,7 +1366,9 @@ function DemoRunnerOverlay({
                     ))}
                   </div>
                 </div>
+                )}
 
+                {!adaptiveTransition && (
                 <form className="space-y-4">
                   {fields.length === 0 && (
                     <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-sm">
@@ -1346,6 +1409,7 @@ function DemoRunnerOverlay({
                     );
                   })}
                 </form>
+                )}
               </>
             ) : (
               <div className="mb-6 space-y-4">
@@ -1493,11 +1557,21 @@ function DemoRunnerOverlay({
                       setPrepComplete(true);
                       return;
                     }
+                    if (adaptiveTransition) {
+                      handleContinueAdaptiveTransition();
+                      return;
+                    }
                     handleNext();
                   }}
-                  disabled={prepComplete ? !canAdvance : false}
+                  disabled={prepComplete ? (!adaptiveTransition && !canAdvance) : false}
                 >
-                  {!prepComplete ? "Start Demo Drill" : isLastSet && isLastRep ? "Submit Demo Drill" : "Next"}
+                  {!prepComplete
+                    ? "Start Demo Drill"
+                    : adaptiveTransition
+                      ? `Continue to ${adaptiveTransition.nextPhase}`
+                      : isLastSet && isLastRep
+                        ? "Submit Demo Drill"
+                        : "Next"}
                 </Button>
               )}
             </div>
