@@ -3,42 +3,65 @@ import { ArrowLeft, Workflow } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
-const sessionTypes = [
+const sessionContexts = [
   {
-    title: "Adaptive Intro Diagnosis",
-    purpose: "This is how the training journey begins. The system verifies starting phase and stops when placement is found.",
-    notFor: "Do not turn this into a teaching session.",
+    title: "Intro",
+    purpose: "The session exists to place topic-entry state. This is where the system determines where a topic should begin.",
+    defaultDrill: "Diagnosis only",
+    notFor: "Do not treat intro as normal training. You are placing, not training.",
   },
   {
     title: "Active Training",
-    purpose: "The system runs a drill matched to the student's current topic, phase, and stability. The tutor prepares exactly what the drill requires and records observations.",
-    notFor: "Do not choose drills from tutor judgment. Do not re-place the student every session.",
+    purpose: "The session exists to train the student's current topics using the system-selected drill for the current phase and state.",
+    defaultDrill: "Training by default, diagnosis only when a newly activated topic needs entry placement",
+    notFor: "Do not re-place existing topics every session. Do not pick drills from tutor instinct.",
   },
   {
     title: "Tutor Handover Verification",
-    purpose: "This is what happens if a tutor is replaced and a new tutor is assigned. The system verifies inherited topic-state before training continues.",
-    notFor: "Do not treat this like a fresh intro or a reset.",
+    purpose: "The session exists to verify inherited topic-state after tutor replacement so training can continue cleanly.",
+    defaultDrill: "Verification only",
+    notFor: "Do not treat handover like a fresh intro and do not jump straight into normal training without verification.",
+  },
+];
+
+const drillTypes = [
+  {
+    title: "Diagnosis",
+    purpose: "Use diagnosis when a topic needs entry placement.",
+    usage: "This is the drill type used in intro and whenever a newly activated topic appears during active training.",
+  },
+  {
+    title: "Training",
+    purpose: "Use training drills when the topic has already been placed and the system is conditioning performance.",
+    usage: "This is the default drill type inside active training.",
+  },
+  {
+    title: "Verification",
+    purpose: "Use verification when the system needs to confirm that inherited topic-state is still trustworthy.",
+    usage: "This is the drill type used in tutor handover.",
   },
 ];
 
 const activeTrainingFlow = [
-  "The system selects the drill based on the student's topic, phase, and stability.",
-  "The tutor reviews the session instructions and prepares the required problem type and count.",
+  "The system identifies the current topic, phase, and stability.",
+  "The system selects the training drill for that state.",
   "The tutor runs the drill exactly as written.",
   "The tutor records only what the student actually does.",
-  "The system uses those observations to determine the next step.",
+  "If a new topic is activated, that topic may need diagnosis before training continues on it.",
+  "The system uses the observations to determine the next step.",
 ];
 
 const introFlow = [
-  "Start from the recommended phase.",
-  "Run one verification block.",
+  "Identify the topic that is entering the system.",
+  "Start from the recommended entry point.",
+  "Run one diagnosis block.",
   "Score the block.",
-  "Escalate, de-escalate, or stop.",
+  "Escalate, de-escalate, or stop when placement is clear.",
 ];
 
-const handoverFlow = [
+const verificationFlow = [
   "Review inherited topic, phase, and stability.",
-  "Run the continuity check.",
+  "Run the verification block.",
   "Verify whether the carry-over state still holds.",
   "Either continue, adjust, or trigger more targeted verification.",
 ];
@@ -47,21 +70,25 @@ const phaseTrainingNotes = [
   {
     title: "Clarity training",
     detail:
-      "Clarity is where vocabulary, method, reason, and the main MAG-style teaching loop are most visible. This is the phase where teaching structure is most explicit.",
+      "Clarity is where vocabulary, method, reason, and the main Model -> Apply -> Guide teaching loop are most visible. This is the training phase where teaching structure is most explicit.",
   },
   {
     title: "Execution phases",
     detail:
-      "Structured Execution, Controlled Discomfort, and Time Pressure Stability are execution training phases. The tutor is mainly running the drill conditions, holding the rules, and logging what happens.",
+      "Structured Execution, Controlled Discomfort, and Time Pressure Stability are training phases. Here the tutor is mainly running the drill conditions, holding the rules, and logging what happens.",
   },
 ];
 
 const guardrails = [
+  "Session context and drill type are not the same thing.",
+  "Diagnosis is topic-entry placement, not general training.",
+  "Intro uses diagnosis because intro is for placement.",
+  "Handover uses verification because handover is for trust-checking inherited state.",
+  "Active training mainly uses training drills, but a newly activated topic may still need diagnosis.",
   "The system chooses the drill. The tutor does not pick drills from preference or instinct.",
-  "Model -> Apply -> Guide is mainly a Clarity teaching structure, not a universal law for every phase.",
-  "Boss Battles are not used in every training drill and not used in every session type.",
+  "Model -> Apply -> Guide is mainly a Clarity training structure, not a universal law for every phase.",
+  "Boss Battles are not used in every training drill and not used in every drill type.",
   "Timed pressure belongs only when the current phase and drill design require it.",
-  "Verification sessions stay light. Training sessions follow the drill rules for that phase.",
 ];
 
 export default function ResponseConditioningSessionFlowControl() {
@@ -89,7 +116,7 @@ export default function ResponseConditioningSessionFlowControl() {
                 TT-OS Deep Dive
               </p>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-1">
-                Session Flow Control
+                Session Context and Drill Flow
               </h1>
               <p className="text-muted-foreground mt-1">under Session Infrastructure</p>
             </div>
@@ -99,31 +126,99 @@ export default function ResponseConditioningSessionFlowControl() {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-8">
         <Card className="p-6 space-y-4 border-2 border-primary/20 bg-primary/5">
-          <h2 className="text-2xl font-bold">Start With Session Type</h2>
+          <h2 className="text-2xl font-bold">Start With Session Context</h2>
           <p className="text-muted-foreground">
             The first question is always:
           </p>
-          <p className="text-lg font-semibold">What kind of session is this?</p>
+          <p className="text-lg font-semibold">What session context is this?</p>
           <p className="text-muted-foreground">
-            Once that is clear, the correct flow becomes obvious.
+            Session context tells you why the session exists. Drill type tells you what procedure you run inside that session.
           </p>
         </Card>
 
         <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">The Three Live Session Types</h2>
+          <h2 className="text-2xl font-bold">The Core Distinction</h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-xl border bg-card p-4 space-y-2">
+              <h3 className="text-lg font-semibold">Session Context</h3>
+              <p className="text-sm text-muted-foreground">
+                Session context answers: what is this session for?
+              </p>
+              <p className="text-sm text-muted-foreground">
+                The three session contexts are Intro, Active Training, and Tutor Handover Verification.
+              </p>
+            </div>
+            <div className="rounded-xl border bg-card p-4 space-y-2">
+              <h3 className="text-lg font-semibold">Drill Type</h3>
+              <p className="text-sm text-muted-foreground">
+                Drill type answers: what procedure am I running right now?
+              </p>
+              <p className="text-sm text-muted-foreground">
+                The three drill types are Diagnosis, Training, and Verification.
+              </p>
+            </div>
+          </div>
+          <p className="font-semibold">
+            Simple rule: session context sets the purpose. Drill type serves that purpose.
+          </p>
+        </Card>
+
+        <Card className="p-6 space-y-4">
+          <h2 className="text-2xl font-bold">The Three Core Session Contexts</h2>
           <div className="grid gap-4 md:grid-cols-3">
-            {sessionTypes.map((session) => (
-              <div key={session.title} className="rounded-xl border bg-card p-4 space-y-2">
-                <h3 className="text-lg font-semibold">{session.title}</h3>
-                <p className="text-sm text-muted-foreground">{session.purpose}</p>
-                <p className="text-sm font-medium">{session.notFor}</p>
+            {sessionContexts.map((context) => (
+              <div key={context.title} className="rounded-xl border bg-card p-4 space-y-2">
+                <h3 className="text-lg font-semibold">{context.title}</h3>
+                <p className="text-sm text-muted-foreground">{context.purpose}</p>
+                <p className="text-sm font-medium">{context.defaultDrill}</p>
+                <p className="text-sm font-medium">{context.notFor}</p>
               </div>
             ))}
           </div>
         </Card>
 
         <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">Adaptive Intro Diagnosis Flow</h2>
+          <h2 className="text-2xl font-bold">The Three Drill Types</h2>
+          <div className="grid gap-4 md:grid-cols-3">
+            {drillTypes.map((drill) => (
+              <div key={drill.title} className="rounded-xl border bg-card p-4 space-y-2">
+                <h3 className="text-lg font-semibold">{drill.title}</h3>
+                <p className="text-sm text-muted-foreground">{drill.purpose}</p>
+                <p className="text-sm font-medium">{drill.usage}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        <Card className="p-6 space-y-4">
+          <h2 className="text-2xl font-bold">How They Work Together</h2>
+          <div className="space-y-3">
+            <div className="rounded-xl border p-4">
+              <p className="font-semibold">Intro session</p>
+              <p className="text-sm text-muted-foreground">
+                Purpose: place topic-entry state. Drill type: diagnosis. This session is for placement, not training.
+              </p>
+            </div>
+            <div className="rounded-xl border p-4">
+              <p className="font-semibold">Tutor handover verification session</p>
+              <p className="text-sm text-muted-foreground">
+                Purpose: verify inherited state after tutor replacement. Drill type: verification. This session is for trust-checking, not fresh placement and not normal training.
+              </p>
+            </div>
+            <div className="rounded-xl border p-4">
+              <p className="font-semibold">Active training session</p>
+              <p className="text-sm text-muted-foreground">
+                Purpose: train current topics. Drill type: training by default. If a new topic is activated during training, that new topic may still require diagnosis for entry placement.
+              </p>
+            </div>
+          </div>
+          <p className="font-semibold">
+            Diagnosis can appear inside active training when a newly activated topic needs entry placement, but that does not turn the whole session into an intro session.
+          </p>
+        </Card>
+
+        <Card className="p-6 space-y-4">
+          <h2 className="text-2xl font-bold">Diagnosis Flow</h2>
           <ol className="space-y-1 pl-5 text-muted-foreground">
             {introFlow.map((step, index) => (
               <li key={step}>
@@ -132,7 +227,7 @@ export default function ResponseConditioningSessionFlowControl() {
             ))}
           </ol>
           <p className="font-semibold">
-            Intro is verification. It should end when placement is found.
+            Diagnosis is topic-entry placement. In intro, diagnosis is the whole session. During active training, diagnosis is only used when a newly activated topic needs entry placement.
           </p>
           <p className="text-sm text-muted-foreground">
             See <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/intro-session-structure">Intro Session Structure</Link> and{" "}
@@ -143,7 +238,7 @@ export default function ResponseConditioningSessionFlowControl() {
         <Card className="p-6 space-y-4">
           <h2 className="text-2xl font-bold">Active Training Flow</h2>
           <p className="text-muted-foreground">
-            Active training is system-led. The tutor is executing the drill that the system has already chosen.
+            Active training is system-led. The tutor is executing the training drill that the system has already chosen.
           </p>
           <ol className="space-y-1 pl-5 text-muted-foreground">
             {activeTrainingFlow.map((step, index) => (
@@ -155,7 +250,7 @@ export default function ResponseConditioningSessionFlowControl() {
         </Card>
 
         <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">How Training Differs By Phase</h2>
+          <h2 className="text-2xl font-bold">Training Phase Still Matters</h2>
           <div className="grid gap-4 md:grid-cols-2">
             {phaseTrainingNotes.map((note) => (
               <div key={note.title} className="rounded-xl border bg-card p-4">
@@ -165,8 +260,7 @@ export default function ResponseConditioningSessionFlowControl() {
             ))}
           </div>
           <p className="text-sm text-muted-foreground">
-            The tutor should not read every phase through the Clarity teaching lens. Once Clarity is locked,
-            the later phases are mainly execution conditioning.
+            Phase is a training variable, not a session-context variable. The tutor should not read every phase through the Clarity teaching lens. Once Clarity is locked, the later phases are mainly execution conditioning.
           </p>
           <p className="text-sm text-muted-foreground">
             See <Link className="underline underline-offset-2" to="/responseconditioningsystem/clarity">Clarity</Link>,{" "}
@@ -177,19 +271,18 @@ export default function ResponseConditioningSessionFlowControl() {
         </Card>
 
         <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">Tutor Handover Verification Flow</h2>
+          <h2 className="text-2xl font-bold">Verification Flow</h2>
           <p className="text-muted-foreground">
-            When a tutor is reassigned, the system should preserve continuity. The new tutor verifies
-            inherited state before normal training resumes.
+            When a tutor is reassigned, the system should preserve continuity. The new tutor verifies inherited state before normal training resumes.
           </p>
           <ol className="space-y-1 pl-5 text-muted-foreground">
-            {handoverFlow.map((step, index) => (
+            {verificationFlow.map((step, index) => (
               <li key={step}>
                 {index + 1}. {step}
               </li>
             ))}
           </ol>
-          <p className="font-semibold">Handover is verification, not re-onboarding.</p>
+          <p className="font-semibold">Handover is verification, not re-onboarding and not normal training.</p>
           <p className="text-sm text-muted-foreground">
             See <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/handover-verification">Handover Verification</Link> and{" "}
             <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/logging-system">Logging System</Link>.
@@ -210,15 +303,15 @@ export default function ResponseConditioningSessionFlowControl() {
           <div className="space-y-3">
             <div className="rounded-xl border p-4">
               <p className="font-semibold">If this is intro:</p>
-              <p className="text-sm text-muted-foreground">this is how the training journey begins, so verify starting phase</p>
+              <p className="text-sm text-muted-foreground">place topic-entry state, so run diagnosis and do not treat the session as training</p>
             </div>
             <div className="rounded-xl border p-4">
               <p className="font-semibold">If this is active training:</p>
-              <p className="text-sm text-muted-foreground">run the system-selected drill and record observations</p>
+              <p className="text-sm text-muted-foreground">run the system-selected training drill and record observations; if a new topic appears, that topic may need diagnosis</p>
             </div>
             <div className="rounded-xl border p-4">
               <p className="font-semibold">If this is handover:</p>
-              <p className="text-sm text-muted-foreground">this is what happens after tutor replacement, so verify inherited state and continue</p>
+              <p className="text-sm text-muted-foreground">verify inherited state after tutor replacement, then continue only when the carry-over state is trustworthy</p>
             </div>
           </div>
         </Card>
@@ -226,11 +319,10 @@ export default function ResponseConditioningSessionFlowControl() {
         <Card className="p-6 border-2 border-primary/20 space-y-4">
           <h2 className="text-2xl font-bold">Operational Standard</h2>
           <p className="text-muted-foreground">
-            Tutors should identify the session type, respect that session's purpose, and execute the
-            system path already defined for that student.
+            Tutors should identify the session context first, then run the drill type that serves that context.
           </p>
           <p className="font-semibold">
-            The cleaner the session purpose, the cleaner the tutor execution.
+            Extreme clarity comes from keeping purpose and procedure separate: session context defines why the session exists, and drill type defines what is run.
           </p>
         </Card>
       </div>
