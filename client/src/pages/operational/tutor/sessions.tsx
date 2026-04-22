@@ -154,7 +154,7 @@ export default function TutorSessions() {
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Sessions</h1>
             <p className="text-sm text-muted-foreground mt-1">
               {operationalMode === "training"
-                ? "Training mode is active. Live scheduling and Google Meet windows are hidden for this tutor."
+                ? "Training mode is active. Live scheduling and Google Meet lesson windows are hidden for you."
                 : "Weekly tutor schedule from the live TT planning table."}
             </p>
           </div>
@@ -175,10 +175,7 @@ export default function TutorSessions() {
           <Card className="p-5 sm:p-6 border">
             <p className="text-sm font-medium text-foreground">Live session scheduling is disabled</p>
             <p className="mt-2 text-sm text-muted-foreground">
-              This tutor is currently in training mode. Run intro and training drills from the student workflow surfaces instead of using booked Google Meet lesson windows.
-            </p>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Dev note: re-enable the schedule grid automatically when COO switches this tutor to <span className="font-medium text-foreground">certified_live</span>.
+              You are currently in training mode. Run intro and training drills from the student workflow surfaces instead of using booked Google Meet lesson windows.
             </p>
           </Card>
         ) : null}
