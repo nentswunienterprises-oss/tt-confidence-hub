@@ -1284,8 +1284,8 @@ export default function StudentTopicConditioningDialog({
       if (!topicState) return null;
       return {
         topic: topicName,
-        phase: topicState.phase,
-        stability: topicState.stability,
+        phase: topicState.hasObservedState ? topicState.phase : "Unknown",
+        stability: topicState.hasObservedState ? topicState.stability : "Unknown",
         hasObservedState: topicState.hasObservedState,
         prepPlan: tutorPrepPlanFor(topicState.phase, topicState.stability, topicState.hasObservedState),
       };
@@ -2416,6 +2416,9 @@ export default function StudentTopicConditioningDialog({
                         <div key={`session-prep-${topic}`} className="rounded-md border border-primary/20 bg-background p-3 space-y-2">
                           <div>
                             <p className="font-medium text-sm">{topic}</p>
+                            {!hasObservedState ? (
+                              <p className="text-xs text-muted-foreground">Unobserved topic · diagnosis-first placement</p>
+                            ) : null}
                             <p className="text-xs text-muted-foreground">{phase} · {stability}</p>
                           </div>
                           <ul className="text-xs text-muted-foreground space-y-1">
