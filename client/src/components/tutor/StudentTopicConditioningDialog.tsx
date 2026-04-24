@@ -979,7 +979,7 @@ export default function StudentTopicConditioningDialog({
       const sessionParam = sessionId ? `&scheduledSessionId=${encodeURIComponent(sessionId)}` : "";
       setSessionTopicsModalOpen(false);
       if (!topicState.hasObservedState) {
-        window.location.href = `/tutor/intro-session/${studentId}?topic=${topicParam}&phase=${phaseParam}&stability=${stabilityParam}${sessionParam}`;
+        window.location.href = `/tutor/intro-session/${studentId}?topic=${topicParam}&phase=${phaseParam}&stability=${stabilityParam}&context=training${sessionParam}`;
         return;
       }
       window.location.href = `/tutor/intro-session/${studentId}?mode=training&topic=${topicParam}&phase=${phaseParam}&stability=${stabilityParam}${sessionParam}`;

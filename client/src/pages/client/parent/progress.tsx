@@ -32,43 +32,44 @@ interface ParentReport {
   sessionsCompleted?: number;
   totalSessionsCompleted?: number;
   topicsWorkedOn?: string[];
-  conditioningProgress?: Array<{
+  topicsConditioned?: string[];
+  whatChanged?: string[];
+  breakdownPattern?: string[];
+  whatThisMeans?: string[];
+  nextMove?: string[];
+  systemMovement?: string[];
+  whatBecameStronger?: string[];
+  currentPosition?: Array<{
     topic: string;
-    startState: string;
-    endState: string;
-    drillCount?: number;
+    state: string;
+    position: string;
   }>;
-  mainTopicsCovered?: string;
-  whatImproved?: string;
-  responsePattern?: string[];
-  mainBreakdown?: string[];
-  systemMovement?: string;
-  mainMisunderstanding?: string;
-  whatThisMeans?: string;
-  nextFocus?: string;
-  mainAreasCovered?: string;
-  skillsStronger?: string;
-  responsePatternTrend?: string;
-  recurringChallenge?: string;
-  mostEffectiveIntervention?: string;
-  bossBattleTrend?: string;
-  nextMonthPriority?: string;
-  topicProgressRows?: Array<{
-    topic: string;
-    started?: string;
-    start?: string;
-    current?: string;
-    end?: string;
-    movement: string;
-    nextAction?: string | null;
-  }>;
-  currentStateSnapshot?: Array<{ topic: string; phase: string; stability: string }>;
+  nextMonthMove?: string[];
   parentFeedback?: string;
   parentFeedbackAt?: string;
   sentAt: string;
   tutor: {
     name: string;
   };
+}
+
+function ReportSection({ title, items }: { title: string; items?: string[] }) {
+  return (
+    <div>
+      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">{title}</h4>
+      {!items || items.length === 0 ? (
+        <p className="text-xs sm:text-sm text-muted-foreground">Not provided</p>
+      ) : (
+        <div className="space-y-1">
+          {items.map((item, index) => (
+            <p key={`${item}-${index}`} className="text-xs sm:text-sm text-muted-foreground">
+              {item}
+            </p>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function ParentProgress() {
@@ -135,50 +136,6 @@ export default function ParentProgress() {
   const formatRange = (start?: string, end?: string) => {
     if (!start || !end) return "Date range unavailable";
     return `${new Date(start).toLocaleDateString()} - ${new Date(end).toLocaleDateString()}`;
-  };
-
-  const splitReportText = (value?: string | null) =>
-    String(value || "")
-      .split(/;\s+|\n+/)
-      .map((item) => item.trim())
-      .filter(Boolean);
-
-  const renderTextOrFallback = (value?: string | null) => {
-    const items = splitReportText(value);
-
-    if (items.length === 0) {
-      return <p className="text-xs sm:text-sm text-muted-foreground">Not provided</p>;
-    }
-
-    if (items.length === 1) {
-      return <p className="text-xs sm:text-sm text-muted-foreground">{items[0]}</p>;
-    }
-
-    return (
-      <ul className="space-y-1 text-xs sm:text-sm text-muted-foreground">
-        {items.map((item, index) => (
-          <li key={`${item}-${index}`} className="ml-4 list-disc">
-            {item}
-          </li>
-        ))}
-      </ul>
-    );
-  };
-
-  const renderListOrFallback = (items?: string[]) => {
-    if (!items || items.length === 0) {
-      return <p className="text-xs sm:text-sm text-muted-foreground">Not provided</p>;
-    }
-
-    return (
-      <div className="space-y-1">
-        {items.map((item, index) => (
-          <p key={`${item}-${index}`} className="text-xs sm:text-sm text-muted-foreground">
-            {item}
-          </p>
-        ))}
-      </div>
-    );
   };
 
   const isLegacyWeeklyReport = (report: ParentReport) => !report.weekRange?.start || !report.weekRange?.end;
@@ -304,97 +261,13 @@ export default function ParentProgress() {
                       </div>
                     )}
 
-                    <div>
-                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Topics Worked On</h4>
-                      <p className="text-xs sm:text-sm text-muted-foreground">{report.mainTopicsCovered || "Not provided"}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">What Improved</h4>
-                      <p className="text-xs sm:text-sm text-muted-foreground">{report.whatImproved || "Not provided"}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">What This Means</h4>
-                      <p className="text-xs sm:text-sm text-muted-foreground">{report.whatThisMeans || "Not provided"}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Response Pattern</h4>
-                      {renderListOrFallback(report.responsePattern)}
-                    </div>
-                    <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
-                      <div className="bg-muted/30 rounded-lg p-2 sm:p-3">
-                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Challenges</h4>
-                        <p className="text-xs sm:text-sm text-muted-foreground">{report.mainMisunderstanding || "Not provided"}</p>
-                      </div>
-                      <div className="bg-muted/30 rounded-lg p-2 sm:p-3">
-                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">System Movement</h4>
-                        <p className="text-xs sm:text-sm text-muted-foreground">{report.systemMovement || "Not provided"}</p>
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Conditioning Progress</h4>
-                      {report.conditioningProgress && report.conditioningProgress.length > 0 ? (
-                        <div className="rounded-lg border overflow-hidden">
-                          <table className="w-full text-xs sm:text-sm">
-                            <thead className="bg-muted/40">
-                              <tr>
-                                <th className="text-left px-2 sm:px-3 py-1.5 font-medium">Topic</th>
-                                <th className="text-left px-2 sm:px-3 py-1.5 font-medium">Start</th>
-                                <th className="text-left px-2 sm:px-3 py-1.5 font-medium">Current</th>
-                                <th className="text-left px-2 sm:px-3 py-1.5 font-medium hidden sm:table-cell">Drills</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {report.conditioningProgress.map((row, i) => (
-                                <tr key={`${row.topic}-${i}`} className="border-t">
-                                  <td className="px-2 sm:px-3 py-1.5 font-medium">{row.topic}</td>
-                                  <td className="px-2 sm:px-3 py-1.5 text-muted-foreground">{row.startState || "—"}</td>
-                                  <td className="px-2 sm:px-3 py-1.5 text-muted-foreground">{row.endState || "—"}</td>
-                                  <td className="px-2 sm:px-3 py-1.5 text-muted-foreground hidden sm:table-cell">{row.drillCount ?? "—"}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      ) : (
-                        <p className="text-xs sm:text-sm text-muted-foreground">Not provided</p>
-                      )}
-                    </div>
+                    <ReportSection title="Topics" items={report.topicsWorkedOn} />
+                    <ReportSection title="What Changed" items={report.whatChanged} />
+                    <ReportSection title="Breakdown Pattern" items={report.breakdownPattern} />
+                    <ReportSection title="What This Means" items={report.whatThisMeans} />
                     <div className="bg-primary/5 border border-primary/20 rounded-lg p-2 sm:p-3">
-                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Next Focus</h4>
-                      <p className="text-xs sm:text-sm text-muted-foreground">{report.nextFocus || "Not provided"}</p>
+                      <ReportSection title="Next Move" items={report.nextMove} />
                     </div>
-
-                    {report.topicProgressRows && report.topicProgressRows.length > 0 && (
-                      <div>
-                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Conditioning Progress</h4>
-                        <div className="rounded-lg border overflow-hidden">
-                          <table className="w-full text-xs sm:text-sm">
-                            <thead className="bg-muted/40">
-                              <tr>
-                                <th className="text-left px-2 sm:px-3 py-1.5 font-medium">Topic</th>
-                                <th className="text-left px-2 sm:px-3 py-1.5 font-medium">Started</th>
-                                <th className="text-left px-2 sm:px-3 py-1.5 font-medium">Current</th>
-                                <th className="text-left px-2 sm:px-3 py-1.5 font-medium hidden sm:table-cell">Next Focus</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {report.topicProgressRows.map((row, i) => (
-                                <tr key={i} className="border-t">
-                                  <td className="px-2 sm:px-3 py-1.5 font-medium">{row.topic}</td>
-                                  <td className="px-2 sm:px-3 py-1.5 text-muted-foreground">{row.started || row.start || "—"}</td>
-                                  <td className="px-2 sm:px-3 py-1.5">
-                                    <span className={row.movement === "improved" ? "text-green-700 font-medium" : row.movement === "regressed" ? "text-red-600 font-medium" : "text-muted-foreground"}>
-                                      {row.current || row.end || "—"}
-                                    </span>
-                                  </td>
-                                  <td className="px-2 sm:px-3 py-1.5 text-muted-foreground hidden sm:table-cell">{row.nextAction || "—"}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    )}
                   </CardContent>
                 </Card>
               ))}
@@ -468,77 +341,31 @@ export default function ParentProgress() {
                       </div>
                     )}
 
+                    <ReportSection title="Topics" items={report.topicsConditioned} />
+                    <ReportSection title="System Movement" items={report.systemMovement} />
+                    <ReportSection title="What Became Stronger" items={report.whatBecameStronger} />
+                    <ReportSection title="Breakdown Pattern" items={report.breakdownPattern} />
+
                     <div>
-                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Topics Conditioned</h4>
-                      <p className="text-xs sm:text-sm text-muted-foreground">{report.mainAreasCovered || "Not provided"}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">What Became Stronger</h4>
-                      <p className="text-xs sm:text-sm text-muted-foreground">{report.skillsStronger || "Not provided"}</p>
-                    </div>
-                    <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
-                      <div className="bg-muted/30 rounded-lg p-2 sm:p-3">
-                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Recurring Challenge</h4>
-                        <p className="text-xs sm:text-sm text-muted-foreground">{report.recurringChallenge || "Not provided"}</p>
-                      </div>
-                      <div className="bg-muted/30 rounded-lg p-2 sm:p-3">
-                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">System Outcome</h4>
-                        <p className="text-xs sm:text-sm text-muted-foreground">{report.systemOutcome || "Not provided"}</p>
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Topic Progression</h4>
-                      {report.topicProgressRows && report.topicProgressRows.length > 0 ? (
-                        <div className="rounded-lg border overflow-hidden">
-                          <table className="w-full text-xs sm:text-sm">
-                            <thead className="bg-muted/40">
-                              <tr>
-                                <th className="text-left px-2 sm:px-3 py-1.5 font-medium">Topic</th>
-                                <th className="text-left px-2 sm:px-3 py-1.5 font-medium">Start of Month</th>
-                                <th className="text-left px-2 sm:px-3 py-1.5 font-medium">End of Month</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {report.topicProgressRows.map((row, i) => (
-                                <tr key={i} className="border-t">
-                                  <td className="px-2 sm:px-3 py-1.5 font-medium">{row.topic}</td>
-                                  <td className="px-2 sm:px-3 py-1.5 text-muted-foreground">{row.started || row.start || "—"}</td>
-                                  <td className="px-2 sm:px-3 py-1.5">
-                                    <span className={row.movement === "improved" ? "text-green-700 font-medium" : row.movement === "regressed" ? "text-red-600 font-medium" : "text-muted-foreground"}>
-                                      {row.current || row.end || "—"}
-                                    </span>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      ) : (
+                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Current Position</h4>
+                      {!report.currentPosition || report.currentPosition.length === 0 ? (
                         <p className="text-xs sm:text-sm text-muted-foreground">Not provided</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {report.currentPosition.map((row, index) => (
+                            <div key={`${row.topic}-${index}`} className="text-xs sm:text-sm text-muted-foreground">
+                              <p className="font-medium text-foreground">{row.topic}: {row.state}</p>
+                              <p>{row.position}</p>
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
 
+                    <ReportSection title="What This Means" items={report.whatThisMeans} />
+
                     <div className="bg-primary/5 border border-primary/20 rounded-lg p-2 sm:p-3">
-                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Next Month Focus</h4>
-                      <p className="text-xs sm:text-sm text-muted-foreground">{report.nextMonthPriority || "Not provided"}</p>
-                    </div>
-
-                    {report.currentStateSnapshot && report.currentStateSnapshot.length > 0 && (
-                      <div className="bg-muted/20 rounded-lg p-2 sm:p-3">
-                        <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">Current Conditioning State</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {report.currentStateSnapshot.map((snap, i) => (
-                            <span key={i} className="text-xs bg-background border rounded px-2 py-1">
-                              {snap.topic} - {snap.phase} ({snap.stability})
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div>
-                      <h4 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">What This Means</h4>
-                      <p className="text-xs sm:text-sm text-muted-foreground">{report.whatThisMeans || "Not provided"}</p>
+                      <ReportSection title="Next Month Move" items={report.nextMonthMove} />
                     </div>
 
                     {renderFeedbackBlock(report)}
@@ -558,32 +385,24 @@ export default function ParentProgress() {
               Share your thoughts, questions, or concerns with your child's tutor
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-3 sm:space-y-4">
+          <div className="space-y-4">
             <Textarea
-              placeholder="Write your feedback here..."
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
-              className="min-h-24 sm:min-h-32 text-sm"
+              placeholder="Type your feedback here..."
+              rows={5}
+              className="text-sm"
             />
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setFeedbackDialogOpen(false);
-                  setFeedback("");
-                  setSelectedReport(null);
-                }}
-                className="flex-1 text-sm"
-              >
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setFeedbackDialogOpen(false)}>
                 Cancel
               </Button>
               <Button
                 onClick={handleSubmitFeedback}
-                disabled={!feedback.trim() || submitFeedbackMutation.isPending}
-                className="flex-1 gap-2 text-sm"
+                disabled={submitFeedbackMutation.isPending || !feedback.trim()}
               >
-                <Send className="w-4 h-4" />
-                {submitFeedbackMutation.isPending ? "Sending..." : "Submit"}
+                <Send className="w-4 h-4 mr-2" />
+                {submitFeedbackMutation.isPending ? "Submitting..." : "Submit Feedback"}
               </Button>
             </div>
           </div>

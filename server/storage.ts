@@ -22,6 +22,7 @@ import {
   affiliateCodes,
   weeklyCheckIns,
 } from "@shared/schema";
+import { isAllowedOdEmail, normalizeEmail } from "@shared/odAccess";
 
 // Initialize Supabase client with service role key to bypass RLS
 const supabaseUrl = process.env.SUPABASE_URL!;
@@ -368,7 +369,7 @@ export interface IStorage {
   ): Promise<TutorApplication | undefined>;
   completeTutorOnboarding(applicationId: string): Promise<TutorApplication | undefined>;
 
-  checkRoleAuthorization(email: string, role: "tutor" | "td" | "coo"): Promise<boolean>;
+  checkRoleAuthorization(email: string, role: "tutor" | "td" | "coo" | "od"): Promise<boolean>;
   addRolePermission(permission: RolePermission): Promise<void>;
   getRolePermissions(): Promise<RolePermission[]>;
   checkTDPodAssignment(email: string): Promise<string | null>;
@@ -511,18 +512,26 @@ export class SupabaseStorage implements IStorage {
   }
 
   async upsertUser(user: any): Promise<User> {
+    const dbUser: any = {
+      id: user.id,
+      email: user.email,
+      first_name: user.firstName,
+      last_name: user.lastName,
+      phone: user.phone,
+      bio: user.bio,
+      profile_image_url: user.profileImageUrl,
+      name: [user.firstName, user.lastName].filter(Boolean).join(" ") || "User",
+    };
+    if (user.role) {
+      if (user.role === "od" && !isAllowedOdEmail(user.email)) {
+        throw new Error("This email is not allowed to use the OD role");
+      }
+      dbUser.role = user.role;
+    }
+
     const { data, error } = await supabase
       .from("users")
-      .upsert({
-        id: user.id,
-        email: user.email,
-        first_name: user.firstName,
-        last_name: user.lastName,
-        phone: user.phone,
-        bio: user.bio,
-        profile_image_url: user.profileImageUrl,
-        name: [user.firstName, user.lastName].filter(Boolean).join(" ") || "User",
-      })
+      .upsert(dbUser)
       .select("id,email,first_name,last_name,phone,bio,profile_image_url,password,role,name,grade,school,verified,created_at,updated_at")
       .single();
     if (error) throw new Error(`Supabase error: ${error.message}`);
@@ -2218,14 +2227,21 @@ export class SupabaseStorage implements IStorage {
   }
 
   // Roles
-  async checkRoleAuthorization(email: string, role: "tutor" | "td" | "coo"): Promise<boolean> {
+  async checkRoleAuthorization(email: string, role: "tutor" | "td" | "coo" | "od"): Promise<boolean> {
     if (role === "tutor") return true;
+    if (role === "od") return isAllowedOdEmail(email);
     const { data } = await supabase.from("role_permissions").select("*").eq("email", email).maybeSingle();
     return data ? data.role === role : false;
   }
 
   async addRolePermission(permission: RolePermission): Promise<void> {
-    await supabase.from("role_permissions").upsert(permission);
+    if (permission.role === "od" && !isAllowedOdEmail(permission.email)) {
+      throw new Error("Only approved OD emails can be granted the OD role");
+    }
+    await supabase.from("role_permissions").upsert({
+      ...permission,
+      email: normalizeEmail(permission.email),
+    });
   }
 
   async getRolePermissions(): Promise<RolePermission[]> {

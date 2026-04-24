@@ -1,4 +1,5 @@
 import React from "react";
+import { ArrowLeft } from "lucide-react";
 
 const faqs = [
   {
@@ -282,6 +283,14 @@ const faqs = [
 export default function FAQPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
+      <button
+        type="button"
+        onClick={() => window.history.back()}
+        className="fixed left-6 top-6 z-20 inline-flex items-center gap-2 rounded-lg border border-[#E7D5C8] bg-white px-4 py-2 text-sm font-medium text-[#1A1A1A] shadow-sm transition-colors hover:bg-[#FFF5ED]"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back
+      </button>
       <h1 className="text-3xl font-bold mb-2 text-center">TT removes chaos until confidence has no choice but to appear.</h1>
       <h2 className="text-2xl font-semibold mb-8 text-center">Frequently Asked Questions</h2>
       <div className="space-y-6">

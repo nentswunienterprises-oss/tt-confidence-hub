@@ -11,6 +11,7 @@ import connectPg from "connect-pg-simple";
 import pg from "pg";
 import { storage } from "./storage";
 import { getDefaultDashboardRoute } from "@shared/portals";
+import { getAllowedOdEmailList, isAllowedOdEmail, normalizeEmail } from "@shared/odAccess";
 
 if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
   throw new Error("Missing Supabase environment variables");
@@ -94,6 +95,13 @@ export async function setupAuth(app: Express) {
       }
     try {
       const { email, password, role = "tutor", first_name = "", last_name = "", affiliate_code = null, tracking_source = "organic", tracking_campaign = null } = req.body;
+      const normalizedEmail = normalizeEmail(email);
+
+      if (role === "od" && !isAllowedOdEmail(normalizedEmail)) {
+        return res.status(403).json({
+          message: `Only approved OD emails can create an OD account: ${getAllowedOdEmailList()}`,
+        });
+      }
 
       console.log("═══════════════════════════════════════");
       console.log("📝 SIGNUP REQUEST RECEIVED");
@@ -151,7 +159,7 @@ export async function setupAuth(app: Express) {
         .from("users")
         .insert({
           id: authData.user.id,
-          email,
+          email: normalizedEmail,
           role,
           first_name,
           last_name,
@@ -426,6 +434,12 @@ export async function setupAuth(app: Express) {
       console.log("═══════════════════════════════════════");
       
       const { email, password, expectedRole } = req.body;
+      const normalizedEmail = normalizeEmail(email);
+      if (expectedRole === "od" && !isAllowedOdEmail(normalizedEmail)) {
+        return res.status(403).json({
+          message: `Only approved OD emails can use the OD portal: ${getAllowedOdEmailList()}`,
+        });
+      }
       console.log("✅ Parsed request body successfully");
 
       console.log("🔐 Parsed values:", { email, password: password ? "***" : null, expectedRole });
@@ -464,6 +478,11 @@ export async function setupAuth(app: Express) {
       if (!user) {
         console.warn("⚠️  No user record found, auto-provisioning user:", email);
         const roleToAssign = expectedRole || "tutor";
+        if (roleToAssign === "od" && !isAllowedOdEmail(normalizedEmail)) {
+          return res.status(403).json({
+            message: `Only approved OD emails can be assigned the OD role: ${getAllowedOdEmailList()}`,
+          });
+        }
         const name = (authData.user.user_metadata as any)?.name || email.split("@")[0];
         const first_name = (authData.user.user_metadata as any)?.first_name || "";
         const last_name = (authData.user.user_metadata as any)?.last_name || "";
@@ -472,7 +491,7 @@ export async function setupAuth(app: Express) {
           .from("users")
           .insert({
             id: authData.user.id,
-            email,
+            email: normalizedEmail,
             role: roleToAssign,
             first_name,
             last_name,
@@ -614,15 +633,21 @@ export async function setupAuth(app: Express) {
       console.log("═══════════════════════════════════════");
 
       const { user_id, email, role, first_name = "", last_name = "", affiliate_code = null } = req.body;
+      const normalizedEmail = normalizeEmail(email);
 
       if (!user_id || !email || !role) {
         return res.status(400).json({ message: "user_id, email, and role are required" });
       }
 
       // Validate role is a public signup role
-      const publicSignupRoles = ["parent", "tutor", "affiliate"];
+      const publicSignupRoles = ["parent", "tutor", "affiliate", "od"];
       if (!publicSignupRoles.includes(role)) {
         return res.status(400).json({ message: "Invalid role for OAuth signup" });
+      }
+      if (role === "od" && !isAllowedOdEmail(normalizedEmail)) {
+        return res.status(403).json({
+          message: `Only approved OD emails can create an OD account: ${getAllowedOdEmailList()}`,
+        });
       }
 
       // Check if user profile already exists
@@ -647,7 +672,7 @@ export async function setupAuth(app: Express) {
       // Create user in database
       await storage.upsertUser({
         id: user_id,
-        email,
+        email: normalizedEmail,
         role,
         firstName: first_name,
         lastName: last_name,

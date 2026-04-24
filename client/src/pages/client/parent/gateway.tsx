@@ -319,13 +319,46 @@ export default function ParentGateway() {
         body: JSON.stringify(formData),
       });
       if (!response.ok) {
-        throw new Error("Failed to submit enrollment");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to submit enrollment");
       }
 
-      // Set flag to prevent useEffect from overriding step
+      await response.json().catch(() => null);
+
+      await queryClient.cancelQueries({ queryKey: ["/api/parent/enrollment-status"] });
+
+      let refreshedEnrollmentStatus: EnrollmentStatus | null = null;
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const { data: { session } } = await supabase.auth.getSession();
+        const statusHeaders: HeadersInit = {};
+        if (session?.access_token) {
+          statusHeaders["Authorization"] = `Bearer ${session.access_token}`;
+        }
+
+        const statusResponse = await fetch(`${API_URL}/api/parent/enrollment-status`, {
+          headers: statusHeaders,
+          credentials: "include",
+          cache: "no-store",
+        });
+
+        if (statusResponse.ok) {
+          refreshedEnrollmentStatus = await statusResponse.json().catch(() => null);
+        }
+
+        if (refreshedEnrollmentStatus && refreshedEnrollmentStatus.status !== "not_enrolled") {
+          break;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 400));
+      }
+
+      if (!refreshedEnrollmentStatus || refreshedEnrollmentStatus.status === "not_enrolled") {
+        throw new Error("Enrollment did not persist. Please try again.");
+      }
+
+      // Set flag only after the saved enrollment is visible via the status endpoint.
       justSubmittedRef.current = true;
 
-      // Invalidate the enrollment status query so it refetches with the new status
       await queryClient.invalidateQueries({ queryKey: ["/api/parent/enrollment-status"] });
 
       toast({

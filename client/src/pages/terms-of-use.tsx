@@ -1,17 +1,20 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { resolveTrackedBackTarget } from "@/lib/publicTracking";
 import { ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function TermsOfUse() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const backTarget = resolveTrackedBackTarget(location.search);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <Button
           variant="ghost"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate(backTarget)}
           className="mb-6"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />

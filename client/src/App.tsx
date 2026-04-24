@@ -107,6 +107,7 @@ import AffiliateTracking from "@/pages/affiliate/affiliate/tracking";
 import AffiliateUpdates from "@/pages/affiliate/affiliate/updates";
 import OutreachDirectorDashboard from "@/pages/affiliate/od/dashboard";
 import ODEncounters from "@/pages/affiliate/od/encounters";
+import ODCrews from "@/pages/affiliate/od/crews";
 import ODAffiliates from "@/pages/affiliate/od/affiliates";
 import ODUpdates from "@/pages/affiliate/od/updates";
 
@@ -125,6 +126,7 @@ import RecruitmentPrivacy from "@/pages/executive/recruitment-privacy";
 // NEW: Portal Landing Pages
 import OperationalLanding from "@/pages/operational/landing";
 import AffiliateLandingPage from "@/pages/affiliate/landing";
+import AffiliateGateway from "@/pages/affiliate/gateway";
 import ExecutiveLanding from "@/pages/executive/landing";
 
 // NEW: Portal Signup Pages
@@ -378,6 +380,7 @@ function Router() {
       {/* ==================== AFFILIATE PORTAL ==================== */}
       {/* Affiliate Landing */}
       <Route path="/affiliate/landing" element={<AffiliateLandingPage />} />
+      <Route path="/affiliate/gateway" element={<AffiliateGateway />} />
       {/* Affiliate Signup */}
       <Route path="/affiliate/signup" element={<AffiliateSignup />} />
 
@@ -390,6 +393,7 @@ function Router() {
       {/* Outreach Director Routes */}
       <Route path="/affiliate/od/dashboard" element={<OutreachDirectorDashboard />} />
       <Route path="/affiliate/od/encounters" element={<ODEncounters />} />
+      <Route path="/affiliate/od/crews" element={<ODCrews />} />
       <Route path="/affiliate/od/affiliates" element={<ODAffiliates />} />
       <Route path="/affiliate/od/updates" element={<ODUpdates />} />
 

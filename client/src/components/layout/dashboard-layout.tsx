@@ -341,7 +341,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const odNav: NavItem[] = [
     { label: "Dashboard", path: "/affiliate/od/dashboard", icon: <Home className="w-5 h-5" /> },
-    { label: "Encounters", path: "/affiliate/od/encounters", icon: <Users className="w-5 h-5" /> },
+    { label: "Tracking", path: "/affiliate/od/encounters", icon: <TrendingUp className="w-5 h-5" /> },
+    { label: "Crews", path: "/affiliate/od/crews", icon: <Users className="w-5 h-5" /> },
     { label: "Affiliates", path: "/affiliate/od/affiliates", icon: <FolderKanban className="w-5 h-5" /> },
     { label: "Updates", path: "/affiliate/od/updates", icon: <Bell className="w-5 h-5" /> },
   ];

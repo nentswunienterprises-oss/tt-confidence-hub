@@ -3,27 +3,33 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { TTLogo } from "@/components/TTLogo";
 import { TerritorialTutoringLogoSVG } from "@/components/TerritorialTutoringLogoSVG";
+import { buildTrackedPath, buildTrackedReturnTo } from "@/lib/publicTracking";
 
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowRight, BookOpen, Users, Zap, Check, Heart, Sparkles, Star, Instagram } from "lucide-react";
 
 function PortalLanding() {
   const navigate = useNavigate();
-  
-  // Read affiliate and tracking parameters from URL (silent tracking)
-  const urlParams = new URLSearchParams(window.location.search);
-  const affiliateCode = urlParams.get('affiliate') || '';
-  const trackingSource = urlParams.get('utm_source') || '';
-  const trackingCampaign = urlParams.get('utm_campaign') || '';
-  
-  // Build signup URL with all parameters preserved
-  const buildSignupUrl = () => {
-    const params = new URLSearchParams();
-    if (affiliateCode) params.append('affiliate', affiliateCode);
-    if (trackingSource) params.append('utm_source', trackingSource);
-    if (trackingCampaign) params.append('utm_campaign', trackingCampaign);
-    return `/client/signup${params.toString() ? `?${params.toString()}` : ''}`;
-  };
+  const location = useLocation();
+  const landingReturnTo = buildTrackedReturnTo(location.pathname, location.search);
+
+  const buildSignupUrl = (mode?: "login") =>
+    buildTrackedPath("/client/signup", location.search, {
+      mode,
+      returnTo: landingReturnTo,
+    });
+
+  const privacyPolicyUrl = buildTrackedPath("/privacy-policy", location.search, {
+    returnTo: landingReturnTo,
+  });
+
+  const termsOfUseUrl = buildTrackedPath("/terms-of-use", location.search, {
+    returnTo: landingReturnTo,
+  });
+
+  const aboutTtUrl = buildTrackedPath("/aboutTT", location.search, {
+    returnTo: landingReturnTo,
+  });
   
   // If you use useAuth or other hooks, initialize them here
   // const { ... } = useAuth();
@@ -64,7 +70,7 @@ function PortalLanding() {
               variant="ghost"
               className="text-sm sm:text-base font-medium hover:bg-transparent px-2 sm:px-4"
               style={{ color: "#1A1A1A" }}
-              onClick={() => navigate("/client/signup?mode=login")}
+              onClick={() => navigate(buildSignupUrl("login"))}
             >
               Log In
             </Button>
@@ -267,7 +273,7 @@ function PortalLanding() {
             size="lg"
             className="text-base sm:text-lg font-semibold px-6 sm:px-10 py-4 sm:py-6 rounded-full border-0 outline-none"
             style={{ backgroundColor: "#E63946", color: "white" }}
-            onClick={() => navigate("/client/signup")}
+            onClick={() => navigate(buildSignupUrl())}
           >
             Start Your Child’s Journey
             <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
@@ -285,13 +291,13 @@ function PortalLanding() {
               Our system focuses on how students respond when work becomes difficult, unfamiliar, or timed. By training this response directly, students move from inconsistent performance to stable, controlled execution across topics.
               </p>
               <div className="space-y-2 pt-2">
-                <a href="https://territorialtutoring.co.za/privacy-policy" className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
+                <a href={privacyPolicyUrl} className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
                   Privacy Policy
                 </a>
-                <a href="https://territorialtutoring.co.za/terms-of-use" className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
+                <a href={termsOfUseUrl} className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
                   Terms of Use
                 </a>
-                <a href="https://territorialtutoring.co.za/more-about-tt" className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
+                <a href={aboutTtUrl} className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
                   More About TT
                 </a>
               </div>

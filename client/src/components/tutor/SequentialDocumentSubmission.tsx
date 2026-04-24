@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { renderToStaticMarkup } from "react-dom/server.browser";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -366,7 +367,7 @@ function tokenizeAgreementLinesStrict(content: string) {
   return lines;
 }
 
-function renderAgreementHtmlStrict(content: string, documentCode?: string) {
+export function renderAgreementHtmlStrict(content: string, documentCode?: string) {
   const lines = tokenizeAgreementLinesStrict(content);
   const blocks: string[] = [];
   let listItems: string[] = [];
@@ -563,7 +564,7 @@ function buildApplicationLockedFormData(application: any) {
   };
 }
 
-function hydrateDocumentContent(content: string, fieldValues: Record<string, string>) {
+export function hydrateDocumentContent(content: string, fieldValues: Record<string, string>) {
   const replacements: Array<[RegExp, string]> = [
     [/Full Name:\s*_+/i, `Full Name: ${fieldValues.legalName || "______________________________"}`],
     [/Contact Number:\s*_+/i, `Contact Number: ${fieldValues.phoneNumber || "______________________________"}`],
@@ -582,6 +583,480 @@ function hydrateDocumentContent(content: string, fieldValues: Record<string, str
     next = next.replace(pattern, replacement);
   }
   return next;
+}
+
+function TutorAgreementList({ items, tone = "default" }: { items: ReactNode[]; tone?: "default" | "check" }) {
+  return (
+    <ul className={`tt-agreement-list ${tone === "check" ? "tt-agreement-list-check" : ""}`}>
+      {items.map((item, index) => (
+        <li key={index}>{item}</li>
+      ))}
+    </ul>
+  );
+}
+
+function TutorAgreementSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="tt-agreement-section">
+      <h2>{title}</h2>
+      <div className="tt-agreement-section-body">{children}</div>
+    </section>
+  );
+}
+
+function TutorAgreementSubsection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className="tt-agreement-subsection">
+      <h3>{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formData: Record<string, string>) {
+  switch (document.code) {
+    case "TT-TCF-001":
+      return (
+        <>
+          <TutorAgreementSection title="Contractor Details">
+            <p>This in-app agreement must be completed before participation begins.</p>
+            <div className="tt-inline-detail-grid">
+              <div><span>Full Name</span><strong>{formData.legalName || "Not captured"}</strong></div>
+              <div><span>Contact Number</span><strong>{formData.phoneNumber || "Not captured"}</strong></div>
+              <div><span>Date of Birth</span><strong>{formData.dateOfBirth || "Not captured"}</strong></div>
+              <div><span>Email Address</span><strong>{formData.emailAddress || "Not captured"}</strong></div>
+              <div><span>ID Number</span><strong>{formData.idNumber || "Not captured"}</strong></div>
+              <div><span>School Attended (Matric)</span><strong>{formData.schoolName || "Not captured"}</strong></div>
+              <div className="tt-inline-detail-span"><span>Current Status</span><strong>{formData.currentStatus || "Not captured"}</strong></div>
+            </div>
+          </TutorAgreementSection>
+
+          <TutorAgreementSection title="Programme Definition And Role">
+            <p>By accepting this form, the Contractor acknowledges and accepts the following:</p>
+            <TutorAgreementList items={[
+              "Territorial Tutoring is not a tutoring service.",
+              "It is a response-conditioning system delivered through mathematics.",
+              "The purpose of every session is to train how a learner responds under difficulty, not to explain content or assist with homework.",
+              "The Contractor operates as a response-conditioning operator, responsible for stabilizing learner execution under pressure.",
+            ]} />
+            <p>Every session is executed strictly under the TT Operating System (TT-OS):</p>
+            <TutorAgreementList items={[
+              <><strong>Model:</strong> Demonstrate structured, calm execution</>,
+              <><strong>Apply:</strong> Require independent learner attempt under friction</>,
+              <><strong>Guide:</strong> Stabilize response, not rescue and not spoon-feed</>,
+            ]} />
+            <p>The Contractor does not fix answers. The Contractor fixes how the learner behaves when answers are unclear.</p>
+          </TutorAgreementSection>
+
+          <TutorAgreementSection title="Session Structure And Delivery">
+            <p>The Contractor agrees to the following operational requirements:</p>
+            <TutorAgreementList items={[
+              "Deliver 1-on-1 online sessions to assigned learners (Grades 6-9)",
+              "Deliver 8 sessions per learner per month unless otherwise instructed by TT",
+              "Conduct all sessions through the TT platform only",
+            ]} />
+            <p>Maintain required setup:</p>
+            <TutorAgreementList items={[
+              "Top-down camera (gooseneck)",
+              "Clear, step-by-step visual execution",
+            ]} />
+            <p>Execute structured drill-based sessions aligned with:</p>
+            <TutorAgreementList items={["Conditioning phases", "Stability states", "TT drill system"]} />
+            <p>Record accurate session observations within the platform. Observation integrity is mandatory, not optional.</p>
+          </TutorAgreementSection>
+
+          <TutorAgreementSection title="Operating Standards (Non-Negotiable)">
+            <p>The Contractor agrees to the following:</p>
+            <TutorAgreementList items={["All sessions must follow the TT-OS without deviation"]} />
+            <p>The following are strictly prohibited:</p>
+            <TutorAgreementList items={[
+              "Explaining instead of training",
+              "Skipping structure",
+              "Rescuing learners",
+              "Feeding answers",
+              "Advancing learners without required stability",
+            ]} />
+            <p>Phase progression is controlled by demonstrated stability, not tutor judgment alone.</p>
+            <p>All session data, drill execution, and observations must be accurate, honest, and complete. Any deviation from the TT-OS is considered non-compliance.</p>
+          </TutorAgreementSection>
+
+          <TutorAgreementSection title="Platform And Communication Control">
+            <p>The Contractor agrees:</p>
+            <TutorAgreementList items={[
+              "All sessions, communication, and operations must occur within the TT platform",
+              "No private communication with learners or parents outside TT is permitted",
+              "No acceptance of payment outside TT is permitted",
+            ]} />
+            <p>All sessions are recorded and stored for compliance, quality control, and system integrity.</p>
+          </TutorAgreementSection>
+
+          <TutorAgreementSection title="Contractor Status And Payment">
+            <p>The Contractor acknowledges:</p>
+            <TutorAgreementList items={[
+              "They are engaged as an independent contractor, not an employee",
+              "No employment relationship, benefits, or protections apply",
+            ]} />
+            <p>Payment is per completed session package only and subject to TT&apos;s current rate structure.</p>
+            <p>There is no guaranteed income, no minimum earnings, and no entitlement to payment for incomplete or non-compliant sessions.</p>
+            <p>Payment may be withheld, adjusted, or suspended in cases of non-compliance, platform violations, or session integrity issues.</p>
+          </TutorAgreementSection>
+
+          <TutorAgreementSection title="Performance, Suspension, And Termination">
+            <p>Participation is conditional on consistent execution, TT-OS compliance, and platform discipline.</p>
+            <p>TT may suspend or terminate participation at its discretion, including but not limited to:</p>
+            <TutorAgreementList items={[
+              "Session quality failure",
+              "Structural violations",
+              "Misreporting or dishonest observation",
+              "Platform misuse",
+              "Conduct issues",
+            ]} />
+            <p>Suspension or termination may occur without prior notice and immediately halts all payment eligibility. All TT decisions regarding compliance are final.</p>
+          </TutorAgreementSection>
+
+          <TutorAgreementSection title="Risk And Liability">
+            <p>The Contractor accepts:</p>
+            <TutorAgreementList items={[
+              "TT is not responsible for contractor income stability, academic or career outcomes, or personal financial obligations",
+              "The Contractor is responsible for all tax obligations (including SARS compliance)",
+            ]} />
+            <p>Participation does not guarantee placement, earnings, references, or long-term engagement.</p>
+          </TutorAgreementSection>
+
+          <TutorAgreementSection title="Governing Law And Dispute Resolution">
+            <p>This agreement is governed by the laws of the Republic of South Africa.</p>
+            <p>Disputes must first be referred to mediation before further legal action. The Contractor consents to the jurisdiction of South African courts.</p>
+          </TutorAgreementSection>
+
+          <TutorAgreementSection title="Acceptance">
+            <p>By accepting this form in the TT platform, the Contractor confirms:</p>
+            <TutorAgreementList tone="check" items={[
+              "They have read and understood this document in full",
+              "They accept all operational, structural, and performance requirements",
+              "They agree to operate strictly within the TT system",
+              "They understand that deviation results in removal from the system",
+            ]} />
+          </TutorAgreementSection>
+        </>
+      );
+    case "TT-EQV-002":
+      return (
+        <>
+          <TutorAgreementSection title="Purpose Of This Form">
+            <p>This in-app agreement is completed once at onboarding to verify that the Contractor meets Territorial Tutoring&apos;s minimum entry qualification requirement through submission of an official Matric certificate.</p>
+            <p>This verification is an entry threshold only. It confirms eligibility to enter the TT Leadership Programme and does not qualify the Contractor to operate independently of TT&apos;s training, operating system, and session standards.</p>
+            <p>Once verified and accepted, continued participation is governed by conduct, session execution, TT Operating System (TT-OS) compliance, and operational performance within the platform.</p>
+          </TutorAgreementSection>
+
+          <TutorAgreementSection title="Contractor Details">
+            <div className="tt-inline-detail-grid">
+              <div><span>Full Name</span><strong>{formData.legalName || "Not captured"}</strong></div>
+              <div><span>Date of Birth</span><strong>{formData.dateOfBirth || "Not captured"}</strong></div>
+              <div><span>ID Number</span><strong>{formData.idNumber || "Not captured"}</strong></div>
+              <div><span>Contact Number</span><strong>{formData.phoneNumber || "Not captured"}</strong></div>
+              <div><span>Email Address</span><strong>{formData.emailAddress || "Not captured"}</strong></div>
+              <div><span>Matric Year</span><strong>{formData.matricYear || "Not captured"}</strong></div>
+              <div className="tt-inline-detail-span"><span>School Where Matric Was Completed</span><strong>{formData.schoolName || "Not captured"}</strong></div>
+            </div>
+          </TutorAgreementSection>
+
+          <TutorAgreementSection title="Matric Certificate Submission">
+            <p>The Contractor must submit a certified copy of their official National Senior Certificate issued by the Department of Basic Education.</p>
+            <p>The following are not accepted:</p>
+            <TutorAgreementList items={["Uncertified copies", "Screenshots", "Altered or incomplete documents"]} />
+            <p>Territorial Tutoring reserves the right to verify submitted results directly with the relevant examining authority.</p>
+          </TutorAgreementSection>
+
+          <TutorAgreementSection title="Entry Qualification And Onboarding Acknowledgements">
+            <p>By accepting this form, the Contractor confirms all of the following:</p>
+            <TutorAgreementList items={[
+              "The Matric certificate submitted is an official, complete, and accurate National Senior Certificate issued by the Department of Basic Education.",
+              "This verification confirms entry eligibility only and does not by itself qualify the Contractor to operate as a TT tutor without compliance with TT's training system and session standards.",
+              "Territorial Tutoring is a response-conditioning system delivered through mathematics, and tutor performance is defined by execution within the TT Operating System (TT-OS), not by academic credentials alone.",
+              "Once entry qualification is verified and accepted, continued participation in the TT Leadership Programme is governed by conduct, session execution, adherence to the TT-OS, and operational performance within the platform.",
+              "No further academic submissions or qualification reviews will be required after this verification.",
+              "Submission of a falsified, altered, or misrepresented Matric certificate constitutes a material breach of the Independent Contractor Agreement (TT-ICA-003) and will result in immediate termination without notice.",
+              "All personal and contact details submitted to TT are accurate and correct.",
+            ]} />
+          </TutorAgreementSection>
+
+          <TutorAgreementSection title="Acceptance">
+            <p>By accepting this form in the TT platform, the Contractor confirms:</p>
+            <TutorAgreementList tone="check" items={[
+              "All information provided in this form is true and correct",
+              "They have submitted a certified copy of their official Matric certificate",
+              "They understand the role of this verification as an entry requirement only",
+              "They understand that continued participation is governed by TT's operational standards, not academic re-evaluation",
+            ]} />
+          </TutorAgreementSection>
+        </>
+      );
+    case "TT-ICA-003":
+      return (
+        <>
+          <TutorAgreementSection title="Parties">
+            <p>This Agreement is entered into between Territorial Tutoring SA (Pty) Ltd ("TT" or "the Company") and the Contractor as identified in onboarding documentation.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Nature Of Relationship">
+            <TutorAgreementSubsection title="2.1 - 2.4">
+              <p>The Contractor is engaged as an independent contractor.</p>
+              <p>Nothing in this Agreement creates employment, partnership, joint venture, or agency.</p>
+              <p>The Contractor operates independently, controls their own tax obligations, is not entitled to employee benefits, and provides services only within the TT platform environment and under TT-defined systems.</p>
+            </TutorAgreementSubsection>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Business Model Acknowledgement">
+            <p>The Contractor acknowledges that TT is not a tutoring company. TT is a response-conditioning system delivered through mathematics.</p>
+            <p>The Contractor&apos;s role is to execute structured response-conditioning sessions, train learner behavior under difficulty, and operate within TT&apos;s system rather than personal teaching style.</p>
+            <p>The TT Operating System (TT-OS) governs all sessions, TT defines how sessions are executed, and deviation from TT-OS is non-compliance.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Scope Of Services">
+            <p>The Contractor agrees to:</p>
+            <TutorAgreementList items={[
+              "Deliver 1-on-1 online sessions to assigned learners",
+              "Execute all sessions in accordance with TT-OS",
+              "Record accurate session observations",
+              "Maintain required technical setup",
+            ]} />
+            <p>The Contractor may not:</p>
+            <TutorAgreementList items={[
+              "Provide services outside TT using TT learners",
+              "Communicate with TT learners or parents outside platform",
+              "Modify session structure",
+            ]} />
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Platform Control">
+            <p>All services must occur within the TT platform.</p>
+            <p>The Contractor agrees that TT owns the platform environment and controls access, scheduling, and assignment.</p>
+            <p>TT may assign or remove learners, adjust schedules, and restrict platform access at its sole discretion.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Payment Structure">
+            <p>Payment is made per completed session package.</p>
+            <p>Payment structure is defined by TT and may be updated at any time with notice.</p>
+            <p>Payment is conditional on session package completion, TT-OS compliance, and accurate reporting.</p>
+            <p>TT may withhold, reverse, or adjust payment where sessions are non-compliant, reporting is inaccurate, or platform rules are violated.</p>
+            <p>No guarantees exist regarding income, student allocation, or session volume.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Performance And Compliance">
+            <p>The Contractor must follow TT-OS strictly, maintain session integrity, and comply with platform rules.</p>
+            <p>The following constitute breaches:</p>
+            <TutorAgreementList items={[
+              "Rescuing learners",
+              "Skipping structure",
+              "Misreporting observations",
+              "Advancing learners incorrectly",
+              "Operating outside TT",
+            ]} />
+            <p>TT may audit sessions, review recordings, and evaluate performance.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Intellectual Property">
+            <p>All TT materials are proprietary, including:</p>
+            <TutorAgreementList items={[
+              "TT Operating System (TT-OS)",
+              "Drill structures",
+              "Session frameworks",
+              "Stability progression logic",
+              "Reporting systems",
+            ]} />
+            <p>The Contractor may not copy, reproduce, distribute, or teach TT systems or materials outside TT.</p>
+            <p>All session data, recordings, and learner information belong to TT.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Confidentiality">
+            <p>The Contractor agrees to maintain confidentiality over TT systems, learner data, and operational processes. This obligation continues after termination.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Restriction On Circumvention">
+            <p>The Contractor may not engage TT learners privately, solicit TT parents, or redirect TT relationships outside the platform. Any attempt to bypass TT constitutes a material breach.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Suspension And Termination">
+            <p>TT may suspend or terminate this Agreement at its discretion, with or without notice.</p>
+            <p>Grounds include non-compliance, performance failure, platform violations, and conduct issues.</p>
+            <p>Upon termination, platform access is revoked immediately and payment eligibility ceases.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Liability">
+            <p>TT does not guarantee income, results, or continued engagement.</p>
+            <p>The Contractor assumes full responsibility for tax obligations and personal financial matters.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Governing Law">
+            <p>This Agreement is governed by the laws of South Africa. Disputes must first go to mediation before legal action.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Entire Agreement">
+            <p>This Agreement forms part of the TT contractor framework alongside TT-TCF-001, TT-EQV-002, and TT Terms of Use. In case of conflict, TT&apos;s operational interpretation prevails.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Acceptance">
+            <p>By accepting this Agreement in the TT platform, the Contractor confirms:</p>
+            <TutorAgreementList tone="check" items={[
+              "Full understanding of this Agreement",
+              "Acceptance of TT's system and control",
+              "Agreement to operate strictly within TT",
+            ]} />
+          </TutorAgreementSection>
+        </>
+      );
+    case "TT-SCP-004":
+      return (
+        <>
+          <TutorAgreementSection title="Purpose">
+            <p>This policy defines the safeguarding standards, conduct rules, and interaction boundaries required of all tutors operating within the Territorial Tutoring platform.</p>
+            <p>Territorial Tutoring operates with minor learners in a controlled online environment. This policy is non-negotiable.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Core Principle">
+            <p>All tutor conduct must remain professional, structured, and bounded to the session environment.</p>
+            <p>Tutors are operators within a controlled system, not friends, mentors outside scope, or personal contacts.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Platform-Only Interaction">
+            <p>All interaction must occur within the TT platform.</p>
+            <p>The following are strictly prohibited:</p>
+            <TutorAgreementList items={[
+              "Private messaging with learners",
+              "Contact via WhatsApp, Instagram, SMS, or any external platform",
+              "Direct communication with parents outside TT channels",
+            ]} />
+            <p>Tutors may not exchange personal contact details, accept contact requests, or initiate communication outside the platform.</p>
+            <p>Any attempt by a learner or parent to move communication outside the platform must be refused immediately and reported to TT.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Session Environment Requirements">
+            <p>All sessions must be conducted through TT-approved systems, be recorded in full where required, and follow TT-OS structure.</p>
+            <p>Tutors must maintain a clear visual setup, an appropriate environment, and a distraction-free session setting.</p>
+            <p>The following are prohibited during sessions:</p>
+            <TutorAgreementList items={[
+              "Inappropriate background environments",
+              "Presence of unrelated individuals",
+              "Multitasking unrelated to session execution",
+            ]} />
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Professional Conduct With Learners">
+            <p>Tutors must communicate clearly and respectfully, maintain emotional neutrality, and enforce structure during sessions.</p>
+            <p>Tutors may not engage in casual or personal conversations unrelated to the session, discuss personal life or sensitive topics, or form emotional dependency or familiarity with learners.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Zero-Tolerance Conduct">
+            <p>The following result in immediate suspension or termination:</p>
+            <TutorAgreementList items={[
+              "Any inappropriate or suggestive communication",
+              "Any form of harassment, intimidation, or discrimination",
+              "Sharing personal contact information",
+              "Attempting to meet learners physically",
+              "Any conduct that places a learner at risk",
+            ]} />
+            <p>No warnings are required.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Boundary Enforcement">
+            <p>Tutors must maintain strict boundaries at all times.</p>
+            <TutorAgreementList items={[
+              "No personal favors",
+              "No gifts",
+              "No off-platform assistance",
+              "No extended communication beyond scheduled sessions",
+            ]} />
+            <p>Tutors must not position themselves as a personal support system, provide advice outside academic scope, or engage in private tutoring outside TT.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Session Recording And Monitoring">
+            <p>All sessions are recorded and may be reviewed at any time for safeguarding, compliance, and quality control.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Reporting Obligations">
+            <p>Tutors must report immediately:</p>
+            <TutorAgreementList items={[
+              "Boundary violations",
+              "Inappropriate learner behavior",
+              "Attempts to move communication off-platform",
+              "Any safeguarding concerns",
+            ]} />
+            <p>Failure to report is considered non-compliance.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Data And Confidentiality">
+            <p>Tutors must protect learner data, not store or share recordings externally, and not disclose learner information. All learner data remains property of TT.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Digital Conduct And Presence">
+            <p>Tutors must present professionally on camera and use appropriate language at all times.</p>
+            <p>The following are prohibited:</p>
+            <TutorAgreementList items={["Offensive language", "Inappropriate attire", "Disruptive or unprofessional behavior"]} />
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Enforcement">
+            <p>TT enforces this policy strictly.</p>
+            <p>Violations may result in immediate suspension, termination, or payment withholding. TT decisions are final.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Acceptance">
+            <p>By accepting this policy in the TT platform, the Contractor confirms:</p>
+            <TutorAgreementList tone="check" items={[
+              "Understanding of all safeguarding requirements",
+              "Agreement to operate within strict boundaries",
+              "Acceptance of zero-tolerance enforcement",
+            ]} />
+          </TutorAgreementSection>
+        </>
+      );
+    case "TT-DPC-005":
+      return (
+        <>
+          <TutorAgreementSection title="Purpose">
+            <p>This agreement records consent for the collection, processing, storage, and use of personal and performance data within the Territorial Tutoring platform.</p>
+            <p>Territorial Tutoring operates a recorded, data-driven response-conditioning system. Data is required for the system to function.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Types Of Data Collected">
+            <TutorAgreementSubsection title="2.1 Personal Information">
+              <TutorAgreementList items={["Full name", "Contact details", "Identification details (where required)", "Bank account details for payment processing only", "Signed consent and contractual documentation"]} />
+            </TutorAgreementSubsection>
+            <TutorAgreementSubsection title="2.2 Learner Data">
+              <TutorAgreementList items={["Academic performance data", "Session results and progression", "Stability states and phase tracking"]} />
+            </TutorAgreementSubsection>
+            <TutorAgreementSubsection title="2.3 Session Data">
+              <TutorAgreementList items={["Full video and audio recordings of all sessions", "Tutor observations and reports", "Interaction logs within the platform"]} />
+            </TutorAgreementSubsection>
+            <TutorAgreementSubsection title="2.4 Technical Data">
+              <TutorAgreementList items={["Device and access information", "Platform usage data"]} />
+            </TutorAgreementSubsection>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Purpose Of Data Processing">
+            <p>Data is collected and used strictly to:</p>
+            <TutorAgreementList items={[
+              "Deliver TT's response-conditioning system",
+              "Track learner progression through phases and stability states",
+              "Maintain session integrity and auditability",
+              "Monitor tutor compliance with TT-OS",
+              "Generate reports for parents or guardians",
+              "Ensure safeguarding and platform security",
+              "Comply with POPIA, tax legislation, and any mandatory reporting requirements",
+            ]} />
+            <p>Data is not collected for unrelated purposes.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Session Recording Consent">
+            <p>All sessions are recorded in full and stored securely within TT systems.</p>
+            <p>Recordings are used for quality control, safeguarding, compliance audits, and performance verification.</p>
+            <p>By participating, the user consents to being recorded during all sessions, and to storage and review of those recordings. Participation is not possible without recording consent.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Data Storage And Security">
+            <p>TT implements reasonable technical and organisational measures to protect data against loss, prevent unauthorized access, and ensure data integrity.</p>
+            <p>Data is stored on secure systems and accessed only by authorized TT personnel.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Data Sharing">
+            <p>TT does not sell personal data.</p>
+            <p>Data may be shared only internally within TT for operational purposes, with service providers required to operate the platform, or where required by law.</p>
+            <p>No external sharing occurs for marketing or unrelated purposes.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Data Retention">
+            <p>Data is retained for as long as necessary to operate the platform, maintain historical performance records, and meet legal and compliance obligations.</p>
+            <p>TT may retain anonymized data for system improvement and internal analysis.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="User Rights (POPIA)">
+            <p>Users have the right to request access to their personal data, request correction of inaccurate data, request deletion where legally permissible, and lodge a complaint with the Information Regulator of South Africa.</p>
+            <p>Requests may be submitted to legal@territorialtutoring.co.za.</p>
+            <p>Deletion requests may be limited where data is required for compliance, safeguarding, or dispute resolution.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Data Use Limitations">
+            <p>Users may not record sessions independently without TT approval, distribute TT session recordings, or share learner data outside the platform. All data remains under TT control.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Consent Acknowledgement">
+            <p>By accepting this agreement in the TT platform, the user confirms:</p>
+            <TutorAgreementList tone="check" items={[
+              "Understanding of the data collected and its purpose",
+              "Consent to full session recording where required",
+              "Acceptance of data processing as required by the TT system",
+              "Understanding that participation requires data processing",
+            ]} />
+          </TutorAgreementSection>
+        </>
+      );
+    default:
+      return <div dangerouslySetInnerHTML={{ __html: renderAgreementHtmlStrict(hydrateDocumentContent(document.content || "", formData), document.code) }} />;
+  }
 }
 
 function buildAcceptedCopyHtml(params: {
@@ -636,11 +1111,24 @@ function buildAcceptedCopyHtml(params: {
     .clauses { margin: 0; padding-left: 18px; font: 400 13px/1.7 Arial, sans-serif; }
     .agreement-body { margin-top: 12px; }
     .agreement-body h1, .agreement-body h2 { font-family: Arial, sans-serif; color: #102a43; }
-    .agreement-body h1 { font-size: 16px; margin: 18px 0 8px; text-transform: uppercase; letter-spacing: 0.04em; }
-    .agreement-body h2 { font-size: 14px; margin: 16px 0 8px; }
+    .agreement-body h1 { font-size: 11px; margin: 12px 0 6px; text-transform: uppercase; letter-spacing: 0.02em; }
+    .agreement-body h2 { font-size: 11px; margin: 12px 0 6px; }
     .agreement-body p { margin: 0 0 10px; font: 400 13px/1.7 Arial, sans-serif; }
     .agreement-body ul { margin: 0 0 10px 18px; padding: 0; }
     .agreement-body li { margin-bottom: 5px; font: 400 13px/1.6 Arial, sans-serif; }
+    .agreement-body .tt-agreement-section + .tt-agreement-section { margin-top: 20px; padding-top: 20px; border-top: 1px solid #e7d5c8; }
+    .agreement-body .tt-agreement-section h2 { margin: 0 0 10px; font: 700 14px/1.4 Arial, sans-serif; color: #7b341e; }
+    .agreement-body .tt-agreement-section-body p { margin: 0 0 10px; font: 400 13px/1.7 Arial, sans-serif; color: #243b53; }
+    .agreement-body .tt-agreement-subsection + .tt-agreement-subsection { margin-top: 14px; }
+    .agreement-body .tt-agreement-subsection h3 { margin: 0 0 8px; font: 700 13px/1.4 Arial, sans-serif; color: #102a43; }
+    .agreement-body .tt-agreement-list { margin: 0 0 10px 18px; padding: 0; }
+    .agreement-body .tt-agreement-list li { margin-bottom: 5px; font: 400 13px/1.6 Arial, sans-serif; color: #243b53; }
+    .agreement-body .tt-agreement-list-check { list-style-type: "• "; }
+    .agreement-body .tt-inline-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .agreement-body .tt-inline-detail-grid > div { padding: 10px 12px; border: 1px solid #ddd3c5; border-radius: 12px; background: #f8f2e8; }
+    .agreement-body .tt-inline-detail-grid .tt-inline-detail-span { grid-column: span 2; }
+    .agreement-body .tt-inline-detail-grid span { display: block; margin-bottom: 4px; font: 700 10px/1.4 Arial, sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: #9f1d2b; }
+    .agreement-body .tt-inline-detail-grid strong { font: 600 13px/1.5 Arial, sans-serif; color: #102a43; }
     .footer { margin-top: 30px; padding-top: 10px; border-top: 1px solid #ddd3c5; font: 400 11px/1.5 Arial, sans-serif; color: #7b8794; }
     .signature { margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
     .signature-box { padding-top: 10px; border-top: 1px solid #9fb3c8; font: 400 12px/1.5 Arial, sans-serif; }
@@ -662,12 +1150,23 @@ function buildAcceptedCopyHtml(params: {
       </div>
     </section>
 
+    <section class="section">
+      <h2 class="section-title">Parties</h2>
+      <table>
+        <tr><th>Party A</th><td>Territorial Tutoring SA (Pty) Ltd ("TT")</td></tr>
+        <tr><th>Party B</th><td>${escapeHtml(acceptedName)} (Contractor)</td></tr>
+      </table>
+    </section>
+
     ${tutorDetailsRows ? `<section class="section"><h2 class="section-title">Tutor Details Captured At Acceptance</h2><table>${tutorDetailsRows}</table></section>` : ""}
     ${clauseRows ? `<section class="section"><h2 class="section-title">Acknowledged Clauses</h2><ul class="clauses">${clauseRows}</ul></section>` : ""}
 
     <section class="section">
       <h2 class="section-title">Accepted Agreement Text</h2>
-      <div class="agreement-body">${renderAgreementHtmlStrict(hydrateDocumentContent(document.content || "", { ...formData, legalName: acceptedName }), document.code)}</div>
+      <div class="agreement-body">${renderAgreementHtmlStrict(
+        hydrateDocumentContent(String(acceptance?.documentSnapshot || acceptance?.document_snapshot || document.content || ""), { ...formData, legalName: acceptedName }),
+        document.code
+      )}</div>
     </section>
 
     <section class="signature">
@@ -1337,6 +1836,104 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
               line-height: 1.7;
               color: #243b53;
             }
+
+            .agreement-reader .tt-agreement-section + .tt-agreement-section {
+              margin-top: 1.6rem;
+              padding-top: 1.6rem;
+              border-top: 1px solid #e7d5c8;
+            }
+
+            .agreement-reader .tt-agreement-section h2 {
+              margin: 0 0 0.9rem;
+              font-family: Arial, sans-serif;
+              font-size: 1rem;
+              font-weight: 700;
+              color: #7c2d12;
+            }
+
+            .agreement-reader .tt-agreement-section-body p {
+              margin: 0 0 0.85rem;
+              font-family: Arial, sans-serif;
+              font-size: 0.95rem;
+              line-height: 1.8;
+              color: #243b53;
+            }
+
+            .agreement-reader .tt-agreement-subsection + .tt-agreement-subsection {
+              margin-top: 1.1rem;
+            }
+
+            .agreement-reader .tt-agreement-subsection h3 {
+              margin: 0 0 0.6rem;
+              font-family: Arial, sans-serif;
+              font-size: 0.95rem;
+              font-weight: 700;
+              color: #102a43;
+            }
+
+            .agreement-reader .tt-agreement-list {
+              margin: 0 0 0.9rem 1.2rem;
+              padding: 0;
+              list-style-type: disc;
+              list-style-position: outside;
+            }
+
+            .agreement-reader .tt-agreement-list-check {
+              list-style-type: "• ";
+            }
+
+            .agreement-reader .tt-agreement-list li {
+              margin-bottom: 0.4rem;
+              font-family: Arial, sans-serif;
+              font-size: 0.95rem;
+              line-height: 1.75;
+              color: #243b53;
+            }
+
+            .agreement-reader .tt-inline-detail-grid {
+              display: grid;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              gap: 0.75rem;
+              margin-bottom: 0.25rem;
+            }
+
+            .agreement-reader .tt-inline-detail-grid > div {
+              padding: 0.85rem 1rem;
+              border: 1px solid #e7d5c8;
+              border-radius: 0.9rem;
+              background: #fff8f4;
+            }
+
+            .agreement-reader .tt-inline-detail-grid .tt-inline-detail-span {
+              grid-column: span 2;
+            }
+
+            .agreement-reader .tt-inline-detail-grid span {
+              display: block;
+              margin-bottom: 0.25rem;
+              font-family: Arial, sans-serif;
+              font-size: 0.72rem;
+              font-weight: 700;
+              letter-spacing: 0.12em;
+              text-transform: uppercase;
+              color: #9f1d2b;
+            }
+
+            .agreement-reader .tt-inline-detail-grid strong {
+              font-family: Arial, sans-serif;
+              font-size: 0.95rem;
+              color: #1a1a1a;
+            }
+
+            @media (max-width: 640px) {
+              .agreement-reader .tt-inline-detail-grid {
+                grid-template-columns: 1fr;
+              }
+
+              .agreement-reader .tt-inline-detail-grid .tt-inline-detail-span {
+                grid-column: span 1;
+              }
+            }
           `}</style>
           <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl bg-[#FFF5ED] text-[#1A1A1A]">
             <DialogHeader className="shrink-0 border-b border-[#E7D5C8] bg-white px-4 py-4 text-left sm:px-6 sm:py-5">
@@ -1401,10 +1998,9 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                     </div>
                   </div>
                 ) : null}
-                <div
-                  className="agreement-reader mt-8"
-                  dangerouslySetInnerHTML={{ __html: renderAgreementHtmlStrict(hydratedDocumentContent || "No document content available.", currentDocument.code) }}
-                />
+                <div className="agreement-reader mt-8">
+                  {buildTutorAgreementBody(currentDocument, { ...effectiveInitialFormData, ...formData, legalName: typedFullName || effectiveInitialFormData.legalName || "" })}
+                </div>
               </div>
             </div>
             <div className="shrink-0 border-t border-[#E7D5C8] bg-white px-4 py-4 sm:px-6">

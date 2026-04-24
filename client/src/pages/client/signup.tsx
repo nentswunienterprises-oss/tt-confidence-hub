@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { AuthForm } from "@/components/auth/auth-form";
 import { Button } from "@/components/ui/button";
+import { buildTrackedPath, resolveTrackedBackTarget } from "@/lib/publicTracking";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Heart, Sparkles } from "lucide-react";
 import { TTLogo } from "@/components/TTLogo";
@@ -9,6 +10,9 @@ export default function ClientSignup() {
   const [mode, setMode] = useState<"signup" | "login">("signup");
   const navigate = useNavigate();
   const location = useLocation();
+  const backTarget = resolveTrackedBackTarget(location.search);
+  const termsUrl = buildTrackedPath("/terms-of-use", location.search, { returnTo: backTarget });
+  const privacyUrl = buildTrackedPath("/privacy-policy", location.search, { returnTo: backTarget });
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -36,7 +40,7 @@ export default function ClientSignup() {
             variant="ghost"
             className="hidden md:inline-flex text-sm sm:text-base font-medium hover:bg-transparent items-center gap-1 sm:gap-2 px-2 sm:px-4"
             style={{ color: "#1A1A1A" }}
-            onClick={() => navigate("/")}
+            onClick={() => navigate(backTarget)}
           >
             <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Back
@@ -108,11 +112,11 @@ export default function ClientSignup() {
           {/* Footer Info */}
           <p className="text-xs text-center" style={{ color: "#5A5A5A" }}>
             By signing up, you agree to our{" "}
-            <a href="/terms-of-use" target="_blank" className="underline hover:text-[#E63946]" style={{ color: "#1A1A1A" }}>
+            <a href={termsUrl} target="_blank" className="underline hover:text-[#E63946]" style={{ color: "#1A1A1A" }}>
               Terms of Use
             </a>{" "}
             and{" "}
-            <a href="/privacy-policy" target="_blank" className="underline hover:text-[#E63946]" style={{ color: "#1A1A1A" }}>
+            <a href={privacyUrl} target="_blank" className="underline hover:text-[#E63946]" style={{ color: "#1A1A1A" }}>
               Privacy Policy
             </a>.
           </p>

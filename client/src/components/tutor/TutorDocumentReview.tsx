@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { ReactNode, useState } from "react";
+import { renderToStaticMarkup } from "react-dom/server.browser";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_URL } from "@/lib/config";
 import { CheckCircle2, ChevronDown, Download, ExternalLink, FileCheck, Loader2, ShieldCheck, XCircle } from "lucide-react";
+import { hydrateDocumentContent, renderAgreementHtmlStrict } from "@/components/tutor/SequentialDocumentSubmission";
 
 interface TutorDocumentReviewProps {
   application: any;
@@ -52,6 +54,180 @@ function normalizeDisplayedVersion(value: unknown) {
   return normalized;
 }
 
+function normalizeValue(value: unknown) {
+  return String(value ?? "").trim();
+}
+
+function formatAcceptedAt(value: string | null | undefined) {
+  if (!value) return "Not available";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Not available";
+  return date.toLocaleString();
+}
+
+function TutorAgreementList({ items, tone = "default" }: { items: ReactNode[]; tone?: "default" | "check" }) {
+  return (
+    <ul className={`tt-agreement-list ${tone === "check" ? "tt-agreement-list-check" : ""}`}>
+      {items.map((item, index) => (
+        <li key={index}>{item}</li>
+      ))}
+    </ul>
+  );
+}
+
+function TutorAgreementSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="tt-agreement-section">
+      <h2>{title}</h2>
+      <div className="tt-agreement-section-body">{children}</div>
+    </section>
+  );
+}
+
+function TutorAgreementSubsection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className="tt-agreement-subsection">
+      <h3>{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+function buildTutorAgreementBody(code: string, formData: Record<string, string>) {
+  switch (code) {
+    case "TT-TCF-001":
+      return (
+        <>
+          <TutorAgreementSection title="Contractor Details">
+            <div className="tt-inline-detail-grid">
+              <div><span>Full Name</span><strong>{formData.legalName || "Not captured"}</strong></div>
+              <div><span>Contact Number</span><strong>{formData.phoneNumber || "Not captured"}</strong></div>
+              <div><span>Date of Birth</span><strong>{formData.dateOfBirth || "Not captured"}</strong></div>
+              <div><span>Email Address</span><strong>{formData.emailAddress || "Not captured"}</strong></div>
+              <div><span>ID Number</span><strong>{formData.idNumber || "Not captured"}</strong></div>
+              <div><span>School Attended (Matric)</span><strong>{formData.schoolName || "Not captured"}</strong></div>
+              <div className="tt-inline-detail-span"><span>Current Status</span><strong>{formData.currentStatus || "Not captured"}</strong></div>
+            </div>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Programme Definition And Role">
+            <p>Territorial Tutoring is not a tutoring service. It is a response-conditioning system delivered through mathematics.</p>
+            <p>The purpose of every session is to train how a learner responds under difficulty, not to explain content or assist with homework.</p>
+            <p>The Contractor operates as a response-conditioning operator, responsible for stabilizing learner execution under pressure.</p>
+            <TutorAgreementList items={[
+              <><strong>Model:</strong> Demonstrate structured, calm execution</>,
+              <><strong>Apply:</strong> Require independent learner attempt under friction</>,
+              <><strong>Guide:</strong> Stabilize response, not rescue and not spoon-feed</>,
+            ]} />
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Acceptance">
+            <TutorAgreementList tone="check" items={[
+              "They have read and understood this document in full",
+              "They accept all operational, structural, and performance requirements",
+              "They agree to operate strictly within the TT system",
+              "They understand that deviation results in removal from the system",
+            ]} />
+          </TutorAgreementSection>
+        </>
+      );
+    case "TT-EQV-002":
+      return (
+        <>
+          <TutorAgreementSection title="Contractor Details">
+            <div className="tt-inline-detail-grid">
+              <div><span>Full Name</span><strong>{formData.legalName || "Not captured"}</strong></div>
+              <div><span>Date of Birth</span><strong>{formData.dateOfBirth || "Not captured"}</strong></div>
+              <div><span>ID Number</span><strong>{formData.idNumber || "Not captured"}</strong></div>
+              <div><span>Contact Number</span><strong>{formData.phoneNumber || "Not captured"}</strong></div>
+              <div><span>Email Address</span><strong>{formData.emailAddress || "Not captured"}</strong></div>
+              <div><span>Matric Year</span><strong>{formData.matricYear || "Not captured"}</strong></div>
+              <div className="tt-inline-detail-span"><span>School Where Matric Was Completed</span><strong>{formData.schoolName || "Not captured"}</strong></div>
+            </div>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Matric Certificate Submission">
+            <p>The Contractor must submit a certified copy of their official National Senior Certificate issued by the Department of Basic Education.</p>
+            <TutorAgreementList items={["Uncertified copies", "Screenshots", "Altered or incomplete documents"]} />
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Entry Qualification And Onboarding Acknowledgements">
+            <TutorAgreementList items={[
+              "This verification confirms entry eligibility only.",
+              "Continued participation is governed by conduct, session execution, adherence to the TT-OS, and operational performance within the platform.",
+              "No further academic submissions or qualification reviews are required after this verification.",
+            ]} />
+          </TutorAgreementSection>
+        </>
+      );
+    case "TT-ICA-003":
+      return (
+        <>
+          <TutorAgreementSection title="Nature Of Relationship">
+            <p>The Contractor is engaged as an independent contractor. Nothing in this Agreement creates employment, partnership, joint venture, or agency.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Business Model Acknowledgement">
+            <p>TT is a response-conditioning system delivered through mathematics. The Contractor operates within TT&apos;s system, not personal teaching style.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Payment Structure">
+            <p>Payment is made per completed session package and is conditional on TT-OS compliance and accurate reporting.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Acceptance">
+            <TutorAgreementList tone="check" items={[
+              "Full understanding of this Agreement",
+              "Acceptance of TT's system and control",
+              "Agreement to operate strictly within TT",
+            ]} />
+          </TutorAgreementSection>
+        </>
+      );
+    case "TT-SCP-004":
+      return (
+        <>
+          <TutorAgreementSection title="Core Principle">
+            <p>All tutor conduct must remain professional, structured, and bounded to the session environment.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Platform-Only Interaction">
+            <TutorAgreementList items={[
+              "Private messaging with learners is prohibited",
+              "External-platform contact is prohibited",
+              "Direct communication with parents outside TT channels is prohibited",
+            ]} />
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Zero-Tolerance Conduct">
+            <TutorAgreementList items={[
+              "Inappropriate or suggestive communication",
+              "Harassment, intimidation, or discrimination",
+              "Sharing personal contact information",
+              "Attempting to meet learners physically",
+            ]} />
+          </TutorAgreementSection>
+        </>
+      );
+    case "TT-DPC-005":
+      return (
+        <>
+          <TutorAgreementSection title="Purpose">
+            <p>This agreement records consent for the collection, processing, storage, and use of personal and performance data within the Territorial Tutoring platform.</p>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Types Of Data Collected">
+            <TutorAgreementSubsection title="Personal Information">
+              <TutorAgreementList items={["Full name", "Contact details", "Identification details", "Bank account details for payment processing only", "Signed consent and contractual documentation"]} />
+            </TutorAgreementSubsection>
+            <TutorAgreementSubsection title="Session Data">
+              <TutorAgreementList items={["Full video and audio recordings of all sessions", "Tutor observations and reports", "Interaction logs within the platform"]} />
+            </TutorAgreementSubsection>
+          </TutorAgreementSection>
+          <TutorAgreementSection title="Consent Acknowledgement">
+            <TutorAgreementList tone="check" items={[
+              "Understanding of the data collected and its purpose",
+              "Consent to full session recording where required",
+              "Acceptance of data processing as required by the TT system",
+            ]} />
+          </TutorAgreementSection>
+        </>
+      );
+    default:
+      return <p>No structured agreement template available.</p>;
+  }
+}
+
 function buildAcceptedAgreementHtml(item: { code: string; title: string }, acceptance: any) {
   const acceptedAt = acceptance?.acceptedAt || acceptance?.accepted_at || "";
   const acceptedName = acceptance?.typedFullName || acceptance?.typed_full_name || "Unknown";
@@ -69,6 +245,35 @@ function buildAcceptedAgreementHtml(item: { code: string; title: string }, accep
   const clauseItems = Array.isArray(acceptedClauses)
     ? acceptedClauses.map((value: string) => `<li>${escapeHtml(String(value))}</li>`).join("")
     : "";
+  const agreementBody = documentSnapshot
+    ? renderAgreementHtmlStrict(
+        hydrateDocumentContent(String(documentSnapshot), {
+          legalName: normalizeValue(acceptedName || formSnapshot.legalName),
+          phoneNumber: normalizeValue(formSnapshot.phoneNumber),
+          dateOfBirth: normalizeValue(formSnapshot.dateOfBirth),
+          emailAddress: normalizeValue(formSnapshot.emailAddress),
+          idNumber: normalizeValue(formSnapshot.idNumber),
+          schoolName: normalizeValue(formSnapshot.schoolName),
+          currentStatus: normalizeValue(formSnapshot.currentStatus),
+          matricYear: normalizeValue(formSnapshot.matricYear),
+          examNumber: normalizeValue(formSnapshot.examNumber),
+        }),
+        item.code
+      )
+    : renderToStaticMarkup(
+        <div className="agreement-body-inner">
+          {buildTutorAgreementBody(item.code, {
+            legalName: normalizeValue(acceptedName || formSnapshot.legalName),
+            phoneNumber: normalizeValue(formSnapshot.phoneNumber),
+            dateOfBirth: normalizeValue(formSnapshot.dateOfBirth),
+            emailAddress: normalizeValue(formSnapshot.emailAddress),
+            idNumber: normalizeValue(formSnapshot.idNumber),
+            schoolName: normalizeValue(formSnapshot.schoolName),
+            currentStatus: normalizeValue(formSnapshot.currentStatus),
+            matricYear: normalizeValue(formSnapshot.matricYear),
+          })}
+        </div>
+      );
 
   return `<!doctype html>
 <html lang="en">
@@ -88,8 +293,22 @@ function buildAcceptedAgreementHtml(item: { code: string; title: string }, accep
     th, td { padding: 9px 10px; border: 1px solid #ddd3c5; vertical-align: top; }
     th { width: 34%; background: #f6efe4; text-align: left; font: 600 12px/1.5 Arial, sans-serif; color: #243b53; }
     td, p, li { font: 400 13px/1.6 Arial, sans-serif; }
+    .agreement-body h1 { font-size: 11px; margin: 12px 0 6px; text-transform: uppercase; letter-spacing: 0.02em; }
+    .agreement-body h2 { font-size: 11px; margin: 12px 0 6px; }
     ul { margin: 0 0 0 18px; padding: 0; }
-    pre { white-space: pre-wrap; font: 400 13px/1.7 Arial, sans-serif; color: #243b53; margin: 0; }
+    .agreement-body-inner .tt-agreement-section + .tt-agreement-section { margin-top: 20px; padding-top: 20px; border-top: 1px solid #e7d5c8; }
+    .agreement-body-inner .tt-agreement-section h2 { margin: 0 0 10px; font: 700 14px/1.4 Arial, sans-serif; color: #7b341e; }
+    .agreement-body-inner .tt-agreement-section-body p { margin: 0 0 10px; font: 400 13px/1.7 Arial, sans-serif; color: #243b53; }
+    .agreement-body-inner .tt-agreement-subsection + .tt-agreement-subsection { margin-top: 14px; }
+    .agreement-body-inner .tt-agreement-subsection h3 { margin: 0 0 8px; font: 700 13px/1.4 Arial, sans-serif; color: #102a43; }
+    .agreement-body-inner .tt-agreement-list { margin: 0 0 10px 18px; padding: 0; }
+    .agreement-body-inner .tt-agreement-list li { margin-bottom: 5px; font: 400 13px/1.6 Arial, sans-serif; color: #243b53; }
+    .agreement-body-inner .tt-agreement-list-check { list-style-type: "• "; }
+    .agreement-body-inner .tt-inline-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .agreement-body-inner .tt-inline-detail-grid > div { padding: 10px 12px; border: 1px solid #ddd3c5; border-radius: 12px; background: #f8f2e8; }
+    .agreement-body-inner .tt-inline-detail-grid .tt-inline-detail-span { grid-column: span 2; }
+    .agreement-body-inner .tt-inline-detail-grid span { display: block; margin-bottom: 4px; font: 700 10px/1.4 Arial, sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: #9f1d2b; }
+    .agreement-body-inner .tt-inline-detail-grid strong { font: 600 13px/1.5 Arial, sans-serif; color: #102a43; }
   </style>
 </head>
 <body>
@@ -100,14 +319,21 @@ function buildAcceptedAgreementHtml(item: { code: string; title: string }, accep
     <section class="section">
       <h2 class="section-title">Acceptance Record</h2>
       <p>Accepted by: ${escapeHtml(String(acceptedName))}</p>
-      <p>Accepted at: ${escapeHtml(String(acceptedAt))}</p>
+      <p>Accepted at: ${escapeHtml(String(formatAcceptedAt(acceptedAt)))}</p>
       <p>Document hash: ${escapeHtml(String(documentChecksum))}</p>
+    </section>
+    <section class="section">
+      <h2 class="section-title">Parties</h2>
+      <table>
+        <tr><th>Party A</th><td>Territorial Tutoring SA (Pty) Ltd ("TT")</td></tr>
+        <tr><th>Party B</th><td>${escapeHtml(String(acceptedName))} (Contractor)</td></tr>
+      </table>
     </section>
     ${formRows ? `<section class="section"><h2 class="section-title">Captured Form Data</h2><table>${formRows}</table></section>` : ""}
     ${clauseItems ? `<section class="section"><h2 class="section-title">Acknowledged Clauses</h2><ul>${clauseItems}</ul></section>` : ""}
     <section class="section">
       <h2 class="section-title">Accepted Agreement Text</h2>
-      <pre>${escapeHtml(String(documentSnapshot))}</pre>
+      ${agreementBody}
     </section>
   </main>
 </body>
@@ -222,11 +448,19 @@ function getCurrentActionSummary(documentsStatus: Record<string, DocumentStatus>
   };
 }
 
+function tutorApplicationField(application: any, newCamel: string, newSnake: string, oldCamel?: string, oldSnake?: string) {
+  return application?.[newCamel]
+    ?? (oldCamel ? application?.[oldCamel] : undefined)
+    ?? application?.[newSnake]
+    ?? (oldSnake ? application?.[oldSnake] : undefined);
+}
+
 export function TutorDocumentReview({ application, onReview }: TutorDocumentReviewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [reviewStep, setReviewStep] = useState<2 | 6 | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [applicationViewOpen, setApplicationViewOpen] = useState(false);
 
   const documentsStatus: Record<string, DocumentStatus> = {
     "1": "pending_upload",
@@ -356,13 +590,14 @@ export function TutorDocumentReview({ application, onReview }: TutorDocumentRevi
         </CardHeader>
 
         <CardContent className="space-y-4">
-          <div className="rounded-xl border p-4">
-            <div className="mb-3 flex items-center gap-2">
-              <FileCheck className="h-4 w-4 text-slate-600" />
-              <p className="font-medium">Current review item</p>
-            </div>
+          {currentUploadStep === 2 || currentUploadStep === 6 || matricStatus === "rejected" || idStatus === "rejected" ? (
+            <div className="rounded-xl border p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <FileCheck className="h-4 w-4 text-slate-600" />
+                <p className="font-medium">Current review item</p>
+              </div>
 
-            {currentUploadStep === 2 ? (
+              {currentUploadStep === 2 ? (
               <>
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <p className="font-medium text-foreground">Certified Matric certificate</p>
@@ -397,7 +632,7 @@ export function TutorDocumentReview({ application, onReview }: TutorDocumentRevi
                   </Button>
                 </div>
               </>
-            ) : currentUploadStep === 6 ? (
+              ) : currentUploadStep === 6 ? (
               <>
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <p className="font-medium text-foreground">Certified ID copy</p>
@@ -432,21 +667,17 @@ export function TutorDocumentReview({ application, onReview }: TutorDocumentRevi
                   </Button>
                 </div>
               </>
-            ) : (
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <p>No COO action is required on this tutor right now.</p>
-                <p>{currentAction.stageDescription}</p>
-              </div>
-            )}
+              ) : null}
 
-            {(matricStatus === "rejected" || idStatus === "rejected") ? (
-              <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                {matricStatus === "rejected"
-                  ? application?.doc2SubmissionRejectionReason || application?.doc_2_submission_rejection_reason || "The Matric certificate needs correction."
-                  : application?.doc6SubmissionRejectionReason || application?.doc_6_submission_rejection_reason || "The certified ID copy needs correction."}
-              </div>
-            ) : null}
-          </div>
+              {(matricStatus === "rejected" || idStatus === "rejected") ? (
+                <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                  {matricStatus === "rejected"
+                    ? application?.doc2SubmissionRejectionReason || application?.doc_2_submission_rejection_reason || "The Matric certificate needs correction."
+                    : application?.doc6SubmissionRejectionReason || application?.doc_6_submission_rejection_reason || "The certified ID copy needs correction."}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
 
           <details className="rounded-xl border p-4">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
@@ -565,6 +796,21 @@ export function TutorDocumentReview({ application, onReview }: TutorDocumentRevi
               </div>
             </div>
           </details>
+
+          <div className="rounded-xl border p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2">
+                <FileCheck className="h-4 w-4 text-slate-600" />
+                <div>
+                  <p className="font-medium">Application view</p>
+                  <p className="text-sm text-muted-foreground">Original tutor application details and written responses.</p>
+                </div>
+              </div>
+              <Button type="button" variant="outline" onClick={() => setApplicationViewOpen(true)}>
+                View Full Application
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -600,6 +846,108 @@ export function TutorDocumentReview({ application, onReview }: TutorDocumentRevi
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={applicationViewOpen} onOpenChange={setApplicationViewOpen}>
+        <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{fullName}</DialogTitle>
+            <DialogDescription>Original tutor application details and written responses.</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            <section className="space-y-3">
+              <h4 className="border-b pb-2 text-sm font-semibold uppercase tracking-wide text-slate-700">Basic Information</h4>
+              <div className="grid gap-3 md:grid-cols-2">
+                <ReviewInfoItem label="Full Name" value={tutorApplicationField(application, "fullName", "full_name", "fullNames", "full_names")} />
+                <ReviewInfoItem label="Age" value={String(application?.age ?? "")} />
+                <ReviewInfoItem label="Email" value={application?.email} />
+                <ReviewInfoItem label="Phone" value={tutorApplicationField(application, "phone", "phone", "phoneNumber", "phone_number")} />
+                <ReviewInfoItem label="City" value={application?.city} />
+              </div>
+            </section>
+
+            <section className="space-y-3">
+              <h4 className="border-b pb-2 text-sm font-semibold uppercase tracking-wide text-slate-700">Academic Background</h4>
+              <div className="grid gap-3 md:grid-cols-2">
+                <ReviewInfoItem label="Completed Matric" value={tutorApplicationField(application, "completedMatric", "completed_matric")} />
+                <ReviewInfoItem label="Matric Year" value={tutorApplicationField(application, "matricYear", "matric_year")} />
+                <ReviewInfoItem label="Math Level" value={tutorApplicationField(application, "mathLevel", "math_level")} />
+                <ReviewInfoItem label="Math Result" value={tutorApplicationField(application, "mathResult", "math_result")} />
+                <ReviewInfoItem label="Other Subjects" value={tutorApplicationField(application, "otherSubjects", "other_subjects")} />
+              </div>
+            </section>
+
+            <section className="space-y-3">
+              <h4 className="border-b pb-2 text-sm font-semibold uppercase tracking-wide text-slate-700">Current Situation</h4>
+              <div className="grid gap-3 md:grid-cols-2">
+                <ReviewInfoItem
+                  label="Current Situation"
+                  value={String(tutorApplicationField(application, "currentSituation", "current_situation", "currentStatus", "current_status") || "").replace(/_/g, " ")}
+                />
+                <ReviewInfoItem label="Other (if applicable)" value={tutorApplicationField(application, "currentSituationOther", "current_situation_other")} />
+                <ReviewInfoItem label="Why interested?" value={tutorApplicationField(application, "interestReason", "interest_reason")} multiline />
+              </div>
+            </section>
+
+            <section className="space-y-3">
+              <h4 className="border-b pb-2 text-sm font-semibold uppercase tracking-wide text-slate-700">Teaching & Communication</h4>
+              <div className="grid gap-3">
+                <ReviewInfoItem label="Helped someone before?" value={tutorApplicationField(application, "helpedBefore", "helped_before")} />
+                <ReviewInfoItem label="Explanation" value={tutorApplicationField(application, "helpExplanation", "help_explanation")} multiline />
+                <ReviewInfoItem label={`Student says "I don't get this"`} value={tutorApplicationField(application, "studentDontGet", "student_dont_get")} multiline />
+              </div>
+            </section>
+
+            <section className="space-y-3">
+              <h4 className="border-b pb-2 text-sm font-semibold uppercase tracking-wide text-slate-700">Response Under Pressure</h4>
+              <div className="grid gap-3">
+                <ReviewInfoItem label="Pressure Story" value={tutorApplicationField(application, "pressureStory", "pressure_story")} multiline />
+                <ReviewInfoItem
+                  label="Pressure Response"
+                  value={Array.isArray(tutorApplicationField(application, "pressureResponse", "pressure_response"))
+                    ? tutorApplicationField(application, "pressureResponse", "pressure_response").join(", ")
+                    : tutorApplicationField(application, "pressureResponse", "pressure_response")}
+                  multiline
+                />
+                <ReviewInfoItem label="Panic Cause" value={tutorApplicationField(application, "panicCause", "panic_cause")} multiline />
+              </div>
+            </section>
+
+            <section className="space-y-3">
+              <h4 className="border-b pb-2 text-sm font-semibold uppercase tracking-wide text-slate-700">Discipline & Responsibility</h4>
+              <div className="grid gap-3">
+                <ReviewInfoItem label="Discipline Reason" value={tutorApplicationField(application, "disciplineReason", "discipline_reason")} multiline />
+                <ReviewInfoItem label="Repeat Mistake Response" value={tutorApplicationField(application, "repeatMistakeResponse", "repeat_mistake_response")} multiline />
+              </div>
+            </section>
+
+            <section className="space-y-3">
+              <h4 className="border-b pb-2 text-sm font-semibold uppercase tracking-wide text-slate-700">Alignment With TT</h4>
+              <div className="grid gap-3">
+                <ReviewInfoItem label="TT Meaning" value={tutorApplicationField(application, "ttMeaning", "tt_meaning")} multiline />
+                <ReviewInfoItem label="Structure Preference" value={tutorApplicationField(application, "structurePreference", "structure_preference")} multiline />
+              </div>
+            </section>
+
+            <section className="space-y-3">
+              <h4 className="border-b pb-2 text-sm font-semibold uppercase tracking-wide text-slate-700">Availability</h4>
+              <div className="grid gap-3 md:grid-cols-2">
+                <ReviewInfoItem label="Hours Per Week" value={tutorApplicationField(application, "hoursPerWeek", "hours_per_week")} />
+                <ReviewInfoItem label="Available Afternoons?" value={tutorApplicationField(application, "availableAfternoon", "available_afternoon", "bootcampAvailable", "bootcamp_available")} />
+              </div>
+            </section>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
+  );
+}
+
+function ReviewInfoItem({ label, value, multiline = false }: { label: string; value: any; multiline?: boolean }) {
+  return (
+    <div className="rounded-xl border border-[#E7D5C8] bg-[#FFF8F4] p-4">
+      <p className="text-sm font-semibold text-[#1A1A1A]">{label}</p>
+      <p className={`mt-2 text-sm text-[#5A5A5A] ${multiline ? "whitespace-pre-wrap leading-7" : ""}`}>{value || "Not provided"}</p>
+    </div>
   );
 }
