@@ -14,7 +14,7 @@ export var PORTAL_CONFIG = {
         roles: ["affiliate", "od"],
         isPublic: true,
         description: "Affiliate Portal - Affiliate & Outreach Director Interface",
-        dashboardRoute: "/affiliate/affiliate/home",
+        dashboardRoute: "/affiliate/gateway",
     },
     operational: {
         roles: ["tutor", "td"],
@@ -68,7 +68,8 @@ export var ROLE_NAVIGATION = {
     // Affiliate Portal - Outreach Director
     od: [
         { label: "Dashboard", path: "/affiliate/od/dashboard" },
-        { label: "Encounters", path: "/affiliate/od/encounters" },
+        { label: "Tracking", path: "/affiliate/od/encounters" },
+        { label: "Crews", path: "/affiliate/od/crews" },
         { label: "Affiliates", path: "/affiliate/od/affiliates" },
         { label: "Updates", path: "/affiliate/od/updates" },
     ],
@@ -90,7 +91,7 @@ export var ROLE_NAVIGATION = {
     // Executive Portal - COO
     coo: [
         { label: "Dashboard", path: "/executive/coo/dashboard" },
-        { label: "Tutor Applications", path: "/executive/coo/applications" },
+        { label: "Traffic", path: "/executive/coo/traffic" },
         { label: "Pods", path: "/executive/coo/pods" },
         { label: "Broadcast", path: "/executive/coo/broadcast" },
     ],
@@ -145,7 +146,7 @@ export function getDefaultDashboardRoute(role) {
     var roleSpecificRoutes = {
         parent: "/client/parent/gateway", // Parents go to gateway first, not dashboard
         student: "/client/student/dashboard",
-        affiliate: "/affiliate/affiliate/home",
+        affiliate: "/affiliate/gateway",
         od: "/affiliate/od/dashboard",
         tutor: "/operational/tutor/gateway", // Tutors go to gateway first
         td: "/operational/td/dashboard",

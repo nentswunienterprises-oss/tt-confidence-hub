@@ -583,7 +583,7 @@ export function registerRoutes(app) {
                     }); });
                     // Get tutor's pod assignment and students
                     app.get("/api/tutor/pod", isAuthenticated, requireRole(["tutor"]), function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-                        var tutorId_1, assignment, assignedEnrollments, _i, assignedEnrollments_1, enrollment, existingStudent, confidenceLevelMap, confidenceText, confidenceScore, err_2, students, studentsWithParentInfo, error_9;
+                        var tutorId_1, assignment, assignedEnrollments, _i, assignedEnrollments_1, enrollment, existingStudent, err_2, students, studentsWithParentInfo, error_9;
                         var _this = this;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
@@ -621,18 +621,6 @@ export function registerRoutes(app) {
                                 case 5:
                                     existingStudent = (_a.sent()).data;
                                     if (!!existingStudent) return [3 /*break*/, 7];
-                                    confidenceLevelMap = {
-                                        "very confident": 9,
-                                        "confident": 8,
-                                        "somewhat confident": 6,
-                                        "not confident": 3,
-                                        "very confident ": 9,
-                                        "confident ": 8,
-                                        "somewhat confident ": 6,
-                                        "not confident ": 3,
-                                    };
-                                    confidenceText = (enrollment.confidence_level || "").toLowerCase();
-                                    confidenceScore = confidenceLevelMap[confidenceText] || 5;
                                     return [4 /*yield*/, supabase
                                             .from("students")
                                             .insert({
@@ -728,7 +716,7 @@ export function registerRoutes(app) {
                     // Backfill students from assigned parent_enrollments for the authenticated tutor
                     // Useful in split deployments if automatic creation didn't run
                     app.post("/api/tutor/backfill-students", isAuthenticated, requireRole(["tutor"]), function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-                        var tutorId, created, _a, assignedEnrollments, enrollErr, _i, assignedEnrollments_2, enrollment, existingStudent, confidenceLevelMap, confidenceText, confidenceScore, insertErr, error_10;
+                        var tutorId, created, _a, assignedEnrollments, enrollErr, _i, assignedEnrollments_2, enrollment, existingStudent, insertErr, error_10;
                         return __generator(this, function (_b) {
                             switch (_b.label) {
                                 case 0:
@@ -760,14 +748,6 @@ export function registerRoutes(app) {
                                 case 3:
                                     existingStudent = (_b.sent()).data;
                                     if (!!existingStudent) return [3 /*break*/, 5];
-                                    confidenceLevelMap = {
-                                        "very confident": 9,
-                                        "confident": 8,
-                                        "somewhat confident": 6,
-                                        "not confident": 3,
-                                    };
-                                    confidenceText = (enrollment.confidence_level || "").toLowerCase();
-                                    confidenceScore = confidenceLevelMap[confidenceText] || 5;
                                     return [4 /*yield*/, supabase
                                             .from("students")
                                             .insert({
@@ -3631,7 +3611,7 @@ export function registerRoutes(app) {
                                     _b.trys.push([0, 2, , 3]);
                                     return [4 /*yield*/, supabase
                                             .from("parent_enrollments")
-                                            .select("id, user_id, parent_full_name, parent_phone, parent_email, parent_city, student_full_name, student_grade, school_name, math_struggle_areas, previous_tutoring, confidence_level, internet_access, parent_motivation, status, created_at")
+                                            .select("id, user_id, parent_full_name, parent_phone, parent_email, parent_city, student_full_name, student_grade, school_name, math_struggle_areas, previous_tutoring, internet_access, parent_motivation, status, created_at")
                                             .order("created_at", { ascending: false })];
                                 case 1:
                                     _a = _b.sent(), data = _a.data, error = _a.error;
@@ -3657,7 +3637,7 @@ export function registerRoutes(app) {
                     }); });
                     // Assign tutor to parent enrollment
                     app.post("/api/hr/enrollments/:enrollmentId/assign-tutor", isAuthenticated, requireRole(["hr"]), function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-                        var enrollmentId, _a, tutorId, podId, _b, data, error, enrollment, confidenceLevelMap, confidenceText, confidenceScore, studentError, studentErr_1, error_85;
+                        var enrollmentId, _a, tutorId, podId, _b, data, error, enrollment, confidenceScore, studentError, studentErr_1, error_85;
                         return __generator(this, function (_c) {
                             switch (_c.label) {
                                 case 0:
@@ -3689,18 +3669,7 @@ export function registerRoutes(app) {
                                     _c.label = 2;
                                 case 2:
                                     _c.trys.push([2, 4, , 5]);
-                                    confidenceLevelMap = {
-                                        "very confident": 9,
-                                        "confident": 8,
-                                        "somewhat confident": 6,
-                                        "not confident": 3,
-                                        "very confident ": 9,
-                                        "confident ": 8,
-                                        "somewhat confident ": 6,
-                                        "not confident ": 3,
-                                    };
-                                    confidenceText = (enrollment.confidence_level || "").toLowerCase();
-                                    confidenceScore = confidenceLevelMap[confidenceText] || 5;
+                                    confidenceScore = 5;
                                     // Use bulletproof student creation logic
                                     try {
                                         const studentData = {
@@ -5064,7 +5033,7 @@ export function registerRoutes(app) {
                     }); });
                     // Submit parent enrollment form
                     app.post("/api/parent/enroll", isAuthenticated, function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-                        var userId, dbUser, _a, parentFullName, parentPhone, parentEmail, parentCity, studentFullName, studentGrade, schoolName, mathStruggleAreas, previousTutoring, confidenceLevel, internetAccess, parentMotivation, agreedToTerms, existing, _b, enrollmentData, error, error_127;
+                        var userId, dbUser, _a, parentFullName, parentPhone, parentEmail, parentCity, studentFullName, studentGrade, schoolName, mathStruggleAreas, previousTutoring, internetAccess, parentMotivation, agreedToTerms, existing, _b, enrollmentData, error, error_127;
                         return __generator(this, function (_c) {
                             switch (_c.label) {
                                 case 0:
@@ -5072,7 +5041,7 @@ export function registerRoutes(app) {
                                     userId = req.session.userId;
                                     dbUser = req.dbUser;
                                     console.log("📍 Enrollment submission for user:", userId, "role:", dbUser === null || dbUser === void 0 ? void 0 : dbUser.role);
-                                    _a = req.body, parentFullName = _a.parentFullName, parentPhone = _a.parentPhone, parentEmail = _a.parentEmail, parentCity = _a.parentCity, studentFullName = _a.studentFullName, studentGrade = _a.studentGrade, schoolName = _a.schoolName, mathStruggleAreas = _a.mathStruggleAreas, previousTutoring = _a.previousTutoring, confidenceLevel = _a.confidenceLevel, internetAccess = _a.internetAccess, parentMotivation = _a.parentMotivation, agreedToTerms = _a.agreedToTerms;
+                                    _a = req.body, parentFullName = _a.parentFullName, parentPhone = _a.parentPhone, parentEmail = _a.parentEmail, parentCity = _a.parentCity, studentFullName = _a.studentFullName, studentGrade = _a.studentGrade, schoolName = _a.schoolName, mathStruggleAreas = _a.mathStruggleAreas, previousTutoring = _a.previousTutoring, internetAccess = _a.internetAccess, parentMotivation = _a.parentMotivation, agreedToTerms = _a.agreedToTerms;
                                     // Validate required fields
                                     if (!parentFullName ||
                                         !parentPhone ||
@@ -5081,7 +5050,6 @@ export function registerRoutes(app) {
                                         !schoolName ||
                                         !mathStruggleAreas ||
                                         !previousTutoring ||
-                                        !confidenceLevel ||
                                         !internetAccess ||
                                         !agreedToTerms) {
                                         return [2 /*return*/, res.status(400).json({ message: "Missing required fields" })];
@@ -5109,7 +5077,6 @@ export function registerRoutes(app) {
                                             school_name: schoolName,
                                             math_struggle_areas: mathStruggleAreas,
                                             previous_tutoring: previousTutoring,
-                                            confidence_level: confidenceLevel,
                                             internet_access: internetAccess,
                                             parent_motivation: parentMotivation,
                                             status: "awaiting_assignment",

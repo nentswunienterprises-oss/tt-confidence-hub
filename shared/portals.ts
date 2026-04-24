@@ -36,7 +36,7 @@ export const PORTAL_CONFIG: Record<
     roles: ["affiliate", "od"],
     isPublic: true,
     description: "Affiliate Portal - Affiliate & Outreach Director Interface",
-    dashboardRoute: "/affiliate/affiliate/home",
+    dashboardRoute: "/affiliate/gateway",
   },
   operational: {
     roles: ["tutor", "td"],
@@ -98,7 +98,8 @@ export const ROLE_NAVIGATION: Record<
   // Affiliate Portal - Outreach Director
   od: [
     { label: "Dashboard", path: "/affiliate/od/dashboard" },
-    { label: "Encounters", path: "/affiliate/od/encounters" },
+    { label: "Tracking", path: "/affiliate/od/encounters" },
+    { label: "Crews", path: "/affiliate/od/crews" },
     { label: "Affiliates", path: "/affiliate/od/affiliates" },
     { label: "Updates", path: "/affiliate/od/updates" },
   ],
@@ -187,7 +188,7 @@ export function getDefaultDashboardRoute(role: Role | undefined | null): string 
   const roleSpecificRoutes: Record<Role, string> = {
     parent: "/client/parent/gateway", // Parents go to gateway first, not dashboard
     student: "/client/student/dashboard",
-    affiliate: "/affiliate/affiliate/home",
+    affiliate: "/affiliate/gateway",
     od: "/affiliate/od/dashboard",
     tutor: "/operational/tutor/gateway", // Tutors go to gateway first
     td: "/operational/td/dashboard",

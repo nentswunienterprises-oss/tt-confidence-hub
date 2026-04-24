@@ -354,7 +354,9 @@ export default function ParentProgress() {
                         <div className="space-y-2">
                           {report.currentPosition.map((row, index) => (
                             <div key={`${row.topic}-${index}`} className="text-xs sm:text-sm text-muted-foreground">
-                              <p className="font-medium text-foreground">{row.topic}: {row.state}</p>
+                              <p className="font-medium text-foreground">
+                                {report.currentPosition && report.currentPosition.length === 1 ? row.state : `${row.topic}: ${row.state}`}
+                              </p>
                               <p>{row.position}</p>
                             </div>
                           ))}

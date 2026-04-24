@@ -13,11 +13,19 @@ import { useScheduledSession } from "@/hooks/useScheduledSession";
 import { Input } from "@/components/ui/input";
 
 function splitReportedTopics(rawValue) {
+  const ignoredContexts = new Set([
+    "word problems",
+    "tests",
+    "timed work",
+    "new topics",
+    "careless errors",
+  ]);
   if (!rawValue || typeof rawValue !== "string") return [];
   return rawValue
     .split(/[,\n;|]+/)
     .map((part) => part.replace(/^[-*\u2022\s]+/, "").trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((part) => !ignoredContexts.has(part.toLowerCase()));
 }
 
 function normalizePhaseLabel(rawValue) {
@@ -197,6 +205,18 @@ export function StudentCard({
     (Array.isArray(student.parentInfo?.response_symptoms) ? student.parentInfo.response_symptoms : []).filter(Boolean)
       .map((symptom) => String(symptom).trim())
       .filter(Boolean);
+  const topicResponseSymptomsRaw =
+    student.parentInfo?.topic_response_symptoms && typeof student.parentInfo.topic_response_symptoms === "object"
+      ? student.parentInfo.topic_response_symptoms
+      : {};
+  const topicRecommendedStartingPhasesRaw =
+    student.parentInfo?.topic_recommended_starting_phases && typeof student.parentInfo.topic_recommended_starting_phases === "object"
+      ? student.parentInfo.topic_recommended_starting_phases
+      : {};
+  const topicResponseSignalScoresRaw =
+    student.parentInfo?.topic_response_signal_scores && typeof student.parentInfo.topic_response_signal_scores === "object"
+      ? student.parentInfo.topic_response_signal_scores
+      : {};
 
   // Always define inferredSymptoms to prevent ReferenceError
   const inferredSymptoms = inferReportedSymptoms({
@@ -235,24 +255,64 @@ export function StudentCard({
   // Deduplicate and clean
   reportedTopics = Array.from(new Set(reportedTopics.map(t => String(t).trim()).filter(Boolean)));
 
-  const suggestedTopic = reportedTopics[0] || "Current class topic with highest friction";
-  const suggestedSymptoms = symptomSignals.slice(0, 2);
-  const recommendedStartingPhase = normalizePhaseLabel(student.parentInfo?.recommended_starting_phase) || "Clarity";
-  const recommendedStartingReason =
+  const topicIntelligence = reportedTopics.map((topic) => {
+    const topicSymptoms = Array.isArray((topicResponseSymptomsRaw as any)[topic])
+      ? ((topicResponseSymptomsRaw as any)[topic] as unknown[]).map((symptom) => String(symptom).trim()).filter(Boolean)
+      : [];
+    const recommendedTopicData =
+      topicRecommendedStartingPhasesRaw && typeof (topicRecommendedStartingPhasesRaw as any)[topic] === "object"
+        ? (topicRecommendedStartingPhasesRaw as any)[topic]
+        : null;
+    const topicScoresRaw =
+      topicResponseSignalScoresRaw && typeof (topicResponseSignalScoresRaw as any)[topic] === "object"
+        ? (topicResponseSignalScoresRaw as any)[topic]
+        : {};
+    const recommendedPhase = normalizePhaseLabel(recommendedTopicData?.phase) || "Clarity";
+    const recommendedReason =
+      String(recommendedTopicData?.rationale || "").trim() ||
+      "Use parent-reported response patterns as the starting hypothesis, then verify performance through adaptive diagnosis.";
+    const responseSignalBreakdown = [
+      { phase: "Clarity", score: Number(topicScoresRaw.Clarity || 0) },
+      { phase: "Structured Execution", score: Number(topicScoresRaw["Structured Execution"] || 0) },
+      { phase: "Controlled Discomfort", score: Number(topicScoresRaw["Controlled Discomfort"] || 0) },
+      { phase: "Time Pressure Stability", score: Number(topicScoresRaw["Time Pressure Stability"] || 0) },
+    ];
+    const rankedResponseSignals = [...responseSignalBreakdown].sort((a, b) => b.score - a.score);
+    const secondarySignal = rankedResponseSignals.find((entry) => entry.phase !== recommendedPhase && entry.score > 0) || null;
+
+    return {
+      topic,
+      symptoms: topicSymptoms,
+      recommendedStartingPhase: recommendedPhase,
+      recommendedStartingReason: recommendedReason,
+      responseSignalBreakdown,
+      secondarySignal,
+    };
+  });
+  const fallbackRecommendedStartingPhase = normalizePhaseLabel(student.parentInfo?.recommended_starting_phase) || "Clarity";
+  const fallbackRecommendedStartingReason =
     String(student.parentInfo?.recommended_starting_reason || "").trim() ||
     "Use parent-reported response patterns as the starting hypothesis, then verify performance through adaptive diagnosis.";
-  const responseSignalScoresRaw =
+  const fallbackResponseSignalScoresRaw =
     student.parentInfo?.response_signal_scores && typeof student.parentInfo.response_signal_scores === "object"
       ? student.parentInfo.response_signal_scores
       : {};
-  const responseSignalBreakdown = [
-    { phase: "Clarity", score: Number(responseSignalScoresRaw.Clarity || 0) },
-    { phase: "Structured Execution", score: Number(responseSignalScoresRaw["Structured Execution"] || 0) },
-    { phase: "Controlled Discomfort", score: Number(responseSignalScoresRaw["Controlled Discomfort"] || 0) },
-    { phase: "Time Pressure Stability", score: Number(responseSignalScoresRaw["Time Pressure Stability"] || 0) },
+  const fallbackResponseSignalBreakdown = [
+    { phase: "Clarity", score: Number(fallbackResponseSignalScoresRaw.Clarity || 0) },
+    { phase: "Structured Execution", score: Number(fallbackResponseSignalScoresRaw["Structured Execution"] || 0) },
+    { phase: "Controlled Discomfort", score: Number(fallbackResponseSignalScoresRaw["Controlled Discomfort"] || 0) },
+    { phase: "Time Pressure Stability", score: Number(fallbackResponseSignalScoresRaw["Time Pressure Stability"] || 0) },
   ];
-  const rankedResponseSignals = [...responseSignalBreakdown].sort((a, b) => b.score - a.score);
-  const secondarySignal = rankedResponseSignals.find((entry) => entry.phase !== recommendedStartingPhase && entry.score > 0) || null;
+  const fallbackSecondarySignal = [...fallbackResponseSignalBreakdown]
+    .sort((a, b) => b.score - a.score)
+    .find((entry) => entry.phase !== fallbackRecommendedStartingPhase && entry.score > 0) || null;
+  const primaryTopicIntelligence = topicIntelligence[0] || null;
+  const suggestedTopic = primaryTopicIntelligence?.topic || reportedTopics[0] || "Current class topic with highest friction";
+  const suggestedSymptoms = primaryTopicIntelligence?.symptoms || symptomSignals.slice(0, 2);
+  const recommendedStartingPhase = primaryTopicIntelligence?.recommendedStartingPhase || fallbackRecommendedStartingPhase;
+  const recommendedStartingReason = primaryTopicIntelligence?.recommendedStartingReason || fallbackRecommendedStartingReason;
+  const responseSignalBreakdown = primaryTopicIntelligence?.responseSignalBreakdown || fallbackResponseSignalBreakdown;
+  const secondarySignal = primaryTopicIntelligence?.secondarySignal || fallbackSecondarySignal;
   const topicConditioning = student.topicConditioning;
 
   // Prefer live session-derived topic states over the immutable proposal snapshot
@@ -569,6 +629,7 @@ export function StudentCard({
             operationalMode={operationalMode}
             reportedTopics={reportedTopics}
             symptomSignals={symptomSignals}
+            topicIntelligence={topicIntelligence}
             suggestedTopic={suggestedTopic}
             suggestedSymptoms={suggestedSymptoms}
             responseSignalBreakdown={responseSignalBreakdown}
@@ -871,6 +932,7 @@ function IntroDiagnosticTopicSection({
   operationalMode = "training",
   reportedTopics,
   symptomSignals,
+  topicIntelligence,
   suggestedTopic,
   suggestedSymptoms,
   responseSignalBreakdown,
@@ -924,22 +986,63 @@ function IntroDiagnosticTopicSection({
             )}
           </div>
 
-          <div className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-2">
-            <p className="text-[11px] font-medium text-foreground">Parent-Observed Symptoms</p>
-            {symptomSignals.length > 0 ? (
-              <div className="flex flex-wrap gap-1.5">
-                {symptomSignals.map((symptom) => (
-                  <Badge key={symptom} variant="outline" className="text-[10px] border-primary/20 bg-background/70 text-foreground">
-                    {symptom}
-                  </Badge>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-muted-foreground">
-                No explicit symptom keywords found. Observe freeze, rush, guess, avoid, and early help-seeking.
-              </p>
-            )}
-          </div>
+          {topicIntelligence.length > 0 ? (
+            <div className="space-y-3">
+              {topicIntelligence.map((entry) => (
+                <div key={entry.topic} className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-3">
+                  <div className="space-y-1">
+                    <p className="text-[11px] font-medium text-foreground">{entry.topic}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Start adaptive diagnosis at <span className="text-foreground font-medium">{entry.recommendedStartingPhase}</span>.
+                    </p>
+                    <p className="text-xs text-muted-foreground">{entry.recommendedStartingReason}</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Parent-Observed Symptoms</p>
+                    {entry.symptoms.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {entry.symptoms.map((symptom) => (
+                          <Badge
+                            key={`${entry.topic}-${symptom}`}
+                            variant="outline"
+                            className="max-w-full whitespace-normal break-words text-left leading-snug text-[10px] border-primary/20 bg-background/70 text-foreground"
+                          >
+                            {symptom}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">
+                        No topic-specific symptom mapping was captured for this topic.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-2">
+              <p className="text-[11px] font-medium text-foreground">Parent-Observed Symptoms</p>
+              {symptomSignals.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {symptomSignals.map((symptom) => (
+                    <Badge
+                      key={symptom}
+                      variant="outline"
+                      className="max-w-full whitespace-normal break-words text-left leading-snug text-[10px] border-primary/20 bg-background/70 text-foreground"
+                    >
+                      {symptom}
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  No explicit symptom keywords found. Observe freeze, rush, guess, avoid, and early help-seeking.
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="rounded-xl border border-primary/20 bg-muted/20 p-3 space-y-1">
             <p className="text-[11px] font-semibold text-foreground">Diagnostic Focus Suggestion</p>

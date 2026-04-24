@@ -1,103 +1,95 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import { Search } from "lucide-react";
 import { getQueryFn } from "@/lib/queryClient";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 
-type FilterType = "all" | "leads" | "closes" | "objections";
+type FilterType = "leads" | "closes";
 
 export default function AffiliateTracking() {
-  const [filter, setFilter] = useState<FilterType>("all");
+  const [filter, setFilter] = useState<FilterType>("leads");
   const [search, setSearch] = useState("");
 
-  // Fetch breakdown stats
-  const { data: breakdown } = useQuery<{ all: number; leads: number; closes: number; objections: number }>({
-    queryKey: ["/api", "affiliate", "breakdown"],
-    queryFn: getQueryFn({ on401: "throw" }),
-  });
-
-  // Fetch encounters
-  const { data: encounters = [] } = useQuery<any[]>({
-    queryKey: ["/api", "affiliate", "encounters"],
-    queryFn: getQueryFn({ on401: "throw" }),
-  });
-
-  // Fetch leads
   const { data: leads = [] } = useQuery<any[]>({
     queryKey: ["/api", "affiliate", "leads"],
     queryFn: getQueryFn({ on401: "throw" }),
   });
 
-  // Fetch closes
   const { data: closes = [] } = useQuery<any[]>({
     queryKey: ["/api", "affiliate", "closes"],
     queryFn: getQueryFn({ on401: "throw" }),
   });
 
-  // Combine and filter all records based on current view
-  let filteredRecords: any[] = [];
-  if (filter === "all") {
-    filteredRecords = encounters;
-  } else if (filter === "leads") {
-    filteredRecords = leads;
-  } else if (filter === "closes") {
-    filteredRecords = closes;
-  } else if (filter === "objections") {
-    filteredRecords = encounters.filter((e: any) => e.status === "objected");
-  }
-
-  const filteredRecordsWithSearch = filteredRecords.filter((record: any) =>
-    record.parent_name?.toLowerCase().includes(search.toLowerCase()) ||
-    record.parent_email?.toLowerCase().includes(search.toLowerCase())
-  );
+  const totalEarnings = closes.reduce((sum: number, close: any) => {
+    const amount = Number(close.commission_amount || 0);
+    return sum + (Number.isFinite(amount) ? amount : 0);
+  }, 0);
 
   const stats = [
-    { label: "All Encounters", value: typeof breakdown?.all === 'number' ? breakdown.all : 0, filter: "all" as const },
-    { label: "Leads", value: typeof breakdown?.leads === 'number' ? breakdown.leads : 0, filter: "leads" as const },
-    { label: "Closes", value: typeof breakdown?.closes === 'number' ? breakdown.closes : 0, filter: "closes" as const },
-    { label: "Objections", value: typeof breakdown?.objections === 'number' ? breakdown.objections : 0, filter: "objections" as const },
+    { label: "Leads", value: leads.length, filter: "leads" as const },
+    { label: "Closes", value: closes.length, filter: "closes" as const },
   ];
+
+  const activeRecords = (filter === "closes" ? closes : leads).filter((record: any) => {
+    const name = String(record.parent_name || "").toLowerCase();
+    const email = String(record.parent_email || "").toLowerCase();
+    const query = search.toLowerCase();
+    return name.includes(query) || email.includes(query);
+  });
 
   return (
     <DashboardLayout>
       <div className="space-y-4 sm:space-y-8">
-        {/* Welcome Hero */}
         <div className="space-y-2 sm:space-y-3">
           <h1 className="text-xl sm:text-3xl md:text-4xl font-bold tracking-tight">Tracking</h1>
           <p className="text-sm sm:text-lg text-muted-foreground">
-            Monitor every parent you've met and track their journey to becoming a lead or close.
+            Monitor the leads, closes, and earnings generated from your affiliate link.
           </p>
         </div>
 
-        {/* Filter Buttons */}
-        <div className="flex gap-1.5 sm:gap-2 flex-wrap">
-          {stats.map((stat) => {
-            const displayValue = typeof stat.value === 'number' ? String(stat.value) : '0';
-            return (
-              <Button
-                key={stat.filter}
-                variant={filter === stat.filter ? "default" : "outline"}
-                onClick={() => setFilter(stat.filter)}
-                size="sm"
-                className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 h-auto"
-              >
-                <span className="hidden sm:inline">{stat.label}</span>
-                <span className="sm:hidden">{stat.label.split(' ').pop()}</span>
-                <span className="ml-1 sm:ml-2 font-bold">{displayValue}</span>
-              </Button>
-            );
-          })}
+        <div className="grid grid-cols-3 gap-2 sm:gap-6">
+          {stats.map((stat) => (
+            <button
+              key={stat.filter}
+              type="button"
+              onClick={() => setFilter(stat.filter)}
+              className={`rounded-lg border p-3 sm:p-8 text-center transition-colors ${
+                filter === stat.filter ? "border-primary bg-primary text-primary-foreground" : "bg-card text-card-foreground"
+              }`}
+            >
+              <p className="text-2xl sm:text-5xl font-bold">{stat.value}</p>
+              <p className="mt-1 text-[10px] sm:text-sm uppercase tracking-wide font-medium">{stat.label}</p>
+            </button>
+          ))}
+          <Card className="p-3 sm:p-8 border shadow-sm text-center">
+            <p className="text-2xl sm:text-5xl font-bold text-foreground">R{totalEarnings.toFixed(2)}</p>
+            <p className="mt-1 text-[10px] sm:text-sm text-muted-foreground uppercase tracking-wide font-medium">
+              Earnings
+            </p>
+          </Card>
         </div>
 
-        {/* Search */}
+        <div className="flex gap-2 flex-wrap">
+          {stats.map((stat) => (
+            <Button
+              key={stat.filter}
+              variant={filter === stat.filter ? "default" : "outline"}
+              onClick={() => setFilter(stat.filter)}
+              size="sm"
+            >
+              {stat.label}
+            </Button>
+          ))}
+        </div>
+
         <div className="flex gap-2">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-2.5 sm:top-3 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground sm:top-3 sm:h-5 sm:w-5" />
             <Input
-              placeholder="Search by parent name or email..."
+              placeholder={`Search ${filter} by parent name or email.`}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9 sm:pl-10 py-4 sm:py-6 text-sm sm:text-base"
@@ -105,130 +97,59 @@ export default function AffiliateTracking() {
           </div>
         </div>
 
-        {/* Encounters List */}
         <div className="space-y-2 sm:space-y-3">
-          {filteredRecordsWithSearch.length === 0 ? (
+          {activeRecords.length === 0 ? (
             <Card className="p-6 sm:p-12 text-center">
               <p className="text-sm sm:text-lg text-muted-foreground">
-                {filter === "all" ? "No encounters found" : 
-                 filter === "leads" ? "No leads found" : 
-                 filter === "closes" ? "No closes found" : 
-                 "No objections found"}
+                {filter === "leads" ? "No leads found." : "No closes found."}
               </p>
             </Card>
           ) : (
-            filteredRecordsWithSearch.map((record: any) => (
-              <Card key={record.id} className="p-3 sm:p-6 hover:shadow-md transition-shadow">
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
-                  <div className="flex-1 space-y-2 sm:space-y-3">
-                    {/* Parent Info */}
-                    <div className="flex justify-between items-start sm:block">
-                      <div>
-                        <h3 className="font-bold text-sm sm:text-lg">{record.parent_name}</h3>
-                        <div className="text-xs sm:text-sm text-muted-foreground space-y-0.5 sm:space-y-1 mt-1 sm:mt-2">
-                          {record.parent_email && <p className="truncate max-w-[200px] sm:max-w-none">📧 {record.parent_email}</p>}
-                          {record.parent_phone && <p>📱 {record.parent_phone}</p>}
-                        </div>
-                      </div>
-                      {/* Mobile Status Badge */}
-                      <div className="sm:hidden">
-                        <span
-                          className={`text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap ${
-                            filter === "objections"
-                              ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                              : filter === "closes"
-                              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                              : filter === "leads"
-                              ? "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
-                              : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                          }`}
-                        >
-                          {filter === "objections" ? "❌" : filter === "closes" ? "✅" : filter === "leads" ? "📊" : "🎯"}
-                        </span>
-                      </div>
+            activeRecords.map((record: any) => (
+              <Card key={record.id || record.close_id || record.lead_id} className="p-3 sm:p-6">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                  <div className="flex-1 space-y-3">
+                    <div>
+                      <h3 className="text-sm sm:text-lg font-bold">{record.parent_name || "Unnamed parent"}</h3>
+                      {record.parent_email && (
+                        <p className="mt-1 text-xs sm:text-sm text-muted-foreground break-all">{record.parent_email}</p>
+                      )}
                     </div>
 
-                    {/* Child Info */}
-                    {record.child_name && (
-                      <div>
-                        <p className="text-xs sm:text-sm font-semibold text-foreground">Child Information</p>
-                        <p className="text-xs sm:text-sm text-muted-foreground">👤 {record.child_name} {record.child_grade ? `(Grade ${record.child_grade})` : ""}</p>
-                      </div>
-                    )}
-
-                    {/* Details */}
                     <div className="grid grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm">
-                      {record.date_met && (
+                      <div>
+                        <p className="font-semibold text-foreground">{filter === "closes" ? "Closed" : "Created"}</p>
+                        <p className="text-muted-foreground">
+                          {new Date(record.closed_at || record.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+
+                      {filter === "closes" && (
                         <div>
-                          <p className="font-semibold text-foreground">Date Met</p>
-                          <p className="text-muted-foreground">{new Date(record.date_met).toLocaleDateString()}</p>
+                          <p className="font-semibold text-foreground">Earnings</p>
+                          <p className="text-muted-foreground">R{Number(record.commission_amount || 0).toFixed(2)}</p>
                         </div>
                       )}
-                      {record.contact_method && (
+
+                      {filter === "closes" && record.commission_status && (
                         <div>
-                          <p className="font-semibold text-foreground">Contact Method</p>
-                          <p className="text-muted-foreground capitalize">{record.contact_method}</p>
-                        </div>
-                      )}
-                      {record.discovery_outcome && (
-                        <div>
-                          <p className="font-semibold text-foreground">Discovery Outcome</p>
-                          <p className="text-muted-foreground">{record.discovery_outcome}</p>
-                        </div>
-                      )}
-                      {record.final_outcome && (
-                        <div>
-                          <p className="font-semibold text-foreground">Final Outcome</p>
-                          <p className="text-muted-foreground">{record.final_outcome}</p>
+                          <p className="font-semibold text-foreground">Commission Status</p>
+                          <p className="text-muted-foreground capitalize">{record.commission_status}</p>
                         </div>
                       )}
                     </div>
-
-                    {/* Notes */}
-                    {record.notes && (
-                      <div>
-                        <p className="text-xs sm:text-sm font-semibold text-foreground">Notes</p>
-                        <p className="text-xs sm:text-sm text-muted-foreground">{record.notes}</p>
-                      </div>
-                    )}
-
-                    {/* Confidence Rating */}
-                    {record.confidence_rating && (
-                      <div>
-                        <p className="text-xs sm:text-sm font-semibold text-foreground">Confidence Rating</p>
-                        <div className="flex items-center gap-1 mt-1">
-                          {[1, 2, 3, 4, 5].map((i) => (
-                            <div
-                              key={i}
-                              className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full ${
-                                i <= record.confidence_rating ? "bg-yellow-400" : "bg-gray-300"
-                              }`}
-                            />
-                          ))}
-                          <span className="text-xs sm:text-sm text-muted-foreground ml-2">{record.confidence_rating}/5</span>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
-                  {/* Desktop Status Badge */}
-                  <div className="hidden sm:flex text-right flex-col gap-3">
+                  <div className="hidden sm:block text-right">
                     <span
-                      className={`text-xs font-bold px-4 py-2 rounded-full whitespace-nowrap ${
-                        filter === "objections"
-                          ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                          : filter === "closes"
+                      className={`inline-block rounded-full px-4 py-2 text-xs font-bold whitespace-nowrap ${
+                        filter === "closes"
                           ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                          : filter === "leads"
-                          ? "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
-                          : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                          : "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
                       }`}
                     >
-                      {filter === "objections" ? "❌ Objection" : filter === "closes" ? "✅ Close" : filter === "leads" ? "📊 Lead" : "🎯 Encounter"}
+                      {filter === "closes" ? "Close" : "Lead"}
                     </span>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(record.created_at).toLocaleDateString()}
-                    </p>
                   </div>
                 </div>
               </Card>

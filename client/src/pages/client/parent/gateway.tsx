@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { CheckCircle2, Circle, ArrowLeft, Check } from "lucide-react";
+import { CheckCircle2, Circle, ArrowLeft, Check, Plus, X } from "lucide-react";
 import { TTLogo } from "@/components/TTLogo";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -29,7 +29,6 @@ import { format } from "date-fns/format";
 import { supabase } from "@/lib/supabaseClient";
 import {
   RESPONSE_SYMPTOM_GROUPS,
-  getResponseSymptomLabels,
 } from "@shared/responseSymptomMapping";
 
 interface EnrollmentStatus {
@@ -45,6 +44,34 @@ interface IntroSessionConfirmation {
   introCompleted?: boolean;
   type?: "intro" | "handover";
   sessionLabel?: string;
+}
+
+const NON_TOPIC_CONTEXT_LABELS = new Set([
+  "word problems",
+  "tests",
+  "timed work",
+  "new topics",
+  "careless errors",
+]);
+
+function normalizeMathTopic(value: string) {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function parseMathTopicEntries(value: string) {
+  return value
+    .split(/[\n,;|]+/)
+    .map(normalizeMathTopic)
+    .filter(Boolean)
+    .filter((topic) => !NON_TOPIC_CONTEXT_LABELS.has(topic.toLowerCase()));
+}
+
+function getGroupOptionIds(groupId: string) {
+  return RESPONSE_SYMPTOM_GROUPS.find((group) => group.id === groupId)?.options.map((option) => option.id) || [];
+}
+
+function getGroupFallbackOptionIds(groupId: string) {
+  return [`${groupId}_none_of_above`, `${groupId}_not_sure`];
 }
 
 export default function ParentGateway() {
@@ -66,6 +93,7 @@ export default function ParentGateway() {
   const [loadingDebug, setLoadingDebug] = useState(false);
   const [debugError, setDebugError] = useState<string | null>(null);
   const [hideStudentCodeCard, setHideStudentCodeCard] = useState(false);
+  const [mathTopicDraft, setMathTopicDraft] = useState("");
 
   // Fetch current user data
   const { data: user } = useQuery<any>({
@@ -252,13 +280,17 @@ export default function ParentGateway() {
     schoolName: "",
     stuckAreas: [] as string[],
     mathStruggleAreas: "",
-    responseSymptoms: [] as string[],
+    topicResponseSymptoms: {} as Record<string, string[]>,
     previousTutoring: "",
     internetAccess: "",
     parentMotivation: "",
     processAlignment: "",
     agreedToTerms: false,
   });
+  const selectedMathTopics = useMemo(
+    () => parseMathTopicEntries(formData.mathStruggleAreas),
+    [formData.mathStruggleAreas]
+  );
 
   // Auto-fill parent name and email from user data
   useEffect(() => {
@@ -278,7 +310,72 @@ export default function ParentGateway() {
     }));
   };
 
+  const updateTopicResponseSymptoms = (topic: string, nextSymptoms: string[]) => {
+    setFormData((prev) => ({
+      ...prev,
+      topicResponseSymptoms: {
+        ...prev.topicResponseSymptoms,
+        [topic]: nextSymptoms,
+      },
+    }));
+  };
+
+  const syncMathTopicEntries = (entries: string[]) => {
+    handleInputChange("mathStruggleAreas", entries.join(", "));
+  };
+
+  const addMathTopics = (rawValue: string) => {
+    const parsedTopics = parseMathTopicEntries(rawValue);
+    const draftLooksLikeContext =
+      normalizeMathTopic(rawValue).length > 0 && parsedTopics.length === 0;
+
+    if (draftLooksLikeContext) {
+      toast({
+        title: "Add math topics only",
+        description: "Use this field for topics like Algebra or Fractions. The struggle contexts above are tracked separately.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (parsedTopics.length === 0) {
+      return;
+    }
+
+    const nextTopics = Array.from(
+      new Set([
+        ...selectedMathTopics,
+        ...parsedTopics,
+      ])
+    );
+
+    syncMathTopicEntries(nextTopics);
+    setFormData((prev) => ({
+      ...prev,
+      topicResponseSymptoms: nextTopics.reduce<Record<string, string[]>>((acc, topic) => {
+        acc[topic] = prev.topicResponseSymptoms[topic] || [];
+        return acc;
+      }, {}),
+    }));
+    setMathTopicDraft("");
+  };
+
+  const removeMathTopic = (topicToRemove: string) => {
+    const nextTopics = selectedMathTopics.filter((topic) => topic !== topicToRemove);
+    syncMathTopicEntries(nextTopics);
+    setFormData((prev) => {
+      const nextTopicResponseSymptoms = { ...prev.topicResponseSymptoms };
+      delete nextTopicResponseSymptoms[topicToRemove];
+      return {
+        ...prev,
+        topicResponseSymptoms: nextTopicResponseSymptoms,
+      };
+    });
+  };
+
   const isFormValid = () => {
+    const hasMathTopics = selectedMathTopics.length > 0;
+    const everyTopicHasSymptoms = selectedMathTopics.every((topic) => (formData.topicResponseSymptoms[topic] || []).length > 0);
     return (
       formData.parentFullName &&
       formData.parentPhone &&
@@ -287,8 +384,8 @@ export default function ParentGateway() {
       formData.studentFullName &&
       formData.studentGrade &&
       formData.schoolName &&
-      formData.mathStruggleAreas &&
-      formData.responseSymptoms.length > 0 &&
+      hasMathTopics &&
+      everyTopicHasSymptoms &&
       formData.previousTutoring &&
       formData.internetAccess &&
       formData.agreedToTerms
@@ -296,7 +393,32 @@ export default function ParentGateway() {
   };
 
   const handleSubmit = async () => {
-    if (!isFormValid()) {
+    const submittedMathTopics = Array.from(
+      new Set([
+        ...selectedMathTopics,
+        ...parseMathTopicEntries(mathTopicDraft),
+      ])
+    );
+
+    if (submittedMathTopics.join(", ") !== formData.mathStruggleAreas) {
+      syncMathTopicEntries(submittedMathTopics);
+      setMathTopicDraft("");
+    }
+
+    if (
+      !formData.parentFullName ||
+      !formData.parentPhone ||
+      !formData.parentEmail ||
+      !formData.parentCity ||
+      !formData.studentFullName ||
+      !formData.studentGrade ||
+      !formData.schoolName ||
+      submittedMathTopics.length === 0 ||
+      submittedMathTopics.some((topic) => (formData.topicResponseSymptoms[topic] || []).length === 0) ||
+      !formData.previousTutoring ||
+      !formData.internetAccess ||
+      !formData.agreedToTerms
+    ) {
       toast({
         title: "Incomplete Form",
         description: "Please fill in all required fields.",
@@ -316,7 +438,15 @@ export default function ParentGateway() {
         method: "POST",
         headers,
         credentials: "include",
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          mathStruggleAreas: submittedMathTopics.join(", "),
+          responseSymptoms: Array.from(
+            new Set(
+              submittedMathTopics.flatMap((topic) => formData.topicResponseSymptoms[topic] || [])
+            )
+          ),
+        }),
       });
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -841,96 +971,155 @@ export default function ParentGateway() {
                   </div>
                   <div>
                     <label className="block text-xs sm:text-sm font-medium mb-1">What specific math areas does your child struggle with most? *</label>
-                    <Input
-                      className="text-sm sm:text-base"
-                      placeholder="e.g., Algebra, Fractions, Problem Solving..."
-                      value={formData.mathStruggleAreas}
-                      onChange={(e) => handleInputChange("mathStruggleAreas", e.target.value)}
-                      autoComplete="off"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Response symptoms */}
-              <div className="space-y-3 sm:space-y-4">
-                <div className="space-y-3">
-                  <div className="space-y-3 pt-2">
-                    <label className="block text-xs sm:text-sm font-medium" style={{ color: "#1A1A1A" }}>
-                      What does the struggle usually look like when your child is working? *
-                    </label>
-                    <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-                      Select the behaviours you notice most often. You do not need to diagnose the cause.
-                    </p>
-                    <div className="space-y-4">
-                      {RESPONSE_SYMPTOM_GROUPS.map((group) => (
-                        <div key={group.id} className="rounded-xl border border-[#F6D8DA] bg-[#FFF8F8] p-3 sm:p-4 space-y-2">
-                          <div>
-                            <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-wide" style={{ color: "#E63946" }}>
-                              {group.title}
-                            </p>
-                            <p className="text-xs sm:text-sm mt-1" style={{ color: "#5A5A5A" }}>
-                              {group.prompt}
-                            </p>
-                          </div>
-                          <div className="space-y-2">
-                            {group.options.map((option) => {
-                              const selected = formData.responseSymptoms.includes(option.id);
-                              return (
-                                <button
-                                  key={option.id}
-                                  type="button"
-                                  onClick={() => {
-                                    const nextSymptoms = selected
-                                      ? formData.responseSymptoms.filter((item) => item !== option.id)
-                                      : [...formData.responseSymptoms, option.id];
-                                    handleInputChange("responseSymptoms", nextSymptoms);
-                                  }}
-                                  className="w-full px-3 sm:px-4 py-3 rounded-xl border-2 text-xs sm:text-sm text-left transition flex items-start gap-2"
-                                  style={{
-                                    backgroundColor: selected ? "#E63946" : "white",
-                                    color: selected ? "white" : "#1A1A1A",
-                                    borderColor: selected ? "#E63946" : "#F2D7DA",
-                                  }}
-                                >
-                                  <div
-                                    className="w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5"
-                                    style={{
-                                      borderColor: selected ? "white" : "#E5E5E5",
-                                      backgroundColor: selected ? "white" : "transparent",
-                                    }}
-                                  >
-                                    {selected && <Check className="w-3 h-3" style={{ color: "#E63946" }} />}
-                                  </div>
-                                  <div className="space-y-1">
-                                    <p>{option.label}</p>
-                                    <p className="text-[11px] sm:text-xs" style={{ color: selected ? "rgba(255,255,255,0.85)" : "#6B7280" }}>
-                                      {option.description}
-                                    </p>
-                                  </div>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    {formData.responseSymptoms.length > 0 ? (
-                      <div className="rounded-xl border border-primary/20 bg-muted/20 p-3">
-                        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Selected Behaviour Signals</p>
-                        <div className="mt-2 flex flex-wrap gap-1.5">
-                          {getResponseSymptomLabels(formData.responseSymptoms).map((label) => (
-                            <span key={label} className="rounded-full border border-primary/20 bg-background px-2 py-1 text-[10px] text-foreground">
-                              {label}
-                            </span>
+                    <div className="space-y-3">
+                      <div className="flex gap-2">
+                        <Input
+                          className="text-sm sm:text-base"
+                          placeholder="Type one math topic, then add it"
+                          value={mathTopicDraft}
+                          onChange={(e) => setMathTopicDraft(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              addMathTopics(mathTopicDraft);
+                            }
+                          }}
+                          autoComplete="off"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="shrink-0"
+                          onClick={() => addMathTopics(mathTopicDraft)}
+                        >
+                          <Plus className="w-4 h-4 mr-1" />
+                          Add
+                        </Button>
+                      </div>
+                      <p className="text-[11px] sm:text-xs" style={{ color: "#5A5A5A" }}>
+                        Add topics one by one, for example: Algebra, Fractions, Exponents.
+                      </p>
+                      {selectedMathTopics.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {selectedMathTopics.map((topic) => (
+                            <button
+                              key={topic}
+                              type="button"
+                              onClick={() => removeMathTopic(topic)}
+                              className="inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs sm:text-sm"
+                              style={{ borderColor: "#F2D7DA", backgroundColor: "#FFF8F8", color: "#1A1A1A" }}
+                            >
+                              <span>{topic}</span>
+                              <X className="w-3 h-3" />
+                            </button>
                           ))}
                         </div>
-                      </div>
-                    ) : null}
+                      ) : (
+                        <p className="text-xs text-muted-foreground">No math topics added yet.</p>
+                      )}
+                    </div>
                   </div>
-
                 </div>
               </div>
+
+              {/* Topic symptom mapping */}
+              {selectedMathTopics.length > 0 && (
+                <div className="space-y-5 pt-2">
+                  {selectedMathTopics.map((topic, topicIndex) => {
+                    const selectedTopicSymptoms = formData.topicResponseSymptoms[topic] || [];
+                    return (
+                      <div key={topic} className="rounded-2xl border border-[#F2D7DA] bg-[#FFF8F8] p-4 sm:p-5 space-y-4">
+                        <div className="space-y-1">
+                          <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-wide" style={{ color: "#E63946" }}>
+                            Topic {topicIndex + 1}
+                          </p>
+                          <h5 className="text-sm sm:text-base font-semibold" style={{ color: "#1A1A1A" }}>
+                            {topic}
+                          </h5>
+                          <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
+                            What does the struggle usually look like here?
+                          </p>
+                        </div>
+
+                        <div className="space-y-4">
+                          {RESPONSE_SYMPTOM_GROUPS.map((group) => (
+                            <div key={`${topic}-${group.id}`} className="rounded-xl border border-[#F6D8DA] bg-white p-3 sm:p-4 space-y-2">
+                              <div>
+                                <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-wide" style={{ color: "#E63946" }}>
+                                  {group.title}
+                                </p>
+                                <p className="text-xs sm:text-sm mt-1" style={{ color: "#5A5A5A" }}>
+                                  {group.prompt}
+                                </p>
+                              </div>
+                              <div className="space-y-2">
+                                {group.options.map((option) => {
+                                  const selected = selectedTopicSymptoms.includes(option.id);
+                                  return (
+                                    <button
+                                      key={option.id}
+                                      type="button"
+                                      onClick={() => {
+                                        const currentSymptoms = formData.topicResponseSymptoms[topic] || [];
+                                        const groupOptionIds = getGroupOptionIds(group.id);
+                                        const fallbackOptionIds = getGroupFallbackOptionIds(group.id);
+                                        const isFallbackOption = fallbackOptionIds.includes(option.id);
+                                        const groupSelections = currentSymptoms.filter((item) => groupOptionIds.includes(item));
+                                        let nextGroupSelections: string[];
+
+                                        if (selected) {
+                                          nextGroupSelections = groupSelections.filter((item) => item !== option.id);
+                                        } else if (isFallbackOption) {
+                                          nextGroupSelections = [option.id];
+                                        } else {
+                                          nextGroupSelections = [
+                                            ...groupSelections.filter((item) => !fallbackOptionIds.includes(item)),
+                                            option.id,
+                                          ];
+                                        }
+
+                                        const nextSymptoms = [
+                                          ...currentSymptoms.filter((item) => !groupOptionIds.includes(item)),
+                                          ...Array.from(new Set(nextGroupSelections)),
+                                        ];
+
+                                        updateTopicResponseSymptoms(topic, nextSymptoms);
+                                      }}
+                                      className="w-full px-3 sm:px-4 py-3 rounded-xl border-2 text-xs sm:text-sm text-left transition flex items-start gap-2"
+                                      style={{
+                                        backgroundColor: selected ? "#E63946" : "white",
+                                        color: selected ? "white" : "#1A1A1A",
+                                        borderColor: selected ? "#E63946" : "#F2D7DA",
+                                      }}
+                                    >
+                                      <div
+                                        className="w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5"
+                                        style={{
+                                          borderColor: selected ? "white" : "#E5E5E5",
+                                          backgroundColor: selected ? "white" : "transparent",
+                                        }}
+                                      >
+                                        {selected && <Check className="w-3 h-3" style={{ color: "#E63946" }} />}
+                                      </div>
+                                      <div className="space-y-1">
+                                        <p>{option.label}</p>
+                                        <p className="text-[11px] sm:text-xs" style={{ color: selected ? "rgba(255,255,255,0.85)" : "#6B7280" }}>
+                                          {option.description}
+                                        </p>
+                                      </div>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
               {/* Background Questions */}
               <div className="space-y-3 sm:space-y-4">

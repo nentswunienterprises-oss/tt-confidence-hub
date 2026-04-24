@@ -406,8 +406,45 @@ export var broadcastReads = pgTable("broadcast_reads", {
 });
 export var roleAuthorizationSchema = z.object({
     email: z.string().email(),
-    role: z.enum(["td", "coo"]),
+    role: z.enum(["td", "coo", "od"]),
     assignedPodId: z.string().nullable().optional(),
+});
+// ============================================
+// EGP CREWS
+// ============================================
+export var egpCrewStatusEnum = pgEnum("egp_crew_status", ["active", "archived"]);
+export var egpCrewMemberRoleEnum = pgEnum("egp_crew_member_role", ["member", "crew_lead"]);
+export var egpCrews = pgTable("egp_crews", {
+    id: varchar("id").primaryKey().default(sql(templateObject_36 || (templateObject_36 = __makeTemplateObject(["gen_random_uuid()"], ["gen_random_uuid()"])))),
+    crewName: varchar("crew_name").notNull(),
+    territory: varchar("territory"),
+    status: egpCrewStatusEnum("status").notNull().default("active"),
+    createdBy: varchar("created_by").references(function () { return users.id; }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+export var egpCrewMembers = pgTable("egp_crew_members", {
+    id: varchar("id").primaryKey().default(sql(templateObject_37 || (templateObject_37 = __makeTemplateObject(["gen_random_uuid()"], ["gen_random_uuid()"])))),
+    crewId: varchar("crew_id")
+        .notNull()
+        .references(function () { return egpCrews.id; }),
+    egpId: varchar("egp_id")
+        .notNull()
+        .references(function () { return users.id; }),
+    role: egpCrewMemberRoleEnum("role").notNull().default("member"),
+    joinedAt: timestamp("joined_at").defaultNow().notNull(),
+    removedAt: timestamp("removed_at"),
+});
+export var insertEgpCrewSchema = createInsertSchema(egpCrews).omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+    createdBy: true,
+});
+export var insertEgpCrewMemberSchema = createInsertSchema(egpCrewMembers).omit({
+    id: true,
+    joinedAt: true,
+    removedAt: true,
 });
 // ============================================
 // AFFILIATE PROSPECTING SYSTEM
@@ -619,9 +656,14 @@ export var parentEnrollments = pgTable("parent_enrollments", {
     studentGrade: varchar("student_grade").notNull(),
     schoolName: varchar("school_name").notNull(),
     mathStruggleAreas: text("math_struggle_areas").notNull(),
+    responseSymptoms: jsonb("response_symptoms"),
+    topicResponseSymptoms: jsonb("topic_response_symptoms"),
+    responseSignalScores: jsonb("response_signal_scores"),
+    topicResponseSignalScores: jsonb("topic_response_signal_scores"),
+    recommendedStartingPhase: varchar("recommended_starting_phase"),
+    topicRecommendedStartingPhases: jsonb("topic_recommended_starting_phases"),
     // Background
     previousTutoring: varchar("previous_tutoring").notNull(),
-    confidenceLevel: varchar("confidence_level").notNull(),
     internetAccess: varchar("internet_access").notNull(),
     parentMotivation: text("parent_motivation"),
     // Assignment tracking
@@ -1009,4 +1051,4 @@ export var insertDisputeResolutionSchema = createInsertSchema(disputeResolutions
     id: true,
     createdAt: true,
 });
-var templateObject_1, templateObject_2, templateObject_3, templateObject_4, templateObject_5, templateObject_6, templateObject_7, templateObject_8, templateObject_9, templateObject_10, templateObject_11, templateObject_12, templateObject_13, templateObject_14, templateObject_15, templateObject_16, templateObject_17, templateObject_18, templateObject_19, templateObject_20, templateObject_21, templateObject_22, templateObject_23, templateObject_24, templateObject_25, templateObject_26, templateObject_27, templateObject_28, templateObject_29, templateObject_30, templateObject_31, templateObject_32, templateObject_33, templateObject_34, templateObject_35;
+var templateObject_1, templateObject_2, templateObject_3, templateObject_4, templateObject_5, templateObject_6, templateObject_7, templateObject_8, templateObject_9, templateObject_10, templateObject_11, templateObject_12, templateObject_13, templateObject_14, templateObject_15, templateObject_16, templateObject_17, templateObject_18, templateObject_19, templateObject_20, templateObject_21, templateObject_22, templateObject_23, templateObject_24, templateObject_25, templateObject_26, templateObject_27, templateObject_28, templateObject_29, templateObject_30, templateObject_31, templateObject_32, templateObject_33, templateObject_34, templateObject_35, templateObject_36, templateObject_37;

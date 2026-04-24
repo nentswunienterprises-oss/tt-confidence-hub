@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Loader2, User, Phone, MapPin, BookOpen, Users, GraduationCap, CheckCircle2, Clock, XCircle, FileCheck, ShieldCheck, CheckCircle } from "lucide-react";
+import { Loader2, User, Phone, MapPin, BookOpen, Users, GraduationCap, CheckCircle2, Clock, XCircle, FileCheck, ShieldCheck, CheckCircle, Mail, School, Wifi, CalendarDays, Target, CircleAlert, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface TrafficStats {
@@ -23,7 +23,9 @@ interface TrafficStats {
 import { format } from "date-fns";
 import AssignTutorModal from "@/components/executive/AssignTutorModal";
 import { TutorDocumentReview } from "@/components/tutor/TutorDocumentReview";
+import { COOAffiliateApplicationsPanel } from "@/pages/executive/coo/applications";
 import type { TutorApplication } from "@shared/schema";
+import { RESPONSE_SYMPTOM_GROUPS } from "@shared/responseSymptomMapping";
 
 interface ParentEnrollment {
   id: string;
@@ -37,7 +39,6 @@ interface ParentEnrollment {
   school_name: string;
   math_struggle_areas: string;
   previous_tutoring: string;
-  confidence_level: string;
   internet_access: string;
   parent_motivation?: string;
   status:
@@ -59,6 +60,69 @@ interface ParentEnrollment {
   active_in_pod?: boolean;
   updated_at?: string;
   created_at: string;
+  parentInfo?: {
+    reported_topics?: string[];
+    response_symptoms?: string[];
+    topic_response_symptoms?: Record<string, string[]>;
+    topic_recommended_starting_phases?: Record<
+      string,
+      {
+        phase?: string | null;
+        supportingSymptoms?: string[];
+        rationale?: string | null;
+      }
+    >;
+  };
+}
+
+function formatEnrollmentTopics(rawValue: string | null | undefined) {
+  const ignoredContexts = new Set([
+    "word problems",
+    "tests",
+    "timed work",
+    "new topics",
+    "careless errors",
+  ]);
+
+  return String(rawValue || "")
+    .split(/[,\n;|]+/)
+    .map((part) => part.replace(/^[-*\u2022\s]+/, "").trim())
+    .filter(Boolean)
+    .filter((part) => !ignoredContexts.has(part.toLowerCase()))
+    .join(", ");
+}
+
+function splitEnrollmentItems(rawValue: string | null | undefined) {
+  return String(rawValue || "")
+    .split(/[,\n;|]+/)
+    .map((part) => part.replace(/^[-*\u2022\s]+/, "").trim())
+    .filter(Boolean);
+}
+
+function formatPhaseLabel(value: string | null | undefined) {
+  return String(value || "")
+    .split("_")
+    .map((part) => (part ? `${part.charAt(0).toUpperCase()}${part.slice(1)}` : ""))
+    .join(" ")
+    .trim();
+}
+
+function extractLegacySymptomsFromParentNote(rawValue: string | null | undefined) {
+  const normalized = String(rawValue || "")
+    .replace(/process alignment:\s*yes/gi, "")
+    .replace(/process alignment:\s*no/gi, "")
+    .replace(/observed response symptoms:\s*/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .replace(/^[,;\s]+/, "")
+    .trim()
+    .toLowerCase();
+  if (!normalized) return [];
+
+  const knownLabels = RESPONSE_SYMPTOM_GROUPS.flatMap((group) => group.options.map((option) => option.label))
+    .filter((label) => !/^none of the above$/i.test(label) && !/^i don't know \/ not sure$/i.test(label))
+    .sort((a, b) => b.length - a.length);
+
+  return knownLabels.filter((label) => normalized.includes(label.toLowerCase()));
 }
 
 const TOTAL_DOC_STEPS = 6;
@@ -399,7 +463,7 @@ export default function ExecutiveHRTraffic() {
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
-  const EnrollmentCard = ({ enrollment }: { enrollment: ParentEnrollment }) => (
+  const LegacyEnrollmentCard = ({ enrollment }: { enrollment: ParentEnrollment }) => (
     <Card>
       <CardHeader>
         <div className="flex items-start justify-between">
@@ -457,15 +521,11 @@ export default function ExecutiveHRTraffic() {
           </div>
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wide">Math Struggle Areas</p>
-            <p className="font-medium">{enrollment.math_struggle_areas || "Not provided"}</p>
+            <p className="font-medium">{formatEnrollmentTopics(enrollment.math_struggle_areas) || "Not provided"}</p>
           </div>
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wide">Previous Tutoring</p>
             <p className="font-medium">{enrollment.previous_tutoring || "Not provided"}</p>
-          </div>
-          <div>
-            <p className="text-muted-foreground text-xs uppercase tracking-wide">Confidence Level</p>
-            <p className="font-medium">{enrollment.confidence_level || "Not provided"}</p>
           </div>
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wide">Internet Access</p>
@@ -512,6 +572,241 @@ export default function ExecutiveHRTraffic() {
       </CardContent>
     </Card>
   );
+
+  void LegacyEnrollmentCard;
+
+  const EnrollmentReviewCard = ({ enrollment }: { enrollment: ParentEnrollment }) => {
+    const topics = Array.from(
+      new Set([
+        ...splitEnrollmentItems(formatEnrollmentTopics(enrollment.math_struggle_areas)),
+        ...Object.keys(enrollment.parentInfo?.topic_response_symptoms || {}),
+        ...Object.keys(enrollment.parentInfo?.topic_recommended_starting_phases || {}),
+      ])
+    );
+    const legacyNoteSymptoms = extractLegacySymptomsFromParentNote(enrollment.parent_motivation);
+    const fallbackSymptoms =
+      enrollment.parentInfo?.response_symptoms && enrollment.parentInfo.response_symptoms.length > 0
+        ? enrollment.parentInfo.response_symptoms
+        : legacyNoteSymptoms;
+    const topicSymptoms = enrollment.parentInfo?.topic_response_symptoms || {};
+    const topicRecommendations = enrollment.parentInfo?.topic_recommended_starting_phases || {};
+    const derivedTopicSymptoms =
+      topics.length === 1 && fallbackSymptoms.length > 0 && !topicSymptoms[topics[0]]
+        ? { ...topicSymptoms, [topics[0]]: fallbackSymptoms }
+        : topicSymptoms;
+
+    return (
+      <Card className="overflow-hidden border-[#e8dcc2] bg-gradient-to-br from-[#fffaf0] via-white to-[#fff7e8] shadow-sm">
+        <CardHeader className="border-b border-[#eadfca] bg-[#fff8ea]/80 pb-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="space-y-3">
+              <div>
+                <CardTitle className="text-2xl font-semibold tracking-tight text-slate-950">
+                  {enrollment.student_full_name}
+                </CardTitle>
+                <CardDescription className="mt-1 text-base text-slate-600">
+                  Parent: {enrollment.parent_full_name}
+                </CardDescription>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="outline" className="border-[#e7d7b3] bg-white/80 text-slate-700">
+                  <BookOpen className="mr-1 h-3.5 w-3.5" />
+                  {enrollment.student_grade || "Grade not provided"}
+                </Badge>
+                {enrollment.assigned_tutor_name ? (
+                  <Badge variant="outline" className="border-[#d7e7d0] bg-[#f4fbf1] text-[#335c2e]">
+                    Tutor: {enrollment.assigned_tutor_name}
+                  </Badge>
+                ) : null}
+                {enrollment.assigned_pod_name ? (
+                  <Badge variant="outline" className="border-[#d8e3f4] bg-[#f6f9ff] text-[#274472]">
+                    Pod: {enrollment.assigned_pod_name}
+                  </Badge>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {getStatusBadge(enrollment.status)}
+              <Badge variant="outline" className="border-[#eadfca] bg-white/80 text-slate-600">
+                <CalendarDays className="mr-1 h-3.5 w-3.5" />
+                {format(new Date(enrollment.created_at), "PPP")}
+              </Badge>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent className="space-y-6 p-6">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-xl border border-[#eadfca] bg-white/80 p-4">
+              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+                <Mail className="h-3.5 w-3.5" />
+                Email
+              </div>
+              <p className="mt-2 break-all text-sm font-medium text-slate-900">{enrollment.parent_email || "Not provided"}</p>
+            </div>
+            <div className="rounded-xl border border-[#eadfca] bg-white/80 p-4">
+              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+                <Phone className="h-3.5 w-3.5" />
+                Phone
+              </div>
+              <p className="mt-2 text-sm font-medium text-slate-900">{enrollment.parent_phone || "Not provided"}</p>
+            </div>
+            <div className="rounded-xl border border-[#eadfca] bg-white/80 p-4">
+              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+                <MapPin className="h-3.5 w-3.5" />
+                Location
+              </div>
+              <p className="mt-2 text-sm font-medium text-slate-900">{enrollment.parent_city || "Not provided"}</p>
+            </div>
+            <div className="rounded-xl border border-[#eadfca] bg-white/80 p-4">
+              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+                <School className="h-3.5 w-3.5" />
+                School
+              </div>
+              <p className="mt-2 text-sm font-medium text-slate-900">{enrollment.school_name || "Not provided"}</p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 xl:grid-cols-[1.15fr,0.85fr]">
+            <div className="rounded-2xl border border-[#eadfca] bg-white/85 p-5">
+              <div className="flex items-center gap-2">
+                <Target className="h-4 w-4 text-[#946c16]" />
+                <p className="text-sm font-semibold text-slate-900">Enrollment Focus</p>
+              </div>
+
+              <div className="mt-4 space-y-4">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">Topics</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {topics.length > 0 ? (
+                      topics.map((topic) => (
+                        <Badge key={topic} variant="secondary" className="bg-[#f6edd7] text-[#6a4d0b] hover:bg-[#f6edd7]">
+                          {topic}
+                        </Badge>
+                      ))
+                    ) : (
+                      <span className="text-sm text-slate-500">No topics recorded</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-xl border border-dashed border-[#eadfca] bg-[#fffaf2] p-3">
+                    <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">Previous Tutoring</p>
+                    <p className="mt-2 text-sm font-medium text-slate-900">{enrollment.previous_tutoring || "Not provided"}</p>
+                  </div>
+                  <div className="rounded-xl border border-dashed border-[#eadfca] bg-[#fffaf2] p-3">
+                    <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+                      <Wifi className="h-3.5 w-3.5" />
+                      Internet Access
+                    </p>
+                    <p className="mt-2 text-sm font-medium text-slate-900">{enrollment.internet_access || "Not provided"}</p>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-[#eadfca] bg-white/85 p-5">
+              <div className="flex items-center gap-2">
+                <CircleAlert className="h-4 w-4 text-[#946c16]" />
+                <p className="text-sm font-semibold text-slate-900">Parent Intake Signal</p>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                {topics.length > 0 ? (
+                  topics.map((topic) => {
+                    const symptoms = derivedTopicSymptoms[topic] || [];
+                    const recommendation = topicRecommendations[topic];
+                    return (
+                      <div key={topic} className="rounded-xl border border-[#eadfca] bg-[#fffdf8] p-4">
+                        <p className="text-sm font-semibold text-slate-900">{topic}</p>
+                        {recommendation?.phase ? (
+                          <p className="mt-1 text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
+                            Suggested diagnostic start: {formatPhaseLabel(recommendation.phase)}
+                          </p>
+                        ) : null}
+
+                        <div className="mt-3">
+                          <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Observed Signals</p>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {symptoms.length > 0 ? (
+                              symptoms.map((symptom) => (
+                                <Badge key={`${topic}-${symptom}`} variant="outline" className="border-[#ecdcb7] bg-white text-slate-700">
+                                  {symptom}
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-sm text-slate-500">No topic-specific symptom map recorded yet.</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {recommendation?.rationale ? (
+                          <div className="mt-3 rounded-lg bg-[#faf4e5] p-3 text-sm text-slate-700">
+                            {recommendation.rationale}
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })
+                ) : fallbackSymptoms.length > 0 ? (
+                  <div className="rounded-xl border border-[#eadfca] bg-[#fffdf8] p-4">
+                    <p className="text-sm font-semibold text-slate-900">Observed Signals</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {fallbackSymptoms.map((symptom) => (
+                        <Badge key={symptom} variant="outline" className="border-[#ecdcb7] bg-white text-slate-700">
+                          {symptom}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-dashed border-[#eadfca] bg-[#fffdf8] p-4 text-sm text-slate-500">
+                    No symptom mapping was captured for this enrollment.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 border-t border-[#eadfca] pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-sm text-slate-600">
+              <span className="font-medium text-slate-800">Submitted:</span> {format(new Date(enrollment.created_at), "PPp")}
+            </div>
+
+            <div className="flex flex-col gap-2 sm:flex-row">
+              {enrollment.status === "awaiting_assignment" && (
+                <Button onClick={() => handleOpenAssignModal(enrollment.id)}>
+                  Assign Tutor
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              )}
+
+              {enrollment.assigned_tutor_id && (
+                <Button
+                  variant="destructive"
+                  onClick={() => handleUnassignTutor(enrollment)}
+                  disabled={unassigningEnrollmentId === enrollment.id}
+                >
+                  {unassigningEnrollmentId === enrollment.id ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Unassigning...
+                    </>
+                  ) : (
+                    "Unassign Tutor"
+                  )}
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -568,7 +863,7 @@ export default function ExecutiveHRTraffic() {
 
       <Tabs defaultValue="tutor-applications" className="w-full">
         
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="tutor-applications" className="gap-2">
             <GraduationCap className="w-4 h-4" />
             <span>Tutor Applications</span>
@@ -581,6 +876,10 @@ export default function ExecutiveHRTraffic() {
           <TabsTrigger value="parent-enrollments" className="gap-2">
             <Users className="w-4 h-4" />
             Parent Enrollments
+          </TabsTrigger>
+          <TabsTrigger value="egp-applications" className="gap-2">
+            <FileCheck className="w-4 h-4" />
+            EGP Applications
           </TabsTrigger>
         </TabsList>
 
@@ -786,6 +1085,10 @@ export default function ExecutiveHRTraffic() {
           )}
         </TabsContent>
 
+        <TabsContent value="egp-applications" className="space-y-6">
+          <COOAffiliateApplicationsPanel />
+        </TabsContent>
+
         {/* Parent Enrollments Tab */}
         <TabsContent value="parent-enrollments" className="space-y-6">
           {enrollmentsLoading ? (
@@ -824,7 +1127,7 @@ export default function ExecutiveHRTraffic() {
                 ) : (
                   <div className="grid gap-4">
                     {awaitingAssignment.map((enrollment: ParentEnrollment) => (
-                      <EnrollmentCard key={enrollment.id} enrollment={enrollment} />
+                      <EnrollmentReviewCard key={enrollment.id} enrollment={enrollment} />
                     ))}
                   </div>
                 )}
@@ -838,7 +1141,7 @@ export default function ExecutiveHRTraffic() {
                 ) : (
                   <div className="grid gap-4">
                     {assigned.map((enrollment: ParentEnrollment) => (
-                      <EnrollmentCard key={enrollment.id} enrollment={enrollment} />
+                      <EnrollmentReviewCard key={enrollment.id} enrollment={enrollment} />
                     ))}
                   </div>
                 )}
@@ -852,7 +1155,7 @@ export default function ExecutiveHRTraffic() {
                 ) : (
                   <div className="grid gap-4">
                     {activeInPods.map((enrollment: ParentEnrollment) => (
-                      <EnrollmentCard key={enrollment.id} enrollment={enrollment} />
+                      <EnrollmentReviewCard key={enrollment.id} enrollment={enrollment} />
                     ))}
                   </div>
                 )}
@@ -866,7 +1169,7 @@ export default function ExecutiveHRTraffic() {
                 ) : (
                   <div className="grid gap-4">
                     {confirmed.map((enrollment: ParentEnrollment) => (
-                      <EnrollmentCard key={enrollment.id} enrollment={enrollment} />
+                      <EnrollmentReviewCard key={enrollment.id} enrollment={enrollment} />
                     ))}
                   </div>
                 )}

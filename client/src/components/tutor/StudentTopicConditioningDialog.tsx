@@ -353,6 +353,8 @@ interface StudentTopicConditioningDialogProps {
   mapOnly?: boolean;
   apiBasePath?: string;
   parentTopics?: string | null;
+  parentTopicSymptoms?: Record<string, string[]> | null;
+  parentTopicRecommendations?: Record<string, { phase?: string | null; supportingSymptoms?: string[]; rationale?: string | null }> | null;
   topicConditioning?: TopicConditioningMap | null;
   persistedTopicStates?: Record<
     string,
@@ -849,6 +851,8 @@ export default function StudentTopicConditioningDialog({
   mapOnly = false,
   apiBasePath = "/api/tutor",
   parentTopics,
+  parentTopicSymptoms,
+  parentTopicRecommendations,
   topicConditioning,
   persistedTopicStates,
 }: StudentTopicConditioningDialogProps) {
@@ -1153,6 +1157,25 @@ export default function StudentTopicConditioningDialog({
     const fromParent = splitTopics(parentTopics).map((t) => sanitizeTopic(t)).filter((t): t is string => !!t);
     return Array.from(new Set([...fromCards, ...fromParent]));
   }, [topics, parentTopics]);
+  const parentTopicIntelligence = useMemo(() => {
+    const parentTopicNames = splitTopics(parentTopics).map((topic) => sanitizeTopic(topic)).filter((topic): topic is string => !!topic);
+    return parentTopicNames.map((topic) => {
+      const symptoms =
+        parentTopicSymptoms && Array.isArray(parentTopicSymptoms[topic])
+          ? parentTopicSymptoms[topic].map((symptom) => String(symptom).trim()).filter(Boolean)
+          : [];
+      const recommendation =
+        parentTopicRecommendations && typeof parentTopicRecommendations[topic] === "object"
+          ? parentTopicRecommendations[topic]
+          : null;
+      return {
+        topic,
+        symptoms,
+        phase: recommendation?.phase ? normalizePhase(recommendation.phase) : null,
+        rationale: String(recommendation?.rationale || "").trim(),
+      };
+    });
+  }, [parentTopics, parentTopicSymptoms, parentTopicRecommendations]);
 
   const prioritizedTopics = useMemo(
     () => [...topics].sort((a, b) => topicPriorityScore(b) - topicPriorityScore(a) || a.topic.localeCompare(b.topic)),
@@ -1409,6 +1432,42 @@ export default function StudentTopicConditioningDialog({
               <p className="text-xs text-muted-foreground">
                 Select a topic to review observed state and next-session preparation. Activated topics stay Unknown until a scored drill/session is logged.
               </p>
+
+              {parentTopicIntelligence.length > 0 ? (
+                <div className="rounded-xl border border-primary/15 bg-muted/20 p-3 sm:p-4 space-y-3">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Parent Intake By Topic</p>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    {parentTopicIntelligence.map((entry) => (
+                      <div key={`parent-intake-${entry.topic}`} className="rounded-xl border border-border/60 bg-background/80 p-3 space-y-2">
+                        <p className="text-sm font-medium text-foreground">{entry.topic}</p>
+                        {entry.phase ? (
+                          <p className="text-xs text-muted-foreground">
+                            Recommended entry phase: <span className="font-medium text-foreground">{entry.phase}</span>
+                          </p>
+                        ) : null}
+                        {entry.rationale ? (
+                          <p className="text-xs text-muted-foreground">{entry.rationale}</p>
+                        ) : null}
+                        {entry.symptoms.length > 0 ? (
+                          <div className="flex flex-wrap gap-1.5">
+                            {entry.symptoms.map((symptom) => (
+                              <Badge
+                                key={`${entry.topic}-${symptom}`}
+                                variant="outline"
+                                className="max-w-full whitespace-normal break-words text-left leading-snug text-[10px] border-primary/20 bg-background/70 text-foreground"
+                              >
+                                {symptom}
+                              </Badge>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-muted-foreground">No topic-specific symptoms captured.</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
 
               {topics.length === 0 ? (
                 <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">

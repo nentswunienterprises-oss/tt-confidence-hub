@@ -4,12 +4,23 @@ import { useAuth } from "@/hooks/useAuth";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, Flame } from "lucide-react";
-import EncounterForm from "@/components/EncounterForm";
+import { Copy } from "lucide-react";
+import { useEffect } from "react";
 
 export default function AffiliateDashboard() {
   const { toast } = useToast();
   const { user } = useAuth();
+
+  const { data: gatewaySession } = useQuery<any>({
+    queryKey: ["/api/affiliate/gateway-session"],
+  });
+
+  useEffect(() => {
+    const status = gatewaySession?.applicationStatus?.status;
+    if (status && status !== "confirmed") {
+      window.location.href = "/affiliate/gateway";
+    }
+  }, [gatewaySession]);
 
   // Fetch affiliate code
   const { data: codeData } = useQuery<{ code: string }>({
@@ -17,7 +28,7 @@ export default function AffiliateDashboard() {
   });
 
   // Fetch affiliate stats
-  const { data: stats, refetch: refetchStats } = useQuery<{ encounters: number; leads: number; closes: number }>({
+  const { data: stats } = useQuery<{ encounters: number; leads: number; closes: number }>({
     queryKey: ["/api", "affiliate", "stats"],
   });
 
@@ -25,7 +36,7 @@ export default function AffiliateDashboard() {
     if (codeData?.code) {
       navigator.clipboard.writeText(codeData.code);
       toast({
-        title: "Copied!",
+        title: "Copied.",
         description: "Your affiliate code has been copied to clipboard",
       });
     }
@@ -37,7 +48,7 @@ export default function AffiliateDashboard() {
       const affiliateLink = `https://territorialtutoring.co.za?affiliate=${codeData.code}`;
       navigator.clipboard.writeText(affiliateLink);
       toast({
-        title: "Link Copied!",
+        title: "Link Copied.",
         description: "Share this link with parents to track referrals",
       });
     }
@@ -51,7 +62,7 @@ export default function AffiliateDashboard() {
         {/* Personal Greeting */}
         <div className="space-y-2 sm:space-y-3">
           <h1 className="text-xl sm:text-3xl md:text-4xl font-bold tracking-tight">
-            Welcome back, {firstName}! <Flame className="inline w-5 h-5 sm:w-8 sm:h-8 text-primary" />
+            Welcome back, {firstName}.
           </h1>
           <p className="text-sm sm:text-lg text-muted-foreground">
             Share your unique code with parents and track every step of their journey to tutoring success.
@@ -59,13 +70,7 @@ export default function AffiliateDashboard() {
         </div>
 
         {/* Key Metrics - Stats */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-6">
-          <Card className="p-3 sm:p-8 border shadow-sm hover-elevate text-center">
-            <p className="text-2xl sm:text-5xl font-bold text-foreground">{stats?.encounters || 0}</p>
-            <p className="text-[10px] sm:text-sm text-muted-foreground uppercase tracking-wide font-medium mt-1">
-              Encounters
-            </p>
-          </Card>
+        <div className="grid grid-cols-2 gap-2 sm:gap-6">
           <Card className="p-3 sm:p-8 border shadow-sm hover-elevate text-center">
             <p className="text-2xl sm:text-5xl font-bold text-foreground">{stats?.leads || 0}</p>
             <p className="text-[10px] sm:text-sm text-muted-foreground uppercase tracking-wide font-medium mt-1">
@@ -116,11 +121,6 @@ export default function AffiliateDashboard() {
             </div>
           </div>
         </Card>
-
-        {/* Log Encounter Form */}
-        <EncounterForm onSuccess={() => {
-          refetchStats();
-        }} />
       </div>
     </DashboardLayout>
   );

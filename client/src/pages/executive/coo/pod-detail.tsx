@@ -21,9 +21,18 @@ import {
   Trash2,
   Plus,
   Mail,
+  Phone,
+  MapPin,
+  BookOpen,
   ChevronDown,
   FileText,
   UserMinus,
+  School,
+  Wifi,
+  CalendarDays,
+  Target,
+  CircleAlert,
+  ArrowRight,
 } from "lucide-react";
 import {
   Dialog,
@@ -34,6 +43,56 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+
+function formatEnrollmentTopics(rawValue: string | null | undefined) {
+  const ignoredContexts = new Set([
+    "word problems",
+    "tests",
+    "timed work",
+    "new topics",
+    "careless errors",
+  ]);
+
+  return String(rawValue || "")
+    .split(/[,\n;|]+/)
+    .map((part) => part.replace(/^[-*\u2022\s]+/, "").trim())
+    .filter(Boolean)
+    .filter((part) => !ignoredContexts.has(part.toLowerCase()))
+    .join(", ");
+}
+
+function splitEnrollmentItems(rawValue: string | null | undefined) {
+  return String(rawValue || "")
+    .split(/[,\n;|]+/)
+    .map((part) => part.replace(/^[-*\u2022\s]+/, "").trim())
+    .filter(Boolean);
+}
+
+function formatPhaseLabel(value: string | null | undefined) {
+  return String(value || "")
+    .split("_")
+    .map((part) => (part ? `${part.charAt(0).toUpperCase()}${part.slice(1)}` : ""))
+    .join(" ")
+    .trim();
+}
+
+function extractLegacySymptomsFromParentNote(rawValue: string | null | undefined) {
+  const normalized = String(rawValue || "")
+    .replace(/process alignment:\s*yes/gi, "")
+    .replace(/process alignment:\s*no/gi, "")
+    .replace(/observed response symptoms:\s*/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .replace(/^[,;\s]+/, "")
+    .trim()
+    .toLowerCase();
+  if (!normalized) return [];
+
+  const knownLabels = RESPONSE_SYMPTOM_GROUPS.flatMap((group) => group.options.map((option) => option.label))
+    .filter((label) => !/^none of the above$/i.test(label) && !/^i don't know \/ not sure$/i.test(label))
+    .sort((a, b) => b.length - a.length);
+
+  return knownLabels.filter((label) => normalized.includes(label.toLowerCase()));
+}
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,6 +111,7 @@ import ViewTrackingSystemsDialog from "@/components/tutor/ViewTrackingSystemsDia
 import StudentTopicConditioningDialog from "@/components/tutor/StudentTopicConditioningDialog";
 import StudentCommunicationDialog from "@/components/communications/StudentCommunicationDialog";
 import type { Pod, User } from "@shared/schema";
+import { RESPONSE_SYMPTOM_GROUPS } from "@shared/responseSymptomMapping";
 
 const MAX_TUTORS_PER_POD = 12;
 const getMaxStudentsPerTutorForVehicle = (vehicle?: string | null) => {
@@ -76,7 +136,23 @@ interface ParentEnrollment {
   student_grade: string;
   school_name: string;
   math_struggle_areas: string;
+  previous_tutoring?: string | null;
+  internet_access?: string | null;
+  parent_motivation?: string | null;
   status: string;
+  created_at?: string | null;
+  parentInfo?: {
+    response_symptoms?: string[];
+    topic_response_symptoms?: Record<string, string[]>;
+    topic_recommended_starting_phases?: Record<
+      string,
+      {
+        phase?: string | null;
+        supportingSymptoms?: string[];
+        rationale?: string | null;
+      }
+    >;
+  };
 }
 
 export default function PodDetail() {
@@ -805,6 +881,18 @@ export default function PodDetail() {
           (selectedStudentRecord?.struggleAreas as string) ||
           null
         }
+        parentTopicSymptoms={
+          selectedStudentRecord?.parentInfo?.topic_response_symptoms &&
+          typeof selectedStudentRecord.parentInfo.topic_response_symptoms === "object"
+            ? selectedStudentRecord.parentInfo.topic_response_symptoms
+            : null
+        }
+        parentTopicRecommendations={
+          selectedStudentRecord?.parentInfo?.topic_recommended_starting_phases &&
+          typeof selectedStudentRecord.parentInfo.topic_recommended_starting_phases === "object"
+            ? selectedStudentRecord.parentInfo.topic_recommended_starting_phases
+            : null
+        }
         topicConditioning={
           selectedStudentRecord?.topicConditioning ||
           selectedStudentRecord?.topic_conditioning ||
@@ -1074,47 +1162,238 @@ function TutorStudentsSection({
               ) : (
                 <div className="max-h-[28rem] space-y-3 overflow-y-auto pr-1">
                   {awaitingAssignments.map((enrollment) => (
-                    <div
+                    <Card
                       key={enrollment.id}
-                      className="rounded-lg border p-4"
+                      className="overflow-hidden border-[#e8dcc2] bg-gradient-to-br from-[#fffaf0] via-white to-[#fff7e8] shadow-sm"
                     >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0 space-y-1">
-                          <p className="font-semibold">{enrollment.student_full_name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            Parent: {enrollment.parent_full_name}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            Grade {enrollment.student_grade || "Unknown"} • {enrollment.school_name || "No school provided"}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {enrollment.parent_email || enrollment.parent_phone || enrollment.parent_city || "No contact details provided"}
-                          </p>
-                          {enrollment.math_struggle_areas && (
-                            <p className="text-xs text-muted-foreground">
-                              Focus: {enrollment.math_struggle_areas}
-                            </p>
-                          )}
-                        </div>
-                        <Button
-                          size="sm"
-                          disabled={assignAwaitingEnrollmentMutation.isPending || tutorAtCapacity}
-                          onClick={async () => {
-                            try {
-                              await assignAwaitingEnrollmentMutation.mutateAsync({
-                                enrollmentId: enrollment.id,
-                                tutorId,
-                              });
-                              setAssignDialogOpen(false);
-                            } catch {
-                              // Toast is handled by the mutation error callback.
-                            }
-                          }}
-                        >
-                          {assignAwaitingEnrollmentMutation.isPending ? "Assigning..." : `Assign to ${tutorName}`}
-                        </Button>
-                      </div>
-                    </div>
+                      {(() => {
+                        const topics = Array.from(
+                          new Set([
+                            ...splitEnrollmentItems(formatEnrollmentTopics(enrollment.math_struggle_areas)),
+                            ...Object.keys(enrollment.parentInfo?.topic_response_symptoms || {}),
+                            ...Object.keys(enrollment.parentInfo?.topic_recommended_starting_phases || {}),
+                          ])
+                        );
+                        const fallbackSymptoms =
+                          enrollment.parentInfo?.response_symptoms && enrollment.parentInfo.response_symptoms.length > 0
+                            ? enrollment.parentInfo.response_symptoms
+                            : extractLegacySymptomsFromParentNote(enrollment.parent_motivation);
+                        const topicSymptoms = enrollment.parentInfo?.topic_response_symptoms || {};
+                        const topicRecommendations = enrollment.parentInfo?.topic_recommended_starting_phases || {};
+                        const derivedTopicSymptoms =
+                          topics.length === 1 && fallbackSymptoms.length > 0 && !topicSymptoms[topics[0]]
+                            ? { ...topicSymptoms, [topics[0]]: fallbackSymptoms }
+                            : topicSymptoms;
+
+                        return (
+                          <>
+                            <div className="border-b border-[#eadfca] bg-[#fff8ea]/80 px-5 pb-5 pt-5">
+                              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                                <div className="space-y-3">
+                                  <div>
+                                    <p className="text-2xl font-semibold tracking-tight text-slate-950">
+                                      {enrollment.student_full_name}
+                                    </p>
+                                    <p className="mt-1 text-base text-slate-600">
+                                      Parent: {enrollment.parent_full_name || "Unknown"}
+                                    </p>
+                                  </div>
+
+                                  <div className="flex flex-wrap gap-2">
+                                    <Badge variant="outline" className="border-[#e7d7b3] bg-white/80 text-slate-700">
+                                      <BookOpen className="mr-1 h-3.5 w-3.5" />
+                                      {enrollment.student_grade || "Grade not provided"}
+                                    </Badge>
+                                  </div>
+                                </div>
+
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">
+                                    Awaiting Assignment
+                                  </Badge>
+                                  <Badge variant="outline" className="border-[#eadfca] bg-white/80 text-slate-600">
+                                    <CalendarDays className="mr-1 h-3.5 w-3.5" />
+                                    {enrollment.created_at ? new Date(enrollment.created_at).toLocaleDateString() : "Unknown"}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="space-y-6 p-5">
+                              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                                <div className="rounded-xl border border-[#eadfca] bg-white/80 p-4">
+                                  <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+                                    <Mail className="h-3.5 w-3.5" />
+                                    Email
+                                  </div>
+                                  <p className="mt-2 break-all text-sm font-medium text-slate-900">
+                                    {enrollment.parent_email || "Not provided"}
+                                  </p>
+                                </div>
+                                <div className="rounded-xl border border-[#eadfca] bg-white/80 p-4">
+                                  <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+                                    <Phone className="h-3.5 w-3.5" />
+                                    Phone
+                                  </div>
+                                  <p className="mt-2 text-sm font-medium text-slate-900">
+                                    {enrollment.parent_phone || "Not provided"}
+                                  </p>
+                                </div>
+                                <div className="rounded-xl border border-[#eadfca] bg-white/80 p-4">
+                                  <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+                                    <MapPin className="h-3.5 w-3.5" />
+                                    Location
+                                  </div>
+                                  <p className="mt-2 text-sm font-medium text-slate-900">
+                                    {enrollment.parent_city || "Not provided"}
+                                  </p>
+                                </div>
+                                <div className="rounded-xl border border-[#eadfca] bg-white/80 p-4">
+                                  <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+                                    <School className="h-3.5 w-3.5" />
+                                    School
+                                  </div>
+                                  <p className="mt-2 text-sm font-medium text-slate-900">
+                                    {enrollment.school_name || "Not provided"}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="grid gap-4 xl:grid-cols-[1.15fr,0.85fr]">
+                                <div className="rounded-2xl border border-[#eadfca] bg-white/85 p-5">
+                                  <div className="flex items-center gap-2">
+                                    <Target className="h-4 w-4 text-[#946c16]" />
+                                    <p className="text-sm font-semibold text-slate-900">Enrollment Focus</p>
+                                  </div>
+
+                                  <div className="mt-4 space-y-4">
+                                    <div>
+                                      <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">Topics</p>
+                                      <div className="mt-2 flex flex-wrap gap-2">
+                                        {topics.length > 0 ? (
+                                          topics.map((topic) => (
+                                            <Badge key={topic} variant="secondary" className="bg-[#f6edd7] text-[#6a4d0b] hover:bg-[#f6edd7]">
+                                              {topic}
+                                            </Badge>
+                                          ))
+                                        ) : (
+                                          <span className="text-sm text-slate-500">No topics recorded</span>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    <div className="grid gap-3 sm:grid-cols-2">
+                                      <div className="rounded-xl border border-dashed border-[#eadfca] bg-[#fffaf2] p-3">
+                                        <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">Previous Tutoring</p>
+                                        <p className="mt-2 text-sm font-medium text-slate-900">
+                                          {enrollment.previous_tutoring || "Not provided"}
+                                        </p>
+                                      </div>
+                                      <div className="rounded-xl border border-dashed border-[#eadfca] bg-[#fffaf2] p-3">
+                                        <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+                                          <Wifi className="h-3.5 w-3.5" />
+                                          Internet Access
+                                        </p>
+                                        <p className="mt-2 text-sm font-medium text-slate-900">
+                                          {enrollment.internet_access || "Not provided"}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="rounded-2xl border border-[#eadfca] bg-white/85 p-5">
+                                  <div className="flex items-center gap-2">
+                                    <CircleAlert className="h-4 w-4 text-[#946c16]" />
+                                    <p className="text-sm font-semibold text-slate-900">Parent Intake Signal</p>
+                                  </div>
+
+                                  <div className="mt-4 space-y-3">
+                                    {topics.length > 0 ? (
+                                      topics.map((topic) => {
+                                        const symptoms = derivedTopicSymptoms[topic] || [];
+                                        const recommendation = topicRecommendations[topic];
+                                        return (
+                                          <div key={topic} className="rounded-xl border border-[#eadfca] bg-[#fffdf8] p-4">
+                                            <p className="text-sm font-semibold text-slate-900">{topic}</p>
+                                            {recommendation?.phase ? (
+                                              <p className="mt-1 text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
+                                                Suggested diagnostic start: {formatPhaseLabel(recommendation.phase)}
+                                              </p>
+                                            ) : null}
+
+                                            <div className="mt-3">
+                                              <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Observed Signals</p>
+                                              <div className="mt-2 flex flex-wrap gap-2">
+                                                {symptoms.length > 0 ? (
+                                                  symptoms.map((symptom) => (
+                                                    <Badge key={`${topic}-${symptom}`} variant="outline" className="border-[#ecdcb7] bg-white text-slate-700">
+                                                      {symptom}
+                                                    </Badge>
+                                                  ))
+                                                ) : (
+                                                  <span className="text-sm text-slate-500">No topic-specific symptom map recorded yet.</span>
+                                                )}
+                                              </div>
+                                            </div>
+
+                                            {recommendation?.rationale ? (
+                                              <div className="mt-3 rounded-lg bg-[#faf4e5] p-3 text-sm text-slate-700">
+                                                {recommendation.rationale}
+                                              </div>
+                                            ) : null}
+                                          </div>
+                                        );
+                                      })
+                                    ) : fallbackSymptoms.length > 0 ? (
+                                      <div className="rounded-xl border border-[#eadfca] bg-[#fffdf8] p-4">
+                                        <p className="text-sm font-semibold text-slate-900">Observed Signals</p>
+                                        <div className="mt-3 flex flex-wrap gap-2">
+                                          {fallbackSymptoms.map((symptom) => (
+                                            <Badge key={symptom} variant="outline" className="border-[#ecdcb7] bg-white text-slate-700">
+                                              {symptom}
+                                            </Badge>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="rounded-xl border border-dashed border-[#eadfca] bg-[#fffdf8] p-4 text-sm text-slate-500">
+                                        No symptom mapping was captured for this enrollment.
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex flex-col gap-3 border-t border-[#eadfca] pt-5 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="text-sm text-slate-600">
+                                  <span className="font-medium text-slate-800">Submitted:</span>{" "}
+                                  {enrollment.created_at ? new Date(enrollment.created_at).toLocaleString() : "Unknown"}
+                                </div>
+
+                                <Button
+                                  disabled={assignAwaitingEnrollmentMutation.isPending || tutorAtCapacity}
+                                  onClick={async () => {
+                                    try {
+                                      await assignAwaitingEnrollmentMutation.mutateAsync({
+                                        enrollmentId: enrollment.id,
+                                        tutorId,
+                                      });
+                                      setAssignDialogOpen(false);
+                                    } catch {
+                                      // Toast is handled by the mutation error callback.
+                                    }
+                                  }}
+                                >
+                                  {assignAwaitingEnrollmentMutation.isPending ? "Assigning..." : `Assign to ${tutorName}`}
+                                  {!assignAwaitingEnrollmentMutation.isPending ? <ArrowRight className="ml-2 h-4 w-4" /> : null}
+                                </Button>
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </Card>
                   ))}
                 </div>
               )}

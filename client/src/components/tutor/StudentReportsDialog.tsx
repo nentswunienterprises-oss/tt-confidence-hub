@@ -49,13 +49,22 @@ function getSessionTimeLabel(value: string): string {
 
 function formatReportValue(value: any): string {
   if (Array.isArray(value)) {
+    const singleCurrentPosition =
+      value.length === 1 &&
+      value[0] &&
+      typeof value[0] === "object" &&
+      "state" in value[0] &&
+      "position" in value[0];
+
     const formatted = value
       .map((item) => {
         if (!item) return "";
         if (typeof item === "string") return item.trim();
         if (typeof item === "object") {
           if ("topic" in item && "state" in item && "position" in item) {
-            return `${item.topic}: ${item.state}\n${item.position}`;
+            return singleCurrentPosition
+              ? `${item.state}\n${item.position}`
+              : `${item.topic}: ${item.state}\n${item.position}`;
           }
         }
         return String(item).trim();

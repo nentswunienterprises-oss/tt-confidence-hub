@@ -787,14 +787,62 @@ export type InsertBroadcastRead = typeof broadcastReads.$inferInsert;
 
 export interface RolePermission {
   email: string;
-  role: "td" | "coo";
+  role: "td" | "coo" | "od";
   assignedPodId?: string | null;
 }
 
 export const roleAuthorizationSchema = z.object({
   email: z.string().email(),
-  role: z.enum(["td", "coo"]),
+  role: z.enum(["td", "coo", "od"]),
   assignedPodId: z.string().nullable().optional(),
+});
+
+// ============================================
+// EGP CREWS
+// ============================================
+
+export const egpCrewStatusEnum = pgEnum("egp_crew_status", ["active", "archived"]);
+export const egpCrewMemberRoleEnum = pgEnum("egp_crew_member_role", ["member", "crew_lead"]);
+
+export const egpCrews = pgTable("egp_crews", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  crewName: varchar("crew_name").notNull(),
+  territory: varchar("territory"),
+  status: egpCrewStatusEnum("status").notNull().default("active"),
+  createdBy: varchar("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const egpCrewMembers = pgTable("egp_crew_members", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  crewId: varchar("crew_id")
+    .notNull()
+    .references(() => egpCrews.id),
+  egpId: varchar("egp_id")
+    .notNull()
+    .references(() => users.id),
+  role: egpCrewMemberRoleEnum("role").notNull().default("member"),
+  joinedAt: timestamp("joined_at").defaultNow().notNull(),
+  removedAt: timestamp("removed_at"),
+});
+
+export type EgpCrew = typeof egpCrews.$inferSelect;
+export type InsertEgpCrew = typeof egpCrews.$inferInsert;
+export type EgpCrewMember = typeof egpCrewMembers.$inferSelect;
+export type InsertEgpCrewMember = typeof egpCrewMembers.$inferInsert;
+
+export const insertEgpCrewSchema = createInsertSchema(egpCrews).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  createdBy: true,
+});
+
+export const insertEgpCrewMemberSchema = createInsertSchema(egpCrewMembers).omit({
+  id: true,
+  joinedAt: true,
+  removedAt: true,
 });
 
 // ============================================
@@ -1051,11 +1099,13 @@ export const parentEnrollments = pgTable("parent_enrollments", {
   schoolName: varchar("school_name").notNull(),
   mathStruggleAreas: text("math_struggle_areas").notNull(),
   responseSymptoms: jsonb("response_symptoms"),
+  topicResponseSymptoms: jsonb("topic_response_symptoms"),
   responseSignalScores: jsonb("response_signal_scores"),
+  topicResponseSignalScores: jsonb("topic_response_signal_scores"),
   recommendedStartingPhase: varchar("recommended_starting_phase"),
+  topicRecommendedStartingPhases: jsonb("topic_recommended_starting_phases"),
   // Background
   previousTutoring: varchar("previous_tutoring").notNull(),
-  confidenceLevel: varchar("confidence_level").notNull(),
   internetAccess: varchar("internet_access").notNull(),
   parentMotivation: text("parent_motivation"),
   // Assignment tracking

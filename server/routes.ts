@@ -5,6 +5,7 @@ import { createServer, type Server } from "http";
 import { join, resolve } from "path";
 import { storage, supabase, createAffiliateCode } from "./storage";
 import { getTutorOnboardingDocumentDefinition, loadTutorOnboardingDocument, TUTOR_ONBOARDING_DOCUMENTS } from "./tutorOnboardingDocuments";
+import { EGP_ONBOARDING_DOCUMENTS, getEgpOnboardingDocumentDefinition, loadEgpOnboardingDocument } from "./egpOnboardingDocuments";
 import { setupAuth, isAuthenticated } from "./supabaseAuth";
 import { fileURLToPath } from "url";
 import {
@@ -57,6 +58,7 @@ import {
   syncGoogleMeetEvent,
 } from "./googleMeet";
 import { getWebPushPublicKey, sendWebPushToUser } from "./webPush";
+import { getAllowedOdEmailList, isAllowedOdEmail } from "@shared/odAccess";
 
 // Extend Express session type to include affiliateCode
 declare module 'express-session' {
@@ -1641,6 +1643,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
             labels
               .map((label) => (mode === "absolute" ? toAbsoluteBehaviorLabel(label) : String(label || "").trim()))
               .filter(Boolean);
+          const capitalizeFirst = (text: string) =>
+            text ? text.charAt(0).toUpperCase() + text.slice(1) : text;
+          const formatTopicScopedLine = (topic: string, content: string, includeTopic: boolean) =>
+            includeTopic ? `${topic}: ${content}` : capitalizeFirst(content);
+          const formatSingleTopicMovementLine = (content: string) => {
+            const normalized = String(content || "").trim();
+            if (!normalized) return "";
+            if (/^(moved|remained|advanced)\b/i.test(normalized)) {
+              return capitalizeFirst(normalized);
+            }
+            const withoutTopicPrefix = normalized.replace(/^[^:]+:\s*/, "");
+            return capitalizeFirst(withoutTopicPrefix);
+          };
+          const describeStrengthSignal = (signal: string) => {
+            const normalized = String(signal || "").trim().toLowerCase();
+            if (normalized === "clear concept recall") return "recognition is clearer";
+            if (normalized === "reliable step execution") return "execution is now more reliable";
+            if (normalized === "independent execution") return "independent execution is holding more consistently";
+            if (normalized === "independent starts") return "independent starts are holding more consistently";
+            if (normalized === "control under difficulty") return "control under difficulty is holding more consistently";
+            if (normalized === "structure retention") return "structure is holding more consistently";
+            if (normalized === "controlled pace") return "pace control is holding more consistently";
+            return normalized;
+          };
+          const buildMonthlyStrengthLine = (topic: string, strongSignals: string[], includeTopic: boolean) => {
+            if (strongSignals.length === 0) return "";
+            const [first, second] = strongSignals.map(describeStrengthSignal);
+            const content = second ? `${first}, with ${second}` : first;
+            return formatTopicScopedLine(topic, content, includeTopic);
+          };
 
           const isFinalPhaseMaintenanceState = (phase: string, stability: string) =>
             phase === "Time Pressure Stability" && stability === "High Maintenance";
@@ -1742,10 +1774,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
 
           const PARENT_ENTRY_MEANING_BY_PHASE: Record<TopicPhase, string> = {
-            Clarity: "Your child is building the foundation of this topic before independent solving begins.",
-            "Structured Execution": "Your child has entered independent execution in this topic and is now building consistency without tutor carry.",
-            "Controlled Discomfort": "Your child has entered the challenge phase in this topic and is learning to stay stable when work becomes difficult.",
-            "Time Pressure Stability": "Your child has entered timed stability in this topic and is learning to keep structure under urgency.",
+            Clarity: "Entered foundation rebuilding before independent solving begins.",
+            "Structured Execution": "Entered independent execution, now building consistency without tutor carry.",
+            "Controlled Discomfort": "Entered the challenge phase, now learning to stay stable under difficulty.",
+            "Time Pressure Stability": "Entered timed stability, now learning to keep structure under urgency.",
+          };
+          const buildTTMeaningByState = (phase: TopicPhase, stability: TopicStability) => {
+            if (phase === "Clarity") {
+              if (stability === "High" || stability === "High Maintenance") {
+                return "Recognition holds, but execution is not yet stable on its own.";
+              }
+              return "Recognition is improving, but independent execution is not yet stable.";
+            }
+            if (phase === "Structured Execution") {
+              if (stability === "High" || stability === "High Maintenance") {
+                return "Execution is now holding independently.";
+              }
+              return "Execution is forming, but consistency is not yet stable.";
+            }
+            if (phase === "Controlled Discomfort") {
+              if (stability === "High" || stability === "High Maintenance") {
+                return "Structure is holding under difficulty.";
+              }
+              return "Structure breaks when difficulty rises.";
+            }
+            if (stability === "High" || stability === "High Maintenance") {
+              return "Structure is holding under pace pressure.";
+            }
+            return "Structure breaks when pace increases.";
           };
 
           const buildParentMeaningForContext = ({
@@ -1764,12 +1820,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               return PARENT_ENTRY_MEANING_BY_PHASE[phaseAfter];
             }
             if (finalTransitionReason === "stability regress") {
-              return "This topic needs reinforcement at the current level before moving forward again.";
+              return "Stability has dipped at this level and needs reinforcement before progression.";
             }
             if (isFinalPhaseMaintenanceState(phaseAfter, stabilityAfter)) {
-              return "Your child is sustaining top-level stability in this topic and we are now maintaining and transferring the skill.";
+              return "Top-level stability is holding, now in maintenance and transfer.";
             }
-            return getParentDashboardCopyForState(phaseAfter, stabilityAfter).meaning;
+            return buildTTMeaningByState(phaseAfter, stabilityAfter);
           };
 
           const buildTopicImprovementSummary = ({
@@ -1880,6 +1936,203 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
             return `${topic}: held in ${lastDrillState.phase}`;
           };
+
+          const formatStateLabel = (state: { phase: string; stability: string }) =>
+            `${state.phase} (${state.stability})`;
+
+          const buildCappedBehaviorShiftSummary = (
+            earlyBehaviors: string[],
+            lateBehaviors: string[],
+            fallback: string
+          ) => {
+            const earlyCounts = countBehaviorLabels(earlyBehaviors);
+            const lateCounts = countBehaviorLabels(lateBehaviors);
+            const { weak: earlyWeak, strong: earlyStrong } = getBehaviorBuckets(earlyBehaviors);
+            const { weak: lateWeak, strong: lateStrong } = getBehaviorBuckets(lateBehaviors);
+
+            const reducedWeak = Array.from(new Set(earlyWeak)).filter(
+              (label) => (lateCounts[label] || 0) < (earlyCounts[label] || 0)
+            );
+            const strengthened = Array.from(new Set(lateStrong)).filter(
+              (label) => (lateCounts[label] || 0) > (earlyCounts[label] || 0) || !earlyStrong.includes(label)
+            );
+
+            const summaryParts = [
+              ...reducedWeak.map((label) => `less ${label}`),
+              ...strengthened,
+            ].slice(0, 2);
+
+            return summaryParts.length > 0 ? naturalJoin(summaryParts) : fallback;
+          };
+
+          const buildTopicWeakSignals = (allBehaviors: string[]) =>
+            summarizeBehaviorLabels(getBehaviorBuckets(allBehaviors).weak, 2);
+
+          const buildTopicStrongSignals = (allBehaviors: string[]) =>
+            summarizeBehaviorLabels(
+              normalizeBehaviorLabelsForContext(getBehaviorBuckets(allBehaviors).strong, "absolute"),
+              2
+            );
+
+          const buildWeeklyWhatChangedLine = ({
+            topic,
+            firstDrillState,
+            lastDrillState,
+            transitionReasons,
+            drillBehaviors,
+          }: {
+            topic: string;
+            firstDrillState: { phase: string; stability: string };
+            lastDrillState: { phase: string; stability: string };
+            transitionReasons: TransitionReason[];
+            drillBehaviors: string[][];
+          }) => {
+            const latestTransitionReason = transitionReasons[transitionReasons.length - 1] || "remain";
+            const midpoint = Math.max(1, Math.floor(drillBehaviors.length / 2));
+            const earlyBehaviors = drillBehaviors.slice(0, midpoint).flat();
+            const lateBehaviors = drillBehaviors.slice(midpoint).flat();
+            const strongSignals = buildTopicStrongSignals(lateBehaviors);
+            const weakSignals = summarizeBehaviorLabels(getBehaviorBuckets(lateBehaviors).weak, 1).map(
+              (label) => `continued ${label}`
+            );
+            const behaviorShift = buildCappedBehaviorShiftSummary(
+              earlyBehaviors,
+              lateBehaviors,
+              naturalJoin([...strongSignals, ...weakSignals].slice(0, 2)) || "no consistent behavior shift recognized yet"
+            );
+
+            if (
+              didPhaseProgress({
+                phaseBefore: firstDrillState.phase,
+                phaseAfter: lastDrillState.phase,
+                transitionReason: latestTransitionReason,
+              }) ||
+              formatStateLabel(firstDrillState) !== formatStateLabel(lastDrillState)
+            ) {
+              return `${topic} moved from ${formatStateLabel(firstDrillState)} to ${formatStateLabel(lastDrillState)}, with ${behaviorShift}.`;
+            }
+
+            return `${topic} remained in ${formatStateLabel(lastDrillState)}, with ${behaviorShift}.`;
+          };
+
+          const buildMonthlyMovementLine = ({
+            topic,
+            firstDrillState,
+            lastDrillState,
+            transitionReasons,
+          }: {
+            topic: string;
+            firstDrillState: { phase: string; stability: string };
+            lastDrillState: { phase: string; stability: string };
+            transitionReasons: TransitionReason[];
+          }) => {
+            const latestTransitionReason = transitionReasons[transitionReasons.length - 1] || "remain";
+
+            if (
+              didPhaseProgress({
+                phaseBefore: firstDrillState.phase,
+                phaseAfter: lastDrillState.phase,
+                transitionReason: latestTransitionReason,
+              })
+            ) {
+              return `${topic} advanced from ${firstDrillState.phase} to ${lastDrillState.phase}.`;
+            }
+            if (latestTransitionReason === "stability advance") {
+              return `${topic} remained in ${lastDrillState.phase}, with stability improving across sessions.`;
+            }
+            if (latestTransitionReason === "stability regress") {
+              return `${topic} remained in ${lastDrillState.phase} with reduced stability.`;
+            }
+            if (isFinalPhaseMaintenanceState(lastDrillState.phase, lastDrillState.stability)) {
+              return `${topic} remained in ${lastDrillState.phase} with sustained maintenance.`;
+            }
+            return `${topic} remained in ${lastDrillState.phase}.`;
+          };
+
+          const buildCurrentPositionText = (phase: TopicPhase, stability: TopicStability) => {
+            if (phase === "Clarity") {
+              if (stability === "High" || stability === "High Maintenance") {
+                return "Recognition holds, but independent execution is not yet stable.";
+              }
+              return "Recognition is improving, but independent solving is not yet stable.";
+            }
+            if (phase === "Structured Execution") {
+              if (stability === "High" || stability === "High Maintenance") {
+                return "Execution holds independently but not yet under pressure.";
+              }
+              return "Execution is forming, but independent step control is not yet stable.";
+            }
+            if (phase === "Controlled Discomfort") {
+              if (stability === "High" || stability === "High Maintenance") {
+                return "Structure holds under difficulty, but timed pressure is not yet stable.";
+              }
+              return "Structure holds in familiar work, but breaks when difficulty rises.";
+            }
+            if (stability === "High" || stability === "High Maintenance") {
+              return "Structure holds under pace pressure.";
+            }
+            return "Structure is present, but breaks when pace increases.";
+          };
+
+          const buildParentNextMove = (phase: TopicPhase, stability: TopicStability) => {
+            if (phase === "Clarity") {
+              if (stability === "High Maintenance") {
+                return "introduce Structured Execution while protecting recognition and step choice.";
+              }
+              return "reinforce recognition and first-step decisions before increasing difficulty.";
+            }
+            if (phase === "Structured Execution") {
+              if (stability === "High Maintenance") {
+                return "introduce Controlled Discomfort while protecting structure.";
+              }
+              if (stability === "High") {
+                return "increase variation while protecting step order and independent starts.";
+              }
+              return "reinforce step order and independent starts before increasing difficulty.";
+            }
+            if (phase === "Controlled Discomfort") {
+              if (stability === "High Maintenance") {
+                return "introduce Time Pressure Stability while protecting structure.";
+              }
+              if (stability === "High") {
+                return "increase timed demand while protecting structure under difficulty.";
+              }
+              return "increase exposure to harder problems while maintaining structure.";
+            }
+            if (stability === "High Maintenance") {
+              return "maintain timed performance and begin transfer across related topics.";
+            }
+            return "increase timed exposure while protecting structure and pace control.";
+          };
+          const getTopicMovementPriority = (transitionReasons: TransitionReason[], lastDrillState: { phase: string; stability: string }) => {
+            const latestTransitionReason = transitionReasons[transitionReasons.length - 1] || "remain";
+            if (latestTransitionReason === "phase progress") return 0;
+            if (latestTransitionReason === "stability advance") return 1;
+            if (latestTransitionReason === "stability regress") return 2;
+            if (isFinalPhaseMaintenanceState(lastDrillState.phase, lastDrillState.stability)) return 3;
+            return 4;
+          };
+          const sortTopicsForReport = (
+            topics: string[],
+            topicSnapshots: Record<string, {
+              firstDrillState: { phase: string; stability: string; date: string };
+              lastDrillState: { phase: string; stability: string; date: string };
+              drillCount: number;
+              transitionReasons: TransitionReason[];
+              latestNextAction: string;
+              drillBehaviors: string[][];
+              allBehaviors: string[];
+            }>
+          ) =>
+            [...topics].sort((a, b) => {
+              const aSnapshot = topicSnapshots[a];
+              const bSnapshot = topicSnapshots[b];
+              const priorityDiff =
+                getTopicMovementPriority(aSnapshot.transitionReasons, aSnapshot.lastDrillState) -
+                getTopicMovementPriority(bSnapshot.transitionReasons, bSnapshot.lastDrillState);
+              if (priorityDiff !== 0) return priorityDiff;
+              return a.localeCompare(b);
+            });
 
           const buildTopicSnapshots = (sessions: any[]) => {
             const snapshots: Record<string, {
@@ -2011,71 +2264,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
               phaseRank(state.phase) * 10 + stabilityRank(state.stability);
             const topicSnapshots = buildTopicSnapshots(sorted);
 
-            const topics = Object.keys(topicSnapshots);
+            const topics = sortTopicsForReport(Object.keys(topicSnapshots), topicSnapshots);
+            const includeTopicLabels = topics.length > 1;
 
-            // Generate topic-centered weekly report sections
+            // Final weekly report structure
             const topicsWorkedOn = topics;
-
-            const conditioningProgress = topics.map(topic => {
+            const whatChanged = topics.map(topic => {
               const snapshot = topicSnapshots[topic];
-              return {
-                topic,
-                startState: `${snapshot.firstDrillState.phase} (${snapshot.firstDrillState.stability})`,
-                endState: `${snapshot.lastDrillState.phase} (${snapshot.lastDrillState.stability})`,
-                drillCount: snapshot.drillCount,
-              };
-            });
-
-            // Map observations to behavior language using the new mapping system
-            const whatImproved = topics
-              .filter(topic => {
-                const snapshot = topicSnapshots[topic];
-                const startScore = scoreState(snapshot.firstDrillState);
-                const endScore = scoreState(snapshot.lastDrillState);
-                return endScore > startScore || snapshot.transitionReasons.some((reason) => reason !== "remain");
-              })
-              .map(topic => {
-                const snapshot = topicSnapshots[topic];
-                return buildTopicImprovementSummary({
-                  topic,
-                  firstDrillState: snapshot.firstDrillState,
-                  lastDrillState: snapshot.lastDrillState,
-                  transitionReasons: snapshot.transitionReasons,
-                  drillBehaviors: snapshot.drillBehaviors,
-                });
-              });
-
-            const responsePattern = topics.map(topic => {
-              return buildTopicResponsePattern(topic, topicSnapshots[topic].allBehaviors);
-            });
-
-            const mainBreakdown = topics.map(topic => {
-              const weakSignals = summarizeBehaviorLabels(getBehaviorBuckets(topicSnapshots[topic].allBehaviors).weak, 2);
-              return `${topic}: ${weakSignals.length > 0 ? naturalJoin(weakSignals) : "no recurring mapped weak signal detected"}`;
-            });
-
-            const systemMovement = topics.map(topic => {
-              const snapshot = topicSnapshots[topic];
-              return buildWeeklySystemMovement({
+              const line = buildWeeklyWhatChangedLine({
                 topic,
                 firstDrillState: snapshot.firstDrillState,
                 lastDrillState: snapshot.lastDrillState,
                 transitionReasons: snapshot.transitionReasons,
+                drillBehaviors: snapshot.drillBehaviors,
               });
+              return includeTopicLabels ? line : formatSingleTopicMovementLine(line);
             });
 
-            const nextFocus = topics.map(topic => {
-              const snapshot = topicSnapshots[topic];
-              return `${topic}: ${snapshot.latestNextAction || 'Continue current drill'}`;
+            const breakdownPattern = topics.map(topic => {
+              const weakSignals = buildTopicWeakSignals(topicSnapshots[topic].allBehaviors);
+              return formatTopicScopedLine(
+                topic,
+                weakSignals.length > 0 ? naturalJoin(weakSignals) : "no consistent breakdown pattern identified",
+                includeTopicLabels
+              );
             });
+
             const whatThisMeans = topics.map(topic => {
               const snapshot = topicSnapshots[topic];
-              return `${topic}: ${buildParentMeaningForContext({
-                phaseBefore: snapshot.firstDrillState.phase as TopicPhase,
-                phaseAfter: snapshot.lastDrillState.phase as TopicPhase,
-                stabilityAfter: snapshot.lastDrillState.stability as TopicStability,
-                transitionReasons: snapshot.transitionReasons,
-              })}`;
+              return formatTopicScopedLine(
+                topic,
+                buildParentMeaningForContext({
+                  phaseBefore: snapshot.firstDrillState.phase as TopicPhase,
+                  phaseAfter: snapshot.lastDrillState.phase as TopicPhase,
+                  stabilityAfter: snapshot.lastDrillState.stability as TopicStability,
+                  transitionReasons: snapshot.transitionReasons,
+                }),
+                includeTopicLabels
+              );
+            });
+
+            const nextMove = topics.map(topic => {
+              const snapshot = topicSnapshots[topic];
+              return formatTopicScopedLine(
+                topic,
+                buildParentNextMove(
+                  snapshot.lastDrillState.phase as TopicPhase,
+                  snapshot.lastDrillState.stability as TopicStability
+                ),
+                includeTopicLabels
+              );
             });
 
             const startDate = sorted[0].date;
@@ -2086,15 +2324,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
               weekStartDate: new Date(startDate).toISOString().slice(0, 10),
               weekEndDate: new Date(endDate).toISOString().slice(0, 10),
               sessionsCompletedThisWeek: groupedSessions.length,
-              // LOCKED REPORT STRUCTURE - TT Drift Correction Spec
               topicsWorkedOn,
-              conditioningProgress,
-              whatImproved: whatImproved.length > 0 ? whatImproved : ["No stability improvements detected this week"],
-              responsePattern,
-              mainBreakdown: mainBreakdown.length > 0 ? mainBreakdown : ["No recurring breakdown patterns detected"],
-              systemMovement: systemMovement.length > 0 ? systemMovement.join(", ") : "reinforced phase",
+              whatChanged,
+              breakdownPattern: breakdownPattern.length > 0 ? breakdownPattern : ["No consistent breakdown pattern identified"],
               whatThisMeans,
-              nextFocus,
+              nextMove,
               internalWeeklyTutorNote: "",
               drillCount: deterministicSessions.length,
               sourceSessionIds: groupedSessions.map((session) => session.id),
@@ -2131,88 +2365,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
               phaseRank(state.phase) * 10 + stabilityRank(state.stability);
             const topicSnapshots = buildTopicSnapshots(sorted);
 
-            const topics = Object.keys(topicSnapshots);
+            const topics = sortTopicsForReport(Object.keys(topicSnapshots), topicSnapshots);
+            const includeTopicLabels = topics.length > 1;
 
-            // Generate topic-centered monthly report sections
+            // Final monthly report structure
             const topicsConditioned = topics;
-
-            const topicProgression = topics.map(topic => {
+            const systemMovement = topics.map(topic => {
               const snapshot = topicSnapshots[topic];
-              return {
-                topic,
-                startState: `${snapshot.firstDrillState.phase} (${snapshot.firstDrillState.stability})`,
-                endState: `${snapshot.lastDrillState.phase} (${snapshot.lastDrillState.stability})`,
-                drillCount: snapshot.drillCount,
-              };
-            });
-
-            // Map observations to behavior language
-            const whatBecameStronger = topics
-              .filter(topic => {
-                const snapshot = topicSnapshots[topic];
-                const startScore = scoreState(snapshot.firstDrillState);
-                const endScore = scoreState(snapshot.lastDrillState);
-                return endScore > startScore || snapshot.transitionReasons.some((reason) => reason !== "remain");
-              })
-              .map(topic => {
-                const snapshot = topicSnapshots[topic];
-                return buildTopicImprovementSummary({
-                  topic,
-                  firstDrillState: snapshot.firstDrillState,
-                  lastDrillState: snapshot.lastDrillState,
-                  transitionReasons: snapshot.transitionReasons,
-                  drillBehaviors: snapshot.drillBehaviors,
-                });
-              });
-
-            const responseTrend = topics.map(topic => {
-              const snapshot = topicSnapshots[topic];
-              const midpoint = Math.max(1, Math.floor(snapshot.drillBehaviors.length / 2));
-              const earlyBehaviors = snapshot.drillBehaviors.slice(0, midpoint).flat();
-              const lateBehaviors = snapshot.drillBehaviors.slice(midpoint).flat();
-              return `${topic}: ${buildBehaviorShiftSummary(
-                earlyBehaviors,
-                lateBehaviors,
-                "showed a more consistent response pattern"
-              )}`;
-            });
-
-            const recurringChallenge = topics.map(topic => {
-              const weakSignals = summarizeBehaviorLabels(getBehaviorBuckets(topicSnapshots[topic].allBehaviors).weak, 2);
-              return `${topic}: ${weakSignals.length > 0 ? naturalJoin(weakSignals) : "no recurring mapped weak signal detected"}`;
-            });
-
-            const systemOutcome = topics.map(topic => {
-              const snapshot = topicSnapshots[topic];
-              return buildMonthlySystemOutcome({
+              const line = buildMonthlyMovementLine({
                 topic,
                 firstDrillState: snapshot.firstDrillState,
                 lastDrillState: snapshot.lastDrillState,
                 transitionReasons: snapshot.transitionReasons,
               });
+              return includeTopicLabels ? line : formatSingleTopicMovementLine(line);
             });
 
-            const currentStateSnapshot = topics.map(topic => {
+            const whatBecameStronger = topics
+              .map(topic => {
+                const strongSignals = buildTopicStrongSignals(topicSnapshots[topic].allBehaviors);
+                return buildMonthlyStrengthLine(topic, strongSignals, includeTopicLabels);
+              })
+              .filter(Boolean);
+
+            const breakdownPattern = topics.map(topic => {
+              const weakSignals = buildTopicWeakSignals(topicSnapshots[topic].allBehaviors);
+              return formatTopicScopedLine(
+                topic,
+                weakSignals.length > 0 ? naturalJoin(weakSignals) : "no consistent breakdown pattern identified",
+                includeTopicLabels
+              );
+            });
+
+            const currentPosition = topics.map(topic => {
               const snapshot = topicSnapshots[topic];
               return {
                 topic,
-                currentState: `${snapshot.lastDrillState.phase} (${snapshot.lastDrillState.stability})`,
-                drillCount: snapshot.drillCount,
+                state: `${snapshot.lastDrillState.phase} (${snapshot.lastDrillState.stability})`,
+                position: buildCurrentPositionText(
+                  snapshot.lastDrillState.phase as TopicPhase,
+                  snapshot.lastDrillState.stability as TopicStability
+                ),
               };
             });
 
-            const nextMonthFocus = topics.map(topic => {
-              const snapshot = topicSnapshots[topic];
-              return `${topic}: Continue training ${DRILL_PURPOSE_BY_PHASE[snapshot.lastDrillState.phase] || "phase-specific behavior"}.`;
-            });
             const whatThisMeans = topics.map(topic => {
               const snapshot = topicSnapshots[topic];
-              return `${topic}: ${buildParentMeaningForContext({
-                phaseBefore: snapshot.firstDrillState.phase as TopicPhase,
-                phaseAfter: snapshot.lastDrillState.phase as TopicPhase,
-                stabilityAfter: snapshot.lastDrillState.stability as TopicStability,
-                transitionReasons: snapshot.transitionReasons,
-              })}`;
+              return formatTopicScopedLine(
+                topic,
+                buildParentMeaningForContext({
+                  phaseBefore: snapshot.firstDrillState.phase as TopicPhase,
+                  phaseAfter: snapshot.lastDrillState.phase as TopicPhase,
+                  stabilityAfter: snapshot.lastDrillState.stability as TopicStability,
+                  transitionReasons: snapshot.transitionReasons,
+                }),
+                includeTopicLabels
+              );
+            });
+
+            const nextMonthMove = topics.map(topic => {
+              const snapshot = topicSnapshots[topic];
+              return formatTopicScopedLine(
+                topic,
+                buildParentNextMove(
+                  snapshot.lastDrillState.phase as TopicPhase,
+                  snapshot.lastDrillState.stability as TopicStability
+                ),
+                includeTopicLabels
+              );
             });
 
             const startDate = sorted[0].date;
@@ -2223,17 +2443,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
               monthStartDate: new Date(startDate).toISOString().slice(0, 10),
               monthEndDate: new Date(endDate).toISOString().slice(0, 10),
               totalSessionsCompletedThisMonth: groupedSessions.length,
-              // LOCKED REPORT STRUCTURE - TT Drift Correction Spec
               topicsConditioned,
-              topicProgression,
-              whatBecameStronger: whatBecameStronger.length > 0 ? whatBecameStronger : ["No significant improvements detected this month"],
-              responseTrend,
-              recurringChallenge: recurringChallenge.length > 0 ? recurringChallenge : ["No recurring challenges detected"],
-              systemOutcome: systemOutcome.length > 0 ? systemOutcome : ["No monthly system outcome recorded"],
+              systemMovement: systemMovement.length > 0 ? systemMovement : ["No clear system movement recorded this month"],
+              whatBecameStronger: whatBecameStronger.length > 0 ? whatBecameStronger : ["No consistent strength pattern recognized yet"],
+              breakdownPattern: breakdownPattern.length > 0 ? breakdownPattern : ["No consistent breakdown pattern identified"],
+              currentPosition,
               whatThisMeans,
-              currentStateSnapshot,
-              nextMonthFocus,
-              // Metadata (allowed per spec)
+              nextMonthMove,
               drillCount: topics.reduce((sum, topic) => sum + topicSnapshots[topic].drillCount, 0),
               monthRange: `${new Date(startDate).toISOString().slice(0, 10)} to ${new Date(endDate).toISOString().slice(0, 10)}`,
               sourceSessionIds: groupedSessions.map((session) => session.id),
@@ -2265,12 +2481,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 month_name: null,
                 summary: JSON.stringify(structuredData),
                 topics_learned: Array.isArray(structuredData.topicsWorkedOn) ? structuredData.topicsWorkedOn.join(", ") : "",
-                strengths: Array.isArray(structuredData.whatImproved) ? structuredData.whatImproved.join(" | ") : "",
-                areas_for_growth: Array.isArray(structuredData.mainBreakdown) ? structuredData.mainBreakdown.join(" | ") : "",
+                strengths: Array.isArray(structuredData.whatChanged) ? structuredData.whatChanged.join(" | ") : "",
+                areas_for_growth: Array.isArray(structuredData.breakdownPattern) ? structuredData.breakdownPattern.join(" | ") : "",
                 boss_battles_completed: Number(structuredData.bossBattlesCompletedThisWeek || 0),
                 solutions_unlocked: Number(structuredData.sessionsCompletedThisWeek || 0),
                 confidence_growth: null,
-                next_steps: Array.isArray(structuredData.nextFocus) ? structuredData.nextFocus.join(" | ") : "",
+                next_steps: Array.isArray(structuredData.nextMove) ? structuredData.nextMove.join(" | ") : "",
                 sent_at: new Date().toISOString(),
               })
               .select("id")
@@ -2305,11 +2521,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 summary: JSON.stringify(structuredData),
                 topics_learned: Array.isArray(structuredData.topicsConditioned) ? structuredData.topicsConditioned.join(", ") : "",
                 strengths: Array.isArray(structuredData.whatBecameStronger) ? structuredData.whatBecameStronger.join(" | ") : "",
-                areas_for_growth: Array.isArray(structuredData.recurringChallenge) ? structuredData.recurringChallenge.join(" | ") : "",
+                areas_for_growth: Array.isArray(structuredData.breakdownPattern) ? structuredData.breakdownPattern.join(" | ") : "",
                 boss_battles_completed: 0,
                 solutions_unlocked: Number(structuredData.totalSessionsCompletedThisMonth || 0),
                 confidence_growth: null,
-                next_steps: Array.isArray(structuredData.nextMonthFocus) ? structuredData.nextMonthFocus.join(" | ") : "",
+                next_steps: Array.isArray(structuredData.nextMonthMove) ? structuredData.nextMonthMove.join(" | ") : "",
                 sent_at: new Date().toISOString(),
               })
               .select("id")
@@ -2449,33 +2665,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 return res.status(403).json({ message: "Accept this assignment before running drills for this student." });
               }
 
+              const operationalMode = await getTutorOperationalMode(tutorId);
+              const normalizedScheduledSessionId =
+                typeof scheduledSessionId === "string" && String(scheduledSessionId).trim().length > 0
+                  ? String(scheduledSessionId).trim()
+                  : null;
+              let diagnosisSessionKind: "intro" | "training" = "intro";
+              let scheduledSession: any = null;
+
               const { session: pendingTrainingConfirmation, error: pendingTrainingConfirmationError } =
                 await getPendingTrainingConfirmationSession(tutorId, studentId);
               if (pendingTrainingConfirmationError) {
                 return res.status(500).json({ message: "Failed to validate training session confirmation state" });
               }
-              if (pendingTrainingConfirmation && String(scheduledSessionId || "") !== String(pendingTrainingConfirmation.id)) {
+
+              if (normalizedScheduledSessionId) {
+                const { data: explicitScheduledSession, error: explicitScheduledSessionError } = await supabase
+                  .from("scheduled_sessions")
+                  .select(SCHEDULED_SESSION_SELECT)
+                  .eq("id", normalizedScheduledSessionId)
+                  .eq("tutor_id", tutorId)
+                  .eq("student_id", studentId)
+                  .in("type", ["intro", "training"])
+                  .maybeSingle();
+
+                if (explicitScheduledSessionError) {
+                  return res.status(500).json({ message: "Failed to validate drill session context" });
+                }
+
+                if (!explicitScheduledSession) {
+                  return res.status(400).json({ message: "The selected drill session could not be found for this student." });
+                }
+
+                diagnosisSessionKind = explicitScheduledSession.type === "training" ? "training" : "intro";
+                scheduledSession = explicitScheduledSession;
+              }
+
+              if (
+                pendingTrainingConfirmation &&
+                diagnosisSessionKind === "training" &&
+                normalizedScheduledSessionId !== String(pendingTrainingConfirmation.id)
+              ) {
                 return res.status(400).json({
                   message: "A proposed TT training lesson is still waiting for parent confirmation before drills can run.",
                 });
               }
 
-              const { session: scheduledSession, error: scheduledSessionError } = await resolveTutorScheduledSession(
-                tutorId,
-                studentId,
-                "intro",
-                typeof scheduledSessionId === "string" ? scheduledSessionId : null
-              );
-              if (scheduledSessionError) {
-                return res.status(500).json({ message: "Failed to validate intro session context" });
-              }
               if (!scheduledSession) {
-                return res.status(400).json({ message: "A confirmed scheduled intro session is required before drill submission." });
+                if (operationalMode === "training") {
+                  diagnosisSessionKind = "training";
+                } else {
+                  const { session: resolvedIntroSession, error: scheduledSessionError } = await resolveTutorScheduledSession(
+                    tutorId,
+                    studentId,
+                    "intro",
+                    null
+                  );
+                  if (scheduledSessionError) {
+                    return res.status(500).json({ message: "Failed to validate intro session context" });
+                  }
+                  if (!resolvedIntroSession) {
+                    return res.status(400).json({ message: "A confirmed scheduled intro session is required before drill submission." });
+                  }
+                  scheduledSession = resolvedIntroSession;
+                }
               }
 
-              const introLaunch = getSessionLaunchState(scheduledSession, "intro");
-              if (!introLaunch.canLaunch) {
-                return res.status(400).json({ message: "Intro drill submission is blocked until the intro session is confirmed." });
+              if (scheduledSession) {
+                const diagnosisLaunch = getSessionLaunchState(scheduledSession, diagnosisSessionKind);
+                if (!diagnosisLaunch.canLaunch) {
+                  return res.status(400).json({
+                    message:
+                      diagnosisSessionKind === "training"
+                        ? "Diagnosis submission is blocked until the training lesson is confirmed."
+                        : "Intro drill submission is blocked until the intro session is confirmed.",
+                  });
+                }
               }
 
               const diagnosisSummary = isAdaptiveDiagnosis
@@ -2487,6 +2752,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   return res.status(400).json({ message: adaptivePathError });
                 }
               }
+
+              const diagnosisScheduledSessionId = scheduledSession?.id ? String(scheduledSession.id) : null;
 
               // Store drill results in intro_session_drills table
               const id = uuidv4();
@@ -2502,11 +2769,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     startingPhase: isAdaptiveDiagnosis ? startingPhase : drillPhase,
                     drillType: "diagnosis",
                     diagnosisMode: isAdaptiveDiagnosis ? "adaptive" : "legacy",
-                    scheduledSessionId: scheduledSession.id,
+                    scheduledSessionId: diagnosisScheduledSessionId,
+                    sessionContextKind: diagnosisSessionKind,
                     sets: isAdaptiveDiagnosis ? adaptiveBlocks : drillSets,
                     summary: diagnosisSummary,
                   }),
-                  scheduled_session_id: scheduledSession.id,
+                  scheduled_session_id: diagnosisScheduledSessionId,
                   submitted_at: new Date().toISOString(),
                 })
                 .select()
@@ -2519,7 +2787,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               // Mark intro completed on successful diagnosis drill submission.
               const existingProfile = (student.personalProfile as any) || {};
               const existingWorkflow = (existingProfile.workflow as any) || {};
-              if (!existingWorkflow.introCompletedAt) {
+              if (diagnosisSessionKind === "intro" && !existingWorkflow.introCompletedAt) {
                 await storage.updateStudent(studentId, {
                   personalProfile: {
                     ...existingProfile,
@@ -2642,16 +2910,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 console.error("Auto report generation failed after intro drill:", autoReportError);
               }
 
-              await supabase
-                .from("scheduled_sessions")
-                .update({
-                  status: "completed",
-                  attendance_status: "both_joined",
-                  recording_status: scheduledSession.recording_file_id ? "recording_uploaded" : "recording_required",
-                  transcript_status: "manual_not_tracked",
-                  updated_at: new Date().toISOString(),
-                })
-                .eq("id", scheduledSession.id);
+              if (diagnosisSessionKind === "intro" && scheduledSession) {
+                await supabase
+                  .from("scheduled_sessions")
+                  .update({
+                    status: "completed",
+                    attendance_status: "both_joined",
+                    recording_status: scheduledSession.recording_file_id ? "recording_uploaded" : "recording_required",
+                    transcript_status: "manual_not_tracked",
+                    updated_at: new Date().toISOString(),
+                  })
+                  .eq("id", scheduledSession.id);
+              }
 
               res.json({
                 success: true,
@@ -2933,22 +3203,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 return res.status(403).json({ message: "Accept this assignment before running drills for this student." });
               }
 
-              const { session: scheduledSession, error: scheduledSessionError } = await resolveTutorScheduledSession(
-                tutorId,
-                studentId,
-                "training",
-                typeof scheduledSessionId === "string" ? scheduledSessionId : null
-              );
-              if (scheduledSessionError) {
-                return res.status(500).json({ message: "Failed to validate training session context" });
-              }
-              if (!scheduledSession) {
-                return res.status(400).json({ message: "A TT training lesson must be attached before drill submission." });
-              }
+              const operationalMode = await getTutorOperationalMode(tutorId);
+              let scheduledSession: any = null;
 
-              const trainingLaunch = getSessionLaunchState(scheduledSession, "training");
-              if (!trainingLaunch.canLaunch) {
-                return res.status(400).json({ message: "Training drills must submit from an active or imminently scheduled TT lesson." });
+              if (operationalMode === "certified_live") {
+                const { session: resolvedScheduledSession, error: scheduledSessionError } = await resolveTutorScheduledSession(
+                  tutorId,
+                  studentId,
+                  "training",
+                  typeof scheduledSessionId === "string" ? scheduledSessionId : null
+                );
+                if (scheduledSessionError) {
+                  return res.status(500).json({ message: "Failed to validate training session context" });
+                }
+                if (!resolvedScheduledSession) {
+                  return res.status(400).json({ message: "A TT training lesson must be attached before drill submission." });
+                }
+
+                const trainingLaunch = getSessionLaunchState(resolvedScheduledSession, "training");
+                if (!trainingLaunch.canLaunch) {
+                  return res.status(400).json({ message: "Training drills must submit from an active or imminently scheduled TT lesson." });
+                }
+
+                scheduledSession = resolvedScheduledSession;
               }
 
               const conceptMastery: any =
@@ -2967,12 +3244,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const sessionId = uuidv4();
               const sessionStartTime = new Date().toISOString();
               const drillResults = [];
+              const scheduledSessionRecordId = scheduledSession?.id || null;
 
               const { data: trainingRun } = await supabase
                 .from("training_session_runs")
                 .insert({
                   id: sessionId,
-                  scheduled_session_id: scheduledSession.id,
+                  scheduled_session_id: scheduledSessionRecordId,
                   student_id: studentId,
                   tutor_id: tutorId,
                   topic_count: sessionDrills.length,
@@ -3055,9 +3333,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       sets: drillSets,
                       summary: trainingSummary,
                       sessionId: sessionId,
-                      scheduledSessionId: scheduledSession.id,
+                      scheduledSessionId: scheduledSessionRecordId,
                     }),
-                    scheduled_session_id: scheduledSession.id,
+                    scheduled_session_id: scheduledSessionRecordId,
                     training_session_run_id: trainingRun?.id || sessionId,
                     submitted_at: sessionStartTime,
                   })
@@ -3166,16 +3444,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   : []
               );
 
-              await supabase
-                .from("scheduled_sessions")
-                .update({
-                  status: "completed",
-                  attendance_status: "both_joined",
-                  recording_status: scheduledSession.recording_file_id ? "recording_uploaded" : "recording_required",
-                  transcript_status: "manual_not_tracked",
-                  updated_at: new Date().toISOString(),
-                })
-                .eq("id", scheduledSession.id);
+              if (scheduledSession) {
+                await supabase
+                  .from("scheduled_sessions")
+                  .update({
+                    status: "completed",
+                    attendance_status: "both_joined",
+                    recording_status: scheduledSession.recording_file_id ? "recording_uploaded" : "recording_required",
+                    transcript_status: "manual_not_tracked",
+                    updated_at: new Date().toISOString(),
+                  })
+                  .eq("id", scheduledSession.id);
+              }
 
               await supabase
                 .from("training_session_runs")
@@ -3189,7 +3469,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               res.json({
                 success: true,
                 sessionId,
-                scheduledSessionId: scheduledSession.id,
+                scheduledSessionId: scheduledSessionRecordId,
                 sessionDuration,
                 topicsTouched,
                 drillResults,
@@ -3339,21 +3619,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(500).json({ message: "Internal server error" });
       }
     });
-  const getConfidenceScore = (confidenceLevel?: string | null) => {
-    const confidenceLevelMap: Record<string, number> = {
-      "very confident": 9,
-      "confident": 8,
-      "somewhat confident": 6,
-      "not confident": 3,
-      "very confident ": 9,
-      "confident ": 8,
-      "somewhat confident ": 6,
-      "not confident ": 3,
-    };
-
-    return confidenceLevelMap[(confidenceLevel || "").toLowerCase()] || 5;
-  };
-
   const ensureStudentForEnrollment = async (enrollment: any, tutorIdOverride?: string) => {
     const tutorId = tutorIdOverride || enrollment?.assigned_tutor_id;
     if (!enrollment || !tutorId || !enrollment.user_id || !enrollment.student_full_name || !enrollment.student_grade) {
@@ -4143,7 +4408,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const schema = z.object({
         email: z.string().email(),
-        role: z.enum(["tutor", "td", "coo"]),
+        role: z.enum(["tutor", "td", "coo", "od"]),
       });
       const { email, role } = schema.parse(req.body);
       
@@ -4183,6 +4448,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/assign-role", async (req: Request, res: Response) => {
     try {
       const permission = roleAuthorizationSchema.parse(req.body);
+      if (permission.role === "od" && !isAllowedOdEmail(permission.email)) {
+        return res.status(403).json({
+          message: `Only approved OD emails can be assigned the OD role: ${getAllowedOdEmailList()}`,
+        });
+      }
       await storage.addRolePermission(permission as any);
       res.json({ success: true, permission });
     } catch (error) {
@@ -4232,6 +4502,115 @@ export async function registerRoutes(app: Express): Promise<Server> {
         documentsStatus,
         onboardingCompletedAt: latestApp.onboardingCompletedAt ?? latestApp.onboarding_completed_at ?? null,
       };
+    };
+
+    const INITIAL_EGP_DOCUMENT_STATUSES = {
+      "1": "pending_upload",
+      "2": "not_started",
+      "3": "not_started",
+      "4": "not_started",
+      "5": "not_started",
+    };
+
+    const buildEgpOnboardingStatuses = (rawStatuses: any) => ({
+      ...INITIAL_EGP_DOCUMENT_STATUSES,
+      ...(rawStatuses && typeof rawStatuses === "object" ? rawStatuses : {}),
+    });
+
+    const deriveEgpGatewayApplicationStatus = (latestApp: any) => {
+      const documentsStatus = buildEgpOnboardingStatuses(latestApp?.documentsStatus || latestApp?.documents_status);
+      const allApproved = ["1", "2", "3", "4", "5"].every(
+        (step) => String(documentsStatus[step] || "") === "approved"
+      );
+
+      return {
+        ...latestApp,
+        status: allApproved ? "confirmed" : latestApp.status,
+        applicationId: latestApp.id,
+        documentSubmissionStep: latestApp.documentSubmissionStep || latestApp.document_submission_step || 1,
+        documentsStatus,
+        onboardingCompletedAt: latestApp.onboardingCompletedAt ?? latestApp.onboarding_completed_at ?? null,
+      };
+    };
+
+    const buildAffiliateAcceptanceMap = (acceptanceRows: any[]) =>
+      acceptanceRows.reduce<Record<string, any>>((accumulator, row) => {
+        const key = String(row.document_step || row.documentStep);
+        if (!accumulator[key]) {
+          accumulator[key] = row;
+        }
+        return accumulator;
+      }, {});
+
+    const hydrateAffiliateApplications = async (rows: any[]) => {
+      if (!rows.length) return [];
+
+      const applicationIds = rows.map((row) => row.id).filter(Boolean);
+      const { data: acceptances, error: acceptanceError } = await supabase
+        .from("affiliate_onboarding_acceptances")
+        .select("*")
+        .in("application_id", applicationIds)
+        .order("accepted_at", { ascending: false });
+
+      if (acceptanceError) {
+        console.error("Error hydrating affiliate onboarding acceptances:", acceptanceError);
+      }
+
+      const acceptancesByApplication = new Map<string, any[]>();
+      for (const row of acceptances || []) {
+        const appId = String(row.application_id);
+        const current = acceptancesByApplication.get(appId) || [];
+        current.push(row);
+        acceptancesByApplication.set(appId, current);
+      }
+
+      return rows.map((row) => {
+        const acceptanceRows = acceptancesByApplication.get(String(row.id)) || [];
+        return {
+          ...row,
+          onboardingAcceptances: acceptanceRows,
+          onboardingAcceptanceMap: buildAffiliateAcceptanceMap(acceptanceRows),
+        };
+      });
+    };
+
+    const getAffiliateApplicationsByQuery = async (query: { userId?: string; status?: string } = {}) => {
+      let builder = supabase.from("affiliate_applications").select("*").order("created_at", { ascending: false });
+
+      if (query.userId) {
+        builder = builder.eq("user_id", query.userId);
+      }
+      if (query.status) {
+        builder = builder.eq("status", query.status);
+      }
+
+      const { data, error } = await builder;
+      if (error) {
+        throw new Error(`Failed to fetch affiliate applications: ${error.message}`);
+      }
+
+      return hydrateAffiliateApplications(data || []);
+    };
+
+    const selectCanonicalAffiliateApplication = (applications: any[]) => {
+      if (!applications.length) return null;
+
+      const priority = ["confirmed", "approved", "pending", "rejected"];
+      for (const status of priority) {
+        const match = applications.find((application) => String(application.status || "").toLowerCase() === status);
+        if (match) return match;
+      }
+
+      return applications[0];
+    };
+
+    const getCurrentEgpStepFromStatuses = (statuses: Record<string, string>) => {
+      for (let step = 1; step <= 5; step += 1) {
+        if (String(statuses[String(step)] || "not_started") !== "approved") {
+          return step;
+        }
+      }
+      return 5;
     };
 
     const inferDeviceType = (userAgent: string | undefined) => {
@@ -4407,6 +4786,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     new_topics: "New topics",
     careless_errors: "Careless errors",
   };
+  const NON_TOPIC_CONTEXT_LABELS = new Set(
+    Object.values(TOPIC_LABELS).map((value) => value.toLowerCase().trim())
+  );
 
   const parseTopicText = (value: unknown): string[] => {
     if (!value || typeof value !== "string") return [];
@@ -4417,46 +4799,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   const buildReportedTopics = (stuckAreas: unknown, mathStruggleAreas: unknown): string[] => {
-    const selected = Array.isArray(stuckAreas)
-      ? stuckAreas
-          .map((value) => TOPIC_LABELS[String(value)] || String(value))
-          .map((topic) => topic.trim())
-          .filter(Boolean)
-      : [];
-
     const typed = parseTopicText(mathStruggleAreas);
-    return Array.from(new Set([...selected, ...typed]));
-  };
-
-  const buildResponseSymptoms = (confidenceLevel: unknown): string[] => {
-    switch (confidenceLevel) {
-      case "very_low":
-        return ["freezes_unfamiliar", "asks_help_immediately"];
-      case "low":
-        return ["rushes_under_time", "guesses_without_method"];
-      case "average":
-        return ["untimed_ok_timed_breaks"];
-      case "high":
-        return [];
-      default:
-        return [];
-    }
+    return Array.from(
+      new Set(
+        typed.filter((topic) => !NON_TOPIC_CONTEXT_LABELS.has(topic.toLowerCase().trim()))
+      )
+    );
   };
 
   const buildIntakeSignals = (enrollment: any) => {
     const reportedTopics = buildReportedTopics([], enrollment?.math_struggle_areas);
-    const normalizedSymptoms = normalizeResponseSymptoms(
-      enrollment?.response_symptoms || buildResponseSymptoms(enrollment?.confidence_level)
-    );
+    const normalizedSymptoms = normalizeResponseSymptoms(enrollment?.response_symptoms);
     const recommendation = recommendStartingPhaseFromSymptoms(normalizedSymptoms);
     const recommendedStartingPhase =
       tryParsePhase(enrollment?.recommended_starting_phase) || recommendation.phase;
+    const topicResponseSymptoms =
+      enrollment?.topic_response_symptoms && typeof enrollment.topic_response_symptoms === "object"
+        ? Object.fromEntries(
+            Object.entries(enrollment.topic_response_symptoms as Record<string, unknown>)
+              .map(([topic, symptomIds]) => [topic, normalizeResponseSymptoms(symptomIds)])
+              .filter(([topic, symptomIds]) => String(topic || "").trim().length > 0 && (symptomIds as string[]).length > 0)
+          )
+        : {};
     return {
       reported_topics: reportedTopics,
       response_symptoms: getResponseSymptomLabels(normalizedSymptoms),
       response_symptom_ids: normalizedSymptoms,
+      topic_response_symptoms: Object.fromEntries(
+        Object.entries(topicResponseSymptoms).map(([topic, symptomIds]) => [topic, getResponseSymptomLabels(symptomIds as string[])])
+      ),
+      topic_response_symptom_ids: topicResponseSymptoms,
       response_signal_scores: enrollment?.response_signal_scores || recommendation.scores,
+      topic_response_signal_scores:
+        enrollment?.topic_response_signal_scores && typeof enrollment.topic_response_signal_scores === "object"
+          ? enrollment.topic_response_signal_scores
+          : {},
       recommended_starting_phase: recommendedStartingPhase,
+      topic_recommended_starting_phases:
+        enrollment?.topic_recommended_starting_phases && typeof enrollment.topic_recommended_starting_phases === "object"
+          ? enrollment.topic_recommended_starting_phases
+          : {},
       recommended_starting_reason: buildStartingPhaseRationale(
         recommendedStartingPhase,
         recommendation.supportingSymptoms
@@ -4798,15 +5180,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .maybeSingle();
 
             if (!existingStudent) {
-              const confidenceLevelMap: any = {
-                "very confident": 9,
-                "confident": 8,
-                "somewhat confident": 6,
-                "not confident": 3,
-              };
-              const confidenceText = (enrollment.confidence_level || "").toLowerCase();
-              const confidenceScore = confidenceLevelMap[confidenceText] || 5;
-
               const { error: insertErr } = await supabase
                 .from("students")
                 .insert({
@@ -7346,180 +7719,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const mapParentFacingReport = (report: any, tutorName?: string | null) => {
     const structured = parseStructuredReportSummary(report.summary) || {};
-    const parentText = (value: unknown, fallback = ""): string => {
+    const parentList = (value: unknown): string[] => {
       if (Array.isArray(value)) {
         return value
           .map((item) => String(item || "").trim())
-          .filter(Boolean)
-          .join("; ");
-      }
-
-      return String(value || fallback).trim();
-    };
-    const monthlyFocusText = (value: unknown, fallback = ""): string => {
-      const raw = parentText(value, fallback);
-      if (!raw) return "";
-
-      const purposeForText = (text: string): string | null => {
-        const normalized = text.toLowerCase();
-        if (normalized.includes("clarity")) return DRILL_PURPOSE_BY_PHASE["Clarity"];
-        if (normalized.includes("structured execution")) return DRILL_PURPOSE_BY_PHASE["Structured Execution"];
-        if (normalized.includes("controlled discomfort")) return DRILL_PURPOSE_BY_PHASE["Controlled Discomfort"];
-        if (normalized.includes("time pressure stability")) return DRILL_PURPOSE_BY_PHASE["Time Pressure Stability"];
-        return null;
-      };
-
-      return raw
-        .split("; ")
-        .map((item) => {
-          const line = String(item || "").trim();
-          if (!line) return "";
-
-          const separatorIndex = line.indexOf(":");
-          const topic = separatorIndex >= 0 ? line.slice(0, separatorIndex).trim() : "";
-          const detail = separatorIndex >= 0 ? line.slice(separatorIndex + 1).trim() : line;
-          const purpose = purposeForText(detail);
-
-          if (!purpose) return line;
-          if (topic) return `${topic}: Continue training ${purpose}.`;
-          return `Continue training ${purpose}.`;
-        })
-        .filter(Boolean)
-        .join("; ");
-    };
-    const parseStateLabel = (value: unknown) => {
-      const raw = String(value || "").trim();
-      const match = raw.match(/^(.+?)\s*\((.+)\)$/);
-      if (!match) return null;
-
-      return {
-        phase: normalizePhase(match[1]),
-        stability: normalizeStability(match[2]),
-      };
-    };
-    const deriveOutcomeFromStates = (
-      startState: { phase: TopicPhase; stability: TopicStability } | null,
-      endState: { phase: TopicPhase; stability: TopicStability } | null
-    ) => {
-      if (!startState || !endState) return "held";
-
-      const startPhaseIdx = PHASE_ORDER.indexOf(startState.phase);
-      const endPhaseIdx = PHASE_ORDER.indexOf(endState.phase);
-      const startStabilityScore = stabilityToScore(startState.stability);
-      const endStabilityScore = stabilityToScore(endState.stability);
-
-      if (endPhaseIdx > startPhaseIdx) return "advanced";
-      if (endPhaseIdx < startPhaseIdx) return "regressed";
-      if (endStabilityScore > startStabilityScore) return "improved";
-      if (endStabilityScore < startStabilityScore) return "regressed";
-      return "held";
-    };
-    const normalizedTopicProgressRows = Array.isArray(structured.topicProgression)
-      ? structured.topicProgression
-          .map((row: any) => ({
-            topic: String(row?.topic || "").trim(),
-            start: String(row?.startState || "").trim(),
-            end: String(row?.endState || "").trim(),
-            movement: "changed",
-          }))
-          .filter((row: any) => row.topic.length > 0)
-      : [];
-    const normalizedSystemOutcome = (() => {
-      const rawSystemOutcome = structured.systemOutcome;
-
-      if (Array.isArray(rawSystemOutcome)) {
-        const topicScoped = rawSystemOutcome
-          .map((item) => String(item || "").trim())
           .filter(Boolean);
-        if (topicScoped.some((item) => item.includes(":"))) {
-          return topicScoped.join("; ");
-        }
-      } else {
-        const text = String(rawSystemOutcome || "").trim();
-        if (text.includes(":")) {
-          return text;
-        }
       }
 
-      if (normalizedTopicProgressRows.length > 0) {
-        return normalizedTopicProgressRows
-          .map((row: any) => {
-            const startState = parseStateLabel(row.start);
-            const endState = parseStateLabel(row.end);
-            return `${row.topic}: ${deriveOutcomeFromStates(startState, endState)}`;
-          })
-          .join("; ");
-      }
+      const text = String(value || "").trim();
+      if (!text) return [];
 
-      return parentText(rawSystemOutcome);
-    })();
-    const normalizedCurrentStateSnapshot = Array.isArray(structured.currentStateSnapshot)
-      ? structured.currentStateSnapshot.map((snapshot: any) => {
-          const topic = String(snapshot?.topic || "").trim();
-          const currentStateText = String(snapshot?.currentState || "").trim();
-          const parsedPhase = currentStateText.match(/^(.+?)\s*\((.+)\)$/);
-          const phase = String(snapshot?.phase || parsedPhase?.[1] || "").trim();
-          const stability = String(snapshot?.stability || parsedPhase?.[2] || "").trim();
-
-          return {
-            topic,
-            phase,
-            stability,
-          };
-        }).filter((snapshot: any) => snapshot.topic.length > 0)
-      : [];
-    const deriveMeaningFromTopicProgression = () => {
-      if (!normalizedTopicProgressRows.length) return "";
-
-      return normalizedTopicProgressRows
-        .map((row: any) => {
-          const endState = parseStateLabel(row.end);
-          if (!endState) return "";
-          const parentCopy = getParentDashboardCopyForState(endState.phase, endState.stability);
-          return `${row.topic}: ${parentCopy.meaning}`;
-        })
-        .filter(Boolean)
-        .join("; ");
+      return text
+        .split(/\s*\|\s*|;\s+|\n+/)
+        .map((item) => item.trim())
+        .filter(Boolean);
     };
-    const deriveMeaningFromCurrentStateSnapshot = () => {
-      if (!normalizedCurrentStateSnapshot.length) return "";
+    const normalizeCurrentPosition = (value: unknown) => {
+      if (!Array.isArray(value)) return [];
 
-      return normalizedCurrentStateSnapshot
-        .map((snapshot: any) => {
-          const phase = normalizePhase(snapshot.phase || "Clarity");
-          const stability = normalizeStability(snapshot.stability || "Low");
-          const parentCopy = getParentDashboardCopyForState(phase, stability);
-          return `${snapshot.topic}: ${parentCopy.meaning}`;
-        })
-        .filter(Boolean)
-        .join("; ");
+      return value
+        .map((row: any) => ({
+          topic: String(row?.topic || "").trim(),
+          state: String(row?.state || "").trim(),
+          position: String(row?.position || "").trim(),
+        }))
+        .filter((row: any) => row.topic.length > 0);
     };
-    const normalizedWeeklyMeaning = (() => {
-      const explicitMeaning = parentText(structured.whatThisMeans || structured.interpretationThisWeek);
-      if (explicitMeaning) return explicitMeaning;
-
-      if (Array.isArray(structured.conditioningProgress) && structured.conditioningProgress.length > 0) {
-        const derived = structured.conditioningProgress
-          .map((row: any) => {
-            const topic = String(row?.topic || "").trim();
-            const endState = parseStateLabel(row?.endState);
-            if (!topic || !endState) return "";
-            const parentCopy = getParentDashboardCopyForState(endState.phase, endState.stability);
-            return `${topic}: ${parentCopy.meaning}`;
-          })
-          .filter(Boolean)
-          .join("; ");
-        if (derived) return derived;
-      }
-
-      return "";
-    })();
-    const normalizedMonthlyMeaning = (() => {
-      const explicitMeaning = parentText(structured.whatThisMeans || structured.interpretationThisMonth);
-      if (explicitMeaning) return explicitMeaning;
-
-      return deriveMeaningFromCurrentStateSnapshot() || deriveMeaningFromTopicProgression();
-    })();
 
     const base = {
       id: report.id,
@@ -7543,16 +7768,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
             : null,
         sessionsCompleted: Number(structured.sessionsCompletedThisWeek || report.solutions_unlocked || 0),
-        topicsWorkedOn: structured.topicsWorkedOn || [],
-        conditioningProgress: structured.conditioningProgress || [],
-        mainTopicsCovered: parentText(structured.mainTopicsCovered || report.topics_learned),
-        whatImproved: parentText(structured.whatImproved || structured.whatImprovedThisWeek || report.strengths),
-        responsePattern: structured.responsePattern || [],
-        mainBreakdown: structured.mainBreakdown || [],
-        mainMisunderstanding: parentText(structured.mainMisunderstandingThisWeek || report.areas_for_growth),
-        systemMovement: parentText(structured.systemMovement),
-        whatThisMeans: normalizedWeeklyMeaning,
-        nextFocus: parentText(structured.nextFocus || structured.reinforcementNextWeek || report.next_steps),
+        topicsWorkedOn: parentList(structured.topicsWorkedOn || report.topics_learned),
+        whatChanged: parentList(structured.whatChanged || report.strengths),
+        breakdownPattern: parentList(structured.breakdownPattern || report.areas_for_growth),
+        whatThisMeans: parentList(structured.whatThisMeans || structured.interpretationThisWeek),
+        nextMove: parentList(structured.nextMove || report.next_steps),
       };
     }
 
@@ -7560,27 +7780,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ...base,
       monthRange:
         structured.monthStartDate && structured.monthEndDate
-          ? {
-              start: structured.monthStartDate,
-              end: structured.monthEndDate,
-            }
-          : null,
+            ? {
+                start: structured.monthStartDate,
+                end: structured.monthEndDate,
+              }
+            : null,
       monthName: report.month_name || null,
       totalSessionsCompleted: Number(structured.totalSessionsCompletedThisMonth || report.solutions_unlocked || 0),
-      topicsConditioned: structured.topicsConditioned || [],
-      topicProgression: structured.topicProgression || [],
-      topicProgressRows: normalizedTopicProgressRows,
-      mainAreasCovered: parentText(structured.mainAreasCoveredThisMonth || report.topics_learned),
-      skillsStronger: parentText(structured.whatBecameStronger || structured.strongerSkillsThisMonth || report.strengths),
-      responseTrend: structured.responseTrend || [],
-      responsePatternTrend: parentText(structured.responsePatternTrendThisMonth),
-      recurringChallenge: parentText(structured.recurringChallenge || structured.recurringChallengeThisMonth || report.areas_for_growth),
-      mostEffectiveIntervention: parentText(structured.mostEffectiveInterventionThisMonth),
-      bossBattleTrend: parentText(structured.bossBattleTrendThisMonth),
-      systemOutcome: normalizedSystemOutcome,
-      whatThisMeans: normalizedMonthlyMeaning,
-      currentStateSnapshot: normalizedCurrentStateSnapshot,
-      nextMonthPriority: monthlyFocusText(structured.nextMonthFocus || structured.nextMonthPriority || report.next_steps),
+      topicsConditioned: parentList(structured.topicsConditioned || report.topics_learned),
+      systemMovement: parentList(structured.systemMovement || report.strengths),
+      whatBecameStronger: parentList(structured.whatBecameStronger || report.strengths),
+      breakdownPattern: parentList(structured.breakdownPattern || report.areas_for_growth),
+      currentPosition: normalizeCurrentPosition(structured.currentPosition),
+      whatThisMeans: parentList(structured.whatThisMeans || structured.interpretationThisMonth),
+      nextMonthMove: parentList(structured.nextMonthMove || report.next_steps),
     };
   };
 
@@ -8545,36 +8758,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const workflow = existingProfile.workflow || {};
 
         if (decision === "accept") {
-
-          const updatedProfile = {
-            ...existingProfile,
-            workflow: {
-              ...workflow,
-              assignmentAcceptedAt: workflow.assignmentAcceptedAt || new Date().toISOString(),
-              assignmentDeclinedAt: null,
-              handoverRequiredAt:
-                resumedStatus && resumedStatus !== "assigned"
-                  ? new Date().toISOString()
-                  : workflow.handoverRequiredAt || null,
-              handoverCompletedAt:
-                resumedStatus && resumedStatus !== "assigned"
-                  ? null
-                  : workflow.handoverCompletedAt || null,
-            },
-          };
-
-          let updated = student;
-          // Only update student if it exists (in your flow, it may not exist yet)
-          if (student) {
-            updated = await storage.updateStudent(studentId, {
-              personalProfile: updatedProfile,
-            } as any);
-          }
-
           // Update parent_enrollments status to 'not_scheduled' using available fields
           // Try assigned_student_id first, then fallback to student_full_name
           let parentEnrollment: any = null;
-          let parentEnrollmentError = null;
           let query = supabase
             .from("parent_enrollments")
             .select("id")
@@ -8599,10 +8785,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
               parentEnrollment = data;
             }
           }
+
+          const resumedStatus =
+            extractReassignmentResumeStatus(parentEnrollment?.current_step) ||
+            null;
+
+          const updatedProfile = {
+            ...existingProfile,
+            workflow: {
+              ...workflow,
+              assignmentAcceptedAt: workflow.assignmentAcceptedAt || new Date().toISOString(),
+              assignmentDeclinedAt: null,
+              handoverRequiredAt:
+                resumedStatus && resumedStatus !== "assigned"
+                  ? new Date().toISOString()
+                  : workflow.handoverRequiredAt || null,
+              handoverCompletedAt:
+                resumedStatus && resumedStatus !== "assigned"
+                  ? null
+                  : workflow.handoverCompletedAt || null,
+            },
+          };
+
+          const updated = await storage.updateStudent(studentId, {
+            personalProfile: updatedProfile,
+          } as any);
+
           if (parentEnrollment && parentEnrollment.id) {
-            const resumedStatus =
-              extractReassignmentResumeStatus(parentEnrollment.current_step) ||
-              null;
             const nextEnrollmentStatus = resumedStatus || "assigned";
             const nextCurrentStep =
               resumedStatus && resumedStatus !== "assigned"
@@ -9574,6 +9783,396 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error("Error fetching sales stats:", error);
         res.status(500).json({ message: "Failed to fetch sales stats" });
+      }
+    }
+  );
+
+  // Get OD tracking summary for EGP performance
+  app.get(
+    "/api/od/tracking",
+    isAuthenticated,
+    requireRole(["od"]),
+    async (req: Request, res: Response) => {
+      try {
+        const affiliates = await storage.getUsersByRole("affiliate");
+        const supabase = (storage as any).supabase;
+
+        const { data: leads = [] } = await supabase
+          .from("leads")
+          .select("*");
+
+        const { data: closes = [] } = await supabase
+          .from("closes")
+          .select("*");
+
+        const affiliateDetails = affiliates
+          .map((affiliate: any) => {
+            const affiliateLeads = leads.filter((lead: any) => lead.affiliate_id === affiliate.id);
+            const affiliateLeadParentIds = new Set(affiliateLeads.map((lead: any) => lead.user_id).filter(Boolean));
+            const affiliateCloses = closes.filter((close: any) =>
+              close.affiliate_id === affiliate.id ||
+              affiliateLeadParentIds.has(close.parent_id)
+            );
+
+            const totalPayments = affiliateCloses.reduce((sum: number, close: any) => {
+              const amount = Number(close.commission_amount || 0);
+              return sum + (Number.isFinite(amount) ? amount : 0);
+            }, 0);
+
+            const paidPayments = affiliateCloses
+              .filter((close: any) => String(close.commission_status || "").toLowerCase() === "paid")
+              .reduce((sum: number, close: any) => {
+                const amount = Number(close.commission_amount || 0);
+                return sum + (Number.isFinite(amount) ? amount : 0);
+              }, 0);
+
+            return {
+              id: affiliate.id,
+              name: affiliate.name || affiliate.email || "Unnamed EGP",
+              email: affiliate.email,
+              totalLeads: affiliateLeads.length,
+              totalCloses: affiliateCloses.length,
+              totalPayments,
+              paidPayments,
+              pendingPayments: Math.max(totalPayments - paidPayments, 0),
+              conversionRate: affiliateLeads.length > 0
+                ? Math.round((affiliateCloses.length / affiliateLeads.length) * 100)
+                : 0,
+            };
+          })
+          .sort((a: any, b: any) => b.totalLeads - a.totalLeads);
+
+        res.json({
+          totalLeads: leads.filter((lead: any) => lead.affiliate_id).length,
+          totalCloses: affiliateDetails.reduce((sum: number, affiliate: any) => sum + affiliate.totalCloses, 0),
+          totalPayments: affiliateDetails.reduce((sum: number, affiliate: any) => sum + affiliate.totalPayments, 0),
+          pendingPayments: affiliateDetails.reduce((sum: number, affiliate: any) => sum + affiliate.pendingPayments, 0),
+          affiliateDetails,
+        });
+      } catch (error) {
+        console.error("Error fetching OD tracking:", error);
+        res.status(500).json({ message: "Failed to fetch OD tracking" });
+      }
+    }
+  );
+
+  const getEligibleOdEgps = async () => {
+    const affiliates = await storage.getUsersByRole("affiliate");
+    const applications = await getAffiliateApplicationsByQuery();
+
+    const appsByUser = new Map<string, any[]>();
+    for (const application of applications) {
+      const userId = String(application.user_id || application.userId || "");
+      if (!userId) continue;
+      const current = appsByUser.get(userId) || [];
+      current.push(application);
+      appsByUser.set(userId, current);
+    }
+
+    const { data: activeCrewMembers = [], error: activeCrewMembersError } = await supabase
+      .from("egp_crew_members")
+      .select("crew_id, egp_id")
+      .is("removed_at", null);
+
+    if (activeCrewMembersError) {
+      throw new Error(`Failed to fetch active crew memberships: ${activeCrewMembersError.message}`);
+    }
+
+    const crewByEgpId = new Map<string, string>();
+    for (const membership of activeCrewMembers || []) {
+      crewByEgpId.set(String(membership.egp_id), String(membership.crew_id));
+    }
+
+    return affiliates
+      .map((affiliate) => {
+        const userApps = appsByUser.get(String(affiliate.id)) || [];
+        const application = selectCanonicalAffiliateApplication(userApps);
+        if (!application) return null;
+
+        const status = String(application.status || "").toLowerCase();
+        const documentsStatus = buildEgpOnboardingStatuses(application.documentsStatus || application.documents_status);
+        const allApproved = ["1", "2", "3", "4", "5"].every(
+          (step) => String(documentsStatus[step] || "") === "approved"
+        );
+        const onboardingCompletedAt = application.onboardingCompletedAt ?? application.onboarding_completed_at ?? null;
+
+        if (!["approved", "confirmed"].includes(status)) return null;
+        if (!onboardingCompletedAt) return null;
+        if (!allApproved) return null;
+
+        return {
+          id: affiliate.id,
+          name: affiliate.name || affiliate.email || "Unnamed EGP",
+          email: affiliate.email,
+          onboardingCompletedAt,
+          applicationStatus: status,
+          currentCrewId: crewByEgpId.get(String(affiliate.id)) || null,
+        };
+      })
+      .filter(Boolean)
+      .sort((a: any, b: any) => String(a.name || "").localeCompare(String(b.name || "")));
+  };
+
+  const buildOdCrewSummaries = async () => {
+    const { data: crews = [], error: crewsError } = await supabase
+      .from("egp_crews")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (crewsError) {
+      throw new Error(`Failed to fetch crews: ${crewsError.message}`);
+    }
+
+    const { data: crewMembers = [], error: crewMembersError } = await supabase
+      .from("egp_crew_members")
+      .select("*")
+      .is("removed_at", null)
+      .order("joined_at", { ascending: true });
+
+    if (crewMembersError) {
+      throw new Error(`Failed to fetch crew members: ${crewMembersError.message}`);
+    }
+
+    const egpIds = Array.from(new Set((crewMembers || []).map((member: any) => String(member.egp_id)).filter(Boolean)));
+
+    const [usersResult, leadsResult, closesResult] = await Promise.all([
+      egpIds.length
+        ? supabase.from("users").select("id, email, first_name, last_name, name").in("id", egpIds)
+        : Promise.resolve({ data: [], error: null } as any),
+      egpIds.length
+        ? supabase.from("leads").select("affiliate_id").in("affiliate_id", egpIds)
+        : Promise.resolve({ data: [], error: null } as any),
+      egpIds.length
+        ? supabase.from("closes").select("affiliate_id, commission_amount, commission_status").in("affiliate_id", egpIds)
+        : Promise.resolve({ data: [], error: null } as any),
+    ]);
+
+    if (usersResult.error) throw new Error(`Failed to fetch crew EGP users: ${usersResult.error.message}`);
+    if (leadsResult.error) throw new Error(`Failed to fetch crew lead totals: ${leadsResult.error.message}`);
+    if (closesResult.error) throw new Error(`Failed to fetch crew close totals: ${closesResult.error.message}`);
+
+    const userById = new Map<string, any>();
+    for (const user of usersResult.data || []) {
+      userById.set(String(user.id), user);
+    }
+
+    const leadCountByEgp = new Map<string, number>();
+    for (const lead of leadsResult.data || []) {
+      const egpId = String(lead.affiliate_id || "");
+      if (!egpId) continue;
+      leadCountByEgp.set(egpId, (leadCountByEgp.get(egpId) || 0) + 1);
+    }
+
+    const closeStatsByEgp = new Map<string, { totalCloses: number; totalPayments: number; pendingPayments: number }>();
+    for (const close of closesResult.data || []) {
+      const egpId = String(close.affiliate_id || "");
+      if (!egpId) continue;
+
+      const current = closeStatsByEgp.get(egpId) || { totalCloses: 0, totalPayments: 0, pendingPayments: 0 };
+      const amount = Number(close.commission_amount || 0);
+      const safeAmount = Number.isFinite(amount) ? amount : 0;
+      const isPaid = String(close.commission_status || "").toLowerCase() === "paid";
+
+      current.totalCloses += 1;
+      current.totalPayments += safeAmount;
+      if (!isPaid) current.pendingPayments += safeAmount;
+      closeStatsByEgp.set(egpId, current);
+    }
+
+    const membersByCrewId = new Map<string, any[]>();
+    for (const member of crewMembers || []) {
+      const crewId = String(member.crew_id);
+      const egpId = String(member.egp_id);
+      const user = userById.get(egpId);
+      const closeStats = closeStatsByEgp.get(egpId) || { totalCloses: 0, totalPayments: 0, pendingPayments: 0 };
+
+      const current = membersByCrewId.get(crewId) || [];
+      current.push({
+        egpId,
+        membershipId: member.id,
+        role: member.role,
+        joinedAt: member.joined_at,
+        name:
+          user?.name ||
+          [user?.first_name, user?.last_name].filter(Boolean).join(" ") ||
+          user?.email ||
+          "Unnamed EGP",
+        email: user?.email || null,
+        totalLeads: leadCountByEgp.get(egpId) || 0,
+        totalCloses: closeStats.totalCloses,
+        totalPayments: closeStats.totalPayments,
+        pendingPayments: closeStats.pendingPayments,
+      });
+      membersByCrewId.set(crewId, current);
+    }
+
+    return (crews || []).map((crew: any) => {
+      const members = membersByCrewId.get(String(crew.id)) || [];
+      return {
+        id: crew.id,
+        crewName: crew.crew_name,
+        territory: crew.territory,
+        status: crew.status,
+        createdAt: crew.created_at,
+        updatedAt: crew.updated_at,
+        memberCount: members.length,
+        totalLeads: members.reduce((sum, member) => sum + Number(member.totalLeads || 0), 0),
+        totalCloses: members.reduce((sum, member) => sum + Number(member.totalCloses || 0), 0),
+        totalPayments: members.reduce((sum, member) => sum + Number(member.totalPayments || 0), 0),
+        pendingPayments: members.reduce((sum, member) => sum + Number(member.pendingPayments || 0), 0),
+        members,
+      };
+    });
+  };
+
+  app.get(
+    "/api/od/crew-eligible-egps",
+    isAuthenticated,
+    requireRole(["od"]),
+    async (_req: Request, res: Response) => {
+      try {
+        const eligibleEgps = await getEligibleOdEgps();
+        res.json(eligibleEgps);
+      } catch (error) {
+        console.error("Error fetching OD eligible EGPs:", error);
+        res.status(500).json({ message: "Failed to fetch eligible EGPs" });
+      }
+    }
+  );
+
+  app.get(
+    "/api/od/crews",
+    isAuthenticated,
+    requireRole(["od"]),
+    async (_req: Request, res: Response) => {
+      try {
+        const crews = await buildOdCrewSummaries();
+        res.json(crews);
+      } catch (error) {
+        console.error("Error fetching OD crews:", error);
+        res.status(500).json({ message: "Failed to fetch crews" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/od/crews",
+    isAuthenticated,
+    requireRole(["od"]),
+    async (req: Request, res: Response) => {
+      try {
+        const creatorId = (req as any).dbUser.id;
+        const schema = z.object({
+          crewName: z.string().min(1),
+          territory: z.string().trim().optional().nullable(),
+        });
+        const payload = schema.parse(req.body || {});
+
+        const { data, error } = await supabase
+          .from("egp_crews")
+          .insert({
+            crew_name: payload.crewName.trim(),
+            territory: payload.territory?.trim() || null,
+            created_by: creatorId,
+          })
+          .select("*")
+          .single();
+
+        if (error || !data) {
+          throw new Error(error?.message || "Failed to create crew");
+        }
+
+        res.json({
+          id: data.id,
+          crewName: data.crew_name,
+          territory: data.territory,
+          status: data.status,
+          createdAt: data.created_at,
+          updatedAt: data.updated_at,
+        });
+      } catch (error) {
+        console.error("Error creating OD crew:", error);
+        res.status(400).json({ message: error instanceof Error ? error.message : "Failed to create crew" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/od/crews/:crewId/members",
+    isAuthenticated,
+    requireRole(["od"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { crewId } = req.params;
+        const schema = z.object({
+          egpId: z.string().min(1),
+          role: z.enum(["member", "crew_lead"]).optional(),
+        });
+        const payload = schema.parse(req.body || {});
+
+        const { data: crew, error: crewError } = await supabase
+          .from("egp_crews")
+          .select("id, status")
+          .eq("id", crewId)
+          .maybeSingle();
+
+        if (crewError) throw new Error(crewError.message);
+        if (!crew) return res.status(404).json({ message: "Crew not found" });
+        if (String(crew.status || "") !== "active") {
+          return res.status(400).json({ message: "Only active crews can accept members" });
+        }
+
+        const eligibleEgps = await getEligibleOdEgps();
+        const egp = eligibleEgps.find((entry: any) => String(entry.id) === String(payload.egpId));
+        if (!egp) {
+          return res.status(400).json({ message: "This EGP is not eligible for crew assignment" });
+        }
+        if (egp.currentCrewId && String(egp.currentCrewId) !== String(crewId)) {
+          return res.status(400).json({ message: "This EGP is already assigned to another crew" });
+        }
+        if (egp.currentCrewId && String(egp.currentCrewId) === String(crewId)) {
+          return res.status(400).json({ message: "This EGP is already in this crew" });
+        }
+
+        const { error: insertError } = await supabase
+          .from("egp_crew_members")
+          .insert({
+            crew_id: crewId,
+            egp_id: payload.egpId,
+            role: payload.role || "member",
+          });
+
+        if (insertError) {
+          throw new Error(insertError.message);
+        }
+
+        res.json({ success: true });
+      } catch (error) {
+        console.error("Error adding EGP to crew:", error);
+        res.status(400).json({ message: error instanceof Error ? error.message : "Failed to add EGP to crew" });
+      }
+    }
+  );
+
+  app.delete(
+    "/api/od/crews/:crewId/members/:egpId",
+    isAuthenticated,
+    requireRole(["od"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { crewId, egpId } = req.params;
+        const { error } = await supabase
+          .from("egp_crew_members")
+          .update({ removed_at: new Date() })
+          .eq("crew_id", crewId)
+          .eq("egp_id", egpId)
+          .is("removed_at", null);
+
+        if (error) throw new Error(error.message);
+        res.json({ success: true });
+      } catch (error) {
+        console.error("Error removing EGP from crew:", error);
+        res.status(400).json({ message: error instanceof Error ? error.message : "Failed to remove EGP from crew" });
       }
     }
   );
@@ -11670,6 +12269,726 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // ========================================
+  // EGP / AFFILIATE GATEWAY ROUTES
+  // ========================================
+
+  app.post(
+    "/api/affiliate/application",
+    isAuthenticated,
+    requireRole(["affiliate"]),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req.session as any).userId;
+        const payload = {
+          user_id: userId,
+          full_name: String(req.body?.fullName || "").trim(),
+          id_number: String(req.body?.idNumber || "").trim(),
+          phone: String(req.body?.phone || "").trim(),
+          email: String(req.body?.email || "").trim(),
+          reach_in_7_days: String(req.body?.reachIn7Days || "").trim(),
+          first_parents: String(req.body?.firstParents || "").trim(),
+          student_breakdown_case: String(req.body?.studentBreakdownCase || "").trim(),
+          marks_signal: String(req.body?.marksSignal || "").trim(),
+          extra_lessons_response: String(req.body?.extraLessonsResponse || "").trim(),
+          not_recommend_cases: String(req.body?.notRecommendCases || "").trim(),
+          unclear_problem_response: String(req.body?.unclearProblemResponse || "").trim(),
+          ten_parents_filter: String(req.body?.tenParentsFilter || "").trim(),
+          first_academic_question: String(req.body?.firstAcademicQuestion || "").trim(),
+          no_earnings_response: String(req.body?.noEarningsResponse || "").trim(),
+          next_five_days_plan: String(req.body?.nextFiveDaysPlan || "").trim(),
+          proceed_reason: String(req.body?.proceedReason || "").trim(),
+          trust_reason: String(req.body?.trustReason || "").trim(),
+        };
+
+        const requiredFields = [
+          "full_name",
+          "id_number",
+          "phone",
+          "email",
+          "reach_in_7_days",
+          "first_parents",
+          "student_breakdown_case",
+          "marks_signal",
+          "extra_lessons_response",
+          "not_recommend_cases",
+          "unclear_problem_response",
+          "ten_parents_filter",
+          "first_academic_question",
+          "no_earnings_response",
+          "next_five_days_plan",
+          "proceed_reason",
+          "trust_reason",
+        ];
+
+        const missingField = requiredFields.find((field) => !String((payload as any)[field] || "").trim());
+        if (missingField) {
+          return res.status(400).json({ message: "All EGP application fields are required." });
+        }
+
+        const existingApplications = await getAffiliateApplicationsByQuery({ userId });
+        const reusableApplication = existingApplications.find((application: any) =>
+          ["pending", "rejected"].includes(String(application.status || "").toLowerCase())
+        );
+
+        let data: any = null;
+        let error: any = null;
+
+        if (reusableApplication) {
+          const result = await supabase
+            .from("affiliate_applications")
+            .update({
+              ...payload,
+              status: "pending",
+              reviewed_by: null,
+              reviewed_at: null,
+              rejection_reason: null,
+              onboarding_completed_at: null,
+              document_submission_step: 0,
+              doc_5_submission_url: null,
+              doc_5_submission_uploaded_at: null,
+              doc_5_submission_reviewed_at: null,
+              doc_5_submission_reviewed_by: null,
+              doc_5_submission_rejection_reason: null,
+              documents_status: { ...INITIAL_EGP_DOCUMENT_STATUSES, "1": "not_started" },
+              updated_at: new Date(),
+            })
+            .eq("id", reusableApplication.id)
+            .select("*")
+            .single();
+
+          data = result.data;
+          error = result.error;
+        } else {
+          const result = await supabase
+            .from("affiliate_applications")
+            .insert(payload)
+            .select("*")
+            .single();
+
+          data = result.data;
+          error = result.error;
+        }
+
+        if (error || !data) {
+          throw new Error(error?.message || "Failed to submit affiliate application");
+        }
+
+        res.json(data);
+      } catch (error) {
+        console.error("Error submitting affiliate application:", error);
+        res.status(400).json({ message: error instanceof Error ? error.message : "Failed to submit affiliate application" });
+      }
+    }
+  );
+
+  app.get(
+    "/api/affiliate/application-status",
+    isAuthenticated,
+    requireRole(["affiliate"]),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req.session as any).userId;
+        const applications = await getAffiliateApplicationsByQuery({ userId });
+        const canonicalApplication = selectCanonicalAffiliateApplication(applications);
+        if (!canonicalApplication) {
+          return res.json({ status: "not_applied" });
+        }
+
+        res.json(deriveEgpGatewayApplicationStatus(canonicalApplication));
+      } catch (error) {
+        console.error("Error fetching affiliate application status:", error);
+        res.status(500).json({ message: "Failed to fetch affiliate application status" });
+      }
+    }
+  );
+
+  app.get(
+    "/api/affiliate/gateway-session",
+    isAuthenticated,
+    requireRole(["affiliate"]),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req as any).dbUser.id;
+        const applications = await getAffiliateApplicationsByQuery({ userId });
+        const latestApp = selectCanonicalAffiliateApplication(applications);
+
+        res.json({
+          role: (req as any).dbUser?.role || "affiliate",
+          applicationStatus: latestApp ? deriveEgpGatewayApplicationStatus(latestApp) : null,
+        });
+      } catch (error) {
+        console.error("Error fetching affiliate gateway session:", error);
+        res.status(500).json({ message: "Failed to fetch affiliate gateway session" });
+      }
+    }
+  );
+
+  app.get(
+    "/api/affiliate/onboarding-documents",
+    isAuthenticated,
+    requireRole(["affiliate"]),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req.session as any).userId;
+        const applications = await getAffiliateApplicationsByQuery({ userId });
+        const latestApp = selectCanonicalAffiliateApplication(applications);
+
+        if (!latestApp) {
+          return res.status(404).json({ message: "Affiliate application not found" });
+        }
+
+        const documents = await Promise.all(
+          EGP_ONBOARDING_DOCUMENTS.map(async (document) => {
+            const loaded = await loadEgpOnboardingDocument(document.step);
+            return {
+              step: loaded.step,
+              code: loaded.code,
+              title: loaded.title,
+              version: loaded.version,
+              requiresAcceptance: loaded.requiresAcceptance,
+              requiresUpload: loaded.requiresUpload,
+              uploadTitle: loaded.uploadTitle,
+              uploadDescription: loaded.uploadDescription,
+              mandatoryClauses: loaded.mandatoryClauses,
+              content: loaded.content,
+              contentHash: loaded.contentHash,
+            };
+          })
+        );
+
+        res.json({
+          applicationId: latestApp.id,
+          documents,
+        });
+      } catch (error) {
+        console.error("Error fetching affiliate onboarding documents:", error);
+        res.status(500).json({ message: "Failed to fetch affiliate onboarding documents" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/affiliate/onboarding-documents/:docStep/accept",
+    isAuthenticated,
+    requireRole(["affiliate"]),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req.session as any).userId;
+        const docStep = Number(req.params.docStep);
+        const {
+          applicationId,
+          documentVersion,
+          documentHash,
+          typedFullName,
+          acceptedTimezone,
+          locale,
+          platform,
+          sourceFlow,
+          formData,
+          acceptedClauseKeys,
+          scrollCompletionPercent,
+          viewStartedAt,
+          viewCompletedAt,
+          acceptClickedAt,
+        } = req.body ?? {};
+
+        if (!applicationId || !Number.isInteger(docStep) || docStep < 1 || docStep > 4) {
+          return res.status(400).json({ message: "Invalid EGP onboarding acceptance request" });
+        }
+        if (!String(typedFullName || "").trim()) {
+          return res.status(400).json({ message: "Typed full name is required" });
+        }
+
+        const applications = await getAffiliateApplicationsByQuery({ userId });
+        const application = applications.find((entry: any) => entry.id === applicationId) || selectCanonicalAffiliateApplication(applications);
+        if (!application) {
+          return res.status(403).json({ message: "Application not found or access denied" });
+        }
+
+        const definition = getEgpOnboardingDocumentDefinition(docStep);
+        const loaded = await loadEgpOnboardingDocument(docStep);
+        if (documentVersion && documentVersion !== loaded.version) {
+          return res.status(409).json({ message: "Document version mismatch" });
+        }
+        if (documentHash && documentHash !== loaded.contentHash) {
+          return res.status(409).json({ message: "Document content hash mismatch" });
+        }
+
+        const documentsStatus = buildEgpOnboardingStatuses(application.documentsStatus || application.documents_status);
+        const currentStep = getCurrentEgpStepFromStatuses(documentsStatus);
+        if (docStep !== currentStep) {
+          return res.status(400).json({ message: `Sequential step order violation: current acceptance step is ${currentStep}.` });
+        }
+
+        const acceptedClauseKeySet = new Set(
+          Array.isArray(acceptedClauseKeys) ? acceptedClauseKeys.map((value: unknown) => String(value)) : []
+        );
+        const missingClause = definition.mandatoryClauses.find((clause) => !acceptedClauseKeySet.has(clause.key));
+        if (missingClause) {
+          return res.status(400).json({ message: `Mandatory clause not acknowledged: ${missingClause.label}` });
+        }
+
+        const { data: acceptanceRow, error: acceptanceError } = await supabase
+          .from("affiliate_onboarding_acceptances")
+          .insert({
+            application_id: applicationId,
+            user_id: userId,
+            document_step: docStep,
+            document_code: loaded.code,
+            document_title: loaded.title,
+            document_version: loaded.version,
+            document_snapshot: loaded.content,
+            document_checksum: loaded.contentHash,
+            typed_full_name: String(typedFullName).trim(),
+            account_email: application.email,
+            phone_number_snapshot: application.phone || null,
+            accepted_timezone: acceptedTimezone ? String(acceptedTimezone) : null,
+            acceptance_method: "checkbox_typed_name",
+            ip_address: extractRequestIp(req),
+            user_agent: req.headers["user-agent"] || null,
+            device_type: inferDeviceType(req.headers["user-agent"]),
+            platform: platform ? String(platform) : "web",
+            session_id: req.sessionID || null,
+            locale: locale ? String(locale) : null,
+            source_flow: sourceFlow ? String(sourceFlow) : `affiliate_onboarding_step_${docStep}`,
+            form_snapshot_json:
+              formData && typeof formData === "object"
+                ? Object.fromEntries(Object.entries(formData).map(([key, value]) => [String(key), String(value ?? "").trim()]))
+                : null,
+            accepted_clauses_json: definition.mandatoryClauses
+              .filter((clause) => acceptedClauseKeySet.has(clause.key))
+              .map((clause) => clause.key),
+            scroll_completion_percent:
+              typeof scrollCompletionPercent === "number"
+                ? Math.max(0, Math.min(100, Math.round(scrollCompletionPercent)))
+                : null,
+            view_started_at: viewStartedAt ? new Date(viewStartedAt) : null,
+            view_completed_at: viewCompletedAt ? new Date(viewCompletedAt) : null,
+            accept_clicked_at: acceptClickedAt ? new Date(acceptClickedAt) : new Date(),
+          })
+          .select("*")
+          .single();
+
+        if (acceptanceError || !acceptanceRow) {
+          throw new Error(acceptanceError?.message || "Failed to create affiliate onboarding acceptance");
+        }
+
+        if (definition.mandatoryClauses.length) {
+          const { error: clauseError } = await supabase
+            .from("affiliate_onboarding_clause_acknowledgements")
+            .insert(
+              definition.mandatoryClauses
+                .filter((clause) => acceptedClauseKeySet.has(clause.key))
+                .map((clause) => ({
+                  acceptance_id: acceptanceRow.id,
+                  clause_key: clause.key,
+                  clause_label: clause.label,
+                }))
+            );
+
+          if (clauseError) {
+            throw new Error(clauseError.message);
+          }
+        }
+
+        const { error: eventError } = await supabase
+          .from("affiliate_onboarding_acceptance_events")
+          .insert([
+            {
+              acceptance_id: acceptanceRow.id,
+              application_id: applicationId,
+              user_id: userId,
+              document_step: docStep,
+              event_type: "accepted",
+              payload: {
+                clauses: definition.mandatoryClauses.filter((clause) => acceptedClauseKeySet.has(clause.key)).map((clause) => clause.key),
+                acceptedAt: new Date().toISOString(),
+              },
+            },
+          ]);
+
+        if (eventError) {
+          throw new Error(eventError.message);
+        }
+
+        documentsStatus[String(docStep)] = "approved";
+        if (docStep < 5 && documentsStatus[String(docStep + 1)] !== "approved") {
+          documentsStatus[String(docStep + 1)] = "pending_upload";
+        }
+
+        const allApproved = ["1", "2", "3", "4", "5"].every((step) => String(documentsStatus[step] || "") === "approved");
+        const { error: updateError } = await supabase
+          .from("affiliate_applications")
+          .update({
+            documents_status: documentsStatus,
+            document_submission_step: docStep < 5 ? docStep + 1 : 5,
+            onboarding_completed_at: allApproved ? new Date() : null,
+            updated_at: new Date(),
+          })
+          .eq("id", applicationId);
+
+        if (updateError) {
+          throw new Error(updateError.message);
+        }
+
+        const updatedApplications = await getAffiliateApplicationsByQuery({ userId });
+        const updatedApplication =
+          updatedApplications.find((entry: any) => entry.id === applicationId) ||
+          selectCanonicalAffiliateApplication(updatedApplications);
+
+        res.json({
+          success: true,
+          application: updatedApplication,
+          acceptance: acceptanceRow,
+          receipt: {
+            acceptedAt: acceptanceRow.accepted_at,
+            documentCode: acceptanceRow.document_code,
+            documentVersion: acceptanceRow.document_version,
+            documentChecksum: acceptanceRow.document_checksum,
+          },
+        });
+      } catch (error) {
+        console.error("Error accepting affiliate onboarding document:", error);
+        res.status(500).json({ message: error instanceof Error ? error.message : "Failed to accept onboarding document" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/affiliate/onboarding-documents/upload",
+    isAuthenticated,
+    requireRole(["affiliate"]),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req.session as any).userId;
+        const { applicationId, docStep, fileName, fileData, fileType } = req.body ?? {};
+        const parsedDocStep = typeof docStep === "number" ? docStep : Number(docStep);
+
+        if (!applicationId || parsedDocStep !== 5 || !fileName || !fileData) {
+          return res.status(400).json({ message: "Only TT-EGP-005 accepts a certified ID upload." });
+        }
+
+        const applications = await getAffiliateApplicationsByQuery({ userId });
+        const application =
+          applications.find((entry: any) => entry.id === applicationId) || selectCanonicalAffiliateApplication(applications);
+
+        if (!application) {
+          return res.status(403).json({ message: "Application not found or access denied" });
+        }
+
+        const documentsStatus = buildEgpOnboardingStatuses(application.documentsStatus || application.documents_status);
+        const currentStep = getCurrentEgpStepFromStatuses(documentsStatus);
+        if (currentStep !== 5) {
+          return res.status(400).json({ message: "Certified ID upload is blocked until the first four EGP agreements are approved." });
+        }
+
+        const stepStatus = String(documentsStatus["5"] || "not_started");
+        if (stepStatus === "pending_review") {
+          return res.status(400).json({ message: "Your certified ID copy is already with COO for review." });
+        }
+        if (stepStatus === "approved") {
+          return res.status(400).json({ message: "Your certified ID copy has already been approved." });
+        }
+
+        const buffer = Buffer.from(fileData, "base64");
+        const sanitizedName = String(fileName).replace(/[^a-zA-Z0-9._-]/g, "_");
+        const safeFileName = `affiliate-documents/${userId}/egp-certified-id-${applicationId}-${Date.now()}-${sanitizedName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("tutor-documents")
+          .upload(safeFileName, buffer, {
+            contentType: fileType || undefined,
+            upsert: true,
+          });
+
+        if (uploadError) {
+          return res.status(500).json({ message: uploadError.message });
+        }
+
+        const { data: urlData } = supabase.storage.from("tutor-documents").getPublicUrl(safeFileName);
+        if (!urlData?.publicUrl) {
+          return res.status(500).json({ message: "Upload succeeded but file URL could not be generated." });
+        }
+
+        documentsStatus["5"] = "pending_review";
+
+        const { error: updateError } = await supabase
+          .from("affiliate_applications")
+          .update({
+            doc_5_submission_url: urlData.publicUrl,
+            doc_5_submission_uploaded_at: new Date(),
+            doc_5_submission_reviewed_at: null,
+            doc_5_submission_reviewed_by: null,
+            doc_5_submission_rejection_reason: null,
+            document_submission_step: 5,
+            documents_status: documentsStatus,
+            onboarding_completed_at: null,
+            updated_at: new Date(),
+          })
+          .eq("id", applicationId)
+          .eq("user_id", userId);
+
+        if (updateError) {
+          throw new Error(updateError.message);
+        }
+
+        const refreshedApplications = await getAffiliateApplicationsByQuery({ userId });
+        const refreshedApplication =
+          refreshedApplications.find((entry: any) => entry.id === applicationId) ||
+          selectCanonicalAffiliateApplication(refreshedApplications);
+
+        res.json({ success: true, application: refreshedApplication, publicUrl: urlData.publicUrl });
+      } catch (error) {
+        console.error("Error uploading affiliate onboarding document:", error);
+        if (
+          error instanceof Error &&
+          /(blocked until|already|required|pending review)/i.test(error.message)
+        ) {
+          return res.status(400).json({ message: error.message });
+        }
+        res.status(500).json({ message: error instanceof Error ? error.message : "Failed to upload certified ID copy" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/affiliate/complete-onboarding",
+    isAuthenticated,
+    requireRole(["affiliate"]),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req.session as any).userId;
+        const { applicationId } = req.body ?? {};
+        const applications = await getAffiliateApplicationsByQuery({ userId });
+        const application = applications.find((entry: any) => entry.id === applicationId) || selectCanonicalAffiliateApplication(applications);
+
+        if (!application) {
+          return res.status(403).json({ message: "Application not found or access denied" });
+        }
+
+        const documentsStatus = buildEgpOnboardingStatuses(application.documentsStatus || application.documents_status);
+        const allApproved = ["1", "2", "3", "4", "5"].every((step) => String(documentsStatus[step] || "") === "approved");
+        if (!allApproved) {
+          return res.status(400).json({ message: "All EGP onboarding steps must be approved before onboarding can be completed." });
+        }
+
+        const { error } = await supabase
+          .from("affiliate_applications")
+          .update({ onboarding_completed_at: new Date(), updated_at: new Date() })
+          .eq("id", applicationId)
+          .eq("user_id", userId);
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        res.json({ success: true });
+      } catch (error) {
+        console.error("Error completing affiliate onboarding:", error);
+        res.status(500).json({ message: error instanceof Error ? error.message : "Failed to complete onboarding" });
+      }
+    }
+  );
+
+  app.get(
+    "/api/coo/affiliate-applications",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const status = typeof req.query?.status === "string" ? req.query.status : undefined;
+        const applications = await getAffiliateApplicationsByQuery({ status });
+        res.json(applications);
+      } catch (error) {
+        console.error("Error fetching affiliate applications:", error);
+        res.status(500).json({ message: "Failed to fetch affiliate applications" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/coo/affiliate-applications/:id/approve",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const reviewerId = (req.session as any).userId;
+        const { id } = req.params;
+        const { data, error } = await supabase
+          .from("affiliate_applications")
+          .update({
+            status: "approved",
+            reviewed_by: reviewerId,
+            reviewed_at: new Date(),
+            document_submission_step: 1,
+            doc_5_submission_reviewed_at: null,
+            doc_5_submission_reviewed_by: null,
+            doc_5_submission_rejection_reason: null,
+            documents_status: INITIAL_EGP_DOCUMENT_STATUSES,
+            updated_at: new Date(),
+          })
+          .eq("id", id)
+          .select("*")
+          .single();
+
+        if (error || !data) {
+          return res.status(404).json({ message: "Affiliate application not found" });
+        }
+
+        await safeSendPush(
+          data.user_id,
+          {
+            title: "EGP application approved",
+            body: "Your application was approved. Open TT to complete the EGP agreements.",
+            url: "/affiliate/gateway",
+            tag: `affiliate-application-approved-${data.id}`,
+          },
+          "affiliate application approved",
+        );
+
+        res.json(data);
+      } catch (error) {
+        console.error("Error approving affiliate application:", error);
+        res.status(500).json({ message: "Failed to approve affiliate application" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/coo/affiliate-applications/:id/reject",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const reviewerId = (req.session as any).userId;
+        const { id } = req.params;
+        const reason = String(req.body?.reason || "").trim();
+
+        const { data, error } = await supabase
+          .from("affiliate_applications")
+          .update({
+            status: "rejected",
+            reviewed_by: reviewerId,
+            reviewed_at: new Date(),
+            rejection_reason: reason,
+            updated_at: new Date(),
+          })
+          .eq("id", id)
+          .select("*")
+          .single();
+
+        if (error || !data) {
+          return res.status(404).json({ message: "Affiliate application not found" });
+        }
+
+        await safeSendPush(
+          data.user_id,
+          {
+            title: "EGP application update",
+            body: reason || "Your EGP application was reviewed and was not accepted.",
+            url: "/affiliate/gateway",
+            tag: `affiliate-application-rejected-${data.id}`,
+          },
+          "affiliate application rejected",
+        );
+
+        res.json(data);
+      } catch (error) {
+        console.error("Error rejecting affiliate application:", error);
+        res.status(500).json({ message: "Failed to reject affiliate application" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/coo/affiliate-applications/:id/document/:docStep/review",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { id } = req.params;
+        const docStep = Number(req.params.docStep);
+        const reviewerId = (req.session as any).userId;
+        const approved = Boolean(req.body?.approved);
+        const rejectionReason = String(req.body?.rejectionReason || "").trim();
+
+        if (docStep !== 5) {
+          return res.status(400).json({ message: "Only TT-EGP-005 requires COO upload review." });
+        }
+        if (typeof req.body?.approved !== "boolean") {
+          return res.status(400).json({ message: "Missing approval decision" });
+        }
+
+        const applications = await getAffiliateApplicationsByQuery();
+        const application = applications.find((entry: any) => entry.id === id);
+        if (!application) {
+          return res.status(404).json({ message: "Affiliate application not found" });
+        }
+
+        const documentsStatus = buildEgpOnboardingStatuses(application.documentsStatus || application.documents_status);
+        if (String(documentsStatus["5"] || "not_started") !== "pending_review") {
+          return res.status(400).json({ message: "TT-EGP-005 is not currently pending COO review." });
+        }
+
+        documentsStatus["5"] = approved ? "approved" : "rejected";
+        const allApproved = ["1", "2", "3", "4", "5"].every((step) => String(documentsStatus[step] || "") === "approved");
+
+        const { data, error } = await supabase
+          .from("affiliate_applications")
+          .update({
+            documents_status: documentsStatus,
+            document_submission_step: approved ? 5 : 5,
+            doc_5_submission_reviewed_at: new Date(),
+            doc_5_submission_reviewed_by: reviewerId,
+            doc_5_submission_rejection_reason: approved ? null : rejectionReason || "Certified ID copy rejected. Please upload a corrected certified copy.",
+            onboarding_completed_at: approved && allApproved ? new Date() : null,
+            updated_at: new Date(),
+          })
+          .eq("id", id)
+          .select("*")
+          .single();
+
+        if (error || !data) {
+          throw new Error(error?.message || "Failed to review EGP certified ID copy");
+        }
+
+        await safeSendPush(
+          data.user_id,
+          {
+            title: approved ? "Certified ID copy approved" : "Certified ID copy rejected",
+            body: approved
+              ? "Your certified ID copy was approved. Your EGP onboarding is now complete."
+              : "Your certified ID copy was rejected. Open the gateway to review the reason and upload again.",
+            url: "/affiliate/gateway",
+            tag: `affiliate-document-review-${id}-5-${approved ? "approved" : "rejected"}`,
+          },
+          "affiliate document review result",
+        );
+
+        const refreshedApplications = await getAffiliateApplicationsByQuery();
+        const refreshedApplication = refreshedApplications.find((entry: any) => entry.id === id) || data;
+
+        res.json({
+          success: true,
+          application: refreshedApplication,
+          message: approved
+            ? "Certified ID copy approved. The EGP onboarding flow is complete."
+            : "Certified ID copy rejected. The EGP must upload a corrected certified copy.",
+        });
+      } catch (error) {
+        console.error("Error reviewing affiliate onboarding document:", error);
+        if (
+          error instanceof Error &&
+          /(pending review|required|approval decision)/i.test(error.message)
+        ) {
+          return res.status(400).json({ message: error.message });
+        }
+        res.status(500).json({ message: error instanceof Error ? error.message : "Failed to review certified ID copy" });
+      }
+    }
+  );
+
+  // ========================================
   // HR ROUTES
   // ========================================
 
@@ -11805,19 +13124,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Try full projection first; fall back if some optional columns are not present in older DBs.
         let { data, error } = await supabase
           .from("parent_enrollments")
-          .select("id, user_id, parent_full_name, parent_phone, parent_email, parent_city, student_full_name, student_grade, school_name, math_struggle_areas, previous_tutoring, confidence_level, internet_access, parent_motivation, status, current_step, assigned_tutor_id, assigned_student_id, created_at, updated_at")
+          .select("id, user_id, parent_full_name, parent_phone, parent_email, parent_city, student_full_name, student_grade, school_name, math_struggle_areas, response_symptoms, topic_response_symptoms, response_signal_scores, topic_response_signal_scores, recommended_starting_phase, topic_recommended_starting_phases, previous_tutoring, internet_access, parent_motivation, status, current_step, assigned_tutor_id, assigned_student_id, created_at, updated_at")
           .order("created_at", { ascending: false });
 
         if (error) {
           const message = String((error as any)?.message || "").toLowerCase();
           const missingOptionalColumn =
             message.includes("assigned_student_id") ||
-            message.includes("current_step");
+            message.includes("current_step") ||
+            message.includes("response_symptoms") ||
+            message.includes("topic_response_symptoms") ||
+            message.includes("response_signal_scores") ||
+            message.includes("topic_response_signal_scores") ||
+            message.includes("recommended_starting_phase") ||
+            message.includes("topic_recommended_starting_phases");
 
           if (missingOptionalColumn) {
             const fallback = await supabase
               .from("parent_enrollments")
-              .select("id, user_id, parent_full_name, parent_phone, parent_email, parent_city, student_full_name, student_grade, school_name, math_struggle_areas, previous_tutoring, confidence_level, internet_access, parent_motivation, status, assigned_tutor_id, created_at, updated_at")
+              .select("id, user_id, parent_full_name, parent_phone, parent_email, parent_city, student_full_name, student_grade, school_name, math_struggle_areas, previous_tutoring, internet_access, parent_motivation, status, assigned_tutor_id, created_at, updated_at")
               .order("created_at", { ascending: false });
 
             data = fallback.data as any;
@@ -11906,6 +13231,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           return {
           ...e,
+          parentInfo: buildIntakeSignals(e),
           assigned_tutor_name: tutor?.name || null,
           assigned_tutor_email: tutor?.email || null,
           assigned_pod_id: assignment?.podId || null,
@@ -13428,6 +14754,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         previousTutoring,
         internetAccess,
         responseSymptoms: rawResponseSymptoms,
+        topicResponseSymptoms: rawTopicResponseSymptoms,
         parentMotivation,
         processAlignment,
         agreedToTerms,
@@ -13437,9 +14764,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } = req.body;
 
       const reportedTopics = buildReportedTopics(stuckAreas, mathStruggleAreas);
+      const normalizedTopicResponseSymptoms = reportedTopics.reduce<Record<string, string[]>>((acc, topic) => {
+        const rawTopicSymptoms =
+          rawTopicResponseSymptoms && typeof rawTopicResponseSymptoms === "object"
+            ? (rawTopicResponseSymptoms as Record<string, unknown>)[topic]
+            : [];
+        acc[topic] = normalizeResponseSymptoms(rawTopicSymptoms);
+        return acc;
+      }, {});
       const normalizedResponseSymptoms = normalizeResponseSymptoms(rawResponseSymptoms);
-      const responseRecommendation = recommendStartingPhaseFromSymptoms(normalizedResponseSymptoms);
-      const responseSymptoms = getResponseSymptomLabels(normalizedResponseSymptoms);
+      const flattenedTopicResponseSymptoms = Array.from(
+        new Set(Object.values(normalizedTopicResponseSymptoms).flat())
+      );
+      const effectiveResponseSymptoms =
+        flattenedTopicResponseSymptoms.length > 0 ? flattenedTopicResponseSymptoms : normalizedResponseSymptoms;
+      const topicResponseRecommendations = Object.fromEntries(
+        Object.entries(normalizedTopicResponseSymptoms).map(([topic, symptomIds]) => {
+          const recommendation = recommendStartingPhaseFromSymptoms(symptomIds);
+          return [
+            topic,
+            {
+              phase: recommendation.phase,
+              scores: recommendation.scores,
+              supportingSymptoms: recommendation.supportingSymptoms,
+              rationale: buildStartingPhaseRationale(recommendation.phase, recommendation.supportingSymptoms),
+            },
+          ];
+        })
+      );
+      const responseRecommendation = recommendStartingPhaseFromSymptoms(effectiveResponseSymptoms);
+      const responseSymptoms = getResponseSymptomLabels(effectiveResponseSymptoms);
 
       const normalizedMathStruggleAreas =
         reportedTopics.length > 0 ? reportedTopics.join(", ") : mathStruggleAreas;
@@ -13452,7 +14806,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ]
         .filter(Boolean)
         .join("\n");
-
       // Use affiliate code from session if not present in body
       let affiliateCode = bodyAffiliateCode || req.session.affiliateCode || null;
       if (affiliateCode) {
@@ -13468,7 +14821,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         !studentGrade ||
         !schoolName ||
         !mathStruggleAreas ||
-        normalizedResponseSymptoms.length === 0 ||
+        reportedTopics.length === 0 ||
+        reportedTopics.some((topic) => (normalizedTopicResponseSymptoms[topic] || []).length === 0) ||
         !previousTutoring ||
         !internetAccess ||
         !agreedToTerms
@@ -13582,11 +14936,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           student_grade: studentGrade,
           school_name: schoolName,
           math_struggle_areas: normalizedMathStruggleAreas,
-          response_symptoms: normalizedResponseSymptoms,
+          response_symptoms: effectiveResponseSymptoms,
+          topic_response_symptoms: normalizedTopicResponseSymptoms,
           response_signal_scores: responseRecommendation.scores,
+          topic_response_signal_scores: Object.fromEntries(
+            Object.entries(topicResponseRecommendations).map(([topic, value]) => [topic, (value as any).scores])
+          ),
           recommended_starting_phase: responseRecommendation.phase,
+          topic_recommended_starting_phases: Object.fromEntries(
+            Object.entries(topicResponseRecommendations).map(([topic, value]) => [
+              topic,
+              {
+                phase: (value as any).phase,
+                supportingSymptoms: (value as any).supportingSymptoms,
+                rationale: (value as any).rationale,
+              },
+            ])
+          ),
           previous_tutoring: previousTutoring,
-          confidence_level: null,
           internet_access: internetAccess,
           parent_motivation: normalizedParentMotivation,
           status: "awaiting_assignment",
@@ -13596,14 +14963,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .select();
 
       if (error) {
-        console.warn("⚠️  Error creating enrollment (table may not exist yet):", error.message);
-        // If table doesn't exist, that's OK - return success anyway
-        // This allows the flow to proceed, and data will be saved once migration is run
-        res.json({
-          message: "Enrollment submitted successfully (queued)",
-          enrollment: null,
+        console.error("Failed to create parent enrollment:", error);
+        return res.status(500).json({
+          message: "Failed to save enrollment",
+          detail: error.message,
         });
-        return;
       }
 
       res.json({
@@ -13612,10 +14976,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error in enroll:", error);
-      // Even on error, return success to allow gateway flow to proceed
-      res.json({
-        message: "Enrollment submitted successfully (queued)",
-        enrollment: null,
+      return res.status(500).json({
+        message: "Failed to save enrollment",
       });
     }
   });

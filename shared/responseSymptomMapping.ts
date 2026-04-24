@@ -14,7 +14,22 @@ export type ResponseSymptomGroup = {
   options: ResponseSymptomOption[];
 };
 
-export const RESPONSE_SYMPTOM_GROUPS: ResponseSymptomGroup[] = [
+const FALLBACK_RESPONSE_OPTIONS = (groupId: string): ResponseSymptomOption[] => [
+  {
+    id: `${groupId}_none_of_above`,
+    label: "None of the above",
+    description: "None of these patterns fits what you usually see.",
+    weights: {},
+  },
+  {
+    id: `${groupId}_not_sure`,
+    label: "I don't know / Not sure",
+    description: "You are not confident enough to choose a symptom here.",
+    weights: {},
+  },
+];
+
+const BASE_RESPONSE_SYMPTOM_GROUPS: ResponseSymptomGroup[] = [
   {
     id: "understanding",
     title: "Understanding The Work",
@@ -164,6 +179,11 @@ export const RESPONSE_SYMPTOM_GROUPS: ResponseSymptomGroup[] = [
     ],
   },
 ];
+
+export const RESPONSE_SYMPTOM_GROUPS: ResponseSymptomGroup[] = BASE_RESPONSE_SYMPTOM_GROUPS.map((group) => ({
+  ...group,
+  options: [...group.options, ...FALLBACK_RESPONSE_OPTIONS(group.id)],
+}));
 
 const OPTION_LOOKUP = new Map(
   RESPONSE_SYMPTOM_GROUPS.flatMap((group) => group.options.map((option) => [option.id, option] as const))
