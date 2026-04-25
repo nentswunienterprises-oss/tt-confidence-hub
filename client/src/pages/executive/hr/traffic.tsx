@@ -734,7 +734,11 @@ export default function ExecutiveHRTraffic() {
                           <div className="mt-2 flex flex-wrap gap-2">
                             {symptoms.length > 0 ? (
                               symptoms.map((symptom) => (
-                                <Badge key={`${topic}-${symptom}`} variant="outline" className="border-[#ecdcb7] bg-white text-slate-700">
+                                <Badge
+                                  key={`${topic}-${symptom}`}
+                                  variant="outline"
+                                  className="h-auto max-w-full whitespace-normal break-words border-[#ecdcb7] bg-white px-2 py-1 text-left leading-snug text-slate-700"
+                                >
                                   {symptom}
                                 </Badge>
                               ))
@@ -757,7 +761,11 @@ export default function ExecutiveHRTraffic() {
                     <p className="text-sm font-semibold text-slate-900">Observed Signals</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {fallbackSymptoms.map((symptom) => (
-                        <Badge key={symptom} variant="outline" className="border-[#ecdcb7] bg-white text-slate-700">
+                        <Badge
+                          key={symptom}
+                          variant="outline"
+                          className="h-auto max-w-full whitespace-normal break-words border-[#ecdcb7] bg-white px-2 py-1 text-left leading-snug text-slate-700"
+                        >
                           {symptom}
                         </Badge>
                       ))}
@@ -863,23 +871,23 @@ export default function ExecutiveHRTraffic() {
 
       <Tabs defaultValue="tutor-applications" className="w-full">
         
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="tutor-applications" className="gap-2">
+        <TabsList className="grid h-auto w-full grid-cols-1 gap-1 rounded-xl border border-primary/15 bg-muted/20 p-1 sm:grid-cols-3">
+          <TabsTrigger value="tutor-applications" className="min-h-[3rem] gap-2 whitespace-normal px-3 py-2 text-left sm:text-center">
             <GraduationCap className="w-4 h-4" />
-            <span>Tutor Applications</span>
+            <span className="flex-1 leading-tight">Tutor Applications</span>
             {tutorTrafficActionCount > 0 ? (
               <Badge variant="destructive" className="ml-1 h-5 min-w-5 px-1.5 text-[10px]">
                 {tutorTrafficActionCount > 99 ? "99+" : tutorTrafficActionCount}
               </Badge>
             ) : null}
           </TabsTrigger>
-          <TabsTrigger value="parent-enrollments" className="gap-2">
+          <TabsTrigger value="parent-enrollments" className="min-h-[3rem] gap-2 whitespace-normal px-3 py-2 text-left sm:text-center">
             <Users className="w-4 h-4" />
-            Parent Enrollments
+            <span className="leading-tight">Parent Enrollments</span>
           </TabsTrigger>
-          <TabsTrigger value="egp-applications" className="gap-2">
+          <TabsTrigger value="egp-applications" className="min-h-[3rem] gap-2 whitespace-normal px-3 py-2 text-left sm:text-center">
             <FileCheck className="w-4 h-4" />
-            EGP Applications
+            <span className="leading-tight">EGP Applications</span>
           </TabsTrigger>
         </TabsList>
 
