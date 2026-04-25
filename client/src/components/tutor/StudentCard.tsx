@@ -1101,7 +1101,7 @@ function IntroDiagnosticTopicSection({
             <p className="text-xs text-muted-foreground">
               Watch for: <span className="text-foreground font-medium">
                 {suggestedSymptoms.length > 0
-                  ? "the parent-observed symptoms listed above"
+                  ? `the parent-observed symptoms listed above for ${suggestedTopic}`
                   : "freezing and early help-seeking during live diagnosis"}
               </span>
             </p>
