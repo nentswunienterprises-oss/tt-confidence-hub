@@ -11,6 +11,13 @@ import { useStudentWorkflowState, useMarkHandoverCompleted, useRespondToAssignme
 import { TutorIntroSessionActions } from "./TutorIntroSessionActions";
 import { useScheduledSession } from "@/hooks/useScheduledSession";
 import { Input } from "@/components/ui/input";
+import {
+  buildStartingPhaseRationale,
+  deriveResponseSignalScores,
+  getResponseSymptomLabels,
+  normalizeResponseSymptoms,
+  recommendStartingPhaseFromSymptoms,
+} from "@shared/responseSymptomMapping";
 
 function splitReportedTopics(rawValue) {
   const ignoredContexts = new Set([
@@ -56,6 +63,18 @@ function normalizeTopicLabel(rawValue) {
 function normalizeTopicKey(rawValue) {
   const normalized = normalizeTopicLabel(rawValue);
   return normalized ? normalized.toLowerCase() : null;
+}
+
+function getTopicMapValue(source, topic) {
+  if (!source || typeof source !== "object") return null;
+  const normalizedTopic = normalizeTopicKey(topic);
+  if (!normalizedTopic) return null;
+
+  const matchedEntry = Object.entries(source).find(
+    ([key]) => normalizeTopicKey(key) === normalizedTopic
+  );
+
+  return matchedEntry ? matchedEntry[1] : null;
 }
 
 function scoreTone(score) {
@@ -256,26 +275,31 @@ export function StudentCard({
   reportedTopics = Array.from(new Set(reportedTopics.map(t => String(t).trim()).filter(Boolean)));
 
   const topicIntelligence = reportedTopics.map((topic) => {
-    const topicSymptoms = Array.isArray((topicResponseSymptomsRaw as any)[topic])
-      ? ((topicResponseSymptomsRaw as any)[topic] as unknown[]).map((symptom) => String(symptom).trim()).filter(Boolean)
-      : [];
-    const recommendedTopicData =
-      topicRecommendedStartingPhasesRaw && typeof (topicRecommendedStartingPhasesRaw as any)[topic] === "object"
-        ? (topicRecommendedStartingPhasesRaw as any)[topic]
-        : null;
-    const topicScoresRaw =
-      topicResponseSignalScoresRaw && typeof (topicResponseSignalScoresRaw as any)[topic] === "object"
-        ? (topicResponseSignalScoresRaw as any)[topic]
-        : {};
-    const recommendedPhase = normalizePhaseLabel(recommendedTopicData?.phase) || "Clarity";
+    const topicSymptomsSource = getTopicMapValue(topicResponseSymptomsRaw, topic);
+    const topicSymptomIdsSource = getTopicMapValue(student.parentInfo?.topic_response_symptom_ids, topic);
+    const topicSymptomIds = normalizeResponseSymptoms(topicSymptomIdsSource);
+    const topicSymptoms = Array.isArray(topicSymptomsSource)
+      ? (topicSymptomsSource as unknown[]).map((symptom) => String(symptom).trim()).filter(Boolean)
+      : topicSymptomIds.length > 0
+        ? getResponseSymptomLabels(topicSymptomIds)
+        : [];
+    const recommendedTopicData = getTopicMapValue(topicRecommendedStartingPhasesRaw, topic);
+    const topicScoresRaw = getTopicMapValue(topicResponseSignalScoresRaw, topic) || {};
+    const computedRecommendation = recommendStartingPhaseFromSymptoms(topicSymptomIds);
+    const computedScores = deriveResponseSignalScores(topicSymptomIds);
+    const recommendedPhase =
+      normalizePhaseLabel((recommendedTopicData as any)?.phase) ||
+      (topicSymptomIds.length > 0 ? computedRecommendation.phase : "Clarity");
     const recommendedReason =
-      String(recommendedTopicData?.rationale || "").trim() ||
-      "Use parent-reported response patterns as the starting hypothesis, then verify performance through adaptive diagnosis.";
+      String((recommendedTopicData as any)?.rationale || "").trim() ||
+      (topicSymptomIds.length > 0
+        ? buildStartingPhaseRationale(computedRecommendation.phase, computedRecommendation.supportingSymptoms)
+        : "Use parent-reported response patterns as the starting hypothesis, then verify performance through adaptive diagnosis.");
     const responseSignalBreakdown = [
-      { phase: "Clarity", score: Number(topicScoresRaw.Clarity || 0) },
-      { phase: "Structured Execution", score: Number(topicScoresRaw["Structured Execution"] || 0) },
-      { phase: "Controlled Discomfort", score: Number(topicScoresRaw["Controlled Discomfort"] || 0) },
-      { phase: "Time Pressure Stability", score: Number(topicScoresRaw["Time Pressure Stability"] || 0) },
+      { phase: "Clarity", score: Number((topicScoresRaw as any).Clarity ?? computedScores.Clarity ?? 0) },
+      { phase: "Structured Execution", score: Number((topicScoresRaw as any)["Structured Execution"] ?? computedScores["Structured Execution"] ?? 0) },
+      { phase: "Controlled Discomfort", score: Number((topicScoresRaw as any)["Controlled Discomfort"] ?? computedScores["Controlled Discomfort"] ?? 0) },
+      { phase: "Time Pressure Stability", score: Number((topicScoresRaw as any)["Time Pressure Stability"] ?? computedScores["Time Pressure Stability"] ?? 0) },
     ];
     const rankedResponseSignals = [...responseSignalBreakdown].sort((a, b) => b.score - a.score);
     const secondarySignal = rankedResponseSignals.find((entry) => entry.phase !== recommendedPhase && entry.score > 0) || null;
