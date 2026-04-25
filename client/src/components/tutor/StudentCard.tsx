@@ -1099,7 +1099,11 @@ function IntroDiagnosticTopicSection({
             <p className="text-[11px] font-semibold text-foreground">Diagnostic Focus Suggestion</p>
             <p className="text-xs text-muted-foreground">Start with: <span className="text-foreground font-medium">{suggestedTopic}</span></p>
             <p className="text-xs text-muted-foreground">
-              Watch for: <span className="text-foreground font-medium">{suggestedSymptoms.length > 0 ? suggestedSymptoms.join(" + ") : "Freezing + early help-seeking"}</span>
+              Watch for: <span className="text-foreground font-medium">
+                {suggestedSymptoms.length > 0
+                  ? "the parent-observed symptoms listed above"
+                  : "freezing and early help-seeking during live diagnosis"}
+              </span>
             </p>
           </div>
 
