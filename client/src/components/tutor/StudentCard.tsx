@@ -11,6 +11,7 @@ import { useStudentWorkflowState, useMarkHandoverCompleted, useRespondToAssignme
 import { TutorIntroSessionActions } from "./TutorIntroSessionActions";
 import { useScheduledSession } from "@/hooks/useScheduledSession";
 import { Input } from "@/components/ui/input";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import {
   buildStartingPhaseRationale,
   deriveResponseSignalScores,
@@ -75,6 +76,12 @@ function getTopicMapValue(source, topic) {
   );
 
   return matchedEntry ? matchedEntry[1] : null;
+}
+
+function trimRationaleSignals(rawValue) {
+  return String(rawValue || "")
+    .replace(/\s*Most relevant signals:\s*[\s\S]*$/i, "")
+    .trim();
 }
 
 function scoreTone(score) {
@@ -968,6 +975,7 @@ function IntroDiagnosticTopicSection({
   const [diagnosticTopic, setDiagnosticTopic] = useState("");
   const [activationError, setActivationError] = useState("");
   const [activatedTopic, setActivatedTopic] = useState<string | null>(null);
+  const [showResponseSignalBreakdown, setShowResponseSignalBreakdown] = useState(false);
 
   const storageKey = `intro-diagnostic-topic:${student.id}`;
 
@@ -1019,7 +1027,7 @@ function IntroDiagnosticTopicSection({
                     <p className="text-xs text-muted-foreground">
                       Start adaptive diagnosis at <span className="text-foreground font-medium">{entry.recommendedStartingPhase}</span>.
                     </p>
-                    <p className="text-xs text-muted-foreground">{entry.recommendedStartingReason}</p>
+                    <p className="text-xs text-muted-foreground">{trimRationaleSignals(entry.recommendedStartingReason)}</p>
                   </div>
 
                   <div className="space-y-2">
@@ -1112,25 +1120,38 @@ function IntroDiagnosticTopicSection({
             <p className="text-xs text-muted-foreground">
               Start adaptive diagnosis at: <span className="text-foreground font-medium">{recommendedStartingPhase}</span>
             </p>
-            <p className="text-xs text-muted-foreground">{recommendedStartingReason}</p>
+            <p className="text-xs text-muted-foreground">{trimRationaleSignals(recommendedStartingReason)}</p>
             {secondarySignal ? (
               <p className="text-xs text-muted-foreground">
                 Secondary watchpoint: <span className="text-foreground font-medium">{secondarySignal.phase}</span>
               </p>
             ) : null}
             <div className="rounded-lg border border-primary/15 bg-background/80 p-2.5 space-y-2">
-              <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Response Signal Breakdown</p>
-              <div className="grid grid-cols-1 gap-1.5">
-                {responseSignalBreakdown.map(({ phase, score }) => (
-                  <div
-                    key={phase}
-                    className={`flex items-center justify-between rounded-md border px-2 py-1.5 text-[11px] ${scoreTone(score)}`}
-                  >
-                    <span className="font-medium">{phase}</span>
-                    <span className="tabular-nums">{score}</span>
-                  </div>
-                ))}
-              </div>
+              <button
+                type="button"
+                className="flex w-full items-center justify-between text-left"
+                onClick={() => setShowResponseSignalBreakdown((current) => !current)}
+              >
+                <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Response Signal Breakdown</p>
+                {showResponseSignalBreakdown ? (
+                  <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                )}
+              </button>
+              {showResponseSignalBreakdown ? (
+                <div className="grid grid-cols-1 gap-1.5">
+                  {responseSignalBreakdown.map(({ phase, score }) => (
+                    <div
+                      key={phase}
+                      className={`flex items-center justify-between rounded-md border px-2 py-1.5 text-[11px] ${scoreTone(score)}`}
+                    >
+                      <span className="font-medium">{phase}</span>
+                      <span className="tabular-nums">{score}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
             </div>
             <div className="rounded-lg border border-primary/15 bg-background/80 p-2.5">
               <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Tutor Launch Rule</p>
