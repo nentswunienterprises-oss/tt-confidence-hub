@@ -1022,25 +1022,52 @@ function IntroDiagnosticTopicSection({
               ))}
             </div>
           ) : (
-            <div className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-2">
-              <p className="text-[11px] font-medium text-foreground">Parent-Observed Symptoms</p>
-              {symptomSignals.length > 0 ? (
-                <div className="flex flex-wrap gap-1.5">
-                  {symptomSignals.map((symptom) => (
-                    <Badge
-                      key={symptom}
-                      variant="outline"
-                      className="max-w-full whitespace-normal break-words text-left leading-snug text-[10px] border-primary/20 bg-background/70 text-foreground"
-                    >
-                      {symptom}
-                    </Badge>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-muted-foreground">
-                  No explicit symptom keywords found. Observe freeze, rush, guess, avoid, and early help-seeking.
-                </p>
-              )}
+          <div className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-2">
+            <p className="text-[11px] font-medium text-foreground">Parent-Observed Symptoms</p>
+            {topicIntelligence.length > 0 ? (
+              <div className="space-y-2">
+                {topicIntelligence.slice(0, 4).map((entry) => (
+                  <div key={entry.topic} className="rounded-lg border border-primary/10 bg-background/70 p-2.5 space-y-1.5">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-foreground">
+                      {entry.topic}
+                    </p>
+                    {entry.symptoms.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {entry.symptoms.map((symptom) => (
+                          <Badge
+                            key={`${entry.topic}-${symptom}`}
+                            variant="outline"
+                            className="max-w-full whitespace-normal break-words text-left leading-snug text-[10px] border-primary/20 bg-background/70 text-foreground"
+                          >
+                            {symptom}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">
+                        No topic-specific symptoms selected. Verify this topic live during diagnosis.
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : symptomSignals.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {symptomSignals.map((symptom) => (
+                  <Badge
+                    key={symptom}
+                    variant="outline"
+                    className="max-w-full whitespace-normal break-words text-left leading-snug text-[10px] border-primary/20 bg-background/70 text-foreground"
+                  >
+                    {symptom}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                No explicit symptom keywords found. Observe freeze, rush, guess, avoid, and early help-seeking.
+              </p>
+            )}
             </div>
           )}
 
