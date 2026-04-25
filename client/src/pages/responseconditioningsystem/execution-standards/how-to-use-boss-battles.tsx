@@ -66,7 +66,7 @@ export default function ResponseConditioningHowToUseBossBattles() {
           <ul className="space-y-2 pl-4">
             <li className="font-medium">the student has completed 3-4 problems correctly</li>
             <li className="font-medium">the method is stable</li>
-            <li className="font-medium">the stydent is starting to appear comfortable</li>
+            <li className="font-medium">the student is starting to appear comfortable</li>
           </ul>
 
           <div className="bg-muted rounded p-3 mt-3">
