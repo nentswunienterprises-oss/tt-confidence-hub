@@ -81,16 +81,16 @@ export default function AffiliateLanding() {
       />
 
       <div className="fixed inset-x-0 top-0 z-50 border-b border-[#E7D8CA] backdrop-blur-md" style={{ backgroundColor: "rgba(247, 239, 231, 0.88)" }}>
-        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center px-4 sm:h-20 sm:px-6 md:px-12">
-          <Button variant="ghost" className="w-fit gap-2 rounded-full px-3 hover:bg-[#F3E5D9]" onClick={() => navigate("/")}>
+        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center px-3 sm:h-20 sm:px-6 md:px-12">
+          <Button variant="ghost" className="w-fit gap-1.5 rounded-full px-2 text-sm hover:bg-[#F3E5D9] sm:gap-2 sm:px-3" onClick={() => navigate("/")}>
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
-          <div className="hidden text-center md:block">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#8A4B35]">Affiliate Gateway</p>
-            <p className="mt-0.5 text-xl font-bold tracking-tight text-[#1A1A1A]">Education Growth Partner</p>
+          <div className="text-center">
+            <p className="text-[8px] font-semibold uppercase tracking-[0.22em] text-[#8A4B35] sm:text-[10px] sm:tracking-[0.28em]">Affiliate Gateway</p>
+            <p className="mt-0.5 text-sm font-bold tracking-tight text-[#1A1A1A] sm:text-xl">Education Growth Partner</p>
           </div>
-          <Button className="justify-self-end rounded-full px-5 shadow-sm" style={{ backgroundColor: "#B9382F" }} onClick={() => navigate("/affiliate/signup")}>
+          <Button className="justify-self-end rounded-full px-3 text-xs shadow-sm sm:px-5 sm:text-sm" style={{ backgroundColor: "#B9382F" }} onClick={() => navigate("/affiliate/signup")}>
             Apply for Access
           </Button>
         </div>
