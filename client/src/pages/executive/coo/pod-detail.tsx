@@ -1147,7 +1147,7 @@ function TutorStudentsSection({
                 Assign Parent
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="w-[min(96vw,72rem)] max-w-6xl">
               <DialogHeader>
                 <DialogTitle>Assign Parent to {tutorName}</DialogTitle>
                 <DialogDescription>
@@ -1160,7 +1160,7 @@ function TutorStudentsSection({
                   No parents are currently awaiting assignment.
                 </div>
               ) : (
-                <div className="max-h-[28rem] space-y-3 overflow-y-auto pr-1">
+                <div className="max-h-[75vh] space-y-3 overflow-y-auto pr-1">
                   {awaitingAssignments.map((enrollment) => (
                     <Card
                       key={enrollment.id}
@@ -1220,7 +1220,7 @@ function TutorStudentsSection({
                             </div>
 
                             <div className="space-y-6 p-5">
-                              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                                 <div className="rounded-xl border border-[#eadfca] bg-white/80 p-4">
                                   <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
                                     <Mail className="h-3.5 w-3.5" />
@@ -1259,7 +1259,7 @@ function TutorStudentsSection({
                                 </div>
                               </div>
 
-                              <div className="grid gap-4 xl:grid-cols-[1.15fr,0.85fr]">
+                              <div className="grid gap-4 2xl:grid-cols-[1.15fr,0.85fr]">
                                 <div className="rounded-2xl border border-[#eadfca] bg-white/85 p-5">
                                   <div className="flex items-center gap-2">
                                     <Target className="h-4 w-4 text-[#946c16]" />
