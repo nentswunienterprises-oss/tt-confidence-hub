@@ -1,5 +1,5 @@
 TT-OS BATTLE TEST: STRUCTURED EXECUTION (SCORING VERSION)
-🔹 SECTION A — CORE UNDERSTANDING
+🔹 SECTION A -CORE UNDERSTANDING
 Q1
 
 What is the purpose of Structured Execution in TT, in one sentence?
@@ -57,7 +57,7 @@ Fail Answer:
 
 “To keep things consistent”
 “To follow system rules” (too surface-level)
-🔹 SECTION B — APPLICATION
+🔹 SECTION B -APPLICATION
 Q6
 
 A student knows the method but waits for help before starting.
@@ -117,7 +117,7 @@ Fail Answer:
 
 “To challenge the student”
 “To make it harder”
-🔹 SECTION C — PRESSURE SCENARIOS
+🔹 SECTION C -PRESSURE SCENARIOS
 Scenario 1
 
 Tutor sees the student struggling to start and gives a hint after 3 seconds.
@@ -164,7 +164,7 @@ Hold. Independence is not achieved.
 Fail Answer:
 
 “Progress, they got them right”
-🔹 SECTION D — RED FLAG RESPONSES
+🔹 SECTION D -RED FLAG RESPONSES
 
 Auto-fail signals:
 

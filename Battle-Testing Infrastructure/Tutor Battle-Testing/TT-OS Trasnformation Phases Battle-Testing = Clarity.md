@@ -1,5 +1,5 @@
 TT-OS BATTLE TEST: CLARITY (SCORING VERSION)
-🔹 SECTION A — CORE UNDERSTANDING
+🔹 SECTION A -CORE UNDERSTANDING
 Q1
 
 What is the purpose of Clarity in TT, in one sentence?
@@ -57,7 +57,7 @@ Fail Answer:
 
 “To be thorough”
 “To make sure they don’t struggle”
-🔹 SECTION B — APPLICATION
+🔹 SECTION B -APPLICATION
 Q6
 
 A student starts solving immediately but cannot name terms or explain steps.
@@ -117,7 +117,7 @@ Fail Answer:
 
 “To make it harder”
 “To challenge the student”
-🔹 SECTION C — PRESSURE SCENARIOS
+🔹 SECTION C -PRESSURE SCENARIOS
 Scenario 1
 
 Tutor explains Vocabulary → Method → Reason perfectly, but does not ask the student to explain back.
@@ -162,7 +162,7 @@ Hidden instability. The student may execute but collapse when problems change or
 Fail Answer:
 
 “It’s fine if they understand steps”
-🔹 SECTION D — RED FLAG RESPONSES
+🔹 SECTION D -RED FLAG RESPONSES
 
 Auto-fail signals:
 

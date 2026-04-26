@@ -1,5 +1,5 @@
 TT-OS BATTLE TEST: CONTROLLED DISCOMFORT (SCORING VERSION)
-🔹 SECTION A — CORE UNDERSTANDING
+🔹 SECTION A -CORE UNDERSTANDING
 Q1
 
 What is the purpose of Controlled Discomfort in TT, in one sentence?
@@ -57,7 +57,7 @@ Fail Answer:
 
 “To help them get started”
 “To make it easier”
-🔹 SECTION B — APPLICATION
+🔹 SECTION B -APPLICATION
 Q6
 
 A student freezes when difficulty appears and immediately asks for help.
@@ -116,7 +116,7 @@ Fail Answer:
 
 “To give more practice”
 “To improve accuracy”
-🔹 SECTION C — PRESSURE SCENARIOS
+🔹 SECTION C -PRESSURE SCENARIOS
 Scenario 1
 
 Tutor sees the student struggling and says: “Let me show you how to do this.”
@@ -161,7 +161,7 @@ Improving discomfort tolerance and controlled response under difficulty.
 Fail Answer:
 
 “They’re gaining confidence”
-🔹 SECTION D — RED FLAG RESPONSES
+🔹 SECTION D -RED FLAG RESPONSES
 
 Auto-fail signals:
 

@@ -1,6 +1,6 @@
-# Our Mission — Response‑Conditioning Institutional Dream
+# Our Mission -Response‑Conditioning Institutional Dream
 
-We are building an external academic leadership institution that prevents downstream failure by training how students respond when uncertainty appears. Our mission is to make calm, reliable execution the default for learners — long before panic hardens into identity.
+We are building an external academic leadership institution that prevents downstream failure by training how students respond when uncertainty appears. Our mission is to make calm, reliable execution the default for learners -long before panic hardens into identity.
 
 How we operate (TT‑OS)
 
@@ -42,4 +42,4 @@ Measurement & offers
 
 The institutional claim
 
-We are not a tutoring company. We are infrastructure that trains execution. Our work is boring, precise, and repeatable — and that is our defensible advantage.
+We are not a tutoring company. We are infrastructure that trains execution. Our work is boring, precise, and repeatable -and that is our defensible advantage.

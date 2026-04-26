@@ -1,5 +1,5 @@
 ✅ WHAT YOU NAILED
-1. Structure — aligned with the rebuild
+1. Structure -aligned with the rebuild
 
 You now have:
 
@@ -14,7 +14,7 @@ Next Move
 
 No extra fluff sections. No dashboard feel.
 
-2. “What Changed” — this is strong
+2. “What Changed” -this is strong
 
 Example:
 
@@ -28,7 +28,7 @@ max 2 signals
 
 This is your anchor section. Keep it clean like this.
 
-3. Breakdown Pattern — correct positioning
+3. Breakdown Pattern -correct positioning
 
 hesitation under pressure and structure breakdown
 
@@ -37,7 +37,7 @@ Good:
 direct
 diagnostic
 no soft language
-4. Next Move — finally aligned with phase
+4. Next Move -finally aligned with phase
 
 You fixed:
 
@@ -100,7 +100,7 @@ Anchor it to movement implicitly:
 - Linear Equations: reliable step execution and independent starts
 + Linear Equations: execution is now more reliable, with independent starts holding more consistently
 
-👉 Still behavior — but now feels like progress, not labels
+👉 Still behavior -but now feels like progress, not labels
 
 3. Monthly “System Movement” still slightly robotic
 
@@ -147,7 +147,7 @@ no recurring breakdown signal detected
 🔧 FIX
 - no recurring breakdown signal detected
 + no consistent breakdown pattern identified
-6. Multi-topic flow — one subtle issue
+6. Multi-topic flow -one subtle issue
 
 Right now:
 

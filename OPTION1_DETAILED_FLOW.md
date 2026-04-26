@@ -693,11 +693,11 @@ At end of month:
 | **Conversion Rate** | Lower | Higher (+15-30%) |
 | **Code Requirement** | Required | Still required |
 | **Tracking** | Via manual code | Via URL param |
-| **Backend Changes** | — | None |
-| **DB Changes** | — | None |
-| **New Features** | — | None |
-| **Risk Level** | — | Very Low |
-| **Dev Time** | — | 1-2 hours |
+| **Backend Changes** | -| None |
+| **DB Changes** | -| None |
+| **New Features** | -| None |
+| **Risk Level** | -| Very Low |
+| **Dev Time** | -| 1-2 hours |
 
 ---
 

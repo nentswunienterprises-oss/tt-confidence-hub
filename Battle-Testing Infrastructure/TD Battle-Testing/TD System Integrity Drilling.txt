@@ -7,7 +7,7 @@ We test them on:
 👉 SYSTEM INTEGRITY UNDER PRESSURE
 
 🧠 TD BATTLE TEST: CORE SET
-🔹 SECTION A — SYSTEM OWNERSHIP
+🔹 SECTION A -SYSTEM OWNERSHIP
 Q1
 
 What is your job as a Territory Director in TT, in one sentence?
@@ -42,14 +42,14 @@ Fail Answer:
 
 “When results drop”
 “When tutors struggle”
-🔹 SECTION B — DRIFT DETECTION
+🔹 SECTION B -DRIFT DETECTION
 Q4
 
 A tutor runs Recognition reps but allows the student to solve.
 👉 What is this?
 
 Expected Answer:
-Clarity phase violation — protocol drift.
+Clarity phase violation -protocol drift.
 
 Fail Answer:
 
@@ -73,12 +73,12 @@ Tutor helps during the cold start window.
 👉 What phase is violated and why does it matter?
 
 Expected Answer:
-Structured Execution violation — independence not tested.
+Structured Execution violation -independence not tested.
 
 Fail Answer:
 
 “Just helping flow”
-🔹 SECTION C — ENFORCEMENT DECISION
+🔹 SECTION C -ENFORCEMENT DECISION
 Q7
 
 You detect repeated small “helping” behaviors from a tutor.
@@ -114,7 +114,7 @@ Remove or correct immediately. System integrity overrides short-term results.
 Fail Answer:
 
 “Keep them, results matter”
-🔹 SECTION D — AUDIT LOGIC
+🔹 SECTION D -AUDIT LOGIC
 Q10
 
 What makes a session pass audit?
@@ -146,14 +146,14 @@ Dishonesty or system manipulation.
 Fail Answer:
 
 “Logging error”
-🔹 SECTION E — PRESSURE SCENARIOS
+🔹 SECTION E -PRESSURE SCENARIOS
 Scenario 1
 
 Tutor rescues a student during Controlled Discomfort but logs “independent execution.”
 👉 What do you do?
 
 Expected Answer:
-Flag as major violation — audit failure + potential suspension.
+Flag as major violation -audit failure + potential suspension.
 
 Fail Answer:
 
@@ -165,7 +165,7 @@ Tutor consistently produces “good sessions” but avoids difficult drills.
 👉 What is happening?
 
 Expected Answer:
-System avoidance — hidden drift.
+System avoidance -hidden drift.
 
 Fail Answer:
 
@@ -176,7 +176,7 @@ Tutor follows structure but softens pressure to keep student comfortable.
 👉 What is the issue?
 
 Expected Answer:
-Protocol drift — system is not being executed as designed.
+Protocol drift -system is not being executed as designed.
 
 Fail Answer:
 
@@ -192,7 +192,7 @@ System execution, not external praise.
 Fail Answer:
 
 “Parent satisfaction matters more”
-🔹 SECTION F — FINAL FILTER
+🔹 SECTION F -FINAL FILTER
 FINAL QUESTION
 
 “When should a tutor be removed from TT?”

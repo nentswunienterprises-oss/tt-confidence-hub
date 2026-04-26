@@ -1,4 +1,4 @@
-# Brain Index — Repository Snapshot & Mapping
+# Brain Index -Repository Snapshot & Mapping
 
 Use these questions to generate and maintain a quick reference of your repository structure and contents.
 

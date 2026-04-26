@@ -1,4 +1,4 @@
-TT Drill System — Developer Brief
+TT Drill System -Developer Brief
 
 We are building a response-conditioning system, not a tutoring session tracker.
 
@@ -67,15 +67,15 @@ state explanation
 parent-facing meaning
 whether topic remains / advances / regresses
 2. Current drills we already have defined
-A. Intro Session — Clarity Diagnostic Drill
+A. Intro Session -Clarity Diagnostic Drill
 
 Purpose:
 Determine where the student stands in a topic before activation.
 
 Structure:
 
-Set 1: Recognition Probe — 3 reps
-Set 2: Light Apply Probe — 3 reps
+Set 1: Recognition Probe -3 reps
+Set 2: Light Apply Probe -3 reps
 
 Total:
 
@@ -90,16 +90,16 @@ training proposal input
 
 This drill is for diagnosis only, not active training.
 
-B. Active Training — Clarity Session Drill
+B. Active Training -Clarity Session Drill
 
 Purpose:
 Build clarity in a topic through full 3-Layer Lens exposure, recognition, and light application.
 
 Structure:
 
-Set 1: Modeling Set — 2 reps
-Set 2: Identification Set — 4 reps
-Set 3: Light Apply Set — 3 reps
+Set 1: Modeling Set -2 reps
+Set 2: Identification Set -4 reps
+Set 3: Light Apply Set -3 reps
 
 Total:
 
@@ -126,17 +126,17 @@ tutor_mode
 observation_block_id
 scoring_rule_id
 Example for Clarity Session Drill
-Set 1 — Modeling Set
+Set 1 -Modeling Set
 purpose: build mental map
 rep_count: 2
 rep_type: modeled problem
 tutor_mode: full 3-layer modeling
-Set 2 — Identification Set
+Set 2 -Identification Set
 purpose: test if student can see without solving
 rep_count: 4
 rep_type: recognition only
 tutor_mode: student identifies, does not fully solve
-Set 3 — Light Apply Set
+Set 3 -Light Apply Set
 purpose: test whether clarity holds during solving
 rep_count: 3
 rep_type: light application
@@ -270,11 +270,11 @@ This is critical.
 
 Scoring should happen in layers.
 
-Layer 1 — Set score
+Layer 1 -Set score
 
 Each set produces its own score.
 
-Layer 2 — Drill score
+Layer 2 -Drill score
 
 The system combines set scores using fixed weighting.
 
@@ -286,7 +286,7 @@ Set 3 score = Application
 
 Weighted into final drill score.
 
-Layer 3 — State update
+Layer 3 -State update
 
 The final drill score updates:
 

@@ -14,11 +14,11 @@ Every weekly report below uses 2 sessions. Every monthly report uses 8 sessions.
 
 ---
 
-## Scenario 1 — 2 Topics: Clarity Low + Structured Execution Medium
+## Scenario 1 -2 Topics: Clarity Low + Structured Execution Medium
 
 ### Student state at start of month
-- `Fractions` — Clarity / Low
-- `Ratios` — Structured Execution / Medium
+- `Fractions` -Clarity / Low
+- `Ratios` -Structured Execution / Medium
 
 ### Session flow
 
@@ -39,12 +39,12 @@ Weeks 3-4 / Sessions 5-8
 ### Parent dashboard state at end of month
 These are the exact `status` / `meaning` / `focus` strings for each topic.
 
-- `Fractions` — Clarity / Medium
+- `Fractions` -Clarity / Medium
   - Status: "Your child is beginning to understand this topic more clearly."
   - Meaning: "They can follow explanations, but still need reinforcement to apply it independently."
   - Focus: "We are increasing practice and helping them apply the method more consistently."
 
-- `Ratios` — Structured Execution / High
+- `Ratios` -Structured Execution / High
   - Status: "Your child can now solve problems consistently in this topic."
   - Meaning: "They are able to follow the correct steps independently with minimal support."
   - Focus: "We are introducing more challenging questions to strengthen their response under difficulty."
@@ -117,12 +117,12 @@ These are the exact `status` / `meaning` / `focus` strings for each topic.
 
 ---
 
-## Scenario 2 — 3 Topics: Clarity High + Controlled Discomfort Medium + Time Pressure Stability Low
+## Scenario 2 -3 Topics: Clarity High + Controlled Discomfort Medium + Time Pressure Stability Low
 
 ### Student state at start of month
-- `Algebra` — Clarity / High
-- `Geometry` — Structured Execution / Medium
-- `Probability` — Time Pressure Stability / Low
+- `Algebra` -Clarity / High
+- `Geometry` -Structured Execution / Medium
+- `Probability` -Time Pressure Stability / Low
 
 ### Session flow
 
@@ -142,17 +142,17 @@ Weeks 3-4 / Sessions 5-8
 
 ### Parent dashboard state at end of month
 
-- `Algebra` — Clarity / High Maintenance
+- `Algebra` -Clarity / High Maintenance
   - Status: "Your child has sustained strong clarity in this topic."
   - Meaning: "They have held high performance consistently and are ready for progression decisions."
   - Focus: "We are now transitioning into Structured Execution training."
 
-- `Geometry` — Structured Execution / Low
+- `Geometry` -Structured Execution / Low
   - Status: "Your child is learning to apply the steps correctly."
   - Meaning: "They understand the topic but struggle to follow the method consistently on their own."
   - Focus: "We are reinforcing a clear step-by-step approach so they can start and complete problems reliably."
 
-- `Probability` — Time Pressure Stability / Low
+- `Probability` -Time Pressure Stability / Low
   - Status: "Your child is learning to stay structured under time pressure."
   - Meaning: "They can solve problems, but may lose structure when working against the clock."
   - Focus: "We are helping them maintain their method while working within time limits."
@@ -225,14 +225,14 @@ Weeks 3-4 / Sessions 5-8
 
 ---
 
-## Scenario 3 — 5 Topics: Full Phase Coverage
+## Scenario 3 -5 Topics: Full Phase Coverage
 
 ### Student state at start of month
-- `Fractions` — Clarity / Low
-- `Ratios` — Clarity / High Maintenance
-- `Algebra` — Structured Execution / Medium
-- `Geometry` — Controlled Discomfort / High
-- `Time` — Time Pressure Stability / Low
+- `Fractions` -Clarity / Low
+- `Ratios` -Clarity / High Maintenance
+- `Algebra` -Structured Execution / Medium
+- `Geometry` -Controlled Discomfort / High
+- `Time` -Time Pressure Stability / Low
 
 ### Session flow
 
@@ -252,27 +252,27 @@ Weeks 3-4 / Sessions 5-8
 
 ### Parent dashboard state at end of month
 
-- `Fractions` — Clarity / Medium
+- `Fractions` -Clarity / Medium
   - Status: "Your child is beginning to understand this topic more clearly."
   - Meaning: "They can follow explanations, but still need reinforcement to apply it independently."
   - Focus: "We are increasing practice and helping them apply the method more consistently."
 
-- `Ratios` — Clarity / High Maintenance
+- `Ratios` -Clarity / High Maintenance
   - Status: "Your child has sustained strong clarity in this topic."
   - Meaning: "They have held high performance consistently and are ready for progression decisions."
   - Focus: "We are now transitioning into Structured Execution training."
 
-- `Algebra` — Structured Execution / High
+- `Algebra` -Structured Execution / High
   - Status: "Your child can now solve problems consistently in this topic."
   - Meaning: "They are able to follow the correct steps independently with minimal support."
   - Focus: "We are introducing more challenging questions to strengthen their response under difficulty."
 
-- `Geometry` — Controlled Discomfort / High
+- `Geometry` -Controlled Discomfort / High
   - Status: "Your child is handling difficult problems well."
   - Meaning: "They are able to stay structured and solve unfamiliar questions with stability."
   - Focus: "We are preparing them to perform under time pressure."
 
-- `Time` — Time Pressure Stability / Low
+- `Time` -Time Pressure Stability / Low
   - Status: "Your child is learning to stay structured under time pressure."
   - Meaning: "They can solve problems, but may lose structure when working against the clock."
   - Focus: "We are helping them maintain their method while working within time limits."

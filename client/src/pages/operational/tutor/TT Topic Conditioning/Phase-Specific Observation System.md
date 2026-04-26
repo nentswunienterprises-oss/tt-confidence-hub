@@ -57,7 +57,7 @@ updated stability
 remain / progress / regress
 next action
 summary
-PHASE 1 — CLARITY
+PHASE 1 -CLARITY
 What matters here
 
 The question is:
@@ -74,7 +74,7 @@ Immediate application after modeling
 Not Boss Battles.
 Not time pressure.
 
-Tutor Observation Block — Clarity
+Tutor Observation Block -Clarity
 A. Vocabulary Precision
 Correctly named key terms without help
 Named some terms but needed prompting
@@ -101,22 +101,22 @@ Re-modeled method
 Re-modeled reason
 Increased apply repetition
 Clarity Scoring Logic
-Vocabulary Precision — 30
+Vocabulary Precision -30
 Correctly named key terms without help = 30
 Named some terms but needed prompting = 20
 Used vague language often = 10
 Could not identify key terms = 0
-Method Recognition — 30
+Method Recognition -30
 Identified full method correctly = 30
 Identified method partially = 18
 Confused the sequence = 8
 Could not identify what to do = 0
-Reason Clarity — 20
+Reason Clarity -20
 Clear reason = 20
 Partial reason = 12
 Knew steps but not why = 6
 Could not explain why = 0
-Immediate Apply Response — 20
+Immediate Apply Response -20
 Independent repeat = 20
 Minor prompting = 14
 Heavy prompting = 6
@@ -184,7 +184,7 @@ Transition to Structured Execution. Reduce modeling. Increase independent attemp
 Constraint:
 Do not stay in teaching mode.
 
-PHASE 2 — STRUCTURED EXECUTION
+PHASE 2 -STRUCTURED EXECUTION
 What matters here
 
 The question is:
@@ -201,7 +201,7 @@ ability to complete known method
 
 Not deep clarity reteaching unless cracks appear.
 
-Tutor Observation Block — Structured Execution
+Tutor Observation Block -Structured Execution
 A. Start Behavior
 Started immediately
 Delayed briefly but started alone
@@ -228,22 +228,22 @@ Corrected skipped step
 Forced independent start
 Re-modeled method
 Execution Scoring Logic
-Start Behavior — 25
+Start Behavior -25
 Started immediately = 25
 Delayed briefly but started alone = 18
 Needed prompting = 8
 Avoided / waited for help = 0
-Step Execution — 30
+Step Execution -30
 All steps in order = 30
 Minor skips = 20
 Frequent skips = 8
 Guessing = 0
-Repeatability — 25
+Repeatability -25
 Consistent across all = 25
 Mostly consistent = 18
 Inconsistent = 8
 Could not sustain = 0
-Independence Level — 20
+Independence Level -20
 No support = 20
 Light reminders = 14
 Repeated guidance = 6
@@ -296,7 +296,7 @@ Transition to Controlled Discomfort. Introduce Boss Battles consistently. Focus 
 Constraint:
 Do not keep repeating basic problems.
 
-PHASE 3 — CONTROLLED DISCOMFORT
+PHASE 3 -CONTROLLED DISCOMFORT
 What matters here
 
 The question is:
@@ -310,7 +310,7 @@ recovery
 first-step behavior under uncertainty
 rescue-seeking
 composure under hard/unfamiliar forms
-Tutor Observation Block — Controlled Discomfort
+Tutor Observation Block -Controlled Discomfort
 A. Initial Response to Boss Battle
 Calmly attempted
 Hesitated but attempted
@@ -338,23 +338,23 @@ Held 10–15 second pause
 Guided first step only
 Debriefed response pattern
 Discomfort Scoring Logic
-Initial Response — 30
+Initial Response -30
 Calmly attempted = 30
 Hesitated but attempted = 20
 Froze before starting = 8
 Asked for help immediately = 6
 Rushed randomly = 5
-First-Step Control — 25
+First-Step Control -25
 Independent = 25
 After pause = 18
 Needed prompting = 8
 Could not identify = 0
-Discomfort Tolerance — 25
+Discomfort Tolerance -25
 Stayed inside difficulty = 25
 Tension but continued = 18
 Broke structure = 8
 Avoided = 0
-Rescue Dependence — 20
+Rescue Dependence -20
 No rescue-seeking = 20
 Reassurance only = 14
 Help early = 6
@@ -407,7 +407,7 @@ Transition to Time Pressure Stability. Introduce timed Boss Battles. Maintain st
 Constraint:
 Do not stay in comfort zone.
 
-PHASE 4 — TIME PRESSURE STABILITY
+PHASE 4 -TIME PRESSURE STABILITY
 What matters here
 
 The question is:
@@ -421,7 +421,7 @@ rushing
 breakdown under urgency
 pace without collapse
 process retention under time
-Tutor Observation Block — Time Pressure Stability
+Tutor Observation Block -Time Pressure Stability
 A. Start Under Time
 Started calmly
 Slight delay but started
@@ -448,22 +448,22 @@ Debriefed process under pressure
 Re-anchored structure
 Reduced time intensity appropriately
 Time Pressure Scoring Logic
-Start Under Time — 20
+Start Under Time -20
 Started calmly = 20
 Slight delay = 14
 Visible panic = 6
 Froze = 0
-Structure Under Time — 35
+Structure Under Time -35
 Maintained full method = 35
 Minor loss = 24
 Frequent loss = 10
 Abandoned process = 0
-Pace Control — 20
+Pace Control -20
 Controlled pace = 20
 Slight rush = 14
 Significant rushing = 6
 Panic-driven speed/shutdown = 0
-Completion Integrity — 25
+Completion Integrity -25
 Completed with structure = 25
 Completed with instability = 16
 Partial completion = 8

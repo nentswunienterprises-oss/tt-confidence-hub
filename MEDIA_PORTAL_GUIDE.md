@@ -1,4 +1,4 @@
-# TT Media Portal — Usage Guide
+# TT Media Portal -Usage Guide
 
 ## Access
 
@@ -37,7 +37,7 @@ No blank states. Only structured selection.
 
 ## Slide Types
 
-### SLIDE 1 — THE CONFRONTATION (Hero Slide)
+### SLIDE 1 -THE CONFRONTATION (Hero Slide)
 
 **Font:** Anton  
 **Alignment:** Left, stacked  
@@ -63,7 +63,7 @@ FAILS
 - Right-facing arrow only
 - Directional, not persuasive
 
-### SLIDES 2–N — THE OBSERVATION
+### SLIDES 2–N -THE OBSERVATION
 
 **Font:** Helvetica World / Inter  
 **Alignment:** Center-left aligned block  
@@ -86,10 +86,10 @@ They fail the moment when certainty disappears.
 
 ### Available Colors (Locked)
 
-1. **Dark (#1A1A1A)** — Default text
-2. **Red (#E63946)** — Rupture point (slide 1 only)
-3. **Light Pink (#FFF0F0)** — Subtle emphasis
-4. **Cream (#FFF5ED)** — Background/reversal
+1. **Dark (#1A1A1A)** -Default text
+2. **Red (#E63946)** -Rupture point (slide 1 only)
+3. **Light Pink (#FFF0F0)** -Subtle emphasis
+4. **Cream (#FFF5ED)** -Background/reversal
 
 ### How to Apply Color
 

@@ -1,4 +1,4 @@
-# MPLEM 2.0 — Integrated Pod Wave Strategy (Ops + Business Model Aligned)
+# MPLEM 2.0 -Integrated Pod Wave Strategy (Ops + Business Model Aligned)
 
 ## Executive Summary
 

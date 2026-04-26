@@ -1,4 +1,4 @@
-# Brain Prompts — Strategy Template
+# Brain Prompts -Strategy Template
 
 Use this template when you want an AI or team to plan changes without executing them yet.
 

@@ -1,4 +1,4 @@
-# Brain Context — Glossary & Terminology
+# Brain Context -Glossary & Terminology
 
 Document all terminology, acronyms, and domain language specific to your project.
 

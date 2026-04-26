@@ -1,4 +1,4 @@
-# MPLEM Strategy — Pod Adoption Scenarios & Net Profit Calculation
+# MPLEM Strategy -Pod Adoption Scenarios & Net Profit Calculation
 
 ## MPLEM Strategy Summary
 

@@ -1,5 +1,5 @@
 TT-OS BATTLE TEST: TOPIC CONDITIONING (SCORING VERSION)
-🔹 SECTION A — CORE UNDERSTANDING
+🔹 SECTION A -CORE UNDERSTANDING
 Q1
 
 Explain Topic Conditioning without using the words:
@@ -68,7 +68,7 @@ Fail Answer:
 
 “Because we want to be thorough”
 “Because repetition helps confidence”
-🔹 SECTION B — APPLICATION
+🔹 SECTION B -APPLICATION
 Q6
 
 **Parent says:
@@ -101,7 +101,7 @@ Because the student knows what to do but cannot act reliably and independently.
 
 Fail Answer:
 
-Clarity (wrong — clarity already present)
+Clarity (wrong -clarity already present)
 Controlled Discomfort (too advanced)
 Q8
 
@@ -147,7 +147,7 @@ Fail Answer:
 
 “It sounds negative”
 “It hurts confidence”
-🔹 SECTION C — PRESSURE SCENARIOS
+🔹 SECTION C -PRESSURE SCENARIOS
 Scenario 1
 
 **Student says:
@@ -175,7 +175,7 @@ Scenario 2
 👉 How do you respond (without breaking TT doctrine)?**
 
 Expected Answer:
-Explain that repetition alone is not the goal — stable execution under pressure is. Progress happens only when response is reliable.
+Explain that repetition alone is not the goal -stable execution under pressure is. Progress happens only when response is reliable.
 
 Fail Answer:
 
@@ -211,7 +211,7 @@ cannot explain steps clearly
 
 Expected Answer:
 Hold.
-Because clarity is incomplete — response is not reliable.
+Because clarity is incomplete -response is not reliable.
 
 Fail Answer:
 

@@ -1,6 +1,6 @@
-# MPLEM — The 6‑Seater Pod Wave Strategy
+# MPLEM -The 6‑Seater Pod Wave Strategy
 
-The Multi Pod‑Launching Expansion Model (MPLEM) is the financial and operational system that powers Territorial Tutoring’s 6‑Seater Pod Wave Strategy — a scalable, self‑funding expansion engine that grows predictably without increasing structural company costs.
+The Multi Pod‑Launching Expansion Model (MPLEM) is the financial and operational system that powers Territorial Tutoring’s 6‑Seater Pod Wave Strategy -a scalable, self‑funding expansion engine that grows predictably without increasing structural company costs.
 
 MPLEM = one backbone + many profit engines + no scaling friction.
 
@@ -12,7 +12,7 @@ The MPLEM is the financial and operational blueprint that makes each pod a repro
 
 ---
 
-## 2. The 6‑Seater Pod — Design Explained
+## 2. The 6‑Seater Pod -Design Explained
 
 Each 6‑Seater Pod is a self‑contained revenue unit built around 10 certified tutors, each tutoring up to 6 students per month.
 
@@ -27,20 +27,20 @@ TT commission per tutor | **R1,500 (R250 × 6)**
 TT commission per pod (monthly) | **R15,000 (R250 × 60)**
 Pod lifespan (launch to full cycle) | **9 months**
 
-This standardised pod design allows TT to scale consistently and measurably — every pod runs the same operating system and produces the same predictable yield.
+This standardised pod design allows TT to scale consistently and measurably -every pod runs the same operating system and produces the same predictable yield.
 
 ---
 
 ## 3. How MPLEM Powers the Pod Waves
 
-### Step 1 — Outreach ignition
+### Step 1 -Outreach ignition
 
 - Each 6‑Seater Pod requires 60 students.
 - Outreach cost is **R100 per student** (affiliate/referral distribution). 
 - Pod outreach (one‑time, pre‑launch) = **R100 × 60 = R6,000**.
 - Outreach sales crew secure early parent commitments 2–3 months before launch.
 
-### Step 2 — Activate Foundation Pod (F‑Pod)
+### Step 2 -Activate Foundation Pod (F‑Pod)
 
 - Every wave begins with one F‑Pod.
 - The F‑Pod’s job: cover the fixed company operations stack while financed pods scale the ecosystem.
@@ -67,7 +67,7 @@ Monthly TT commission per pod | **R15,000**
 Outreach cost (one‑time) | **R6,000**
 9‑month net per financed pod (after outreach) | **R135,000 − R6,000 = R129,000**
 
-Financed Pods are pure yield — they pay back their outreach cost and produce long‑term margin.
+Financed Pods are pure yield -they pay back their outreach cost and produce long‑term margin.
 
 ---
 
@@ -107,7 +107,7 @@ These scenarios show geometric scaling where each financed pod is highly accreti
 - Operations are fixed: **R5,000 / month** regardless of pod count.
 - Distributed affiliate network supplies low‑friction recruitment (teachers, parents, students, local reps).
 - Each financed pod adds **R129,000 net profit** over a 9‑month cycle.
-- Outreach is repaid from pod yield — expansion does not draw on company reserves.
+- Outreach is repaid from pod yield -expansion does not draw on company reserves.
 
 ---
 

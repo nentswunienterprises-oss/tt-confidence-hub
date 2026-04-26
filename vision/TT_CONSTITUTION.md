@@ -3,13 +3,13 @@
 
 **(Internal. Non‑negotiable.)**
 
-This constitution governs how TT is built, scaled, automated, staffed, and delivered — regardless of tools, vendors, or future leadership.
+This constitution governs how TT is built, scaled, automated, staffed, and delivered -regardless of tools, vendors, or future leadership.
 
 ---
 
 ### ARTICLE I: FOUNDATIONAL TRUTH (WHY TECH EXISTS)
 
-TT technology exists to condition execution under pressure — not to deliver content, convenience, or dopamine.
+TT technology exists to condition execution under pressure -not to deliver content, convenience, or dopamine.
 
 Therefore:
 
@@ -204,7 +204,7 @@ When building your webapp, ops stack, or workflows, you ask:
 - Does this respect schools as institutions?
 - Does this protect leadership standards?
 
-If the answer to any is no — you don’t build it.
+If the answer to any is no -you don’t build it.
 
 ---
 

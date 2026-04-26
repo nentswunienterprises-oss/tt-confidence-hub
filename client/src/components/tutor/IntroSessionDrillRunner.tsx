@@ -1648,7 +1648,7 @@ export default function IntroSessionDrillRunner() {
       </div>
       )}
 
-      {/* Phase-level context bar — shown only on set 1 */}
+      {/* Phase-level context bar -shown only on set 1 */}
       {isFirstSet && isFirstRep && <div className="mb-4 p-3 rounded-xl border border-primary/20 bg-primary/5 text-sm">
         <div className="font-semibold text-foreground mb-1">Phase: {displayPhase}</div>
         <div className="text-muted-foreground text-xs mb-2">{PHASE_CONTEXT[displayPhase].purpose}</div>
@@ -1671,7 +1671,7 @@ export default function IntroSessionDrillRunner() {
         </div>
       )}
 
-      {/* Set context block — purpose, rep instruction, active rules */}
+      {/* Set context block -purpose, rep instruction, active rules */}
       <div className="mb-4 p-3 rounded-xl border border-primary/15 bg-background shadow-sm">
         <div className="flex items-center justify-between mb-2">
           <div className="font-semibold text-sm flex items-center gap-2">

@@ -1,4 +1,4 @@
-# Brain Memory — Constraints
+# Brain Memory -Constraints
 
 Answer these questions to document the hard rules and constraints that must be enforced during development and automation.
 

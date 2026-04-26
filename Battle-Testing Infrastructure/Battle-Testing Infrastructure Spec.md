@@ -92,16 +92,16 @@ TD selects:
 
 Short note (only for FAIL or PARTIAL)
 🔁 WEEKLY RITUAL FLOW
-Step 1 — Run Battle Test
+Step 1 -Run Battle Test
 TD runs full question set
 Tutor answers live (no prep)
-Step 2 — Log Rep by Rep
+Step 2 -Log Rep by Rep
 TD selects CLEAR / PARTIAL / FAIL per question
-Step 3 — System Calculates
+Step 3 -System Calculates
 Section scores
 Total alignment %
 Alignment state
-Step 4 — Immediate Outcome
+Step 4 -Immediate Outcome
 If 🟢 LOCKED
 Continue
 Eligible for more responsibility

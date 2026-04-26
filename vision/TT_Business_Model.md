@@ -1,10 +1,10 @@
-# TT Business Model — Territorial Tutoring (Current Evolution)
+# TT Business Model -Territorial Tutoring (Current Evolution)
 
 ## Who we are (evolution)
 
-Building Territorial Tutoring as an education institution that connects high schools and primary schools to solve a problem neither can fix alone. High schools nominate their top, most disciplined students to be selected into TT as an elite academic leadership programme — similar to debate or sport, but with strict standards and zero tolerance for academic decline. These students are trained to execute under pressure and to lead others, addressing a real concern schools face: learners leaving with degrees but no execution skills.
+Building Territorial Tutoring as an education institution that connects high schools and primary schools to solve a problem neither can fix alone. High schools nominate their top, most disciplined students to be selected into TT as an elite academic leadership programme -similar to debate or sport, but with strict standards and zero tolerance for academic decline. These students are trained to execute under pressure and to lead others, addressing a real concern schools face: learners leaving with degrees but no execution skills.
 
-Primary schools, on the other hand, struggle with capable learners who understand the work but panic, rush, or freeze in exams because they were never trained to perform under pressure. Classroom teachers can’t condition individual responses at scale. TT fills that gap by placing trained high school leaders as one-on-one response-conditioning tutors for Grade 6–7 learners, helping them stay calm, think clearly, and execute in exam conditions. TT doesn’t replace schools or teachers — it trains execution. It creates the conditions that prepare students for pressure before failure becomes identity.
+Primary schools, on the other hand, struggle with capable learners who understand the work but panic, rush, or freeze in exams because they were never trained to perform under pressure. Classroom teachers can’t condition individual responses at scale. TT fills that gap by placing trained high school leaders as one-on-one response-conditioning tutors for Grade 6–7 learners, helping them stay calm, think clearly, and execute in exam conditions. TT doesn’t replace schools or teachers -it trains execution. It creates the conditions that prepare students for pressure before failure becomes identity.
 
 ---
 
@@ -38,7 +38,7 @@ By the time learners reach high school:
 - The cost of correction has multiplied
 - Identity has begun to harden
 
-High schools are expected to fix what should have been trained earlier. That expectation is structurally unfair — and nationally unsustainable.
+High schools are expected to fix what should have been trained earlier. That expectation is structurally unfair -and nationally unsustainable.
 
 ---
 
@@ -46,11 +46,11 @@ High schools are expected to fix what should have been trained earlier. That exp
 
 Territorial Tutoring is not a tutoring company.
 
-We are an external academic leadership institution that enables high schools to solve a primary-school problem — upstream.
+We are an external academic leadership institution that enables high schools to solve a primary-school problem -upstream.
 
 Instead of treating symptoms in Grade 9–12, we help high schools:
 
-- Deploy their top students as trained response-conditioning leaders for primary learners — before panic habits form.
+- Deploy their top students as trained response-conditioning leaders for primary learners -before panic habits form.
 
 This is not charity.
 This is infrastructure.
@@ -61,7 +61,7 @@ This is infrastructure.
 
 1. High Schools Nominate Their Top Students
 
-High-performing, high-potential learners are selected — not recruited.
+High-performing, high-potential learners are selected -not recruited.
 
 They are recognised as:
 
@@ -159,7 +159,7 @@ This institution creates:
 - Early intervention without stigma
 - Education that restores dignity through competence
 
-This is how systems heal — not through speeches, but through structure.
+This is how systems heal -not through speeches, but through structure.
 
 ---
 
@@ -190,7 +190,7 @@ It is deliberate institution-building.
 
 ## The one-sentence positioning 
 
-**Territorial Tutoring enables high schools to develop academic leaders who prevent failure upstream — before panic becomes identity.**
+**Territorial Tutoring enables high schools to develop academic leaders who prevent failure upstream -before panic becomes identity.**
 
 ---
 
@@ -212,7 +212,7 @@ Territorial Tutoring runs a structured online math mentorship programme for Grad
 We don’t rely on personality, motivation, or talent alone.
 We rely on clear systems, repetition, and standards.
 
-As a System Executor, your job is to run that system precisely — every session, every student.
+As a System Executor, your job is to run that system precisely -every session, every student.
 
 ### What you’ll actually do
 
@@ -271,7 +271,7 @@ Earnings increase with consistency and student load
 
 Top performers grow into leadership roles
 
-You earn more by executing better — not by talking more.
+You earn more by executing better -not by talking more.
 
 ---
 
@@ -290,7 +290,7 @@ We don’t motivate.
 We don’t babysit.
 We don’t lower expectations.
 
-If you execute the system, results follow — for you and your students.
+If you execute the system, results follow -for you and your students.
 
 ---
 
@@ -362,7 +362,7 @@ What changes is frequency, density, and pressure exposure.
 
 ## The three offers
 
-### STANDARD — Response Stability Track
+### STANDARD -Response Stability Track
 Stabilizes the base.
 
 **Who it’s for**
@@ -391,7 +391,7 @@ TT: R150
 
 Role it plays in the system: This is stability, not growth. No pressure exposure. No performance expectations. Just response repair.
 
-### PREMIUM — Response Conditioning Track
+### PREMIUM -Response Conditioning Track
 Makes reliable execution inevitable.
 
 **Who it’s for**
@@ -422,7 +422,7 @@ TT: R250
 
 Role it plays in the system: This is where inevitability is built. Understanding becomes reliable behavior. This should be the center of gravity.
 
-### PRO — Exam Response Conditioning Track
+### PRO -Exam Response Conditioning Track
 Train under real pressure until execution is automatic.
 
 **Who it’s for**
@@ -486,7 +486,7 @@ Exams stop feeling like ambushes. Performance stabilizes across terms. Parents s
 
 TT does not sell: Math help, motivation, confidence, marks guarantees.
 
-TT sells: The removal of response breakdown under pressure — the ability to execute calmly when certainty disappears.
+TT sells: The removal of response breakdown under pressure -the ability to execute calmly when certainty disappears.
 
 Math is the arena. Response is the craft. Pressure is the environment.
 
@@ -528,7 +528,7 @@ Parents don’t want inspiration. They want relief that doesn’t collapse under
 
 Old framing (insufficient): “Students lack confidence in math.”
 
-Real problem: Students know what to do — but can’t execute when it matters.
+Real problem: Students know what to do -but can’t execute when it matters.
 
 Symptoms: Freezing in tests; rushing under time pressure; second-guessing correct methods; emotional spikes that break logic.
 
@@ -554,12 +554,12 @@ TT does not hype. TT does not soothe. TT does not perform warmth. It speaks the 
 
 ### What TT’s tone is
 
-1. Calm Under Pressure — Nothing sounds rushed; nothing sounds reactive. No exclamation marks.
-2. Precise, Minimal Language — Short lines; clean verbs; no filler.
-3. Observational, Not Persuasive — “Here’s what we train instead.” No claims, no promises.
-4. Neutral, Not Sympathetic — “This is a normal response pattern. It’s untrained, not broken. Training fixes this.”
-5. Disciplined, Not Friendly — Respectful, not chatty. No slang, no emojis.
-6. Quietly Confrontational — Names truths people already feel but avoid saying.
+1. Calm Under Pressure -Nothing sounds rushed; nothing sounds reactive. No exclamation marks.
+2. Precise, Minimal Language -Short lines; clean verbs; no filler.
+3. Observational, Not Persuasive -“Here’s what we train instead.” No claims, no promises.
+4. Neutral, Not Sympathetic -“This is a normal response pattern. It’s untrained, not broken. Training fixes this.”
+5. Disciplined, Not Friendly -Respectful, not chatty. No slang, no emojis.
+6. Quietly Confrontational -Names truths people already feel but avoid saying.
 
 ### What TT’s tone is NOT (banned)
 
@@ -580,7 +580,7 @@ The aesthetic should feel like: “Someone serious is here.” Not cold. Not fri
 
 ## The real problem primary schools are facing (and why it shows up too late)
 
-Primary schools do not primarily struggle with poor teaching, weak curriculum, or lack of resources. They struggle with something quieter — and more dangerous: capable students who understand the work but stop executing when pressure appears.
+Primary schools do not primarily struggle with poor teaching, weak curriculum, or lack of resources. They struggle with something quieter -and more dangerous: capable students who understand the work but stop executing when pressure appears.
 
 What schools observe (but can’t systematically fix):
 
@@ -596,10 +596,10 @@ The actual failure mode: The student’s response system is untrained. When time
 
 Why primary schools cannot solve this alone:
 
-- Classroom scale — one teacher cannot condition 30 individual response patterns.
-- Curriculum pressure — schools must move forward, not sit inside discomfort.
-- Assessment design — tests reveal breakdown, they do not train response to breakdown.
-- Emotional constraints — schools are incentivised to soothe, not deliberately stress.
+- Classroom scale -one teacher cannot condition 30 individual response patterns.
+- Curriculum pressure -schools must move forward, not sit inside discomfort.
+- Assessment design -tests reveal breakdown, they do not train response to breakdown.
+- Emotional constraints -schools are incentivised to soothe, not deliberately stress.
 
 What happens if this isn’t addressed early:
 
@@ -637,8 +637,8 @@ Primary schools already outsource sports coaching, speech and occupational thera
 
 - Early intervention without stigma
 - Behavioural change teachers notice: less panic, slower work, clearer reasoning, improved exam posture
-- Parent pressure relief — schools can say, “We referred your child to a structured support program.”
-- Long-term outcome protection — students transition to high school without panic-based habits
+- Parent pressure relief -schools can say, “We referred your child to a structured support program.”
+- Long-term outcome protection -students transition to high school without panic-based habits
 
 ---
 
@@ -655,7 +655,7 @@ Primary schools already outsource sports coaching, speech and occupational thera
 
 We are not competing with schools. We are not correcting schools. We are not replacing schools.
 
-We exist to catch a failure mode early — before it becomes academic identity damage.
+We exist to catch a failure mode early -before it becomes academic identity damage.
 
 That makes this responsible. That makes it institutional. That makes it necessary.
 
@@ -681,7 +681,7 @@ Clear problem setup; slow, deliberate execution; verbalised thinking; correction
 Yes, but as material for training response. The focus is how the student approaches and recovers from mistakes.
 
 **Is TT too strict or intense for younger students?**
-TT is disciplined, not harsh — no humiliation or shouting. There are standards: think slowly, explain reasoning, stay present when uncomfortable.
+TT is disciplined, not harsh -no humiliation or shouting. There are standards: think slowly, explain reasoning, stay present when uncomfortable.
 
 **How do Pods work?**
 Small, structured groups led by a trained tutor and overseen by a Territory Director. Limited size, fixed schedules, same doctrine. Scarcity exists by design.
@@ -693,7 +693,7 @@ Selected, trained, evaluated on response discipline, supervised continuously. Tu
 Primary metrics: response speed under uncertainty, error recovery, verbal clarity, time discipline. Behavioural shifts appear in 2–4 weeks; academic improvement follows.
 
 **Is TT only for struggling students?**
-No. TT is for anxious students, average students, and high performers who collapse under pressure — anyone seeking reliable execution.
+No. TT is for anxious students, average students, and high performers who collapse under pressure -anyone seeking reliable execution.
 
 **Is TT aligned with the school curriculum?**
 Yes. We work within the syllabus and train how students engage with it.
@@ -703,7 +703,7 @@ We do not cram before exams, inflate confidence artificially, chase motivation, 
 
 ---
 
-## Outcome summary — Who your child becomes
+## Outcome summary -Who your child becomes
 
 - Someone who doesn’t freeze: stays calm and executes when the question breaks expectation
 - Someone parents trust: predictable performance, less micromanagement

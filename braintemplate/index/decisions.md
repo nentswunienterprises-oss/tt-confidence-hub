@@ -1,4 +1,4 @@
-# Brain Index — Decision Log & Architecture Decision Records (ADRs)
+# Brain Index -Decision Log & Architecture Decision Records (ADRs)
 
 Track major technical decisions made in the project. This helps future developers understand the "why" behind the current architecture.
 

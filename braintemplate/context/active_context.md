@@ -1,4 +1,4 @@
-# Brain Context — Current State & Decisions
+# Brain Context -Current State & Decisions
 
 Answer these questions to capture the current state, known problems, and active decision-making context for your project.
 

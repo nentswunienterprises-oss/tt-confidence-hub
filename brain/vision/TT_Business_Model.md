@@ -1,10 +1,10 @@
-# TT Business Model — Territorial Tutoring (Current Evolution)
+# TT Business Model -Territorial Tutoring (Current Evolution)
 
 ## Who we are (evolution)
 
-Building Territorial Tutoring as an education institution that connects high schools and primary schools to solve a problem neither can fix alone. High schools nominate their top, most disciplined students to be selected into TT as an elite academic leadership programme — similar to debate or sport, but with strict standards and zero tolerance for academic decline. These students are trained to execute under pressure and to lead others, addressing a real concern schools face: learners leaving with degrees but no execution skills.
+Building Territorial Tutoring as an education institution that connects high schools and primary schools to solve a problem neither can fix alone. High schools nominate their top, most disciplined students to be selected into TT as an elite academic leadership programme -similar to debate or sport, but with strict standards and zero tolerance for academic decline. These students are trained to execute under pressure and to lead others, addressing a real concern schools face: learners leaving with degrees but no execution skills.
 
-Primary schools, on the other hand, struggle with capable learners who understand the work but panic, rush, or freeze in exams because they were never trained to perform under pressure. Classroom teachers can’t condition individual responses at scale. TT fills that gap by placing trained high school leaders as one-on-one response-conditioning tutors for Grade 6–7 learners, helping them stay calm, think clearly, and execute in exam conditions. TT doesn’t replace schools or teachers — it trains execution. It creates the conditions that prepare students for pressure before failure becomes identity.
+Primary schools, on the other hand, struggle with capable learners who understand the work but panic, rush, or freeze in exams because they were never trained to perform under pressure. Classroom teachers can’t condition individual responses at scale. TT fills that gap by placing trained high school leaders as one-on-one response-conditioning tutors for Grade 6–7 learners, helping them stay calm, think clearly, and execute in exam conditions. TT doesn’t replace schools or teachers -it trains execution. It creates the conditions that prepare students for pressure before failure becomes identity.
 
 ---
 
@@ -38,7 +38,7 @@ By the time learners reach high school:
 - The cost of correction has multiplied
 - Identity has begun to harden
 
-High schools are expected to fix what should have been trained earlier. That expectation is structurally unfair — and nationally unsustainable.
+High schools are expected to fix what should have been trained earlier. That expectation is structurally unfair -and nationally unsustainable.
 
 ---
 
@@ -46,11 +46,11 @@ High schools are expected to fix what should have been trained earlier. That exp
 
 Territorial Tutoring is not a tutoring company.
 
-We are an external academic leadership institution that enables high schools to solve a primary-school problem — upstream.
+We are an external academic leadership institution that enables high schools to solve a primary-school problem -upstream.
 
 Instead of treating symptoms in Grade 9–12, we help high schools:
 
-- Deploy their top students as trained response-conditioning leaders for primary learners — before panic habits form.
+- Deploy their top students as trained response-conditioning leaders for primary learners -before panic habits form.
 
 This is not charity.
 This is infrastructure.
@@ -61,7 +61,7 @@ This is infrastructure.
 
 1. High Schools Nominate Their Top Students
 
-High-performing, high-potential learners are selected — not recruited.
+High-performing, high-potential learners are selected -not recruited.
 
 They are recognised as:
 
@@ -191,7 +191,7 @@ It is deliberate institution-building.
 
 ## The one-sentence positioning (place under the logo)
 
-**Territorial Tutoring enables high schools to develop academic leaders who prevent failure upstream — before panic becomes identity.**
+**Territorial Tutoring enables high schools to develop academic leaders who prevent failure upstream -before panic becomes identity.**
 
 ---
 
@@ -214,7 +214,7 @@ Territorial Tutoring runs a structured online math mentorship programme for Grad
 We don’t rely on personality, motivation, or talent alone.
 We rely on clear systems, repetition, and standards.
 
-As an Academic Response Mentor, your job is to operate the TT protocol precisely — every session, every student.
+As an Academic Response Mentor, your job is to operate the TT protocol precisely -every session, every student.
 
 ### What you’ll actually do
 
@@ -1244,23 +1244,23 @@ responsibility creates composure
 If those ideas make immediate sense to you, you may belong here.
 
 Application Process
-Step 1 — Apply
+Step 1 -Apply
 
 Submit your application and basic details.
 
-Step 2 — Screening
+Step 2 -Screening
 
 We review for alignment, seriousness, and potential.
 
-Step 3 — Selection
+Step 3 -Selection
 
 A small number of applicants are chosen for the founding cohort.
 
-Step 4 — Training
+Step 4 -Training
 
 Selected applicants begin TT doctrine and tutor training.
 
-Step 5 — Qualification Pathway
+Step 5 -Qualification Pathway
 
 Tutors who meet the standard move into real tutoring opportunities.
 

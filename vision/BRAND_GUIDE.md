@@ -1,4 +1,4 @@
-# Territorial Tutoring — Internal Brand Guide (Short)
+# Territorial Tutoring -Internal Brand Guide (Short)
 
 Purpose
 
@@ -6,14 +6,14 @@ Purpose
 
 Core Positioning (always available)
 
-> **Territorial Tutoring enables high schools to develop academic leaders who prevent failure upstream — before panic becomes identity.**
+> **Territorial Tutoring enables high schools to develop academic leaders who prevent failure upstream -before panic becomes identity.**
 
 Tone Pillars (non-negotiable)
 
-- **Calm** — measured, steady, never frantic.
-- **Precise** — short lines, clear verbs, no filler.
-- **Observational** — describe behaviour and systems; avoid persuasion theatre.
-- **Disciplined** — clinical about standards; avoid warmth as a crutch.
+- **Calm** -measured, steady, never frantic.
+- **Precise** -short lines, clear verbs, no filler.
+- **Observational** -describe behaviour and systems; avoid persuasion theatre.
+- **Disciplined** -clinical about standards; avoid warmth as a crutch.
 
 Quick Rules
 
@@ -42,12 +42,12 @@ Hero & CTA examples (ready-to-use)
   CTA: **Apply / Refer a School**
 
 - Headline: **We don’t teach confidence. We make it inevitable.**
-  Subhead: *A system that trains how students respond when math gets hard — not another tutoring app.*
+  Subhead: *A system that trains how students respond when math gets hard -not another tutoring app.*
   CTA: **See the Pilot**
 
 Tutor ad microcopy (50–75 words)
 
-- *Selected high‑school students are trained as System Executors. Earn R3,500–R5,000/mo while learning elite cognitive and leadership skills. Not casual tutoring — you execute a precise system. Apply now.*
+- *Selected high‑school students are trained as System Executors. Earn R3,500–R5,000/mo while learning elite cognitive and leadership skills. Not casual tutoring -you execute a precise system. Apply now.*
 
 School pilot microcopy (short)
 
@@ -68,7 +68,7 @@ Reviewer Checklist (3 items)
 
 Enforcement rule
 
-- If a piece of copy cannot be read slowly and calmly without losing impact — it fails. Rewrite until it holds.
+- If a piece of copy cannot be read slowly and calmly without losing impact -it fails. Rewrite until it holds.
 
 Where to use this guide
 

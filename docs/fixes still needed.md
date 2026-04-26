@@ -1,4 +1,4 @@
-✅ SINGLE TOPIC — FINAL LOCKED FORMAT
+✅ SINGLE TOPIC -FINAL LOCKED FORMAT
 Kwenadi Training Plan
 
 Live Operating Plan
@@ -7,7 +7,7 @@ Current Focus
 
 Kwenadi is currently training in {topic}.
 
-She is operating at {phase} ({stability}) — meaning {clean translated meaning}.
+She is operating at {phase} ({stability}) -meaning {clean translated meaning}.
 
 Current Position
 
@@ -82,7 +82,7 @@ We’re pulling it back to:
 
 🔥 MULTI-TOPIC (STRICTLY MATCHING SAME STYLE)
 
-Same philosophy — just modular.
+Same philosophy -just modular.
 
 Current Focus
 
@@ -92,11 +92,11 @@ Each topic is being handled based on its current position.
 
 Linear Equations
 
-She is operating at Structured Execution (High Maintenance) — meaning she is consistently applying the correct method, and we are confirming that it holds under repetition.
+She is operating at Structured Execution (High Maintenance) -meaning she is consistently applying the correct method, and we are confirming that it holds under repetition.
 
 Fractions
 
-She is operating at Clarity (Medium) — meaning she is still building reliable recognition of what the question is asking and how to approach it.
+She is operating at Clarity (Medium) -meaning she is still building reliable recognition of what the question is asking and how to approach it.
 
 Current Position
 
@@ -137,7 +137,7 @@ Follow the exact section naming and order.
 
 approved clean version:
 
-Rewritten Version (Single Topic — Clean, Natural, Still Precise)
+Rewritten Version (Single Topic -Clean, Natural, Still Precise)
 
 Here’s how this should actually read:
 
@@ -148,11 +148,11 @@ Live Operating Plan
 Current Focus
 Kwenadi is currently training in Linear Equations.
 
-She is operating at Structured Execution (High Maintenance) — meaning she is consistently applying the correct method without breakdown.
+She is operating at Structured Execution (High Maintenance) -meaning she is consistently applying the correct method without breakdown.
 
 Current Position
 
-Kwenadi is no longer learning how to solve — she is now proving that her execution holds under repetition.
+Kwenadi is no longer learning how to solve -she is now proving that her execution holds under repetition.
 
 We are running maintenance checks to confirm that this stability is reliable enough to introduce pressure.
 

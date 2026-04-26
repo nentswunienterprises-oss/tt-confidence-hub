@@ -5,8 +5,8 @@ Fill out this template whenever you start a Brain cycle so the system has a clea
 - CURRENT GOAL: (One sentence description of the goal)
 
 - RELEVANT MODULES / FILES:
-  - `client/src/...` — (why it's relevant)
-  - `server/...` — (notes)
+  - `client/src/...` -(why it's relevant)
+  - `server/...` -(notes)
 
 - ASSUMPTIONS:
   - (List assumptions the Brain should take as given)

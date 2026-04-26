@@ -6,18 +6,18 @@ This document provides a complete, unambiguous breakdown of the PodDigitizer tra
 ## Phases in the System (4 Total)
 The system defines four sequential phases for topic conditioning:
 
-1. **Clarity** — Establish vocabulary, method, and reason through full 3-Layer Lens (modeling + vocabulary + reason + light apply)
-2. **Structured Execution** — Force consistent step-by-step method execution structure without help
-3. **Controlled Discomfort** — Introduce Boss Battles (uncertainty) while maintaining structure
-4. **Time Pressure Stability** — Sustain structure under time constraint + begin cross-topic transfer preparation
+1. **Clarity** -Establish vocabulary, method, and reason through full 3-Layer Lens (modeling + vocabulary + reason + light apply)
+2. **Structured Execution** -Force consistent step-by-step method execution structure without help
+3. **Controlled Discomfort** -Introduce Boss Battles (uncertainty) while maintaining structure
+4. **Time Pressure Stability** -Sustain structure under time constraint + begin cross-topic transfer preparation
 
 ## Stability States and Transitions (4 Levels)
 The system uses four stability states that represent a student's consistency level:
 
-- **Low** — Unstable, frequent breakdowns
-- **Medium** — Bridge state, inconsistent execution
-- **High** — Stable, meets threshold for repeatability check
-- **High Maintenance** — Confirmed repeatable stability (gates phase advancement)
+- **Low** -Unstable, frequent breakdowns
+- **Medium** -Bridge state, inconsistent execution
+- **High** -Stable, meets threshold for repeatability check
+- **High Maintenance** -Confirmed repeatable stability (gates phase advancement)
 
 ### Transition Rules (Based on Session Score 0-100)
 
@@ -267,7 +267,7 @@ This means: High cannot directly advance phase. It must first reach High Mainten
 
 3. **Database Drill Registry**: Create `drills` table with drill_id, phase, stability_band, set structure (reps, rep type, difficulty), observation block IDs, scoring logic, state update rules.
 
-4. **Cross-Topic Transfer Intelligence**: When topic reaches Time Pressure Stability + High Maintenance, flag similar topics for "accelerated onboarding" — skip Clarity, start in Structured Execution.
+4. **Cross-Topic Transfer Intelligence**: When topic reaches Time Pressure Stability + High Maintenance, flag similar topics for "accelerated onboarding" -skip Clarity, start in Structured Execution.
 
 5. **Auto-Regression Safeguard**: Implement 3-strike regression where 3+ consecutive Low scores auto-regress stability by 1 level, persisted across sessions.
 
@@ -277,7 +277,7 @@ This means: High cannot directly advance phase. It must first reach High Mainten
 
 ## Database Schema References
 
-- **Proposal (diagnosis entry)**: `onboarding_proposals` — stores `topicConditioningTopic`, `topicConditioningEntryPhase`, `topicConditioningStability`
+- **Proposal (diagnosis entry)**: `onboarding_proposals` -stores `topicConditioningTopic`, `topicConditioningEntryPhase`, `topicConditioningStability`
 - **Live topic state**: `students.conceptMastery` JSONB with `topicConditioning.topics` map
 - **Topic activations**: `topic_conditioning_activations` table
 - **Reports**: `parent_reports` table

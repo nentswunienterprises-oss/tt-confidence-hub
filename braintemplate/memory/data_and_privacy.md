@@ -1,4 +1,4 @@
-# Brain Memory — Data & Privacy
+# Brain Memory -Data & Privacy
 
 Document how data is handled, protected, and managed in your system.
 

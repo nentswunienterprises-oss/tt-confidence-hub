@@ -1,4 +1,4 @@
-# Brain Context — Team & Ownership
+# Brain Context -Team & Ownership
 
 Document who is responsible for different parts of the project and how decisions are made.
 

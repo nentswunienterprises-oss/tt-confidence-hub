@@ -5,7 +5,7 @@ This is NOT the full Clarity session.
 This is a compressed probe.
 
 TOTAL = 6 problems
-SET 1 — RECOGNITION PROBE (3 problems)
+SET 1 -RECOGNITION PROBE (3 problems)
 
 Student does NOT solve.
 
@@ -31,7 +31,7 @@ Response behavior
 ☐ avoids
 ☐ unsure
 ☐ engages
-SET 2 — LIGHT APPLY PROBE (3 problems)
+SET 2 -LIGHT APPLY PROBE (3 problems)
 
 Student attempts solving.
 

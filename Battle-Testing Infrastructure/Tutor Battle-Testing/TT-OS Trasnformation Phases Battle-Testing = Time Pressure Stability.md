@@ -1,5 +1,5 @@
 TT-OS BATTLE TEST: TIME PRESSURE STABILITY (SCORING VERSION)
-🔹 SECTION A — CORE UNDERSTANDING
+🔹 SECTION A -CORE UNDERSTANDING
 Q1
 
 What is the purpose of Time Pressure Stability in TT, in one sentence?
@@ -56,7 +56,7 @@ Fail Answer:
 
 “It builds on previous phases”
 “It tests everything together” (too vague)
-🔹 SECTION B — APPLICATION
+🔹 SECTION B -APPLICATION
 Q6
 
 A student starts rushing and skipping steps as soon as the timer starts.
@@ -114,7 +114,7 @@ Fail Answer:
 
 “They made a mistake”
 “They need more practice”
-🔹 SECTION C — PRESSURE SCENARIOS
+🔹 SECTION C -PRESSURE SCENARIOS
 Scenario 1
 
 Tutor says: “Faster, faster, you’re running out of time!”
@@ -159,7 +159,7 @@ Structure. Completion without structure is meaningless, but structure can be imp
 Fail Answer:
 
 “Completion matters more”
-🔹 SECTION D — RED FLAG RESPONSES
+🔹 SECTION D -RED FLAG RESPONSES
 
 Auto-fail signals:
 

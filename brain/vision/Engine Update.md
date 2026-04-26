@@ -73,7 +73,7 @@ stability_after
 transition
 next_action
 dominant observation pattern
-OUTPUT STRUCTURE (UNCHANGED — JUST SOURCE CHANGED)
+OUTPUT STRUCTURE (UNCHANGED -JUST SOURCE CHANGED)
 1. Session Scope
 
 This session covered:
@@ -124,7 +124,7 @@ This means the student is:
 Next session will focus on:
 [next actions per topic]
 
-2. WEEKLY REPORT (UPDATED — TOPIC-CENTERED)
+2. WEEKLY REPORT (UPDATED -TOPIC-CENTERED)
 Purpose
 
 Show topic conditioning progress across drills over the week
@@ -200,7 +200,7 @@ From latest drill state:
 Next week will focus on:
 [Next Action Engine outputs per topic]
 
-3. MONTHLY REPORT (UPDATED — TOPIC-CENTERED)
+3. MONTHLY REPORT (UPDATED -TOPIC-CENTERED)
 Purpose
 
 Show topic progression across time using drill-driven state changes
@@ -475,7 +475,7 @@ dependence on help
 
 Do not allow generic free phrases not tied to source observations.
 
-LOCKED REPORT STRUCTURE (FINAL — DO NOT CHANGE)
+LOCKED REPORT STRUCTURE (FINAL -DO NOT CHANGE)
 SESSION SUMMARY
 Topic + Focus
 What Was Trained
@@ -501,7 +501,7 @@ Recurring Challenge
 System Outcome
 Current State Snapshot
 Next Month Focus
-NOW — DEV SPEC (CLEAN, NO DRIFT)
+NOW -DEV SPEC (CLEAN, NO DRIFT)
 1. GENERATION SOURCE (NON-NEGOTIABLE)
 
 All report sections must generate from:
@@ -574,7 +574,7 @@ From:
 
 next_action_engine output
 WEEKLY REPORT
-TOPIC-CENTERED — NOT SESSION-CENTERED
+TOPIC-CENTERED -NOT SESSION-CENTERED
 1. Topics Worked On
 
 Unique topics with drills that week.
@@ -619,7 +619,7 @@ From:
 
 latest next_action per topic
 MONTHLY REPORT
-TOPIC-CENTERED — AGGREGATED FROM DRILLS
+TOPIC-CENTERED -AGGREGATED FROM DRILLS
 1. Topics Conditioned
 
 All topics trained during month.

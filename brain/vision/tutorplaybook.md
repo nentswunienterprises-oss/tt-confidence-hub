@@ -1,5 +1,5 @@
 TERRITORIAL TUTORING
-Tutor Playbook — Core Protocols
+Tutor Playbook -Core Protocols
 
 This document defines how every TT tutor operates.
 
@@ -11,7 +11,7 @@ Tutors do not improvise teaching styles.
 
 They execute the TT protocol.
 
-PART 1 — THE INTRO SESSION
+PART 1 -THE INTRO SESSION
 Purpose
 
 The Intro Session has only three objectives:
@@ -31,7 +31,7 @@ The session runs in three phases.
 1. Orientation
 2. Surface the Pattern
 3. Diagnose the Layer
-Phase 1 — Orientation
+Phase 1 -Orientation
 
 Goal: Establish the working tone and remove performance anxiety.
 
@@ -53,7 +53,7 @@ Do not over-personalize this conversation.
 
 The goal is clarity, not therapy.
 
-Phase 2 — Surface the Pattern
+Phase 2 -Surface the Pattern
 
 Now focus directly on math.
 
@@ -69,7 +69,7 @@ Write down two problem areas.
 
 These will guide the diagnostic.
 
-Phase 3 — Diagnose the Layer
+Phase 3 -Diagnose the Layer
 
 Give the student 1–2 short problems related to the topics they mentioned.
 
@@ -113,7 +113,7 @@ How the student responds when confused
 
 This becomes the starting point for the Transformation Process.
 
-PART 2 — THE TRANSFORMATION PROCESS
+PART 2 -THE TRANSFORMATION PROCESS
 
 The Transformation Process is how TT conditions reliable responses to difficult math problems.
 
@@ -131,7 +131,7 @@ Conditioned Response
 
 Each component serves a specific purpose.
 
-1 — The 3-Layer Lens
+1 -The 3-Layer Lens
 
 The 3-Layer Lens is used to teach and diagnose every concept.
 
@@ -171,7 +171,7 @@ Example tutor prompts:
 
 Reasoning prevents blind memorization.
 
-2 — Model–Apply–Guide
+2 -Model–Apply–Guide
 
 This loop is how skills are learned during the session.
 
@@ -213,7 +213,7 @@ Reason
 
 Then the tutor fixes that specific layer.
 
-3 — Boss Battles
+3 -Boss Battles
 
 Once the student understands the concept, introduce a harder problem.
 
@@ -309,7 +309,7 @@ Reason
 
 Then the tutor reinforces that layer.
 
-Step 5 — Boss Battle
+Step 5 -Boss Battle
 
 The session ends with a more difficult challenge.
 

@@ -1,6 +1,6 @@
 # WHO WE ARE
 
-**Territorial Tutoring enables high schools to develop academic leaders who prevent failure upstream — before panic becomes identity.**
+**Territorial Tutoring enables high schools to develop academic leaders who prevent failure upstream -before panic becomes identity.**
 
 What we do
 
@@ -19,4 +19,4 @@ Non‑negotiables
 
 Positioning line (place under logo)
 
-> Territorial Tutoring enables high schools to develop academic leaders who prevent failure upstream — before panic becomes identity.
+> Territorial Tutoring enables high schools to develop academic leaders who prevent failure upstream -before panic becomes identity.

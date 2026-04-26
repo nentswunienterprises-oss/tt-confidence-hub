@@ -5,7 +5,7 @@ Diagnosis Session = 6 reps (2 sets × 3 reps)
 Training Session = 9 reps (3 sets × 3 reps)
 Observation
 Observation block fires AFTER EVERY REP
-No text input — toggles only
+No text input -toggles only
 Scoring
 Each field:
 weak = 0
@@ -37,7 +37,7 @@ System Law
 Tutor does NOT decide anything.
 System outputs next action.
 
-🔷 PHASE 1 — CLARITY (REFERENCE ONLY)
+🔷 PHASE 1 -CLARITY (REFERENCE ONLY)
 
 LARITY (REFERENCE SPEC)
 PURPOSE
@@ -211,7 +211,7 @@ Constraints
 ❌ Do not stay in teaching mode
 9. TRAINING DRILL STRUCTURE (REFERENCE)
 SESSION = 3 SETS (9 REPS)
-SET 1 — MODELING (2 reps)
+SET 1 -MODELING (2 reps)
 
 Purpose:
 Build mental map
@@ -220,7 +220,7 @@ System behavior:
 
 tutor models (Vocab → Method → Reason)
 student explains back
-SET 2 — IDENTIFICATION (4 reps)
+SET 2 -IDENTIFICATION (4 reps)
 
 Purpose:
 Recognition without solving
@@ -231,7 +231,7 @@ name terms
 identify type
 state steps
 explain why
-SET 3 — LIGHT APPLY (3 reps)
+SET 3 -LIGHT APPLY (3 reps)
 
 Purpose:
 Test clarity during solving
@@ -242,7 +242,7 @@ solves
 minimal guidance
 10. DIAGNOSIS DRILL (REFERENCE)
 SESSION = 6 REPS
-SET 1 — RECOGNITION (3 reps)
+SET 1 -RECOGNITION (3 reps)
 
 Student does NOT solve
 Tests:
@@ -250,7 +250,7 @@ Tests:
 vocab
 type
 steps
-SET 2 — LIGHT APPLY (3 reps)
+SET 2 -LIGHT APPLY (3 reps)
 
 Student solves with minimal help
 Tests:
@@ -292,13 +292,13 @@ They are still in Clarity.
 
 No matter how many answers they get right.
 
-🔶 PHASE 2 — STRUCTURED EXECUTION
+🔶 PHASE 2 -STRUCTURED EXECUTION
 EXECUTION DIAGNOSIS DRILL
 Objective
 
 Test ability to execute known method independently.
 
-SET 1 — START + STRUCTURE (3 reps)
+SET 1 -START + STRUCTURE (3 reps)
 Rep Instruction
 
 “Solve the problem. No help for 10 seconds.”
@@ -325,7 +325,7 @@ Dependence
 ☐ asks after trying
 ☐ independent
 
-SET 2 — REPEATABILITY (3 reps)
+SET 2 -REPEATABILITY (3 reps)
 Rep Instruction
 
 “Solve similar problem.”
@@ -357,7 +357,7 @@ Objective
 
 Force structured, repeatable execution.
 
-SET 1 — FORCED STRUCTURE (3 reps)
+SET 1 -FORCED STRUCTURE (3 reps)
 Rep Instruction
 
 “State steps first. Then solve.”
@@ -379,7 +379,7 @@ Correction response
 ☐ accepts
 ☐ adjusts
 
-SET 2 — INDEPENDENT EXECUTION (3 reps)
+SET 2 -INDEPENDENT EXECUTION (3 reps)
 Rep Instruction
 
 “Solve independently.”
@@ -401,7 +401,7 @@ Error handling
 ☐ partial correction
 ☐ structured correction
 
-SET 3 — VARIATION CONTROL (3 reps)
+SET 3 -VARIATION CONTROL (3 reps)
 Rep Instruction
 
 “Solve slightly different form.”
@@ -423,13 +423,13 @@ Completion
 ☐ partial
 ☐ complete
 
-🔶 PHASE 3 — CONTROLLED DISCOMFORT
+🔶 PHASE 3 -CONTROLLED DISCOMFORT
 DISCOMFORT DIAGNOSIS DRILL
 Objective
 
 Test behavior under uncertainty.
 
-SET 1 — FIRST CONTACT (3 reps)
+SET 1 -FIRST CONTACT (3 reps)
 Rep Instruction
 
 “Try this. No help for 10 seconds.”
@@ -451,7 +451,7 @@ Emotional state
 ☐ tension
 ☐ controlled
 
-SET 2 — PRESSURE HOLD (3 reps)
+SET 2 -PRESSURE HOLD (3 reps)
 Rep Instruction
 
 “Continue. I will only confirm first step.”
@@ -478,7 +478,7 @@ Objective
 
 Stabilize response under difficulty.
 
-SET 1 — CONTROLLED ENTRY (3 reps)
+SET 1 -CONTROLLED ENTRY (3 reps)
 Rep Instruction
 
 “Pause. Then state first step.”
@@ -495,7 +495,7 @@ First-step accuracy
 ☐ partial
 ☐ correct
 
-SET 2 — NO RESCUE (3 reps)
+SET 2 -NO RESCUE (3 reps)
 Rep Instruction
 
 “Continue. No full help.”
@@ -517,7 +517,7 @@ Rescue behavior
 ☐ occasional
 ☐ none
 
-SET 3 — REPEAT EXPOSURE (3 reps)
+SET 3 -REPEAT EXPOSURE (3 reps)
 Rep Instruction
 
 “Another similar difficulty.”
@@ -534,13 +534,13 @@ Recovery
 ☐ partial
 ☐ recovers
 
-🔶 PHASE 4 — TIME PRESSURE STABILITY
+🔶 PHASE 4 -TIME PRESSURE STABILITY
 TIME PRESSURE DIAGNOSIS DRILL
 Objective
 
 Test structure under time.
 
-SET 1 — LIGHT TIMER (3 reps)
+SET 1 -LIGHT TIMER (3 reps)
 Rep Instruction
 
 “Solve under short timer.”
@@ -562,7 +562,7 @@ Pace
 ☐ rushed
 ☐ controlled
 
-SET 2 — CONSISTENCY (3 reps)
+SET 2 -CONSISTENCY (3 reps)
 Rep Instruction
 
 “Repeat under same time.”
@@ -589,7 +589,7 @@ Objective
 
 Maintain structure under urgency.
 
-SET 1 — STRUCTURE UNDER TIMER (3 reps)
+SET 1 -STRUCTURE UNDER TIMER (3 reps)
 Rep Instruction
 
 “Focus on method, not speed.”
@@ -606,7 +606,7 @@ Structure
 ☐ partial
 ☐ maintained
 
-SET 2 — REPEATED TIMED EXECUTION (3 reps)
+SET 2 -REPEATED TIMED EXECUTION (3 reps)
 Rep Instruction
 
 “Repeat under timer.”
@@ -623,7 +623,7 @@ Pace
 ☐ uneven
 ☐ controlled
 
-SET 3 — FULL CONSTRAINT (3 reps)
+SET 3 -FULL CONSTRAINT (3 reps)
 Rep Instruction
 
 “Solve under tighter time.”

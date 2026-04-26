@@ -1,4 +1,4 @@
-# Brain Context — Technical Roadmap
+# Brain Context -Technical Roadmap
 
 Document the planned evolution of the project and features in development.
 

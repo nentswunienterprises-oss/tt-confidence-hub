@@ -1,6 +1,6 @@
-# Brain Template — Project Initialization Guide
+# Brain Template -Project Initialization Guide
 
-A question-based framework to help teams build a local "Brain" for their repository — a structured knowledge and strategy layer that guides AI and teams through implementation with clarity, accountability, and precision.
+A question-based framework to help teams build a local "Brain" for their repository -a structured knowledge and strategy layer that guides AI and teams through implementation with clarity, accountability, and precision.
 
 Use these question files to bootstrap your own `/brain` folder. Answer each question thoroughly; the quality of your Brain depends on the depth of your answers.
 
@@ -18,10 +18,10 @@ Use these question files to bootstrap your own `/brain` folder. Answer each ques
 
 ## Folder Structure
 
-- `braintemplate/context/` — Current state, known constraints, and active decisions
-- `braintemplate/memory/` — Long-lived rules, architectural principles, and norms
-- `braintemplate/prompts/` — Templates for AI/LLM interaction
-- `braintemplate/index/` — Metadata, mappings, and snapshots for quick reference
+- `braintemplate/context/` -Current state, known constraints, and active decisions
+- `braintemplate/memory/` -Long-lived rules, architectural principles, and norms
+- `braintemplate/prompts/` -Templates for AI/LLM interaction
+- `braintemplate/index/` -Metadata, mappings, and snapshots for quick reference
 
 ---
 

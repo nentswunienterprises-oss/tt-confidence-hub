@@ -1,4 +1,4 @@
-# Brain Memory — Conventions
+# Brain Memory -Conventions
 
 Answer these questions to document the coding and operational standards your team follows.
 

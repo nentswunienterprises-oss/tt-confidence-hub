@@ -24,7 +24,7 @@ Always.
 
 No variation.
 
-SET 1 — MODELING SET
+SET 1 -MODELING SET
 Purpose: Build mental map
 Structure
 2 problems
@@ -70,7 +70,7 @@ Output of Set 1
 
 Clarity Exposure Score
 
-SET 2 — IDENTIFICATION SET
+SET 2 -IDENTIFICATION SET
 Purpose: Can they SEE without solving?
 
 This is where most tutors mess up.
@@ -116,7 +116,7 @@ Output of Set 2
 
 Clarity Recognition Score
 
-SET 3 — LIGHT APPLY SET
+SET 3 -LIGHT APPLY SET
 Purpose: Can they execute WITH clarity?
 
 Now we allow solving.
@@ -207,7 +207,7 @@ Scoring Scale
 0 = weak
 1 = partial
 2 = clear
-SET 1 — MODEL (Exposure Score)
+SET 1 -MODEL (Exposure Score)
 
 Based on:
 
@@ -221,7 +221,7 @@ If majority = weak → 0
 If mixed → 1
 If mostly clear → 2
 
-SET 2 — IDENTIFICATION (Recognition Score)
+SET 2 -IDENTIFICATION (Recognition Score)
 
 Based on:
 
@@ -236,7 +236,7 @@ Same:
 weak → 0
 partial → 1
 clear → 2
-SET 3 — APPLY (Application Score)
+SET 3 -APPLY (Application Score)
 
 Based on:
 
@@ -273,13 +273,13 @@ Phase: Clarity
 Stability: (auto)
 Session Template: Clarity Session
 2. Session UI = 3 Blocks
-Block 1 — Model Set
+Block 1 -Model Set
 “Run 2 modeled problems”
 Observation toggles
-Block 2 — Identification Set
+Block 2 -Identification Set
 “Run 4 recognition problems”
 Observation toggles
-Block 3 — Light Apply Set
+Block 3 -Light Apply Set
 “Run 3 solve problems”
 Observation toggles
 3. NO TEXT INPUT

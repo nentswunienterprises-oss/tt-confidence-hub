@@ -74,10 +74,10 @@ TD VIEW INSIDE COO DASHBOARD
 When COO clicks TD:
 
 TD DETAIL VIEW
-SECTION 1 — SYSTEM HEALTH
+SECTION 1 - SYSTEM HEALTH
 Pod Health Overview
 
-System Compliance: 92%
+System Compliance: 92% 
 Drift Incidents: 4
 Tutor Flags: 2
 Regression Spikes: 3 students
@@ -132,6 +132,8 @@ Start Audit
 opens tutors observation blocks for each set they selected obseravtions in the drill during the session
 marks according to compliance observation blocks
 
+see /TD Drill Compliance Audit Library 
+
 TRACKING SYSTEMS (TD EXTENSION IN COO VIEW)
 
 Inside:
@@ -142,8 +144,8 @@ Add:
 
 TD Audit Status:
 - Not Reviewed
-- Reviewed — Passed
-- Reviewed — Failed
+- Reviewed -Passed
+- Reviewed -Failed
 
 Violation Tags:
 - Rescue
@@ -178,4 +180,4 @@ FLOW
 
 → flags violations
 
-IMPORTANT RULE: It should show TD extentions in COO view only
+IMPORTANT RULE: It should show TD layer extentions in COO view only

@@ -1,4 +1,4 @@
-# Brain Memory — Architecture
+# Brain Memory -Architecture
 
 Answer these questions to document the long-term technical architecture and system design of your project.
 

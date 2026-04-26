@@ -1,4 +1,4 @@
-# Brain Prompts — Execution Template
+# Brain Prompts -Execution Template
 
 Use this template when you have an APPROVED plan and want to execute it step by step.
 

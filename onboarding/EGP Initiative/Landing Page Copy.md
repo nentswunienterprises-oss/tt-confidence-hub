@@ -24,7 +24,7 @@ identify students who break under pressure in math
 speak to parents who already feel something is wrong
 connect real need to the right system
 
-If you need scripts, hype, or persuasion tactics — this is not for you.
+If you need scripts, hype, or persuasion tactics -this is not for you.
 
 ❌ WHO THIS IS NOT FOR
 

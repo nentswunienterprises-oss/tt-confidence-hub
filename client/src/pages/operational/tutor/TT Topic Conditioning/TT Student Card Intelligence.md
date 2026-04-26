@@ -31,7 +31,7 @@ How do I explain this to the parent?
 
 The card should answer all of that.
 
-Student Card — Fixed Button Structure
+Student Card -Fixed Button Structure
 
 Only 2 buttons:
 
@@ -63,7 +63,7 @@ The operating core
 
 This is where TT lives.
 
-Tab A — Map
+Tab A -Map
 
 This is the clarity engine.
 
@@ -216,7 +216,7 @@ direction
 
 This makes tutoring feel mechanical in the best way.
 
-Tab B — Topic Management
+Tab B -Topic Management
 
 This is where the tutor logs what happened.
 
@@ -241,7 +241,7 @@ one carry-over topic
 But each topic must be logged separately.
 
 For each touched topic, tutor logs:
-Section 1 — Session Context
+Section 1 -Session Context
 
 Auto-filled:
 
@@ -251,7 +251,7 @@ Previous Stability
 
 Tutor cannot edit these.
 
-Section 2 — Exact Tutor Observations
+Section 2 -Exact Tutor Observations
 
 Selections only.
 
@@ -356,7 +356,7 @@ Oversight and outputs
 
 This is where the tutor sees what the system has already interpreted across time.
 
-Tab A — Reports
+Tab A -Reports
 
 This is not raw logs.
 
@@ -369,12 +369,12 @@ monthly reports
 Everything generated from Topic Management logs.
 
 Reports Layout
-Section 1 — Session Logs
+Section 1 -Session Logs
 
 Auto-generated, per topic touched
 
 Example:
-Algebraic Expressions — Session Log
+Algebraic Expressions -Session Log
 The student is improving in structured execution but still shows inconsistency in step completion. Independent starts are increasing, but reinforcement is still required before progression.
 
 This comes from:
@@ -386,7 +386,7 @@ stability
 
 Not tutor writing.
 
-Section 2 — Weekly Report
+Section 2 -Weekly Report
 
 Organized by topic.
 
@@ -405,7 +405,7 @@ Stability: Medium
 This Week: Student showed less freezing when problems became less familiar. Hesitation remains, but first-step initiation has improved.
 Next Focus: Increase Boss Battle frequency without rescue.
 
-Section 3 — Monthly Report
+Section 3 -Monthly Report
 
 Higher-level output.
 
@@ -429,4 +429,4 @@ This feeds:
 parent UI
 leadership oversight
 retention confidence
-Tab B — Student Assignments
+Tab B -Student Assignments

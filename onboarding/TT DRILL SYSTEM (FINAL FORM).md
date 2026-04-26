@@ -64,7 +64,7 @@ Start where the student currently is
 Push one level forward
 Observe breakdown
 Confirm stability or instability
-PHASE 1 — CLARITY DRILLS
+PHASE 1 -CLARITY DRILLS
 Clarity + Low Drill
 Purpose
 
@@ -137,7 +137,7 @@ Determines
 
 Is the student ready to execute?
 
-PHASE 2 — EXECUTION DRILLS
+PHASE 2 -EXECUTION DRILLS
 Execution + Low Drill
 Purpose
 
@@ -194,7 +194,7 @@ Determines
 
 Ready for discomfort?
 
-PHASE 3 — CONTROLLED DISCOMFORT DRILLS
+PHASE 3 -CONTROLLED DISCOMFORT DRILLS
 Discomfort + Low Drill
 Purpose
 
@@ -247,7 +247,7 @@ Determines
 
 Ready for time pressure?
 
-PHASE 4 — TIME PRESSURE DRILLS
+PHASE 4 -TIME PRESSURE DRILLS
 Time Pressure + Low Drill
 Purpose
 
