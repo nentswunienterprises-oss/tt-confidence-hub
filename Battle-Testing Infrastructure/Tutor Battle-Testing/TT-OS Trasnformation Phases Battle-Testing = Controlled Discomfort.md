@@ -17,7 +17,7 @@ Q2
 Why does TT not allow full rescue in this phase?
 
 Expected Answer:
-Because rescue removes the very condition being trained—independent response under difficulty—and hides the breakdown.
+Because rescue removes the very condition being trained-independent response under difficulty-and hides the breakdown.
 
 Fail Answer:
 
@@ -99,7 +99,7 @@ A student can execute well in familiar problems but collapses when the form chan
 👉 What is being exposed?
 
 Expected Answer:
-Failure under uncertainty—Controlled Discomfort breakdown.
+Failure under uncertainty-Controlled Discomfort breakdown.
 
 Fail Answer:
 

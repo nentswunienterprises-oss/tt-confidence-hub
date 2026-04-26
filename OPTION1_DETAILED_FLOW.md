@@ -589,7 +589,7 @@ NEW VIEW:
 **What They Do Differently:**
 1. Instead of saying "Sign up and use code AFIX001"
 2. They say "Click this link to sign up: [link]"
-3. That's it—click rate probably goes up 3-5x
+3. That's it-click rate probably goes up 3-5x
 
 ---
 

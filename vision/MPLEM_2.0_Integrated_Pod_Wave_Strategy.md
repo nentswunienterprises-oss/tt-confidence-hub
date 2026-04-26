@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-MPLEM 2.0 is the next-generation Multi Pod-Launching Expansion Model for Territorial Tutoring (TT), fully aligned with the Operational Blueprint and the evolved TT Business Model. It is a modular, automation-driven, and institutionally integrated system that enables scalable, self-funding expansion—while maintaining operational discipline, financial health, and measurable impact.
+MPLEM 2.0 is the next-generation Multi Pod-Launching Expansion Model for Territorial Tutoring (TT), fully aligned with the Operational Blueprint and the evolved TT Business Model. It is a modular, automation-driven, and institutionally integrated system that enables scalable, self-funding expansion-while maintaining operational discipline, financial health, and measurable impact.
 
 ---
 
@@ -91,4 +91,4 @@ MPLEM 2.0 is the next-generation Multi Pod-Launching Expansion Model for Territo
 
 ## 10. In One Line
 
-MPLEM 2.0 is a modular, automation-powered pod wave system where one Foundation Pod covers ops and every financed pod funds its own growth—delivering scalable, measurable impact and sustainable profit, fully aligned with TT’s operational and institutional model.
+MPLEM 2.0 is a modular, automation-powered pod wave system where one Foundation Pod covers ops and every financed pod funds its own growth-delivering scalable, measurable impact and sustainable profit, fully aligned with TT’s operational and institutional model.

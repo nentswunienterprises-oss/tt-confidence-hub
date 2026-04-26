@@ -12,7 +12,7 @@ The app now has a **parent-focused landing page strategy** with three separate l
 - **File:** `client/src/pages/portal-landing.tsx`
 - **Audience:** Parents & Students
 - **Features:**
-  - Parent-focused hero copy: "Confidence Isn't Luck—It's a Skill We Teach"
+  - Parent-focused hero copy: "Confidence Isn't Luck-It's a Skill We Teach"
   - Clear value proposition for family enrollment
   - How It Works section explaining the Confidence Pod system
   - What You Get section with key benefits

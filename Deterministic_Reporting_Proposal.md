@@ -4,7 +4,7 @@ This document proposes a cleaner, clearer deterministic reporting model for the 
 
 ## The Deterministic Engine Explained Simply
 
-TT's system is a response-conditioning engine. It doesn't just teach topics—it trains how students behave when difficulty appears in those topics. The engine tracks two things per topic: **Phase** (where the student breaks) and **Stability** (how reliably they hold it together).
+TT's system is a response-conditioning engine. It doesn't just teach topics-it trains how students behave when difficulty appears in those topics. The engine tracks two things per topic: **Phase** (where the student breaks) and **Stability** (how reliably they hold it together).
 
 ### Phases (From TT-OS Deep Dives)
 - **Clarity**: Student sees the problem clearly (vocabulary, method, reason). Breaks when they can't name terms or state steps. Prevents collapse under pressure.
@@ -121,13 +121,13 @@ To maintain TT's unique identity (response conditioning under uncertainty) witho
 - `Your child is building steadier responses in Ratios.`
 - `The biggest challenge was staying composed when problems got harder in Ratios.`
 - `Next, we'll keep strengthening responses in Ratios and maintain progress in Fractions.`
-- `Algebra is still on our list but wasn't covered this week—we'll get to it soon.`
+- `Algebra is still on our list but wasn't covered this week-we'll get to it soon.`
 
 #### Revised Monthly Template
 - `This month we built response strength across 4 topics, with clear updates in 3 of them.`
 - `Your child now has strong, steady responses in Algebra.`
 - `Your child needs more support in Geometry to stay consistent when starting problems.`
-- `Your child is still learning to handle time pressure in Probability—we're working on that.`
+- `Your child is still learning to handle time pressure in Probability-we're working on that.`
 - `Next month, we'll focus on Geometry and Probability while keeping Algebra strong.`
 
 ### Full operational structure across all phases and stability levels

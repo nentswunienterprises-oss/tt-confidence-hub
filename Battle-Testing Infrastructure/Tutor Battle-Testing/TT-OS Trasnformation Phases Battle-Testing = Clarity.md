@@ -40,7 +40,7 @@ Q4
 What does Clarity measure that normal tutoring ignores?
 
 Expected Answer:
-It measures whether the student can recognize, structure, and explain before solving—not just whether they can get answers.
+It measures whether the student can recognize, structure, and explain before solving-not just whether they can get answers.
 
 Fail Answer:
 

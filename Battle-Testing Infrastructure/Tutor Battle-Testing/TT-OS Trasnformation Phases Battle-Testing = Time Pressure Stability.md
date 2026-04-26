@@ -28,7 +28,7 @@ Q3
 What does the timer actually expose in a student’s behavior?
 
 Expected Answer:
-Whether their structure breaks under urgency—panic, rushing, hesitation, or loss of method.
+Whether their structure breaks under urgency-panic, rushing, hesitation, or loss of method.
 
 Fail Answer:
 
