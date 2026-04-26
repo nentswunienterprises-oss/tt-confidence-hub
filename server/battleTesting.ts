@@ -176,21 +176,25 @@ export async function persistBattleTestRun(input: PersistBattleTestRunInput) {
     phases.flatMap((phase) => phase.questions.map((question) => `${phase.key}:${question.key}`))
   );
 
-  if (responses.length !== expectedQuestionKeys.size) {
+  const responseMap = validateBattleTestResponses(subjectType, phases, responses);
+  if (responseMap.size !== expectedQuestionKeys.size) {
     throw new Error("Every battle-testing question must be scored before submission.");
   }
 
-  for (const response of responses) {
-    const compoundKey = `${response.phaseKey}:${response.questionKey}`;
-    if (!expectedQuestionKeys.has(compoundKey)) {
-      throw new Error(`Unexpected battle-testing response: ${compoundKey}`);
+  for (const expectedQuestionKey of expectedQuestionKeys) {
+    if (!responseMap.has(expectedQuestionKey)) {
+      throw new Error(`Missing battle-testing response: ${expectedQuestionKey}`);
     }
+  }
+
+  for (const response of responseMap.values()) {
     if ((response.score === "partial" || response.score === "fail") && !String(response.note || "").trim()) {
       throw new Error("Partial and fail scores require a note.");
     }
   }
 
-  const outcome = computeBattleTestOutcome(subjectType, phases, responses);
+  const normalizedResponses = Array.from(responseMap.values());
+  const outcome = computeBattleTestOutcome(subjectType, phases, normalizedResponses);
   const completedAt = new Date().toISOString();
   const selectedPhaseKeys = phases.map((phase) => phase.key);
 
@@ -222,33 +226,41 @@ export async function persistBattleTestRun(input: PersistBattleTestRunInput) {
     throw new Error(`Failed to save battle test run: ${runError.message}`);
   }
 
-  const repLogRows = phases.flatMap((phase) =>
-    phase.questions.map((question, index) => {
-      const response = responses.find(
-        (entry) => entry.phaseKey === phase.key && entry.questionKey === question.key
-      )!;
-      return {
-        id: uuidv4(),
-        run_id: runRow.id,
-        phase_key: phase.key,
-        question_key: question.key,
-        section: question.section,
-        question_order: index,
-        prompt: question.prompt,
-        expected_answer: question.expectedAnswer,
-        fail_indicators: question.failIndicators,
-        score: response.score,
-        points_awarded: BATTLE_TEST_SCORE_POINTS[response.score],
-        note: response.note?.trim() || null,
-        is_critical_fail:
-          !!response.isCriticalFail || (!!question.autoCriticalOnFail && response.score === "fail"),
-      };
-    })
-  );
+  try {
+    const repLogRows = phases.flatMap((phase) =>
+      phase.questions.map((question, index) => {
+        const response = responseMap.get(`${phase.key}:${question.key}`);
+        if (!response) {
+          throw new Error(`Missing battle-testing response: ${phase.key}:${question.key}`);
+        }
+        return {
+          id: uuidv4(),
+          run_id: runRow.id,
+          phase_key: phase.key,
+          question_key: question.key,
+          section: question.section,
+          question_order: index,
+          prompt: question.prompt,
+          expected_answer: question.expectedAnswer,
+          fail_indicators: question.failIndicators,
+          score: response.score,
+          points_awarded: BATTLE_TEST_SCORE_POINTS[response.score],
+          note: response.note?.trim() || null,
+          is_critical_fail:
+            !!response.isCriticalFail || (!!question.autoCriticalOnFail && response.score === "fail"),
+        };
+      })
+    );
 
-  const { error: repLogError } = await supabase.from("battle_test_rep_logs").insert(repLogRows);
-  if (repLogError) {
-    throw new Error(`Failed to save battle test logs: ${repLogError.message}`);
+    const { error: repLogError } = await supabase.from("battle_test_rep_logs").insert(repLogRows);
+    if (repLogError) {
+      throw new Error(`Failed to save battle test logs: ${repLogError.message}`);
+    }
+  } catch (repLogFailure) {
+    await supabase.from("battle_test_runs").delete().eq("id", runRow.id);
+    throw repLogFailure instanceof Error
+      ? repLogFailure
+      : new Error("Failed to save battle test logs.");
   }
 
   return {
@@ -332,7 +344,11 @@ export async function buildPodBattleTestingSummary(
   const recentCutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
   summary.driftIncidents = runRows.filter((run) => {
     const completedAt = new Date(run.completed_at).getTime();
-    return completedAt >= recentCutoff && (run.state !== "locked" || run.has_critical_fail);
+    return (
+      run.subject_type === "tutor" &&
+      completedAt >= recentCutoff &&
+      (run.state !== "locked" || run.has_critical_fail)
+    );
   }).length;
 
   summary.phaseWeaknesses = Array.from(phaseAggregates.entries())
@@ -447,6 +463,7 @@ export async function getBattleTestRunDetail(
   }
 
   const run = mapRunRow(runData);
+  const phaseOrder = new Map(run.selected_phase_keys.map((phaseKey, index) => [phaseKey, index] as const));
   const repLogs = (repData || []).map((rawRow) => {
     const rep = mapRepLogRow(rawRow);
     return {
@@ -462,6 +479,11 @@ export async function getBattleTestRunDetail(
       note: rep.note,
       isCriticalFail: rep.is_critical_fail,
     } satisfies BattleTestRepLogDetail;
+  }).sort((left, right) => {
+    const leftPhaseIndex = phaseOrder.get(left.phaseKey) ?? Number.MAX_SAFE_INTEGER;
+    const rightPhaseIndex = phaseOrder.get(right.phaseKey) ?? Number.MAX_SAFE_INTEGER;
+    if (leftPhaseIndex !== rightPhaseIndex) return leftPhaseIndex - rightPhaseIndex;
+    return left.questionOrder - right.questionOrder;
   });
 
   return {
@@ -500,17 +522,30 @@ export function buildBattleTestSuccessPayload(runId: string, outcome: BattleTest
 
 export function validateBattleTestResponses(
   subjectType: BattleTestSubjectType,
-  phaseKey: string,
+  phases: BattleTestPhaseDefinition[],
   responses: BattleTestResponseInput[],
 ) {
+  const responseMap = new Map<string, BattleTestResponseInput>();
+
   for (const response of responses) {
     const question = getBattleTestQuestionDefinition(subjectType, response.phaseKey, response.questionKey);
     if (!question) {
       throw new Error(`Unknown battle-testing question: ${response.phaseKey}/${response.questionKey}`);
     }
+
+    const responseKey = `${response.phaseKey}:${response.questionKey}`;
+    if (responseMap.has(responseKey)) {
+      throw new Error(`Duplicate battle-testing response: ${responseKey}`);
+    }
+    responseMap.set(responseKey, response);
   }
 
-  if (subjectType === "td" && phaseKey !== "td_system_integrity") {
+  if (
+    subjectType === "td" &&
+    phases.some((phase) => phase.key !== "td_system_integrity")
+  ) {
     throw new Error("Invalid TD battle-testing phase.");
   }
+
+  return responseMap;
 }
