@@ -108,7 +108,10 @@ export default function BattleTestRunnerDialog({
   }, [open, initialPhaseKeys, selectionMode]);
 
   const selectedPhases = useMemo(
-    () => phaseOptions.filter((phase) => selectedPhaseKeys.includes(phase.key)),
+    () =>
+      selectedPhaseKeys
+        .map((phaseKey) => phaseOptions.find((phase) => phase.key === phaseKey))
+        .filter((phase): phase is BattleTestPhaseDefinition => !!phase),
     [phaseOptions, selectedPhaseKeys]
   );
 
