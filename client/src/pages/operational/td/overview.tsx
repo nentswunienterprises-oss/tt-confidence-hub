@@ -305,17 +305,8 @@ export default function TDOverview() {
                 </div>
               </div>
 
-              <div className="space-y-6">
-                <section className="space-y-4">
-                  <div className="rounded-xl border border-border/60 bg-muted/10 px-4 py-4">
-                    <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                      Battle-Testing
-                    </h3>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Alignment snapshots, weak phases, and tutor audit history for this pod.
-                    </p>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-4">
+              <div className="space-y-4">
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     <BattleTestingMetricCard
                       icon={<Activity className="h-5 w-5" />}
                       tintClassName="bg-blue-50 text-blue-700"
@@ -346,17 +337,6 @@ export default function TDOverview() {
                         battleTestingSummary.watchlistTutors + battleTestingSummary.failTutors
                       )}
                     />
-                  </div>
-                </section>
-
-                <section className="space-y-4">
-                  <div className="rounded-xl border border-border/60 bg-muted/10 px-4 py-4">
-                    <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                      Tutor Operations
-                    </h3>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Read-only drill-down into each tutor's active students and support systems.
-                    </p>
                   </div>
 
                   {tutors.length === 0 ? (
@@ -539,7 +519,6 @@ export default function TDOverview() {
                       );
                     })
                   )}
-                </section>
               </div>
             </Card>
           );

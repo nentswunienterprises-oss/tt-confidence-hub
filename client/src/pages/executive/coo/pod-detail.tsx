@@ -7,7 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import BattleTestHistoryDialog from "@/components/battle-testing/BattleTestHistoryDialog";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import BattleTestRunnerDialog from "@/components/battle-testing/BattleTestRunnerDialog";
-import PodBattleTestingOverview from "@/components/battle-testing/PodBattleTestingOverview";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -79,6 +78,22 @@ function formatPhaseLabel(value: string | null | undefined) {
     .trim();
 }
 
+function getBattleTestStateBadgeClass(state: string | null | undefined) {
+  if (state === "locked") return "bg-emerald-100 text-emerald-800 border-emerald-200";
+  if (state === "watchlist") return "bg-amber-100 text-amber-900 border-amber-200";
+  if (state === "fail") return "bg-rose-100 text-rose-800 border-rose-200";
+  return "bg-slate-100 text-slate-700 border-slate-200";
+}
+
+function formatAuditTimestamp(value: string) {
+  return new Date(value).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 function extractLegacySymptomsFromParentNote(rawValue: string | null | undefined) {
   const normalized = String(rawValue || "")
     .replace(/process alignment:\s*yes/gi, "")
@@ -117,6 +132,7 @@ import StudentCommunicationDialog from "@/components/communications/StudentCommu
 import type { Pod, User } from "@shared/schema";
 import { RESPONSE_SYMPTOM_GROUPS } from "@shared/responseSymptomMapping";
 import {
+  getBattleTestStateLabel,
   type BattleTestPhaseDefinition,
   type BattleTestResponseInput,
   type PodBattleTestingSummary,
@@ -395,35 +411,6 @@ export default function PodDetail() {
       toast({
         title: "Error",
         description: error.message || "Failed to add tutors to pod.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const updateTutorOperationalModeMutation = useMutation({
-    mutationFn: async ({
-      assignmentId,
-      operationalMode,
-    }: {
-      assignmentId: string;
-      operationalMode: "training" | "certified_live";
-    }) => {
-      await apiRequest("PATCH", `/api/coo/pods/${podId}/tutors/${assignmentId}/operational-mode`, {
-        operationalMode,
-      });
-    },
-    onSuccess: () => {
-      refetchPodTutors();
-      queryClient.invalidateQueries({ queryKey: ["/api/coo/pods"] });
-      toast({
-        title: "Tutor mode updated",
-        description: "Tutor operational mode was updated successfully.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Mode update failed",
-        description: "Failed to update tutor operational mode.",
         variant: "destructive",
       });
     },
@@ -716,13 +703,17 @@ export default function PodDetail() {
                   <div className="space-y-2">
                     {podTutors.map((assignment: any) => {
                       const isExpanded = expandedTutors.has(assignment.id);
+                      const tutorAudit = battleTestingSummary?.tutorSummaries.find(
+                        (entry) => entry.assignmentId === assignment.id
+                      );
                       return (
                         <div
                           key={assignment.id}
                           className="border rounded-lg overflow-hidden hover:bg-muted/50 transition-colors"
                         >
                           <div className="p-3 sm:p-4">
-                            <div className="flex items-start justify-between gap-2 sm:gap-4">
+                            <div className="flex flex-col gap-3 sm:gap-4">
+                              <div className="flex items-start justify-between gap-2 sm:gap-4">
                               <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
                                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center text-xs sm:text-sm font-bold text-primary shrink-0">
                                   {assignment.tutorName.charAt(0).toUpperCase()}
@@ -730,6 +721,24 @@ export default function PodDetail() {
                                 <div className="flex-1 min-w-0">
                                   <p className="font-semibold text-sm sm:text-base truncate">{assignment.tutorName}</p>
                                   <p className="text-xs sm:text-sm text-muted-foreground truncate">{assignment.tutorEmail}</p>
+                                  <div className="mt-2 flex flex-wrap gap-2">
+                                    <Badge className={`${getCertificationColor(assignment.certification_status || "pending")} border`}>
+                                      {assignment.certification_status || "pending"}
+                                    </Badge>
+                                    <Badge variant={(assignment.operational_mode || assignment.operationalMode || "training") === "training" ? "secondary" : "default"}>
+                                      {(assignment.operational_mode || assignment.operationalMode || "training") === "training"
+                                        ? "Training Mode"
+                                        : "Certified Live"}
+                                    </Badge>
+                                    <Badge className={getBattleTestStateBadgeClass(tutorAudit?.state)}>
+                                      {getBattleTestStateLabel(tutorAudit?.state)}
+                                    </Badge>
+                                    <Badge variant="outline">
+                                      {tutorAudit?.alignmentPercent == null
+                                        ? "Audit N/A"
+                                        : `Audit ${Math.round(tutorAudit.alignmentPercent)}%`}
+                                    </Badge>
+                                  </div>
                                 </div>
                               </div>
                               <div className="flex items-center gap-1 sm:gap-2 shrink-0">
@@ -775,6 +784,59 @@ export default function PodDetail() {
                                 </AlertDialog>
                               </div>
                             </div>
+                              <div className="grid gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(260px,0.9fr)]">
+                                <div className="rounded-xl border border-border/60 bg-muted/20 p-3 sm:p-4">
+                                  <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                                    Tutor Audit
+                                  </p>
+                                  <div className="mt-3 flex flex-wrap gap-2">
+                                    {tutorAudit?.phaseScores?.length ? (
+                                      tutorAudit.phaseScores.map((phase) => (
+                                        <Badge key={`${assignment.id}-${phase.phaseKey}`} variant="outline">
+                                          {phase.title}: {Math.round(phase.percent)}%
+                                        </Badge>
+                                      ))
+                                    ) : (
+                                      <span className="text-sm text-muted-foreground">
+                                        No tutor audit has been logged yet.
+                                      </span>
+                                    )}
+                                  </div>
+                                  {tutorAudit?.actionRequired ? (
+                                    <p className="mt-3 text-sm text-muted-foreground">{tutorAudit.actionRequired}</p>
+                                  ) : null}
+                                  {tutorAudit?.lastAuditAt ? (
+                                    <p className="mt-2 text-xs text-muted-foreground">
+                                      Last audit: {formatAuditTimestamp(tutorAudit.lastAuditAt)}
+                                    </p>
+                                  ) : null}
+                                </div>
+                                <div className="rounded-xl border border-border/60 bg-muted/20 p-3 sm:p-4">
+                                  <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                                    Tutor Controls
+                                  </p>
+                                  <div className="mt-3 flex flex-wrap gap-2">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => {
+                                        if (!tutorAudit) return;
+                                        setActiveTutorHistory({
+                                          assignmentId: assignment.id,
+                                          tutorName: tutorAudit.tutorName,
+                                        });
+                                      }}
+                                      disabled={!tutorAudit}
+                                    >
+                                      Audit History
+                                    </Button>
+                                  </div>
+                                  <p className="mt-3 text-sm text-muted-foreground">
+                                    {assignment.student_count || 0}/{maxStudentsPerTutor} students assigned.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
 
                             {/* Expanded Details */}
                             {isExpanded && (
@@ -782,13 +844,9 @@ export default function PodDetail() {
                                 assignmentId={assignment.id}
                                 tutorId={assignment.tutorId}
                                 tutorName={assignment.tutorName}
-                                certificationStatus={assignment.certification_status || "pending"}
-                                operationalMode={assignment.operational_mode || assignment.operationalMode || "training"}
                                 studentCount={assignment.student_count || 0}
                                 maxStudentsPerTutor={maxStudentsPerTutor}
                                 awaitingAssignments={awaitingAssignments}
-                                getCertificationColor={getCertificationColor}
-                                updateTutorOperationalModeMutation={updateTutorOperationalModeMutation}
                                 unassignStudentMutation={unassignStudentMutation}
                                 assignAwaitingEnrollmentMutation={assignAwaitingEnrollmentMutation}
                                 onViewTrackingSystems={(studentId, studentName) => {
@@ -906,23 +964,36 @@ export default function PodDetail() {
         </div>
 
         {battleTestingSummary ? (
-          <PodBattleTestingOverview
-            summary={battleTestingSummary}
-            readOnly={false}
-            showTdControl={true}
-            onStartTdBattleTest={() => setTdBattleTestOpen(true)}
-            onViewTdHistory={() => setTdHistoryOpen(true)}
-            onViewTutorHistory={(assignmentId) => {
-              const tutorSummary = battleTestingSummary.tutorSummaries.find(
-                (entry) => entry.assignmentId === assignmentId
-              );
-              if (!tutorSummary) return;
-              setActiveTutorHistory({
-                assignmentId,
-                tutorName: tutorSummary.tutorName,
-              });
-            }}
-          />
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <Card className="border p-4">
+              <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Weekly Alignment</p>
+              <p className="mt-2 text-2xl font-semibold">
+                {battleTestingSummary.weeklyAlignmentPercent == null
+                  ? "N/A"
+                  : `${Math.round(battleTestingSummary.weeklyAlignmentPercent)}%`}
+              </p>
+            </Card>
+            <Card className="border p-4">
+              <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Violation Spikes</p>
+              <p className="mt-2 text-2xl font-semibold">{battleTestingSummary.driftIncidents}</p>
+            </Card>
+            <Card className="border p-4">
+              <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">TD Integrity</p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <Badge className={getBattleTestStateBadgeClass(battleTestingSummary.tdSummary?.state)}>
+                  {getBattleTestStateLabel(battleTestingSummary.tdSummary?.state)}
+                </Badge>
+                <Button size="sm" variant="outline" onClick={() => setTdHistoryOpen(true)}>TD History</Button>
+                <Button size="sm" onClick={() => setTdBattleTestOpen(true)}>Run TD Audit</Button>
+              </div>
+            </Card>
+            <Card className="border p-4">
+              <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Tutor Risk</p>
+              <p className="mt-2 text-2xl font-semibold">
+                {battleTestingSummary.watchlistTutors + battleTestingSummary.failTutors}
+              </p>
+            </Card>
+          </div>
         ) : null}
       </div>
 
@@ -1051,13 +1122,9 @@ interface TutorStudentsSectionProps {
   assignmentId: string;
   tutorId: string;
   tutorName: string;
-  certificationStatus: string;
-  operationalMode: "training" | "certified_live";
   studentCount: number;
   maxStudentsPerTutor: number;
   awaitingAssignments: ParentEnrollment[];
-  getCertificationColor: (status: string) => string;
-  updateTutorOperationalModeMutation: any;
   unassignStudentMutation: any;
   assignAwaitingEnrollmentMutation: any;
   onViewTrackingSystems: (studentId: string, studentName: string) => void;
@@ -1069,13 +1136,9 @@ function TutorStudentsSection({
   assignmentId,
   tutorId,
   tutorName,
-  certificationStatus,
-  operationalMode,
   studentCount,
   maxStudentsPerTutor,
   awaitingAssignments,
-  getCertificationColor,
-  updateTutorOperationalModeMutation,
   unassignStudentMutation,
   assignAwaitingEnrollmentMutation,
   onViewTrackingSystems,
@@ -1095,63 +1158,18 @@ function TutorStudentsSection({
 
   return (
     <div className="mt-4 pt-4 border-t space-y-4">
-      {/* Certification Status */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-medium text-muted-foreground uppercase">Certification</p>
-          <Badge
-            className={`${getCertificationColor(certificationStatus)} mt-2 border`}
-          >
-            {certificationStatus}
-          </Badge>
+          <p className="text-xs font-medium text-muted-foreground uppercase">Assigned Students</p>
+          <p className="text-sm text-muted-foreground">
+            Drill down into the students currently assigned to {tutorName}.
+          </p>
         </div>
-        <div>
-          <p className="text-xs font-medium text-muted-foreground uppercase">Students</p>
-          <p className="font-semibold mt-2">{activeStudentCount}/{maxStudentsPerTutor}</p>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <p className="text-xs font-medium text-muted-foreground uppercase">Tutor Mode</p>
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant={operationalMode === "training" ? "secondary" : "default"}>
-            {operationalMode === "training" ? "Training Mode" : "Certified Live"}
-          </Badge>
-          <Button
-            size="sm"
-            variant={operationalMode === "training" ? "secondary" : "outline"}
-            disabled={updateTutorOperationalModeMutation.isPending || operationalMode === "training"}
-            onClick={() =>
-              updateTutorOperationalModeMutation.mutate({
-                assignmentId,
-                operationalMode: "training",
-              })
-            }
-          >
-            Set Training Mode
-          </Button>
-          <Button
-            size="sm"
-            variant={operationalMode === "certified_live" ? "secondary" : "outline"}
-            disabled={updateTutorOperationalModeMutation.isPending || operationalMode === "certified_live"}
-            onClick={() =>
-              updateTutorOperationalModeMutation.mutate({
-                assignmentId,
-                operationalMode: "certified_live",
-              })
-            }
-          >
-            Enable Live Sessions
-          </Button>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Training mode removes tutor-side booking and Google Meet gating. Certified live restores the full lesson wrapper.
-        </p>
+        <Badge variant="outline">{activeStudentCount}/{maxStudentsPerTutor}</Badge>
       </div>
 
       {/* Students List */}
       <div>
-        <p className="text-xs font-medium text-muted-foreground uppercase mb-3">Assigned Students</p>
         {isLoading ? (
           <div className="space-y-2">
             <Skeleton className="h-16 w-full" />
