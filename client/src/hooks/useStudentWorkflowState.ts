@@ -13,9 +13,13 @@ export interface StudentWorkflowState {
   proposalAccepted: boolean;
 }
 
-export function useStudentWorkflowState(studentId: string) {
+export function useStudentWorkflowState(
+  studentId: string,
+  apiBasePath = "/api/tutor",
+  enabled = true,
+) {
   return useQuery<StudentWorkflowState>({
-    queryKey: ["/api/tutor/students", studentId, "workflow-state"],
+    queryKey: [apiBasePath, "students", studentId, "workflow-state"],
     queryFn: async () => {
       if (!studentId) {
         return {
@@ -31,7 +35,7 @@ export function useStudentWorkflowState(studentId: string) {
         };
       }
 
-      const res = await fetch(`${API_URL}/api/tutor/students/${studentId}/workflow-state`, {
+      const res = await fetch(`${API_URL}${apiBasePath}/students/${studentId}/workflow-state`, {
         credentials: "include",
       });
 
@@ -41,7 +45,7 @@ export function useStudentWorkflowState(studentId: string) {
 
       return await res.json();
     },
-    enabled: !!studentId,
+    enabled: enabled && !!studentId,
     refetchInterval: 10000,
   });
 }

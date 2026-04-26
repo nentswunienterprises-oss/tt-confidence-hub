@@ -856,7 +856,7 @@ export default function StudentTopicConditioningDialog({
   topicConditioning,
   persistedTopicStates,
 }: StudentTopicConditioningDialogProps) {
-  const { data: workflow } = useStudentWorkflowState(studentId);
+  const { data: workflow } = useStudentWorkflowState(studentId, apiBasePath, !readOnly);
   const assignmentAccepted = workflow?.assignmentAccepted ?? true;
   const isTrainingMode = operationalMode === "training";
   // Fetch topic activations for this student (must be inside component to access studentId)

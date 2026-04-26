@@ -59,6 +59,21 @@ import {
 } from "./googleMeet";
 import { getWebPushPublicKey, sendWebPushToUser } from "./webPush";
 import { getAllowedOdEmailList, isAllowedOdEmail } from "@shared/odAccess";
+import {
+  type BattleTestResponseInput,
+} from "@shared/battleTesting";
+import {
+  buildBattleTestSuccessPayload,
+  buildPodBattleTestingSummary,
+  getBattleTestRunDetail,
+  getBattleTestRunHistoryForPod,
+  persistBattleTestRun,
+} from "./battleTesting";
+import {
+  TD_BATTLE_TEST_PHASE_EXACT,
+  TUTOR_BATTLE_TEST_PHASES_EXACT,
+  getTutorBattleTestPhaseDefinitionsExact,
+} from "./battleTestingBanks";
 
 // Extend Express session type to include affiliateCode
 declare module 'express-session' {
@@ -66,6 +81,26 @@ declare module 'express-session' {
     affiliateCode?: string;
   }
 }
+
+const battleTestResponseSchema = z.object({
+  phaseKey: z.string().min(1),
+  questionKey: z.string().min(1),
+  score: z.enum(["clear", "partial", "fail"]),
+  note: z.string().optional(),
+  isCriticalFail: z.boolean().optional(),
+});
+
+const tutorBattleTestSubmissionSchema = z.object({
+  tutorAssignmentId: z.string().min(1),
+  tutorId: z.string().min(1),
+  phaseKeys: z.array(z.string().min(1)).min(1),
+  responses: z.array(battleTestResponseSchema).min(1),
+});
+
+const tdBattleTestSubmissionSchema = z.object({
+  tdId: z.string().min(1),
+  responses: z.array(battleTestResponseSchema).min(1),
+});
 
 
 // Helper middleware to check user role
@@ -9361,20 +9396,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const validTutors = tutors.filter(Boolean);
             let totalStudents = 0;
             let totalSessions = 0;
+            const tutorMeta: Array<{
+              assignmentId: string;
+              tutorId: string;
+              tutorName: string;
+              tutorEmail: string;
+              studentCount: number;
+            }> = [];
 
             for (const tutor of validTutors) {
               const students = await storage.getStudentsByTutor(tutor!.id);
               totalStudents += students.length;
+              tutorMeta.push({
+                assignmentId: tutor!.assignment.id,
+                tutorId: tutor!.id,
+                tutorName: tutor!.name || tutor!.firstName || "Unknown Tutor",
+                tutorEmail: tutor!.email || "",
+                studentCount: students.length,
+              });
               for (const student of students) {
                 totalSessions += student.sessionProgress;
               }
             }
+
+            const tdUser = pod.tdId ? await storage.getUser(pod.tdId) : null;
+            const battleTestingSummary = await buildPodBattleTestingSummary(
+              pod.id,
+              tutorMeta,
+              tdUser
+                ? {
+                    tdId: tdUser.id,
+                    tdName: tdUser.name || tdUser.firstName || "Assigned TD",
+                  }
+                : null
+            );
 
             return {
               pod,
               tutors: validTutors,
               totalStudents,
               totalSessions,
+              battleTestingSummary,
             };
           })
         );
@@ -9424,6 +9486,366 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error("Error fetching tutors:", error);
         res.status(500).json({ message: "Failed to fetch tutors" });
+      }
+    }
+  );
+
+  const getTDAccessibleTutorIds = async (tdId: string) => {
+    const pods = await storage.getPodsByTD(tdId);
+    const tutorIds = new Set<string>();
+
+    for (const pod of pods || []) {
+      const assignments = await storage.getTutorAssignmentsByPod(pod.id);
+      for (const assignment of assignments) {
+        if (assignment?.tutorId) {
+          tutorIds.add(String(assignment.tutorId));
+        }
+      }
+    }
+
+    return tutorIds;
+  };
+
+  const getTDAuthorizedStudent = async (tdId: string, studentId: string) => {
+    const student = await storage.getStudent(studentId);
+    if (!student) {
+      return { student: null, status: 404 as const };
+    }
+
+    if (!student.tutorId) {
+      return { student, status: 403 as const };
+    }
+
+    const tutorIds = await getTDAccessibleTutorIds(tdId);
+    if (!tutorIds.has(String(student.tutorId))) {
+      return { student, status: 403 as const };
+    }
+
+    return { student, status: 200 as const };
+  };
+
+  // Get students for a specific tutor (TD read-only view)
+  app.get(
+    "/api/td/tutors/:tutorId/students",
+    isAuthenticated,
+    requireRole(["td"]),
+    async (req: Request, res: Response) => {
+      try {
+        const tdId = (req as any).dbUser.id;
+        const { tutorId } = req.params;
+        const tutorIds = await getTDAccessibleTutorIds(tdId);
+
+        if (!tutorIds.has(String(tutorId))) {
+          return res.status(403).json({ message: "Unauthorized tutor access" });
+        }
+
+        let { data: assignedEnrollments } = await supabase
+          .from("parent_enrollments")
+          .select("id, user_id, student_full_name, assigned_student_id, status")
+          .eq("assigned_tutor_id", tutorId)
+          .in("status", [
+            "awaiting_tutor_acceptance",
+            "assigned",
+            "proposal_sent",
+            "session_booked",
+            "report_received",
+            "confirmed",
+          ]);
+
+        if (!assignedEnrollments) {
+          const fallback = await supabase
+            .from("parent_enrollments")
+            .select("id, user_id, student_full_name, status")
+            .eq("assigned_tutor_id", tutorId)
+            .in("status", [
+              "awaiting_tutor_acceptance",
+              "assigned",
+              "proposal_sent",
+              "session_booked",
+              "report_received",
+              "confirmed",
+            ]);
+          assignedEnrollments = fallback.data as any;
+        }
+
+        if (assignedEnrollments && assignedEnrollments.length > 0) {
+          for (const enrollment of assignedEnrollments) {
+            try {
+              await ensureStudentForEnrollment(enrollment, tutorId);
+            } catch (studentResolutionError) {
+              console.error("Error ensuring TD tutor student exists:", {
+                tutorId,
+                enrollmentId: enrollment?.id,
+                error: studentResolutionError,
+              });
+            }
+          }
+        }
+
+        const students = await hydrateStudentsWithSessionProgress(
+          tutorId,
+          await storage.getStudentsByTutor(tutorId)
+        );
+
+        const assignedEnrollmentByStudentId = new Set(
+          (assignedEnrollments || [])
+            .map((e: any) => e.assigned_student_id)
+            .filter((v: any) => !!v)
+            .map((v: any) => String(v))
+        );
+        const assignedEnrollmentByParentId = new Set(
+          (assignedEnrollments || [])
+            .map((e: any) => e.user_id)
+            .filter((v: any) => !!v)
+            .map((v: any) => String(v))
+        );
+        const assignedEnrollmentByStudentName = new Set(
+          (assignedEnrollments || [])
+            .map((e: any) => e.student_full_name)
+            .filter((v: any) => !!v)
+            .map((v: any) => String(v).trim().toLowerCase())
+        );
+
+        const activeStudents = students.filter((student: any) => {
+          const studentId = String(student.id || "");
+          const parentId = String((student as any).parentId || "");
+          const studentName = String(student.name || "").trim().toLowerCase();
+
+          return (
+            assignedEnrollmentByStudentId.has(studentId) ||
+            (!!parentId && assignedEnrollmentByParentId.has(parentId)) ||
+            (!!studentName && assignedEnrollmentByStudentName.has(studentName))
+          );
+        });
+
+        res.json(activeStudents);
+      } catch (error) {
+        console.error("Error fetching TD tutor students:", error);
+        res.status(500).json({ message: "Failed to fetch tutor students" });
+      }
+    }
+  );
+
+  // Get student identity sheet (TD read-only view)
+  app.get(
+    "/api/td/students/:studentId/identity-sheet",
+    isAuthenticated,
+    requireRole(["td"]),
+    async (req: Request, res: Response) => {
+      try {
+        const tdId = (req as any).dbUser.id;
+        const { studentId } = req.params;
+        const authorized = await getTDAuthorizedStudent(tdId, studentId);
+
+        if (authorized.status === 404) {
+          return res.status(404).json({ message: "Student not found" });
+        }
+        if (authorized.status !== 200 || !authorized.student) {
+          return res.status(403).json({ message: "Unauthorized student access" });
+        }
+
+        const student = authorized.student;
+        res.json({
+          personalProfile: student.personalProfile || null,
+          emotionalInsights: student.emotionalInsights || null,
+          academicDiagnosis: student.academicDiagnosis || null,
+          identitySheet: student.identitySheet || null,
+          completedAt: student.identitySheetCompletedAt || null,
+        });
+      } catch (error) {
+        console.error("Error fetching identity sheet for TD:", error);
+        res.status(500).json({ message: "Failed to fetch identity sheet" });
+      }
+    }
+  );
+
+  // Get student assignments (TD read-only view)
+  app.get(
+    "/api/td/students/:studentId/assignments",
+    isAuthenticated,
+    requireRole(["td"]),
+    async (req: Request, res: Response) => {
+      try {
+        const tdId = (req as any).dbUser.id;
+        const { studentId } = req.params;
+        const authorized = await getTDAuthorizedStudent(tdId, studentId);
+
+        if (authorized.status === 404) {
+          return res.status(404).json({ message: "Student not found" });
+        }
+        if (authorized.status !== 200) {
+          return res.status(403).json({ message: "Unauthorized student access" });
+        }
+
+        const { data: assignments, error } = await supabase
+          .from("assignments")
+          .select("*")
+          .eq("student_id", studentId)
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching TD assignments:", error);
+          return res.status(500).json({ message: "Failed to fetch assignments" });
+        }
+
+        res.json(assignments || []);
+      } catch (error) {
+        console.error("Error fetching student assignments for TD:", error);
+        res.status(500).json({ message: "Failed to fetch assignments" });
+      }
+    }
+  );
+
+  // Reports center data per student (TD read-only view)
+  app.get(
+    "/api/td/students/:studentId/reports-center",
+    isAuthenticated,
+    requireRole(["td"]),
+    async (req: Request, res: Response) => {
+      try {
+        const tdId = (req as any).dbUser.id;
+        const { studentId } = req.params;
+        const authorized = await getTDAuthorizedStudent(tdId, studentId);
+
+        if (authorized.status === 404) {
+          return res.status(404).json({ message: "Student not found" });
+        }
+        if (authorized.status !== 200) {
+          return res.status(403).json({ message: "Unauthorized student access" });
+        }
+
+        const { data: drillRows, error: drillRowsError } = await supabase
+          .from("intro_session_drills")
+          .select("id, student_id, tutor_id, drill, submitted_at")
+          .eq("student_id", studentId)
+          .order("submitted_at", { ascending: false });
+
+        if (drillRowsError) {
+          throw drillRowsError;
+        }
+
+        const sessions = aggregateDeterministicSessions(drillRows || []);
+
+        const { data: reports, error: reportsError } = await supabase
+          .from("parent_reports")
+          .select("*")
+          .eq("student_id", studentId)
+          .order("sent_at", { ascending: false });
+
+        if (reportsError) {
+          throw reportsError;
+        }
+
+        const enrichedReports = (reports || []).map((report: any) => ({
+          id: report.id,
+          tutorId: report.tutor_id,
+          studentId: report.student_id,
+          parentId: report.parent_id,
+          reportType: report.report_type,
+          weekNumber: report.week_number,
+          monthName: report.month_name,
+          summary: report.summary,
+          topicsLearned: report.topics_learned,
+          strengths: report.strengths,
+          areasForGrowth: report.areas_for_growth,
+          bossBattlesCompleted: report.boss_battles_completed,
+          solutionsUnlocked: report.solutions_unlocked,
+          confidenceGrowth: report.confidence_growth,
+          nextSteps: report.next_steps,
+          parentFeedback: report.parent_feedback,
+          parentFeedbackAt: report.parent_feedback_at,
+          sentAt: report.sent_at,
+          createdAt: report.created_at,
+          structuredData: parseStructuredReportSummary(report.summary),
+        }));
+
+        res.json({
+          sessions,
+          reports: enrichedReports,
+        });
+      } catch (error) {
+        console.error("Error fetching TD reports center data:", error);
+        res.status(500).json({ message: "Failed to fetch reports center data" });
+      }
+    }
+  );
+
+  // Get student tracking data (TD read-only view)
+  app.get(
+    "/api/td/students/:studentId/tracking",
+    isAuthenticated,
+    requireRole(["td"]),
+    async (req: Request, res: Response) => {
+      try {
+        const tdId = (req as any).dbUser.id;
+        const { studentId } = req.params;
+        const authorized = await getTDAuthorizedStudent(tdId, studentId);
+
+        if (authorized.status === 404) {
+          return res.status(404).json({ message: "Student not found" });
+        }
+        if (authorized.status !== 200) {
+          return res.status(403).json({ message: "Unauthorized student access" });
+        }
+
+        const sessions = await getTTScheduledSessionsByStudent(studentId);
+
+        const { data: parentReports, error: reportsError } = await supabase
+          .from("parent_reports")
+          .select("*")
+          .eq("student_id", studentId)
+          .order("created_at", { ascending: false });
+
+        const { data: tdFeedback, error: feedbackError } = await supabase
+          .from("td_feedback")
+          .select("*")
+          .eq("student_id", studentId)
+          .order("created_at", { ascending: false });
+
+        if (reportsError || feedbackError) {
+          console.error("Error fetching TD tracking data:", { reportsError, feedbackError });
+          return res.status(500).json({ message: "Failed to fetch tracking data" });
+        }
+
+        res.json({
+          sessions: sessions || [],
+          parentReports: parentReports || [],
+          tdFeedback: tdFeedback || [],
+        });
+      } catch (error) {
+        console.error("Error fetching student tracking for TD:", error);
+        res.status(500).json({ message: "Failed to fetch tracking data" });
+      }
+    }
+  );
+
+  app.get(
+    "/api/td/students/:studentId/communications",
+    isAuthenticated,
+    requireRole(["td"]),
+    async (req: Request, res: Response) => {
+      try {
+        const tdId = (req as any).dbUser.id;
+        const { studentId } = req.params;
+        const authorized = await getTDAuthorizedStudent(tdId, studentId);
+
+        if (authorized.status === 404) {
+          return res.status(404).json({ message: "Student not found" });
+        }
+        if (authorized.status !== 200 || !authorized.student) {
+          return res.status(403).json({ message: "Unauthorized student access" });
+        }
+
+        const student = authorized.student;
+        const parentId =
+          (student as any)?.parentId ||
+          (student as any)?.parent_id ||
+          (await resolveParentIdForStudent(student, student.tutorId));
+
+        res.json(await buildStudentCommunicationBundle({ student, parentId: parentId || null }));
+      } catch (error) {
+        console.error("Error fetching TD communications:", error);
+        res.status(500).json({ message: "Failed to fetch communications" });
       }
     }
   );
@@ -9852,6 +10274,212 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error("Error fetching OD tracking:", error);
         res.status(500).json({ message: "Failed to fetch OD tracking" });
+      }
+    }
+  );
+
+  app.get(
+    "/api/battle-tests/banks/tutor",
+    isAuthenticated,
+    requireRole(["td", "coo"]),
+    async (_req: Request, res: Response) => {
+      res.json(TUTOR_BATTLE_TEST_PHASES_EXACT);
+    }
+  );
+
+  app.get(
+    "/api/battle-tests/banks/td",
+    isAuthenticated,
+    requireRole(["coo", "td"]),
+    async (_req: Request, res: Response) => {
+      res.json([TD_BATTLE_TEST_PHASE_EXACT]);
+    }
+  );
+
+  app.get(
+    "/api/battle-tests/pods/:podId/summary",
+    isAuthenticated,
+    requireRole(["td", "coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const dbUser = (req as any).dbUser;
+        const { podId } = req.params;
+        const pod = await storage.getPod(podId);
+
+        if (!pod) {
+          return res.status(404).json({ message: "Pod not found" });
+        }
+
+        if (dbUser.role === "td" && String(pod.tdId || "") !== String(dbUser.id)) {
+          return res.status(403).json({ message: "Forbidden" });
+        }
+
+        const assignments = await storage.getTutorAssignmentsByPod(podId);
+        const tutorMeta = await Promise.all(
+          assignments.map(async (assignment) => {
+            const tutor = await storage.getUser(assignment.tutorId);
+            const students = await storage.getStudentsByTutor(assignment.tutorId);
+            return {
+              assignmentId: assignment.id,
+              tutorId: assignment.tutorId,
+              tutorName: tutor?.name || tutor?.firstName || "Unknown Tutor",
+              tutorEmail: tutor?.email || "",
+              studentCount: students.length,
+            };
+          })
+        );
+        const tdUser = pod.tdId ? await storage.getUser(pod.tdId) : null;
+        const summary = await buildPodBattleTestingSummary(
+          podId,
+          tutorMeta,
+          tdUser
+            ? {
+                tdId: tdUser.id,
+                tdName: tdUser.name || tdUser.firstName || "Assigned TD",
+              }
+            : null
+        );
+
+        res.json(summary);
+      } catch (error) {
+        console.error("Error fetching pod battle-testing summary:", error);
+        res.status(500).json({ message: "Failed to fetch battle-testing summary" });
+      }
+    }
+  );
+
+  app.get(
+    "/api/battle-tests/pods/:podId/runs",
+    isAuthenticated,
+    requireRole(["td", "coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const dbUser = (req as any).dbUser;
+        const { podId } = req.params;
+        const pod = await storage.getPod(podId);
+
+        if (!pod) {
+          return res.status(404).json({ message: "Pod not found" });
+        }
+        if (dbUser.role === "td" && String(pod.tdId || "") !== String(dbUser.id)) {
+          return res.status(403).json({ message: "Forbidden" });
+        }
+
+        const assignments = await storage.getTutorAssignmentsByPod(podId);
+        const nameByUserId: Record<string, string> = {};
+        for (const assignment of assignments) {
+          const tutor = await storage.getUser(assignment.tutorId);
+          if (tutor) {
+            nameByUserId[tutor.id] = tutor.name || tutor.firstName || "Assigned Tutor";
+          }
+        }
+        if (pod.tdId) {
+          const tdUser = await storage.getUser(pod.tdId);
+          if (tdUser) {
+            nameByUserId[tdUser.id] = tdUser.name || tdUser.firstName || "Assigned TD";
+          }
+        }
+
+        const runs = await getBattleTestRunHistoryForPod(podId, nameByUserId);
+        res.json(runs);
+      } catch (error) {
+        console.error("Error fetching battle-testing runs:", error);
+        res.status(500).json({ message: "Failed to fetch battle-testing runs" });
+      }
+    }
+  );
+
+  app.get(
+    "/api/battle-tests/runs/:runId",
+    isAuthenticated,
+    requireRole(["td", "coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const dbUser = (req as any).dbUser;
+        const { runId } = req.params;
+        const { data: runLookup, error: lookupError } = await supabase
+          .from("battle_test_runs")
+          .select("pod_id")
+          .eq("id", runId)
+          .single();
+
+        if (lookupError || !runLookup) {
+          return res.status(404).json({ message: "Battle-testing run not found" });
+        }
+
+        const pod = await storage.getPod(String(runLookup.pod_id));
+        if (!pod) {
+          return res.status(404).json({ message: "Pod not found" });
+        }
+        if (dbUser.role === "td" && String(pod.tdId || "") !== String(dbUser.id)) {
+          return res.status(403).json({ message: "Forbidden" });
+        }
+
+        const assignments = await storage.getTutorAssignmentsByPod(String(runLookup.pod_id));
+        const nameByUserId: Record<string, string> = {};
+        for (const assignment of assignments) {
+          const tutor = await storage.getUser(assignment.tutorId);
+          if (tutor) {
+            nameByUserId[tutor.id] = tutor.name || tutor.firstName || "Assigned Tutor";
+          }
+        }
+        if (pod.tdId) {
+          const tdUser = await storage.getUser(pod.tdId);
+          if (tdUser) {
+            nameByUserId[tdUser.id] = tdUser.name || tdUser.firstName || "Assigned TD";
+          }
+        }
+
+        const runDetail = await getBattleTestRunDetail(runId, nameByUserId);
+        res.json(runDetail);
+      } catch (error) {
+        console.error("Error fetching battle-testing run detail:", error);
+        res.status(500).json({ message: "Failed to fetch battle-testing run detail" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/td/pods/:podId/tutor-battle-tests",
+    isAuthenticated,
+    requireRole(["td"]),
+    async (req: Request, res: Response) => {
+      try {
+        const dbUser = (req as any).dbUser;
+        const { podId } = req.params;
+        const pod = await storage.getPod(podId);
+
+        if (!pod || String(pod.tdId || "") !== String(dbUser.id)) {
+          return res.status(403).json({ message: "Forbidden" });
+        }
+
+        const payload = tutorBattleTestSubmissionSchema.parse(req.body || {});
+        const assignments = await storage.getTutorAssignmentsByPod(podId);
+        const assignment = assignments.find((entry) => String(entry.id) === String(payload.tutorAssignmentId));
+        if (!assignment || String(assignment.tutorId) !== String(payload.tutorId)) {
+          return res.status(400).json({ message: "Tutor assignment mismatch" });
+        }
+
+        const phases = getTutorBattleTestPhaseDefinitionsExact(payload.phaseKeys);
+        if (phases.length !== payload.phaseKeys.length) {
+          return res.status(400).json({ message: "Invalid tutor battle-testing phase selection" });
+        }
+
+        const result = await persistBattleTestRun({
+          podId,
+          subjectType: "tutor",
+          subjectUserId: payload.tutorId,
+          tutorAssignmentId: payload.tutorAssignmentId,
+          createdByUserId: dbUser.id,
+          templateKey: "tt_tutor_alignment_engine",
+          phases,
+          responses: payload.responses as BattleTestResponseInput[],
+        });
+
+        res.json(buildBattleTestSuccessPayload(result.runId, result.outcome));
+      } catch (error) {
+        console.error("Error saving tutor battle test:", error);
+        res.status(400).json({ message: error instanceof Error ? error.message : "Failed to save tutor battle test" });
       }
     }
   );
@@ -10419,6 +11047,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error("Error fetching tutor communications:", error);
         res.status(500).json({ message: "Failed to fetch communications" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/coo/pods/:podId/td-battle-tests",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const dbUser = (req as any).dbUser;
+        const { podId } = req.params;
+        const payload = tdBattleTestSubmissionSchema.parse(req.body || {});
+        const pod = await storage.getPod(podId);
+
+        if (!pod || String(pod.tdId || "") !== String(payload.tdId)) {
+          return res.status(400).json({ message: "TD is not assigned to this pod" });
+        }
+
+        const result = await persistBattleTestRun({
+          podId,
+          subjectType: "td",
+          subjectUserId: payload.tdId,
+          createdByUserId: dbUser.id,
+          templateKey: TD_BATTLE_TEST_PHASE_EXACT.key,
+          phases: [TD_BATTLE_TEST_PHASE_EXACT],
+          responses: payload.responses as BattleTestResponseInput[],
+        });
+
+        res.json(buildBattleTestSuccessPayload(result.runId, result.outcome));
+      } catch (error) {
+        console.error("Error saving TD battle test:", error);
+        res.status(400).json({ message: error instanceof Error ? error.message : "Failed to save TD battle test" });
       }
     }
   );

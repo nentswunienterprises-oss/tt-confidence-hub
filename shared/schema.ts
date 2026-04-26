@@ -74,6 +74,9 @@ export const reportTypeEnum = pgEnum("report_type", ["weekly", "monthly"]);
 export const onboardingAcceptanceMethodEnum = pgEnum("onboarding_acceptance_method", [
   "checkbox_typed_name",
 ]);
+export const battleTestSubjectEnum = pgEnum("battle_test_subject", ["tutor", "td"]);
+export const battleTestScoreEnum = pgEnum("battle_test_score", ["clear", "partial", "fail"]);
+export const battleTestStateEnum = pgEnum("battle_test_state", ["locked", "watchlist", "fail"]);
 
 // ============================================
 // SESSION STORAGE (Required for Replit Auth)
@@ -188,6 +191,75 @@ export type InsertTutorAssignment = typeof tutorAssignments.$inferInsert;
 export const insertTutorAssignmentSchema = createInsertSchema(
   tutorAssignments
 ).omit({
+  id: true,
+  createdAt: true,
+});
+
+// ============================================
+// BATTLE TESTING TABLES
+// ============================================
+
+export const battleTestRuns = pgTable("battle_test_runs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  podId: varchar("pod_id")
+    .notNull()
+    .references(() => pods.id),
+  subjectType: battleTestSubjectEnum("subject_type").notNull(),
+  subjectUserId: varchar("subject_user_id")
+    .notNull()
+    .references(() => users.id),
+  tutorAssignmentId: varchar("tutor_assignment_id").references(() => tutorAssignments.id),
+  createdByUserId: varchar("created_by_user_id")
+    .notNull()
+    .references(() => users.id),
+  templateKey: varchar("template_key").notNull(),
+  selectedPhaseKeys: jsonb("selected_phase_keys").notNull().default(sql`'[]'::jsonb`),
+  phaseScores: jsonb("phase_scores").notNull().default(sql`'[]'::jsonb`),
+  weakPhases: jsonb("weak_phases").notNull().default(sql`'[]'::jsonb`),
+  criticalFailReasons: jsonb("critical_fail_reasons").notNull().default(sql`'[]'::jsonb`),
+  totalQuestions: integer("total_questions").notNull().default(0),
+  answeredQuestions: integer("answered_questions").notNull().default(0),
+  totalPoints: real("total_points").notNull().default(0),
+  possiblePoints: real("possible_points").notNull().default(0),
+  alignmentPercent: real("alignment_percent").notNull().default(0),
+  state: battleTestStateEnum("state").notNull().default("fail"),
+  hasCriticalFail: boolean("has_critical_fail").notNull().default(false),
+  actionRequired: text("action_required"),
+  completedAt: timestamp("completed_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const battleTestRepLogs = pgTable("battle_test_rep_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  runId: varchar("run_id")
+    .notNull()
+    .references(() => battleTestRuns.id),
+  phaseKey: varchar("phase_key").notNull(),
+  questionKey: varchar("question_key").notNull(),
+  section: varchar("section").notNull(),
+  questionOrder: integer("question_order").notNull(),
+  prompt: text("prompt").notNull(),
+  expectedAnswer: text("expected_answer").notNull(),
+  failIndicators: jsonb("fail_indicators").notNull().default(sql`'[]'::jsonb`),
+  score: battleTestScoreEnum("score").notNull(),
+  pointsAwarded: real("points_awarded").notNull().default(0),
+  note: text("note"),
+  isCriticalFail: boolean("is_critical_fail").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type BattleTestRun = typeof battleTestRuns.$inferSelect;
+export type InsertBattleTestRun = typeof battleTestRuns.$inferInsert;
+export type BattleTestRepLog = typeof battleTestRepLogs.$inferSelect;
+export type InsertBattleTestRepLog = typeof battleTestRepLogs.$inferInsert;
+
+export const insertBattleTestRunSchema = createInsertSchema(battleTestRuns).omit({
+  id: true,
+  completedAt: true,
+  createdAt: true,
+});
+
+export const insertBattleTestRepLogSchema = createInsertSchema(battleTestRepLogs).omit({
   id: true,
   createdAt: true,
 });

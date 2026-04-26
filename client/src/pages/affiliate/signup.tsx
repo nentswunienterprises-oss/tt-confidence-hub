@@ -1,218 +1,79 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { AuthForm } from "@/components/auth/auth-form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
-import { QrCode, Compass, ArrowLeft, ArrowRight, Check } from "lucide-react";
 
 export default function AffiliateSignup() {
-  const [selectedRole, setSelectedRole] = useState<"affiliate" | "od" | null>(null);
   const [mode, setMode] = useState<"signup" | "login">("signup");
   const navigate = useNavigate();
 
-  if (!selectedRole) {
-    return (
-      <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#FFF5ED" }}>
-        {/* Header */}
-        <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
-          <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
-            <Button
-              variant="ghost"
-              className="text-sm sm:text-base font-medium hover:bg-transparent flex items-center gap-1 sm:gap-2 px-2 sm:px-4"
-              style={{ color: "#1A1A1A" }}
-              onClick={() => navigate("/affiliate/landing")}
-            >
-              <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              Back
-            </Button>
-            
-            <span className="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-              AFFILIATE PROGRAM
-            </span>
-            
-            <div className="w-16 sm:w-20" /> {/* Spacer for centering */}
-          </div>
-        </header>
-
-        {/* Spacer for fixed header */}
-        <div className="h-16 sm:h-20" />
-
-        {/* Role Selection */}
-        <div className="flex-1 flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12">
-          <div className="w-full max-w-3xl space-y-6 sm:space-y-10">
-            <div className="text-center space-y-3 sm:space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
-                <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
-                  Choose Your Path
-                </span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: "#1A1A1A" }}>
-                Start Your <span style={{ color: "#E63946" }}>Earning Journey</span>
-              </h2>
-              <p style={{ color: "#5A5A5A" }}>
-                Select your affiliate journey and start earning
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-4 sm:gap-8">
-              {/* Affiliate Option */}
-              <Card 
-                className="p-4 sm:p-8 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group"
-                style={{ backgroundColor: "white" }}
-                onClick={() => setSelectedRole("affiliate")}
-              >
-                <div 
-                  className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform"
-                  style={{ backgroundColor: "#FFF0F0" }}
-                >
-                  <QrCode className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: "#E63946" }} />
-                </div>
-                <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3" style={{ color: "#1A1A1A" }}>Affiliate</h3>
-                <p className="text-xs sm:text-base mb-3 sm:mb-4" style={{ color: "#5A5A5A" }}>
-                  Individual referrer using QR codes and links
-                </p>
-                <div className="py-2 sm:py-3 px-3 sm:px-4 rounded-xl mb-4 sm:mb-6" style={{ backgroundColor: "#FFF0F0" }}>
-                  <p className="text-xl sm:text-2xl font-bold" style={{ color: "#E63946" }}>R100-R150</p>
-                  <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>per referral</p>
-                </div>
-                <ul className="space-y-1.5 sm:space-y-2 mb-4 sm:mb-6">
-                  {["Personal QR code", "Real-time tracking", "Easy payouts"].map((item, i) => (
-                    <li key={i} className="flex items-center gap-2 text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-                      <Check className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: "#E63946" }} />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-                <Button 
-                  className="w-full rounded-full py-4 sm:py-6 font-semibold border-0 text-sm sm:text-base"
-                  style={{ backgroundColor: "#E63946", color: "white" }}
-                >
-                  Become an Affiliate
-                  <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-2" />
-                </Button>
-              </Card>
-
-              {/* Outreach Director Option */}
-              <Card 
-                className="p-4 sm:p-8 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group relative"
-                style={{ backgroundColor: "white" }}
-                onClick={() => setSelectedRole("od")}
-              >
-                <div 
-                  className="absolute top-3 right-3 sm:top-4 sm:right-4 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold"
-                  style={{ backgroundColor: "#E63946", color: "white" }}
-                >
-                  Popular
-                </div>
-                <div 
-                  className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform"
-                  style={{ backgroundColor: "#FFF0F0" }}
-                >
-                  <Compass className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: "#E63946" }} />
-                </div>
-                <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3" style={{ color: "#1A1A1A" }}>Outreach Director</h3>
-                <p className="text-xs sm:text-base mb-3 sm:mb-4" style={{ color: "#5A5A5A" }}>
-                  Strategic operator managing schools & institutions
-                </p>
-                <div className="py-2 sm:py-3 px-3 sm:px-4 rounded-xl mb-4 sm:mb-6" style={{ backgroundColor: "#FFF0F0" }}>
-                  <p className="text-xl sm:text-2xl font-bold" style={{ color: "#E63946" }}>R5000+</p>
-                  <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>per pod filled</p>
-                </div>
-                <ul className="space-y-1.5 sm:space-y-2 mb-4 sm:mb-6">
-                  {["Multiple campaigns", "School partnerships", "Bonus tiers"].map((item, i) => (
-                    <li key={i} className="flex items-center gap-2 text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-                      <Check className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: "#E63946" }} />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-                <Button 
-                  className="w-full rounded-full py-4 sm:py-6 font-semibold border-0 text-sm sm:text-base"
-                  style={{ backgroundColor: "#E63946", color: "white" }}
-                >
-                  Become Outreach Director
-                  <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-2" />
-                </Button>
-              </Card>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#FFF5ED" }}>
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
+    <div className="min-h-screen bg-[#FFF5ED]">
+      <header
+        className="fixed left-0 right-0 top-0 z-50 border-b border-[#F0DDD0] backdrop-blur-md"
+        style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}
+      >
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-3 sm:h-20 sm:px-6 md:px-12">
           <Button
             variant="ghost"
-            className="text-sm sm:text-base font-medium hover:bg-transparent flex items-center gap-1 sm:gap-2 px-2 sm:px-4"
+            className="flex items-center gap-2 px-2 text-sm font-medium hover:bg-transparent sm:px-4 sm:text-base"
             style={{ color: "#1A1A1A" }}
-            onClick={() => setSelectedRole(null)}
+            onClick={() => navigate("/affiliate/landing")}
           >
-            <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
-          
-          <span className="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-            {selectedRole === "affiliate" ? "AFFILIATE" : "OUTREACH DIRECTOR"}
-          </span>
-          
-          <div className="w-20 sm:w-28" /> {/* Spacer for centering */}
-        </div>
-      </header>
 
-      {/* Spacer for fixed header */}
-      <div className="h-16 sm:h-20" />
-
-      {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12">
-        <div className="w-full max-w-md space-y-6 sm:space-y-8">
-          {/* Hero Section */}
-          <div className="text-center space-y-3 sm:space-y-4">
-            <div 
-              className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center mx-auto"
-              style={{ backgroundColor: "#FFF0F0" }}
-            >
-              {selectedRole === "affiliate" ? (
-                <QrCode className="w-7 h-7 sm:w-8 sm:h-8" style={{ color: "#E63946" }} />
-              ) : (
-                <Compass className="w-7 h-7 sm:w-8 sm:h-8" style={{ color: "#E63946" }} />
-              )}
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-bold" style={{ color: "#1A1A1A" }}>
-              {selectedRole === "affiliate" ? "Start Earning as an Affiliate" : "Build Your Affiliate Empire"}
-            </h2>
-            <p style={{ color: "#5A5A5A" }}>
-              {selectedRole === "affiliate"
-                ? "Share your unique QR code and earn commission on every referral."
-                : "Manage schools, institutions, and grow your territory for higher commissions."}
+          <div className="text-center">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#8A4B35]">
+              Affiliate Gateway
+            </p>
+            <p className="mt-0.5 text-sm font-bold tracking-tight text-[#1A1A1A] sm:text-xl">
+              Education Growth Partner
             </p>
           </div>
 
-          {/* Mode Toggle */}
-          <div className="flex gap-2 justify-center p-1 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
+          <div className="w-16 sm:w-24" aria-hidden="true" />
+        </div>
+      </header>
+
+      <div className="h-16 sm:h-20" />
+
+      <main className="px-4 py-8 sm:px-6 sm:py-12">
+        <div className="mx-auto w-full max-w-md space-y-6 sm:space-y-8">
+          <div className="space-y-4 text-center">
+            <div
+              className="inline-flex rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] sm:text-sm"
+              style={{ backgroundColor: "#FFF0F0", color: "#E63946" }}
+            >
+              Precision-first operator role
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-[#1A1A1A] sm:text-3xl">
+              Enter the EGP gateway
+            </h1>
+            <p className="text-sm leading-7 text-[#5A5A5A] sm:text-base">
+              Create your account or log in to begin the Education Growth Partner application flow.
+            </p>
+          </div>
+
+          <div className="flex justify-center gap-2 rounded-full p-1" style={{ backgroundColor: "#FFF0F0" }}>
             <button
-              className={`flex-1 py-3 px-6 rounded-full font-semibold transition-all ${
-                mode === "signup" ? "shadow-md" : ""
-              }`}
-              style={{ 
+              className="flex-1 rounded-full px-6 py-3 font-semibold transition-all"
+              style={{
                 backgroundColor: mode === "signup" ? "#E63946" : "transparent",
-                color: mode === "signup" ? "white" : "#5A5A5A"
+                color: mode === "signup" ? "white" : "#5A5A5A",
               }}
               onClick={() => setMode("signup")}
             >
               Sign Up
             </button>
             <button
-              className={`flex-1 py-3 px-6 rounded-full font-semibold transition-all ${
-                mode === "login" ? "shadow-md" : ""
-              }`}
-              style={{ 
+              className="flex-1 rounded-full px-6 py-3 font-semibold transition-all"
+              style={{
                 backgroundColor: mode === "login" ? "#E63946" : "transparent",
-                color: mode === "login" ? "white" : "#5A5A5A"
+                color: mode === "login" ? "white" : "#5A5A5A",
               }}
               onClick={() => setMode("login")}
             >
@@ -220,24 +81,23 @@ export default function AffiliateSignup() {
             </button>
           </div>
 
-          {/* Auth Form Container */}
-          <Card className="p-8 border-0 shadow-lg" style={{ backgroundColor: "white" }}>
-            <AuthForm mode={mode} defaultRole={selectedRole} />
+          <Card className="border-0 p-6 shadow-lg sm:p-8" style={{ backgroundColor: "white" }}>
+            <AuthForm mode={mode} defaultRole="affiliate" />
           </Card>
 
-          {/* Footer Info */}
-          <p className="text-xs text-center" style={{ color: "#5A5A5A" }}>
-            By signing up, you agree to our{" "}
+          <p className="text-center text-xs text-[#5A5A5A]">
+            By continuing, you agree to our{" "}
             <a href="/terms-of-use" target="_blank" className="underline hover:text-[#E63946]" style={{ color: "#1A1A1A" }}>
               Terms of Use
             </a>{" "}
             and{" "}
             <a href="/privacy-policy" target="_blank" className="underline hover:text-[#E63946]" style={{ color: "#1A1A1A" }}>
               Privacy Policy
-            </a>.
+            </a>
+            .
           </p>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

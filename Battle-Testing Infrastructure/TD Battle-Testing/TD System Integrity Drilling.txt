@@ -1,0 +1,222 @@
+TD BATTLE TEST SYSTEM (STRUCTURE)
+
+We don’t test them on phases individually like tutors.
+
+We test them on:
+
+👉 SYSTEM INTEGRITY UNDER PRESSURE
+
+🧠 TD BATTLE TEST: CORE SET
+🔹 SECTION A — SYSTEM OWNERSHIP
+Q1
+
+What is your job as a Territory Director in TT, in one sentence?
+
+Expected Answer:
+“To ensure the TT system is executed exactly as defined and to detect and correct any deviation immediately.”
+
+Fail Answer:
+
+“Support tutors”
+“Help improve sessions”
+“Guide tutors”
+Q2
+
+What matters more: tutor intention or system execution? Why?
+
+Expected Answer:
+System execution. The system is the product. Intention does not produce results.
+
+Fail Answer:
+
+“Both matter”
+“Intention is important”
+Q3
+
+What is system drift?
+
+Expected Answer:
+Any deviation from defined TT-OS protocols, regardless of outcome.
+
+Fail Answer:
+
+“When results drop”
+“When tutors struggle”
+🔹 SECTION B — DRIFT DETECTION
+Q4
+
+A tutor runs Recognition reps but allows the student to solve.
+👉 What is this?
+
+Expected Answer:
+Clarity phase violation — protocol drift.
+
+Fail Answer:
+
+“Minor mistake”
+“Still helping the student”
+Q5
+
+A student gets correct answers, but steps are skipped.
+Tutor logs it as successful.
+👉 What do you flag?
+
+Expected Answer:
+False compliance + structure violation.
+
+Fail Answer:
+
+“Results are still good”
+Q6
+
+Tutor helps during the cold start window.
+👉 What phase is violated and why does it matter?
+
+Expected Answer:
+Structured Execution violation — independence not tested.
+
+Fail Answer:
+
+“Just helping flow”
+🔹 SECTION C — ENFORCEMENT DECISION
+Q7
+
+You detect repeated small “helping” behaviors from a tutor.
+👉 What do you do?
+
+Expected Answer:
+Flag, correct immediately, monitor closely, escalate if repeated.
+
+Fail Answer:
+
+“Give feedback and see how it goes”
+“Let them adjust over time”
+Q8
+
+Tutor says: “The student was struggling, so I helped a bit.”
+👉 What is your response?
+
+Expected Answer:
+That violates the system. The struggle must be observed, not removed.
+
+Fail Answer:
+
+“Understandable”
+“Just be careful next time”
+Q9
+
+A tutor produces good student results but breaks protocol often.
+👉 Do you keep or remove? Why?
+
+Expected Answer:
+Remove or correct immediately. System integrity overrides short-term results.
+
+Fail Answer:
+
+“Keep them, results matter”
+🔹 SECTION D — AUDIT LOGIC
+Q10
+
+What makes a session pass audit?
+
+Expected Answer:
+Exact protocol execution. 100% compliance.
+
+Fail Answer:
+
+“Good teaching”
+“Student improvement”
+Q11
+
+What is a critical audit failure?
+
+Expected Answer:
+Breaking core protocol (rescue, skipping phases, falsifying logs).
+
+Fail Answer:
+
+“Minor mistakes”
+Q12
+
+If logs do not match actual behavior, what does that indicate?
+
+Expected Answer:
+Dishonesty or system manipulation.
+
+Fail Answer:
+
+“Logging error”
+🔹 SECTION E — PRESSURE SCENARIOS
+Scenario 1
+
+Tutor rescues a student during Controlled Discomfort but logs “independent execution.”
+👉 What do you do?
+
+Expected Answer:
+Flag as major violation — audit failure + potential suspension.
+
+Fail Answer:
+
+“Correct the log”
+“Warn them”
+Scenario 2
+
+Tutor consistently produces “good sessions” but avoids difficult drills.
+👉 What is happening?
+
+Expected Answer:
+System avoidance — hidden drift.
+
+Fail Answer:
+
+“They’re optimizing sessions”
+Scenario 3
+
+Tutor follows structure but softens pressure to keep student comfortable.
+👉 What is the issue?
+
+Expected Answer:
+Protocol drift — system is not being executed as designed.
+
+Fail Answer:
+
+“They care about the student”
+Scenario 4
+
+Parent praises a tutor heavily, but audits show drift.
+👉 What matters?
+
+Expected Answer:
+System execution, not external praise.
+
+Fail Answer:
+
+“Parent satisfaction matters more”
+🔹 SECTION F — FINAL FILTER
+FINAL QUESTION
+
+“When should a tutor be removed from TT?”
+
+Expected Answer:
+When they consistently fail to execute the system, violate protocols, or compromise integrity.
+
+Fail Answer:
+
+“When results drop”
+“When parents complain”
+🧠 WHAT THIS DOES
+
+This ensures TDs:
+
+don’t get emotional
+don’t protect tutors
+don’t negotiate standards
+
+They become:
+
+👉 system enforcers, not team managers
+
+⚠️ FINAL TRUTH
+
+If tutors drift → system weakens
+If TDs drift → system collapses

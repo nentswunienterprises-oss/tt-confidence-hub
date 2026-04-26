@@ -4,7 +4,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import BattleTestHistoryDialog from "@/components/battle-testing/BattleTestHistoryDialog";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import BattleTestRunnerDialog from "@/components/battle-testing/BattleTestRunnerDialog";
+import PodBattleTestingOverview from "@/components/battle-testing/PodBattleTestingOverview";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -104,6 +107,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { API_URL } from "@/lib/config";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import StudentIdentitySheet from "@/components/tutor/StudentIdentitySheet";
 import ViewAssignmentsDialog from "@/components/tutor/ViewAssignmentsDialog";
@@ -112,6 +116,11 @@ import StudentTopicConditioningDialog from "@/components/tutor/StudentTopicCondi
 import StudentCommunicationDialog from "@/components/communications/StudentCommunicationDialog";
 import type { Pod, User } from "@shared/schema";
 import { RESPONSE_SYMPTOM_GROUPS } from "@shared/responseSymptomMapping";
+import {
+  type BattleTestPhaseDefinition,
+  type BattleTestResponseInput,
+  type PodBattleTestingSummary,
+} from "@shared/battleTesting";
 
 const MAX_TUTORS_PER_POD = 12;
 const getMaxStudentsPerTutorForVehicle = (vehicle?: string | null) => {
@@ -174,6 +183,9 @@ export default function PodDetail() {
   const [selectedStudentId, setSelectedStudentId] = useState<string>("");
   const [selectedStudentName, setSelectedStudentName] = useState<string>("");
   const [selectedStudentRecord, setSelectedStudentRecord] = useState<any | null>(null);
+  const [tdBattleTestOpen, setTdBattleTestOpen] = useState(false);
+  const [activeTutorHistory, setActiveTutorHistory] = useState<{ assignmentId: string; tutorName: string } | null>(null);
+  const [tdHistoryOpen, setTdHistoryOpen] = useState(false);
 
   if (!podId) {
     navigate("/coo/pods");
@@ -239,6 +251,29 @@ export default function PodDetail() {
     enabled: isAuthenticated && !authLoading && !!podId,
     refetchInterval: 5000,
     refetchOnWindowFocus: true,
+  });
+
+  const {
+    data: battleTestingSummary,
+    isLoading: battleTestingLoading,
+  } = useQuery<PodBattleTestingSummary>({
+    queryKey: [`/api/battle-tests/pods/${podId}/summary`],
+    enabled: isAuthenticated && !authLoading && !!podId,
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
+  });
+
+  const { data: tdBattleTestPhases = [] } = useQuery<BattleTestPhaseDefinition[]>({
+    queryKey: ["/api/battle-tests/banks/td"],
+    enabled: isAuthenticated && !authLoading,
+    queryFn: async () => {
+      const response = await fetch(`${API_URL}/api/battle-tests/banks/td`, {
+        credentials: "include",
+        cache: "no-store",
+      });
+      if (!response.ok) throw new Error("Failed to load TD battle-testing bank");
+      return response.json();
+    },
   });
 
   const { data: enrollments = [] } = useQuery<ParentEnrollment[]>({
@@ -410,6 +445,34 @@ export default function PodDetail() {
     },
   });
 
+  const submitTdBattleTestMutation = useMutation({
+    mutationFn: async ({ responses }: { responses: BattleTestResponseInput[] }) => {
+      if (!(currentPod as Pod).tdId) {
+        throw new Error("This pod has no TD assigned.");
+      }
+      await apiRequest("POST", `/api/coo/pods/${podId}/td-battle-tests`, {
+        tdId: (currentPod as Pod).tdId,
+        responses,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/battle-tests/pods/${podId}/summary`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/coo/pods"] });
+      toast({
+        title: "TD battle test saved",
+        description: "TD system-integrity results were logged successfully.",
+      });
+      setTdBattleTestOpen(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "TD battle test failed",
+        description: error?.message || "Failed to save TD battle test.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const getTDName = (tdId: string | null) => {
     if (!tdId) return "Unassigned";
     return tds?.find((td) => td.id === tdId)?.name || "Unknown";
@@ -442,7 +505,7 @@ export default function PodDetail() {
     setExpandedTutors(newExpanded);
   };
 
-  if (podLoading || tdsLoading || tutorsLoading || authLoading || statsLoading) {
+  if (podLoading || tdsLoading || tutorsLoading || authLoading || statsLoading || battleTestingLoading) {
     return (
       <DashboardLayout>
         <div className="space-y-8">
@@ -841,7 +904,70 @@ export default function PodDetail() {
             </Card>
           </div>
         </div>
+
+        {battleTestingSummary ? (
+          <PodBattleTestingOverview
+            summary={battleTestingSummary}
+            readOnly={false}
+            showTdControl={true}
+            onStartTdBattleTest={() => setTdBattleTestOpen(true)}
+            onViewTdHistory={() => setTdHistoryOpen(true)}
+            onViewTutorHistory={(assignmentId) => {
+              const tutorSummary = battleTestingSummary.tutorSummaries.find(
+                (entry) => entry.assignmentId === assignmentId
+              );
+              if (!tutorSummary) return;
+              setActiveTutorHistory({
+                assignmentId,
+                tutorName: tutorSummary.tutorName,
+              });
+            }}
+          />
+        ) : null}
       </div>
+
+      <BattleTestRunnerDialog
+        open={tdBattleTestOpen}
+        onOpenChange={setTdBattleTestOpen}
+        title={`TD System Integrity - ${tdName}`}
+        description={`Run the COO-side TD integrity drill for ${tdName} inside ${podName}.`}
+        phaseOptions={tdBattleTestPhases}
+        selectionMode="fixed"
+        submitLabel="Save TD Battle Test"
+        onSubmit={async ({ responses }) => {
+          await submitTdBattleTestMutation.mutateAsync({
+            responses,
+          });
+        }}
+      />
+
+      <BattleTestHistoryDialog
+        open={!!activeTutorHistory}
+        onOpenChange={(open) => {
+          if (!open) setActiveTutorHistory(null);
+        }}
+        title={
+          activeTutorHistory
+            ? `Tutor Audit History - ${activeTutorHistory.tutorName}`
+            : "Tutor Audit History"
+        }
+        description="Stored tutor battle-test runs and rep-level detail for this pod."
+        historyQueryKey={`battle-test-runs-${podId}`}
+        historyEndpoint={`/api/battle-tests/pods/${podId}/runs`}
+        filter={(run) =>
+          !!activeTutorHistory && run.subjectType === "tutor" && run.tutorAssignmentId === activeTutorHistory.assignmentId
+        }
+      />
+
+      <BattleTestHistoryDialog
+        open={tdHistoryOpen}
+        onOpenChange={setTdHistoryOpen}
+        title={`TD Audit History - ${tdName}`}
+        description="Stored TD system-integrity battle tests for this pod."
+        historyQueryKey={`battle-test-runs-${podId}`}
+        historyEndpoint={`/api/battle-tests/pods/${podId}/runs`}
+        filter={(run) => run.subjectType === "td"}
+      />
 
       {/* Student Dialogs - COO read-only view */}
       <StudentIdentitySheet
@@ -963,6 +1089,7 @@ function TutorStudentsSection({
     refetchInterval: 5000,
     refetchOnWindowFocus: true,
   });
+
   const activeStudentCount = students?.length || studentCount || 0;
   const tutorAtCapacity = activeStudentCount >= maxStudentsPerTutor;
 
