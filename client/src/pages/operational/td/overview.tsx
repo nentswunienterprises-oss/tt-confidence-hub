@@ -34,6 +34,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   getBattleTestStateLabel,
   type BattleTestPhaseDefinition,
+  type BattleTestState,
   type BattleTestResponseInput,
   type PodBattleTestingSummary,
 } from "@shared/battleTesting";
@@ -72,6 +73,19 @@ interface StudentActionRecord {
   conceptMastery?: any;
   concept_mastery?: any;
 }
+
+const EMPTY_BATTLE_TESTING_SUMMARY: PodBattleTestingSummary = {
+  podId: "",
+  weeklyAlignmentPercent: null,
+  driftIncidents: 0,
+  lockedTutors: 0,
+  watchlistTutors: 0,
+  failTutors: 0,
+  phaseWeaknesses: [],
+  phaseScores: [],
+  tutorSummaries: [],
+  tdSummary: null,
+};
 
 function getTutorInitials(name?: string | null) {
   return String(name || "TD")
@@ -240,7 +254,26 @@ export default function TDOverview() {
         </div>
 
         {podsData.map((podData) => {
-          const { pod, tutors, totalStudents, totalSessions, battleTestingSummary } = podData;
+          const { pod, tutors, totalStudents, totalSessions } = podData;
+          const battleTestingSummary: PodBattleTestingSummary = podData?.battleTestingSummary
+            ? {
+                ...EMPTY_BATTLE_TESTING_SUMMARY,
+                ...podData.battleTestingSummary,
+                podId: podData.battleTestingSummary.podId || pod.id,
+                tutorSummaries: Array.isArray(podData.battleTestingSummary.tutorSummaries)
+                  ? podData.battleTestingSummary.tutorSummaries
+                  : [],
+                phaseWeaknesses: Array.isArray(podData.battleTestingSummary.phaseWeaknesses)
+                  ? podData.battleTestingSummary.phaseWeaknesses
+                  : [],
+                phaseScores: Array.isArray(podData.battleTestingSummary.phaseScores)
+                  ? podData.battleTestingSummary.phaseScores
+                  : [],
+              }
+            : {
+                ...EMPTY_BATTLE_TESTING_SUMMARY,
+                podId: pod.id,
+              };
           return (
             <Card key={pod.id} className="border p-6">
               <div className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
@@ -644,7 +677,7 @@ export default function TDOverview() {
   );
 }
 
-function getBattleTestStateBadgeClass(state: string | null | undefined) {
+function getBattleTestStateBadgeClass(state: BattleTestState | string | null | undefined) {
   if (state === "locked") return "bg-emerald-100 text-emerald-800 border-emerald-200";
   if (state === "watchlist") return "bg-amber-100 text-amber-900 border-amber-200";
   if (state === "fail") return "bg-rose-100 text-rose-800 border-rose-200";
