@@ -22,7 +22,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import StudentIdentitySheet from "@/components/tutor/StudentIdentitySheet";
 import StudentTopicConditioningDialog from "@/components/tutor/StudentTopicConditioningDialog";
 import ViewAssignmentsDialog from "@/components/tutor/ViewAssignmentsDialog";
 import ViewTrackingSystemsDialog from "@/components/tutor/ViewTrackingSystemsDialog";
@@ -105,7 +104,6 @@ export default function TDOverview() {
   const { toast } = useToast();
   const [activeTutorRun, setActiveTutorRun] = useState<ActiveTutorRunContext | null>(null);
   const [activeTutorHistory, setActiveTutorHistory] = useState<ActiveTutorHistoryContext | null>(null);
-  const [identitySheetOpen, setIdentitySheetOpen] = useState(false);
   const [assignmentsDialogOpen, setAssignmentsDialogOpen] = useState(false);
   const [trackingDialogOpen, setTrackingDialogOpen] = useState(false);
   const [topicConditioningDialogOpen, setTopicConditioningDialogOpen] = useState(false);
@@ -368,9 +366,11 @@ export default function TDOverview() {
                                 <p className="font-semibold text-foreground">{tutorName}</p>
                                 <p className="text-sm text-muted-foreground">{tutor.email || "No email"}</p>
                                 <div className="mt-2 flex flex-wrap gap-2">
-                                  <Badge variant="outline">
-                                    {(tutor.assignment as any)?.certification_status || "pending"}
-                                  </Badge>
+                                  {((tutor.assignment as any)?.certification_status || "").toLowerCase() !== "pending" && (
+                                    <Badge variant="outline">
+                                      {(tutor.assignment as any)?.certification_status}
+                                    </Badge>
+                                  )}
                                   <Badge variant={getOperationalModeBadge(operationalMode)}>
                                     {operationalMode === "certified_live" ? "Certified Live" : "Training Mode"}
                                   </Badge>
@@ -500,10 +500,6 @@ export default function TDOverview() {
                               tutorName={tutorName}
                               operationalMode={operationalMode}
                               fallbackStudentCount={(tutor.assignment as any)?.student_count || 0}
-                              onViewIdentitySheet={(student) => {
-                                openStudentRecord(student);
-                                setIdentitySheetOpen(true);
-                              }}
                               onViewAssignments={(student) => {
                                 openStudentRecord(student);
                                 setAssignmentsDialogOpen(true);
@@ -585,15 +581,6 @@ export default function TDOverview() {
         filter={(run) =>
           !!activeTutorHistory && run.subjectType === "tutor" && run.tutorAssignmentId === activeTutorHistory.assignmentId
         }
-      />
-
-      <StudentIdentitySheet
-        open={identitySheetOpen}
-        onOpenChange={setIdentitySheetOpen}
-        studentId={selectedStudentId}
-        studentName={selectedStudentName}
-        readOnly={true}
-        apiBasePath="/api/td"
       />
 
       <ViewAssignmentsDialog
@@ -708,7 +695,6 @@ interface TDTutorStudentsSectionProps {
   tutorName: string;
   operationalMode: string;
   fallbackStudentCount: number;
-  onViewIdentitySheet: (student: StudentActionRecord) => void;
   onViewAssignments: (student: StudentActionRecord) => void;
   onViewTrackingSystems: (student: StudentActionRecord) => void;
   onViewTopicConditioning: (student: StudentActionRecord) => void;
@@ -720,7 +706,6 @@ function TDTutorStudentsSection({
   tutorName,
   operationalMode,
   fallbackStudentCount,
-  onViewIdentitySheet,
   onViewAssignments,
   onViewTrackingSystems,
   onViewTopicConditioning,
@@ -785,15 +770,6 @@ function TDTutorStudentsSection({
                 </div>
 
                 <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-9 w-full text-xs"
-                    onClick={() => onViewIdentitySheet(student)}
-                  >
-                    <FileText className="mr-1.5 h-3 w-3" />
-                    Identity Sheet
-                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
