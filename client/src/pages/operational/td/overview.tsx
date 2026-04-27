@@ -3,6 +3,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   Activity,
   AlertTriangle,
+  ArrowLeft,
   Calendar,
   CheckCircle2,
   ChevronDown,
@@ -12,6 +13,7 @@ import {
   Mail,
   Settings,
   ShieldAlert,
+  Users,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import BattleTestHistoryDialog from "@/components/battle-testing/BattleTestHistoryDialog";
@@ -95,8 +97,10 @@ function getTutorInitials(name?: string | null) {
     .slice(0, 2);
 }
 
-function getOperationalModeBadge(mode?: string | null) {
-  return String(mode || "").toLowerCase() === "certified_live" ? "default" : "secondary";
+function getStatusColor(status: string) {
+  return status === "active"
+    ? "bg-green-100 text-green-800 border-green-200"
+    : "bg-blue-100 text-blue-800 border-blue-200";
 }
 
 export default function TDOverview() {
@@ -243,12 +247,18 @@ export default function TDOverview() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">My Pods</h1>
-          <p className="text-muted-foreground">
-            Run battle tests, inspect tutor student cards, and review topic conditioning, tracking systems, and communication flows.
-          </p>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-2 sm:gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => window.history.back()}
+            className="hover:bg-muted h-8 w-8 sm:h-10 sm:w-10"
+          >
+            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+          </Button>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate flex-1">My Pods</h1>
         </div>
 
         {podsData.map((podData) => {
@@ -273,257 +283,279 @@ export default function TDOverview() {
                 podId: pod.id,
               };
           return (
-            <Card key={pod.id} className="border p-6">
-              <div className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-                <div>
-                  <h2 className="text-xl font-semibold text-foreground">{pod.podName}</h2>
-                  <p className="text-sm text-muted-foreground">
-                    {pod.phase} phase - {pod.status}
-                  </p>
-                </div>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 xl:min-w-[420px]">
-                  <Card className="border-border/60 px-4 py-3">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                      Tutors
-                    </p>
-                    <p className="mt-1 text-2xl font-semibold text-foreground">{tutors.length}</p>
-                  </Card>
-                  <Card className="border-border/60 px-4 py-3">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                      Students
-                    </p>
-                    <p className="mt-1 text-2xl font-semibold text-foreground">{totalStudents}</p>
-                  </Card>
-                  <Card className="border-border/60 px-4 py-3">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                      Sessions Logged
-                    </p>
-                    <p className="mt-1 text-2xl font-semibold text-foreground">{totalSessions}</p>
-                  </Card>
-                </div>
+            <div key={pod.id} className="space-y-6">
+              {/* Pod Header */}
+              <div>
+                <h2 className="text-xl font-semibold text-foreground">{pod.podName}</h2>
+                <p className="text-sm text-muted-foreground">
+                  {pod.phase} phase - {pod.status}
+                </p>
               </div>
 
-              <div className="space-y-4">
-                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                    <BattleTestingMetricCard
-                      icon={<Activity className="h-5 w-5" />}
-                      tintClassName="bg-blue-50 text-blue-700"
-                      label="Weekly Alignment"
-                      value={
-                        battleTestingSummary.weeklyAlignmentPercent == null
-                          ? "N/A"
-                          : `${Math.round(battleTestingSummary.weeklyAlignmentPercent)}%`
-                      }
-                    />
-                    <BattleTestingMetricCard
-                      icon={<ShieldAlert className="h-5 w-5" />}
-                      tintClassName="bg-rose-50 text-rose-700"
-                      label="Violation Spikes"
-                      value={String(battleTestingSummary.driftIncidents)}
-                    />
-                    <BattleTestingMetricCard
-                      icon={<CheckCircle2 className="h-5 w-5" />}
-                      tintClassName="bg-emerald-50 text-emerald-700"
-                      label="Locked Tutors"
-                      value={String(battleTestingSummary.lockedTutors)}
-                    />
-                    <BattleTestingMetricCard
-                      icon={<AlertTriangle className="h-5 w-5" />}
-                      tintClassName="bg-amber-50 text-amber-700"
-                      label="At Risk"
-                      value={String(
-                        battleTestingSummary.watchlistTutors + battleTestingSummary.failTutors
-                      )}
-                    />
+              {/* Statistics Section */}
+              <div className="coo-pod-stats grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                <Card className="border-primary/15 bg-background shadow-sm">
+                  <div className="px-4 py-4 sm:px-5 sm:py-5">
+                    <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Tutors</p>
+                    <p className="mt-2 text-3xl font-semibold tabular-nums text-foreground sm:text-4xl">
+                      {tutors.length}
+                    </p>
                   </div>
+                </Card>
 
-                  {tutors.length === 0 ? (
-                    <Card className="border border-dashed p-6 text-center text-sm text-muted-foreground">
-                      No tutors are assigned to this pod yet.
-                    </Card>
-                  ) : (
-                    tutors.map((tutor) => {
-                      const tutorName = tutor.name || tutor.firstName || "Unknown Tutor";
-                      const operationalMode =
-                        (tutor.assignment as any)?.operational_mode ||
-                        (tutor.assignment as any)?.operationalMode ||
-                        "training";
-                      const tutorAudit = battleTestingSummary.tutorSummaries.find(
-                        (entry) => entry.assignmentId === tutor.assignment.id
-                      );
-                      const isExpanded = !!expandedTutors[tutor.assignment.id];
+                <Card className="border-primary/15 bg-background shadow-sm">
+                  <div className="px-4 py-4 sm:px-5 sm:py-5">
+                    <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Students</p>
+                    <p className="mt-2 text-3xl font-semibold tabular-nums text-foreground sm:text-4xl">
+                      {totalStudents}
+                    </p>
+                  </div>
+                </Card>
 
-                      return (
-                        <Card key={tutor.assignment.id} className="border border-border/60 p-4">
-                          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                            <div className="flex items-start gap-3">
-                              <Avatar className="h-11 w-11 border border-primary/20">
-                                <AvatarFallback className="bg-accent text-foreground font-bold">
-                                  {getTutorInitials(tutorName)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="min-w-0">
-                                <p className="font-semibold text-foreground">{tutorName}</p>
-                                <p className="text-sm text-muted-foreground">{tutor.email || "No email"}</p>
-                                <div className="mt-2 flex flex-wrap gap-2">
-                                  {((tutor.assignment as any)?.certification_status || "").toLowerCase() !== "pending" && (
-                                    <Badge variant="outline">
-                                      {(tutor.assignment as any)?.certification_status}
-                                    </Badge>
+                <Card className="border-primary/15 bg-background shadow-sm">
+                  <div className="px-4 py-4 sm:px-5 sm:py-5">
+                    <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Sessions Done</p>
+                    <p className="mt-2 text-3xl font-semibold tabular-nums text-foreground sm:text-4xl">
+                      {totalSessions}
+                    </p>
+                  </div>
+                </Card>
+              </div>
+
+              {/* Pod Info Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                {/* Left Column */}
+                <div className="space-y-3 sm:space-y-4">
+                  {/* Status */}
+                  <Card className="p-4 sm:p-6 border">
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground uppercase">Status</p>
+                    <div className="mt-2 sm:mt-3">
+                      <Badge className={`${getStatusColor(pod.status)} border font-semibold text-xs`}>
+                        {pod.status}
+                      </Badge>
+                    </div>
+                  </Card>
+
+                  {/* Battle Testing Summary */}
+                  <Card className="p-4 sm:p-6 border">
+                    <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                      <Activity className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
+                      <p className="text-xs sm:text-sm font-medium text-muted-foreground uppercase">Pod Integrity</p>
+                    </div>
+
+                    {/* Pod Stats Sub-section */}
+                    <div className="pt-4 border-t space-y-3">
+                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                        <div>
+                          <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Weekly Alignment</p>
+                          <p className="mt-1 text-lg font-semibold">
+                            {battleTestingSummary.weeklyAlignmentPercent == null
+                              ? "N/A"
+                              : `${Math.round(battleTestingSummary.weeklyAlignmentPercent)}%`}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Violation Spikes</p>
+                          <p className="mt-1 text-lg font-semibold">{battleTestingSummary.driftIncidents}</p>
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">At Risk Tutors</p>
+                          <p className="mt-1 text-lg font-semibold">{battleTestingSummary.watchlistTutors + battleTestingSummary.failTutors}</p>
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Locked Tutors</p>
+                          <p className="mt-1 text-lg font-semibold">{battleTestingSummary.lockedTutors}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+
+                {/* Right Column - Tutors */}
+                <div>
+                  <Card className="p-4 sm:p-6 border">
+                    <div className="space-y-3 sm:space-y-4">
+                      <div className="flex items-center justify-between border-b pb-3 sm:pb-4">
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                          <h2 className="font-semibold text-sm sm:text-base">Assigned Tutors</h2>
+                        </div>
+                        <span className="text-xs sm:text-sm text-muted-foreground">
+                          {tutors.length}
+                        </span>
+                      </div>
+
+                      {/* Tutors List */}
+                      {tutors.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p className="text-sm">No tutors assigned yet</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {tutors.map((tutor) => {
+                            const tutorName = tutor.name || tutor.firstName || "Unknown Tutor";
+                            const operationalMode =
+                              (tutor.assignment as any)?.operational_mode ||
+                              (tutor.assignment as any)?.operationalMode ||
+                              "training";
+                            const tutorAudit = battleTestingSummary.tutorSummaries.find(
+                              (entry) => entry.assignmentId === tutor.assignment.id
+                            );
+                            const isExpanded = !!expandedTutors[tutor.assignment.id];
+
+                            return (
+                              <div
+                                key={tutor.assignment.id}
+                                className="border rounded-lg overflow-hidden hover:bg-muted/50 transition-colors"
+                              >
+                                <div className="p-3 sm:p-4">
+                                  <div className="flex flex-col gap-3 sm:gap-4">
+                                    <div className="flex items-start justify-between gap-2 sm:gap-4">
+                                    <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+                                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center text-xs sm:text-sm font-bold text-primary shrink-0">
+                                        {getTutorInitials(tutorName)}
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <p className="font-semibold text-sm sm:text-base truncate">{tutorName}</p>
+                                        <p className="text-xs sm:text-sm text-muted-foreground truncate">{tutor.email || "No email"}</p>
+                                        <div className="mt-2 flex flex-wrap gap-2">
+                                          {((tutor.assignment as any)?.certification_status || "").toLowerCase() !== "pending" && (
+                                            <Badge variant="outline">
+                                              {(tutor.assignment as any)?.certification_status}
+                                            </Badge>
+                                          )}
+                                          <Badge variant={getOperationalModeBadge(operationalMode)}>
+                                            {operationalMode === "certified_live" ? "Certified Live" : "Training Mode"}
+                                          </Badge>
+                                          <Badge className={getBattleTestStateBadgeClass(tutorAudit?.state)}>
+                                            {getBattleTestStateLabel(tutorAudit?.state)}
+                                          </Badge>
+                                          <Badge variant="outline">
+                                            {tutorAudit?.alignmentPercent == null
+                                              ? "Audit N/A"
+                                              : `Audit ${Math.round(tutorAudit.alignmentPercent)}%`}
+                                          </Badge>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => toggleTutorExpanded(tutor.assignment.id)}
+                                        className="h-7 w-7 sm:h-8 sm:w-8 p-0"
+                                      >
+                                        <ChevronDown
+                                          className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform ${
+                                            isExpanded ? "rotate-180" : ""
+                                          }`}
+                                        />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                    <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
+                                      <div className="rounded-xl border border-border/60 bg-muted/20 p-3 sm:p-4">
+                                        <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                                          Tutor Audit
+                                        </p>
+                                        <div className="mt-3 flex flex-wrap gap-2">
+                                          {tutorAudit?.phaseScores?.length ? (
+                                            tutorAudit.phaseScores.map((phase) => (
+                                              <Badge key={`${tutor.assignment.id}-${phase.phaseKey}`} variant="outline">
+                                                {phase.title}: {Math.round(phase.percent)}%
+                                              </Badge>
+                                            ))
+                                          ) : (
+                                            <span className="text-sm text-muted-foreground">
+                                              No tutor audit has been logged yet.
+                                            </span>
+                                          )}
+                                        </div>
+                                        {tutorAudit?.actionRequired ? (
+                                          <p className="mt-3 text-sm text-muted-foreground">{tutorAudit.actionRequired}</p>
+                                        ) : null}
+                                        {tutorAudit?.lastAuditAt ? (
+                                          <p className="mt-2 text-xs text-muted-foreground">
+                                            Last audit: {formatAuditTimestamp(tutorAudit.lastAuditAt)}
+                                          </p>
+                                        ) : null}
+                                      </div>
+                                      <div className="rounded-xl border border-border/60 bg-muted/20 p-3 sm:p-4">
+                                        <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                                          Tutor Controls
+                                        </p>
+                                        <div className="mt-3 flex flex-wrap gap-2">
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() =>
+                                              setActiveTutorHistory({
+                                                podId: pod.id,
+                                                tutorName,
+                                                assignmentId: tutor.assignment.id,
+                                              })
+                                            }
+                                          >
+                                            Audit History
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            onClick={() =>
+                                              setActiveTutorRun({
+                                                podId: pod.id,
+                                                podName: pod.podName,
+                                                assignmentId: tutor.assignment.id,
+                                                tutorId: tutor.id,
+                                                tutorName,
+                                              })
+                                            }
+                                          >
+                                            Run Tutor Audit
+                                          </Button>
+                                        </div>
+                                        <p className="mt-3 text-sm text-muted-foreground">
+                                          {(tutor.assignment as any)?.student_count || 0} students assigned.
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Expanded Details */}
+                                  {isExpanded && (
+                                    <TDTutorStudentsSection
+                                      tutorId={tutor.id}
+                                      tutorName={tutorName}
+                                      operationalMode={operationalMode}
+                                      fallbackStudentCount={(tutor.assignment as any)?.student_count || 0}
+                                      onViewAssignments={(student) => {
+                                        openStudentRecord(student);
+                                        setAssignmentsDialogOpen(true);
+                                      }}
+                                      onViewTrackingSystems={(student) => {
+                                        openStudentRecord(student);
+                                        setTrackingDialogOpen(true);
+                                      }}
+                                      onViewTopicConditioning={(student) => {
+                                        openStudentRecord(student);
+                                        setTopicConditioningDialogOpen(true);
+                                      }}
+                                      onViewCommunication={(student) => {
+                                        openStudentRecord(student);
+                                        setCommunicationDialogOpen(true);
+                                      }}
+                                    />
                                   )}
-                                  <Badge variant={getOperationalModeBadge(operationalMode)}>
-                                    {operationalMode === "certified_live" ? "Certified Live" : "Training Mode"}
-                                  </Badge>
                                 </div>
                               </div>
-                            </div>
-
-                            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[auto_auto_1fr] lg:justify-end">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <Badge className={getBattleTestStateBadgeClass(tutorAudit?.state)}>
-                                  {getBattleTestStateLabel(tutorAudit?.state)}
-                                </Badge>
-                                <Badge variant="outline">
-                                  {tutorAudit?.alignmentPercent == null
-                                    ? "Audit N/A"
-                                    : `Audit ${Math.round(tutorAudit.alignmentPercent)}%`}
-                                </Badge>
-                              </div>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="w-full sm:w-auto"
-                                onClick={() =>
-                                  setActiveTutorHistory({
-                                    podId: pod.id,
-                                    tutorName,
-                                    assignmentId: tutor.assignment.id,
-                                  })
-                                }
-                              >
-                                Audit History
-                              </Button>
-                              <div className="flex flex-wrap gap-2 lg:justify-end">
-                                <Button
-                                  size="sm"
-                                  className="w-full sm:w-auto"
-                                  onClick={() =>
-                                    setActiveTutorRun({
-                                      podId: pod.id,
-                                      podName: pod.podName,
-                                      assignmentId: tutor.assignment.id,
-                                      tutorId: tutor.id,
-                                      tutorName,
-                                    })
-                                  }
-                                >
-                                  Run Tutor Audit
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="w-full sm:w-auto"
-                                  onClick={() => toggleTutorExpanded(tutor.assignment.id)}
-                                >
-                                  {isExpanded ? (
-                                    <>
-                                      <ChevronUp className="mr-1.5 h-4 w-4" />
-                                      Hide Students
-                                    </>
-                                  ) : (
-                                    <>
-                                      <ChevronDown className="mr-1.5 h-4 w-4" />
-                                      View Students
-                                    </>
-                                  )}
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
-                            <div className="rounded-xl border border-border/60 bg-muted/20 p-4">
-                              <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                                Tutor Audit
-                              </p>
-                              <div className="mt-3 flex flex-wrap gap-2">
-                                {tutorAudit?.phaseScores?.length ? (
-                                  tutorAudit.phaseScores.map((phase) => (
-                                    <Badge
-                                      key={`${tutor.assignment.id}-${phase.phaseKey}`}
-                                      variant="outline"
-                                    >
-                                      {phase.title}: {Math.round(phase.percent)}%
-                                    </Badge>
-                                  ))
-                                ) : (
-                                  <span className="text-sm text-muted-foreground">
-                                    No tutor audit has been logged yet.
-                                  </span>
-                                )}
-                              </div>
-                              {tutorAudit?.actionRequired ? (
-                                <p className="mt-3 text-sm text-muted-foreground">
-                                  {tutorAudit.actionRequired}
-                                </p>
-                              ) : null}
-                              {tutorAudit?.lastAuditAt ? (
-                                <p className="mt-2 text-xs text-muted-foreground">
-                                  Last audit: {formatAuditTimestamp(tutorAudit.lastAuditAt)}
-                                </p>
-                              ) : null}
-                            </div>
-
-                            <div className="rounded-xl border border-border/60 bg-muted/20 p-4">
-                              <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                                Student Visibility
-                              </p>
-                              <p className="mt-2 text-sm text-muted-foreground">
-                                {tutorName} is currently in {operationalMode === "certified_live" ? "certified live" : "training"} mode.
-                              </p>
-                              <div className="mt-3 flex flex-wrap gap-2">
-                                <Badge variant="outline">
-                                  {tutorAudit?.studentCount ?? (tutor.assignment as any)?.student_count ?? 0} assigned students
-                                </Badge>
-                                {tutorAudit?.hasCriticalFail ? (
-                                  <Badge className="bg-rose-100 text-rose-800 border-rose-200">
-                                    Critical fail logged
-                                  </Badge>
-                                ) : null}
-                              </div>
-                            </div>
-                          </div>
-
-                          {isExpanded ? (
-                            <TDTutorStudentsSection
-                              tutorId={tutor.id}
-                              tutorName={tutorName}
-                              operationalMode={operationalMode}
-                              fallbackStudentCount={(tutor.assignment as any)?.student_count || 0}
-                              onViewAssignments={(student) => {
-                                openStudentRecord(student);
-                                setAssignmentsDialogOpen(true);
-                              }}
-                              onViewTrackingSystems={(student) => {
-                                openStudentRecord(student);
-                                setTrackingDialogOpen(true);
-                              }}
-                              onViewTopicConditioning={(student) => {
-                                openStudentRecord(student);
-                                setTopicConditioningDialogOpen(true);
-                              }}
-                              onViewCommunication={(student) => {
-                                openStudentRecord(student);
-                                setCommunicationDialogOpen(true);
-                              }}
-                            />
-                          ) : null}
-                        </Card>
-                      );
-                    })
-                  )}
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                </div>
               </div>
-            </Card>
+            </div>
           );
         })}
       </div>
@@ -666,30 +698,6 @@ function formatAuditTimestamp(value: string) {
   });
 }
 
-function BattleTestingMetricCard({
-  icon,
-  tintClassName,
-  label,
-  value,
-}: {
-  icon: ReactNode;
-  tintClassName: string;
-  label: string;
-  value: string;
-}) {
-  return (
-    <Card className="border p-5">
-      <div className="flex items-center gap-3">
-        <div className={`rounded-xl p-3 ${tintClassName}`}>{icon}</div>
-        <div>
-          <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">{label}</p>
-          <p className="text-2xl font-semibold text-foreground">{value}</p>
-        </div>
-      </div>
-    </Card>
-  );
-}
-
 interface TDTutorStudentsSectionProps {
   tutorId: string;
   tutorName: string;
@@ -721,97 +729,104 @@ function TDTutorStudentsSection({
   const activeStudentCount = students?.length || fallbackStudentCount || 0;
 
   return (
-    <div className="mt-4 border-t pt-4">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <div className="mt-4 pt-4 border-t space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-medium uppercase text-muted-foreground">Student Visibility</p>
+          <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">Assigned Students</p>
           <p className="text-sm text-muted-foreground">
-            {tutorName} is currently in {operationalMode === "certified_live" ? "certified live" : "training"} mode.
+            Drill down into the students currently assigned to {tutorName}.
           </p>
         </div>
-        <Badge variant="outline">{activeStudentCount} active students</Badge>
+        <Badge variant="outline">{activeStudentCount} students</Badge>
       </div>
 
-      {isLoading ? (
-        <div className="space-y-2">
-          <Skeleton className="h-16 w-full" />
-          <Skeleton className="h-16 w-full" />
-        </div>
-      ) : !students || students.length === 0 ? (
-        <p className="rounded-lg bg-muted/30 py-3 text-center text-sm text-muted-foreground">
-          No students assigned to this tutor yet.
-        </p>
-      ) : (
-        <div className="space-y-3">
-          {students.map((student) => {
-            const initials = String(student.name || "ST")
-              .split(" ")
-              .map((part) => part[0])
-              .join("")
-              .toUpperCase()
-              .slice(0, 2);
+      {/* Students List */}
+      <div>
+        {isLoading ? (
+          <div className="space-y-2">
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+          </div>
+        ) : !students || students.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-3 text-center bg-muted/30 rounded-lg">
+            No students assigned to this tutor yet
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {students.map((student) => {
+              const initials = student.name
+                .split(" ")
+                .map((n: string) => n[0])
+                .join("")
+                .toUpperCase()
+                .slice(0, 2);
 
-            return (
-              <div key={student.id} className="rounded-lg border bg-muted/30 p-3 sm:p-4">
-                <div className="flex items-start gap-3">
-                  <Avatar className="h-10 w-10 border border-primary/20">
-                    <AvatarFallback className="bg-accent text-foreground font-bold text-sm">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="font-semibold text-sm">{student.name}</h4>
-                      <Badge variant="secondary" className="text-xs">
-                        {student.grade || "No grade"}
-                      </Badge>
+              return (
+                <div
+                  key={student.id}
+                  className="p-3 sm:p-4 bg-muted/30 rounded-lg border"
+                >
+                  <div className="flex items-start gap-3">
+                    <Avatar className="w-10 h-10 border border-primary/20">
+                      <AvatarFallback className="bg-accent text-foreground font-bold text-sm">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="font-semibold text-sm">{student.name}</h4>
+                        <Badge variant="secondary" className="text-xs">
+                          {student.grade || "No grade"}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-9 w-full text-xs"
-                    onClick={() => onViewAssignments(student)}
-                  >
-                    <FileText className="mr-1.5 h-3 w-3" />
-                    Assignments
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-9 w-full text-xs"
-                    onClick={() => onViewTopicConditioning(student)}
-                  >
-                    <Settings className="mr-1.5 h-3 w-3" />
-                    Topic Conditioning
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-9 w-full text-xs"
-                    onClick={() => onViewTrackingSystems(student)}
-                  >
-                    <Calendar className="mr-1.5 h-3 w-3" />
-                    Tracking Systems
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-9 w-full text-xs"
-                    onClick={() => onViewCommunication(student)}
-                  >
-                    <Mail className="mr-1.5 h-3 w-3" />
-                    Communication
-                  </Button>
+                  {/* Action Buttons */}
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-7"
+                      onClick={() => onViewAssignments(student)}
+                    >
+                      <FileText className="w-3 h-3 mr-1.5" />
+                      Assignments
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-7"
+                      onClick={() => onViewTopicConditioning(student)}
+                    >
+                      <Settings className="w-3 h-3 mr-1.5" />
+                      Topic Conditioning
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-7"
+                      onClick={() => onViewTrackingSystems(student)}
+                    >
+                      <Calendar className="w-3 h-3 mr-1.5" />
+                      Tracking Systems
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-7"
+                      onClick={() => onViewCommunication(student)}
+                    >
+                      <Mail className="w-3 h-3 mr-1.5" />
+                      Communication
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
