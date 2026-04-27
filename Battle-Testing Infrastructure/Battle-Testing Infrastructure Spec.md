@@ -2,7 +2,7 @@ turn your battle tests into a machine, not a conversation.
 
 What you’re building here is:
 
-👉 TT Tutor Alignment Engine (TAE)
+  TT Tutor Alignment Engine (TAE)
 The same way TT-OS evaluates students, this evaluates tutors.
 
 🧠 CORE PRINCIPLE
@@ -57,14 +57,14 @@ Must:
 be corrected immediately
 re-tested next cycle
 
-👉 No complacency allowed here
+  No complacency allowed here
 
 🔴 < 90% → FAIL / DRIFT
 System misalignment
 Immediate action:
 
-👉 Remove from live pods
-👉 Reconditioning required
+  Remove from live pods
+  Reconditioning required
 
 ⚫ CRITICAL FAIL (OVERRIDES SCORE)
 
@@ -75,7 +75,7 @@ Accepting answers without structure
 Prioritizing speed over method
 Misrepresenting phase purpose
 
-👉 These = auto suspension flags
+  These = auto suspension flags
 
 🧠 TD LOGGING INTERFACE (HOW IT WORKS)
 
@@ -125,7 +125,7 @@ Clarity → 100%
 Structured Execution → 95%
 Controlled Discomfort → 60%
 
-👉 You instantly know:
+  You instantly know:
 
 They cannot handle pressure phases
 
@@ -133,7 +133,7 @@ They cannot handle pressure phases
 
 Now flip it:
 
-👉 If multiple tutors under a TD show drift in the same phase…
+  If multiple tutors under a TD show drift in the same phase…
 
 That TD is failing.
 

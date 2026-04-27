@@ -17,7 +17,7 @@ Q2
 
 A student understands fractions but freezes in tests.
 Under TT:
-👉 What exactly is the problem?
+  What exactly is the problem?
 
 Expected Answer (signal):
 The student’s response breaks under pressure in that arena. Understanding exists, but execution collapses when difficulty or pressure appears.
@@ -91,7 +91,7 @@ Topic: Linear Equations
 Student can name steps
 Student delays starting
 Student skips steps
-👉 Identify:
+  Identify:
 Entry Phase
 Why**
 
@@ -106,7 +106,7 @@ Controlled Discomfort (too advanced)
 Q8
 
 A student performs well in practice but collapses in exams.
-👉 Which phase are you testing first and why?
+  Which phase are you testing first and why?
 
 Expected Answer:
 Time Pressure Stability (and possibly Controlled Discomfort).
@@ -123,7 +123,7 @@ Q9
 High clarity
 Good execution
 Breaks when questions change form
-👉 Where are they and what do you do next?**
+  Where are they and what do you do next?**
 
 Expected Answer:
 Controlled Discomfort.
@@ -154,7 +154,7 @@ Scenario 1
 
 “I don’t know this question”
 But it’s the same topic they’ve trained before.
-👉 What do you do next (step-by-step)?**
+  What do you do next (step-by-step)?**
 
 Expected Answer:
 
@@ -172,7 +172,7 @@ Scenario 2
 **Parent says:
 
 “Can we move to the next topic? They’ve already done this one a lot.”
-👉 How do you respond (without breaking TT doctrine)?**
+  How do you respond (without breaking TT doctrine)?**
 
 Expected Answer:
 Explain that repetition alone is not the goal -stable execution under pressure is. Progress happens only when response is reliable.
@@ -188,8 +188,8 @@ Scenario 3
 performs well with guidance
 collapses alone
 asks for help early
-👉 What phase are they REALLY in?
-👉 What must you stop doing immediately?**
+  What phase are they REALLY in?
+  What must you stop doing immediately?**
 
 Expected Answer:
 Structured Execution.
@@ -206,8 +206,8 @@ Scenario 4
 student gets answers correct
 but uses vague language
 cannot explain steps clearly
-👉 Do you progress or hold?
-👉 Why?**
+  Do you progress or hold?
+  Why?**
 
 Expected Answer:
 Hold.

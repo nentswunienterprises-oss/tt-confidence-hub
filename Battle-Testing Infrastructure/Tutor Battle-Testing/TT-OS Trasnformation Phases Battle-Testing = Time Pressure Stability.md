@@ -60,7 +60,7 @@ Fail Answer:
 Q6
 
 A student starts rushing and skipping steps as soon as the timer starts.
-👉 What is being exposed?
+  What is being exposed?
 
 Expected Answer:
 Structure breakdown under time pressure.
@@ -72,7 +72,7 @@ Fail Answer:
 Q7
 
 A student completes the question quickly but with poor structure.
-👉 Do you accept or reject the rep? Why?
+  Do you accept or reject the rep? Why?
 
 Expected Answer:
 Reject. Speed without structure is not valid performance.
@@ -83,7 +83,7 @@ Fail Answer:
 Q8
 
 During timed reps, the student slows down slightly but maintains full structure.
-👉 Is this correct behavior? Why?
+  Is this correct behavior? Why?
 
 Expected Answer:
 Yes. Controlled pace with maintained structure is the goal, not speed.
@@ -105,7 +105,7 @@ Fail Answer:
 Q10
 
 A student performs well once under time but collapses in the next rep.
-👉 What does this indicate?
+  What does this indicate?
 
 Expected Answer:
 Lack of stability under time pressure.
@@ -118,7 +118,7 @@ Fail Answer:
 Scenario 1
 
 Tutor says: “Faster, faster, you’re running out of time!”
-👉 What violation occurred?
+  What violation occurred?
 
 Expected Answer:
 The tutor is pushing speed over method, breaking the phase protocol.
@@ -129,7 +129,7 @@ Fail Answer:
 Scenario 2
 
 Tutor helps the student mid-timer to “keep them moving.”
-👉 What is the problem?
+  What is the problem?
 
 Expected Answer:
 Interference under pressure. The student is not executing independently under real conditions.
@@ -140,7 +140,7 @@ Fail Answer:
 Scenario 3
 
 Tutor stops the timer early because the student looks overwhelmed.
-👉 What is the issue?
+  What is the issue?
 
 Expected Answer:
 The pressure condition is removed, invalidating the rep.
@@ -151,7 +151,7 @@ Fail Answer:
 Scenario 4
 
 Student maintains structure but fails to complete within time.
-👉 What matters more here and why?
+  What matters more here and why?
 
 Expected Answer:
 Structure. Completion without structure is meaningless, but structure can be improved into completion over time.

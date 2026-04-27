@@ -61,7 +61,7 @@ Fail Answer:
 Q6
 
 A student starts solving immediately but cannot name terms or explain steps.
-👉 What phase are they in and why?
+  What phase are they in and why?
 
 Expected Answer:
 Clarity. They are executing without recognition, meaning they cannot see the problem properly.
@@ -73,7 +73,7 @@ Structured Execution
 Q7
 
 During a Recognition set, the student tries to solve anyway.
-👉 What do you do immediately?
+  What do you do immediately?
 
 Expected Answer:
 Stop the solving, reset the rep, and enforce recognition-only protocol.
@@ -85,7 +85,7 @@ Fail Answer:
 Q8
 
 A student can repeat steps but cannot explain why they work.
-👉 What layer is weak and what does that mean?
+  What layer is weak and what does that mean?
 
 Expected Answer:
 Reason is weak. The student is memorizing without understanding, meaning clarity is incomplete.
@@ -97,7 +97,7 @@ Fail Answer:
 Q9
 
 In Light Apply, the student hesitates and delays starting.
-👉 What is being exposed?
+  What is being exposed?
 
 Expected Answer:
 Clarity is not stable. The student cannot translate recognition into independent action.
@@ -121,7 +121,7 @@ Fail Answer:
 Scenario 1
 
 Tutor explains Vocabulary → Method → Reason perfectly, but does not ask the student to explain back.
-👉 What is wrong?
+  What is wrong?
 
 Expected Answer:
 The student’s clarity is not verified. Without explanation back, recognition is assumed, not tested.
@@ -132,7 +132,7 @@ Fail Answer:
 Scenario 2
 
 Tutor turns Recognition reps into mini-teaching sessions.
-👉 What violation is happening?
+  What violation is happening?
 
 Expected Answer:
 Breaking the drill protocol. Recognition sets must observe, not teach.
@@ -143,7 +143,7 @@ Fail Answer:
 Scenario 3
 
 Student gets correct answers in Light Apply but uses vague language and unclear reasoning.
-👉 Do you progress or hold? Why?
+  Do you progress or hold? Why?
 
 Expected Answer:
 Hold. Correct answers do not equal clarity. Response is not reliable.
@@ -154,7 +154,7 @@ Fail Answer:
 Scenario 4
 
 Tutor skips Reason layer because Vocabulary and Method look strong.
-👉 What is the risk?
+  What is the risk?
 
 Expected Answer:
 Hidden instability. The student may execute but collapse when problems change or difficulty increases.

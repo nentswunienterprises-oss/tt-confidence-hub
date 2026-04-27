@@ -61,7 +61,7 @@ Fail Answer:
 Q6
 
 A student freezes when difficulty appears and immediately asks for help.
-👉 What phase are they in and why?
+  What phase are they in and why?
 
 Expected Answer:
 Controlled Discomfort. The breakdown is happening under uncertainty, not clarity or execution.
@@ -73,7 +73,7 @@ Structured Execution
 Q7
 
 During the discomfort window, the student says: “I don’t know.”
-👉 What do you do next?
+  What do you do next?
 
 Expected Answer:
 Hold the discomfort. Do not rescue. Require continued engagement or controlled first-step attempt.
@@ -85,7 +85,7 @@ Fail Answer:
 Q8
 
 A student completes the question correctly but required multiple hints during struggle.
-👉 Do you accept or reject the rep? Why?
+  Do you accept or reject the rep? Why?
 
 Expected Answer:
 Reject. The response is not independent; it was supported.
@@ -96,7 +96,7 @@ Fail Answer:
 Q9
 
 A student can execute well in familiar problems but collapses when the form changes.
-👉 What is being exposed?
+  What is being exposed?
 
 Expected Answer:
 Failure under uncertainty-Controlled Discomfort breakdown.
@@ -120,7 +120,7 @@ Fail Answer:
 Scenario 1
 
 Tutor sees the student struggling and says: “Let me show you how to do this.”
-👉 What violation occurred?
+  What violation occurred?
 
 Expected Answer:
 Full rescue. The discomfort condition was removed.
@@ -131,7 +131,7 @@ Fail Answer:
 Scenario 2
 
 Student keeps asking for help after every step.
-👉 What must you enforce?
+  What must you enforce?
 
 Expected Answer:
 No rescue. Maintain independence and require the student to continue without full guidance.
@@ -142,7 +142,7 @@ Fail Answer:
 Scenario 3
 
 Tutor reduces the difficulty because the student looks overwhelmed.
-👉 What is the problem?
+  What is the problem?
 
 Expected Answer:
 The tutor is protecting comfort instead of training response under difficulty, breaking the phase.
@@ -153,7 +153,7 @@ Fail Answer:
 Scenario 4
 
 Student hesitates but eventually works through the problem independently without help.
-👉 What does this indicate?
+  What does this indicate?
 
 Expected Answer:
 Improving discomfort tolerance and controlled response under difficulty.
@@ -203,7 +203,7 @@ turned into coaching
 
 It becomes:
 
-👉 a controlled stress environment with strict behavioral rules
+  a controlled stress environment with strict behavioral rules
 
 ⚠️ TRUTH
 
@@ -211,4 +211,4 @@ Most tutors fail here.
 
 Not because they don’t understand…
 
-👉 but because they can’t tolerate watching struggle without interfering
+  but because they can’t tolerate watching struggle without interfering

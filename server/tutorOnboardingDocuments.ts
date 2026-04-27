@@ -132,7 +132,7 @@ export const TUTOR_ONBOARDING_DOCUMENTS: TutorOnboardingDocumentDefinition[] = [
     requiresAcceptance: false,
     requiresUpload: true,
     uploadTitle: "Certified ID Copy",
-    uploadDescription: "Upload a certified copy of your ID document. This is the only remaining file upload step.",
+    uploadDescription: "Upload a certified copy of your ID document (South African ID or Passport). This is the only remaining file upload step.",
     mandatoryClauses: [],
   },
 ];

@@ -56,6 +56,7 @@ const FIELD_CAPTURE_STEP: Record<string, number> = {
   legalName: 1,
   emailAddress: 1,
   phoneNumber: 1,
+  idType: 1,
   idNumber: 1,
   dateOfBirth: 1,
   schoolName: 1,
@@ -168,6 +169,15 @@ function deriveDateOfBirthFromSouthAfricanId(idNumber: string) {
   return `${fullYear}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`;
 }
 
+function deriveDateOfBirthConditional(idType: string, idNumber: string) {
+  // Only derive date of birth from SA ID numbers
+  if (idType === "sa_id" || idType === "" || !idType) {
+    return deriveDateOfBirthFromSouthAfricanId(idNumber);
+  }
+  // For passports and other ID types, date of birth must be entered manually
+  return "";
+}
+
 function escapeHtml(value: string) {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -197,6 +207,13 @@ function normalizeAgreementContent(content: string) {
     .replace(/\n(?:SECTION [A-Z]:\s*FINAL DECLARATION|[0-9]+\.\s*DECLARATION)[\s\S]*$/i, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
+}
+
+function getStep6UploadDescription(idType: string): string {
+  if (idType === "passport") {
+    return "Upload a certified copy of your passport. This is the only remaining file upload step.";
+  }
+  return "Upload a certified copy of your South African ID. This is the only remaining file upload step.";
 }
 
 function tokenizeAgreementLines(content: string) {
@@ -395,7 +412,7 @@ export function renderAgreementHtmlStrict(content: string, documentCode?: string
   };
 
   const protectedFieldLine =
-    /^(Full Name:|Contact Number:|Date of Birth:|Email Address:|ID Number:|School Attended \(Matric\):|Current Status|Matric Year:|School Where Matric Was Completed:|Print Name:|Document Reference:)/i;
+    /^(Full Name:|Contact Number:|Date of Birth:|Email Address:|ID Type:|Identification Type|Identification Number:|ID Number:|School Attended \(Matric\):|Current Status|Matric Year:|School Where Matric Was Completed:|Print Name:|Document Reference:)/i;
 
   for (const rawLine of lines) {
     const line = rawLine.trim();
@@ -484,6 +501,7 @@ function normalizeDisplayedVersion(value: unknown) {
 
 function buildInitialFormData(fields: FieldDefinition[], application: any, acceptance: any) {
   const savedForm = acceptance?.formSnapshotJson || acceptance?.form_snapshot_json || {};
+  const applicationIdType = normalizeValue(application?.idType || application?.id_type || "sa_id");
   const applicationIdNumber = normalizeValue(application?.idNumber || application?.id_number);
   const applicationCurrentSituation = normalizeValue(
     application?.currentSituationOther ||
@@ -506,8 +524,9 @@ function buildInitialFormData(fields: FieldDefinition[], application: any, accep
     ),
     emailAddress: normalizeValue(application?.email),
     phoneNumber: normalizeValue(application?.phone),
+    idType: applicationIdType,
     idNumber: applicationIdNumber,
-    dateOfBirth: deriveDateOfBirthFromSouthAfricanId(applicationIdNumber),
+    dateOfBirth: deriveDateOfBirthConditional(applicationIdType, applicationIdNumber),
     matricYear: normalizeValue(application?.matricYear || application?.matric_year),
     schoolName: applicationSchool,
     currentStatus: applicationCurrentSituation,
@@ -526,10 +545,12 @@ function buildInitialFormData(fields: FieldDefinition[], application: any, accep
 
 function buildAcceptanceDerivedFormData(acceptance: any) {
   const savedForm = acceptance?.formSnapshotJson || acceptance?.form_snapshot_json || {};
+  const idType = normalizeValue(savedForm.idType || "sa_id");
   return {
     legalName: normalizeValue(acceptance?.typedFullName || acceptance?.typed_full_name || savedForm.legalName),
     emailAddress: normalizeValue(savedForm.emailAddress),
     phoneNumber: normalizeValue(savedForm.phoneNumber),
+    idType: idType,
     idNumber: normalizeValue(savedForm.idNumber),
     dateOfBirth: normalizeValue(savedForm.dateOfBirth),
     matricYear: normalizeValue(savedForm.matricYear),
@@ -540,13 +561,15 @@ function buildAcceptanceDerivedFormData(acceptance: any) {
 }
 
 function buildApplicationLockedFormData(application: any) {
+  const applicationIdType = normalizeValue(application?.idType || application?.id_type || "sa_id");
   const applicationIdNumber = normalizeValue(application?.idNumber || application?.id_number);
   return {
     legalName: normalizeValue(application?.fullName || application?.full_name),
     emailAddress: normalizeValue(application?.email),
     phoneNumber: normalizeValue(application?.phone),
+    idType: applicationIdType,
     idNumber: applicationIdNumber,
-    dateOfBirth: deriveDateOfBirthFromSouthAfricanId(applicationIdNumber),
+    dateOfBirth: deriveDateOfBirthConditional(applicationIdType, applicationIdNumber),
     matricYear: normalizeValue(application?.matricYear || application?.matric_year),
     schoolName: normalizeValue(
       application?.schoolAttended ||
@@ -565,11 +588,15 @@ function buildApplicationLockedFormData(application: any) {
 }
 
 export function hydrateDocumentContent(content: string, fieldValues: Record<string, string>) {
+  const idTypeLabel = fieldValues.idType === "passport" ? "Passport" : "South African ID";
   const replacements: Array<[RegExp, string]> = [
     [/Full Name:\s*_+/i, `Full Name: ${fieldValues.legalName || "______________________________"}`],
     [/Contact Number:\s*_+/i, `Contact Number: ${fieldValues.phoneNumber || "______________________________"}`],
     [/Date of Birth:\s*_+/i, `Date of Birth: ${fieldValues.dateOfBirth || "______________________________"}`],
     [/Email Address:\s*_+/i, `Email Address: ${fieldValues.emailAddress || "______________________________"}`],
+    [/Identification Type \(SA ID \/ Passport\):\s*_+/i, `Identification Type (SA ID / Passport): ${idTypeLabel || "______________________________"}`],
+    [/ID Type:\s*_+/i, `ID Type: ${idTypeLabel || "______________________________"}`],
+    [/Identification Number:\s*_+/i, `Identification Number: ${fieldValues.idNumber || "______________________________"}`],
     [/ID Number:\s*_+/i, `ID Number: ${fieldValues.idNumber || "______________________________"}`],
     [/School Attended \(Matric\):\s*_+/i, `School Attended (Matric): ${fieldValues.schoolName || "______________________________"}`],
     [/Current Status \(e\.g\.\s*Gap Year,\s*University Student,\s*Graduate\):\s*_*\s*/i, `Current Status (e.g. Gap Year, University Student, Graduate): ${fieldValues.currentStatus || "______________________________"}\n`],
@@ -751,8 +778,9 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
           <TutorAgreementSection title="Contractor Details">
             <div className="tt-inline-detail-grid">
               <div><span>Full Name</span><strong>{formData.legalName || "Not captured"}</strong></div>
-              <div><span>Date of Birth</span><strong>{formData.dateOfBirth || "Not captured"}</strong></div>
-              <div><span>ID Number</span><strong>{formData.idNumber || "Not captured"}</strong></div>
+              <div><span>Identification Type</span><strong>{formData.idType === "passport" ? "Passport" : "SA ID"}</strong></div>
+              <div><span>Identification Number</span><strong>{formData.idNumber || "Not captured"}</strong></div>
+              {formData.dateOfBirth && <div><span>Date of Birth</span><strong>{formData.dateOfBirth}</strong></div>}
               <div><span>Contact Number</span><strong>{formData.phoneNumber || "Not captured"}</strong></div>
               <div><span>Email Address</span><strong>{formData.emailAddress || "Not captured"}</strong></div>
               <div><span>Matric Year</span><strong>{formData.matricYear || "Not captured"}</strong></div>
@@ -1194,19 +1222,21 @@ const DEFAULT_DOCUMENT_STATUSES: Record<string, DocumentStatus> = {
 const DOCUMENT_FORM_FIELDS: Record<number, FieldDefinition[]> = {
   1: [
     { key: "legalName", label: "Full legal name", placeholder: "Enter your full legal name" },
-    { key: "dateOfBirth", label: "Date of birth", placeholder: "Derived from your SA ID number", readOnly: true },
+    { key: "idType", label: "Identification type", placeholder: "SA ID or Passport" },
+    { key: "idNumber", label: "Identification number", placeholder: "Enter your SA ID or passport number" },
+    { key: "dateOfBirth", label: "Date of birth", placeholder: "Auto-filled for SA ID, or enter manually", readOnly: false },
     { key: "emailAddress", label: "Email address", placeholder: "Loaded from your TT account", readOnly: true },
     { key: "phoneNumber", label: "Phone number", placeholder: "Enter your contact number" },
-    { key: "idNumber", label: "ID number", placeholder: "Enter your South African ID number" },
     { key: "schoolName", label: "School attended (Matric)", placeholder: "Enter the school you attended for Matric" },
     { key: "currentStatus", label: "Current status", placeholder: "Gap year, waiting uni, studying, working, etc." },
   ],
   2: [
     { key: "legalName", label: "Full legal name", placeholder: "Enter your full legal name" },
-    { key: "dateOfBirth", label: "Date of birth", placeholder: "Derived from your SA ID number", readOnly: true },
+    { key: "idType", label: "Identification type", placeholder: "SA ID or Passport" },
+    { key: "idNumber", label: "Identification number", placeholder: "Enter your SA ID or passport number" },
+    { key: "dateOfBirth", label: "Date of birth", placeholder: "Auto-filled for SA ID, or enter manually", readOnly: false },
     { key: "emailAddress", label: "Email address", placeholder: "Loaded from your TT account", readOnly: true },
     { key: "phoneNumber", label: "Phone number", placeholder: "Enter your contact number" },
-    { key: "idNumber", label: "ID number", placeholder: "Enter your South African ID number" },
     { key: "matricYear", label: "Matric year", placeholder: "Enter the year you completed Matric" },
     { key: "schoolName", label: "School name", placeholder: "Enter the school where you completed Matric" },
     { key: "examNumber", label: "Exam number", placeholder: "Enter your exam or candidate number if shown", required: false },
@@ -1242,8 +1272,9 @@ function resolveFieldBehavior(params: {
   acceptanceAlreadyRecorded: boolean;
   fieldValue: string;
   lockedValue: string;
+  allFieldValues?: Record<string, string>;
 }) {
-  const { field, currentStep, acceptanceAlreadyRecorded, fieldValue, lockedValue } = params;
+  const { field, currentStep, acceptanceAlreadyRecorded, fieldValue, lockedValue, allFieldValues } = params;
   const captureStep = FIELD_CAPTURE_STEP[field.key] || currentStep;
 
   if (acceptanceAlreadyRecorded) {
@@ -1255,11 +1286,23 @@ function resolveFieldBehavior(params: {
   }
 
   if (field.key === "dateOfBirth") {
-    return {
-      canEdit: false,
-      helperText: fieldValue ? "Derived from the current South African ID number." : "Enter a valid South African ID number to derive date of birth.",
-      missingRequirement: fieldValue ? null : "Enter a valid South African ID number to derive date of birth.",
-    } satisfies FieldResolution;
+    const idType = allFieldValues?.idType || "sa_id";
+    const isSaId = idType === "sa_id" || idType === "" || !idType;
+    
+    if (isSaId) {
+      return {
+        canEdit: false,
+        helperText: fieldValue ? "Auto-derived from your SA ID number." : "Enter your SA ID number to auto-fill date of birth.",
+        missingRequirement: fieldValue ? null : "Enter your SA ID number to auto-fill date of birth.",
+      } satisfies FieldResolution;
+    } else {
+      // For passports, allow manual entry
+      return {
+        canEdit: true,
+        helperText: "Enter your date of birth manually.",
+        missingRequirement: fieldValue ? null : "Enter your date of birth.",
+      } satisfies FieldResolution;
+    }
   }
 
   if (lockedValue) {
@@ -1729,7 +1772,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
           {isUploadStep && !isPendingCooReview ? (
             <div className="rounded-2xl border p-4">
               <p className="font-medium">{currentDocument.uploadTitle || "Required upload"}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{currentDocument.uploadDescription}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{currentStep === 6 ? getStep6UploadDescription(formData.idType || "sa_id") : currentDocument.uploadDescription}</p>
               {currentStep === 2 && !uploadReady ? <p className="mt-3 text-sm text-amber-700">Accept TT-EQV-002 first. The certified Matric certificate upload unlocks immediately after acceptance.</p> : null}
               {currentStep === 2 && uploadReady && currentStatus !== "pending_review" ? (
                 <p className="mt-3 text-sm text-muted-foreground">Choose the certified Matric certificate, then upload it for COO review. Step 3 opens only after COO approves this certificate.</p>

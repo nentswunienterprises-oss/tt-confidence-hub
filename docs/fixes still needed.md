@@ -47,7 +47,7 @@ From Codex output:
 ❌ duplicate {position} blocks
 ❌ any repeated explanation of state
 
-👉 None of these exist in the locked version. So they go.
+  None of these exist in the locked version. So they go.
 
 ⚠️ CRITICAL DETAIL YOU MISSED
 
@@ -60,7 +60,7 @@ Your locked version uses:
 “How Progress Will Show” (not “How We Will Know It Is Improving”)
 “Parent Note” (not “Parent Alignment”)
 
-👉 These aren’t cosmetic.
+  These aren’t cosmetic.
 They control tone.
 
 🧠 WHY THIS MATTERS

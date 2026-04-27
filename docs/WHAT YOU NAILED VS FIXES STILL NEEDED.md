@@ -10,7 +10,7 @@ Breakdown Pattern
 What This Means
 Next Move
 
-👉 That’s exactly the compressed weekly structure we designed.
+  That’s exactly the compressed weekly structure we designed.
 
 No extra fluff sections. No dashboard feel.
 
@@ -44,7 +44,7 @@ You fixed:
 no “continue drill”
 clean phase-purpose mapping
 
-👉 This is now operating like a system, not a tutor.
+  This is now operating like a system, not a tutor.
 
 ❌ WHAT IS STILL NOT FULLY TT (THIS IS WHERE WE WIN)
 
@@ -59,7 +59,7 @@ Example:
 
 This is straight from your old matrix
 
-👉 Problem:
+  Problem:
 
 sounds like school feedback
 not TT positioning
@@ -76,7 +76,7 @@ Example transformations:
 - They can solve problems, but may lose structure when working against the clock.
 + Structure breaks when pace increases.
 
-👉 Rule:
+  Rule:
 
 one sentence
 no “they can…”
@@ -90,7 +90,7 @@ Linear Equations: reliable step execution and independent starts
 
 This is correct… but incomplete.
 
-👉 Problem:
+  Problem:
 It floats without context.
 
 🔧 FIX
@@ -100,7 +100,7 @@ Anchor it to movement implicitly:
 - Linear Equations: reliable step execution and independent starts
 + Linear Equations: execution is now more reliable, with independent starts holding more consistently
 
-👉 Still behavior -but now feels like progress, not labels
+  Still behavior -but now feels like progress, not labels
 
 3. Monthly “System Movement” still slightly robotic
 
@@ -108,18 +108,18 @@ Example:
 
 remained in Structured Execution with gradual stability improvement.
 
-👉 Problem:
+  Problem:
 
 “gradual stability improvement” = system language leak
 🔧 FIX
 - remained in Structured Execution with gradual stability improvement
 + remained in Structured Execution, with stability improving across sessions
 
-👉 Same meaning, less robotic
+  Same meaning, less robotic
 
 4. “No clear behavior shift recorded” is weak fallback
 
-👉 This is dangerous.
+  This is dangerous.
 
 It reads like:
 
@@ -134,7 +134,7 @@ Replace fallback with:
 
 
 
-👉 Always give meaning, never emptiness
+  Always give meaning, never emptiness
 
 5. Breakdown fallback is too soft
 
@@ -142,7 +142,7 @@ Current:
 
 no recurring breakdown signal detected
 
-👉 Sounds passive.
+  Sounds passive.
 
 🔧 FIX
 - no recurring breakdown signal detected
@@ -158,7 +158,7 @@ This is correct structurally.
 
 BUT…
 
-👉 There’s no visual hierarchy of importance
+  There’s no visual hierarchy of importance
 
 🔧 OPTIONAL (but powerful)
 
@@ -171,7 +171,7 @@ So output becomes:
 Linear Equations moved from…
 Fractions remained in…
 
-👉 This makes the report feel prioritized, not flat
+  This makes the report feel prioritized, not flat
 
 7. Final polish: remove “Your child” repetition (monthly)
 
@@ -179,7 +179,7 @@ Example:
 
 “Your child has entered…”
 
-👉 Fine… but repetitive across topics.
+  Fine… but repetitive across topics.
 
 🔧 FIX
 
@@ -206,7 +206,7 @@ Linear Equations: ...
 Next Move:
 Linear Equations: ...
 
-👉 That’s unnecessary repetition.
+  That’s unnecessary repetition.
 The system already established the context.
 
 ⚔️ RULE (LOCK THIS)

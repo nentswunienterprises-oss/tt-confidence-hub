@@ -17,7 +17,7 @@ Kwenadi is operating at {phase} ({stability}) meaning {meaning}
 Training Is At: {phase} with {stability} in {topic}
 {position} (which again describes the same state)
 
-👉 That’s 3 expressions of the same thing
+  That’s 3 expressions of the same thing
 
 ✅ FIX (MANDATORY)
 
@@ -53,7 +53,7 @@ And later:
 
 “Each topic advances according to its own stability…”
 
-👉 Same idea repeated.
+  Same idea repeated.
 
 ✅ FIX
 
@@ -97,7 +97,7 @@ Example:
 Kwenadi is operating at Structured Execution (High Maintenance).
 This means she can apply the correct method consistently, and we are now confirming that it holds under repetition.
 
-👉 No “meaning …” phrasing allowed.
+  No “meaning …” phrasing allowed.
 
 6. Multi-topic “Training Is At” line (Hard Violation)
 

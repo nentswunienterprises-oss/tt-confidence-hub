@@ -178,8 +178,20 @@ function parseBattleTestDocument(phaseKey: string, title: string, description: s
       }
     }
 
+    const questionKey =
+      phaseKey === "td_system_integrity"
+        ? (() => {
+            if (/^final question$/i.test(sourceLabel.trim())) return "td_final";
+            if (/^scenario\s+1$/i.test(sourceLabel.trim())) return "td_q13";
+            if (/^scenario\s+2$/i.test(sourceLabel.trim())) return "td_q14";
+            if (/^scenario\s+3$/i.test(sourceLabel.trim())) return "td_q15";
+            if (/^scenario\s+4$/i.test(sourceLabel.trim())) return "td_q16";
+            return `td_${toQuestionKey(sourceLabel)}`;
+          })()
+        : `${phaseKey}_${toQuestionKey(sourceLabel)}`;
+
     questions.push({
-      key: toQuestionKey(sourceLabel),
+      key: questionKey,
       sourceLabel,
       section: currentSection,
       prompt: promptLines.join("\n").trim(),

@@ -52,7 +52,7 @@ GENERATION PRINCIPLE (UPDATED)
 
 All outputs must be generated from:
 
-👉 Drill-level state changes per topic
+  Drill-level state changes per topic
 
 NOT session summaries.
 

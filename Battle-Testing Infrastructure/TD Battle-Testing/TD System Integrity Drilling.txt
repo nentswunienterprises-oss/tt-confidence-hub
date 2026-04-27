@@ -4,7 +4,7 @@ We don’t test them on phases individually like tutors.
 
 We test them on:
 
-👉 SYSTEM INTEGRITY UNDER PRESSURE
+  SYSTEM INTEGRITY UNDER PRESSURE
 
 🧠 TD BATTLE TEST: CORE SET
 🔹 SECTION A -SYSTEM OWNERSHIP
@@ -46,7 +46,7 @@ Fail Answer:
 Q4
 
 A tutor runs Recognition reps but allows the student to solve.
-👉 What is this?
+  What is this?
 
 Expected Answer:
 Clarity phase violation -protocol drift.
@@ -59,7 +59,7 @@ Q5
 
 A student gets correct answers, but steps are skipped.
 Tutor logs it as successful.
-👉 What do you flag?
+  What do you flag?
 
 Expected Answer:
 False compliance + structure violation.
@@ -70,7 +70,7 @@ Fail Answer:
 Q6
 
 Tutor helps during the cold start window.
-👉 What phase is violated and why does it matter?
+  What phase is violated and why does it matter?
 
 Expected Answer:
 Structured Execution violation -independence not tested.
@@ -82,7 +82,7 @@ Fail Answer:
 Q7
 
 You detect repeated small “helping” behaviors from a tutor.
-👉 What do you do?
+  What do you do?
 
 Expected Answer:
 Flag, correct immediately, monitor closely, escalate if repeated.
@@ -94,7 +94,7 @@ Fail Answer:
 Q8
 
 Tutor says: “The student was struggling, so I helped a bit.”
-👉 What is your response?
+  What is your response?
 
 Expected Answer:
 That violates the system. The struggle must be observed, not removed.
@@ -106,7 +106,7 @@ Fail Answer:
 Q9
 
 A tutor produces good student results but breaks protocol often.
-👉 Do you keep or remove? Why?
+  Do you keep or remove? Why?
 
 Expected Answer:
 Remove or correct immediately. System integrity overrides short-term results.
@@ -150,7 +150,7 @@ Fail Answer:
 Scenario 1
 
 Tutor rescues a student during Controlled Discomfort but logs “independent execution.”
-👉 What do you do?
+  What do you do?
 
 Expected Answer:
 Flag as major violation -audit failure + potential suspension.
@@ -162,7 +162,7 @@ Fail Answer:
 Scenario 2
 
 Tutor consistently produces “good sessions” but avoids difficult drills.
-👉 What is happening?
+  What is happening?
 
 Expected Answer:
 System avoidance -hidden drift.
@@ -173,7 +173,7 @@ Fail Answer:
 Scenario 3
 
 Tutor follows structure but softens pressure to keep student comfortable.
-👉 What is the issue?
+  What is the issue?
 
 Expected Answer:
 Protocol drift -system is not being executed as designed.
@@ -184,7 +184,7 @@ Fail Answer:
 Scenario 4
 
 Parent praises a tutor heavily, but audits show drift.
-👉 What matters?
+  What matters?
 
 Expected Answer:
 System execution, not external praise.
@@ -214,7 +214,7 @@ don’t negotiate standards
 
 They become:
 
-👉 system enforcers, not team managers
+  system enforcers, not team managers
 
 ⚠️ FINAL TRUTH
 

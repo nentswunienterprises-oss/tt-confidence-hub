@@ -61,7 +61,7 @@ Fail Answer:
 Q6
 
 A student knows the method but waits for help before starting.
-👉 What phase are they in and why?
+  What phase are they in and why?
 
 Expected Answer:
 Structured Execution. They cannot initiate independently despite knowing the method.
@@ -73,7 +73,7 @@ Clarity
 Q7
 
 During the cold start window, the student hesitates.
-👉 What must you NOT do?
+  What must you NOT do?
 
 Expected Answer:
 Do not help, guide, or prompt. The hesitation must be observed and logged.
@@ -85,7 +85,7 @@ Fail Answer:
 Q8
 
 A student gets the correct answer but skips steps.
-👉 Do you accept or reject the rep? Why?
+  Do you accept or reject the rep? Why?
 
 Expected Answer:
 Reject. Correct answer without structure is not valid execution.
@@ -97,7 +97,7 @@ Fail Answer:
 Q9
 
 A student executes correctly once but breaks on the next similar problem.
-👉 What does this indicate?
+  What does this indicate?
 
 Expected Answer:
 Lack of repeatability. Execution is not yet stable.
@@ -121,7 +121,7 @@ Fail Answer:
 Scenario 1
 
 Tutor sees the student struggling to start and gives a hint after 3 seconds.
-👉 What violation occurred?
+  What violation occurred?
 
 Expected Answer:
 Breaking the cold start window. The student was not allowed to initiate independently.
@@ -133,7 +133,7 @@ Fail Answer:
 Scenario 2
 
 Student asks: “Is this the right step?” before continuing.
-👉 What do you do?
+  What do you do?
 
 Expected Answer:
 Refuse confirmation and require the student to proceed using their own structure.
@@ -145,7 +145,7 @@ Fail Answer:
 Scenario 3
 
 Tutor keeps re-modelling the method during execution reps.
-👉 What is the problem?
+  What is the problem?
 
 Expected Answer:
 The tutor is reverting to teaching instead of enforcing independent execution.
@@ -156,7 +156,7 @@ Fail Answer:
 Scenario 4
 
 Student completes all reps correctly but relies on small tutor prompts throughout.
-👉 Do you progress or hold? Why?
+  Do you progress or hold? Why?
 
 Expected Answer:
 Hold. Independence is not achieved.

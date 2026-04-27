@@ -649,13 +649,31 @@ export default function PodDetail() {
               </div>
             </Card>
 
-            {/* Territory Director */}
+            {/* Territory Director with TD Integrity */}
             <Card className="p-4 sm:p-6 border">
               <div className="flex items-center gap-2 mb-2 sm:mb-3">
                 <Users className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
                 <p className="text-xs sm:text-sm font-medium text-muted-foreground uppercase">Territory Director</p>
               </div>
-              <p className="font-medium text-sm sm:text-base">{tdName}</p>
+              <p className="font-medium text-sm sm:text-base mb-4">{tdName}</p>
+              
+              {/* TD Integrity Sub-section */}
+              {battleTestingSummary?.tdSummary && (
+                <div className="pt-4 border-t space-y-3">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">TD Integrity</p>
+                  <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                    <Badge className={getBattleTestStateBadgeClass(battleTestingSummary.tdSummary.state)}>
+                      {getBattleTestStateLabel(battleTestingSummary.tdSummary.state)}
+                    </Badge>
+                    <Button size="sm" variant="outline" className="w-full sm:w-auto" onClick={() => setTdHistoryOpen(true)}>
+                      TD History
+                    </Button>
+                    <Button size="sm" className="w-full sm:w-auto" onClick={() => setTdBattleTestOpen(true)}>
+                      Run TD Audit
+                    </Button>
+                  </div>
+                </div>
+              )}
             </Card>
 
             {/* Start Date */}
@@ -977,20 +995,7 @@ export default function PodDetail() {
               <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Violation Spikes</p>
               <p className="mt-2 text-2xl font-semibold">{battleTestingSummary.driftIncidents}</p>
             </Card>
-            <Card className="border p-4">
-              <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">TD Integrity</p>
-              <div className="mt-2 flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-                <Badge className={getBattleTestStateBadgeClass(battleTestingSummary.tdSummary?.state)}>
-                  {getBattleTestStateLabel(battleTestingSummary.tdSummary?.state)}
-                </Badge>
-                <Button size="sm" variant="outline" className="w-full sm:w-auto" onClick={() => setTdHistoryOpen(true)}>
-                  TD History
-                </Button>
-                <Button size="sm" className="w-full sm:w-auto" onClick={() => setTdBattleTestOpen(true)}>
-                  Run TD Audit
-                </Button>
-              </div>
-            </Card>
+
             <Card className="border p-4">
               <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Tutor Risk</p>
               <p className="mt-2 text-2xl font-semibold">

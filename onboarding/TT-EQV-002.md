@@ -17,7 +17,8 @@ No ongoing academic submissions or re-verification processes apply after this st
 2. CONTRACTOR DETAILS
 Full Name: __________________________________________
 Date of Birth: _______________________________________
-ID Number: _________________________________________
+Identification Type (SA ID / Passport): _________________
+Identification Number: _______________________________
 Contact Number: ____________________________________
 Email Address: ______________________________________
 Matric Year: ________________________________________
