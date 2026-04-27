@@ -194,10 +194,10 @@ export default function BattleTestRunnerDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[min(96vw,88rem)] max-w-6xl p-0">
-        <div className="border-b px-6 py-5">
+      <DialogContent className="w-[calc(100vw-1rem)] max-w-6xl overflow-hidden p-0 sm:w-[min(96vw,88rem)]">
+        <div className="border-b px-4 py-4 sm:px-6 sm:py-5">
           <DialogHeader>
-            <DialogTitle className="text-xl">{title}</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">{title}</DialogTitle>
             <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
         </div>
@@ -205,7 +205,7 @@ export default function BattleTestRunnerDialog({
         <div className="grid gap-0 lg:grid-cols-[1.4fr,0.6fr]">
           <div className="min-w-0">
             {!hasStarted ? (
-              <div className="space-y-5 p-6">
+              <div className="space-y-5 p-4 sm:p-6">
                 <div>
                   <p className="text-sm font-medium text-foreground">Select phases to drill</p>
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -240,12 +240,12 @@ export default function BattleTestRunnerDialog({
                 </div>
               </div>
             ) : (
-              <ScrollArea className="h-[72vh]">
-                <div className="space-y-5 p-6">
+              <ScrollArea className="h-[62vh] sm:h-[72vh]">
+                <div className="space-y-5 p-4 sm:p-6">
                   {questions.map(({ phase, question, questionId }, index) => {
                     const response = responses[questionId] || { note: "", isCriticalFail: false };
                     return (
-                      <Card key={questionId} className="border border-border/70 p-5">
+                      <Card key={questionId} className="border border-border/70 p-4 sm:p-5">
                         <div className="space-y-4">
                           <div className="flex flex-wrap items-center gap-2">
                             <Badge variant="secondary">{phase.title}</Badge>
@@ -368,8 +368,8 @@ export default function BattleTestRunnerDialog({
             )}
           </div>
 
-          <div className="border-l bg-muted/20">
-            <div className="space-y-4 p-6">
+          <div className="border-t bg-muted/20 lg:border-l lg:border-t-0">
+            <div className="space-y-4 p-4 sm:p-6">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                   Run Summary

@@ -979,12 +979,16 @@ export default function PodDetail() {
             </Card>
             <Card className="border p-4">
               <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">TD Integrity</p>
-              <div className="mt-2 flex flex-wrap items-center gap-2">
+              <div className="mt-2 flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                 <Badge className={getBattleTestStateBadgeClass(battleTestingSummary.tdSummary?.state)}>
                   {getBattleTestStateLabel(battleTestingSummary.tdSummary?.state)}
                 </Badge>
-                <Button size="sm" variant="outline" onClick={() => setTdHistoryOpen(true)}>TD History</Button>
-                <Button size="sm" onClick={() => setTdBattleTestOpen(true)}>Run TD Audit</Button>
+                <Button size="sm" variant="outline" className="w-full sm:w-auto" onClick={() => setTdHistoryOpen(true)}>
+                  TD History
+                </Button>
+                <Button size="sm" className="w-full sm:w-auto" onClick={() => setTdBattleTestOpen(true)}>
+                  Run TD Audit
+                </Button>
               </div>
             </Card>
             <Card className="border p-4">
