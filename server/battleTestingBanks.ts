@@ -188,7 +188,31 @@ function parseBattleTestDocument(phaseKey: string, title: string, description: s
             if (/^scenario\s+4$/i.test(sourceLabel.trim())) return "td_q16";
             return `td_${toQuestionKey(sourceLabel)}`;
           })()
-        : `${phaseKey}_${toQuestionKey(sourceLabel)}`;
+        : (() => {
+            if (/^final question$/i.test(sourceLabel.trim())) return `${phaseKey}_final`;
+            if (phaseKey === "clarity") {
+              if (/^scenario\s+2$/i.test(sourceLabel.trim())) return "clarity_q15";
+              if (/^scenario\s+3$/i.test(sourceLabel.trim())) return "clarity_q16";
+            } else if (phaseKey === "structured_execution") {
+              if (/^scenario\s+1$/i.test(sourceLabel.trim())) return "structured_execution_q15";
+              if (/^scenario\s+2$/i.test(sourceLabel.trim())) return "structured_execution_q16";
+              if (/^scenario\s+3$/i.test(sourceLabel.trim())) return "structured_execution_q17";
+              if (/^scenario\s+4$/i.test(sourceLabel.trim())) return "structured_execution_q18";
+            } else if (phaseKey === "controlled_discomfort") {
+              if (/^scenario\s+1$/i.test(sourceLabel.trim())) return "controlled_discomfort_q15";
+              if (/^scenario\s+2$/i.test(sourceLabel.trim())) return "controlled_discomfort_q16";
+              if (/^scenario\s+3$/i.test(sourceLabel.trim())) return "controlled_discomfort_q17";
+            } else if (phaseKey === "time_pressure_stability") {
+              if (/^scenario\s+1$/i.test(sourceLabel.trim())) return "time_pressure_stability_q15";
+              if (/^scenario\s+2$/i.test(sourceLabel.trim())) return "time_pressure_stability_q16";
+              if (/^scenario\s+3$/i.test(sourceLabel.trim())) return "time_pressure_stability_q17";
+            } else if (phaseKey === "topic_conditioning") {
+              if (/^scenario\s+1$/i.test(sourceLabel.trim())) return "topic_conditioning_q15";
+              if (/^scenario\s+3$/i.test(sourceLabel.trim())) return "topic_conditioning_q16";
+              if (/^scenario\s+4$/i.test(sourceLabel.trim())) return "topic_conditioning_q17";
+            }
+            return `${phaseKey}_${toQuestionKey(sourceLabel)}`;
+          })();
 
     questions.push({
       key: questionKey,

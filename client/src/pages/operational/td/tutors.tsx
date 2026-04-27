@@ -132,9 +132,11 @@ export default function TDTutors() {
                         </p>
                       )}
                     </div>
-                    <Badge className={`${certColor} border font-semibold uppercase text-2xs`}>
-                      {profile.assignment.certificationStatus}
-                    </Badge>
+                    {profile.assignment.certificationStatus && profile.assignment.certificationStatus !== "pending" && (
+                      <Badge className={`${certColor} border font-semibold uppercase text-2xs`}>
+                        {profile.assignment.certificationStatus}
+                      </Badge>
+                    )}
                   </div>
 
                   {/* Stats Grid */}

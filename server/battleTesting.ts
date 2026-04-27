@@ -3,7 +3,6 @@ import { supabase } from "./storage";
 import {
   BATTLE_TEST_SCORE_POINTS,
   computeBattleTestOutcome,
-  getBattleTestQuestionDefinition,
   getBattleTestStateLabel,
   type BattleTestOutcome,
   type BattleTestPhaseDefinition,
@@ -527,13 +526,20 @@ export function validateBattleTestResponses(
 ) {
   const responseMap = new Map<string, BattleTestResponseInput>();
 
+  // Create a map of all valid question keys from the provided phases
+  const validQuestionKeys = new Set<string>();
+  for (const phase of phases) {
+    for (const question of phase.questions) {
+      validQuestionKeys.add(`${phase.key}:${question.key}`);
+    }
+  }
+
   for (const response of responses) {
-    const question = getBattleTestQuestionDefinition(subjectType, response.phaseKey, response.questionKey);
-    if (!question) {
-      throw new Error(`Unknown battle-testing question: ${response.phaseKey}/${response.questionKey}`);
+    const responseKey = `${response.phaseKey}:${response.questionKey}`;
+    if (!validQuestionKeys.has(responseKey)) {
+      throw new Error(`Unknown battle-testing question: ${responseKey}`);
     }
 
-    const responseKey = `${response.phaseKey}:${response.questionKey}`;
     if (responseMap.has(responseKey)) {
       throw new Error(`Duplicate battle-testing response: ${responseKey}`);
     }

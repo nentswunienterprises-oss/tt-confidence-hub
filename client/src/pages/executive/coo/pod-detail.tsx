@@ -674,6 +674,34 @@ export default function PodDetail() {
                   </div>
                 </div>
               )}
+
+              {/* Pod Stats Sub-section */}
+              {battleTestingSummary && (
+                <div className="pt-4 border-t space-y-3">
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <div>
+                      <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Weekly Alignment</p>
+                      <p className="mt-1 text-lg font-semibold">
+                        {battleTestingSummary.weeklyAlignmentPercent == null
+                          ? "N/A"
+                          : `${Math.round(battleTestingSummary.weeklyAlignmentPercent)}%`}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Violation Spikes</p>
+                      <p className="mt-1 text-lg font-semibold">{battleTestingSummary.driftIncidents}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Watch List Tutors</p>
+                      <p className="mt-1 text-lg font-semibold">{battleTestingSummary.watchlistTutors}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Locked Tutors</p>
+                      <p className="mt-1 text-lg font-semibold">{battleTestingSummary.lockedTutors}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </Card>
 
             {/* Start Date */}
@@ -740,9 +768,11 @@ export default function PodDetail() {
                                   <p className="font-semibold text-sm sm:text-base truncate">{assignment.tutorName}</p>
                                   <p className="text-xs sm:text-sm text-muted-foreground truncate">{assignment.tutorEmail}</p>
                                   <div className="mt-2 flex flex-wrap gap-2">
-                                    <Badge className={`${getCertificationColor(assignment.certification_status || "pending")} border`}>
-                                      {assignment.certification_status || "pending"}
-                                    </Badge>
+                                    {(assignment.certification_status && assignment.certification_status !== "pending") && (
+                                      <Badge className={`${getCertificationColor(assignment.certification_status)} border`}>
+                                        {assignment.certification_status}
+                                      </Badge>
+                                    )}
                                     <Badge variant={(assignment.operational_mode || assignment.operationalMode || "training") === "training" ? "secondary" : "default"}>
                                       {(assignment.operational_mode || assignment.operationalMode || "training") === "training"
                                         ? "Training Mode"
@@ -981,29 +1011,7 @@ export default function PodDetail() {
           </div>
         </div>
 
-        {battleTestingSummary ? (
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <Card className="border p-4">
-              <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Weekly Alignment</p>
-              <p className="mt-2 text-2xl font-semibold">
-                {battleTestingSummary.weeklyAlignmentPercent == null
-                  ? "N/A"
-                  : `${Math.round(battleTestingSummary.weeklyAlignmentPercent)}%`}
-              </p>
-            </Card>
-            <Card className="border p-4">
-              <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Violation Spikes</p>
-              <p className="mt-2 text-2xl font-semibold">{battleTestingSummary.driftIncidents}</p>
-            </Card>
 
-            <Card className="border p-4">
-              <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Tutor Risk</p>
-              <p className="mt-2 text-2xl font-semibold">
-                {battleTestingSummary.watchlistTutors + battleTestingSummary.failTutors}
-              </p>
-            </Card>
-          </div>
-        ) : null}
       </div>
 
       <BattleTestRunnerDialog
