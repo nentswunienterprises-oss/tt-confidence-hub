@@ -103,6 +103,10 @@ function getStatusColor(status: string) {
     : "bg-blue-100 text-blue-800 border-blue-200";
 }
 
+function getOperationalModeBadge(mode?: string | null) {
+  return String(mode || "").toLowerCase() === "certified_live" ? "default" : "secondary";
+}
+
 export default function TDOverview() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
