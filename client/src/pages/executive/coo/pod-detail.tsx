@@ -636,7 +636,7 @@ export default function PodDetail() {
         </div>
 
         {/* Pod Info Grid */}
-        <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           {/* Left Column */}
           <div className="space-y-3 sm:space-y-4">
             {/* Status */}
@@ -832,7 +832,7 @@ export default function PodDetail() {
                                 </AlertDialog>
                               </div>
                             </div>
-                              <div className="grid gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(260px,0.9fr)]">
+                              <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
                                 <div className="rounded-xl border border-border/60 bg-muted/20 p-3 sm:p-4">
                                   <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
                                     Tutor Audit
