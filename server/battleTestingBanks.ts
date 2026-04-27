@@ -68,7 +68,23 @@ const AUTO_CRITICAL_BY_PHASE: Record<string, Set<string>> = {
 };
 
 function normalizeLines(raw: string) {
-  return raw.replace(/^\uFEFF/, "").replace(/\r\n/g, "\n").split("\n");
+  return normalizeBattleTestCopy(raw)
+    .replace(/^\uFEFF/, "")
+    .replace(/\r\n/g, "\n")
+    .split("\n");
+}
+
+function normalizeBattleTestCopy(raw: string) {
+  return raw
+    .replace(/â€œ|â€/g, '"')
+    .replace(/â€™/g, "'")
+    .replace(/â€“|â€”/g, "-")
+    .replace(/â†’/g, "->")
+    .replace(/ðŸ‘‰\s*/g, "")
+    .replace(/ðŸ”¹\s*/g, "")
+    .replace(/âŒ\s*/g, "")
+    .replace(/\u00a0/g, " ")
+    .replace(/[ \t]+$/gm, "");
 }
 
 function isQuestionStart(line: string) {

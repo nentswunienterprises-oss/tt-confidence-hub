@@ -194,7 +194,7 @@ export default function BattleTestRunnerDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-1rem)] max-w-6xl overflow-hidden p-0 sm:w-[min(96vw,88rem)]">
+      <DialogContent className="flex h-[95dvh] w-[calc(100vw-1rem)] max-w-6xl flex-col overflow-hidden p-0 sm:h-auto sm:max-h-[92vh] sm:w-[min(96vw,88rem)]">
         <div className="border-b px-4 py-4 sm:px-6 sm:py-5">
           <DialogHeader>
             <DialogTitle className="text-lg sm:text-xl">{title}</DialogTitle>
@@ -202,45 +202,47 @@ export default function BattleTestRunnerDialog({
           </DialogHeader>
         </div>
 
-        <div className="grid gap-0 lg:grid-cols-[1.4fr,0.6fr]">
-          <div className="min-w-0">
+        <div className="grid min-h-0 flex-1 gap-0 lg:grid-cols-[1.4fr,0.6fr]">
+          <div className="min-h-0 min-w-0">
             {!hasStarted ? (
-              <div className="space-y-5 p-4 sm:p-6">
-                <div>
-                  <p className="text-sm font-medium text-foreground">Select phases to drill</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    TD picks the exact tutor transformation phases to battle-test in this run.
-                  </p>
-                </div>
-                <div className="grid gap-3 md:grid-cols-2">
-                  {phaseOptions.map((phase) => (
-                    <Card key={phase.key} className="border border-border/70 p-4">
-                      <div className="flex items-start gap-3">
-                        <Checkbox
-                          checked={selectedPhaseKeys.includes(phase.key)}
-                          onCheckedChange={(checked) => handlePhaseToggle(phase.key, checked === true)}
-                          id={`phase-${phase.key}`}
-                        />
-                        <div className="space-y-1">
-                          <Label htmlFor={`phase-${phase.key}`} className="text-sm font-semibold text-foreground">
-                            {phase.title}
-                          </Label>
-                          <p className="text-sm text-muted-foreground">{phase.description}</p>
-                          <Badge variant="outline">{phase.questions.length} reps</Badge>
+              <ScrollArea className="h-[58dvh] sm:h-auto sm:max-h-none lg:h-full">
+                <div className="space-y-5 p-4 sm:p-6">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Select phases to drill</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      TD picks the exact tutor transformation phases to battle-test in this run.
+                    </p>
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {phaseOptions.map((phase) => (
+                      <Card key={phase.key} className="border border-border/70 p-4">
+                        <div className="flex items-start gap-3">
+                          <Checkbox
+                            checked={selectedPhaseKeys.includes(phase.key)}
+                            onCheckedChange={(checked) => handlePhaseToggle(phase.key, checked === true)}
+                            id={`phase-${phase.key}`}
+                          />
+                          <div className="space-y-1">
+                            <Label htmlFor={`phase-${phase.key}`} className="text-sm font-semibold text-foreground">
+                              {phase.title}
+                            </Label>
+                            <p className="text-sm text-muted-foreground">{phase.description}</p>
+                            <Badge variant="outline">{phase.questions.length} reps</Badge>
+                          </div>
                         </div>
-                      </div>
-                    </Card>
-                  ))}
+                      </Card>
+                    ))}
+                  </div>
+                  <div className="flex justify-end">
+                    <Button disabled={selectedPhaseKeys.length === 0} onClick={() => setHasStarted(true)}>
+                      Start Battle Test
+                      <ChevronRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex justify-end">
-                  <Button disabled={selectedPhaseKeys.length === 0} onClick={() => setHasStarted(true)}>
-                    Start Battle Test
-                    <ChevronRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+              </ScrollArea>
             ) : (
-              <ScrollArea className="h-[62vh] sm:h-[72vh]">
+              <ScrollArea className="h-[58dvh] sm:h-[72vh] lg:h-full">
                 <div className="space-y-5 p-4 sm:p-6">
                   {questions.map(({ phase, question, questionId }, index) => {
                     const response = responses[questionId] || { note: "", isCriticalFail: false };
@@ -368,7 +370,7 @@ export default function BattleTestRunnerDialog({
             )}
           </div>
 
-          <div className="border-t bg-muted/20 lg:border-l lg:border-t-0">
+          <div className="max-h-[28dvh] overflow-y-auto border-t bg-muted/20 lg:max-h-none lg:border-l lg:border-t-0">
             <div className="space-y-4 p-4 sm:p-6">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
