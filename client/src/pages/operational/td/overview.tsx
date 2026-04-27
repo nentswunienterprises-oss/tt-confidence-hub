@@ -378,18 +378,21 @@ export default function TDOverview() {
                               </div>
                             </div>
 
-                            <div className="flex flex-wrap gap-2 lg:justify-end">
-                              <Badge className={getBattleTestStateBadgeClass(tutorAudit?.state)}>
-                                {getBattleTestStateLabel(tutorAudit?.state)}
-                              </Badge>
-                              <Badge variant="outline">
-                                {tutorAudit?.alignmentPercent == null
-                                  ? "Audit N/A"
-                                  : `Audit ${Math.round(tutorAudit.alignmentPercent)}%`}
-                              </Badge>
+                            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[auto_auto_1fr] lg:justify-end">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <Badge className={getBattleTestStateBadgeClass(tutorAudit?.state)}>
+                                  {getBattleTestStateLabel(tutorAudit?.state)}
+                                </Badge>
+                                <Badge variant="outline">
+                                  {tutorAudit?.alignmentPercent == null
+                                    ? "Audit N/A"
+                                    : `Audit ${Math.round(tutorAudit.alignmentPercent)}%`}
+                                </Badge>
+                              </div>
                               <Button
                                 size="sm"
                                 variant="outline"
+                                className="w-full sm:w-auto"
                                 onClick={() =>
                                   setActiveTutorHistory({
                                     podId: pod.id,
@@ -400,37 +403,41 @@ export default function TDOverview() {
                               >
                                 Audit History
                               </Button>
-                              <Button
-                                size="sm"
-                                onClick={() =>
-                                  setActiveTutorRun({
-                                    podId: pod.id,
-                                    podName: pod.podName,
-                                    assignmentId: tutor.assignment.id,
-                                    tutorId: tutor.id,
-                                    tutorName,
-                                  })
-                                }
-                              >
-                                Run Tutor Audit
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => toggleTutorExpanded(tutor.assignment.id)}
-                              >
-                                {isExpanded ? (
-                                  <>
-                                    <ChevronUp className="mr-1.5 h-4 w-4" />
-                                    Hide Students
-                                  </>
-                                ) : (
-                                  <>
-                                    <ChevronDown className="mr-1.5 h-4 w-4" />
-                                    View Students
-                                  </>
-                                )}
-                              </Button>
+                              <div className="flex flex-wrap gap-2 lg:justify-end">
+                                <Button
+                                  size="sm"
+                                  className="w-full sm:w-auto"
+                                  onClick={() =>
+                                    setActiveTutorRun({
+                                      podId: pod.id,
+                                      podName: pod.podName,
+                                      assignmentId: tutor.assignment.id,
+                                      tutorId: tutor.id,
+                                      tutorName,
+                                    })
+                                  }
+                                >
+                                  Run Tutor Audit
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="w-full sm:w-auto"
+                                  onClick={() => toggleTutorExpanded(tutor.assignment.id)}
+                                >
+                                  {isExpanded ? (
+                                    <>
+                                      <ChevronUp className="mr-1.5 h-4 w-4" />
+                                      Hide Students
+                                    </>
+                                  ) : (
+                                    <>
+                                      <ChevronDown className="mr-1.5 h-4 w-4" />
+                                      View Students
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
                             </div>
                           </div>
 
@@ -777,11 +784,11 @@ function TDTutorStudentsSection({
                   </div>
                 </div>
 
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-7 text-xs"
+                    className="h-9 w-full text-xs"
                     onClick={() => onViewIdentitySheet(student)}
                   >
                     <FileText className="mr-1.5 h-3 w-3" />
@@ -790,7 +797,7 @@ function TDTutorStudentsSection({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-7 text-xs"
+                    className="h-9 w-full text-xs"
                     onClick={() => onViewAssignments(student)}
                   >
                     <FileText className="mr-1.5 h-3 w-3" />
@@ -799,7 +806,7 @@ function TDTutorStudentsSection({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-7 text-xs"
+                    className="h-9 w-full text-xs"
                     onClick={() => onViewTopicConditioning(student)}
                   >
                     <Settings className="mr-1.5 h-3 w-3" />
@@ -808,7 +815,7 @@ function TDTutorStudentsSection({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-7 text-xs"
+                    className="h-9 w-full text-xs"
                     onClick={() => onViewTrackingSystems(student)}
                   >
                     <Calendar className="mr-1.5 h-3 w-3" />
@@ -817,7 +824,7 @@ function TDTutorStudentsSection({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-7 text-xs"
+                    className="h-9 w-full text-xs"
                     onClick={() => onViewCommunication(student)}
                   >
                     <Mail className="mr-1.5 h-3 w-3" />
