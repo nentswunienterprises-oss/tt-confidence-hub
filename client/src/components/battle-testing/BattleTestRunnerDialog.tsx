@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { stripWhatThisDoesSection } from "@/components/battle-testing/textUtils";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -257,7 +258,9 @@ export default function BattleTestRunnerDialog({
                           </div>
 
                           <div className="space-y-2">
-                            <p className="text-base font-semibold text-foreground">{question.prompt}</p>
+                            <p className="text-base font-semibold text-foreground">
+                              {stripWhatThisDoesSection(question.prompt)}
+                            </p>
                             <Collapsible>
                               <CollapsibleTrigger asChild>
                                 <Button variant="ghost" size="sm" className="h-auto px-0 text-sm text-muted-foreground">
@@ -269,7 +272,9 @@ export default function BattleTestRunnerDialog({
                                   <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                                     Expected Answer
                                   </p>
-                                  <p className="mt-2 text-sm text-foreground">{question.expectedAnswer}</p>
+                                  <p className="mt-2 text-sm text-foreground">
+                                    {stripWhatThisDoesSection(question.expectedAnswer)}
+                                  </p>
                                 </div>
                                 <div>
                                   <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">

@@ -3,6 +3,7 @@ import { AlertTriangle, CheckCircle2, ShieldAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { stripWhatThisDoesSection } from "@/components/battle-testing/textUtils";
 import {
   Dialog,
   DialogContent,
@@ -160,12 +161,16 @@ export default function BattleTestHistoryDialog({
                         </Badge>
                         {rep.isCriticalFail ? <Badge className="bg-rose-700 text-white text-xs sm:text-sm">Critical Fail</Badge> : null}
                       </div>
-                      <p className="mt-2 sm:mt-3 font-medium text-sm sm:text-base text-foreground">{rep.prompt}</p>
+                      <p className="mt-2 sm:mt-3 font-medium text-sm sm:text-base text-foreground">
+                        {stripWhatThisDoesSection(rep.prompt)}
+                      </p>
                       <div className="mt-2 sm:mt-3 rounded-xl border bg-muted/20 p-3">
                         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                           Expected Answer
                         </p>
-                        <p className="mt-2 text-xs sm:text-sm text-foreground">{rep.expectedAnswer}</p>
+                        <p className="mt-2 text-xs sm:text-sm text-foreground">
+                          {stripWhatThisDoesSection(rep.expectedAnswer)}
+                        </p>
                       </div>
                       {rep.note ? (
                         <div className="mt-2 sm:mt-3 rounded-xl border bg-background p-3">
