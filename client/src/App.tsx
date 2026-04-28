@@ -374,6 +374,7 @@ function Router() {
       {/* TD Routes */}
       <Route path="/operational/td/dashboard" element={<DashboardLayout><OperationalTDDashboard /></DashboardLayout>} />
       <Route path="/operational/td/my-pods" element={<DashboardLayout><TDOverview /></DashboardLayout>} />
+      <Route path="/operational/td/my-pods/:podId" element={<DashboardLayout><TDOverview /></DashboardLayout>} />
       <Route path="/operational/td/reports" element={<DashboardLayout><TDReports /></DashboardLayout>} />
       <Route path="/operational/td/updates" element={<DashboardLayout><TDUpdates /></DashboardLayout>} />
 
@@ -446,6 +447,7 @@ function Router() {
       <Route path="/td/no-pod" element={<TDNoPod />} />
       <Route path="/td/dashboard" element={<TDDashboard />} />
       <Route path="/td/overview" element={<TDOverview />} />
+      <Route path="/td/overview/:podId" element={<TDOverview />} />
       <Route path="/td/tutors" element={<TDTutors />} />
       <Route path="/td/reports" element={<TDReports />} />
       <Route path="/td/updates" element={<TDUpdates />} />

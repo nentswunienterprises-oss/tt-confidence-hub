@@ -12,9 +12,9 @@ import {
   FolderKanban,
   Mail,
   Settings,
-  ShieldAlert,
   Users,
 } from "lucide-react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import BattleTestHistoryDialog from "@/components/battle-testing/BattleTestHistoryDialog";
 import BattleTestRunnerDialog from "@/components/battle-testing/BattleTestRunnerDialog";
@@ -108,6 +108,9 @@ function getOperationalModeBadge(mode?: string | null) {
 }
 
 export default function TDOverview() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { podId } = useParams<{ podId?: string }>();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const [activeTutorRun, setActiveTutorRun] = useState<ActiveTutorRunContext | null>(null);
@@ -120,6 +123,10 @@ export default function TDOverview() {
   const [selectedStudentName, setSelectedStudentName] = useState("");
   const [selectedStudentRecord, setSelectedStudentRecord] = useState<StudentActionRecord | null>(null);
   const [expandedTutors, setExpandedTutors] = useState<Record<string, boolean>>({});
+  const [expandedPodStats, setExpandedPodStats] = useState<Record<string, boolean>>({});
+  const [expandedTutorDetails, setExpandedTutorDetails] = useState<Record<string, boolean>>({});
+  const [expandedPhaseScores, setExpandedPhaseScores] = useState<Record<string, boolean>>({});
+  const [expandedTutorsSection, setExpandedTutorsSection] = useState<Record<string, boolean>>({});
 
   const {
     data: podsData,
@@ -170,6 +177,10 @@ export default function TDOverview() {
   }, [error, toast]);
 
   const activePhaseOptions = useMemo<BattleTestPhaseDefinition[]>(() => tutorBattleTestPhases, [tutorBattleTestPhases]);
+  const overviewBasePath = location.pathname.startsWith("/operational/td")
+    ? "/operational/td/my-pods"
+    : "/td/overview";
+  const selectedPodData = podId ? podsData?.find((entry) => entry.pod.id === podId) : null;
 
   const submitTutorBattleTestMutation = useMutation({
     mutationFn: async ({
@@ -223,6 +234,34 @@ export default function TDOverview() {
     }));
   };
 
+  const togglePodStats = (podId: string) => {
+    setExpandedPodStats((current) => ({
+      ...current,
+      [podId]: !current[podId],
+    }));
+  };
+
+  const toggleTutorDetails = (assignmentId: string) => {
+    setExpandedTutorDetails((current) => ({
+      ...current,
+      [assignmentId]: !current[assignmentId],
+    }));
+  };
+
+  const togglePhaseScores = (podId: string) => {
+    setExpandedPhaseScores((current) => ({
+      ...current,
+      [podId]: !current[podId],
+    }));
+  };
+
+  const toggleTutorsSection = (podId: string) => {
+    setExpandedTutorsSection((current) => ({
+      ...current,
+      [podId]: !current[podId],
+    }));
+  };
+
   if (authLoading || isLoading) {
     return (
       <DashboardLayout>
@@ -249,23 +288,92 @@ export default function TDOverview() {
     );
   }
 
+  if (podId && !selectedPodData) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate(overviewBasePath)}
+              className="hover:bg-muted h-8 w-8 sm:h-10 sm:w-10"
+            >
+              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+            </Button>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate flex-1">My Pods</h1>
+          </div>
+          <Card className="p-12 text-center">
+            <FolderKanban className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+            <p className="text-muted-foreground">This pod is not assigned to you or no longer exists.</p>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-2 sm:gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => window.history.back()}
-            className="hover:bg-muted h-8 w-8 sm:h-10 sm:w-10"
-          >
-            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-          </Button>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate flex-1">My Pods</h1>
-        </div>
+        {!podId ? (
+          <>
+            <div className="flex items-center gap-2 sm:gap-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => window.history.back()}
+                className="hover:bg-muted h-8 w-8 sm:h-10 sm:w-10"
+              >
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+              </Button>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate flex-1">My Pods</h1>
+            </div>
 
-        {podsData.map((podData) => {
+            <div className="grid gap-4 sm:grid-cols-2">
+              {podsData.map((podData) => {
+                const { pod, tutors, totalStudents, totalSessions } = podData;
+                return (
+                  <button
+                    key={pod.id}
+                    type="button"
+                    onClick={() => navigate(`${overviewBasePath}/${pod.id}`)}
+                    className="text-left"
+                  >
+                    <Card className="transition-all hover:border-primary/50 hover:shadow-md">
+                      <div className="p-5 space-y-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <h2 className="text-lg font-semibold truncate">{pod.podName}</h2>
+                            <p className="text-sm text-muted-foreground">
+                              {pod.phase} phase - {pod.status}
+                            </p>
+                          </div>
+                          <span className="text-xs font-medium text-primary shrink-0">Open pod</span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-3">
+                          <div>
+                            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Tutors</p>
+                            <p className="mt-1 text-2xl font-semibold">{tutors.length}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Students</p>
+                            <p className="mt-1 text-2xl font-semibold">{totalStudents}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Sessions</p>
+                            <p className="mt-1 text-2xl font-semibold">{totalSessions}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          (() => {
+            const podData = selectedPodData!;
           const { pod, tutors, totalStudents, totalSessions } = podData;
           const battleTestingSummary: PodBattleTestingSummary = podData?.battleTestingSummary
             ? {
@@ -288,6 +396,18 @@ export default function TDOverview() {
               };
           return (
             <div key={pod.id} className="space-y-6">
+              <div className="flex items-center gap-2 sm:gap-4">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate(overviewBasePath)}
+                  className="hover:bg-muted h-8 w-8 sm:h-10 sm:w-10"
+                >
+                  <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                </Button>
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate flex-1">My Pods</h1>
+              </div>
+
               {/* Pod Header */}
               <div>
                 <h2 className="text-xl font-semibold text-foreground">{pod.podName}</h2>
@@ -342,37 +462,49 @@ export default function TDOverview() {
 
                   {/* Battle Testing Summary */}
                   <Card className="p-4 sm:p-6 border">
-                    <div className="flex items-center gap-2 mb-2 sm:mb-3">
-                      <Activity className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
-                      <p className="text-xs sm:text-sm font-medium text-muted-foreground uppercase">Pod Integrity</p>
+                    <div className="flex items-center justify-between gap-3 mb-2 sm:mb-3">
+                      <div className="flex items-center gap-2">
+                        <Activity className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
+                        <p className="text-xs sm:text-sm font-medium text-muted-foreground uppercase">Pod Integrity</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => togglePodStats(pod.id)}
+                        className="whitespace-nowrap"
+                      >
+                        {expandedPodStats[pod.id] ? "Hide stats" : "Show stats"}
+                      </Button>
                     </div>
 
-                    {/* Pod Stats Sub-section */}
-                    <div className="pt-4 border-t space-y-3">
-                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                        <div>
-                          <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Weekly Alignment</p>
-                          <p className="mt-1 text-lg font-semibold">
-                            {battleTestingSummary.weeklyAlignmentPercent == null
-                              ? "N/A"
-                              : `${Math.round(battleTestingSummary.weeklyAlignmentPercent)}%`}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Violation Spikes</p>
-                          <p className="mt-1 text-lg font-semibold">{battleTestingSummary.driftIncidents}</p>
-                        </div>
-                        <div>
-                          <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">At Risk Tutors</p>
-                          <p className="mt-1 text-lg font-semibold">{battleTestingSummary.watchlistTutors + battleTestingSummary.failTutors}</p>
-                        </div>
-                        <div>
-                          <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Locked Tutors</p>
-                          <p className="mt-1 text-lg font-semibold">{battleTestingSummary.lockedTutors}</p>
+                    {expandedPodStats[pod.id] ? (
+                      <div className="pt-4 border-t space-y-3">
+                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                          <div>
+                            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Weekly Alignment</p>
+                            <p className="mt-1 text-lg font-semibold">
+                              {battleTestingSummary.weeklyAlignmentPercent == null
+                                ? "N/A"
+                                : `${Math.round(battleTestingSummary.weeklyAlignmentPercent)}%`}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Violation Spikes</p>
+                            <p className="mt-1 text-lg font-semibold">{battleTestingSummary.driftIncidents}</p>
+                          </div>
+                          <div>
+                            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">At Risk Tutors</p>
+                            <p className="mt-1 text-lg font-semibold">{battleTestingSummary.watchlistTutors + battleTestingSummary.failTutors}</p>
+                          </div>
+                          <div>
+                            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Locked Tutors</p>
+                            <p className="mt-1 text-lg font-semibold">{battleTestingSummary.lockedTutors}</p>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ) : null}
                   </Card>
+
                 </div>
 
                 {/* Right Column - Tutors */}
@@ -384,176 +516,210 @@ export default function TDOverview() {
                           <Users className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                           <h2 className="font-semibold text-sm sm:text-base">Assigned Tutors</h2>
                         </div>
-                        <span className="text-xs sm:text-sm text-muted-foreground">
-                          {tutors.length}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs sm:text-sm text-muted-foreground">
+                            {tutors.length}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleTutorsSection(pod.id)}
+                            className="h-7 w-7 sm:h-8 sm:w-8 p-0"
+                          >
+                            <ChevronDown
+                              className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform ${
+                                expandedTutorsSection[pod.id] === false ? "" : "rotate-180"
+                              }`}
+                            />
+                          </Button>
+                        </div>
                       </div>
 
                       {/* Tutors List */}
-                      {tutors.length === 0 ? (
-                        <div className="text-center py-8 text-muted-foreground">
-                          <p className="text-sm">No tutors assigned yet</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          {tutors.map((tutor) => {
-                            const tutorName = tutor.name || tutor.firstName || "Unknown Tutor";
-                            const operationalMode =
-                              (tutor.assignment as any)?.operational_mode ||
-                              (tutor.assignment as any)?.operationalMode ||
-                              "training";
-                            const tutorAudit = battleTestingSummary.tutorSummaries.find(
-                              (entry) => entry.assignmentId === tutor.assignment.id
-                            );
-                            const isExpanded = !!expandedTutors[tutor.assignment.id];
+                      {expandedTutorsSection[pod.id] === false ? null : (
+                        tutors.length === 0 ? (
+                          <div className="text-center py-8 text-muted-foreground">
+                            <p className="text-sm">No tutors assigned yet</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {tutors.map((tutor) => {
+                              const tutorName = tutor.name || tutor.firstName || "Unknown Tutor";
+                              const operationalMode =
+                                (tutor.assignment as any)?.operational_mode ||
+                                (tutor.assignment as any)?.operationalMode ||
+                                "training";
+                              const tutorAudit = battleTestingSummary.tutorSummaries.find(
+                                (entry) => entry.assignmentId === tutor.assignment.id
+                              );
+                              const isExpanded = !!expandedTutors[tutor.assignment.id];
 
-                            return (
-                              <div
-                                key={tutor.assignment.id}
-                                className="border rounded-lg overflow-hidden hover:bg-muted/50 transition-colors"
-                              >
-                                <div className="p-3 sm:p-4">
-                                  <div className="flex flex-col gap-3 sm:gap-4">
-                                    <div className="flex items-start justify-between gap-2 sm:gap-4">
-                                    <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
-                                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center text-xs sm:text-sm font-bold text-primary shrink-0">
-                                        {getTutorInitials(tutorName)}
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <p className="font-semibold text-sm sm:text-base truncate">{tutorName}</p>
-                                        <p className="text-xs sm:text-sm text-muted-foreground truncate">{tutor.email || "No email"}</p>
-                                        <div className="mt-2 flex flex-wrap gap-2">
-                                          {((tutor.assignment as any)?.certification_status || "").toLowerCase() !== "pending" && (
-                                            <Badge variant="outline">
-                                              {(tutor.assignment as any)?.certification_status}
-                                            </Badge>
-                                          )}
-                                          <Badge variant={getOperationalModeBadge(operationalMode)}>
-                                            {operationalMode === "certified_live" ? "Certified Live" : "Training Mode"}
-                                          </Badge>
-                                          <Badge className={getBattleTestStateBadgeClass(tutorAudit?.state)}>
-                                            {getBattleTestStateLabel(tutorAudit?.state)}
-                                          </Badge>
-                                          <Badge variant="outline">
-                                            {tutorAudit?.alignmentPercent == null
-                                              ? "Audit N/A"
-                                              : `Audit ${Math.round(tutorAudit.alignmentPercent)}%`}
-                                          </Badge>
+                              return (
+                                <div
+                                  key={tutor.assignment.id}
+                                  className="border rounded-lg overflow-hidden hover:bg-muted/50 transition-colors"
+                                >
+                                  <div className="p-3 sm:p-4">
+                                    <div className="flex flex-col gap-3 sm:gap-4">
+                                      <div className="flex items-start justify-between gap-2 sm:gap-4">
+                                      <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+                                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center text-xs sm:text-sm font-bold text-primary shrink-0">
+                                          {getTutorInitials(tutorName)}
                                         </div>
-                                      </div>
-                                    </div>
-                                    <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => toggleTutorExpanded(tutor.assignment.id)}
-                                        className="h-7 w-7 sm:h-8 sm:w-8 p-0"
-                                      >
-                                        <ChevronDown
-                                          className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform ${
-                                            isExpanded ? "rotate-180" : ""
-                                          }`}
-                                        />
-                                      </Button>
-                                    </div>
-                                  </div>
-                                    <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
-                                      <div className="rounded-xl border border-border/60 bg-muted/20 p-3 sm:p-4">
-                                        <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                                          Tutor Audit
-                                        </p>
-                                        <div className="mt-3 flex flex-wrap gap-2">
-                                          {tutorAudit?.phaseScores?.length ? (
-                                            tutorAudit.phaseScores.map((phase) => (
-                                              <Badge key={`${tutor.assignment.id}-${phase.phaseKey}`} variant="outline">
-                                                {phase.title}: {Math.round(phase.percent)}%
+                                        <div className="flex-1 min-w-0">
+                                          <p className="font-semibold text-sm sm:text-base truncate">{tutorName}</p>
+                                          <p className="text-xs sm:text-sm text-muted-foreground truncate">{tutor.email || "No email"}</p>
+                                          <div className="mt-2 flex flex-wrap gap-2">
+                                            {((tutor.assignment as any)?.certification_status || "").toLowerCase() !== "pending" && (
+                                              <Badge variant="outline">
+                                                {(tutor.assignment as any)?.certification_status}
                                               </Badge>
-                                            ))
-                                          ) : (
-                                            <span className="text-sm text-muted-foreground">
-                                              No tutor audit has been logged yet.
-                                            </span>
-                                          )}
+                                            )}
+                                            <Badge variant={getOperationalModeBadge(operationalMode)}>
+                                              {operationalMode === "certified_live" ? "Certified Live" : "Training Mode"}
+                                            </Badge>
+                                            <Badge className={getBattleTestStateBadgeClass(tutorAudit?.state)}>
+                                              {getBattleTestStateLabel(tutorAudit?.state)}
+                                            </Badge>
+                                            <Badge variant="outline">
+                                              {tutorAudit?.alignmentPercent == null
+                                                ? "Audit N/A"
+                                                : `Audit ${Math.round(tutorAudit.alignmentPercent)}%`}
+                                            </Badge>
+                                          </div>
                                         </div>
-                                        {tutorAudit?.actionRequired ? (
-                                          <p className="mt-3 text-sm text-muted-foreground">{tutorAudit.actionRequired}</p>
-                                        ) : null}
-                                        {tutorAudit?.lastAuditAt ? (
-                                          <p className="mt-2 text-xs text-muted-foreground">
-                                            Last audit: {formatAuditTimestamp(tutorAudit.lastAuditAt)}
-                                          </p>
-                                        ) : null}
-                                      </div>
-                                      <div className="rounded-xl border border-border/60 bg-muted/20 p-3 sm:p-4">
-                                        <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                                          Tutor Controls
-                                        </p>
-                                        <div className="mt-3 flex flex-wrap gap-2">
-                                          <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() =>
-                                              setActiveTutorHistory({
-                                                podId: pod.id,
-                                                tutorName,
-                                                assignmentId: tutor.assignment.id,
-                                              })
-                                            }
-                                          >
-                                            Audit History
-                                          </Button>
-                                          <Button
-                                            size="sm"
-                                            onClick={() =>
-                                              setActiveTutorRun({
-                                                podId: pod.id,
-                                                podName: pod.podName,
-                                                assignmentId: tutor.assignment.id,
-                                                tutorId: tutor.id,
-                                                tutorName,
-                                              })
-                                            }
-                                          >
-                                            Run Tutor Audit
-                                          </Button>
-                                        </div>
-                                        <p className="mt-3 text-sm text-muted-foreground">
-                                          {(tutor.assignment as any)?.student_count || 0} students assigned.
-                                        </p>
                                       </div>
                                     </div>
-                                  </div>
+                                      <div className="flex flex-col gap-3">
+                                        <div className="flex items-center justify-between gap-3">
+                                          <p className="text-sm font-medium text-muted-foreground">Tutor Alignment</p>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => toggleTutorDetails(tutor.assignment.id)}
+                                            className="whitespace-nowrap"
+                                          >
+                                            {expandedTutorDetails[tutor.assignment.id] ? "Hide details" : "Show details"}
+                                          </Button>
+                                        </div>
 
-                                  {/* Expanded Details */}
-                                  {isExpanded && (
-                                    <TDTutorStudentsSection
-                                      tutorId={tutor.id}
-                                      tutorName={tutorName}
-                                      operationalMode={operationalMode}
-                                      fallbackStudentCount={(tutor.assignment as any)?.student_count || 0}
-                                      onViewAssignments={(student) => {
-                                        openStudentRecord(student);
-                                        setAssignmentsDialogOpen(true);
-                                      }}
-                                      onViewTrackingSystems={(student) => {
-                                        openStudentRecord(student);
-                                        setTrackingDialogOpen(true);
-                                      }}
-                                      onViewTopicConditioning={(student) => {
-                                        openStudentRecord(student);
-                                        setTopicConditioningDialogOpen(true);
-                                      }}
-                                      onViewCommunication={(student) => {
-                                        openStudentRecord(student);
-                                        setCommunicationDialogOpen(true);
-                                      }}
-                                    />
-                                  )}
+                                        {expandedTutorDetails[tutor.assignment.id] ? (
+                                          <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
+                                            <div className="rounded-xl border border-border/60 bg-muted/20 p-3 sm:p-4">
+                                              <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                                                Tutor Audit
+                                              </p>
+                                              <div className="mt-3 flex flex-wrap gap-2">
+                                                {tutorAudit?.phaseScores?.length ? (
+                                                  tutorAudit.phaseScores.map((phase) => (
+                                                    <Badge key={`${tutor.assignment.id}-${phase.phaseKey}`} variant="outline">
+                                                      {phase.title}: {Math.round(phase.percent)}%
+                                                    </Badge>
+                                                  ))
+                                                ) : (
+                                                  <span className="text-sm text-muted-foreground">
+                                                    No tutor audit has been logged yet.
+                                                  </span>
+                                                )}
+                                              </div>
+                                              {tutorAudit?.actionRequired ? (
+                                                <p className="mt-3 text-sm text-muted-foreground">{tutorAudit.actionRequired}</p>
+                                              ) : null}
+                                              {tutorAudit?.lastAuditAt ? (
+                                                <p className="mt-2 text-xs text-muted-foreground">
+                                                  Last audit: {formatAuditTimestamp(tutorAudit.lastAuditAt)}
+                                                </p>
+                                              ) : null}
+                                            </div>
+                                            <div className="rounded-xl border border-border/60 bg-muted/20 p-3 sm:p-4">
+                                              <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                                                Tutor Controls
+                                              </p>
+                                              <div className="mt-3 flex flex-wrap gap-2">
+                                                <Button
+                                                  size="sm"
+                                                  variant="outline"
+                                                  onClick={() =>
+                                                    setActiveTutorHistory({
+                                                      podId: pod.id,
+                                                      tutorName,
+                                                      assignmentId: tutor.assignment.id,
+                                                    })
+                                                  }
+                                                >
+                                                  Audit History
+                                                </Button>
+                                                <Button
+                                                  size="sm"
+                                                  onClick={() =>
+                                                    setActiveTutorRun({
+                                                      podId: pod.id,
+                                                      podName: pod.podName,
+                                                      assignmentId: tutor.assignment.id,
+                                                      tutorId: tutor.id,
+                                                      tutorName,
+                                                    })
+                                                  }
+                                                >
+                                                  Run Tutor Audit
+                                                </Button>
+                                              </div>
+                                              <p className="mt-3 text-sm text-muted-foreground">
+                                                {(tutor.assignment as any)?.student_count || 0} students assigned.
+                                              </p>
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <p className="text-sm leading-6 text-muted-foreground">
+                                            Expand to view audit summaries, risk details, and tutor controls.
+                                          </p>
+                                        )}
+
+                                        <div className="flex items-center justify-between gap-3 pt-1">
+                                          <p className="text-sm font-medium text-muted-foreground">Assigned Students</p>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => toggleTutorExpanded(tutor.assignment.id)}
+                                            className="whitespace-nowrap"
+                                          >
+                                            {isExpanded ? "Hide students" : "Show students"}
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Expanded Student Details */}
+                                    {isExpanded && (
+                                      <TDTutorStudentsSection
+                                        tutorId={tutor.id}
+                                        tutorName={tutorName}
+                                        operationalMode={operationalMode}
+                                        fallbackStudentCount={(tutor.assignment as any)?.student_count || 0}
+                                        onViewAssignments={(student) => {
+                                          openStudentRecord(student);
+                                          setAssignmentsDialogOpen(true);
+                                        }}
+                                        onViewTrackingSystems={(student) => {
+                                          openStudentRecord(student);
+                                          setTrackingDialogOpen(true);
+                                        }}
+                                        onViewTopicConditioning={(student) => {
+                                          openStudentRecord(student);
+                                          setTopicConditioningDialogOpen(true);
+                                        }}
+                                        onViewCommunication={(student) => {
+                                          openStudentRecord(student);
+                                          setCommunicationDialogOpen(true);
+                                        }}
+                                      />
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            );
-                          })}
-                        </div>
+                              );
+                            })}
+                          </div>
+                        )
                       )}
                     </div>
                   </Card>
@@ -561,7 +727,8 @@ export default function TDOverview() {
               </div>
             </div>
           );
-        })}
+          })()
+        )}
       </div>
 
       <BattleTestRunnerDialog
@@ -731,6 +898,7 @@ function TDTutorStudentsSection({
   });
 
   const activeStudentCount = students?.length || fallbackStudentCount || 0;
+  const [expandedStudentActions, setExpandedStudentActions] = useState<Record<string, boolean>>({});
 
   return (
     <div className="mt-4 pt-4 border-t space-y-4">
@@ -787,44 +955,64 @@ function TDTutorStudentsSection({
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex flex-wrap gap-2 mt-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mt-3">
+                    <p className="text-sm text-muted-foreground">
+                      Tools for {student.name}
+                    </p>
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
-                      className="text-xs h-7"
-                      onClick={() => onViewAssignments(student)}
+                      onClick={() =>
+                        setExpandedStudentActions((current) => ({
+                          ...current,
+                          [student.id]: !current[student.id],
+                        }))
+                      }
+                      className="whitespace-nowrap"
                     >
-                      <FileText className="w-3 h-3 mr-1.5" />
-                      Assignments
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs h-7"
-                      onClick={() => onViewTopicConditioning(student)}
-                    >
-                      <Settings className="w-3 h-3 mr-1.5" />
-                      Topic Conditioning
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs h-7"
-                      onClick={() => onViewTrackingSystems(student)}
-                    >
-                      <Calendar className="w-3 h-3 mr-1.5" />
-                      Tracking Systems
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs h-7"
-                      onClick={() => onViewCommunication(student)}
-                    >
-                      <Mail className="w-3 h-3 mr-1.5" />
-                      Communication
+                      {expandedStudentActions[student.id] ? "Hide tools" : "Show tools"}
                     </Button>
                   </div>
+                  {expandedStudentActions[student.id] ? (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs h-7"
+                        onClick={() => onViewAssignments(student)}
+                      >
+                        <FileText className="w-3 h-3 mr-1.5" />
+                        Assignments
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs h-7"
+                        onClick={() => onViewTopicConditioning(student)}
+                      >
+                        <Settings className="w-3 h-3 mr-1.5" />
+                        Topic Conditioning
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs h-7"
+                        onClick={() => onViewTrackingSystems(student)}
+                      >
+                        <Calendar className="w-3 h-3 mr-1.5" />
+                        Tracking Systems
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs h-7"
+                        onClick={() => onViewCommunication(student)}
+                      >
+                        <Mail className="w-3 h-3 mr-1.5" />
+                        Communication
+                      </Button>
+                    </div>
+                  ) : null}
                 </div>
               );
             })}

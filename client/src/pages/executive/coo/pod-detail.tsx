@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
+  Activity,
   ArrowLeft,
   Users,
   Calendar,
@@ -45,6 +46,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 function formatEnrollmentTopics(rawValue: string | null | undefined) {
   const ignoredContexts = new Set([
@@ -111,16 +122,6 @@ function extractLegacySymptomsFromParentNote(rawValue: string | null | undefined
 
   return knownLabels.filter((label) => normalized.includes(label.toLowerCase()));
 }
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { API_URL } from "@/lib/config";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -189,6 +190,9 @@ export default function PodDetail() {
   const [selectedTutorIds, setSelectedTutorIds] = useState<string[]>([]);
   const [tutorToRemove, setTutorToRemove] = useState<string | null>(null);
   const [expandedTutors, setExpandedTutors] = useState<Set<string>>(new Set());
+  const [expandedTutorDetails, setExpandedTutorDetails] = useState<Record<string, boolean>>({});
+  const [podIntegrityExpanded, setPodIntegrityExpanded] = useState(false);
+  const [tutorsSectionExpanded, setTutorsSectionExpanded] = useState(true);
   
   // Student dialog state
   const [identitySheetOpen, setIdentitySheetOpen] = useState(false);
@@ -492,6 +496,21 @@ export default function PodDetail() {
     setExpandedTutors(newExpanded);
   };
 
+  const toggleTutorDetails = (assignmentId: string) => {
+    setExpandedTutorDetails((current) => ({
+      ...current,
+      [assignmentId]: !current[assignmentId],
+    }));
+  };
+
+  const togglePodIntegrity = () => {
+    setPodIntegrityExpanded((current) => !current);
+  };
+
+  const toggleTutorsSection = () => {
+    setTutorsSectionExpanded((current) => !current);
+  };
+
   if (podLoading || tdsLoading || tutorsLoading || authLoading || statsLoading || battleTestingLoading) {
     return (
       <DashboardLayout>
@@ -649,34 +668,33 @@ export default function PodDetail() {
               </div>
             </Card>
 
-            {/* Territory Director with TD Integrity */}
+            {/* Territory Director */}
             <Card className="p-4 sm:p-6 border">
               <div className="flex items-center gap-2 mb-2 sm:mb-3">
                 <Users className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
                 <p className="text-xs sm:text-sm font-medium text-muted-foreground uppercase">Territory Director</p>
               </div>
               <p className="font-medium text-sm sm:text-base mb-4">{tdName}</p>
-              
-              {/* TD Integrity Sub-section */}
-              {battleTestingSummary?.tdSummary && (
-                <div className="pt-4 border-t space-y-3">
-                  <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">TD Integrity</p>
-                  <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-                    <Badge className={getBattleTestStateBadgeClass(battleTestingSummary.tdSummary.state)}>
-                      {getBattleTestStateLabel(battleTestingSummary.tdSummary.state)}
-                    </Badge>
-                    <Button size="sm" variant="outline" className="w-full sm:w-auto" onClick={() => setTdHistoryOpen(true)}>
-                      TD History
-                    </Button>
-                    <Button size="sm" className="w-full sm:w-auto" onClick={() => setTdBattleTestOpen(true)}>
-                      Run TD Audit
-                    </Button>
-                  </div>
-                </div>
-              )}
+            </Card>
 
-              {/* Pod Stats Sub-section */}
-              {battleTestingSummary && (
+            {/* Pod Integrity */}
+            <Card className="p-4 sm:p-6 border">
+              <div className="flex items-center justify-between gap-3 mb-2 sm:mb-3">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground uppercase">Pod Integrity</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={togglePodIntegrity}
+                  className="whitespace-nowrap"
+                >
+                  {podIntegrityExpanded ? "Hide stats" : "Show stats"}
+                </Button>
+              </div>
+
+              {podIntegrityExpanded ? (
                 <div className="pt-4 border-t space-y-3">
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                     <div>
@@ -692,16 +710,33 @@ export default function PodDetail() {
                       <p className="mt-1 text-lg font-semibold">{battleTestingSummary.driftIncidents}</p>
                     </div>
                     <div>
-                      <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Watch List Tutors</p>
-                      <p className="mt-1 text-lg font-semibold">{battleTestingSummary.watchlistTutors}</p>
+                      <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">At Risk Tutors</p>
+                      <p className="mt-1 text-lg font-semibold">{battleTestingSummary.watchlistTutors + battleTestingSummary.failTutors}</p>
                     </div>
                     <div>
                       <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Locked Tutors</p>
                       <p className="mt-1 text-lg font-semibold">{battleTestingSummary.lockedTutors}</p>
                     </div>
                   </div>
+
+                  {battleTestingSummary?.tdSummary && (
+                    <div className="pt-4 border-t space-y-3">
+                      <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">TD Integrity</p>
+                      <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                        <Badge className={getBattleTestStateBadgeClass(battleTestingSummary.tdSummary.state)}>
+                          {getBattleTestStateLabel(battleTestingSummary.tdSummary.state)}
+                        </Badge>
+                        <Button size="sm" variant="outline" className="w-full sm:w-auto" onClick={() => setTdHistoryOpen(true)}>
+                          TD History
+                        </Button>
+                        <Button size="sm" className="w-full sm:w-auto" onClick={() => setTdBattleTestOpen(true)}>
+                          Run TD Audit
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+              ) : null}
             </Card>
 
             {/* Start Date */}
@@ -730,282 +765,314 @@ export default function PodDetail() {
                     <Users className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                     <h2 className="font-semibold text-sm sm:text-base">Assigned Tutors</h2>
                   </div>
-                  <span className="text-xs sm:text-sm text-muted-foreground">
-                    {tutorCount}/{maxTutors}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs sm:text-sm text-muted-foreground">
+                      {tutorCount}/{maxTutors}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={toggleTutorsSection}
+                      className="h-7 w-7 sm:h-8 sm:w-8 p-0"
+                    >
+                      <ChevronDown
+                        className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform ${
+                          tutorsSectionExpanded ? "rotate-180" : ""
+                        }`}
+                      />
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Tutors List */}
-                {podTutorsLoading ? (
-                  <div className="space-y-2">
-                    <Skeleton className="h-14" />
-                    <Skeleton className="h-14" />
-                  </div>
-                ) : !podTutors || podTutors.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <p className="text-sm">No tutors assigned yet</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {podTutors.map((assignment: any) => {
-                      const isExpanded = expandedTutors.has(assignment.id);
-                      const tutorAudit = battleTestingSummary?.tutorSummaries.find(
-                        (entry) => entry.assignmentId === assignment.id
-                      );
-                      return (
-                        <div
-                          key={assignment.id}
-                          className="border rounded-lg overflow-hidden hover:bg-muted/50 transition-colors"
-                        >
-                          <div className="p-3 sm:p-4">
-                            <div className="flex flex-col gap-3 sm:gap-4">
-                              <div className="flex items-start justify-between gap-2 sm:gap-4">
-                              <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
-                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center text-xs sm:text-sm font-bold text-primary shrink-0">
-                                  {assignment.tutorName.charAt(0).toUpperCase()}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-semibold text-sm sm:text-base truncate">{assignment.tutorName}</p>
-                                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{assignment.tutorEmail}</p>
-                                  <div className="mt-2 flex flex-wrap gap-2">
-                                    {(assignment.certification_status && assignment.certification_status !== "pending") && (
-                                      <Badge className={`${getCertificationColor(assignment.certification_status)} border`}>
-                                        {assignment.certification_status}
-                                      </Badge>
-                                    )}
-                                    <Badge variant={(assignment.operational_mode || assignment.operationalMode || "training") === "training" ? "secondary" : "default"}>
-                                      {(assignment.operational_mode || assignment.operationalMode || "training") === "training"
-                                        ? "Training Mode"
-                                        : "Certified Live"}
-                                    </Badge>
-                                    <Badge className={getBattleTestStateBadgeClass(tutorAudit?.state)}>
-                                      {getBattleTestStateLabel(tutorAudit?.state)}
-                                    </Badge>
-                                    <Badge variant="outline">
-                                      {tutorAudit?.alignmentPercent == null
-                                        ? "Audit N/A"
-                                        : `Audit ${Math.round(tutorAudit.alignmentPercent)}%`}
-                                    </Badge>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => toggleTutorExpand(assignment.id)}
-                                  className="h-7 w-7 sm:h-8 sm:w-8 p-0"
-                                >
-                                  <ChevronDown
-                                    className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform ${
-                                      isExpanded ? "rotate-180" : ""
-                                    }`}
-                                  />
-                                </Button>
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-muted-foreground hover:text-red-600 hover:bg-red-50"
-                                      onClick={() => setTutorToRemove(assignment.id)}
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Remove Tutor?</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        Are you sure you want to remove {assignment.tutorName} from this pod?
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => removeTutorMutation.mutate(assignment.id)}
-                                      className="bg-red-600 hover:bg-red-700"
-                                      disabled={removeTutorMutation.isPending}
-                                    >
-                                      {removeTutorMutation.isPending ? "Removing..." : "Remove"}
-                                    </AlertDialogAction>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              </div>
-                            </div>
-                              <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
-                                <div className="rounded-xl border border-border/60 bg-muted/20 p-3 sm:p-4">
-                                  <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                                    Tutor Audit
-                                  </p>
-                                  <div className="mt-3 flex flex-wrap gap-2">
-                                    {tutorAudit?.phaseScores?.length ? (
-                                      tutorAudit.phaseScores.map((phase) => (
-                                        <Badge key={`${assignment.id}-${phase.phaseKey}`} variant="outline">
-                                          {phase.title}: {Math.round(phase.percent)}%
-                                        </Badge>
-                                      ))
-                                    ) : (
-                                      <span className="text-sm text-muted-foreground">
-                                        No tutor audit has been logged yet.
-                                      </span>
-                                    )}
-                                  </div>
-                                  {tutorAudit?.actionRequired ? (
-                                    <p className="mt-3 text-sm text-muted-foreground">{tutorAudit.actionRequired}</p>
-                                  ) : null}
-                                  {tutorAudit?.lastAuditAt ? (
-                                    <p className="mt-2 text-xs text-muted-foreground">
-                                      Last audit: {formatAuditTimestamp(tutorAudit.lastAuditAt)}
-                                    </p>
-                                  ) : null}
-                                </div>
-                                <div className="rounded-xl border border-border/60 bg-muted/20 p-3 sm:p-4">
-                                  <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                                    Tutor Controls
-                                  </p>
-                                  <div className="mt-3 flex flex-wrap gap-2">
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => {
-                                        if (!tutorAudit) return;
-                                        setActiveTutorHistory({
-                                          assignmentId: assignment.id,
-                                          tutorName: tutorAudit.tutorName,
-                                        });
-                                      }}
-                                      disabled={!tutorAudit}
-                                    >
-                                      Audit History
-                                    </Button>
-                                  </div>
-                                  <p className="mt-3 text-sm text-muted-foreground">
-                                    {assignment.student_count || 0}/{maxStudentsPerTutor} students assigned.
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
+                {tutorsSectionExpanded ? (
+                  podTutorsLoading ? (
+                    <div className="space-y-2">
+                      <Skeleton className="h-14" />
+                      <Skeleton className="h-14" />
+                    </div>
+                  ) : !podTutors || podTutors.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <p className="text-sm">No tutors assigned yet</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {podTutors.map((assignment: any) => {
+                        const isExpanded = expandedTutors.has(assignment.id);
+                        const tutorAudit = battleTestingSummary?.tutorSummaries.find(
+                          (entry) => entry.assignmentId === assignment.id
+                        );
 
-                            {/* Expanded Details */}
-                            {isExpanded && (
-                              <TutorStudentsSection 
-                                assignmentId={assignment.id}
-                                tutorId={assignment.tutorId}
-                                tutorName={assignment.tutorName}
-                                studentCount={assignment.student_count || 0}
-                                maxStudentsPerTutor={maxStudentsPerTutor}
-                                awaitingAssignments={awaitingAssignments}
-                                unassignStudentMutation={unassignStudentMutation}
-                                assignAwaitingEnrollmentMutation={assignAwaitingEnrollmentMutation}
-                                onViewTrackingSystems={(studentId, studentName) => {
-                                  setSelectedStudentId(studentId);
-                                  setSelectedStudentName(studentName);
-                                  setTrackingDialogOpen(true);
-                                }}
-                                onViewTopicConditioning={(student) => {
-                                  setSelectedStudentId(student.id);
-                                  setSelectedStudentName(student.name);
-                                  setSelectedStudentRecord(student);
-                                  setTopicConditioningDialogOpen(true);
-                                }}
-                                onViewCommunication={(student) => {
-                                  setSelectedStudentId(student.id);
-                                  setSelectedStudentName(student.name);
-                                  setSelectedStudentRecord(student);
-                                  setCommunicationDialogOpen(true);
-                                }}
-                              />
+                        return (
+                          <div
+                            key={assignment.id}
+                            className="border rounded-lg overflow-hidden hover:bg-muted/50 transition-colors"
+                          >
+                            <div className="p-3 sm:p-4">
+                              <div className="flex flex-col gap-3 sm:gap-4">
+                                <div className="flex items-start justify-between gap-2 sm:gap-4">
+                                  <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+                                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center text-xs sm:text-sm font-bold text-primary shrink-0">
+                                      {assignment.tutorName.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="font-semibold text-sm sm:text-base truncate">{assignment.tutorName}</p>
+                                      <p className="text-xs sm:text-sm text-muted-foreground truncate">{assignment.tutorEmail}</p>
+                                      <div className="mt-2 flex flex-wrap gap-2">
+                                        {(assignment.certification_status && assignment.certification_status !== "pending") && (
+                                          <Badge className={`${getCertificationColor(assignment.certification_status)} border`}>
+                                            {assignment.certification_status}
+                                          </Badge>
+                                        )}
+                                        <Badge variant="secondary">Training Mode</Badge>
+                                        <Badge className={getBattleTestStateBadgeClass(tutorAudit?.state)}>
+                                          {getBattleTestStateLabel(tutorAudit?.state)}
+                                        </Badge>
+                                        <Badge variant="outline">
+                                          {tutorAudit?.alignmentPercent == null
+                                            ? "Audit N/A"
+                                            : `Audit ${Math.round(tutorAudit.alignmentPercent)}%`}
+                                        </Badge>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-muted-foreground hover:text-red-600 hover:bg-red-50"
+                                          onClick={() => setTutorToRemove(assignment.id)}
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>Remove Tutor?</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            Are you sure you want to remove {assignment.tutorName} from this pod?
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction
+                                          onClick={() => removeTutorMutation.mutate(assignment.id)}
+                                          className="bg-red-600 hover:bg-red-700"
+                                          disabled={removeTutorMutation.isPending}
+                                        >
+                                          {removeTutorMutation.isPending ? "Removing..." : "Remove"}
+                                        </AlertDialogAction>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center justify-between gap-3">
+                                  <p className="text-sm font-medium text-muted-foreground">Tutor Alignment</p>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => toggleTutorDetails(assignment.id)}
+                                    className="whitespace-nowrap"
+                                  >
+                                    {expandedTutorDetails[assignment.id] ? "Hide details" : "Show details"}
+                                  </Button>
+                                </div>
+
+                                {expandedTutorDetails[assignment.id] ? (
+                                  <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
+                                    <div className="rounded-xl border border-border/60 bg-muted/20 p-3 sm:p-4">
+                                      <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                                        Tutor Audit
+                                      </p>
+                                      <div className="mt-3 flex flex-wrap gap-2">
+                                        {tutorAudit?.phaseScores?.length ? (
+                                          tutorAudit.phaseScores.map((phase) => (
+                                            <Badge key={`${assignment.id}-${phase.phaseKey}`} variant="outline">
+                                              {phase.title}: {Math.round(phase.percent)}%
+                                            </Badge>
+                                          ))
+                                        ) : (
+                                          <span className="text-sm text-muted-foreground">
+                                            No tutor audit has been logged yet.
+                                          </span>
+                                        )}
+                                      </div>
+                                      {tutorAudit?.actionRequired ? (
+                                        <p className="mt-3 text-sm text-muted-foreground">{tutorAudit.actionRequired}</p>
+                                      ) : null}
+                                      {tutorAudit?.lastAuditAt ? (
+                                        <p className="mt-2 text-xs text-muted-foreground">
+                                          Last audit: {formatAuditTimestamp(tutorAudit.lastAuditAt)}
+                                        </p>
+                                      ) : null}
+                                    </div>
+                                    <div className="rounded-xl border border-border/60 bg-muted/20 p-3 sm:p-4">
+                                      <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                                        Tutor Controls
+                                      </p>
+                                      <div className="mt-3 flex flex-wrap gap-2">
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => {
+                                            if (!tutorAudit) return;
+                                            setActiveTutorHistory({
+                                              assignmentId: assignment.id,
+                                              tutorName: tutorAudit.tutorName,
+                                            });
+                                          }}
+                                          disabled={!tutorAudit}
+                                        >
+                                          Audit History
+                                        </Button>
+                                      </div>
+                                      <p className="mt-3 text-sm text-muted-foreground">
+                                        {assignment.student_count || 0}/{maxStudentsPerTutor} students assigned.
+                                      </p>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-muted-foreground">
+                                    Expand to view tutor audit and controls.
+                                  </p>
+                                )}
+
+                                <div className="flex items-center justify-between gap-3 pt-1">
+                                  <p className="text-sm font-medium text-muted-foreground">Assigned Students</p>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => toggleTutorExpand(assignment.id)}
+                                    className="whitespace-nowrap"
+                                  >
+                                    {isExpanded ? "Hide students" : "Show students"}
+                                  </Button>
+                                </div>
+
+                                {isExpanded && (
+                                  <TutorStudentsSection
+                                    assignmentId={assignment.id}
+                                    tutorId={assignment.tutorId}
+                                    tutorName={assignment.tutorName}
+                                    studentCount={assignment.student_count || 0}
+                                    maxStudentsPerTutor={maxStudentsPerTutor}
+                                    awaitingAssignments={awaitingAssignments}
+                                    unassignStudentMutation={unassignStudentMutation}
+                                    assignAwaitingEnrollmentMutation={assignAwaitingEnrollmentMutation}
+                                    onViewTrackingSystems={(studentId, studentName) => {
+                                      setSelectedStudentId(studentId);
+                                      setSelectedStudentName(studentName);
+                                      setTrackingDialogOpen(true);
+                                    }}
+                                    onViewTopicConditioning={(student) => {
+                                      setSelectedStudentId(student.id);
+                                      setSelectedStudentName(student.name);
+                                      setSelectedStudentRecord(student);
+                                      setTopicConditioningDialogOpen(true);
+                                    }}
+                                    onViewCommunication={(student) => {
+                                      setSelectedStudentId(student.id);
+                                      setSelectedStudentName(student.name);
+                                      setSelectedStudentRecord(student);
+                                      setCommunicationDialogOpen(true);
+                                    }}
+                                  />
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )
+                ) : null}
+
+                    {/* Add Tutors Button */}
+                    {availableSlots > 0 && (
+                      <Dialog open={addTutorsOpen} onOpenChange={setAddTutorsOpen}>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="w-full gap-2 mt-4">
+                            <Plus className="w-4 h-4" />
+                            Add Tutor
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Add Tutors to Pod</DialogTitle>
+                            <DialogDescription>
+                              Select tutors to add. You can add {availableSlots} more tutor{availableSlots !== 1 ? "s" : ""}.
+                            </DialogDescription>
+                          </DialogHeader>
+
+                          <div className="space-y-3">
+                            {availableTutors.length === 0 ? (
+                              <p className="text-sm text-muted-foreground py-4 text-center">
+                                No available tutors
+                              </p>
+                            ) : (
+                              <div className="space-y-2 max-h-96 overflow-y-auto">
+                                {availableTutors.map((tutor) => (
+                                  <div
+                                    key={tutor.id}
+                                    className="flex items-center gap-3 p-3 rounded-lg border border-input hover:bg-muted"
+                                  >
+                                    <Checkbox
+                                      id={`add-tutor-${tutor.id}`}
+                                      checked={selectedTutorIds.includes(tutor.id)}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          if (selectedTutorIds.length >= availableSlots) {
+                                            toast({
+                                              title: "Slot limit reached",
+                                              description: `You can only add ${availableSlots} more tutor${availableSlots !== 1 ? "s" : ""}.`,
+                                              variant: "destructive",
+                                            });
+                                            return;
+                                          }
+                                          setSelectedTutorIds([...selectedTutorIds, tutor.id]);
+                                        } else {
+                                          setSelectedTutorIds(
+                                            selectedTutorIds.filter((id) => id !== tutor.id)
+                                          );
+                                        }
+                                      }}
+                                    />
+                                    <label
+                                      htmlFor={`add-tutor-${tutor.id}`}
+                                      className="flex-1 cursor-pointer"
+                                    >
+                                      <p className="font-medium text-sm">{tutor.name}</p>
+                                      <p className="text-xs text-muted-foreground">{tutor.email}</p>
+                                    </label>
+                                  </div>
+                                ))}
+                              </div>
                             )}
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
 
-                {/* Add Tutors Button */}
-                {availableSlots > 0 && (
-                  <Dialog open={addTutorsOpen} onOpenChange={setAddTutorsOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="w-full gap-2 mt-4">
-                        <Plus className="w-4 h-4" />
-                        Add Tutor
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Add Tutors to Pod</DialogTitle>
-                        <DialogDescription>
-                          Select tutors to add. You can add {availableSlots} more tutor{availableSlots !== 1 ? "s" : ""}.
-                        </DialogDescription>
-                      </DialogHeader>
-
-                      <div className="space-y-3">
-                        {availableTutors.length === 0 ? (
-                          <p className="text-sm text-muted-foreground py-4 text-center">
-                            No available tutors
-                          </p>
-                        ) : (
-                          <div className="space-y-2 max-h-96 overflow-y-auto">
-                            {availableTutors.map((tutor) => (
-                              <div
-                                key={tutor.id}
-                                className="flex items-center gap-3 p-3 rounded-lg border border-input hover:bg-muted"
-                              >
-                                <Checkbox
-                                  id={`add-tutor-${tutor.id}`}
-                                  checked={selectedTutorIds.includes(tutor.id)}
-                                  onCheckedChange={(checked) => {
-                                    if (checked) {
-                                      if (selectedTutorIds.length >= availableSlots) {
-                                        toast({
-                                          title: "Slot limit reached",
-                                          description: `You can only add ${availableSlots} more tutor${availableSlots !== 1 ? "s" : ""}.`,
-                                          variant: "destructive",
-                                        });
-                                        return;
-                                      }
-                                      setSelectedTutorIds([...selectedTutorIds, tutor.id]);
-                                    } else {
-                                      setSelectedTutorIds(
-                                        selectedTutorIds.filter((id) => id !== tutor.id)
-                                      );
-                                    }
-                                  }}
-                                />
-                                <label
-                                  htmlFor={`add-tutor-${tutor.id}`}
-                                  className="flex-1 cursor-pointer"
-                                >
-                                  <p className="font-medium text-sm">{tutor.name}</p>
-                                  <p className="text-xs text-muted-foreground">{tutor.email}</p>
-                                </label>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      <DialogFooter>
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setAddTutorsOpen(false);
-                            setSelectedTutorIds([]);
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          onClick={() => addTutorsMutation.mutate(selectedTutorIds)}
-                          disabled={selectedTutorIds.length === 0 || addTutorsMutation.isPending}
-                        >
-                          {addTutorsMutation.isPending ? "Adding..." : "Add"}
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                )}
+                          <DialogFooter>
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setAddTutorsOpen(false);
+                                setSelectedTutorIds([]);
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              onClick={() => addTutorsMutation.mutate(selectedTutorIds)}
+                              disabled={selectedTutorIds.length === 0 || addTutorsMutation.isPending}
+                            >
+                              {addTutorsMutation.isPending ? "Adding..." : "Add"}
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    )}
               </div>
             </Card>
           </div>

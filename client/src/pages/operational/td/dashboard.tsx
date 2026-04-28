@@ -5,8 +5,20 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { Users, AlertTriangle, TrendingDown, MessageCircle, ChevronRight, CheckCircle2, Clock, Target } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+
+interface PodOverviewLookup {
+  pod: {
+    id: string;
+    podName: string;
+    status?: string;
+    phase?: string;
+  };
+  tutors?: Array<unknown>;
+  totalStudents?: number;
+  totalSessions?: number;
+}
 
 interface InsightsData {
   tutorsNeedingHelp: Array<{
@@ -44,10 +56,28 @@ interface InsightsData {
 
 export default function TDDashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const overviewBasePath = location.pathname.startsWith("/operational/td")
+    ? "/operational/td/my-pods"
+    : "/td/overview";
   
   const { data: insights, isLoading } = useQuery<InsightsData>({
     queryKey: ["/api/td/insights"],
   });
+  const { data: podOverview = [] } = useQuery<PodOverviewLookup[]>({
+    queryKey: ["/api/td/pod-overview"],
+  });
+  const safeInsights: InsightsData = insights ?? {
+    tutorsNeedingHelp: [],
+    studentsAtRisk: [],
+    podsBehindSchedule: [],
+    recentCheckIns: [],
+  };
+
+  const getPodRoute = (podName: string) => {
+    const match = podOverview.find((entry) => entry.pod.podName === podName);
+    return match ? `${overviewBasePath}/${match.pod.id}` : overviewBasePath;
+  };
 
   if (isLoading) {
     return (
@@ -65,21 +95,10 @@ export default function TDDashboard() {
     );
   }
 
-  if (!insights) {
-    return (
-      <DashboardLayout>
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground mb-4">
-              Unable to load dashboard insights.
-            </p>
-          </CardContent>
-        </Card>
-      </DashboardLayout>
-    );
-  }
-
-  const alertCount = insights.tutorsNeedingHelp.length + insights.studentsAtRisk.length + insights.podsBehindSchedule.length;
+  const alertCount =
+    safeInsights.tutorsNeedingHelp.length +
+    safeInsights.studentsAtRisk.length +
+    safeInsights.podsBehindSchedule.length;
 
   return (
     <DashboardLayout>
@@ -91,21 +110,93 @@ export default function TDDashboard() {
           </p>
         </div>
 
+        {!insights && (
+          <Card className="border-dashed">
+            <CardContent className="p-4 text-sm text-muted-foreground">
+              Dashboard insights are unavailable right now. Your assigned pods are still available below.
+            </CardContent>
+          </Card>
+        )}
+
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-bold tracking-tight flex items-center gap-2">
+              <Users className="w-5 h-5 text-primary" />
+              My Pods
+            </h3>
+            <Button variant="ghost" size="sm" onClick={() => navigate(overviewBasePath)}>
+              View All <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+          {podOverview.length === 0 ? (
+            <Card>
+              <CardContent className="py-10 text-center text-muted-foreground">
+                No assigned pods found.
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {podOverview.map((entry) => (
+                <button
+                  key={entry.pod.id}
+                  type="button"
+                  onClick={() => navigate(`${overviewBasePath}/${entry.pod.id}`)}
+                  className="text-left"
+                >
+                  <Card className="transition-all hover:border-primary/50 hover:shadow-md">
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between gap-3">
+                        <span className="truncate">{entry.pod.podName}</span>
+                        <span className="text-xs font-medium text-primary shrink-0">Open pod</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Status</span>
+                        <Badge variant={entry.pod.status === "active" ? "default" : "secondary"}>
+                          {entry.pod.status || "unknown"}
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Tutors</p>
+                          <p className="mt-1 text-2xl font-semibold">{entry.tutors?.length || 0}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Students</p>
+                          <p className="mt-1 text-2xl font-semibold">{entry.totalStudents || 0}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Sessions</p>
+                          <p className="mt-1 text-2xl font-semibold">{entry.totalSessions || 0}</p>
+                        </div>
+                      </div>
+                      {entry.pod.phase ? (
+                        <p className="text-sm text-muted-foreground">{entry.pod.phase} phase</p>
+                      ) : null}
+                    </CardContent>
+                  </Card>
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+
         {/* Alert Summary Cards */}
         <div className="grid md:grid-cols-3 gap-6">
-          <Card className={`border-l-4 ${insights.tutorsNeedingHelp.length > 0 ? 'border-l-orange-500' : 'border-l-green-500'}`}>
+          <Card className={`border-l-4 ${safeInsights.tutorsNeedingHelp.length > 0 ? 'border-l-orange-500' : 'border-l-green-500'}`}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${insights.tutorsNeedingHelp.length > 0 ? 'bg-orange-500/10' : 'bg-green-500/10'}`}>
-                    {insights.tutorsNeedingHelp.length > 0 ? (
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${safeInsights.tutorsNeedingHelp.length > 0 ? 'bg-orange-500/10' : 'bg-green-500/10'}`}>
+                    {safeInsights.tutorsNeedingHelp.length > 0 ? (
                       <MessageCircle className="w-5 h-5 text-orange-600" />
                     ) : (
                       <CheckCircle2 className="w-5 h-5 text-green-600" />
                     )}
                   </div>
                   <div>
-                    <p className="text-2xl font-bold">{insights.tutorsNeedingHelp.length}</p>
+                    <p className="text-2xl font-bold">{safeInsights.tutorsNeedingHelp.length}</p>
                     <p className="text-sm text-muted-foreground">Tutors Need Help</p>
                   </div>
                 </div>
@@ -113,19 +204,19 @@ export default function TDDashboard() {
             </CardContent>
           </Card>
 
-          <Card className={`border-l-4 ${insights.studentsAtRisk.length > 0 ? 'border-l-red-500' : 'border-l-green-500'}`}>
+          <Card className={`border-l-4 ${safeInsights.studentsAtRisk.length > 0 ? 'border-l-red-500' : 'border-l-green-500'}`}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${insights.studentsAtRisk.length > 0 ? 'bg-red-500/10' : 'bg-green-500/10'}`}>
-                    {insights.studentsAtRisk.length > 0 ? (
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${safeInsights.studentsAtRisk.length > 0 ? 'bg-red-500/10' : 'bg-green-500/10'}`}>
+                    {safeInsights.studentsAtRisk.length > 0 ? (
                       <AlertTriangle className="w-5 h-5 text-red-600" />
                     ) : (
                       <CheckCircle2 className="w-5 h-5 text-green-600" />
                     )}
                   </div>
                   <div>
-                    <p className="text-2xl font-bold">{insights.studentsAtRisk.length}</p>
+                    <p className="text-2xl font-bold">{safeInsights.studentsAtRisk.length}</p>
                     <p className="text-sm text-muted-foreground">Students At Risk</p>
                   </div>
                 </div>
@@ -133,19 +224,19 @@ export default function TDDashboard() {
             </CardContent>
           </Card>
 
-          <Card className={`border-l-4 ${insights.podsBehindSchedule.length > 0 ? 'border-l-yellow-500' : 'border-l-green-500'}`}>
+          <Card className={`border-l-4 ${safeInsights.podsBehindSchedule.length > 0 ? 'border-l-yellow-500' : 'border-l-green-500'}`}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${insights.podsBehindSchedule.length > 0 ? 'bg-yellow-500/10' : 'bg-green-500/10'}`}>
-                    {insights.podsBehindSchedule.length > 0 ? (
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${safeInsights.podsBehindSchedule.length > 0 ? 'bg-yellow-500/10' : 'bg-green-500/10'}`}>
+                    {safeInsights.podsBehindSchedule.length > 0 ? (
                       <TrendingDown className="w-5 h-5 text-yellow-600" />
                     ) : (
                       <CheckCircle2 className="w-5 h-5 text-green-600" />
                     )}
                   </div>
                   <div>
-                    <p className="text-2xl font-bold">{insights.podsBehindSchedule.length}</p>
+                    <p className="text-2xl font-bold">{safeInsights.podsBehindSchedule.length}</p>
                     <p className="text-sm text-muted-foreground">Pods Behind Schedule</p>
                   </div>
                 </div>
@@ -155,7 +246,7 @@ export default function TDDashboard() {
         </div>
 
         {/* Tutors Needing Help */}
-        {insights.tutorsNeedingHelp.length > 0 && (
+        {safeInsights.tutorsNeedingHelp.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold tracking-tight flex items-center gap-2">
@@ -164,7 +255,7 @@ export default function TDDashboard() {
               </h3>
             </div>
             <div className="grid gap-4">
-              {insights.tutorsNeedingHelp.map((tutor, index) => (
+              {safeInsights.tutorsNeedingHelp.map((tutor, index) => (
                 <Card key={index} className="border-l-4 border-l-orange-500 hover:shadow-lg transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between gap-4">
@@ -202,19 +293,19 @@ export default function TDDashboard() {
         )}
 
         {/* Students At Risk */}
-        {insights.studentsAtRisk.length > 0 && (
+        {safeInsights.studentsAtRisk.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold tracking-tight flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-red-600" />
                 Students At Risk
               </h3>
-              <Button variant="ghost" size="sm" onClick={() => navigate("/operational/td/my-pods")}>
+              <Button variant="ghost" size="sm" onClick={() => navigate(overviewBasePath)}>
                 View All <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
-              {insights.studentsAtRisk.slice(0, 6).map((student, index) => (
+              {safeInsights.studentsAtRisk.slice(0, 6).map((student, index) => (
                 <Card key={index} className="border-l-4 border-l-red-500">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
@@ -240,7 +331,7 @@ export default function TDDashboard() {
         )}
 
         {/* Pods Behind Schedule */}
-        {insights.podsBehindSchedule.length > 0 && (
+        {safeInsights.podsBehindSchedule.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold tracking-tight flex items-center gap-2">
@@ -249,8 +340,14 @@ export default function TDDashboard() {
               </h3>
             </div>
             <div className="grid gap-4">
-              {insights.podsBehindSchedule.map((pod, index) => (
-                <Card key={index} className="border-l-4 border-l-yellow-500">
+              {safeInsights.podsBehindSchedule.map((pod, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => navigate(getPodRoute(pod.podName))}
+                  className="text-left"
+                >
+                <Card className="border-l-4 border-l-yellow-500 transition-all hover:border-primary/50 hover:shadow-md">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
                       <div>
@@ -274,13 +371,14 @@ export default function TDDashboard() {
                     </p>
                   </CardContent>
                 </Card>
+                </button>
               ))}
             </div>
           </section>
         )}
 
         {/* Recent Check-Ins */}
-        {insights.recentCheckIns.length > 0 && (
+        {safeInsights.recentCheckIns.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold tracking-tight">Recent Check-Ins</h3>
@@ -289,7 +387,7 @@ export default function TDDashboard() {
               </Button>
             </div>
             <div className="grid gap-4">
-              {insights.recentCheckIns.map((checkIn, index) => (
+              {safeInsights.recentCheckIns.map((checkIn, index) => (
                 <Card key={index}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-2">
@@ -330,7 +428,7 @@ export default function TDDashboard() {
                 No immediate issues detected. Your pods are running smoothly.
               </p>
               <div className="flex gap-4 justify-center mt-6">
-                <Button onClick={() => navigate("/operational/td/my-pods")}>
+                <Button onClick={() => navigate(overviewBasePath)}>
                   View Pods
                 </Button>
                 <Button variant="outline" onClick={() => navigate("/operational/td/tutors")}>
