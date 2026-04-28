@@ -98,6 +98,14 @@ function formatTutorAuditTimestamp(value: string | null | undefined) {
   });
 }
 
+function formatTutorAlignmentStatus(value: string | null | undefined) {
+  if (!value) return "No active audit status recorded.";
+  if (value === "Continue. Eligible for greater responsibility if other operating criteria hold.") {
+    return "Eligible for greater responsibility if other operating criteria hold.";
+  }
+  return value;
+}
+
 export default function TutorPod() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
@@ -455,9 +463,9 @@ export default function TutorPod() {
                 </p>
               </div>
               <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-4">
-                <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Action Required</p>
+                <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Status</p>
                 <p className="mt-2 text-sm font-medium text-foreground">
-                  {tutorAlignmentSummary?.alignmentSummary?.actionRequired || "No active audit action recorded."}
+                  {formatTutorAlignmentStatus(tutorAlignmentSummary?.alignmentSummary?.actionRequired)}
                 </p>
               </div>
             </div>

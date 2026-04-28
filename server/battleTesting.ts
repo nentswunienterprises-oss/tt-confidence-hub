@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import { supabase } from "./storage";
 import {
   BATTLE_TEST_SCORE_POINTS,
+  TUTOR_BATTLE_TEST_PHASE_ORDER,
   computeBattleTestOutcome,
   getBattleTestStateLabel,
   type BattleTestOutcome,
@@ -83,6 +84,56 @@ interface BattleTestRepLogRow {
 
 function roundValue(value: number) {
   return Math.round(value * 100) / 100;
+}
+
+function getAggregateBattleTestActionRequired(state: BattleTestState, hasCriticalFail: boolean, isIncomplete = false) {
+  if (hasCriticalFail || state === "fail") {
+    return "Remove from live responsibility and recondition before returning.";
+  }
+  if (isIncomplete) {
+    return "Complete the remaining transformation phase audits.";
+  }
+  if (state === "watchlist") {
+    return "Correct immediately and retest in the next cycle.";
+  }
+  return "Continue. Eligible for greater responsibility if other operating criteria hold.";
+}
+
+function deriveTutorSummaryFromPhaseScores(
+  phaseScores: BattleTestPhaseScore[],
+  hasCriticalFail: boolean
+): Pick<BattleTestingTutorSummary, "alignmentPercent" | "state" | "actionRequired" | "hasCriticalFail"> {
+  if (!phaseScores.length) {
+    return {
+      alignmentPercent: null,
+      state: null,
+      actionRequired: null,
+      hasCriticalFail,
+    };
+  }
+
+  const pointsEarned = phaseScores.reduce((sum, phase) => sum + phase.pointsEarned, 0);
+  const pointsPossible = phaseScores.reduce((sum, phase) => sum + phase.pointsPossible, 0);
+  const alignmentPercent = pointsPossible > 0 ? roundValue((pointsEarned / pointsPossible) * 100) : 0;
+  const anyPhaseFailed = phaseScores.some((phase) => phase.percent < 90);
+  const anyPhaseWatchlist = phaseScores.some((phase) => phase.percent >= 90 && phase.percent < 95);
+  const isIncomplete = phaseScores.length < TUTOR_BATTLE_TEST_PHASE_ORDER.length;
+
+  let state: BattleTestState;
+  if (hasCriticalFail || anyPhaseFailed || alignmentPercent < 90) {
+    state = "fail";
+  } else if (isIncomplete || anyPhaseWatchlist || alignmentPercent < 95) {
+    state = "watchlist";
+  } else {
+    state = "locked";
+  }
+
+  return {
+    alignmentPercent,
+    state,
+    actionRequired: getAggregateBattleTestActionRequired(state, hasCriticalFail, isIncomplete),
+    hasCriticalFail,
+  };
 }
 
 function normalizePhaseScores(rawValue: unknown): BattleTestPhaseScore[] {
@@ -288,6 +339,7 @@ export async function buildPodBattleTestingSummary(
   const runRows = (data || []).map(mapRunRow);
   const latestTutorRunByAssignment = new Map<string, BattleTestRunRow>();
   const latestTutorPhaseScoresByAssignment = new Map<string, Map<string, BattleTestPhaseScore>>();
+  const latestTutorPhaseRunByAssignment = new Map<string, Map<string, BattleTestRunRow>>();
   const phaseAggregates = new Map<string, { title: string; total: number; count: number; weakCount: number }>();
 
   for (const run of runRows) {
@@ -313,10 +365,15 @@ export async function buildPodBattleTestingSummary(
     if (!latestTutorPhaseScoresByAssignment.has(assignmentKey)) {
       latestTutorPhaseScoresByAssignment.set(assignmentKey, new Map<string, BattleTestPhaseScore>());
     }
+    if (!latestTutorPhaseRunByAssignment.has(assignmentKey)) {
+      latestTutorPhaseRunByAssignment.set(assignmentKey, new Map<string, BattleTestRunRow>());
+    }
     const phaseScoreMap = latestTutorPhaseScoresByAssignment.get(assignmentKey)!;
+    const phaseRunMap = latestTutorPhaseRunByAssignment.get(assignmentKey)!;
     for (const phase of run.phase_scores) {
       if (!phaseScoreMap.has(phase.phaseKey)) {
         phaseScoreMap.set(phase.phaseKey, phase);
+        phaseRunMap.set(phase.phaseKey, run);
       }
     }
   }
@@ -327,18 +384,31 @@ export async function buildPodBattleTestingSummary(
       latestTutorPhaseScoresByAssignment.get(meta.assignmentId) ||
       latestTutorPhaseScoresByAssignment.get(meta.tutorId) ||
       new Map<string, BattleTestPhaseScore>();
+    const latestPhaseRunMap =
+      latestTutorPhaseRunByAssignment.get(meta.assignmentId) ||
+      latestTutorPhaseRunByAssignment.get(meta.tutorId) ||
+      new Map<string, BattleTestRunRow>();
+    const phaseScores = Array.from(latestPhaseScoreMap.values());
+    const contributingRuns = Array.from(latestPhaseRunMap.values());
+    const derivedHasCriticalFail = contributingRuns.some((run) => run.has_critical_fail);
+    const derivedLastAuditAt = contributingRuns.length
+      ? contributingRuns
+          .map((run) => new Date(run.completed_at).getTime())
+          .reduce((latest, current) => Math.max(latest, current), 0)
+      : null;
+    const derivedSummary = deriveTutorSummaryFromPhaseScores(phaseScores, derivedHasCriticalFail);
     const tutorSummary: BattleTestingTutorSummary = {
       assignmentId: meta.assignmentId,
       tutorId: meta.tutorId,
       tutorName: meta.tutorName,
       tutorEmail: meta.tutorEmail,
       studentCount: meta.studentCount,
-      alignmentPercent: latestRun ? roundValue(latestRun.alignment_percent) : null,
-      state: latestRun?.state || null,
-      hasCriticalFail: latestRun?.has_critical_fail || false,
-      actionRequired: latestRun?.action_required || null,
-      lastAuditAt: latestRun?.completed_at || null,
-      phaseScores: Array.from(latestPhaseScoreMap.values()),
+      alignmentPercent: derivedSummary.alignmentPercent ?? (latestRun ? roundValue(latestRun.alignment_percent) : null),
+      state: derivedSummary.state || latestRun?.state || null,
+      hasCriticalFail: derivedSummary.hasCriticalFail,
+      actionRequired: derivedSummary.actionRequired || latestRun?.action_required || null,
+      lastAuditAt: derivedLastAuditAt ? new Date(derivedLastAuditAt).toISOString() : latestRun?.completed_at || null,
+      phaseScores,
     };
     if (tutorSummary.state === "locked") summary.lockedTutors += 1;
     if (tutorSummary.state === "watchlist") summary.watchlistTutors += 1;
