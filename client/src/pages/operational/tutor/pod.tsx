@@ -28,6 +28,7 @@ import StudentTopicConditioningDialog from "@/components/tutor/StudentTopicCondi
 import StudentCommunicationDialog from "@/components/communications/StudentCommunicationDialog";
 import { PushOptInCard } from "@/components/push/PushOptInCard";
 import type { Student, TutorAssignment, Pod } from "@shared/schema";
+import type { BattleTestingTutorSummary } from "@shared/battleTesting";
 
 interface PodData {
   assignment: TutorAssignment & { pod: Pod };
@@ -63,6 +64,38 @@ interface PodTeamData {
   members: PodTeamMember[];
   memberCount: number;
   capacity: number;
+}
+
+interface TutorAlignmentSummaryData {
+  podId: string | null;
+  podName: string | null;
+  assignmentId: string | null;
+  operationalMode: "training" | "certified_live";
+  alignmentSummary: BattleTestingTutorSummary | null;
+}
+
+function getTutorAlignmentBadgeClass(state: string | null | undefined) {
+  if (state === "locked") return "bg-emerald-100 text-emerald-800 border-emerald-200";
+  if (state === "watchlist") return "bg-amber-100 text-amber-900 border-amber-200";
+  if (state === "fail") return "bg-rose-100 text-rose-800 border-rose-200";
+  return "bg-slate-100 text-slate-700 border-slate-200";
+}
+
+function getTutorAlignmentLabel(state: string | null | undefined) {
+  if (state === "locked") return "LOCKED";
+  if (state === "watchlist") return "WATCHLIST";
+  if (state === "fail") return "FAIL / DRIFT";
+  return "Not Tested";
+}
+
+function formatTutorAuditTimestamp(value: string | null | undefined) {
+  if (!value) return "Not yet audited";
+  return new Date(value).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 export default function TutorPod() {
@@ -108,6 +141,10 @@ export default function TutorPod() {
 
   const { data: podTeamData, isLoading: podTeamLoading } = useQuery<PodTeamData>({
     queryKey: ["/api/tutor/pod-team"],
+    enabled: isAuthenticated && !authLoading,
+  });
+  const { data: tutorAlignmentSummary } = useQuery<TutorAlignmentSummaryData>({
+    queryKey: ["/api/tutor/pod-alignment-summary"],
     enabled: isAuthenticated && !authLoading,
   });
 
@@ -379,6 +416,70 @@ export default function TutorPod() {
             </div>
           </Card>
         </div>
+
+        <Card className="border-primary/15 bg-background shadow-sm">
+          <div className="space-y-4 p-5 sm:p-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Tutor Alignment</p>
+                <h2 className="mt-1 text-xl font-semibold tracking-[-0.01em]">Your standing in the system</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  This shows your latest audited alignment state and the transformation phases already checked by TT.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Badge
+                  className={getTutorAlignmentBadgeClass(tutorAlignmentSummary?.alignmentSummary?.state)}
+                >
+                  {getTutorAlignmentLabel(tutorAlignmentSummary?.alignmentSummary?.state)}
+                </Badge>
+                <Badge variant="outline">
+                  {tutorAlignmentSummary?.alignmentSummary?.alignmentPercent == null
+                    ? "Audit N/A"
+                    : `Audit ${Math.round(tutorAlignmentSummary.alignmentSummary.alignmentPercent)}%`}
+                </Badge>
+              </div>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-3">
+              <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-4">
+                <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Operational Mode</p>
+                <p className="mt-2 text-sm font-medium text-foreground">
+                  {tutorAlignmentSummary?.operationalMode === "certified_live" ? "Certified Live" : "Training Mode"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-4">
+                <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Last Audit</p>
+                <p className="mt-2 text-sm font-medium text-foreground">
+                  {formatTutorAuditTimestamp(tutorAlignmentSummary?.alignmentSummary?.lastAuditAt)}
+                </p>
+              </div>
+              <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-4">
+                <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Action Required</p>
+                <p className="mt-2 text-sm font-medium text-foreground">
+                  {tutorAlignmentSummary?.alignmentSummary?.actionRequired || "No active audit action recorded."}
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-4">
+              <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Transformation Phases</p>
+              {tutorAlignmentSummary?.alignmentSummary?.phaseScores?.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {tutorAlignmentSummary.alignmentSummary.phaseScores.map((phase) => (
+                    <Badge key={phase.phaseKey} variant="outline">
+                      {phase.title}: {Math.round(phase.percent)}%
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  No tutor audit has been recorded for you yet.
+                </p>
+              )}
+            </div>
+          </div>
+        </Card>
 
         <div className="grid gap-4 md:grid-cols-2 md:gap-6">
           <Card className="border-primary/15 bg-background shadow-sm">

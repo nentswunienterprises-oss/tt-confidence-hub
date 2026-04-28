@@ -9132,6 +9132,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  app.get(
+    "/api/tutor/pod-alignment-summary",
+    isAuthenticated,
+    requireRole(["tutor"]),
+    async (req: Request, res: Response) => {
+      try {
+        const tutorId = (req as any).dbUser.id;
+        const assignment = await storage.getTutorAssignment(tutorId);
+
+        if (!assignment) {
+          return res.json({
+            podId: null,
+            podName: null,
+            assignmentId: null,
+            operationalMode: "training",
+            alignmentSummary: null,
+          });
+        }
+
+        const assignments = await storage.getTutorAssignmentsByPod(assignment.podId);
+        const tutorMeta = await Promise.all(
+          assignments.map(async (podAssignment) => {
+            const tutor = await storage.getUser(podAssignment.tutorId);
+            const students = await storage.getStudentsByTutor(podAssignment.tutorId);
+            return {
+              assignmentId: podAssignment.id,
+              tutorId: podAssignment.tutorId,
+              tutorName: tutor?.name || tutor?.firstName || "Unknown Tutor",
+              tutorEmail: tutor?.email || "",
+              studentCount: students.length,
+            };
+          })
+        );
+
+        const tdUser = assignment.pod.tdId ? await storage.getUser(assignment.pod.tdId) : null;
+        const summary = await buildPodBattleTestingSummary(
+          assignment.podId,
+          tutorMeta,
+          tdUser
+            ? {
+                tdId: tdUser.id,
+                tdName: tdUser.name || tdUser.firstName || "Assigned TD",
+              }
+            : null
+        );
+
+        const alignmentSummary =
+          summary.tutorSummaries.find((entry) => entry.assignmentId === assignment.id) ||
+          summary.tutorSummaries.find((entry) => entry.tutorId === tutorId) ||
+          null;
+
+        res.json({
+          podId: assignment.podId,
+          podName: assignment.pod.podName,
+          assignmentId: assignment.id,
+          operationalMode: assignment.operationalMode || "training",
+          alignmentSummary,
+        });
+      } catch (error) {
+        console.error("Error fetching tutor pod alignment summary:", error);
+        res.status(500).json({ message: "Failed to fetch tutor alignment summary" });
+      }
+    }
+  );
+
   // Get student tracking systems (sessions, reports, TD feedback)
   app.get(
     "/api/tutor/students/:studentId/tracking",

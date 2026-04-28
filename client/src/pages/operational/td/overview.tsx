@@ -35,6 +35,8 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   getBattleTestStateLabel,
   type BattleTestPhaseDefinition,
+  type BattleTestPhaseScore,
+  type BattleTestRunHistoryItem,
   type BattleTestState,
   type BattleTestResponseInput,
   type PodBattleTestingSummary,
@@ -149,6 +151,18 @@ export default function TDOverview() {
       return response.json();
     },
   });
+  const { data: podBattleTestRuns = [] } = useQuery<BattleTestRunHistoryItem[]>({
+    queryKey: ["/api/battle-tests/pods", podId, "runs"],
+    enabled: isAuthenticated && !authLoading && !!podId,
+    queryFn: async () => {
+      const response = await fetch(`${API_URL}/api/battle-tests/pods/${podId}/runs`, {
+        credentials: "include",
+        cache: "no-store",
+      });
+      if (!response.ok) throw new Error("Failed to load battle-test run history");
+      return response.json();
+    },
+  });
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -181,6 +195,26 @@ export default function TDOverview() {
     ? "/operational/td/my-pods"
     : "/td/overview";
   const selectedPodData = podId ? podsData?.find((entry) => entry.pod.id === podId) : null;
+  const latestTutorPhaseScoresByAssignment = useMemo(() => {
+    const phaseMapByAssignment = new Map<string, Map<string, BattleTestPhaseScore>>();
+
+    for (const run of podBattleTestRuns) {
+      if (run.subjectType !== "tutor" || !run.tutorAssignmentId) continue;
+
+      if (!phaseMapByAssignment.has(run.tutorAssignmentId)) {
+        phaseMapByAssignment.set(run.tutorAssignmentId, new Map<string, BattleTestPhaseScore>());
+      }
+
+      const assignmentPhaseMap = phaseMapByAssignment.get(run.tutorAssignmentId)!;
+      for (const phaseScore of run.phaseScores || []) {
+        if (!assignmentPhaseMap.has(phaseScore.phaseKey)) {
+          assignmentPhaseMap.set(phaseScore.phaseKey, phaseScore);
+        }
+      }
+    }
+
+    return phaseMapByAssignment;
+  }, [podBattleTestRuns]);
 
   const submitTutorBattleTestMutation = useMutation({
     mutationFn: async ({
@@ -552,6 +586,10 @@ export default function TDOverview() {
                               const tutorAudit = battleTestingSummary.tutorSummaries.find(
                                 (entry) => entry.assignmentId === tutor.assignment.id
                               );
+                              const latestPhaseScores =
+                                Array.from(
+                                  latestTutorPhaseScoresByAssignment.get(tutor.assignment.id)?.values() || []
+                                ) || [];
                               const isExpanded = !!expandedTutors[tutor.assignment.id];
 
                               return (
@@ -609,18 +647,36 @@ export default function TDOverview() {
                                               <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
                                                 Tutor Audit
                                               </p>
-                                              <div className="mt-3 flex flex-wrap gap-2">
-                                                {tutorAudit?.phaseScores?.length ? (
-                                                  tutorAudit.phaseScores.map((phase) => (
-                                                    <Badge key={`${tutor.assignment.id}-${phase.phaseKey}`} variant="outline">
-                                                      {phase.title}: {Math.round(phase.percent)}%
-                                                    </Badge>
-                                                  ))
-                                                ) : (
-                                                  <span className="text-sm text-muted-foreground">
-                                                    No tutor audit has been logged yet.
-                                                  </span>
-                                                )}
+                                              <div className="mt-3 grid gap-2">
+                                                {activePhaseOptions.map((phaseDefinition) => {
+                                                  const phaseAudit =
+                                                    latestPhaseScores.find(
+                                                      (entry) => entry.phaseKey === phaseDefinition.key
+                                                    ) ||
+                                                    tutorAudit?.phaseScores?.find(
+                                                    (entry) => entry.phaseKey === phaseDefinition.key
+                                                  );
+
+                                                  return (
+                                                    <div
+                                                      key={`${tutor.assignment.id}-${phaseDefinition.key}`}
+                                                      className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-background/80 px-3 py-2"
+                                                    >
+                                                      <span className="text-sm font-medium text-foreground">
+                                                        {phaseDefinition.title}
+                                                      </span>
+                                                      {phaseAudit ? (
+                                                        <Badge variant="outline">
+                                                          {Math.round(phaseAudit.percent)}%
+                                                        </Badge>
+                                                      ) : (
+                                                        <span className="text-xs text-muted-foreground">
+                                                          Not yet audited
+                                                        </span>
+                                                      )}
+                                                    </div>
+                                                  );
+                                                })}
                                               </div>
                                               {tutorAudit?.actionRequired ? (
                                                 <p className="mt-3 text-sm text-muted-foreground">{tutorAudit.actionRequired}</p>
@@ -629,7 +685,11 @@ export default function TDOverview() {
                                                 <p className="mt-2 text-xs text-muted-foreground">
                                                   Last audit: {formatAuditTimestamp(tutorAudit.lastAuditAt)}
                                                 </p>
-                                              ) : null}
+                                              ) : (
+                                                <p className="mt-2 text-xs text-muted-foreground">
+                                                  Last audit: Not yet recorded
+                                                </p>
+                                              )}
                                             </div>
                                             <div className="rounded-xl border border-border/60 bg-muted/20 p-3 sm:p-4">
                                               <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">

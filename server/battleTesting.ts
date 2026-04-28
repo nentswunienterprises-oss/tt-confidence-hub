@@ -287,6 +287,7 @@ export async function buildPodBattleTestingSummary(
 
   const runRows = (data || []).map(mapRunRow);
   const latestTutorRunByAssignment = new Map<string, BattleTestRunRow>();
+  const latestTutorPhaseScoresByAssignment = new Map<string, Map<string, BattleTestPhaseScore>>();
   const phaseAggregates = new Map<string, { title: string; total: number; count: number; weakCount: number }>();
 
   for (const run of runRows) {
@@ -308,10 +309,24 @@ export async function buildPodBattleTestingSummary(
         phaseAggregates.set(phase.phaseKey, current);
       }
     }
+
+    if (!latestTutorPhaseScoresByAssignment.has(assignmentKey)) {
+      latestTutorPhaseScoresByAssignment.set(assignmentKey, new Map<string, BattleTestPhaseScore>());
+    }
+    const phaseScoreMap = latestTutorPhaseScoresByAssignment.get(assignmentKey)!;
+    for (const phase of run.phase_scores) {
+      if (!phaseScoreMap.has(phase.phaseKey)) {
+        phaseScoreMap.set(phase.phaseKey, phase);
+      }
+    }
   }
 
   summary.tutorSummaries = tutorMeta.map((meta) => {
     const latestRun = latestTutorRunByAssignment.get(meta.assignmentId) || latestTutorRunByAssignment.get(meta.tutorId);
+    const latestPhaseScoreMap =
+      latestTutorPhaseScoresByAssignment.get(meta.assignmentId) ||
+      latestTutorPhaseScoresByAssignment.get(meta.tutorId) ||
+      new Map<string, BattleTestPhaseScore>();
     const tutorSummary: BattleTestingTutorSummary = {
       assignmentId: meta.assignmentId,
       tutorId: meta.tutorId,
@@ -323,7 +338,7 @@ export async function buildPodBattleTestingSummary(
       hasCriticalFail: latestRun?.has_critical_fail || false,
       actionRequired: latestRun?.action_required || null,
       lastAuditAt: latestRun?.completed_at || null,
-      phaseScores: latestRun?.phase_scores || [],
+      phaseScores: Array.from(latestPhaseScoreMap.values()),
     };
     if (tutorSummary.state === "locked") summary.lockedTutors += 1;
     if (tutorSummary.state === "watchlist") summary.watchlistTutors += 1;

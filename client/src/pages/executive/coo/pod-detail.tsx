@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./pod-detail.mobile.css";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -96,6 +96,10 @@ function getBattleTestStateBadgeClass(state: string | null | undefined) {
   return "bg-slate-100 text-slate-700 border-slate-200";
 }
 
+function getOperationalModeBadge(mode?: string | null) {
+  return String(mode || "").toLowerCase() === "certified_live" ? "default" : "secondary";
+}
+
 function formatAuditTimestamp(value: string) {
   return new Date(value).toLocaleString("en-US", {
     month: "short",
@@ -134,7 +138,9 @@ import type { Pod, User } from "@shared/schema";
 import { RESPONSE_SYMPTOM_GROUPS } from "@shared/responseSymptomMapping";
 import {
   getBattleTestStateLabel,
+  type BattleTestPhaseScore,
   type BattleTestPhaseDefinition,
+  type BattleTestRunHistoryItem,
   type BattleTestResponseInput,
   type PodBattleTestingSummary,
 } from "@shared/battleTesting";
@@ -295,6 +301,32 @@ export default function PodDetail() {
       return response.json();
     },
   });
+  const { data: tutorBattleTestPhases = [] } = useQuery<BattleTestPhaseDefinition[]>({
+    queryKey: ["/api/battle-tests/banks/tutor"],
+    enabled: isAuthenticated && !authLoading,
+    queryFn: async () => {
+      const response = await fetch(`${API_URL}/api/battle-tests/banks/tutor`, {
+        credentials: "include",
+        cache: "no-store",
+      });
+      if (!response.ok) throw new Error("Failed to load tutor battle-testing bank");
+      return response.json();
+    },
+  });
+  const { data: podBattleTestRuns = [] } = useQuery<BattleTestRunHistoryItem[]>({
+    queryKey: [`/api/battle-tests/pods/${podId}/runs`],
+    enabled: isAuthenticated && !authLoading && !!podId,
+    queryFn: async () => {
+      const response = await fetch(`${API_URL}/api/battle-tests/pods/${podId}/runs`, {
+        credentials: "include",
+        cache: "no-store",
+      });
+      if (!response.ok) throw new Error("Failed to load pod battle-test runs");
+      return response.json();
+    },
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
+  });
 
   const { data: enrollments = [] } = useQuery<ParentEnrollment[]>({
     queryKey: ["/api/hr/enrollments"],
@@ -420,6 +452,39 @@ export default function PodDetail() {
     },
   });
 
+  const updateOperationalModeMutation = useMutation({
+    mutationFn: async ({
+      assignmentId,
+      operationalMode,
+    }: {
+      assignmentId: string;
+      operationalMode: "training" | "certified_live";
+    }) => {
+      await apiRequest("PATCH", `/api/coo/pods/${podId}/tutors/${assignmentId}/operational-mode`, {
+        operationalMode,
+      });
+    },
+    onSuccess: (_data, variables) => {
+      refetchPodTutors();
+      queryClient.invalidateQueries({ queryKey: [`/api/coo/pods/${podId}/tutors`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/coo/pods"] });
+      toast({
+        title: "Tutor mode updated",
+        description:
+          variables.operationalMode === "certified_live"
+            ? "Tutor switched to Certified Live."
+            : "Tutor switched to Training Mode.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Mode update failed",
+        description: error?.message || "Failed to update tutor operational mode.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Delete Pod mutation (soft delete) ✅
   const deletePodMutation = useMutation({
     mutationFn: async () => {
@@ -510,6 +575,27 @@ export default function PodDetail() {
   const toggleTutorsSection = () => {
     setTutorsSectionExpanded((current) => !current);
   };
+
+  const latestTutorPhaseScoresByAssignment = useMemo(() => {
+    const phaseMapByAssignment = new Map<string, Map<string, BattleTestPhaseScore>>();
+
+    for (const run of podBattleTestRuns) {
+      if (run.subjectType !== "tutor" || !run.tutorAssignmentId) continue;
+
+      if (!phaseMapByAssignment.has(run.tutorAssignmentId)) {
+        phaseMapByAssignment.set(run.tutorAssignmentId, new Map<string, BattleTestPhaseScore>());
+      }
+
+      const assignmentPhaseMap = phaseMapByAssignment.get(run.tutorAssignmentId)!;
+      for (const phaseScore of run.phaseScores || []) {
+        if (!assignmentPhaseMap.has(phaseScore.phaseKey)) {
+          assignmentPhaseMap.set(phaseScore.phaseKey, phaseScore);
+        }
+      }
+    }
+
+    return phaseMapByAssignment;
+  }, [podBattleTestRuns]);
 
   if (podLoading || tdsLoading || tutorsLoading || authLoading || statsLoading || battleTestingLoading) {
     return (
@@ -797,11 +883,21 @@ export default function PodDetail() {
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      {podTutors.map((assignment: any) => {
-                        const isExpanded = expandedTutors.has(assignment.id);
-                        const tutorAudit = battleTestingSummary?.tutorSummaries.find(
-                          (entry) => entry.assignmentId === assignment.id
-                        );
+                        {podTutors.map((assignment: any) => {
+                          const isExpanded = expandedTutors.has(assignment.id);
+                          const tutorAudit = battleTestingSummary?.tutorSummaries.find(
+                            (entry) => entry.assignmentId === assignment.id
+                          );
+                          const operationalMode =
+                            (assignment.operational_mode || assignment.operationalMode || "training") as
+                              | "training"
+                              | "certified_live";
+                          const nextOperationalMode =
+                            operationalMode === "certified_live" ? "training" : "certified_live";
+                          const latestPhaseScores =
+                            Array.from(
+                              latestTutorPhaseScoresByAssignment.get(assignment.id)?.values() || []
+                            ) || [];
 
                         return (
                           <div
@@ -824,7 +920,9 @@ export default function PodDetail() {
                                             {assignment.certification_status}
                                           </Badge>
                                         )}
-                                        <Badge variant="secondary">Training Mode</Badge>
+                                        <Badge variant={getOperationalModeBadge(operationalMode)}>
+                                          {operationalMode === "certified_live" ? "Certified Live" : "Training Mode"}
+                                        </Badge>
                                         <Badge className={getBattleTestStateBadgeClass(tutorAudit?.state)}>
                                           {getBattleTestStateLabel(tutorAudit?.state)}
                                         </Badge>
@@ -887,18 +985,36 @@ export default function PodDetail() {
                                       <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
                                         Tutor Audit
                                       </p>
-                                      <div className="mt-3 flex flex-wrap gap-2">
-                                        {tutorAudit?.phaseScores?.length ? (
-                                          tutorAudit.phaseScores.map((phase) => (
-                                            <Badge key={`${assignment.id}-${phase.phaseKey}`} variant="outline">
-                                              {phase.title}: {Math.round(phase.percent)}%
-                                            </Badge>
-                                          ))
-                                        ) : (
-                                          <span className="text-sm text-muted-foreground">
-                                            No tutor audit has been logged yet.
-                                          </span>
-                                        )}
+                                      <div className="mt-3 grid gap-2">
+                                        {tutorBattleTestPhases.map((phaseDefinition) => {
+                                          const phaseAudit =
+                                            latestPhaseScores.find(
+                                              (entry) => entry.phaseKey === phaseDefinition.key
+                                            ) ||
+                                            tutorAudit?.phaseScores?.find(
+                                              (entry) => entry.phaseKey === phaseDefinition.key
+                                            );
+
+                                          return (
+                                            <div
+                                              key={`${assignment.id}-${phaseDefinition.key}`}
+                                              className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-background/80 px-3 py-2"
+                                            >
+                                              <span className="text-sm font-medium text-foreground">
+                                                {phaseDefinition.title}
+                                              </span>
+                                              {phaseAudit ? (
+                                                <Badge variant="outline">
+                                                  {Math.round(phaseAudit.percent)}%
+                                                </Badge>
+                                              ) : (
+                                                <span className="text-xs text-muted-foreground">
+                                                  Not yet audited
+                                                </span>
+                                              )}
+                                            </div>
+                                          );
+                                        })}
                                       </div>
                                       {tutorAudit?.actionRequired ? (
                                         <p className="mt-3 text-sm text-muted-foreground">{tutorAudit.actionRequired}</p>
@@ -907,7 +1023,11 @@ export default function PodDetail() {
                                         <p className="mt-2 text-xs text-muted-foreground">
                                           Last audit: {formatAuditTimestamp(tutorAudit.lastAuditAt)}
                                         </p>
-                                      ) : null}
+                                      ) : (
+                                        <p className="mt-2 text-xs text-muted-foreground">
+                                          Last audit: Not yet recorded
+                                        </p>
+                                      )}
                                     </div>
                                     <div className="rounded-xl border border-border/60 bg-muted/20 p-3 sm:p-4">
                                       <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
@@ -928,6 +1048,23 @@ export default function PodDetail() {
                                         >
                                           Audit History
                                         </Button>
+                                        <Button
+                                          size="sm"
+                                          variant={operationalMode === "certified_live" ? "secondary" : "default"}
+                                          disabled={updateOperationalModeMutation.isPending}
+                                          onClick={() =>
+                                            updateOperationalModeMutation.mutate({
+                                              assignmentId: assignment.id,
+                                              operationalMode: nextOperationalMode,
+                                            })
+                                          }
+                                        >
+                                          {updateOperationalModeMutation.isPending
+                                            ? "Updating..."
+                                            : operationalMode === "certified_live"
+                                            ? "Switch to Training"
+                                            : "Switch to Certified Live"}
+                                        </Button>
                                       </div>
                                       <p className="mt-3 text-sm text-muted-foreground">
                                         {assignment.student_count || 0}/{maxStudentsPerTutor} students assigned.
@@ -936,7 +1073,7 @@ export default function PodDetail() {
                                   </div>
                                 ) : (
                                   <p className="text-sm text-muted-foreground">
-                                    Expand to view tutor audit and controls.
+                                     
                                   </p>
                                 )}
 
