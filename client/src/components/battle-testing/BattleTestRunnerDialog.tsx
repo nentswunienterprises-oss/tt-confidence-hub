@@ -196,28 +196,28 @@ export default function BattleTestRunnerDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[95dvh] w-[calc(100vw-1rem)] max-w-6xl flex-col overflow-hidden p-0 sm:h-auto sm:max-h-[92vh] sm:w-[min(96vw,88rem)]">
-        <div className="border-b px-4 py-4 sm:px-6 sm:py-5">
+      <DialogContent className="flex h-[95dvh] w-[calc(100vw-1rem)] max-w-6xl flex-col overflow-hidden rounded-2xl border border-[#E7D5C8] bg-[#FCF7F0] p-0 shadow-2xl sm:h-auto sm:max-h-[92vh] sm:w-[min(96vw,88rem)] lg:max-h-[88vh] lg:max-w-[90rem]">
+        <div className="border-b border-[#E7D5C8] bg-white/95 px-4 py-4 sm:px-6 sm:py-5 lg:px-8 lg:py-6">
           <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl">{title}</DialogTitle>
-            <DialogDescription>{description}</DialogDescription>
+            <DialogTitle className="text-lg text-[#1A1A1A] sm:text-xl lg:text-2xl">{title}</DialogTitle>
+            <DialogDescription className="text-[#6B5B52]">{description}</DialogDescription>
           </DialogHeader>
         </div>
 
-        <div className="relative flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[1.4fr,0.6fr] lg:gap-0">
-          <div className="min-h-0 min-w-0 lg:order-1">
+        <div className="relative flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_23rem] lg:gap-0 lg:overflow-hidden lg:bg-[#F6EEE3]">
+          <div className="min-h-0 min-w-0 lg:overflow-hidden lg:bg-[#FCF7F0]">
             {!hasStarted ? (
-              <ScrollArea className="h-[58dvh] sm:h-auto sm:max-h-none lg:h-full">
-                <div className="space-y-5 p-4 sm:p-6">
-                  <div>
+              <ScrollArea className="h-[58dvh] sm:h-auto sm:max-h-none lg:h-full lg:max-h-full">
+                <div className="space-y-5 p-4 sm:p-6 lg:mx-auto lg:max-w-4xl lg:space-y-6 lg:p-8">
+                  <div className="rounded-2xl border border-[#E7D5C8] bg-[#FFF5ED] p-4 text-[#1A1A1A] sm:p-5">
                     <p className="text-sm font-medium text-foreground">Select phases to drill</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <p className="mt-1 text-sm text-[#6B5B52]">
                       TD picks the exact tutor transformation phases to battle-test in this run.
                     </p>
                   </div>
                   <div className="grid gap-3 md:grid-cols-2">
                     {phaseOptions.map((phase) => (
-                      <Card key={phase.key} className="border border-border/70 p-4">
+                      <Card key={phase.key} className="rounded-2xl border border-[#E7D5C8] bg-white p-4 shadow-sm">
                         <div className="flex items-start gap-3">
                           <Checkbox
                             checked={selectedPhaseKeys.includes(phase.key)}
@@ -228,15 +228,15 @@ export default function BattleTestRunnerDialog({
                             <Label htmlFor={`phase-${phase.key}`} className="text-sm font-semibold text-foreground">
                               {phase.title}
                             </Label>
-                            <p className="text-sm text-muted-foreground">{phase.description}</p>
+                            <p className="text-sm text-[#6B5B52]">{phase.description}</p>
                             <Badge variant="outline">{phase.questions.length} reps</Badge>
                           </div>
                         </div>
                       </Card>
                     ))}
                   </div>
-                  <div className="flex justify-end">
-                    <Button disabled={selectedPhaseKeys.length === 0} onClick={() => setHasStarted(true)}>
+                  <div className="flex justify-end lg:pt-2">
+                    <Button className="lg:min-w-48" disabled={selectedPhaseKeys.length === 0} onClick={() => setHasStarted(true)}>
                       Start Battle Test
                       <ChevronRight className="ml-2 h-4 w-4" />
                     </Button>
@@ -244,12 +244,12 @@ export default function BattleTestRunnerDialog({
                 </div>
               </ScrollArea>
             ) : (
-              <ScrollArea className="lg:h-full h-screen lg:h-auto">
-                <div className="space-y-5 p-4 sm:p-6 pb-20 sm:pb-24 lg:pb-6">
+              <ScrollArea className="h-screen lg:h-full lg:max-h-full">
+                <div className="space-y-5 p-4 pb-20 sm:p-6 sm:pb-24 lg:mx-auto lg:max-w-4xl lg:space-y-6 lg:p-8 lg:pb-8">
                   {questions.map(({ phase, question, questionId }, index) => {
                     const response = responses[questionId] || { note: "", isCriticalFail: false };
                     return (
-                      <Card key={questionId} className="border border-border/70 p-4 sm:p-5">
+                      <Card key={questionId} className="rounded-[24px] border border-[#E7D5C8] bg-white p-4 shadow-sm sm:p-5 lg:p-6">
                         <div className="space-y-4">
                           <div className="flex flex-wrap items-center gap-2">
                             <Badge variant="secondary">{phase.title}</Badge>
@@ -263,11 +263,11 @@ export default function BattleTestRunnerDialog({
                             </p>
                             <Collapsible>
                               <CollapsibleTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-auto px-0 text-sm text-muted-foreground">
+                                <Button variant="ghost" size="sm" className="h-auto px-0 text-sm text-[#6B5B52] hover:text-[#1A1A1A]">
                                   Show expected answer and fail indicators
                                 </Button>
                               </CollapsibleTrigger>
-                              <CollapsibleContent className="space-y-3 rounded-xl border bg-muted/30 p-4">
+                              <CollapsibleContent className="space-y-3 rounded-2xl border border-[#E7D5C8] bg-[#FCF7F0] p-4">
                                 <div>
                                   <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                                     Expected Answer
@@ -448,12 +448,12 @@ export default function BattleTestRunnerDialog({
           )}
 
           {/* Desktop: Always show sidebar */}
-          <div className="hidden lg:block lg:border-l lg:bg-muted/20 lg:min-h-0 lg:overflow-y-auto">
+          <div className="hidden lg:block lg:min-h-0 lg:overflow-y-auto lg:border-l lg:border-[#E7D5C8] lg:bg-[#F8F1E7]">
             <Collapsible open={runSummaryExpanded} onOpenChange={setRunSummaryExpanded}>
               <CollapsibleTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="w-full justify-between px-6 py-3 text-left font-medium hover:bg-muted/50"
+                  className="w-full justify-between border-b border-[#E7D5C8] px-6 py-4 text-left font-medium text-[#1A1A1A] hover:bg-[#F3E8DA]"
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">
@@ -467,52 +467,54 @@ export default function BattleTestRunnerDialog({
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <div className="space-y-4 p-6">
-                  <div>
-                    <p className="mt-2 text-3xl font-semibold text-foreground">
-                      {answeredCount}/{questions.length}
-                    </p>
-                    <p className="text-sm text-muted-foreground">Reps logged</p>
-                  </div>
-
-                  <Card className="border border-border/70 p-4">
-                    <p className="text-sm font-medium text-foreground">Estimated alignment score</p>
-                    <p className="mt-2 text-2xl font-semibold text-foreground">
-                      {questions.length > 0 ? Math.round((estimatedPoints / questions.length) * 100) : 0}%
-                    </p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Based on current CLEAR / PARTIAL / FAIL entries.
-                    </p>
-                  </Card>
-
-                  <div className="space-y-2">
-                    {selectedPhases.map((phase) => (
-                      <div key={phase.key} className="rounded-xl border border-border/70 bg-background px-4 py-3">
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="text-sm font-medium text-foreground">{phase.title}</span>
-                          <Badge variant="outline">{phase.questions.length} reps</Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="rounded-xl border border-border/70 bg-background p-4 text-sm text-muted-foreground">
-                    Notes are required for every PARTIAL or FAIL score. Critical fail overrides can be marked on FAIL reps.
-                  </div>
-
-                  {hasStarted && (
-                    <div className="space-y-3">
-                      <Button className="w-full" disabled={!allAnswered || hasMissingNotes || isSubmitting} onClick={handleSubmit}>
-                        {isSubmitting ? "Saving..." : submitLabel}
-                      </Button>
-                      {!allAnswered ? (
-                        <p className="text-xs text-amber-700">Every rep must be scored before submission.</p>
-                      ) : null}
-                      {allAnswered && hasMissingNotes ? (
-                        <p className="text-xs text-amber-700">Add notes for each PARTIAL and FAIL score.</p>
-                      ) : null}
+                <div className="p-6 lg:p-7">
+                  <div className="space-y-4 rounded-[28px] border border-[#E7D5C8] bg-white p-5 shadow-sm">
+                    <div>
+                      <p className="mt-2 text-3xl font-semibold text-foreground">
+                        {answeredCount}/{questions.length}
+                      </p>
+                      <p className="text-sm text-muted-foreground">Reps logged</p>
                     </div>
-                  )}
+
+                    <Card className="border border-[#E7D5C8] bg-[#FCF7F0] p-4 shadow-none">
+                      <p className="text-sm font-medium text-foreground">Estimated alignment score</p>
+                      <p className="mt-2 text-2xl font-semibold text-foreground">
+                        {questions.length > 0 ? Math.round((estimatedPoints / questions.length) * 100) : 0}%
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Based on current CLEAR / PARTIAL / FAIL entries.
+                      </p>
+                    </Card>
+
+                    <div className="space-y-2">
+                      {selectedPhases.map((phase) => (
+                        <div key={phase.key} className="rounded-xl border border-[#E7D5C8] bg-[#FCF7F0] px-4 py-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="text-sm font-medium text-foreground">{phase.title}</span>
+                            <Badge variant="outline">{phase.questions.length} reps</Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="rounded-xl border border-[#E7D5C8] bg-[#FCF7F0] p-4 text-sm text-muted-foreground">
+                      Notes are required for every PARTIAL or FAIL score. Critical fail overrides can be marked on FAIL reps.
+                    </div>
+
+                    {hasStarted && (
+                      <div className="space-y-3">
+                        <Button className="w-full" disabled={!allAnswered || hasMissingNotes || isSubmitting} onClick={handleSubmit}>
+                          {isSubmitting ? "Saving..." : submitLabel}
+                        </Button>
+                        {!allAnswered ? (
+                          <p className="text-xs text-amber-700">Every rep must be scored before submission.</p>
+                        ) : null}
+                        {allAnswered && hasMissingNotes ? (
+                          <p className="text-xs text-amber-700">Add notes for each PARTIAL and FAIL score.</p>
+                        ) : null}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </CollapsibleContent>
             </Collapsible>
