@@ -6,6 +6,7 @@ import { join, resolve } from "path";
 import { storage, supabase, createAffiliateCode } from "./storage";
 import { getTutorOnboardingDocumentDefinition, loadTutorOnboardingDocument, TUTOR_ONBOARDING_DOCUMENTS } from "./tutorOnboardingDocuments";
 import { EGP_ONBOARDING_DOCUMENTS, getEgpOnboardingDocumentDefinition, loadEgpOnboardingDocument } from "./egpOnboardingDocuments";
+import { TD_ONBOARDING_DOCUMENTS, getTdOnboardingDocumentDefinition, loadTdOnboardingDocument } from "./tdOnboardingDocuments";
 import { setupAuth, isAuthenticated } from "./supabaseAuth";
 import { fileURLToPath } from "url";
 import {
@@ -4665,6 +4666,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return forwarded.split(",")[0]?.trim() || req.ip || null;
       }
       return req.ip || null;
+    };
+
+    const INITIAL_TD_DOCUMENT_STATUSES = {
+      "1": "pending_upload",
+      "2": "not_started",
+      "3": "not_started",
+      "4": "not_started",
+      "5": "not_started",
+      "6": "not_started",
+      "7": "not_started",
+    };
+
+    const buildTdOnboardingStatuses = (rawStatuses: any) => ({
+      ...INITIAL_TD_DOCUMENT_STATUSES,
+      ...(rawStatuses && typeof rawStatuses === "object" ? rawStatuses : {}),
+    });
+
+    const deriveTdGatewayApplicationStatus = (latestApp: any) => {
+      const documentsStatus = buildTdOnboardingStatuses(latestApp?.documentsStatus || latestApp?.documents_status);
+      const allApproved = ["1", "2", "3", "4", "5", "6", "7"].every(
+        (step) => String(documentsStatus[step] || "") === "approved"
+      );
+
+      return {
+        ...latestApp,
+        status: allApproved ? "confirmed" : latestApp.status,
+        applicationId: latestApp.id,
+        documentSubmissionStep: latestApp.documentSubmissionStep || latestApp.document_submission_step || 1,
+        documentsStatus,
+        onboardingCompletedAt: latestApp.onboardingCompletedAt ?? latestApp.onboarding_completed_at ?? null,
+      };
+    };
+
+    const selectCanonicalTdApplication = (applications: any[]) => {
+      if (!applications.length) return null;
+
+      const priority = ["confirmed", "approved", "pending", "rejected"];
+      for (const status of priority) {
+        const match = applications.find((application) => String(application.status || "").toLowerCase() === status);
+        if (match) return match;
+      }
+
+      return applications[0];
+    };
+
+    const getCurrentTdStepFromStatuses = (statuses: Record<string, string>) => {
+      for (let step = 1; step <= 7; step += 1) {
+        if (String(statuses[String(step)] || "not_started") !== "approved") {
+          return step;
+        }
+      }
+      return 7;
+    };
+
+    const buildTdAcceptanceMap = (acceptanceRows: any[]) =>
+      acceptanceRows.reduce<Record<string, any>>((accumulator, row) => {
+        const key = String(row.document_step || row.documentStep);
+        if (!accumulator[key]) {
+          accumulator[key] = row;
+        }
+        return accumulator;
+      }, {});
+
+    const hydrateTdApplications = async (rows: any[]) => {
+      if (!rows.length) return [];
+
+      const applicationIds = rows.map((row) => row.id).filter(Boolean);
+      const { data: acceptances, error: acceptanceError } = await supabase
+        .from("td_onboarding_acceptances")
+        .select("*")
+        .in("application_id", applicationIds)
+        .order("accepted_at", { ascending: false });
+
+      if (acceptanceError) {
+        console.error("Error hydrating TD onboarding acceptances:", acceptanceError);
+      }
+
+      const acceptancesByApplication = new Map<string, any[]>();
+      for (const row of acceptances || []) {
+        const appId = String(row.application_id);
+        const current = acceptancesByApplication.get(appId) || [];
+        current.push(row);
+        acceptancesByApplication.set(appId, current);
+      }
+
+      return rows.map((row) => {
+        const acceptanceRows = acceptancesByApplication.get(String(row.id)) || [];
+        return {
+          ...row,
+          onboardingAcceptances: acceptanceRows,
+          onboardingAcceptanceMap: buildTdAcceptanceMap(acceptanceRows),
+        };
+      });
+    };
+
+    const getTdApplicationsByQuery = async (query: { userId?: string; status?: string } = {}) => {
+      let builder = supabase.from("td_applications").select("*").order("created_at", { ascending: false });
+
+      if (query.userId) {
+        builder = builder.eq("user_id", query.userId);
+      }
+      if (query.status) {
+        builder = builder.eq("status", query.status);
+      }
+
+      const { data, error } = await builder;
+      if (error) {
+        throw new Error(`Failed to fetch TD applications: ${error.message}`);
+      }
+
+      return hydrateTdApplications(data || []);
     };
 
     // Aggregated gateway session endpoint
@@ -13031,6 +13143,573 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ========================================
   // EGP / AFFILIATE GATEWAY ROUTES
   // ========================================
+
+  app.post(
+    "/api/td/application",
+    isAuthenticated,
+    requireRole(["td"]),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req.session as any).userId;
+        const payload = req.body ?? {};
+        const requiredFields = [
+          "fullName",
+          "age",
+          "city",
+          "email",
+          "phone",
+          "taughtOrMentoredBefore",
+          "ledOrSupervisedOthers",
+          "hoursAvailablePerWeek",
+          "systemUnderstandingDifference",
+          "studentFreezesBreak",
+          "explainingBetterNotEnough",
+          "supervisingTutorAction",
+          "frustrationResponse",
+          "adjustSystemAnswer",
+          "highToMediumCauses",
+          "highScoresNoImprovement",
+          "sharedTutorMistakeMeaning",
+          "correctOlderTutor",
+          "pushbackResponse",
+          "unpopularEnforcementCase",
+          "noRescueExplanation",
+          "moreDangerousTutor",
+          "systemDestructionFactors",
+          "commitmentToStandard",
+          "trustReason",
+        ];
+
+        const missingField = requiredFields.find((field) => {
+          const value = (payload as any)[field];
+          if (typeof value === "number") return Number.isNaN(value);
+          return !String(value ?? "").trim();
+        });
+        if (missingField) {
+          return res.status(400).json({ message: "All Territory Director application fields are required." });
+        }
+
+        const taughtOrMentoredBefore = String(payload.taughtOrMentoredBefore || "").trim().toLowerCase();
+        const ledOrSupervisedOthers = String(payload.ledOrSupervisedOthers || "").trim().toLowerCase();
+        const hoursAvailablePerWeek = Number(payload.hoursAvailablePerWeek);
+        const commitmentToStandard = String(payload.commitmentToStandard || "").trim().toLowerCase();
+
+        if (taughtOrMentoredBefore !== "yes") {
+          return res.status(400).json({ message: "Territory Director applicants must have taught or mentored before." });
+        }
+        if (ledOrSupervisedOthers !== "yes") {
+          return res.status(400).json({ message: "Territory Director applicants must have led or supervised others before." });
+        }
+        if (!Number.isFinite(hoursAvailablePerWeek) || hoursAvailablePerWeek < 6) {
+          return res.status(400).json({ message: "Territory Director applicants must have at least 6 hours available per week." });
+        }
+        if (commitmentToStandard !== "yes") {
+          return res.status(400).json({ message: "This role requires explicit commitment to direct enforcement and standard protection." });
+        }
+
+        const existingApplications = await getTdApplicationsByQuery({ userId });
+        const reusableApplication = existingApplications.find((application: any) =>
+          ["pending", "rejected"].includes(String(application.status || "").toLowerCase())
+        );
+
+        const record = {
+          user_id: userId,
+          full_name: String(payload.fullName).trim(),
+          age: Number(payload.age),
+          city: String(payload.city).trim(),
+          email: String(payload.email).trim(),
+          phone: String(payload.phone).trim(),
+          taught_or_mentored_before: taughtOrMentoredBefore,
+          led_or_supervised_others: ledOrSupervisedOthers,
+          hours_available_per_week: hoursAvailablePerWeek,
+          application_responses: {
+            systemUnderstandingDifference: String(payload.systemUnderstandingDifference).trim(),
+            studentFreezesBreak: String(payload.studentFreezesBreak).trim(),
+            explainingBetterNotEnough: String(payload.explainingBetterNotEnough).trim(),
+            supervisingTutorAction: String(payload.supervisingTutorAction).trim(),
+            frustrationResponse: String(payload.frustrationResponse).trim(),
+            adjustSystemAnswer: String(payload.adjustSystemAnswer).trim(),
+            highToMediumCauses: String(payload.highToMediumCauses).trim(),
+            highScoresNoImprovement: String(payload.highScoresNoImprovement).trim(),
+            sharedTutorMistakeMeaning: String(payload.sharedTutorMistakeMeaning).trim(),
+            correctOlderTutor: String(payload.correctOlderTutor).trim(),
+            pushbackResponse: String(payload.pushbackResponse).trim(),
+            unpopularEnforcementCase: String(payload.unpopularEnforcementCase).trim(),
+            noRescueExplanation: String(payload.noRescueExplanation).trim(),
+            moreDangerousTutor: String(payload.moreDangerousTutor).trim(),
+            systemDestructionFactors: String(payload.systemDestructionFactors).trim(),
+            commitmentToStandard,
+            trustReason: String(payload.trustReason).trim(),
+          },
+        };
+
+        let data: any = null;
+        let error: any = null;
+
+        if (reusableApplication) {
+          const result = await supabase
+            .from("td_applications")
+            .update({
+              ...record,
+              status: "pending",
+              reviewed_by: null,
+              reviewed_at: null,
+              rejection_reason: null,
+              onboarding_completed_at: null,
+              document_submission_step: 0,
+              documents_status: { ...INITIAL_TD_DOCUMENT_STATUSES, "1": "not_started" },
+              updated_at: new Date(),
+            })
+            .eq("id", reusableApplication.id)
+            .select("*")
+            .single();
+
+          data = result.data;
+          error = result.error;
+        } else {
+          const result = await supabase
+            .from("td_applications")
+            .insert(record)
+            .select("*")
+            .single();
+
+          data = result.data;
+          error = result.error;
+        }
+
+        if (error || !data) {
+          throw new Error(error?.message || "Failed to submit TD application");
+        }
+
+        res.json(data);
+      } catch (error) {
+        console.error("Error submitting TD application:", error);
+        res.status(400).json({ message: error instanceof Error ? error.message : "Failed to submit TD application" });
+      }
+    }
+  );
+
+  app.get(
+    "/api/td/application-status",
+    isAuthenticated,
+    requireRole(["td"]),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req.session as any).userId;
+        const applications = await getTdApplicationsByQuery({ userId });
+        const canonicalApplication = selectCanonicalTdApplication(applications);
+        if (!canonicalApplication) {
+          return res.json({ status: "not_applied" });
+        }
+
+        res.json(deriveTdGatewayApplicationStatus(canonicalApplication));
+      } catch (error) {
+        console.error("Error fetching TD application status:", error);
+        res.status(500).json({ message: "Failed to fetch TD application status" });
+      }
+    }
+  );
+
+  app.get(
+    "/api/td/gateway-session",
+    isAuthenticated,
+    requireRole(["td"]),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req as any).dbUser.id;
+        const applications = await getTdApplicationsByQuery({ userId });
+        const latestApp = selectCanonicalTdApplication(applications);
+        const assignedPods = await storage.getPodsByTD(userId);
+
+        res.json({
+          role: (req as any).dbUser?.role || "td",
+          applicationStatus: latestApp ? deriveTdGatewayApplicationStatus(latestApp) : null,
+          assignedPods,
+          hasAssignedPods: assignedPods.length > 0,
+        });
+      } catch (error) {
+        console.error("Error fetching TD gateway session:", error);
+        res.status(500).json({ message: "Failed to fetch TD gateway session" });
+      }
+    }
+  );
+
+  app.get(
+    "/api/td/onboarding-documents",
+    isAuthenticated,
+    requireRole(["td"]),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req.session as any).userId;
+        const applications = await getTdApplicationsByQuery({ userId });
+        const latestApp = selectCanonicalTdApplication(applications);
+
+        if (!latestApp) {
+          return res.status(404).json({ message: "TD application not found" });
+        }
+
+        const documents = await Promise.all(
+          TD_ONBOARDING_DOCUMENTS.map(async (document) => {
+            const loaded = await loadTdOnboardingDocument(document.step);
+            return {
+              step: loaded.step,
+              code: loaded.code,
+              title: loaded.title,
+              version: loaded.version,
+              requiresAcceptance: loaded.requiresAcceptance,
+              requiresUpload: loaded.requiresUpload,
+              mandatoryClauses: loaded.mandatoryClauses,
+              content: loaded.content,
+              contentHash: loaded.contentHash,
+            };
+          })
+        );
+
+        res.json({
+          applicationId: latestApp.id,
+          documents,
+        });
+      } catch (error) {
+        console.error("Error fetching TD onboarding documents:", error);
+        res.status(500).json({ message: "Failed to fetch TD onboarding documents" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/td/onboarding-documents/:docStep/accept",
+    isAuthenticated,
+    requireRole(["td"]),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req.session as any).userId;
+        const docStep = Number(req.params.docStep);
+        const {
+          applicationId,
+          documentVersion,
+          documentHash,
+          typedFullName,
+          acceptedTimezone,
+          locale,
+          platform,
+          sourceFlow,
+          formData,
+          acceptedClauseKeys,
+          scrollCompletionPercent,
+          viewStartedAt,
+          viewCompletedAt,
+          acceptClickedAt,
+        } = req.body ?? {};
+
+        if (!applicationId || !Number.isInteger(docStep) || docStep < 1 || docStep > 7) {
+          return res.status(400).json({ message: "Invalid TD onboarding acceptance request" });
+        }
+        if (!String(typedFullName || "").trim()) {
+          return res.status(400).json({ message: "Typed full name is required" });
+        }
+
+        const applications = await getTdApplicationsByQuery({ userId });
+        const application =
+          applications.find((entry: any) => entry.id === applicationId) || selectCanonicalTdApplication(applications);
+        if (!application) {
+          return res.status(403).json({ message: "Application not found or access denied" });
+        }
+
+        const definition = getTdOnboardingDocumentDefinition(docStep);
+        const loaded = await loadTdOnboardingDocument(docStep);
+        if (documentVersion && documentVersion !== loaded.version) {
+          return res.status(409).json({ message: "Document version mismatch" });
+        }
+        if (documentHash && documentHash !== loaded.contentHash) {
+          return res.status(409).json({ message: "Document content hash mismatch" });
+        }
+
+        const documentsStatus = buildTdOnboardingStatuses(application.documentsStatus || application.documents_status);
+        const currentStep = getCurrentTdStepFromStatuses(documentsStatus);
+        if (docStep !== currentStep) {
+          return res.status(400).json({ message: `Sequential step order violation: current acceptance step is ${currentStep}.` });
+        }
+
+        const acceptedClauseKeySet = new Set(
+          Array.isArray(acceptedClauseKeys) ? acceptedClauseKeys.map((value: unknown) => String(value)) : []
+        );
+        const missingClause = definition.mandatoryClauses.find((clause) => !acceptedClauseKeySet.has(clause.key));
+        if (missingClause) {
+          return res.status(400).json({ message: `Mandatory clause not acknowledged: ${missingClause.label}` });
+        }
+
+        const { data: acceptanceRow, error: acceptanceError } = await supabase
+          .from("td_onboarding_acceptances")
+          .insert({
+            application_id: applicationId,
+            user_id: userId,
+            document_step: docStep,
+            document_code: loaded.code,
+            document_title: loaded.title,
+            document_version: loaded.version,
+            document_snapshot: loaded.content,
+            document_checksum: loaded.contentHash,
+            typed_full_name: String(typedFullName).trim(),
+            account_email: application.email,
+            phone_number_snapshot: application.phone || null,
+            accepted_timezone: acceptedTimezone ? String(acceptedTimezone) : null,
+            acceptance_method: "checkbox_typed_name",
+            ip_address: extractRequestIp(req),
+            user_agent: req.headers["user-agent"] || null,
+            device_type: inferDeviceType(req.headers["user-agent"]),
+            platform: platform ? String(platform) : "web",
+            session_id: req.sessionID || null,
+            locale: locale ? String(locale) : null,
+            source_flow: sourceFlow ? String(sourceFlow) : `td_onboarding_step_${docStep}`,
+            form_snapshot_json:
+              formData && typeof formData === "object"
+                ? Object.fromEntries(Object.entries(formData).map(([key, value]) => [String(key), String(value ?? "").trim()]))
+                : null,
+            accepted_clauses_json: definition.mandatoryClauses
+              .filter((clause) => acceptedClauseKeySet.has(clause.key))
+              .map((clause) => clause.key),
+            scroll_completion_percent:
+              typeof scrollCompletionPercent === "number"
+                ? Math.max(0, Math.min(100, Math.round(scrollCompletionPercent)))
+                : null,
+            view_started_at: viewStartedAt ? new Date(viewStartedAt) : null,
+            view_completed_at: viewCompletedAt ? new Date(viewCompletedAt) : null,
+            accept_clicked_at: acceptClickedAt ? new Date(acceptClickedAt) : new Date(),
+          })
+          .select("*")
+          .single();
+
+        if (acceptanceError || !acceptanceRow) {
+          throw new Error(acceptanceError?.message || "Failed to create TD onboarding acceptance");
+        }
+
+        if (definition.mandatoryClauses.length) {
+          const { error: clauseError } = await supabase
+            .from("td_onboarding_clause_acknowledgements")
+            .insert(
+              definition.mandatoryClauses
+                .filter((clause) => acceptedClauseKeySet.has(clause.key))
+                .map((clause) => ({
+                  acceptance_id: acceptanceRow.id,
+                  clause_key: clause.key,
+                  clause_label: clause.label,
+                }))
+            );
+
+          if (clauseError) {
+            throw new Error(clauseError.message);
+          }
+        }
+
+        const { error: eventError } = await supabase
+          .from("td_onboarding_acceptance_events")
+          .insert([
+            {
+              acceptance_id: acceptanceRow.id,
+              application_id: applicationId,
+              user_id: userId,
+              document_step: docStep,
+              event_type: "accepted",
+              payload: {
+                clauses: definition.mandatoryClauses.filter((clause) => acceptedClauseKeySet.has(clause.key)).map((clause) => clause.key),
+                acceptedAt: new Date().toISOString(),
+              },
+            },
+          ]);
+
+        if (eventError) {
+          throw new Error(eventError.message);
+        }
+
+        documentsStatus[String(docStep)] = "approved";
+        if (docStep < 7 && documentsStatus[String(docStep + 1)] !== "approved") {
+          documentsStatus[String(docStep + 1)] = "pending_upload";
+        }
+
+        const allApproved = ["1", "2", "3", "4", "5", "6", "7"].every((step) => String(documentsStatus[step] || "") === "approved");
+        const { error: updateError } = await supabase
+          .from("td_applications")
+          .update({
+            documents_status: documentsStatus,
+            document_submission_step: docStep < 7 ? docStep + 1 : 7,
+            onboarding_completed_at: allApproved ? new Date() : null,
+            updated_at: new Date(),
+          })
+          .eq("id", applicationId);
+
+        if (updateError) {
+          throw new Error(updateError.message);
+        }
+
+        const updatedApplications = await getTdApplicationsByQuery({ userId });
+        const updatedApplication =
+          updatedApplications.find((entry: any) => entry.id === applicationId) ||
+          selectCanonicalTdApplication(updatedApplications);
+
+        res.json({
+          success: true,
+          application: updatedApplication,
+          acceptance: acceptanceRow,
+          receipt: {
+            acceptedAt: acceptanceRow.accepted_at,
+            documentCode: acceptanceRow.document_code,
+            documentVersion: acceptanceRow.document_version,
+            documentChecksum: acceptanceRow.document_checksum,
+          },
+        });
+      } catch (error) {
+        console.error("Error accepting TD onboarding document:", error);
+        res.status(500).json({ message: error instanceof Error ? error.message : "Failed to accept TD onboarding document" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/td/complete-onboarding",
+    isAuthenticated,
+    requireRole(["td"]),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req.session as any).userId;
+        const { applicationId } = req.body ?? {};
+        const applications = await getTdApplicationsByQuery({ userId });
+        const application =
+          applications.find((entry: any) => entry.id === applicationId) || selectCanonicalTdApplication(applications);
+
+        if (!application) {
+          return res.status(403).json({ message: "Application not found or access denied" });
+        }
+
+        const documentsStatus = buildTdOnboardingStatuses(application.documentsStatus || application.documents_status);
+        const allApproved = ["1", "2", "3", "4", "5", "6", "7"].every((step) => String(documentsStatus[step] || "") === "approved");
+        if (!allApproved) {
+          return res.status(400).json({ message: "All TD onboarding steps must be approved before onboarding can be completed." });
+        }
+
+        const { error } = await supabase
+          .from("td_applications")
+          .update({ onboarding_completed_at: new Date(), updated_at: new Date() })
+          .eq("id", applicationId)
+          .eq("user_id", userId);
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        const assignedPods = await storage.getPodsByTD(userId);
+        res.json({ success: true, redirectTo: assignedPods.length > 0 ? "/operational/td/dashboard" : "/operational/td/no-pod" });
+      } catch (error) {
+        console.error("Error completing TD onboarding:", error);
+        res.status(500).json({ message: error instanceof Error ? error.message : "Failed to complete TD onboarding" });
+      }
+    }
+  );
+
+  app.get(
+    "/api/coo/td-applications",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const status = typeof req.query?.status === "string" ? req.query.status : undefined;
+        const applications = await getTdApplicationsByQuery({ status });
+        res.json(applications);
+      } catch (error) {
+        console.error("Error fetching TD applications:", error);
+        res.status(500).json({ message: "Failed to fetch TD applications" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/coo/td-applications/:id/approve",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const reviewerId = (req.session as any).userId;
+        const { id } = req.params;
+        const { data, error } = await supabase
+          .from("td_applications")
+          .update({
+            status: "approved",
+            reviewed_by: reviewerId,
+            reviewed_at: new Date(),
+            document_submission_step: 1,
+            documents_status: INITIAL_TD_DOCUMENT_STATUSES,
+            updated_at: new Date(),
+          })
+          .eq("id", id)
+          .select("*")
+          .single();
+
+        if (error || !data) {
+          return res.status(404).json({ message: "TD application not found" });
+        }
+
+        await safeSendPush(
+          data.user_id,
+          {
+            title: "TD application approved",
+            body: "Your Territory Director application was approved. Open TT to complete onboarding.",
+            url: "/operational/td/gateway",
+            tag: `td-application-approved-${data.id}`,
+          },
+          "td application approved",
+        );
+
+        res.json(data);
+      } catch (error) {
+        console.error("Error approving TD application:", error);
+        res.status(500).json({ message: "Failed to approve TD application" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/coo/td-applications/:id/reject",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const reviewerId = (req.session as any).userId;
+        const { id } = req.params;
+        const reason = String(req.body?.reason || "").trim() || "Application not accepted";
+        const { data, error } = await supabase
+          .from("td_applications")
+          .update({
+            status: "rejected",
+            reviewed_by: reviewerId,
+            reviewed_at: new Date(),
+            rejection_reason: reason,
+            updated_at: new Date(),
+          })
+          .eq("id", id)
+          .select("*")
+          .single();
+
+        if (error || !data) {
+          return res.status(404).json({ message: "TD application not found" });
+        }
+
+        await safeSendPush(
+          data.user_id,
+          {
+            title: "TD application update",
+            body: "Your Territory Director application was not accepted. Open TT to review the update.",
+            url: "/operational/td/gateway",
+            tag: `td-application-rejected-${data.id}`,
+          },
+          "td application rejected",
+        );
+
+        res.json(data);
+      } catch (error) {
+        console.error("Error rejecting TD application:", error);
+        res.status(500).json({ message: "Failed to reject TD application" });
+      }
+    }
+  );
 
   app.post(
     "/api/affiliate/application",

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useRef, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
@@ -63,9 +63,12 @@ type Props = {
 };
 
 export function AffiliateApplicationForm({ onSuccess, onCancel }: Props) {
+  const STORAGE_KEY = "tt_affiliate_application_draft";
+  const AUTOSAVE_DELAY_MS = 400;
   const queryClient = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const form = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
     defaultValues: {
@@ -88,6 +91,46 @@ export function AffiliateApplicationForm({ onSuccess, onCancel }: Props) {
       trustReason: "",
     },
   });
+  const watchedValues = useWatch({ control: form.control });
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.localStorage) return;
+    const draft = window.localStorage.getItem(STORAGE_KEY);
+    if (!draft) return;
+
+    try {
+      const parsed = JSON.parse(draft) as Partial<ApplicationFormData>;
+      form.reset({
+        ...form.getValues(),
+        ...parsed,
+      });
+    } catch {
+      window.localStorage.removeItem(STORAGE_KEY);
+    }
+  }, [form]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.localStorage) return;
+    if (submitting) return;
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(() => {
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(watchedValues));
+      } catch {
+        // Ignore storage failures and keep the form usable.
+      }
+    }, AUTOSAVE_DELAY_MS);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [watchedValues, submitting]);
 
   const onSubmit = async (data: ApplicationFormData) => {
     setSubmitting(true);
@@ -99,6 +142,9 @@ export function AffiliateApplicationForm({ onSuccess, onCancel }: Props) {
         queryClient.invalidateQueries({ queryKey: ["/api/affiliate/gateway-session"] }),
         queryClient.invalidateQueries({ queryKey: ["/api/coo/affiliate-applications"] }),
       ]);
+      if (typeof window !== "undefined" && window.localStorage) {
+        window.localStorage.removeItem(STORAGE_KEY);
+      }
       onSuccess?.();
     } catch (submissionError) {
       setError(submissionError instanceof Error ? submissionError.message : "Failed to submit application");
@@ -127,6 +173,9 @@ export function AffiliateApplicationForm({ onSuccess, onCancel }: Props) {
             {error}
           </div>
         ) : null}
+        <div className="rounded-md border border-[#F1D2C7] bg-[#FFF6F1] px-3 py-2 text-xs text-[#7A675B]">
+          Draft saves automatically on this device and restores when you return.
+        </div>
 
         <Card className="border-0 shadow-lg">
           <CardHeader>

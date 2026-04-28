@@ -11,6 +11,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { DashboardLayoutSimple } from "@/components/layout/dashboard-layout-simple";
 import { ProtectedParentRoute } from "@/lib/parentGuard";
+import { TdGatewayGuard } from "@/lib/tdGatewayGuard";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 
 // Clean up old localStorage cache on startup (we now use sessionStorage which is tab-specific)
@@ -99,6 +100,9 @@ import OperationalTutorDashboard from "@/pages/operational/tutor/dashboard";
 import TutorBlueprint from "@/pages/operational/tutor/blueprint";
 import TTOS from "@/pages/operational/tutor/tt-os";
 import OperationalTDDashboard from "@/pages/operational/td/dashboard";
+import TdGateway from "@/pages/operational/td/gateway";
+import TdLanding from "@/pages/operational/td/landing";
+import TdSignup from "@/pages/operational/td/signup";
 
 // NEW: Affiliate Portal Pages
 import AffiliateDashboard from "@/pages/affiliate/affiliate/home";
@@ -372,11 +376,15 @@ function Router() {
       <Route path="/operational/tutor/updates" element={<Navigate to="/tutor/updates" replace />} />
 
       {/* TD Routes */}
-      <Route path="/operational/td/dashboard" element={<DashboardLayout><OperationalTDDashboard /></DashboardLayout>} />
-      <Route path="/operational/td/my-pods" element={<DashboardLayout><TDOverview /></DashboardLayout>} />
-      <Route path="/operational/td/my-pods/:podId" element={<DashboardLayout><TDOverview /></DashboardLayout>} />
-      <Route path="/operational/td/reports" element={<DashboardLayout><TDReports /></DashboardLayout>} />
-      <Route path="/operational/td/updates" element={<DashboardLayout><TDUpdates /></DashboardLayout>} />
+      <Route path="/operational/td/landing" element={<TdLanding />} />
+      <Route path="/operational/td/signup" element={<TdSignup />} />
+      <Route path="/operational/td/gateway" element={<TdGateway />} />
+      <Route path="/operational/td/dashboard" element={<TdGatewayGuard><OperationalTDDashboard /></TdGatewayGuard>} />
+      <Route path="/operational/td/no-pod" element={<TdGatewayGuard><TDNoPod /></TdGatewayGuard>} />
+      <Route path="/operational/td/my-pods" element={<TdGatewayGuard><TDOverview /></TdGatewayGuard>} />
+      <Route path="/operational/td/my-pods/:podId" element={<TdGatewayGuard><TDOverview /></TdGatewayGuard>} />
+      <Route path="/operational/td/reports" element={<TdGatewayGuard><DashboardLayout><TDReports /></DashboardLayout></TdGatewayGuard>} />
+      <Route path="/operational/td/updates" element={<TdGatewayGuard><DashboardLayout><TDUpdates /></DashboardLayout></TdGatewayGuard>} />
 
       {/* ==================== AFFILIATE PORTAL ==================== */}
       {/* Affiliate Landing */}
@@ -444,13 +452,15 @@ function Router() {
       <Route path="/tutor/updates" element={<DashboardLayout><TutorUpdates /></DashboardLayout>} />
 
       {/* Legacy TD Routes */}
-      <Route path="/td/no-pod" element={<TDNoPod />} />
-      <Route path="/td/dashboard" element={<TDDashboard />} />
-      <Route path="/td/overview" element={<TDOverview />} />
-      <Route path="/td/overview/:podId" element={<TDOverview />} />
-      <Route path="/td/tutors" element={<TDTutors />} />
-      <Route path="/td/reports" element={<TDReports />} />
-      <Route path="/td/updates" element={<TDUpdates />} />
+      <Route path="/td/landing" element={<TdLanding />} />
+      <Route path="/td/signup" element={<TdSignup />} />
+      <Route path="/td/no-pod" element={<TdGatewayGuard><TDNoPod /></TdGatewayGuard>} />
+      <Route path="/td/dashboard" element={<TdGatewayGuard><TDDashboard /></TdGatewayGuard>} />
+      <Route path="/td/overview" element={<TdGatewayGuard><TDOverview /></TdGatewayGuard>} />
+      <Route path="/td/overview/:podId" element={<TdGatewayGuard><TDOverview /></TdGatewayGuard>} />
+      <Route path="/td/tutors" element={<TdGatewayGuard><TDTutors /></TdGatewayGuard>} />
+      <Route path="/td/reports" element={<TdGatewayGuard><TDReports /></TdGatewayGuard>} />
+      <Route path="/td/updates" element={<TdGatewayGuard><TDUpdates /></TdGatewayGuard>} />
 
       {/* Legacy COO Routes */}
       <Route path="/coo/dashboard" element={<COODashboard />} />

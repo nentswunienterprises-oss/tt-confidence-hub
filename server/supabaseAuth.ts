@@ -580,9 +580,6 @@ export async function setupAuth(app: Express) {
       
       if (user.role === "parent") {
         redirectUrl = "/client/parent/gateway";
-      } else if (user.role === "td") {
-        const podId = await storage.checkTDPodAssignment(user.email!);
-        redirectUrl = podId ? getDefaultDashboardRoute("td") : "/operational/td/no-pod";
       } else {
         redirectUrl = getDefaultDashboardRoute((user.role as any) || "tutor");
       }

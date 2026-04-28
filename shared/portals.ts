@@ -42,7 +42,7 @@ export const PORTAL_CONFIG: Record<
     roles: ["tutor", "td"],
     isPublic: true,
     description: "Operational Portal - Tutor & Territory Director Interface",
-    dashboardRoute: "/tutor/pod",
+    dashboardRoute: "/operational/tutor/gateway",
   },
   executive: {
     roles: ["coo", "hr", "ceo"],
@@ -191,7 +191,7 @@ export function getDefaultDashboardRoute(role: Role | undefined | null): string 
     affiliate: "/affiliate/gateway",
     od: "/affiliate/od/dashboard",
     tutor: "/operational/tutor/gateway", // Tutors go to gateway first
-    td: "/operational/td/dashboard",
+    td: "/operational/td/gateway",
     coo: "/executive/coo/dashboard",
     hr: "/executive/hr/dashboard",
     ceo: "/executive/ceo/dashboard",

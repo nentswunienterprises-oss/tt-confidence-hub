@@ -2,6 +2,7 @@ import { Navigate } from "react-router-dom";
 import {
   PORTAL_CONFIG,
   ROLE_TO_PORTAL,
+  getDefaultDashboardRoute,
   type Role,
   type Portal,
 } from "@shared/portals";
@@ -27,9 +28,7 @@ export function PortalGuard({
 
   // Check if user's role belongs to the required portal
   if (!PORTAL_CONFIG[requiredPortal].roles.includes(role)) {
-    // Redirect to their correct portal
-    const correctPortal = PORTAL_CONFIG[userPortal];
-    return <Navigate to={correctPortal.dashboardRoute} replace />;
+    return <Navigate to={getDefaultDashboardRoute(role)} replace />;
   }
 
   return children;
@@ -53,10 +52,7 @@ export function ExecutivePortalGuard({
 
   const executiveRoles: Role[] = ["coo", "hr", "ceo"];
   if (!executiveRoles.includes(role)) {
-    // Non-executive users get redirected to their portal
-    const userPortal = ROLE_TO_PORTAL[role];
-    const portalConfig = PORTAL_CONFIG[userPortal];
-    return <Navigate to={portalConfig.dashboardRoute} replace />;
+    return <Navigate to={getDefaultDashboardRoute(role)} replace />;
   }
 
   return children;

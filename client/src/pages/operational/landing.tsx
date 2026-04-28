@@ -37,7 +37,7 @@ export default function OperationalLanding() {
           <Button
             className="text-sm sm:text-base font-semibold px-4 sm:px-6 py-2 sm:py-5 rounded-full border-0 shadow-lg hover:shadow-xl transition-all"
             style={{ backgroundColor: "#E63946", color: "white" }}
-            onClick={() => navigate("/operational/signup")}
+            onClick={() => navigate("/operational/td/signup")}
           >
             Sign In
           </Button>
@@ -77,7 +77,7 @@ export default function OperationalLanding() {
             size="lg"
             className="text-base sm:text-lg font-semibold px-6 sm:px-8 py-4 sm:py-6 rounded-full shadow-lg hover:shadow-xl transition-all border-0"
             style={{ backgroundColor: "#E63946", color: "white" }}
-            onClick={() => navigate("/operational/signup")}
+            onClick={() => navigate("/operational/td/landing")}
           >
             Apply to Join
             <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
@@ -102,7 +102,7 @@ export default function OperationalLanding() {
             <Card 
               className="p-8 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group"
               style={{ backgroundColor: "white" }}
-              onClick={() => navigate("/operational/signup")}
+              onClick={() => navigate("/operational/signup?role=tutor")}
             >
               <div 
                 className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
@@ -142,7 +142,7 @@ export default function OperationalLanding() {
             <Card 
               className="p-8 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group"
               style={{ backgroundColor: "white" }}
-              onClick={() => navigate("/operational/signup")}
+              onClick={() => navigate("/operational/td/landing")}
             >
               <div 
                 className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
@@ -281,7 +281,7 @@ export default function OperationalLanding() {
             size="lg"
             className="text-lg font-semibold px-10 py-6 rounded-full border-0"
             style={{ backgroundColor: "white", color: "#E63946" }}
-            onClick={() => navigate("/operational/signup")}
+            onClick={() => navigate("/operational/td/landing")}
           >
             Apply to Join
             <ArrowRight className="w-5 h-5 ml-2" />

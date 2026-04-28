@@ -1,0 +1,93 @@
+TT-TDA-001 - TERRITORY DIRECTOR CONTRACTOR
+AGREEMENT
+This Agreement is entered into between:
+Territorial Tutoring SA (Pty) Ltd (“TT”)
+and
+______________________________________ (“Territory Director”)
+Effective Date: ______________________
+1. NATURE OF RELATIONSHIP
+The Territory Director is engaged as an independent contractor.
+This Agreement does not constitute employment.
+The Territory Director is not entitled to:
+salary guarantees
+employee benefits
+fixed working hours
+All compensation is performance-based.
+2. ROLE DEFINITION
+The Territory Director is responsible for enforcing the TT-OS system within assigned
+pods.
+This includes:
+Auditing tutor sessions where applicable
+Monitoring tutor execution quality
+Identifying breakdown patterns
+Enforcing corrective actions
+Maintaining system integrity across all assigned tutors
+The Territory Director does not:
+redesign systems
+modify TT-OS
+operate outside defined structures
+3. COMPENSATION
+The Territory Director earns:
+
+25% of platform revenue per assigned pod
+Example:
+Pod generates R9,000 → TD earns R2,250
+Compensation is dependent on:
+Active students
+Pod activity
+Continued assignment
+No payment is due for:
+inactive pods
+removed assignments
+system breaches
+4. ASSIGNMENT & CONTROL
+Pods are assigned and may be reassigned at TT’s discretion
+TT may increase or decrease pod allocation at any time
+No permanent claim exists over any pod
+5. PERFORMANCE STANDARD
+The Territory Director is expected to:
+Enforce TT-OS strictly and consistently
+Maintain high tutor execution quality
+Detect and act on system drift immediately
+Operate independently without reliance on escalation
+Failure to meet these standards may result in removal.
+6. TERMINATION
+TT may terminate this Agreement at any time, with or without notice, in cases
+including but not limited to:
+Failure to enforce system standards
+Poor performance
+Inconsistent auditing
+Breach of TT protocols
+The Territory Director may also terminate this Agreement with written notice.
+
+7. NO EQUITY OR OWNERSHIP
+This Agreement does not grant:
+shares in TT
+profit participation beyond defined compensation
+ownership rights
+Any future equity consideration is separate and not implied.
+8. CONFIDENTIALITY
+The Territory Director agrees to keep confidential:
+TT-OS system
+training frameworks
+internal processes
+student and tutor data
+This obligation continues after termination.
+9. NON-COMPETE / NON-CIRCUMVENTION
+During the term of this Agreement and for a reasonable period thereafter, the
+Territory Director shall not:
+replicate TT systems
+directly solicit TT students or tutors
+create or participate in competing tutoring systems using TT methodologies
+10. GENERAL
+This Agreement constitutes the full understanding between the parties and may only
+be amended in writing.
+Signed at __________________________ on this ______ day of ______________ 2026.
+_____________________________________
+Territory Director
+For and on behalf of Territorial Tutoring SA (Pty) Ltd
+TT Representative Signature: ______________________
+Print Name: Thendo Nentswuni
+Date: ____________________
+
+Document Reference: TT-TDA-001
