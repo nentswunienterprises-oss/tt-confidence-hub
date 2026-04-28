@@ -220,6 +220,20 @@ function getStep6UploadDescription(idType: string): string {
   return "Upload a certified copy of the identification document you selected earlier. This is the only remaining file upload step.";
 }
 
+function getStep6UploadTitle(idType: string): string {
+  if (idType === "passport") {
+    return "Certified Passport Copy";
+  }
+  if (idType === "sa_id") {
+    return "Certified ID Copy";
+  }
+  return "Certified ID Copy";
+}
+
+function getStep6DocumentTitle(idType: string): string {
+  return getStep6UploadTitle(idType);
+}
+
 function getIdentificationNumberLabel(idType: string): string {
   if (idType === "passport") return "Passport Number";
   if (idType === "sa_id") return "SA ID Number";
@@ -405,12 +419,26 @@ function tokenizeAgreementLinesStrict(content: string) {
 }
 
 export function renderAgreementHtmlStrict(content: string, documentCode?: string) {
+  const protectedFieldLine =
+    /^(Full Name:|Contact Number:|Date of Birth:|Email Address:|ID Type:|Identification Type|Identification Number:|ID Number:|School Attended \(Matric\):|Current Status|Matric Year:|School Where Matric Was Completed:|Print Name:|Document Reference:)/i;
+  const isDocumentHeading = (value: string) => /^SECTION [A-Z]/.test(value) || /^\d+\.\s+[A-Z]/.test(value);
   const lines = tokenizeAgreementLinesStrict(content);
+  const normalizedLines = documentCode
+    ? (() => {
+        const next = [...lines];
+        while (next.length > 0) {
+          const line = next[0].trim();
+          const isAllCapsHeading = /^[A-Z][A-Z0-9\s/&(),.-]{8,}$/.test(line);
+          if (!line || !isAllCapsHeading || isDocumentHeading(line) || protectedFieldLine.test(line)) break;
+          next.shift();
+        }
+        return next;
+      })()
+    : lines;
   const blocks: string[] = [];
   let listItems: string[] = [];
   let listMode = false;
   const rules = DOCUMENT_RENDER_RULES[documentCode || ""] || {};
-  const isDocumentHeading = (value: string) => /^SECTION [A-Z]/.test(value) || /^\d+\.\s+[A-Z]/.test(value);
   const isNumberedClauseLine = (value: string) => /^\d+\.\d+\s+/.test(value);
   const matchesAny = (value: string, patterns: RegExp[] | undefined) => (patterns || []).some((pattern) => pattern.test(value));
   const isPotentialListItem = (value: string) => {
@@ -431,10 +459,7 @@ export function renderAgreementHtmlStrict(content: string, documentCode?: string
     listItems = [];
   };
 
-  const protectedFieldLine =
-    /^(Full Name:|Contact Number:|Date of Birth:|Email Address:|ID Type:|Identification Type|Identification Number:|ID Number:|School Attended \(Matric\):|Current Status|Matric Year:|School Where Matric Was Completed:|Print Name:|Document Reference:)/i;
-
-  for (const rawLine of lines) {
+  for (const rawLine of normalizedLines) {
     const line = rawLine.trim();
     const isProtectedFieldLine = protectedFieldLine.test(line);
 
@@ -1450,8 +1475,8 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
     [currentFormFields, liveApplication, currentAcceptance]
   );
   const previousAcceptanceDerivedFormData = useMemo(
-    () => buildAcceptanceDerivedFormData(currentStep === 2 ? doc1Acceptance : null),
-    [currentStep, doc1Acceptance]
+    () => buildAcceptanceDerivedFormData(doc1Acceptance),
+    [doc1Acceptance]
   );
   const applicationLockedFormData = useMemo(
     () => buildApplicationLockedFormData(liveApplication),
@@ -1460,7 +1485,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
   const canonicalLockedFormData = useMemo(
     () => ({
       ...applicationLockedFormData,
-      ...(currentStep === 2
+      ...([2, 6].includes(currentStep)
         ? Object.fromEntries(
             Object.entries(previousAcceptanceDerivedFormData).filter(([, value]) => Boolean(String(value || "").trim()))
           )
@@ -1471,7 +1496,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
   const effectiveInitialFormData = useMemo(
     () => ({
       ...initialFormData,
-      ...(currentStep === 2
+      ...([2, 6].includes(currentStep)
         ? Object.fromEntries(
             Object.entries(previousAcceptanceDerivedFormData).filter(([, value]) => Boolean(String(value || "").trim()))
           )
@@ -1483,6 +1508,21 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
     () => hydrateDocumentContent(currentDocument?.content || "", { ...effectiveInitialFormData, ...formData, legalName: typedFullName || effectiveInitialFormData.legalName || "" }),
     [currentDocument, effectiveInitialFormData, formData, typedFullName]
   );
+  const resolvedUploadIdType = useMemo(
+    () =>
+      normalizeIdTypeChoice(
+        formData.idType ||
+        canonicalLockedFormData.idType ||
+        effectiveInitialFormData.idType ||
+        previousAcceptanceDerivedFormData.idType ||
+        applicationLockedFormData.idType
+      ),
+    [applicationLockedFormData.idType, canonicalLockedFormData.idType, effectiveInitialFormData.idType, formData.idType, previousAcceptanceDerivedFormData.idType]
+  );
+  const displayedDocumentTitle =
+    currentStep === 6
+      ? getStep6DocumentTitle(resolvedUploadIdType)
+      : currentDocument?.title || "";
   const acceptanceResetKey = `${currentStep}:${currentAcceptance?.acceptedAt || currentAcceptance?.accepted_at || "pending"}`;
   const fieldResolutions = useMemo(() => {
     return Object.fromEntries(
@@ -1715,7 +1755,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <CardTitle className="text-xl">Step {currentStep} of 6</CardTitle>
-              <CardDescription>{currentDocument.title}</CardDescription>
+              <CardDescription>{displayedDocumentTitle}</CardDescription>
             </div>
             <div className="flex flex-wrap gap-2">
               <Badge variant="outline">{currentDocument.code}</Badge>
@@ -1829,8 +1869,8 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
 
           {isUploadStep && !isPendingCooReview ? (
             <div className="rounded-2xl border p-4">
-              <p className="font-medium">{currentDocument.uploadTitle || "Required upload"}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{currentStep === 6 ? getStep6UploadDescription(formData.idType) : currentDocument.uploadDescription}</p>
+              <p className="font-medium">{currentStep === 6 ? getStep6UploadTitle(resolvedUploadIdType) : currentDocument.uploadTitle || "Required upload"}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{currentStep === 6 ? getStep6UploadDescription(resolvedUploadIdType) : currentDocument.uploadDescription}</p>
               {currentStep === 2 && !uploadReady ? <p className="mt-3 text-sm text-amber-700">Accept TT-EQV-002 first. The certified Matric certificate upload unlocks immediately after acceptance.</p> : null}
               {currentStep === 2 && uploadReady && currentStatus !== "pending_review" ? (
                 <p className="mt-3 text-sm text-muted-foreground">Choose the certified Matric certificate, then upload it for COO review. Step 3 opens only after COO approves this certificate.</p>
@@ -1908,10 +1948,18 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
             }
 
             .agreement-reader h2 {
-              margin: 1rem 0 0.55rem;
+              margin: 0 0 0.55rem;
+              padding-top: 1.35rem;
+              border-top: 1px solid #e7d5c8;
               font-size: 0.9rem;
               line-height: 1.5;
               font-weight: 700;
+              color: #7c2d12;
+            }
+
+            .agreement-reader h2:first-of-type {
+              padding-top: 0;
+              border-top: 0;
             }
 
             .agreement-reader p {
@@ -2038,14 +2086,14 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
           `}</style>
           <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl bg-[#FFF5ED] text-[#1A1A1A]">
             <DialogHeader className="shrink-0 border-b border-[#E7D5C8] bg-white px-4 py-4 text-left sm:px-6 sm:py-5">
-              <DialogTitle className="pr-8 text-xl sm:text-2xl">{currentDocument.title}</DialogTitle>
+              <DialogTitle className="pr-8 text-xl sm:text-2xl">{displayedDocumentTitle}</DialogTitle>
               <DialogDescription className="text-[#6B5B52]">{currentDocument.code} • version {normalizeDisplayedVersion(currentDocument.version)}</DialogDescription>
             </DialogHeader>
             <div ref={readerRef} onScroll={handleReaderScroll} className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-[#FFF5ED] px-3 py-4 touch-pan-y sm:px-6 sm:py-6">
               <div className="mx-auto max-w-4xl rounded-2xl border border-[#E7D5C8] bg-white px-4 py-6 text-[#1A1A1A] shadow-[0_18px_50px_rgba(230,57,70,0.08)] sm:px-10 sm:py-10">
                 <div className="border-b border-[#E7D5C8] pb-5">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#E63946]">Territorial Tutoring Onboarding Document</p>
-                  <h1 className="mt-3 text-2xl font-semibold tracking-tight text-[#1A1A1A] sm:text-3xl">{currentDocument.title}</h1>
+                  <h1 className="mt-3 text-2xl font-semibold tracking-tight text-[#1A1A1A] sm:text-3xl">{displayedDocumentTitle}</h1>
                   <p className="mt-2 text-xs text-[#6B5B52] sm:text-sm">
                     {currentDocument.code} • Version {normalizeDisplayedVersion(currentDocument.version)}
                   </p>
@@ -2140,7 +2188,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                   </div>
                 ) : null}
                 <div className="agreement-reader mt-8">
-                  {buildTutorAgreementBody(currentDocument, { ...effectiveInitialFormData, ...formData, legalName: typedFullName || effectiveInitialFormData.legalName || "" })}
+                  <div dangerouslySetInnerHTML={{ __html: renderAgreementHtmlStrict(hydratedDocumentContent, currentDocument.code) }} />
                 </div>
               </div>
             </div>
