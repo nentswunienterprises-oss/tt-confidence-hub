@@ -503,6 +503,7 @@ export const tutorApplications = pgTable("tutor_applications", {
   phone: varchar("phone").notNull(),
   email: varchar("email").notNull(),
   city: varchar("city").notNull(),
+  idType: varchar("id_type"),
 
   // Section 2 - Academic Background
   completedMatric: varchar("completed_matric").notNull(),       // 'yes' | 'currently' | 'no'

@@ -65,6 +65,41 @@ function formatAcceptedAt(value: string | null | undefined) {
   return date.toLocaleString();
 }
 
+function normalizeIdTypeChoice(value: unknown): "sa_id" | "passport" | "" {
+  const normalized = String(value ?? "").trim().toLowerCase();
+  if (normalized === "sa_id" || normalized === "passport") return normalized;
+  return "";
+}
+
+function getIdentificationNumberLabel(idType: string): string {
+  if (idType === "passport") return "Passport Number";
+  if (idType === "sa_id") return "SA ID Number";
+  return "Identification Number";
+}
+
+function getReviewFormFieldLabel(key: string, idType: string): string {
+  if (key === "idNumber") return getIdentificationNumberLabel(idType);
+  if (key === "idType") return "Identification Type";
+  if (key === "legalName") return "Full Legal Name";
+  if (key === "dateOfBirth") return "Date of Birth";
+  if (key === "emailAddress") return "Email Address";
+  if (key === "phoneNumber") return "Phone Number";
+  if (key === "schoolName") return "School Name";
+  if (key === "currentStatus") return "Current Status";
+  if (key === "matricYear") return "Matric Year";
+  if (key === "examNumber") return "Exam Number";
+  return key;
+}
+
+function getReviewFormFieldValue(key: string, value: unknown): string {
+  if (key === "idType") {
+    const normalized = normalizeIdTypeChoice(value);
+    if (normalized === "passport") return "Passport";
+    if (normalized === "sa_id") return "SA ID";
+  }
+  return String(value ?? "").trim();
+}
+
 function TutorAgreementList({ items, tone = "default" }: { items: ReactNode[]; tone?: "default" | "check" }) {
   return (
     <ul className={`tt-agreement-list ${tone === "check" ? "tt-agreement-list-check" : ""}`}>
@@ -104,7 +139,7 @@ function buildTutorAgreementBody(code: string, formData: Record<string, string>)
               <div><span>Contact Number</span><strong>{formData.phoneNumber || "Not captured"}</strong></div>
               <div><span>Date of Birth</span><strong>{formData.dateOfBirth || "Not captured"}</strong></div>
               <div><span>Email Address</span><strong>{formData.emailAddress || "Not captured"}</strong></div>
-              <div><span>ID Number</span><strong>{formData.idNumber || "Not captured"}</strong></div>
+              <div><span>{getIdentificationNumberLabel(formData.idType)}</span><strong>{formData.idNumber || "Not captured"}</strong></div>
               <div><span>School Attended (Matric)</span><strong>{formData.schoolName || "Not captured"}</strong></div>
               <div className="tt-inline-detail-span"><span>Current Status</span><strong>{formData.currentStatus || "Not captured"}</strong></div>
             </div>
@@ -136,7 +171,7 @@ function buildTutorAgreementBody(code: string, formData: Record<string, string>)
             <div className="tt-inline-detail-grid">
               <div><span>Full Name</span><strong>{formData.legalName || "Not captured"}</strong></div>
               <div><span>Date of Birth</span><strong>{formData.dateOfBirth || "Not captured"}</strong></div>
-              <div><span>ID Number</span><strong>{formData.idNumber || "Not captured"}</strong></div>
+              <div><span>{getIdentificationNumberLabel(formData.idType)}</span><strong>{formData.idNumber || "Not captured"}</strong></div>
               <div><span>Contact Number</span><strong>{formData.phoneNumber || "Not captured"}</strong></div>
               <div><span>Email Address</span><strong>{formData.emailAddress || "Not captured"}</strong></div>
               <div><span>Matric Year</span><strong>{formData.matricYear || "Not captured"}</strong></div>
@@ -235,11 +270,17 @@ function buildAcceptedAgreementHtml(item: { code: string; title: string }, accep
   const documentChecksum = acceptance?.documentChecksum || acceptance?.document_checksum || "";
   const documentSnapshot = acceptance?.documentSnapshot || acceptance?.document_snapshot || "";
   const formSnapshot = acceptance?.formSnapshotJson || acceptance?.form_snapshot_json || {};
+  const idType = normalizeIdTypeChoice(formSnapshot.idType);
   const acceptedClauses = acceptance?.acceptedClausesJson || acceptance?.accepted_clauses_json || [];
 
   const formRows = Object.entries(formSnapshot)
     .filter(([, value]) => String(value || "").trim())
-    .map(([key, value]) => `<tr><th>${escapeHtml(key)}</th><td>${escapeHtml(String(value))}</td></tr>`)
+    .map(([key, value]) => {
+      const displayValue = getReviewFormFieldValue(key, value);
+      if (!displayValue) return "";
+      return `<tr><th>${escapeHtml(getReviewFormFieldLabel(key, idType))}</th><td>${escapeHtml(displayValue)}</td></tr>`;
+    })
+    .filter(Boolean)
     .join("");
 
   const clauseItems = Array.isArray(acceptedClauses)
@@ -252,6 +293,7 @@ function buildAcceptedAgreementHtml(item: { code: string; title: string }, accep
           phoneNumber: normalizeValue(formSnapshot.phoneNumber),
           dateOfBirth: normalizeValue(formSnapshot.dateOfBirth),
           emailAddress: normalizeValue(formSnapshot.emailAddress),
+          idType,
           idNumber: normalizeValue(formSnapshot.idNumber),
           schoolName: normalizeValue(formSnapshot.schoolName),
           currentStatus: normalizeValue(formSnapshot.currentStatus),
@@ -267,6 +309,7 @@ function buildAcceptedAgreementHtml(item: { code: string; title: string }, accep
             phoneNumber: normalizeValue(formSnapshot.phoneNumber),
             dateOfBirth: normalizeValue(formSnapshot.dateOfBirth),
             emailAddress: normalizeValue(formSnapshot.emailAddress),
+            idType,
             idNumber: normalizeValue(formSnapshot.idNumber),
             schoolName: normalizeValue(formSnapshot.schoolName),
             currentStatus: normalizeValue(formSnapshot.currentStatus),

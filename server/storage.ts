@@ -1549,6 +1549,10 @@ export class SupabaseStorage implements IStorage {
 
   // Tutor Applications
   async createTutorApplication(application: any): Promise<TutorApplication> {
+    const normalizedIdType =
+      String(application?.idType ?? application?.id_type ?? "")
+        .trim()
+        .toLowerCase();
     const dbApplication = {
       user_id: application.userId,
       full_name: application.fullName,
@@ -1579,6 +1583,9 @@ export class SupabaseStorage implements IStorage {
       final_reason: application.finalReason,
       commitment: application.commitment,
       status: application.status,
+      ...(normalizedIdType === "sa_id" || normalizedIdType === "passport"
+        ? { id_type: normalizedIdType }
+        : {}),
     };
     const { data, error } = await supabase
       .from("tutor_applications")
@@ -2012,6 +2019,13 @@ export class SupabaseStorage implements IStorage {
         isAcceptanceOnlyStep && input.documentStep < 6 ? input.documentStep + 1 : input.documentStep,
       updated_at: new Date(),
     };
+
+    const acceptedIdType = String(input.formSnapshotJson?.idType ?? "")
+      .trim()
+      .toLowerCase();
+    if (acceptedIdType === "sa_id" || acceptedIdType === "passport") {
+      updateData.id_type = acceptedIdType;
+    }
 
     const rejectionField =
       input.documentStep === 1 ? "doc_1_submission_rejection_reason" :
