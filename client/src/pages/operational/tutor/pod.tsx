@@ -99,9 +99,18 @@ function formatTutorAuditTimestamp(value: string | null | undefined) {
 }
 
 function formatTutorAlignmentStatus(value: string | null | undefined) {
-  if (!value) return "No active audit status recorded.";
+  if (!value) return "You have not been fully reviewed yet.";
+  if (value === "Complete the remaining transformation phase audits.") {
+    return "Your full alignment review is not complete yet. Remaining phases still need to be checked.";
+  }
   if (value === "Continue. Eligible for greater responsibility if other operating criteria hold.") {
-    return "Eligible for greater responsibility if other operating criteria hold.";
+    return "You are in good standing. Keep operating at this level.";
+  }
+  if (value === "Correct immediately and retest in the next cycle.") {
+    return "Your alignment needs strengthening. Review feedback and prepare for recheck.";
+  }
+  if (value === "Remove from live responsibility and recondition before returning.") {
+    return "You are off standard right now. Reconditioning is required before returning to live work.";
   }
   return value;
 }
