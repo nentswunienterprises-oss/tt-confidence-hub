@@ -9866,10 +9866,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const allCheckIns = [];
         for (const pod of pods) {
-          const checkIns = await storage.db.query.weeklyCheckIns.findMany({
-            where: (wci, { eq }) => eq(wci.podId, pod.id),
-            orderBy: (wci, { desc }) => desc(wci.weekStartDate),
-          });
+          const { data: rawCheckIns, error: checkInError } = await supabase
+            .from("weekly_check_ins")
+            .select("*")
+            .eq("pod_id", pod.id)
+            .order("week_start_date", { ascending: false });
+
+          if (checkInError) {
+            throw checkInError;
+          }
+
+          const checkIns = (rawCheckIns || []).map((checkIn: any) => ({
+            id: checkIn.id,
+            tutorId: checkIn.tutor_id,
+            podId: checkIn.pod_id,
+            weekStartDate: checkIn.week_start_date,
+            wins: checkIn.wins,
+            challenges: checkIn.challenges,
+            helpNeeded: checkIn.help_needed,
+            submittedAt: checkIn.submitted_at,
+            createdAt: checkIn.created_at,
+          }));
 
           // Enrich with tutor information
           const enrichedCheckIns = await Promise.all(
@@ -9919,11 +9936,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         for (const pod of pods) {
           // Get recent check-ins for this pod
-          const checkIns = await storage.db.query.weeklyCheckIns.findMany({
-            where: (wci, { eq }) => eq(wci.podId, pod.id),
-            orderBy: (wci, { desc }) => desc(wci.weekStartDate),
-            limit: 10,
-          });
+          const { data: rawCheckIns, error: checkInError } = await supabase
+            .from("weekly_check_ins")
+            .select("*")
+            .eq("pod_id", pod.id)
+            .order("week_start_date", { ascending: false })
+            .limit(10);
+
+          if (checkInError) {
+            throw checkInError;
+          }
+
+          const checkIns = (rawCheckIns || []).map((checkIn: any) => ({
+            id: checkIn.id,
+            tutorId: checkIn.tutor_id,
+            podId: checkIn.pod_id,
+            weekStartDate: checkIn.week_start_date,
+            wins: checkIn.wins,
+            challenges: checkIn.challenges,
+            helpNeeded: checkIn.help_needed,
+            submittedAt: checkIn.submitted_at,
+            createdAt: checkIn.created_at,
+          }));
 
           for (const checkIn of checkIns) {
             const tutor = await storage.getUser(checkIn.tutorId);
