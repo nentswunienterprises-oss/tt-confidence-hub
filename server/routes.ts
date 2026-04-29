@@ -13150,7 +13150,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["td"]),
     async (req: Request, res: Response) => {
       try {
-        const userId = (req.session as any).userId;
+        const userId = (req as any).dbUser.id;
         const payload = req.body ?? {};
         const requiredFields = [
           "fullName",
@@ -13295,7 +13295,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["td"]),
     async (req: Request, res: Response) => {
       try {
-        const userId = (req.session as any).userId;
+        const userId = (req as any).dbUser.id;
         const applications = await getTdApplicationsByQuery({ userId });
         const canonicalApplication = selectCanonicalTdApplication(applications);
         if (!canonicalApplication) {
@@ -13340,7 +13340,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["td"]),
     async (req: Request, res: Response) => {
       try {
-        const userId = (req.session as any).userId;
+        const userId = (req as any).dbUser.id;
         const applications = await getTdApplicationsByQuery({ userId });
         const latestApp = selectCanonicalTdApplication(applications);
 
@@ -13382,7 +13382,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["td"]),
     async (req: Request, res: Response) => {
       try {
-        const userId = (req.session as any).userId;
+        const userId = (req as any).dbUser.id;
         const docStep = Number(req.params.docStep);
         const {
           applicationId,
@@ -13570,7 +13570,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["td"]),
     async (req: Request, res: Response) => {
       try {
-        const userId = (req.session as any).userId;
+        const userId = (req as any).dbUser.id;
         const { applicationId } = req.body ?? {};
         const applications = await getTdApplicationsByQuery({ userId });
         const application =
