@@ -11,10 +11,12 @@ export interface TdOnboardingDocumentDefinition {
   step: number;
   code: string;
   title: string;
-  fileName: string;
+  fileName?: string;
   version: string;
   requiresAcceptance: boolean;
   requiresUpload: boolean;
+  uploadTitle?: string;
+  uploadDescription?: string;
   mandatoryClauses: TdOnboardingClauseDefinition[];
 }
 
@@ -135,6 +137,17 @@ export const TD_ONBOARDING_DOCUMENTS: TdOnboardingDocumentDefinition[] = [
       },
     ],
   },
+  {
+    step: 7,
+    code: "TT-TDI-007",
+    title: "Certified Identification",
+    version: "1",
+    requiresAcceptance: false,
+    requiresUpload: true,
+    uploadTitle: "Certified Identification Copy",
+    uploadDescription: "Upload a certified copy of your South African ID or passport so TT can verify your TD identity record.",
+    mandatoryClauses: [],
+  },
 ];
 
 const DOC_MAP = new Map(TD_ONBOARDING_DOCUMENTS.map((doc) => [doc.step, doc]));
@@ -166,7 +179,7 @@ export interface LoadedTdOnboardingDocument extends TdOnboardingDocumentDefiniti
 
 export async function loadTdOnboardingDocument(step: number): Promise<LoadedTdOnboardingDocument> {
   const doc = getTdOnboardingDocumentDefinition(step);
-  const content = normalizeText(await readFile(resolve(DOC_ROOT, doc.fileName), "utf8"));
+  const content = doc.fileName ? normalizeText(await readFile(resolve(DOC_ROOT, doc.fileName), "utf8")) : "";
   const contentHash = createHash("sha256").update(content, "utf8").digest("hex");
 
   return {

@@ -10,7 +10,6 @@ import { supabase } from "@/lib/supabaseClient";
 import { authorizedGetJson } from "@/lib/api";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { StudentCard } from "@/components/tutor/StudentCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -72,20 +71,6 @@ interface TutorAlignmentSummaryData {
   assignmentId: string | null;
   operationalMode: "training" | "certified_live";
   alignmentSummary: BattleTestingTutorSummary | null;
-}
-
-function getTutorAlignmentBadgeClass(state: string | null | undefined) {
-  if (state === "locked") return "bg-emerald-100 text-emerald-800 border-emerald-200";
-  if (state === "watchlist") return "bg-amber-100 text-amber-900 border-amber-200";
-  if (state === "fail") return "bg-rose-100 text-rose-800 border-rose-200";
-  return "bg-slate-100 text-slate-700 border-slate-200";
-}
-
-function getTutorAlignmentLabel(state: string | null | undefined) {
-  if (state === "locked") return "LOCKED";
-  if (state === "watchlist") return "WATCHLIST";
-  if (state === "fail") return "FAIL / DRIFT";
-  return "Not Tested";
 }
 
 function formatTutorAuditTimestamp(value: string | null | undefined) {
@@ -449,25 +434,13 @@ export default function TutorPod() {
 
         <Card className="border-primary/15 bg-background shadow-sm">
           <div className="space-y-4 p-5 sm:p-6">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex flex-col gap-3">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Tutor Alignment</p>
                 <h2 className="mt-1 text-xl font-semibold tracking-[-0.01em]">Your standing in the system</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
                   This shows your latest audited alignment state and the transformation phases already checked by TT.
                 </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Badge
-                  className={getTutorAlignmentBadgeClass(tutorAlignmentSummary?.alignmentSummary?.state)}
-                >
-                  {getTutorAlignmentLabel(tutorAlignmentSummary?.alignmentSummary?.state)}
-                </Badge>
-                <Badge variant="outline">
-                  {tutorAlignmentSummary?.alignmentSummary?.alignmentPercent == null
-                    ? "Audit N/A"
-                    : `Audit ${Math.round(tutorAlignmentSummary.alignmentSummary.alignmentPercent)}%`}
-                </Badge>
               </div>
             </div>
 
@@ -495,11 +468,12 @@ export default function TutorPod() {
             <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-4">
               <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Transformation Phases</p>
               {tutorAlignmentSummary?.alignmentSummary?.phaseScores?.length ? (
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
                   {tutorAlignmentSummary.alignmentSummary.phaseScores.map((phase) => (
-                    <Badge key={phase.phaseKey} variant="outline">
-                      {phase.title}: {Math.round(phase.percent)}%
-                    </Badge>
+                    <div key={phase.phaseKey} className="rounded-xl border border-primary/15 bg-background px-3 py-2 text-sm text-foreground">
+                      <span className="font-medium">{phase.title}</span>
+                      <span className="ml-2 text-muted-foreground">{Math.round(phase.percent)}%</span>
+                    </div>
                   ))}
                 </div>
               ) : (

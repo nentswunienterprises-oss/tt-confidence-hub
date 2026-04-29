@@ -474,7 +474,7 @@ const tdDocumentMeta: Array<{ step: number; code: string; title: string }> = [
   { step: 4, code: "TT-HTQ-004", title: "HTQ Track Addendum" },
   { step: 5, code: "TT-PSA-005", title: "Performance Scorecard Acknowledgement" },
   { step: 6, code: "TT-CSP-006", title: "Confidentiality & System Protection Agreement" },
-  { step: 7, code: "TT-HTQ-007", title: "Head of Training & Quality Agreement" },
+  { step: 7, code: "TT-TDI-007", title: "Certified Identification" },
 ];
 
 function formatTdBooleanAnswer(value: unknown) {
@@ -534,6 +534,7 @@ export function COOTdApplicationsPanel() {
   const [selectedApplication, setSelectedApplication] = useState<any | null>(null);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [docReviewReason, setDocReviewReason] = useState("");
   const [subTab, setSubTab] = useState("pending");
 
   const { data: applications = [], isLoading } = useQuery<any[]>({
@@ -556,6 +557,14 @@ export function COOTdApplicationsPanel() {
   );
   const waitingOnTdApplications = useMemo(
     () => applications.filter((application) => isTdWaitingOnApplicant(application)),
+    [applications]
+  );
+  const tdReviewQueueApplications = useMemo(
+    () =>
+      applications.filter((application) => {
+        const statuses = getTdDocumentsStatus(application);
+        return String(statuses["7"] || "") === "pending_review";
+      }),
     [applications]
   );
   const completedApplications = useMemo(
@@ -593,6 +602,32 @@ export function COOTdApplicationsPanel() {
     },
   });
 
+  const reviewDocumentMutation = useMutation({
+    mutationFn: async ({
+      applicationId,
+      approved,
+      rejectionReason,
+    }: {
+      applicationId: string;
+      approved: boolean;
+      rejectionReason?: string;
+    }) => {
+      await apiRequest("POST", `/api/coo/td-applications/${applicationId}/document/7/review`, {
+        approved,
+        rejectionReason,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/coo/td-applications"] });
+      toast({ title: "Identification review saved", description: "The TD identification step has been updated." });
+      setDocReviewReason("");
+      setSelectedApplication(null);
+    },
+    onError: (error: any) => {
+      toast({ title: "Review failed", description: error?.message || "Failed to review TD identification.", variant: "destructive" });
+    },
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-end">
@@ -604,7 +639,7 @@ export function COOTdApplicationsPanel() {
           <Card className="border-amber-200 bg-amber-50">
             <CardContent className="p-4">
               <p className="text-xs uppercase tracking-wide text-amber-800">Needs Review</p>
-              <p className="mt-1 text-2xl font-semibold text-amber-950">{pendingApplications.length}</p>
+              <p className="mt-1 text-2xl font-semibold text-amber-950">{tdReviewQueueApplications.length}</p>
               <p className="text-xs text-amber-900/80">COO action required right now</p>
             </CardContent>
           </Card>
@@ -619,7 +654,7 @@ export function COOTdApplicationsPanel() {
             <CardContent className="p-4">
               <p className="text-xs uppercase tracking-wide text-green-800">Completed</p>
               <p className="mt-1 text-2xl font-semibold text-green-950">{completedApplications.length}</p>
-              <p className="text-xs text-green-900/80">All seven agreements completed</p>
+              <p className="text-xs text-green-900/80">All seven TD onboarding steps completed</p>
             </CardContent>
           </Card>
         </div>
@@ -733,6 +768,59 @@ export function COOTdApplicationsPanel() {
                   {approveMutation.isPending ? "Approving..." : "Approve"}
                 </Button>
               </DialogFooter>
+            ) : null}
+
+            {(selectedApplication.documents_status?.["7"] || selectedApplication.documentsStatus?.["7"]) === "pending_review" ? (
+              <div className="space-y-4 rounded-2xl border border-[#E7D5C8] bg-[#FFF8F4] p-4">
+                <div>
+                  <p className="font-semibold">TT-TDI-007 review</p>
+                  <p className="text-sm text-muted-foreground">Review the certified identification copy and approve or reject the upload.</p>
+                </div>
+                {selectedApplication.doc_7_submission_url ? (
+                  <a
+                    href={selectedApplication.doc_7_submission_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex text-sm font-medium text-[#9F1D2B] underline underline-offset-2"
+                  >
+                    Open certified identification copy
+                  </a>
+                ) : (
+                  <p className="text-sm text-red-700">No identification upload URL was found for this step.</p>
+                )}
+                <div className="space-y-2">
+                  <Label htmlFor="td-doc-review-reason">Rejection reason</Label>
+                  <Textarea
+                    id="td-doc-review-reason"
+                    value={docReviewReason}
+                    onChange={(event) => setDocReviewReason(event.target.value)}
+                    rows={3}
+                    placeholder="Required only if you reject the identification copy."
+                  />
+                </div>
+                <DialogFooter className="gap-2">
+                  <Button
+                    variant="outline"
+                    disabled={reviewDocumentMutation.isPending}
+                    onClick={() => reviewDocumentMutation.mutate({ applicationId: selectedApplication.id, approved: true })}
+                  >
+                    {reviewDocumentMutation.isPending ? "Saving..." : "Approve Identification"}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    disabled={!docReviewReason.trim() || reviewDocumentMutation.isPending}
+                    onClick={() =>
+                      reviewDocumentMutation.mutate({
+                        applicationId: selectedApplication.id,
+                        approved: false,
+                        rejectionReason: docReviewReason.trim(),
+                      })
+                    }
+                  >
+                    {reviewDocumentMutation.isPending ? "Saving..." : "Reject Identification"}
+                  </Button>
+                </DialogFooter>
+              </div>
             ) : null}
           </DialogContent>
         </Dialog>
@@ -898,6 +986,9 @@ function TdApplicationDetails({ application }: { application: any }) {
         <InfoItem label="City" value={application.city} />
         <InfoItem label="Email" value={application.email} />
         <InfoItem label="Phone" value={application.phone} />
+        <InfoItem label="Identification type" value={application.id_type || application.idType || "Not provided"} />
+        <InfoItem label="Identification number" value={application.id_number || application.idNumber || "Not provided"} />
+        <InfoItem label="Date of birth" value={application.date_of_birth || application.dateOfBirth || "Not provided"} />
         <InfoItem label="Hours available per week" value={application.hours_available_per_week || application.hoursAvailablePerWeek} />
         <InfoItem label="Taught or mentored before" value={formatTdBooleanAnswer(application.taught_or_mentored_before || application.taughtOrMentoredBefore)} />
         <InfoItem label="Led or supervised others" value={formatTdBooleanAnswer(application.led_or_supervised_others || application.ledOrSupervisedOthers)} />
@@ -914,6 +1005,7 @@ function TdApplicationDetails({ application }: { application: any }) {
           {tdDocumentMeta.map((document) => {
             const status = statuses[String(document.step)];
             const acceptance = acceptanceMap[String(document.step)];
+            const documentFileUrl = document.step === 7 ? (application.doc_7_submission_url || application.doc7SubmissionUrl) : null;
             return (
               <div key={document.step} className="rounded-xl border border-[#E7D5C8] bg-[#FFF8F4] p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -929,6 +1021,11 @@ function TdApplicationDetails({ application }: { application: any }) {
                   <p>Step {document.step} of 7</p>
                   <p>Accepted at: {formatTdDateTime(acceptance?.accepted_at || acceptance?.acceptedAt)}</p>
                   <p>Accepted by: {acceptance?.typed_full_name || acceptance?.typedFullName || "Not yet accepted"}</p>
+                  {documentFileUrl ? (
+                    <p>
+                      File: <a href={String(documentFileUrl)} target="_blank" rel="noreferrer" className="text-[#9F1D2B] underline underline-offset-2">Open upload</a>
+                    </p>
+                  ) : null}
                 </div>
               </div>
             );

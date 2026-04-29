@@ -15,7 +15,6 @@ import {
   Users,
 } from "lucide-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import BattleTestHistoryDialog from "@/components/battle-testing/BattleTestHistoryDialog";
 import BattleTestRunnerDialog from "@/components/battle-testing/BattleTestRunnerDialog";
 import StudentCommunicationDialog from "@/components/communications/StudentCommunicationDialog";
@@ -298,56 +297,50 @@ export default function TDOverview() {
 
   if (authLoading || isLoading) {
     return (
-      <DashboardLayout>
-        <div className="space-y-6">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-40" />
-          <Skeleton className="h-72" />
-        </div>
-      </DashboardLayout>
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-40" />
+        <Skeleton className="h-72" />
+      </div>
     );
   }
 
   if (!podsData || !Array.isArray(podsData) || podsData.length === 0) {
     return (
-      <DashboardLayout>
-        <div className="space-y-6">
-          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">My Pods</h1>
-          <Card className="p-12 text-center">
-            <FolderKanban className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-            <p className="text-muted-foreground">You are not assigned to any pods yet.</p>
-          </Card>
-        </div>
-      </DashboardLayout>
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">My Pods</h1>
+        <Card className="p-12 text-center">
+          <FolderKanban className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+          <p className="text-muted-foreground">You are not assigned to any pods yet.</p>
+        </Card>
+      </div>
     );
   }
 
   if (podId && !selectedPodData) {
     return (
-      <DashboardLayout>
-        <div className="space-y-6">
-          <div className="flex items-center gap-2 sm:gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate(overviewBasePath)}
-              className="hover:bg-muted h-8 w-8 sm:h-10 sm:w-10"
-            >
-              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-            </Button>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate flex-1">My Pods</h1>
-          </div>
-          <Card className="p-12 text-center">
-            <FolderKanban className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-            <p className="text-muted-foreground">This pod is not assigned to you or no longer exists.</p>
-          </Card>
+      <div className="space-y-6">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(overviewBasePath)}
+            className="hover:bg-muted h-8 w-8 sm:h-10 sm:w-10"
+          >
+            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+          </Button>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate flex-1">My Pods</h1>
         </div>
-      </DashboardLayout>
+        <Card className="p-12 text-center">
+          <FolderKanban className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+          <p className="text-muted-foreground">This pod is not assigned to you or no longer exists.</p>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-6">
         {!podId ? (
           <>
@@ -909,7 +902,7 @@ export default function TDOverview() {
         readOnly={true}
         apiBasePath="/api/td"
       />
-    </DashboardLayout>
+    </>
   );
 }
 

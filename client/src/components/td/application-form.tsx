@@ -5,6 +5,7 @@ import { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,8 +16,10 @@ const applicationSchema = z.object({
   fullName: z.string().min(2, "Full name is required"),
   age: z.coerce.number().min(18, "You must be at least 18"),
   city: z.string().min(2, "City is required"),
-  email: z.string().email("Valid email is required"),
   phone: z.string().min(10, "Phone number is required"),
+  idType: z.enum(["sa_id", "passport"]),
+  idNumber: z.string().min(6, "Identification number is required"),
+  dateOfBirth: z.string().min(1, "Date of birth is required"),
   taughtOrMentoredBefore: z.enum(["yes", "no"]),
   ledOrSupervisedOthers: z.enum(["yes", "no"]),
   hoursAvailablePerWeek: z.coerce.number().min(6, "Minimum 6 hours required"),
@@ -65,10 +68,35 @@ type Props = {
   onCancel?: () => void;
 };
 
+function deriveDateOfBirthFromSouthAfricanId(idNumber: string) {
+  const digits = String(idNumber || "").replace(/\D/g, "");
+  if (digits.length < 6) return "";
+  const yy = Number(digits.slice(0, 2));
+  const mm = Number(digits.slice(2, 4));
+  const dd = Number(digits.slice(4, 6));
+  if (!yy || mm < 1 || mm > 12 || dd < 1 || dd > 31) return "";
+
+  const now = new Date();
+  const currentTwoDigitYear = now.getFullYear() % 100;
+  const fullYear = yy <= currentTwoDigitYear ? 2000 + yy : 1900 + yy;
+  const date = new Date(fullYear, mm - 1, dd);
+  if (
+    Number.isNaN(date.getTime()) ||
+    date.getFullYear() !== fullYear ||
+    date.getMonth() !== mm - 1 ||
+    date.getDate() !== dd
+  ) {
+    return "";
+  }
+
+  return `${fullYear}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`;
+}
+
 export function TdApplicationForm({ onSuccess, onCancel }: Props) {
   const STORAGE_KEY = "tt_td_application_draft";
   const AUTOSAVE_DELAY_MS = 400;
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -81,8 +109,10 @@ export function TdApplicationForm({ onSuccess, onCancel }: Props) {
       fullName: "",
       age: 18,
       city: "",
-      email: "",
       phone: "",
+      idType: "sa_id",
+      idNumber: "",
+      dateOfBirth: "",
       taughtOrMentoredBefore: "yes",
       ledOrSupervisedOthers: "yes",
       hoursAvailablePerWeek: 6,
@@ -107,6 +137,8 @@ export function TdApplicationForm({ onSuccess, onCancel }: Props) {
   });
   const watchedValues = useWatch({ control: form.control });
   latestValuesRef.current = watchedValues || {};
+  const watchedIdType = form.watch("idType");
+  const watchedIdNumber = form.watch("idNumber");
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.localStorage) return;
@@ -153,6 +185,12 @@ export function TdApplicationForm({ onSuccess, onCancel }: Props) {
       }
     };
   }, [watchedValues, submitting]);
+
+  useEffect(() => {
+    if (watchedIdType !== "sa_id") return;
+    const derived = deriveDateOfBirthFromSouthAfricanId(watchedIdNumber || "");
+    form.setValue("dateOfBirth", derived, { shouldValidate: true, shouldDirty: true });
+  }, [watchedIdNumber, watchedIdType, form]);
 
   const onSubmit = async (data: ApplicationFormData) => {
     setSubmitting(true);
@@ -212,12 +250,37 @@ export function TdApplicationForm({ onSuccess, onCancel }: Props) {
                 <Input id="city" {...form.register("city")} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" {...form.register("email")} />
+                <Label htmlFor="accountEmail">Account email</Label>
+                <Input id="accountEmail" type="email" value={user?.email || ""} disabled />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone</Label>
                 <Input id="phone" {...form.register("phone")} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="idType">Identification type</Label>
+                <select id="idType" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" {...form.register("idType")}>
+                  <option value="sa_id">South African ID</option>
+                  <option value="passport">Passport</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="idNumber">{form.watch("idType") === "passport" ? "Passport number" : "SA ID number"}</Label>
+                <Input id="idNumber" {...form.register("idNumber")} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="dateOfBirth">Date of birth</Label>
+                <Input
+                  id="dateOfBirth"
+                  type="date"
+                  {...form.register("dateOfBirth")}
+                  readOnly={watchedIdType === "sa_id"}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {watchedIdType === "passport"
+                    ? "Enter your date of birth exactly as it appears on your passport."
+                    : "Auto-derived from your South African ID number."}
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="hoursAvailablePerWeek">Hours available per week</Label>

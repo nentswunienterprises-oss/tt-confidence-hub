@@ -381,8 +381,8 @@ function Router() {
       <Route path="/operational/td/gateway" element={<TdGateway />} />
       <Route path="/operational/td/dashboard" element={<TdGatewayGuard><OperationalTDDashboard /></TdGatewayGuard>} />
       <Route path="/operational/td/no-pod" element={<TdGatewayGuard><TDNoPod /></TdGatewayGuard>} />
-      <Route path="/operational/td/my-pods" element={<TdGatewayGuard><TDOverview /></TdGatewayGuard>} />
-      <Route path="/operational/td/my-pods/:podId" element={<TdGatewayGuard><TDOverview /></TdGatewayGuard>} />
+      <Route path="/operational/td/my-pods" element={<TdGatewayGuard><DashboardLayout><TDOverview /></DashboardLayout></TdGatewayGuard>} />
+      <Route path="/operational/td/my-pods/:podId" element={<TdGatewayGuard><DashboardLayout><TDOverview /></DashboardLayout></TdGatewayGuard>} />
       <Route path="/operational/td/reports" element={<TdGatewayGuard><DashboardLayout><TDReports /></DashboardLayout></TdGatewayGuard>} />
       <Route path="/operational/td/updates" element={<TdGatewayGuard><DashboardLayout><TDUpdates /></DashboardLayout></TdGatewayGuard>} />
 
@@ -456,8 +456,8 @@ function Router() {
       <Route path="/td/signup" element={<TdSignup />} />
       <Route path="/td/no-pod" element={<TdGatewayGuard><TDNoPod /></TdGatewayGuard>} />
       <Route path="/td/dashboard" element={<TdGatewayGuard><TDDashboard /></TdGatewayGuard>} />
-      <Route path="/td/overview" element={<TdGatewayGuard><TDOverview /></TdGatewayGuard>} />
-      <Route path="/td/overview/:podId" element={<TdGatewayGuard><TDOverview /></TdGatewayGuard>} />
+      <Route path="/td/overview" element={<TdGatewayGuard><DashboardLayout><TDOverview /></DashboardLayout></TdGatewayGuard>} />
+      <Route path="/td/overview/:podId" element={<TdGatewayGuard><DashboardLayout><TDOverview /></DashboardLayout></TdGatewayGuard>} />
       <Route path="/td/tutors" element={<TdGatewayGuard><TDTutors /></TdGatewayGuard>} />
       <Route path="/td/reports" element={<TdGatewayGuard><TDReports /></TdGatewayGuard>} />
       <Route path="/td/updates" element={<TdGatewayGuard><TDUpdates /></TdGatewayGuard>} />

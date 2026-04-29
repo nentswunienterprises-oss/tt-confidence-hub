@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { renderToStaticMarkup } from "react-dom/server.browser";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, Download, Expand, FileCheck, Loader2 } from "lucide-react";
+import { CheckCircle2, Download, Expand, FileCheck, Loader2, Upload } from "lucide-react";
 import { API_URL } from "@/lib/config";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,10 @@ type DocumentDefinition = {
   mandatoryClauses: Clause[];
   content: string;
   contentHash: string;
+  requiresAcceptance: boolean;
+  requiresUpload: boolean;
+  uploadTitle?: string;
+  uploadDescription?: string;
 };
 
 type Props = {
@@ -41,6 +45,7 @@ const DEFAULT_STATUSES: Record<string, string> = {
   "4": "not_started",
   "5": "not_started",
   "6": "not_started",
+  "7": "not_started",
 };
 
 const TD_STEP_META: Record<number, { code: string; shortTitle: string }> = {
@@ -50,10 +55,33 @@ const TD_STEP_META: Record<number, { code: string; shortTitle: string }> = {
   4: { code: "TT-HTQ-004", shortTitle: "HTQ Addendum" },
   5: { code: "TT-PSA-005", shortTitle: "Scorecard Acknowledgement" },
   6: { code: "TT-CSP-006", shortTitle: "Confidentiality" },
+  7: { code: "TT-TDI-007", shortTitle: "Certified Identification" },
 };
 
 function normalizeValue(value: unknown) {
   return String(value ?? "").trim();
+}
+
+function getTdIdentificationType(applicationStatus: any) {
+  const value = String(applicationStatus?.id_type || applicationStatus?.idType || "").trim().toLowerCase();
+  return value === "passport" ? "passport" : "sa_id";
+}
+
+function getTdIdentificationLabel(applicationStatus: any) {
+  return getTdIdentificationType(applicationStatus) === "passport" ? "Passport" : "South African ID";
+}
+
+function fileToBase64(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = String(reader.result || "");
+      const base64 = result.includes(",") ? result.split(",")[1] : result;
+      resolve(base64);
+    };
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsDataURL(file);
+  });
 }
 
 function statusLabel(status: string) {
@@ -286,6 +314,7 @@ export function TdSequentialAgreementAcceptance({ applicationId, applicationStat
   const [generalRead, setGeneralRead] = useState(false);
   const [generalBound, setGeneralBound] = useState(false);
   const [clauseChecks, setClauseChecks] = useState<Record<string, boolean>>({});
+  const [selectedUploadFile, setSelectedUploadFile] = useState<File | null>(null);
 
   const { data, isLoading } = useQuery<{ applicationId: string; documents: DocumentDefinition[] }>({
     queryKey: ["/api/td/onboarding-documents", applicationId],
@@ -305,17 +334,17 @@ export function TdSequentialAgreementAcceptance({ applicationId, applicationStat
   const acceptanceMap = applicationStatus?.onboardingAcceptanceMap || {};
 
   const currentStep = useMemo(() => {
-    for (const step of [1, 2, 3, 4, 5, 6]) {
+    for (const step of [1, 2, 3, 4, 5, 6, 7]) {
       if (documentsStatus[String(step)] !== "approved") return step;
     }
-    return 6;
+    return 7;
   }, [documentsStatus]);
 
   const currentDocument = data?.documents?.find((document) => document.step === currentStep);
   const currentAcceptance = acceptanceMap[String(currentStep)];
   const acceptanceAlreadyRecorded = Boolean(currentAcceptance);
   const currentStatus = documentsStatus[String(currentStep)] || "not_started";
-  const allApproved = ["1", "2", "3", "4", "5", "6"].every((step) => documentsStatus[step] === "approved");
+  const allApproved = ["1", "2", "3", "4", "5", "6", "7"].every((step) => documentsStatus[step] === "approved");
   const acceptanceResetKey = `${currentStep}:${currentAcceptance?.acceptedAt || currentAcceptance?.accepted_at || "pending"}`;
   const hydratedDocumentContent = useMemo(
     () => hydrateTdDocumentContent(currentDocument?.content || "", buildTdFieldValues(applicationStatus, typedFullName)),
@@ -340,6 +369,7 @@ export function TdSequentialAgreementAcceptance({ applicationId, applicationStat
     setViewStartedAt(null);
     setViewCompletedAt(currentAcceptance ? currentAcceptance?.viewCompletedAt || currentAcceptance?.view_completed_at || null : null);
     setReaderOpen(false);
+    setSelectedUploadFile(null);
   }, [acceptanceResetKey, applicationStatus, currentAcceptance, currentDocument]);
 
   const handleReaderScroll = () => {
@@ -467,6 +497,51 @@ export function TdSequentialAgreementAcceptance({ applicationId, applicationStat
     },
   });
 
+  const uploadMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentDocument || !currentDocument.requiresUpload) throw new Error("No upload step is active");
+      if (!selectedUploadFile) throw new Error("Choose a file before uploading");
+
+      const base64 = await fileToBase64(selectedUploadFile);
+      const response = await fetch(`${API_URL}/api/td/onboarding-documents/upload`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          applicationId,
+          docStep: currentDocument.step,
+          fileName: selectedUploadFile.name,
+          fileType: selectedUploadFile.type || "application/octet-stream",
+          fileData: base64,
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload?.message || "Failed to upload identification");
+      return payload;
+    },
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["/api/td/application-status"] }),
+        queryClient.invalidateQueries({ queryKey: ["/api/td/gateway-session"] }),
+        queryClient.invalidateQueries({ queryKey: ["/api/td/onboarding-documents", applicationId] }),
+        queryClient.invalidateQueries({ queryKey: ["/api/coo/td-applications"] }),
+      ]);
+      toast({
+        title: "Identification uploaded",
+        description: "Your certified identification copy is now pending COO review.",
+      });
+      setSelectedUploadFile(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Upload failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const downloadAcceptedCopyFor = (document: DocumentDefinition, acceptance: any) => {
     if (!document || !acceptance) return;
     const html = buildAcceptedCopyHtml({ document, acceptance, applicationStatus });
@@ -487,8 +562,8 @@ export function TdSequentialAgreementAcceptance({ applicationId, applicationStat
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
               <CheckCircle2 className="h-6 w-6 text-green-700" />
             </div>
-            <h3 className="mt-4 text-lg font-semibold">All TD agreements completed</h3>
-            <p className="mt-2 text-sm text-muted-foreground">Every TD onboarding agreement has been accepted and recorded.</p>
+            <h3 className="mt-4 text-lg font-semibold">All TD onboarding steps completed</h3>
+            <p className="mt-2 text-sm text-muted-foreground">Every TD agreement and identification requirement has been completed and recorded.</p>
           </div>
 
           {data?.documents?.length ? (
@@ -542,7 +617,7 @@ export function TdSequentialAgreementAcceptance({ applicationId, applicationStat
           <CardHeader className="space-y-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <CardTitle className="text-xl">Step {currentStep} of 6</CardTitle>
+                <CardTitle className="text-xl">Step {currentStep} of 7</CardTitle>
                 <p className="mt-1 text-sm text-muted-foreground">{currentDocument.title}</p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -551,12 +626,12 @@ export function TdSequentialAgreementAcceptance({ applicationId, applicationStat
                 <Badge variant="outline">{statusLabel(currentStatus)}</Badge>
               </div>
             </div>
-            <Progress value={(currentStep / 6) * 100} />
+            <Progress value={(currentStep / 7) * 100} />
           </CardHeader>
 
           <CardContent className="space-y-5">
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
-              {[1, 2, 3, 4, 5, 6].map((step) => {
+              {[1, 2, 3, 4, 5, 6, 7].map((step) => {
                 const status = documentsStatus[String(step)];
                 const meta = TD_STEP_META[step];
                 const tone =
@@ -578,149 +653,263 @@ export function TdSequentialAgreementAcceptance({ applicationId, applicationStat
               })}
             </div>
 
-            <div className="rounded-2xl border border-[#E7D5C8] bg-[#FFF5ED] p-4 text-[#1A1A1A] sm:p-5">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Agreement review</p>
-                  <p className="text-sm text-[#6B5B52]">Open the agreement, review the full text, scroll to the end, then return here to unlock acceptance.</p>
-                </div>
-                <Button
-                  type="button"
-                  onClick={() => {
-                    setReaderSession((current) => current + 1);
-                    setReaderOpen(true);
-                  }}
-                  className="w-full bg-[#E63946] text-white hover:bg-[#cf2e3c] sm:w-auto"
-                >
-                  <Expand className="mr-2 h-4 w-4" />
-                  Open agreement
-                </Button>
-              </div>
-              <div className="mt-4 flex flex-col gap-1 text-xs text-[#6B5B52] sm:flex-row sm:flex-wrap sm:gap-3">
-                <span>Read progress: {readerPercent}%</span>
-                <span>{hasCompletedReading ? "Reader completed" : "Acceptance remains locked until the agreement is fully read"}</span>
-              </div>
-            </div>
-
-            <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-              <div className="space-y-4 rounded-2xl border p-4">
-                <div>
-                  <p className="font-medium">Acceptance workspace</p>
-                  <p className="text-sm text-muted-foreground">This area unlocks only after the agreement reader is completed.</p>
-                </div>
-
-                <div className="grid gap-3 rounded-xl bg-slate-50 p-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="td-typed-full-name">Acceptance name</Label>
-                    <Input
-                      id="td-typed-full-name"
-                      value={typedFullName}
-                      disabled
-                      placeholder="Captured from the TD application"
-                    />
+            {currentDocument.requiresUpload ? (
+              <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+                <div className="space-y-4 rounded-2xl border p-4">
+                  <div>
+                    <p className="font-medium">{currentDocument.uploadTitle || "Identification upload"}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {currentDocument.uploadDescription || "Upload your certified identification copy for COO review."}
+                    </p>
                   </div>
 
-                  {currentDocument.mandatoryClauses.length ? (
-                    <div className="space-y-3 rounded-xl border border-[#E7D5C8] bg-[#FFF8F4] p-4">
-                      <div>
-                        <p className="font-sans text-sm font-bold uppercase tracking-[0.12em] text-[#7b341e]">Mandatory Clauses</p>
-                        <p className="mt-1 text-sm text-[#6B5B52]">Each clause must be acknowledged before this TD agreement can be accepted.</p>
+                  <div className="rounded-2xl border border-[#E7D5C8] bg-[#FFF5ED] p-4 text-[#1A1A1A] sm:p-5">
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium">Accepted identification type</p>
+                      <p className="text-sm text-[#6B5B52]">
+                        Upload a certified copy of your {getTdIdentificationLabel(applicationStatus)}. This upload is reviewed by COO before TD access is fully unlocked.
+                      </p>
+                    </div>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-xl border border-[#E7D5C8] bg-white p-3">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8A7A70]">Identification type</p>
+                        <p className="mt-2 text-sm text-[#1A1A1A]">{getTdIdentificationLabel(applicationStatus)}</p>
                       </div>
-
-                      <div className="space-y-3">
-                        {currentDocument.mandatoryClauses.map((clause, index) => (
-                          <label key={clause.key} className="flex items-start gap-3 rounded-xl border border-[#E7D5C8] bg-white p-3 text-sm">
-                            <Checkbox
-                              checked={clauseChecks[clause.key] || false}
-                              disabled={!hasCompletedReading || acceptanceAlreadyRecorded}
-                              onCheckedChange={(value) => setClauseChecks((current) => ({ ...current, [clause.key]: Boolean(value) }))}
-                            />
-                            <span className="space-y-1">
-                              <span className="block font-sans text-xs font-bold uppercase tracking-[0.12em] text-[#7b341e]">
-                                Clause {index + 1}
-                              </span>
-                              <span className="block text-[#1A1A1A]">{clause.label}</span>
-                            </span>
-                          </label>
-                        ))}
+                      <div className="rounded-xl border border-[#E7D5C8] bg-white p-3">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8A7A70]">
+                          {getTdIdentificationType(applicationStatus) === "passport" ? "Passport number" : "SA ID number"}
+                        </p>
+                        <p className="mt-2 text-sm text-[#1A1A1A]">{applicationStatus?.id_number || applicationStatus?.idNumber || "Not captured"}</p>
                       </div>
                     </div>
-                  ) : null}
+                  </div>
 
-                  <label className="flex items-start gap-3 text-sm">
-                    <Checkbox
-                      checked={generalRead}
-                      disabled={!hasCompletedReading || acceptanceAlreadyRecorded}
-                      onCheckedChange={(value) => setGeneralRead(Boolean(value))}
-                    />
-                    <span>I have read and understood this agreement.</span>
-                  </label>
+                  <div className="grid gap-3 rounded-xl bg-slate-50 p-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="td-certified-id-upload">
+                        {getTdIdentificationType(applicationStatus) === "passport" ? "Certified passport copy" : "Certified South African ID copy"}
+                      </Label>
+                      <Input
+                        id="td-certified-id-upload"
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png,.webp"
+                        disabled={currentStatus === "pending_review" || currentStatus === "approved" || uploadMutation.isPending}
+                        onChange={(event) => setSelectedUploadFile(event.target.files?.[0] || null)}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Upload a clear certified copy in PDF or image format. Status will move to review once uploaded.
+                      </p>
+                    </div>
 
-                  <label className="flex items-start gap-3 text-sm">
-                    <Checkbox
-                      checked={generalBound}
-                      disabled={!hasCompletedReading || acceptanceAlreadyRecorded}
-                      onCheckedChange={(value) => setGeneralBound(Boolean(value))}
-                    />
-                    <span>I agree to be legally bound by these terms and understand TT will store an audit record of this acceptance.</span>
-                  </label>
+                    {selectedUploadFile ? (
+                      <div className="rounded-xl border border-[#E7D5C8] bg-white p-3 text-sm">
+                        <p className="font-medium text-[#1A1A1A]">{selectedUploadFile.name}</p>
+                        <p className="mt-1 text-muted-foreground">
+                          {(selectedUploadFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    ) : null}
+
+                    <Button
+                      type="button"
+                      disabled={!selectedUploadFile || currentStatus === "pending_review" || currentStatus === "approved" || uploadMutation.isPending}
+                      onClick={() => uploadMutation.mutate()}
+                      className="w-full gap-2"
+                    >
+                      {uploadMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                      {uploadMutation.isPending ? "Uploading..." : currentStatus === "pending_review" ? "Pending COO review" : currentStatus === "approved" ? "Identification approved" : "Upload identification"}
+                    </Button>
+                  </div>
                 </div>
 
-                <Button type="button" disabled={!canAccept || acceptMutation.isPending} onClick={() => acceptMutation.mutate()} className="w-full gap-2">
-                  {acceptMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileCheck className="h-4 w-4" />}
-                  {acceptMutation.isPending ? "Accepting..." : "Accept and continue"}
-                </Button>
+                <div className="space-y-4 rounded-2xl border p-4">
+                  <div>
+                    <p className="font-medium">Captured details</p>
+                    <p className="text-sm text-muted-foreground">This upload is tied to your submitted TD application identity.</p>
+                  </div>
+                  <div className="space-y-3 rounded-xl bg-[#FFF8F4] p-4 text-sm text-[#5A5A5A]">
+                    <div>
+                      <p className="font-medium text-[#1A1A1A]">Full legal name</p>
+                      <p>{typedFullName || "Pending"}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-[#1A1A1A]">Email address</p>
+                      <p>{applicationStatus?.email || "Pending"}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-[#1A1A1A]">Phone number</p>
+                      <p>{applicationStatus?.phone || "Pending"}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-[#1A1A1A]">Current status</p>
+                      <p>{statusLabel(currentStatus)}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-[#1A1A1A]">Current file</p>
+                      <p>
+                        {applicationStatus?.doc_7_submission_url ? (
+                          <a href={applicationStatus.doc_7_submission_url} target="_blank" rel="noreferrer" className="text-[#9F1D2B] underline underline-offset-2">
+                            Open uploaded copy
+                          </a>
+                        ) : "No file uploaded yet"}
+                      </p>
+                    </div>
+                    {(applicationStatus?.doc_7_submission_rejection_reason || applicationStatus?.doc7SubmissionRejectionReason) ? (
+                      <div>
+                        <p className="font-medium text-[#1A1A1A]">Rejection reason</p>
+                        <p>{applicationStatus?.doc_7_submission_rejection_reason || applicationStatus?.doc7SubmissionRejectionReason}</p>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
               </div>
+            ) : (
+              <div className="space-y-5">
+                <div className="rounded-2xl border border-[#E7D5C8] bg-[#FFF5ED] p-4 text-[#1A1A1A] sm:p-5">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">Agreement review</p>
+                      <p className="text-sm text-[#6B5B52]">Open the agreement, review the full text, scroll to the end, then return here to unlock acceptance.</p>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        setReaderSession((current) => current + 1);
+                        setReaderOpen(true);
+                      }}
+                      className="w-full bg-[#E63946] text-white hover:bg-[#cf2e3c] sm:w-auto"
+                    >
+                      <Expand className="mr-2 h-4 w-4" />
+                      Open agreement
+                    </Button>
+                  </div>
+                  <div className="mt-4 flex flex-col gap-1 text-xs text-[#6B5B52] sm:flex-row sm:flex-wrap sm:gap-3">
+                    <span>Read progress: {readerPercent}%</span>
+                    <span>{hasCompletedReading ? "Reader completed" : "Acceptance remains locked until the agreement is fully read"}</span>
+                  </div>
+                </div>
 
-              <div className="space-y-4 rounded-2xl border p-4">
-                <div>
-                  <p className="font-medium">Captured details</p>
-                  <p className="text-sm text-muted-foreground">The agreement is tied to the submitted TD application and stored with the acceptance record.</p>
-                </div>
-                <div className="space-y-3 rounded-xl bg-[#FFF8F4] p-4 text-sm text-[#5A5A5A]">
-                  <div>
-                    <p className="font-medium text-[#1A1A1A]">Full legal name</p>
-                    <p>{typedFullName || "Pending"}</p>
+                <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+                  <div className="space-y-4 rounded-2xl border p-4">
+                    <div>
+                      <p className="font-medium">Acceptance workspace</p>
+                      <p className="text-sm text-muted-foreground">This area unlocks only after the agreement reader is completed.</p>
+                    </div>
+
+                    <div className="grid gap-3 rounded-xl bg-slate-50 p-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="td-typed-full-name">Acceptance name</Label>
+                        <Input
+                          id="td-typed-full-name"
+                          value={typedFullName}
+                          disabled
+                          placeholder="Captured from the TD application"
+                        />
+                      </div>
+
+                      {currentDocument.mandatoryClauses.length ? (
+                        <div className="space-y-3 rounded-xl border border-[#E7D5C8] bg-[#FFF8F4] p-4">
+                          <div>
+                            <p className="font-sans text-sm font-bold uppercase tracking-[0.12em] text-[#7b341e]">Mandatory Clauses</p>
+                            <p className="mt-1 text-sm text-[#6B5B52]">Each clause must be acknowledged before this TD agreement can be accepted.</p>
+                          </div>
+
+                          <div className="space-y-3">
+                            {currentDocument.mandatoryClauses.map((clause, index) => (
+                              <label key={clause.key} className="flex items-start gap-3 rounded-xl border border-[#E7D5C8] bg-white p-3 text-sm">
+                                <Checkbox
+                                  checked={clauseChecks[clause.key] || false}
+                                  disabled={!hasCompletedReading || acceptanceAlreadyRecorded}
+                                  onCheckedChange={(value) => setClauseChecks((current) => ({ ...current, [clause.key]: Boolean(value) }))}
+                                />
+                                <span className="space-y-1">
+                                  <span className="block font-sans text-xs font-bold uppercase tracking-[0.12em] text-[#7b341e]">
+                                    Clause {index + 1}
+                                  </span>
+                                  <span className="block text-[#1A1A1A]">{clause.label}</span>
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+
+                      <label className="flex items-start gap-3 text-sm">
+                        <Checkbox
+                          checked={generalRead}
+                          disabled={!hasCompletedReading || acceptanceAlreadyRecorded}
+                          onCheckedChange={(value) => setGeneralRead(Boolean(value))}
+                        />
+                        <span>I have read and understood this agreement.</span>
+                      </label>
+
+                      <label className="flex items-start gap-3 text-sm">
+                        <Checkbox
+                          checked={generalBound}
+                          disabled={!hasCompletedReading || acceptanceAlreadyRecorded}
+                          onCheckedChange={(value) => setGeneralBound(Boolean(value))}
+                        />
+                        <span>I agree to be legally bound by these terms and understand TT will store an audit record of this acceptance.</span>
+                      </label>
+                    </div>
+
+                    <Button type="button" disabled={!canAccept || acceptMutation.isPending} onClick={() => acceptMutation.mutate()} className="w-full gap-2">
+                      {acceptMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileCheck className="h-4 w-4" />}
+                      {acceptMutation.isPending ? "Accepting..." : "Accept and continue"}
+                    </Button>
                   </div>
-                  <div>
-                    <p className="font-medium text-[#1A1A1A]">Email address</p>
-                    <p>{applicationStatus?.email || "Pending"}</p>
+
+                  <div className="space-y-4 rounded-2xl border p-4">
+                    <div>
+                      <p className="font-medium">Captured details</p>
+                      <p className="text-sm text-muted-foreground">The agreement is tied to the submitted TD application and stored with the acceptance record.</p>
+                    </div>
+                    <div className="space-y-3 rounded-xl bg-[#FFF8F4] p-4 text-sm text-[#5A5A5A]">
+                      <div>
+                        <p className="font-medium text-[#1A1A1A]">Full legal name</p>
+                        <p>{typedFullName || "Pending"}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-[#1A1A1A]">Email address</p>
+                        <p>{applicationStatus?.email || "Pending"}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-[#1A1A1A]">Phone number</p>
+                        <p>{applicationStatus?.phone || "Pending"}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-[#1A1A1A]">Current status</p>
+                        <p>{statusLabel(currentStatus)}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full sm:w-auto"
+                        onClick={() => {
+                          setReaderSession((current) => current + 1);
+                          setReaderOpen(true);
+                        }}
+                      >
+                        <Expand className="mr-2 h-4 w-4" />
+                        Review again
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full whitespace-normal text-left sm:w-auto sm:whitespace-nowrap sm:text-center"
+                        disabled={!acceptanceAlreadyRecorded}
+                        onClick={() => currentAcceptance && downloadAcceptedCopyFor(currentDocument, currentAcceptance)}
+                      >
+                        <Download className="mr-2 h-4 w-4 shrink-0" />
+                        Download accepted copy
+                      </Button>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-[#1A1A1A]">Phone number</p>
-                    <p>{applicationStatus?.phone || "Pending"}</p>
-                  </div>
-                  <div>
-                    <p className="font-medium text-[#1A1A1A]">Current status</p>
-                    <p>{statusLabel(currentStatus)}</p>
-                  </div>
-                </div>
-                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full sm:w-auto"
-                    onClick={() => {
-                      setReaderSession((current) => current + 1);
-                      setReaderOpen(true);
-                    }}
-                  >
-                    <Expand className="mr-2 h-4 w-4" />
-                    Review again
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full whitespace-normal text-left sm:w-auto sm:whitespace-nowrap sm:text-center"
-                    disabled={!acceptanceAlreadyRecorded}
-                    onClick={() => currentAcceptance && downloadAcceptedCopyFor(currentDocument, currentAcceptance)}
-                  >
-                    <Download className="mr-2 h-4 w-4 shrink-0" />
-                    Download accepted copy
-                  </Button>
                 </div>
               </div>
-            </div>
+            )}
 
             {data?.documents?.some((document) => acceptanceMap[String(document.step)]) ? (
               <div className="rounded-2xl border p-4">
@@ -759,6 +948,7 @@ export function TdSequentialAgreementAcceptance({ applicationId, applicationStat
         </Card>
       </div>
 
+      {!currentDocument.requiresUpload ? (
       <Dialog open={readerOpen} onOpenChange={setReaderOpen}>
         <DialogContent
           key={`td-reader-${currentDocument.step}-${readerSession}`}
@@ -901,6 +1091,7 @@ export function TdSequentialAgreementAcceptance({ applicationId, applicationStat
           </div>
         </DialogContent>
       </Dialog>
+      ) : null}
     </>
   );
 }
