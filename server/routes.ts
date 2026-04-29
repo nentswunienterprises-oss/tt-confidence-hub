@@ -12399,7 +12399,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["tutor"]),
     async (req: Request, res: Response) => {
       try {
-        const userId = (req.session as any).userId;
+        const userId = (req as any).dbUser?.id || (req.session as any)?.userId;
         const data = insertTutorApplicationSchema.parse({
           ...req.body,
           userId,
@@ -12420,7 +12420,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["tutor"]),
     async (req: Request, res: Response) => {
       try {
-        const userId = (req.session as any).userId;
+        const userId = (req as any).dbUser?.id || (req.session as any)?.userId;
         console.log("📋 Fetching tutor application status for user:", userId);
         
         // Add a timeout so this doesn't hang forever (increased to 15s for high-latency networks)
@@ -12538,7 +12538,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["tutor"]),
     async (req: Request, res: Response) => {
       try {
-        const userId = (req.session as any).userId;
+        const userId = (req as any).dbUser?.id || (req.session as any)?.userId;
         const applications = await storage.getTutorApplicationsByUser(userId);
         const latestApp = applications[0];
 
@@ -12586,7 +12586,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["tutor"]),
     async (req: Request, res: Response) => {
       try {
-        const userId = (req.session as any).userId;
+        const userId = (req as any).dbUser?.id || (req.session as any)?.userId;
         const docStep = Number(req.params.docStep);
         const {
           applicationId,
@@ -12719,7 +12719,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["tutor"]),
     async (req: Request, res: Response) => {
       try {
-        const userId = (req.session as any).userId;
+        const userId = (req as any).dbUser?.id || (req.session as any)?.userId;
         const { applicationId, docStep, fileName, fileData, fileType } = req.body;
         const parsedDocStep = typeof docStep === "number" ? docStep : Number(docStep);
         const isSequentialUpload = parsedDocStep === 2 || parsedDocStep === 6;
@@ -12854,7 +12854,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["tutor"]),
     async (req: Request, res: Response) => {
       try {
-        const userId = (req.session as any).userId;
+        const userId = (req as any).dbUser?.id || (req.session as any)?.userId;
         const { applicationId } = req.body;
 
         if (!applicationId) {
@@ -13716,7 +13716,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["affiliate"]),
     async (req: Request, res: Response) => {
       try {
-        const userId = (req.session as any).userId;
+        const userId = (req as any).dbUser?.id || (req.session as any)?.userId;
         const payload = {
           user_id: userId,
           full_name: String(req.body?.fullName || "").trim(),
@@ -13825,7 +13825,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["affiliate"]),
     async (req: Request, res: Response) => {
       try {
-        const userId = (req.session as any).userId;
+        const userId = (req as any).dbUser?.id || (req.session as any)?.userId;
         const applications = await getAffiliateApplicationsByQuery({ userId });
         const canonicalApplication = selectCanonicalAffiliateApplication(applications);
         if (!canonicalApplication) {
@@ -13867,7 +13867,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["affiliate"]),
     async (req: Request, res: Response) => {
       try {
-        const userId = (req.session as any).userId;
+        const userId = (req as any).dbUser?.id || (req.session as any)?.userId;
         const applications = await getAffiliateApplicationsByQuery({ userId });
         const latestApp = selectCanonicalAffiliateApplication(applications);
 
@@ -13911,7 +13911,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["affiliate"]),
     async (req: Request, res: Response) => {
       try {
-        const userId = (req.session as any).userId;
+        const userId = (req as any).dbUser?.id || (req.session as any)?.userId;
         const docStep = Number(req.params.docStep);
         const {
           applicationId,
@@ -14098,7 +14098,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["affiliate"]),
     async (req: Request, res: Response) => {
       try {
-        const userId = (req.session as any).userId;
+        const userId = (req as any).dbUser?.id || (req.session as any)?.userId;
         const { applicationId, docStep, fileName, fileData, fileType } = req.body ?? {};
         const parsedDocStep = typeof docStep === "number" ? docStep : Number(docStep);
 
@@ -14195,7 +14195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["affiliate"]),
     async (req: Request, res: Response) => {
       try {
-        const userId = (req.session as any).userId;
+        const userId = (req as any).dbUser?.id || (req.session as any)?.userId;
         const { applicationId } = req.body ?? {};
         const applications = await getAffiliateApplicationsByQuery({ userId });
         const application = applications.find((entry: any) => entry.id === applicationId) || selectCanonicalAffiliateApplication(applications);
@@ -15178,7 +15178,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["hr", "ceo"]),
     async (req: Request, res: Response) => {
       try {
-        const userId = (req.session as any).userId;
+        const userId = (req as any).dbUser?.id || (req.session as any)?.userId;
         const { data, error } = await supabase
           .from("details")
           .insert({
@@ -15270,7 +15270,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["hr", "ceo"]),
     async (req: Request, res: Response) => {
       try {
-        const userId = (req.session as any).userId;
+        const userId = (req as any).dbUser?.id || (req.session as any)?.userId;
         const { data, error } = await supabase
           .from("projects")
           .insert({
