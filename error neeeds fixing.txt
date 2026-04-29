@@ -1,0 +1,9 @@
+[plugin:vite:react-babel] Duplicate declaration "AlertDialog"
+  123 | }
+  124 | import {
+> 125 |   AlertDialog,
+      |   ^^^^^^^^^^^
+  126 |   AlertDialogAction,
+  127 |   AlertDialogCancel,
+  128 |   AlertDialogContent,
+C:/Users/Thend/Downloads/Technology/PodDigitizer/client/src/pages/executive/coo/pod-detail.tsx

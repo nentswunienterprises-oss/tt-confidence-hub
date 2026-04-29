@@ -302,7 +302,7 @@ If you want to add these later:
 
 ---
 
-## 🎉 You're Done!
+##   You're Done!
 
 Everything is implemented. Just need to:
 1. Run the migration

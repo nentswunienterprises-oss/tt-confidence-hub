@@ -190,7 +190,7 @@ CREATE TABLE public.users (
 );
 ```
 
-## 🎉 Success Criteria
+##   Success Criteria
 
 You'll know everything is working when:
 

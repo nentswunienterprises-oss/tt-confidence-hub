@@ -135,25 +135,6 @@ export const TD_ONBOARDING_DOCUMENTS: TdOnboardingDocumentDefinition[] = [
       },
     ],
   },
-  {
-    step: 7,
-    code: "TT-HTQ-007",
-    title: "Head of Training & Quality Agreement",
-    fileName: "TT-HTQ-007.md",
-    version: "1",
-    requiresAcceptance: true,
-    requiresUpload: false,
-    mandatoryClauses: [
-      {
-        key: "htq_authority_is_conditional",
-        label: "I understand that HTQ authority is conditional on sustained system integrity and performance.",
-      },
-      {
-        key: "equity_vesting_conditions",
-        label: "I understand that any HTQ equity participation is conditional, staged, and forfeitable under the agreement.",
-      },
-    ],
-  },
 ];
 
 const DOC_MAP = new Map(TD_ONBOARDING_DOCUMENTS.map((doc) => [doc.step, doc]));

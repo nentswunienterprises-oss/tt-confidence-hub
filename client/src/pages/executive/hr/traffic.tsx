@@ -23,7 +23,7 @@ interface TrafficStats {
 import { format } from "date-fns";
 import AssignTutorModal from "@/components/executive/AssignTutorModal";
 import { TutorDocumentReview } from "@/components/tutor/TutorDocumentReview";
-import { COOAffiliateApplicationsPanel } from "@/pages/executive/coo/applications";
+import { COOAffiliateApplicationsPanel, COOTdApplicationsPanel } from "@/pages/executive/coo/applications";
 import type { TutorApplication } from "@shared/schema";
 import { RESPONSE_SYMPTOM_GROUPS } from "@shared/responseSymptomMapping";
 
@@ -871,7 +871,7 @@ export default function ExecutiveHRTraffic() {
 
       <Tabs defaultValue="tutor-applications" className="w-full">
         
-        <TabsList className="grid h-auto w-full grid-cols-1 gap-1 rounded-xl border border-primary/15 bg-muted/20 p-1 sm:grid-cols-3">
+        <TabsList className="grid h-auto w-full grid-cols-1 gap-1 rounded-xl border border-primary/15 bg-muted/20 p-1 sm:grid-cols-2 lg:grid-cols-4">
           <TabsTrigger value="tutor-applications" className="min-h-[3rem] gap-2 whitespace-normal px-3 py-2 text-left sm:text-center">
             <GraduationCap className="w-4 h-4" />
             <span className="flex-1 leading-tight">Tutor Applications</span>
@@ -888,6 +888,10 @@ export default function ExecutiveHRTraffic() {
           <TabsTrigger value="egp-applications" className="min-h-[3rem] gap-2 whitespace-normal px-3 py-2 text-left sm:text-center">
             <FileCheck className="w-4 h-4" />
             <span className="leading-tight">EGP Applications</span>
+          </TabsTrigger>
+          <TabsTrigger value="td-applications" className="min-h-[3rem] gap-2 whitespace-normal px-3 py-2 text-left sm:text-center">
+            <CheckCircle className="w-4 h-4" />
+            <span className="leading-tight">TD Applications</span>
           </TabsTrigger>
         </TabsList>
 
@@ -1095,6 +1099,10 @@ export default function ExecutiveHRTraffic() {
 
         <TabsContent value="egp-applications" className="space-y-6">
           <COOAffiliateApplicationsPanel />
+        </TabsContent>
+
+        <TabsContent value="td-applications" className="space-y-6">
+          <COOTdApplicationsPanel />
         </TabsContent>
 
         {/* Parent Enrollments Tab */}

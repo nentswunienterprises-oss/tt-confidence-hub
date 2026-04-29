@@ -4675,7 +4675,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       "4": "not_started",
       "5": "not_started",
       "6": "not_started",
-      "7": "not_started",
     };
 
     const buildTdOnboardingStatuses = (rawStatuses: any) => ({
@@ -4685,7 +4684,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     const deriveTdGatewayApplicationStatus = (latestApp: any) => {
       const documentsStatus = buildTdOnboardingStatuses(latestApp?.documentsStatus || latestApp?.documents_status);
-      const allApproved = ["1", "2", "3", "4", "5", "6", "7"].every(
+      const allApproved = ["1", "2", "3", "4", "5", "6"].every(
         (step) => String(documentsStatus[step] || "") === "approved"
       );
 
@@ -4712,12 +4711,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     };
 
     const getCurrentTdStepFromStatuses = (statuses: Record<string, string>) => {
-      for (let step = 1; step <= 7; step += 1) {
+      for (let step = 1; step <= 6; step += 1) {
         if (String(statuses[String(step)] || "not_started") !== "approved") {
           return step;
         }
       }
-      return 7;
+      return 6;
     };
 
     const buildTdAcceptanceMap = (acceptanceRows: any[]) =>
@@ -13401,7 +13400,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           acceptClickedAt,
         } = req.body ?? {};
 
-        if (!applicationId || !Number.isInteger(docStep) || docStep < 1 || docStep > 7) {
+        if (!applicationId || !Number.isInteger(docStep) || docStep < 1 || docStep > 6) {
           return res.status(400).json({ message: "Invalid TD onboarding acceptance request" });
         }
         if (!String(typedFullName || "").trim()) {
@@ -13522,16 +13521,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         documentsStatus[String(docStep)] = "approved";
-        if (docStep < 7 && documentsStatus[String(docStep + 1)] !== "approved") {
+        if (docStep < 6 && documentsStatus[String(docStep + 1)] !== "approved") {
           documentsStatus[String(docStep + 1)] = "pending_upload";
         }
 
-        const allApproved = ["1", "2", "3", "4", "5", "6", "7"].every((step) => String(documentsStatus[step] || "") === "approved");
+        const allApproved = ["1", "2", "3", "4", "5", "6"].every((step) => String(documentsStatus[step] || "") === "approved");
         const { error: updateError } = await supabase
           .from("td_applications")
           .update({
             documents_status: documentsStatus,
-            document_submission_step: docStep < 7 ? docStep + 1 : 7,
+            document_submission_step: docStep < 6 ? docStep + 1 : 6,
             onboarding_completed_at: allApproved ? new Date() : null,
             updated_at: new Date(),
           })
@@ -13581,7 +13580,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const documentsStatus = buildTdOnboardingStatuses(application.documentsStatus || application.documents_status);
-        const allApproved = ["1", "2", "3", "4", "5", "6", "7"].every((step) => String(documentsStatus[step] || "") === "approved");
+        const allApproved = ["1", "2", "3", "4", "5", "6"].every((step) => String(documentsStatus[step] || "") === "approved");
         if (!allApproved) {
           return res.status(400).json({ message: "All TD onboarding steps must be approved before onboarding can be completed." });
         }

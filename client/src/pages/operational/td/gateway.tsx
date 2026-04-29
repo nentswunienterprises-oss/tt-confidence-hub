@@ -75,7 +75,7 @@ export default function TdGateway() {
     if (!applicationStatus) return label === "Application";
     const status = applicationStatus.status;
     const documentsStatus = applicationStatus.documentsStatus || {};
-    const allApproved = ["1", "2", "3", "4", "5", "6", "7"].every((stepKey) => documentsStatus[stepKey] === "approved");
+    const allApproved = ["1", "2", "3", "4", "5", "6"].every((stepKey) => documentsStatus[stepKey] === "approved");
 
     switch (label) {
       case "Application":

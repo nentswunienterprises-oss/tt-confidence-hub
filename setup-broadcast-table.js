@@ -49,7 +49,7 @@ async function createTable() {
       console.log('✅ Query executed successfully');
     }
 
-    console.log('\n🎉 broadcast_reads table and indexes created successfully!');
+    console.log('\n  broadcast_reads table and indexes created successfully!');
     console.log('✅ Function get_unread_broadcast_count created!');
     console.log('✅ Permissions granted!');
     

@@ -128,7 +128,7 @@ export default function TDReports() {
 
                   {/* Wins */}
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-sm text-green-700">🎉 Wins</h4>
+                    <h4 className="font-semibold text-sm text-green-700">  Wins</h4>
                     <p className="text-sm text-gray-600 leading-relaxed">{checkIn.wins}</p>
                   </div>
 

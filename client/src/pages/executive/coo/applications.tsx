@@ -438,6 +438,332 @@ export function COOAffiliateApplicationsPanel() {
   );
 }
 
+const tdQuestionPrompts: Array<{ key: string; label: string }> = [
+  { key: "systemUnderstandingDifference", label: "Q1. What is the difference between teaching content and training response?" },
+  { key: "studentFreezesBreak", label: "Q2. A student understands a topic but freezes during tests. What is actually broken?" },
+  { key: "explainingBetterNotEnough", label: "Q3. Why is explaining better often not enough?" },
+  { key: "supervisingTutorAction", label: "Q4. A tutor explains too much, helps too early, and avoids struggle. What do you do?" },
+  { key: "frustrationResponse", label: "Q5. The tutor says \"I did not want the student to feel frustrated.\" How do you respond?" },
+  { key: "adjustSystemAnswer", label: "Q6. Would you allow a tutor to adjust the system to suit their style? Why or why not?" },
+  { key: "highToMediumCauses", label: "Q7. A student moves from High to Medium. What are 3 possible causes?" },
+  { key: "highScoresNoImprovement", label: "Q8. A tutor gets high session scores but students are not improving long-term. What could be wrong?" },
+  { key: "sharedTutorMistakeMeaning", label: "Q9. If multiple tutors show the same mistake, what does that indicate?" },
+  { key: "correctOlderTutor", label: "Q10. You must correct someone older than you who is not following the system. How do you handle it?" },
+  { key: "pushbackResponse", label: "Q11. A tutor disagrees with your correction and pushes back. What do you do?" },
+  { key: "unpopularEnforcementCase", label: "Q12. Describe a situation where you had to enforce something unpopular. What happened?" },
+  { key: "noRescueExplanation", label: "Q13. Explain in a structured way: \"Why must a student not be rescued during difficulty?\"" },
+  { key: "moreDangerousTutor", label: "Q14. What is more dangerous: a weak tutor, or a slightly wrong tutor who seems good?" },
+  { key: "systemDestructionFactors", label: "Q15. What would slowly destroy a system like TT over time?" },
+  { key: "trustReason", label: "Q17. Why should you be trusted to protect a system like this?" },
+];
+
+const tdDefaultStatuses: Record<string, string> = {
+  "1": "pending_upload",
+  "2": "not_started",
+  "3": "not_started",
+  "4": "not_started",
+  "5": "not_started",
+  "6": "not_started",
+  "7": "not_started",
+};
+
+const tdDocumentMeta: Array<{ step: number; code: string; title: string }> = [
+  { step: 1, code: "TT-TDA-001", title: "Territory Director Contractor Agreement" },
+  { step: 2, code: "TT-CEA-002", title: "TT-OS Compliance & Enforcement Agreement" },
+  { step: 3, code: "TT-AID-003", title: "Audit Integrity Declaration" },
+  { step: 4, code: "TT-HTQ-004", title: "HTQ Track Addendum" },
+  { step: 5, code: "TT-PSA-005", title: "Performance Scorecard Acknowledgement" },
+  { step: 6, code: "TT-CSP-006", title: "Confidentiality & System Protection Agreement" },
+  { step: 7, code: "TT-HTQ-007", title: "Head of Training & Quality Agreement" },
+];
+
+function formatTdBooleanAnswer(value: unknown) {
+  if (value === "yes") return "Yes";
+  if (value === "no") return "No";
+  return value ? String(value) : "Not provided";
+}
+
+function getTdApplicationResponses(application: any) {
+  return application.application_responses || application.applicationResponses || {};
+}
+
+function getTdDocumentsStatus(application: any) {
+  return {
+    ...tdDefaultStatuses,
+    ...(application.documents_status || application.documentsStatus || {}),
+  };
+}
+
+function getTdAcceptanceMap(application: any) {
+  return application.onboardingAcceptanceMap || {};
+}
+
+function getTdCurrentStep(application: any) {
+  const statuses = getTdDocumentsStatus(application);
+  for (let step = 1; step <= 7; step += 1) {
+    if (String(statuses[String(step)] || "not_started") !== "approved") {
+      return step;
+    }
+  }
+  return 7;
+}
+
+function isTdCompleted(application: any) {
+  const statuses = getTdDocumentsStatus(application);
+  const allApproved = tdDocumentMeta.every(({ step }) => String(statuses[String(step)] || "") === "approved");
+  return allApproved || Boolean(application.onboarding_completed_at || application.onboardingCompletedAt);
+}
+
+function isTdWaitingOnApplicant(application: any) {
+  return (application.status === "approved" || application.status === "confirmed") && !isTdCompleted(application);
+}
+
+function formatTdStepStatus(status: unknown) {
+  return String(status || "not_started").replace(/_/g, " ");
+}
+
+function formatTdDateTime(value: unknown) {
+  if (!value) return "Not available";
+  const date = new Date(String(value));
+  if (Number.isNaN(date.getTime())) return "Not available";
+  return format(date, "PPP p");
+}
+
+export function COOTdApplicationsPanel() {
+  const { toast } = useToast();
+  const [selectedApplication, setSelectedApplication] = useState<any | null>(null);
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [subTab, setSubTab] = useState("pending");
+
+  const { data: applications = [], isLoading } = useQuery<any[]>({
+    queryKey: ["/api/coo/td-applications"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    refetchInterval: 5000,
+  });
+
+  const pendingApplications = useMemo(
+    () => applications.filter((application) => application.status === "pending"),
+    [applications]
+  );
+  const approvedApplications = useMemo(
+    () => applications.filter((application) => application.status === "approved"),
+    [applications]
+  );
+  const rejectedApplications = useMemo(
+    () => applications.filter((application) => application.status === "rejected"),
+    [applications]
+  );
+  const waitingOnTdApplications = useMemo(
+    () => applications.filter((application) => isTdWaitingOnApplicant(application)),
+    [applications]
+  );
+  const completedApplications = useMemo(
+    () => applications.filter((application) => isTdCompleted(application)),
+    [applications]
+  );
+
+  const approveMutation = useMutation({
+    mutationFn: async (applicationId: string) => {
+      await apiRequest("POST", `/api/coo/td-applications/${applicationId}/approve`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/coo/td-applications"] });
+      toast({ title: "Application approved", description: "The TD can now complete the onboarding flow." });
+      setSelectedApplication(null);
+    },
+    onError: (error: any) => {
+      toast({ title: "Approval failed", description: error?.message || "Failed to approve application.", variant: "destructive" });
+    },
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: async ({ applicationId, reason }: { applicationId: string; reason: string }) => {
+      await apiRequest("POST", `/api/coo/td-applications/${applicationId}/reject`, { reason });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/coo/td-applications"] });
+      toast({ title: "Application rejected", description: "The TD application has been rejected." });
+      setSelectedApplication(null);
+      setShowRejectDialog(false);
+      setRejectionReason("");
+    },
+    onError: (error: any) => {
+      toast({ title: "Rejection failed", description: error?.message || "Failed to reject application.", variant: "destructive" });
+    },
+  });
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-end">
+        <Badge className="bg-amber-100 text-amber-900">{pendingApplications.length} Pending</Badge>
+      </div>
+
+      {!isLoading ? (
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card className="border-amber-200 bg-amber-50">
+            <CardContent className="p-4">
+              <p className="text-xs uppercase tracking-wide text-amber-800">Needs Review</p>
+              <p className="mt-1 text-2xl font-semibold text-amber-950">{pendingApplications.length}</p>
+              <p className="text-xs text-amber-900/80">COO action required right now</p>
+            </CardContent>
+          </Card>
+          <Card className="border-slate-200">
+            <CardContent className="p-4">
+              <p className="text-xs uppercase tracking-wide text-slate-700">Waiting On TD</p>
+              <p className="mt-1 text-2xl font-semibold text-slate-950">{waitingOnTdApplications.length}</p>
+              <p className="text-xs text-slate-600">Approved but still moving through onboarding</p>
+            </CardContent>
+          </Card>
+          <Card className="border-green-200 bg-green-50">
+            <CardContent className="p-4">
+              <p className="text-xs uppercase tracking-wide text-green-800">Completed</p>
+              <p className="mt-1 text-2xl font-semibold text-green-950">{completedApplications.length}</p>
+              <p className="text-xs text-green-900/80">All seven agreements completed</p>
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
+
+      {isLoading ? (
+        <Card className="p-12 text-center">
+          <Loader2 className="mx-auto mb-3 h-8 w-8 animate-spin text-muted-foreground" />
+          <p className="text-muted-foreground">Loading TD applications...</p>
+        </Card>
+      ) : null}
+
+      {!isLoading ? (
+        <Tabs value={subTab} onValueChange={setSubTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 h-auto rounded-xl border border-primary/15 bg-muted/20 p-1 gap-1">
+            <TabsTrigger value="pending" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
+              <span className="inline-flex items-center gap-1.5">
+                <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                <span>Pending</span>
+              </span>
+              {pendingApplications.length > 0 ? (
+                <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-[10px]">
+                  {pendingApplications.length > 99 ? "99+" : pendingApplications.length}
+                </Badge>
+              ) : (
+                <span className="text-[10px] sm:text-xs text-muted-foreground">0</span>
+              )}
+            </TabsTrigger>
+
+            <TabsTrigger value="waiting-on-td" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
+              <span className="inline-flex items-center gap-1.5">
+                <FileCheck className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                <span>Waiting On TD</span>
+              </span>
+              {waitingOnTdApplications.length > 0 ? (
+                <Badge className="h-5 min-w-5 bg-amber-100 px-1.5 text-[10px] text-amber-900 border border-amber-200">
+                  {waitingOnTdApplications.length > 99 ? "99+" : waitingOnTdApplications.length}
+                </Badge>
+              ) : (
+                <span className="text-[10px] sm:text-xs text-muted-foreground">0</span>
+              )}
+            </TabsTrigger>
+
+            <TabsTrigger value="completed" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
+              <span className="inline-flex items-center gap-1.5">
+                <ShieldCheck className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                <span>Completed</span>
+              </span>
+              <span className="text-[10px] sm:text-xs text-muted-foreground">{completedApplications.length}</span>
+            </TabsTrigger>
+
+            <TabsTrigger value="rejected" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
+              <span className="inline-flex items-center gap-1.5">
+                <XCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                <span>Rejected</span>
+              </span>
+              <span className="text-[10px] sm:text-xs text-muted-foreground">{rejectedApplications.length}</span>
+            </TabsTrigger>
+
+            <TabsTrigger value="approved" className="text-xs sm:text-sm py-2 px-2 sm:px-3 justify-between sm:justify-center gap-2">
+              <span className="inline-flex items-center gap-1.5">
+                <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                <span>Approved</span>
+              </span>
+              <span className="text-[10px] sm:text-xs text-muted-foreground">{approvedApplications.length}</span>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="pending" className="space-y-4 mt-4">
+            <ApplicationSection title="Pending TD Applications" applications={pendingApplications} onViewDetails={setSelectedApplication} empty="No pending TD applications." />
+          </TabsContent>
+
+          <TabsContent value="waiting-on-td" className="space-y-4 mt-4">
+            <ApplicationSection title="Waiting On TD" applications={waitingOnTdApplications} onViewDetails={setSelectedApplication} empty="No approved TDs are currently mid-onboarding." />
+          </TabsContent>
+
+          <TabsContent value="completed" className="space-y-4 mt-4">
+            <ApplicationSection title="Completed TD Onboarding" applications={completedApplications} onViewDetails={setSelectedApplication} empty="No TDs have completed onboarding yet." />
+          </TabsContent>
+
+          <TabsContent value="approved" className="space-y-4 mt-4">
+            <ApplicationSection title="Approved TD Applications" applications={approvedApplications} onViewDetails={setSelectedApplication} empty="No approved TD applications." />
+          </TabsContent>
+
+          <TabsContent value="rejected" className="space-y-4 mt-4">
+            <ApplicationSection title="Rejected TD Applications" applications={rejectedApplications} onViewDetails={setSelectedApplication} empty="No rejected TD applications." />
+          </TabsContent>
+        </Tabs>
+      ) : null}
+
+      {selectedApplication ? (
+        <Dialog open={!!selectedApplication} onOpenChange={() => setSelectedApplication(null)}>
+          <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{selectedApplication.full_name || selectedApplication.fullName}</DialogTitle>
+              <DialogDescription>
+                Submitted {format(new Date(selectedApplication.created_at || selectedApplication.createdAt), "PPP")}
+              </DialogDescription>
+            </DialogHeader>
+
+            <TdApplicationDetails application={selectedApplication} />
+
+            {selectedApplication.status === "pending" ? (
+              <DialogFooter className="gap-2">
+                <Button variant="outline" onClick={() => setShowRejectDialog(true)}>
+                  <XCircle className="mr-2 h-4 w-4" />
+                  Reject
+                </Button>
+                <Button onClick={() => approveMutation.mutate(selectedApplication.id)} disabled={approveMutation.isPending}>
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                  {approveMutation.isPending ? "Approving..." : "Approve"}
+                </Button>
+              </DialogFooter>
+            ) : null}
+          </DialogContent>
+        </Dialog>
+      ) : null}
+
+      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject TD Application</DialogTitle>
+            <DialogDescription>Provide a clear reason so the applicant understands the decision.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="td-rejection-reason">Reason</Label>
+            <Textarea id="td-rejection-reason" value={rejectionReason} onChange={(event) => setRejectionReason(event.target.value)} rows={4} />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRejectDialog(false)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              disabled={!selectedApplication || !rejectionReason.trim() || rejectMutation.isPending}
+              onClick={() => selectedApplication && rejectMutation.mutate({ applicationId: selectedApplication.id, reason: rejectionReason.trim() })}
+            >
+              {rejectMutation.isPending ? "Rejecting..." : "Reject Application"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
 export default function COOAffiliateApplications() {
   return <COOAffiliateApplicationsPanel />;
 }
@@ -552,6 +878,128 @@ function AffiliateApplicationDetails({ application }: { application: any }) {
           }
         />
         <InfoItem label="Step 5 rejection reason" value={application.doc_5_submission_rejection_reason || "None"} />
+      </section>
+    </div>
+  );
+}
+
+function TdApplicationDetails({ application }: { application: any }) {
+  const responses = getTdApplicationResponses(application);
+  const statuses = getTdDocumentsStatus(application);
+  const acceptanceMap = getTdAcceptanceMap(application);
+  const currentStep = getTdCurrentStep(application);
+
+  return (
+    <div className="space-y-6">
+      <section className="space-y-2">
+        <h3 className="border-b pb-2 text-lg font-semibold">Core Details</h3>
+        <InfoItem label="Full name" value={application.full_name || application.fullName} />
+        <InfoItem label="Age" value={application.age} />
+        <InfoItem label="City" value={application.city} />
+        <InfoItem label="Email" value={application.email} />
+        <InfoItem label="Phone" value={application.phone} />
+        <InfoItem label="Hours available per week" value={application.hours_available_per_week || application.hoursAvailablePerWeek} />
+        <InfoItem label="Taught or mentored before" value={formatTdBooleanAnswer(application.taught_or_mentored_before || application.taughtOrMentoredBefore)} />
+        <InfoItem label="Led or supervised others" value={formatTdBooleanAnswer(application.led_or_supervised_others || application.ledOrSupervisedOthers)} />
+        <InfoItem label="Commitment to strict standard" value={formatTdBooleanAnswer(responses.commitmentToStandard)} />
+        <InfoItem label="Status" value={application.status} />
+        <InfoItem label="Current onboarding step" value={isTdCompleted(application) ? "Complete" : `Step ${currentStep} of 7`} />
+        <InfoItem label="Onboarding completed at" value={formatTdDateTime(application.onboarding_completed_at || application.onboardingCompletedAt)} />
+        {application.rejection_reason ? <InfoItem label="Rejection reason" value={application.rejection_reason} /> : null}
+      </section>
+
+      <section className="space-y-2">
+        <h3 className="border-b pb-2 text-lg font-semibold">Onboarding Progress</h3>
+        <div className="grid gap-4 md:grid-cols-2">
+          {tdDocumentMeta.map((document) => {
+            const status = statuses[String(document.step)];
+            const acceptance = acceptanceMap[String(document.step)];
+            return (
+              <div key={document.step} className="rounded-xl border border-[#E7D5C8] bg-[#FFF8F4] p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-[#1A1A1A]">{document.code}</p>
+                    <p className="mt-1 text-sm text-[#5A5A5A]">{document.title}</p>
+                  </div>
+                  <Badge variant={status === "approved" ? "default" : "secondary"}>
+                    {formatTdStepStatus(status)}
+                  </Badge>
+                </div>
+                <div className="mt-3 space-y-1 text-xs text-[#6B5B52]">
+                  <p>Step {document.step} of 7</p>
+                  <p>Accepted at: {formatTdDateTime(acceptance?.accepted_at || acceptance?.acceptedAt)}</p>
+                  <p>Accepted by: {acceptance?.typed_full_name || acceptance?.typedFullName || "Not yet accepted"}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="space-y-2">
+        <h3 className="border-b pb-2 text-lg font-semibold">Evidence Tracking</h3>
+        <div className="space-y-4">
+          {tdDocumentMeta.map((document) => {
+            const acceptance = acceptanceMap[String(document.step)];
+            if (!acceptance) {
+              return (
+                <div key={document.step} className="rounded-xl border p-4">
+                  <p className="font-semibold">{document.code} evidence</p>
+                  <p className="mt-2 text-sm text-muted-foreground">No acceptance receipt recorded yet.</p>
+                </div>
+              );
+            }
+
+            const acceptedClauses = acceptance.accepted_clauses_json || acceptance.acceptedClausesJson || [];
+            return (
+              <div key={document.step} className="rounded-xl border p-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p className="font-semibold">{document.code} evidence</p>
+                    <p className="text-sm text-muted-foreground">{document.title}</p>
+                  </div>
+                  <Badge>Accepted</Badge>
+                </div>
+                <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+                  <InfoItem label="Accepted at" value={formatTdDateTime(acceptance.accepted_at || acceptance.acceptedAt)} />
+                  <InfoItem label="Typed full name" value={acceptance.typed_full_name || acceptance.typedFullName || "Not available"} />
+                  <InfoItem label="Timezone" value={acceptance.accepted_timezone || acceptance.acceptedTimezone || "Not available"} />
+                  <InfoItem label="Platform" value={acceptance.platform || "Not available"} />
+                  <InfoItem label="Locale" value={acceptance.locale || "Not available"} />
+                  <InfoItem label="Source flow" value={acceptance.source_flow || acceptance.sourceFlow || "Not available"} />
+                  <InfoItem label="Device type" value={acceptance.device_type || acceptance.deviceType || "Not available"} />
+                  <InfoItem label="User agent" value={acceptance.user_agent || acceptance.userAgent || "Not available"} multiline />
+                  <InfoItem label="Document version" value={acceptance.document_version || acceptance.documentVersion || "Not available"} />
+                  <InfoItem label="Checksum" value={acceptance.document_checksum || acceptance.documentChecksum || "Not available"} multiline />
+                </div>
+                <div className="mt-4">
+                  <p className="text-sm font-semibold">Accepted clauses</p>
+                  {Array.isArray(acceptedClauses) && acceptedClauses.length > 0 ? (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {acceptedClauses.map((clause: string) => (
+                        <Badge key={clause} variant="secondary">{clause}</Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-sm text-muted-foreground">No clause acknowledgements recorded.</p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="space-y-2">
+        <h3 className="border-b pb-2 text-lg font-semibold">Application Answers</h3>
+        <div className="space-y-4">
+          {tdQuestionPrompts.map(({ key, label }) => (
+            <div key={key} className="rounded-xl border border-[#E7D5C8] bg-[#FFF8F4] p-4">
+              <p className="text-sm font-semibold text-[#1A1A1A]">{label}</p>
+              <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-[#5A5A5A]">{responses[key] || "Not provided"}</p>
+            </div>
+          ))}
+        </div>
       </section>
     </div>
   );

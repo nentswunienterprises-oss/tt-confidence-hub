@@ -103,21 +103,6 @@ export default function TDDashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        <div>
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-2">TD Dashboard</h2>
-          <p className="text-muted-foreground">
-            {alertCount > 0 ? `${alertCount} items need your attention` : 'Everything looks good!'}
-          </p>
-        </div>
-
-        {!insights && (
-          <Card className="border-dashed">
-            <CardContent className="p-4 text-sm text-muted-foreground">
-              Dashboard insights are unavailable right now. Your assigned pods are still available below.
-            </CardContent>
-          </Card>
-        )}
-
         <section>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-bold tracking-tight flex items-center gap-2">
@@ -401,7 +386,7 @@ export default function TDDashboard() {
                     </div>
                     {checkIn.wins && (
                       <div className="mb-2">
-                        <p className="text-xs font-medium text-green-700">🎉 Wins:</p>
+                        <p className="text-xs font-medium text-green-700">  Wins:</p>
                         <p className="text-sm">{checkIn.wins.substring(0, 100)}{checkIn.wins.length > 100 ? '...' : ''}</p>
                       </div>
                     )}
@@ -423,7 +408,7 @@ export default function TDDashboard() {
           <Card className="border-2 border-green-200 bg-green-50">
             <CardContent className="p-12 text-center">
               <CheckCircle2 className="w-16 h-16 mx-auto mb-4 text-green-600" />
-              <h3 className="text-xl font-bold mb-2">All Systems Go! 🎉</h3>
+              <h3 className="text-xl font-bold mb-2">All Systems Healthy.   </h3>
               <p className="text-muted-foreground">
                 No immediate issues detected. Your pods are running smoothly.
               </p>
