@@ -55,10 +55,10 @@ export default function TdLanding() {
       />
 
       <header className="fixed inset-x-0 top-0 z-50 border-b border-[#E5D6C9] backdrop-blur-md" style={{ backgroundColor: "rgba(246, 239, 232, 0.9)" }}>
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-3 sm:h-20 sm:px-6 md:px-12">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-center px-3 sm:h-20 sm:justify-between sm:px-6 md:px-12">
           <Button
             variant="ghost"
-            className="flex items-center gap-2 px-2 text-sm font-medium hover:bg-transparent sm:px-4 sm:text-base"
+            className="hidden items-center gap-2 px-2 text-sm font-medium hover:bg-transparent sm:inline-flex sm:px-4 sm:text-base"
             style={{ color: "#1A1A1A" }}
             onClick={() => navigate("/operational/landing")}
           >
@@ -72,7 +72,7 @@ export default function TdLanding() {
           </div>
 
           <Button
-            className="rounded-full px-4 text-sm font-semibold sm:px-6 sm:text-base"
+            className="hidden rounded-full px-4 text-sm font-semibold sm:inline-flex sm:px-6 sm:text-base"
             style={{ backgroundColor: "#E63946", color: "white" }}
             onClick={() => navigate("/operational/td/signup")}
           >
