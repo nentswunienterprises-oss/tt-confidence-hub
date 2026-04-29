@@ -5,7 +5,7 @@ import { CheckCircle2, Circle, ArrowLeft, FileText, AlertCircle, Users } from "l
 import { TTLogo } from "@/components/TTLogo";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getQueryFn } from "@/lib/queryClient";
+import { apiRequest, getQueryFn } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "@/lib/config";
@@ -127,16 +127,9 @@ export default function TutorGateway() {
     if (!applicationStatus?.applicationId || isContinuing) return;
     setIsContinuing(true);
     try {
-      const res = await fetch(`${API_URL}/api/tutor/complete-onboarding`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ applicationId: applicationStatus.applicationId }),
+      await apiRequest("POST", "/api/tutor/complete-onboarding", {
+        applicationId: applicationStatus.applicationId,
       });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`Failed to complete onboarding: ${res.status} ${text}`);
-      }
       // Force refetch pod assignment before navigating
       await queryClient.invalidateQueries({ queryKey: ["/api/tutor/application-status"] });
       await queryClient.invalidateQueries({ queryKey: ["/api/tutor/pod"] });
