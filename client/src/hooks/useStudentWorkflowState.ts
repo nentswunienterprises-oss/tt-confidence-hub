@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { API_URL } from "@/lib/config";
+import { apiRequest } from "@/lib/queryClient";
 
 export interface StudentWorkflowState {
   assignmentAccepted: boolean;
@@ -35,14 +35,7 @@ export function useStudentWorkflowState(
         };
       }
 
-      const res = await fetch(`${API_URL}${apiBasePath}/students/${studentId}/workflow-state`, {
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to fetch student workflow state");
-      }
-
+      const res = await apiRequest("GET", `${apiBasePath}/students/${studentId}/workflow-state`);
       return await res.json();
     },
     enabled: enabled && !!studentId,
@@ -55,17 +48,7 @@ export function useMarkIntroCompleted(studentId: string) {
 
   return useMutation({
     mutationFn: async () => {
-      const res = await fetch(`${API_URL}/api/tutor/students/${studentId}/workflow/intro-completed`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (!res.ok) {
-        const errorBody = await res.json().catch(() => ({}));
-        throw new Error(errorBody?.message || "Failed to mark intro completed");
-      }
-
+      const res = await apiRequest("POST", `/api/tutor/students/${studentId}/workflow/intro-completed`, {});
       return await res.json();
     },
     onSuccess: () => {
@@ -79,17 +62,7 @@ export function useMarkHandoverCompleted(studentId: string) {
 
   return useMutation({
     mutationFn: async () => {
-      const res = await fetch(`${API_URL}/api/tutor/students/${studentId}/workflow/handover-completed`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (!res.ok) {
-        const errorBody = await res.json().catch(() => ({}));
-        throw new Error(errorBody?.message || "Failed to mark handover completed");
-      }
-
+      const res = await apiRequest("POST", `/api/tutor/students/${studentId}/workflow/handover-completed`, {});
       return await res.json();
     },
     onSuccess: () => {
@@ -105,18 +78,7 @@ export function useRespondToAssignment(studentId: string) {
 
   return useMutation({
     mutationFn: async (decision: "accept" | "decline") => {
-      const res = await fetch(`${API_URL}/api/tutor/students/${studentId}/workflow/assignment-decision`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ decision }),
-      });
-
-      if (!res.ok) {
-        const errorBody = await res.json().catch(() => ({}));
-        throw new Error(errorBody?.message || "Failed to submit assignment decision");
-      }
-
+      const res = await apiRequest("POST", `/api/tutor/students/${studentId}/workflow/assignment-decision`, { decision });
       return await res.json();
     },
     onSuccess: () => {

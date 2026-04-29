@@ -1,15 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { API_URL } from "@/lib/config";
+import { apiRequest } from "@/lib/queryClient";
 
 export function useScheduledSession(studentId) {
   return useQuery({
     queryKey: ["/api/tutor/students/intro-session-details", studentId],
     queryFn: async () => {
       if (!studentId) return null;
-      const res = await fetch(`${API_URL}/api/tutor/students/${studentId}/intro-session-details`, {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to fetch intro session details");
+      const res = await apiRequest("GET", `/api/tutor/students/${studentId}/intro-session-details`);
       return await res.json();
     },
     enabled: !!studentId,
@@ -21,13 +18,11 @@ export function useTutorRespondToSession(studentId) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ action, newDate, newTime }) => {
-      const res = await fetch(`${API_URL}/api/tutor/students/${studentId}/intro-session-response`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, newDate, newTime }),
+      const res = await apiRequest("POST", `/api/tutor/students/${studentId}/intro-session-response`, {
+        action,
+        newDate,
+        newTime,
       });
-      if (!res.ok) throw new Error("Failed to respond to session");
       return await res.json();
     },
     onSuccess: () => {
@@ -41,10 +36,7 @@ export function useTrainingSessions(studentId) {
     queryKey: ["/api/tutor/students/training-sessions", studentId],
     queryFn: async () => {
       if (!studentId) return { sessions: [], googleMeetConfigured: false };
-      const res = await fetch(`${API_URL}/api/tutor/students/${studentId}/training-sessions`, {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to fetch training sessions");
+      const res = await apiRequest("GET", `/api/tutor/students/${studentId}/training-sessions`);
       return await res.json();
     },
     enabled: !!studentId,
@@ -57,16 +49,11 @@ export function useCreateTrainingSession(studentId) {
 
   return useMutation({
     mutationFn: async ({ scheduledStart, scheduledEnd, timezone }) => {
-      const res = await fetch(`${API_URL}/api/tutor/students/${studentId}/training-sessions`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scheduledStart, scheduledEnd, timezone }),
+      const res = await apiRequest("POST", `/api/tutor/students/${studentId}/training-sessions`, {
+        scheduledStart,
+        scheduledEnd,
+        timezone,
       });
-      if (!res.ok) {
-        const payload = await res.json().catch(() => ({}));
-        throw new Error(payload?.message || "Failed to create training session");
-      }
       return await res.json();
     },
     onSuccess: () => {
@@ -80,15 +67,8 @@ export function useRetryScheduledSessionMeetSync(studentId) {
 
   return useMutation({
     mutationFn: async ({ sessionId }) => {
-      const res = await fetch(`${API_URL}/api/tutor/students/${studentId}/scheduled-sessions/${sessionId}/retry-meet-sync`, {
-        method: "POST",
-        credentials: "include",
-      });
-      const payload = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(payload?.message || "Failed to retry Meet sync");
-      }
-      return payload;
+      const res = await apiRequest("POST", `/api/tutor/students/${studentId}/scheduled-sessions/${sessionId}/retry-meet-sync`);
+      return await res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tutor/students/intro-session-details", studentId] });
@@ -102,17 +82,14 @@ export function useSubmitScheduledSessionRecording(studentId) {
 
   return useMutation({
     mutationFn: async ({ sessionId, recordingUrl, fileData, fileName, contentType }) => {
-      const res = await fetch(`${API_URL}/api/tutor/students/${studentId}/scheduled-sessions/${sessionId}/submit-recording`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, recordingUrl, fileData, fileName, contentType }),
+      const res = await apiRequest("POST", `/api/tutor/students/${studentId}/scheduled-sessions/${sessionId}/submit-recording`, {
+        sessionId,
+        recordingUrl,
+        fileData,
+        fileName,
+        contentType,
       });
-      const payload = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(payload?.message || "Failed to submit recording");
-      }
-      return payload;
+      return await res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tutor/students/training-sessions", studentId] });
@@ -126,15 +103,8 @@ export function useConfirmTrainingSession(studentId) {
 
   return useMutation({
     mutationFn: async ({ sessionId }) => {
-      const res = await fetch(`${API_URL}/api/tutor/students/${studentId}/training-sessions/${sessionId}/confirm`, {
-        method: "POST",
-        credentials: "include",
-      });
-      const payload = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(payload?.message || "Failed to confirm training session");
-      }
-      return payload;
+      const res = await apiRequest("POST", `/api/tutor/students/${studentId}/training-sessions/${sessionId}/confirm`);
+      return await res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tutor/students/training-sessions", studentId] });
@@ -147,17 +117,13 @@ export function useRespondTrainingSession(studentId) {
 
   return useMutation({
     mutationFn: async ({ sessionId, action, scheduledStart, timezone }) => {
-      const res = await fetch(`${API_URL}/api/tutor/students/${studentId}/training-sessions/${sessionId}/respond`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, action, scheduledStart, timezone }),
+      const res = await apiRequest("POST", `/api/tutor/students/${studentId}/training-sessions/${sessionId}/respond`, {
+        sessionId,
+        action,
+        scheduledStart,
+        timezone,
       });
-      const payload = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(payload?.message || "Failed to respond to training session");
-      }
-      return payload;
+      return await res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tutor/students/training-sessions", studentId] });
