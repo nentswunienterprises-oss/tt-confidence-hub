@@ -74,13 +74,18 @@ export async function apiRequest(
   data?: unknown | undefined,
 ): Promise<Response> {
   const fullUrl = API_URL + url;
+  const { data: { session } } = await supabase.auth.getSession();
+  const headers: HeadersInit = data ? { "Content-Type": "application/json" } : {};
+  if (session?.access_token) {
+    headers.Authorization = `Bearer ${session.access_token}`;
+  }
   if (method === 'POST') {
     console.log('[apiRequest][POST] url:', fullUrl, 'data:', data);
   }
   console.log("[apiRequest] method:", method, "url:", fullUrl, "credentials: include");
   const res = await fetch(fullUrl, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
     cache: "no-store",

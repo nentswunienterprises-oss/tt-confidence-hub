@@ -72,6 +72,8 @@ export function TdApplicationForm({ onSuccess, onCancel }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestValuesRef = useRef<Partial<ApplicationFormData>>({});
+  const restoredDraftRef = useRef(false);
 
   const form = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
@@ -104,10 +106,12 @@ export function TdApplicationForm({ onSuccess, onCancel }: Props) {
     },
   });
   const watchedValues = useWatch({ control: form.control });
+  latestValuesRef.current = watchedValues || {};
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.localStorage) return;
     const draft = window.localStorage.getItem(STORAGE_KEY);
+    restoredDraftRef.current = true;
     if (!draft) return;
 
     try {
@@ -124,6 +128,7 @@ export function TdApplicationForm({ onSuccess, onCancel }: Props) {
   useEffect(() => {
     if (typeof window === "undefined" || !window.localStorage) return;
     if (submitting) return;
+    if (!restoredDraftRef.current) return;
 
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
@@ -140,6 +145,11 @@ export function TdApplicationForm({ onSuccess, onCancel }: Props) {
     return () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
+      }
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(latestValuesRef.current));
+      } catch {
+        // Ignore storage failures and keep the form usable.
       }
     };
   }, [watchedValues, submitting]);
