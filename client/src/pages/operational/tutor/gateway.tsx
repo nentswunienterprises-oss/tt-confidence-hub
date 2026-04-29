@@ -130,7 +130,9 @@ export default function TutorGateway() {
       await apiRequest("POST", "/api/tutor/complete-onboarding", {
         applicationId: applicationStatus.applicationId,
       });
-      // Force refetch pod assignment before navigating
+      // Force refetch tutor state before navigating into pod guards.
+      await queryClient.invalidateQueries({ queryKey: ["/api/tutor/gateway-session"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/tutor/applications"] });
       await queryClient.invalidateQueries({ queryKey: ["/api/tutor/application-status"] });
       await queryClient.invalidateQueries({ queryKey: ["/api/tutor/pod"] });
       // Optionally, wait for pod assignment to be available

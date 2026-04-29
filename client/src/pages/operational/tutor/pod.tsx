@@ -151,6 +151,7 @@ export default function TutorPod() {
   const {
     data: applications,
     isLoading: applicationsLoading,
+    isFetching: applicationsFetching,
   } = useQuery<any[]>({
     queryKey: ["/api/tutor/applications"],
     enabled: isAuthenticated && !authLoading,
@@ -167,7 +168,9 @@ export default function TutorPod() {
 
   const hasSubmittedApplication = applications && applications.length > 0;
   const hasPendingApplication = applications && applications.some((app: any) => app.status === "pending");
-  const hasApprovedApplication = applications && applications.some((app: any) => app.status === "approved");
+  const hasQualifiedApplication =
+    applications &&
+    applications.some((app: any) => app.status === "approved" || app.status === "confirmed");
   const onboardingCompleted = applications && applications.some((app: any) => !!app.onboardingCompletedAt);
 
   const podCapacity = podTeamData?.capacity || 12;
@@ -202,13 +205,23 @@ export default function TutorPod() {
 
   // Redirect to gateway if tutor hasn't completed onboarding (no approved application or no pod assignment)
   useEffect(() => {
-    if (!authLoading && !isLoading && !applicationsLoading && isAuthenticated) {
-      // If onboarding not completed and no approved application or no pod assignment, redirect to gateway
-      if (!onboardingCompleted && (!hasApprovedApplication || !podData?.assignment)) {
+    if (!authLoading && !isLoading && !applicationsLoading && !applicationsFetching && isAuthenticated) {
+      // If onboarding not completed and there is no qualifying application or no pod assignment, return to gateway.
+      if (!onboardingCompleted && (!hasQualifiedApplication || !podData?.assignment)) {
         navigate("/operational/tutor/gateway");
       }
     }
-  }, [authLoading, isLoading, applicationsLoading, isAuthenticated, hasApprovedApplication, podData, navigate]);
+  }, [
+    authLoading,
+    isLoading,
+    applicationsLoading,
+    applicationsFetching,
+    isAuthenticated,
+    onboardingCompleted,
+    hasQualifiedApplication,
+    podData,
+    navigate,
+  ]);
 
   // Fetch identity sheets for all students
   useEffect(() => {
