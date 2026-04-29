@@ -4675,6 +4675,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       "4": "not_started",
       "5": "not_started",
       "6": "not_started",
+      "7": "not_started",
     };
 
     const buildTdOnboardingStatuses = (rawStatuses: any) => ({
@@ -4684,7 +4685,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     const deriveTdGatewayApplicationStatus = (latestApp: any) => {
       const documentsStatus = buildTdOnboardingStatuses(latestApp?.documentsStatus || latestApp?.documents_status);
-      const allApproved = ["1", "2", "3", "4", "5", "6"].every(
+      const allApproved = ["1", "2", "3", "4", "5", "6", "7"].every(
         (step) => String(documentsStatus[step] || "") === "approved"
       );
 
@@ -4711,12 +4712,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     };
 
     const getCurrentTdStepFromStatuses = (statuses: Record<string, string>) => {
-      for (let step = 1; step <= 6; step += 1) {
+      for (let step = 1; step <= 7; step += 1) {
         if (String(statuses[String(step)] || "not_started") !== "approved") {
           return step;
         }
       }
-      return 6;
+      return 7;
     };
 
     const buildTdAcceptanceMap = (acceptanceRows: any[]) =>
@@ -13033,7 +13034,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["tutor"]),
     async (req: Request, res: Response) => {
       try {
-        const userId = (req.session as any).userId;
+        const userId = (req as any).dbUser?.id || (req.session as any)?.userId;
         const applications = await storage.getTutorApplicationsByUser(userId);
         res.json(applications);
       } catch (error) {
@@ -13155,8 +13156,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "fullName",
           "age",
           "city",
-          "email",
           "phone",
+          "idType",
+          "idNumber",
+          "dateOfBirth",
           "taughtOrMentoredBefore",
           "ledOrSupervisedOthers",
           "hoursAvailablePerWeek",
@@ -13192,6 +13195,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const ledOrSupervisedOthers = String(payload.ledOrSupervisedOthers || "").trim().toLowerCase();
         const hoursAvailablePerWeek = Number(payload.hoursAvailablePerWeek);
         const commitmentToStandard = String(payload.commitmentToStandard || "").trim().toLowerCase();
+        const idType = String(payload.idType || "").trim().toLowerCase();
+        const idNumber = String(payload.idNumber || "").trim();
+        const dateOfBirth = String(payload.dateOfBirth || "").trim();
+        const accountEmail = String((req as any).dbUser?.email || "").trim().toLowerCase();
 
         if (taughtOrMentoredBefore !== "yes") {
           return res.status(400).json({ message: "Territory Director applicants must have taught or mentored before." });
@@ -13205,6 +13212,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (commitmentToStandard !== "yes") {
           return res.status(400).json({ message: "This role requires explicit commitment to direct enforcement and standard protection." });
         }
+        if (idType !== "sa_id" && idType !== "passport") {
+          return res.status(400).json({ message: "TD applicants must choose South African ID or passport." });
+        }
+        if (idNumber.length < 6) {
+          return res.status(400).json({ message: "A valid identification number is required." });
+        }
+        if (!dateOfBirth) {
+          return res.status(400).json({ message: "Date of birth is required." });
+        }
+        if (Number.isNaN(new Date(dateOfBirth).getTime())) {
+          return res.status(400).json({ message: "A valid date of birth is required." });
+        }
+        if (!accountEmail) {
+          return res.status(400).json({ message: "A signed-in account email is required for TD application submission." });
+        }
 
         const existingApplications = await getTdApplicationsByQuery({ userId });
         const reusableApplication = existingApplications.find((application: any) =>
@@ -13216,8 +13238,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           full_name: String(payload.fullName).trim(),
           age: Number(payload.age),
           city: String(payload.city).trim(),
-          email: String(payload.email).trim(),
+          email: accountEmail,
           phone: String(payload.phone).trim(),
+          id_type: idType,
+          id_number: idNumber,
+          date_of_birth: dateOfBirth,
           taught_or_mentored_before: taughtOrMentoredBefore,
           led_or_supervised_others: ledOrSupervisedOthers,
           hours_available_per_week: hoursAvailablePerWeek,
@@ -13255,6 +13280,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
               reviewed_at: null,
               rejection_reason: null,
               onboarding_completed_at: null,
+              doc_7_submission_url: null,
+              doc_7_submission_uploaded_at: null,
+              doc_7_submission_reviewed_at: null,
+              doc_7_submission_reviewed_by: null,
+              doc_7_submission_rejection_reason: null,
               document_submission_step: 0,
               documents_status: { ...INITIAL_TD_DOCUMENT_STATUSES, "1": "not_started" },
               updated_at: new Date(),
@@ -13357,6 +13387,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               version: loaded.version,
               requiresAcceptance: loaded.requiresAcceptance,
               requiresUpload: loaded.requiresUpload,
+              uploadTitle: loaded.uploadTitle,
+              uploadDescription: loaded.uploadDescription,
               mandatoryClauses: loaded.mandatoryClauses,
               content: loaded.content,
               contentHash: loaded.contentHash,
@@ -13400,7 +13432,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           acceptClickedAt,
         } = req.body ?? {};
 
-        if (!applicationId || !Number.isInteger(docStep) || docStep < 1 || docStep > 6) {
+        if (!applicationId || !Number.isInteger(docStep) || docStep < 1 || docStep > 7) {
           return res.status(400).json({ message: "Invalid TD onboarding acceptance request" });
         }
         if (!String(typedFullName || "").trim()) {
@@ -13415,6 +13447,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const definition = getTdOnboardingDocumentDefinition(docStep);
+        if (!definition.requiresAcceptance) {
+          return res.status(400).json({ message: "This TD onboarding step requires file upload, not agreement acceptance." });
+        }
         const loaded = await loadTdOnboardingDocument(docStep);
         if (documentVersion && documentVersion !== loaded.version) {
           return res.status(409).json({ message: "Document version mismatch" });
@@ -13521,16 +13556,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         documentsStatus[String(docStep)] = "approved";
-        if (docStep < 6 && documentsStatus[String(docStep + 1)] !== "approved") {
+        if (docStep < 7 && documentsStatus[String(docStep + 1)] !== "approved") {
           documentsStatus[String(docStep + 1)] = "pending_upload";
         }
 
-        const allApproved = ["1", "2", "3", "4", "5", "6"].every((step) => String(documentsStatus[step] || "") === "approved");
+        const allApproved = ["1", "2", "3", "4", "5", "6", "7"].every((step) => String(documentsStatus[step] || "") === "approved");
         const { error: updateError } = await supabase
           .from("td_applications")
           .update({
             documents_status: documentsStatus,
-            document_submission_step: docStep < 6 ? docStep + 1 : 6,
+            document_submission_step: docStep < 7 ? docStep + 1 : 7,
             onboarding_completed_at: allApproved ? new Date() : null,
             updated_at: new Date(),
           })
@@ -13564,6 +13599,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   app.post(
+    "/api/td/onboarding-documents/upload",
+    isAuthenticated,
+    requireRole(["td"]),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req as any).dbUser.id;
+        const { applicationId, docStep, fileName, fileData, fileType } = req.body ?? {};
+        const parsedDocStep = typeof docStep === "number" ? docStep : Number(docStep);
+
+        if (!applicationId || parsedDocStep !== 7 || !fileName || !fileData) {
+          return res.status(400).json({ message: "Only TD step 7 accepts identification uploads." });
+        }
+
+        const applications = await getTdApplicationsByQuery({ userId });
+        const application =
+          applications.find((entry: any) => entry.id === applicationId) || selectCanonicalTdApplication(applications);
+
+        if (!application) {
+          return res.status(403).json({ message: "Application not found or access denied" });
+        }
+
+        const documentsStatus = buildTdOnboardingStatuses(application.documentsStatus || application.documents_status);
+        const currentStep = getCurrentTdStepFromStatuses(documentsStatus);
+        if (currentStep !== 7) {
+          return res.status(400).json({ message: "Identification upload is blocked until the first six TD agreements are approved." });
+        }
+
+        const stepStatus = String(documentsStatus["7"] || "not_started");
+        if (stepStatus === "pending_review") {
+          return res.status(400).json({ message: "Your identification copy is already with COO for review." });
+        }
+        if (stepStatus === "approved") {
+          return res.status(400).json({ message: "Your identification copy has already been approved." });
+        }
+
+        const buffer = Buffer.from(fileData, "base64");
+        const sanitizedName = String(fileName).replace(/[^a-zA-Z0-9._-]/g, "_");
+        const safeFileName = `td-documents/${userId}/td-certified-id-${applicationId}-${Date.now()}-${sanitizedName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("tutor-documents")
+          .upload(safeFileName, buffer, {
+            contentType: fileType || undefined,
+            upsert: true,
+          });
+
+        if (uploadError) {
+          return res.status(500).json({ message: uploadError.message });
+        }
+
+        const { data: urlData } = supabase.storage.from("tutor-documents").getPublicUrl(safeFileName);
+        if (!urlData?.publicUrl) {
+          return res.status(500).json({ message: "Upload succeeded but file URL could not be generated." });
+        }
+
+        documentsStatus["7"] = "pending_review";
+
+        const { error: updateError } = await supabase
+          .from("td_applications")
+          .update({
+            doc_7_submission_url: urlData.publicUrl,
+            doc_7_submission_uploaded_at: new Date(),
+            doc_7_submission_reviewed_at: null,
+            doc_7_submission_reviewed_by: null,
+            doc_7_submission_rejection_reason: null,
+            document_submission_step: 7,
+            documents_status: documentsStatus,
+            onboarding_completed_at: null,
+            updated_at: new Date(),
+          })
+          .eq("id", applicationId)
+          .eq("user_id", userId);
+
+        if (updateError) {
+          throw new Error(updateError.message);
+        }
+
+        const refreshedApplications = await getTdApplicationsByQuery({ userId });
+        const refreshedApplication =
+          refreshedApplications.find((entry: any) => entry.id === applicationId) ||
+          selectCanonicalTdApplication(refreshedApplications);
+
+        res.json({ success: true, application: refreshedApplication, publicUrl: urlData.publicUrl });
+      } catch (error) {
+        console.error("Error uploading TD onboarding identification:", error);
+        if (
+          error instanceof Error &&
+          /(blocked until|already|required|pending review)/i.test(error.message)
+        ) {
+          return res.status(400).json({ message: error.message });
+        }
+        res.status(500).json({ message: error instanceof Error ? error.message : "Failed to upload certified identification copy" });
+      }
+    }
+  );
+
+  app.post(
     "/api/td/complete-onboarding",
     isAuthenticated,
     requireRole(["td"]),
@@ -13580,7 +13712,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const documentsStatus = buildTdOnboardingStatuses(application.documentsStatus || application.documents_status);
-        const allApproved = ["1", "2", "3", "4", "5", "6"].every((step) => String(documentsStatus[step] || "") === "approved");
+        const allApproved = ["1", "2", "3", "4", "5", "6", "7"].every((step) => String(documentsStatus[step] || "") === "approved");
         if (!allApproved) {
           return res.status(400).json({ message: "All TD onboarding steps must be approved before onboarding can be completed." });
         }
@@ -13706,6 +13838,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error("Error rejecting TD application:", error);
         res.status(500).json({ message: "Failed to reject TD application" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/coo/td-applications/:id/document/7/review",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const reviewerId = (req.session as any).userId;
+        const { id } = req.params;
+        if (typeof req.body?.approved !== "boolean") {
+          return res.status(400).json({ message: "Missing approval decision" });
+        }
+        const approved = req.body.approved as boolean;
+        const rejectionReason = String(req.body?.rejectionReason || "").trim();
+
+        const applications = await getTdApplicationsByQuery({});
+        const application = applications.find((entry: any) => entry.id === id);
+        if (!application) {
+          return res.status(404).json({ message: "TD application not found" });
+        }
+
+        const documentsStatus = buildTdOnboardingStatuses(application.documentsStatus || application.documents_status);
+        if (String(documentsStatus["7"] || "") !== "pending_review") {
+          return res.status(400).json({ message: "TD identification is not awaiting COO review." });
+        }
+
+        documentsStatus["7"] = approved ? "approved" : "rejected";
+        const allApproved = ["1", "2", "3", "4", "5", "6", "7"].every((step) => String(documentsStatus[step] || "") === "approved");
+
+        const { data, error } = await supabase
+          .from("td_applications")
+          .update({
+            documents_status: documentsStatus,
+            document_submission_step: 7,
+            doc_7_submission_reviewed_at: new Date(),
+            doc_7_submission_reviewed_by: reviewerId,
+            doc_7_submission_rejection_reason: approved ? null : (rejectionReason || "Identification copy rejected"),
+            onboarding_completed_at: allApproved ? new Date() : null,
+            updated_at: new Date(),
+          })
+          .eq("id", id)
+          .select("*")
+          .single();
+
+        if (error || !data) {
+          throw new Error(error?.message || "Failed to review TD identification");
+        }
+
+        await safeSendPush(
+          data.user_id,
+          {
+            title: approved ? "TD identification approved" : "TD identification rejected",
+            body: approved
+              ? "Your certified identification copy was approved."
+              : "Your certified identification copy was rejected and needs resubmission.",
+            url: "/operational/td/gateway",
+            tag: `td-document-review-${data.id}-7-${approved ? "approved" : "rejected"}`,
+          },
+          "td document review result",
+        );
+
+        res.json({
+          success: true,
+          application: data,
+          message: approved ? "TD identification approved." : "TD identification rejected.",
+        });
+      } catch (error) {
+        console.error("Error reviewing TD identification document:", error);
+        if (error instanceof Error && /(awaiting COO review|required)/i.test(error.message)) {
+          return res.status(400).json({ message: error.message });
+        }
+        res.status(500).json({ message: error instanceof Error ? error.message : "Failed to review TD identification" });
       }
     }
   );
