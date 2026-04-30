@@ -316,7 +316,7 @@ function PortalLanding() {
           <div className="flex flex-col md:flex-row md:justify-between items-center gap-4 sm:gap-6">
             <div className="flex flex-col md:flex-row items-center gap-3 sm:gap-4">
                 <div>
-                  <TTLogo size="md" />
+                  <TTLogo size="md" variant="integrity" />
               </div>
               <a
                 href="https://www.instagram.com/territorialtutoring?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="

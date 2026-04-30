@@ -39,8 +39,9 @@ export default function Landing() {
           
           {/* App Name - Center (hidden on mobile, shown in hero instead) */}
           <div className="hidden md:block">
-            <span className="text-2xl lg:text-4xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-              THE RESPONSE HUB
+            <span className="text-2xl lg:text-4xl font-bold tracking-tight uppercase">
+              <span style={{ color: "#E63946" }}>Response</span>{" "}
+              <span style={{ color: "#1A1A1A" }}>Integrity</span>
             </span>
           </div>
           
@@ -72,8 +73,9 @@ export default function Landing() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-4 md:pt-8 pb-12 sm:pb-20">
         {/* Mobile App Title - shown only on mobile */}
         <div className="md:hidden text-center mb-6">
-          <span className="text-2xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-            THE RESPONSE HUB
+          <span className="text-2xl font-bold tracking-tight uppercase">
+            <span style={{ color: "#E63946" }}>Response</span>{" "}
+            <span style={{ color: "#1A1A1A" }}>Integrity</span>
           </span>
         </div>
         

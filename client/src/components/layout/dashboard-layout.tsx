@@ -459,6 +459,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     return "";
   };
 
+  const useIntegrityBrand =
+    !!effectiveUser && (isAffiliate(effectiveUser) || isOD(effectiveUser));
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -482,7 +485,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
             {/* Center: Title */}
             <Link to="/" className="absolute left-1/2 -translate-x-1/2">
-              <div className="font-bold text-base tracking-tight whitespace-nowrap">THE RESPONSE HUB</div>
+              <div className="font-bold text-base tracking-tight whitespace-nowrap uppercase">
+                {useIntegrityBrand ? (
+                  <>
+                    <span className="text-[#E63946]">Response</span>{" "}
+                    <span className="text-[#1A1A1A]">Integrity</span>
+                  </>
+                ) : (
+                  "THE RESPONSE HUB"
+                )}
+              </div>
             </Link>
           </div>
 
@@ -490,7 +502,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="hidden sm:flex items-center gap-4">
             <Link to="/" className="flex items-center gap-3">
               <div>
-                <div className="font-bold text-base tracking-tight">TT Response Hub</div>
+                <div className="font-bold text-base tracking-tight uppercase">
+                  {useIntegrityBrand ? (
+                    <>
+                      <span className="text-[#E63946]">Response</span>{" "}
+                      <span className="text-[#1A1A1A]">Integrity</span>
+                    </>
+                  ) : (
+                    "TT Response Hub"
+                  )}
+                </div>
                 {effectiveUser && (
                   <div className="text-xs text-muted-foreground">
                     {getRoleLabel(effectiveUser)}
