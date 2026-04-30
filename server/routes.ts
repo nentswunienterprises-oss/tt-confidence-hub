@@ -16796,6 +16796,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       let status = enrollmentData.status || "not_enrolled";
+      const operationalMode = await getParentAssignedTutorOperationalMode(userId);
+      const sessionType = getEnrollmentSessionType(enrollmentData);
       const billingModel = await getParentBillingModel(userId);
       const sessionProgress = enrollmentData.assigned_student_id
         ? await getCompletedSessionCountForStudent(String(enrollmentData.assigned_student_id))
@@ -16812,6 +16814,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         // If accepted, override status
         if (assignmentAccepted) {
+          status = "assigned";
+        }
+      }
+
+      if (
+        operationalMode === "certified_live" &&
+        enrollmentData.assigned_tutor_id &&
+        ["proposal_sent", "session_booked", "report_received", "confirmed"].includes(String(status))
+      ) {
+        let latestSession: any = null;
+
+        const directSessionLookup = await supabase
+          .from("scheduled_sessions")
+          .select("id, status, parent_confirmed, tutor_confirmed, created_at, updated_at, type")
+          .eq("parent_id", userId)
+          .eq("tutor_id", enrollmentData.assigned_tutor_id)
+          .eq("type", sessionType)
+          .order("updated_at", { ascending: false })
+          .order("created_at", { ascending: false })
+          .limit(1);
+
+        latestSession = directSessionLookup.data?.[0] || null;
+
+        if (!latestSession && enrollmentData.assigned_student_id) {
+          const fallbackSessionLookup = await supabase
+            .from("scheduled_sessions")
+            .select("id, status, parent_confirmed, tutor_confirmed, created_at, updated_at, type")
+            .eq("student_id", enrollmentData.assigned_student_id)
+            .eq("tutor_id", enrollmentData.assigned_tutor_id)
+            .eq("type", sessionType)
+            .order("updated_at", { ascending: false })
+            .order("created_at", { ascending: false })
+            .limit(1);
+
+          latestSession = fallbackSessionLookup.data?.[0] || null;
+        }
+
+        const bookingPrerequisiteSatisfied = latestSession
+          ? ["confirmed", "ready", "live", "completed"].includes(getEffectiveScheduledSessionStatus(latestSession))
+          : false;
+
+        if (!bookingPrerequisiteSatisfied) {
           status = "assigned";
         }
       }

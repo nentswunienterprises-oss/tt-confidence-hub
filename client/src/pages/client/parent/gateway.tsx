@@ -294,6 +294,7 @@ export default function ParentGateway() {
   const sessionLabel = isHandoverFlow ? "continuity check" : "intro session";
   const sessionTitle = isHandoverFlow ? "Continuity Check" : "Introductory Session";
   const sessionCompletedLabel = isHandoverFlow ? "continuity check" : "introductory session";
+  const isTrainingMode = effectiveIntroSessionConfirmation?.status === "training_mode";
 
   // Auto-set step based on enrollment status and intro session confirmation
   useEffect(() => {
@@ -1388,7 +1389,7 @@ export default function ParentGateway() {
                     </div>
                   )}
 
-                  {(effectiveIntroSessionConfirmation?.status === "not_scheduled" || !effectiveIntroSessionConfirmation?.status) && (
+                  {!isTrainingMode && (effectiveIntroSessionConfirmation?.status === "not_scheduled" || !effectiveIntroSessionConfirmation?.status) && (
                     <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                       <p className="font-medium text-yellow-900">
                         {isHandoverFlow ? "Your new tutor is ready." : "Your tutor has been assigned."}
@@ -1514,7 +1515,7 @@ export default function ParentGateway() {
                   )}
 
                   {/* Show booking dialog for not_scheduled and pending_parent_confirmation */}
-                  {(effectiveIntroSessionConfirmation?.status === "not_scheduled" || effectiveIntroSessionConfirmation?.status === "pending_parent_confirmation") && (
+                  {!isTrainingMode && (effectiveIntroSessionConfirmation?.status === "not_scheduled" || effectiveIntroSessionConfirmation?.status === "pending_parent_confirmation") && (
                     <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                       <p className="font-medium mb-4 text-red-900">
                         {effectiveIntroSessionConfirmation?.status === "not_scheduled"
@@ -1522,7 +1523,7 @@ export default function ParentGateway() {
                           : `Adjust your ${sessionLabel} schedule`}
                       </p>
                       <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
-                        {(effectiveIntroSessionConfirmation?.status === "not_scheduled" || effectiveIntroSessionConfirmation?.status === "pending_parent_confirmation") && (
+                        {!isTrainingMode && (effectiveIntroSessionConfirmation?.status === "not_scheduled" || effectiveIntroSessionConfirmation?.status === "pending_parent_confirmation") && (
                           <DialogTrigger asChild>
                             <Button
                               style={{ backgroundColor: '#E63946', color: 'white' }}

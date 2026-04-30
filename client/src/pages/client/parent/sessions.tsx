@@ -330,75 +330,77 @@ export default function ParentSessions() {
       ) : null}
 
       <div className="grid gap-4 sm:gap-6">
-        <div className="rounded-lg border border-border bg-card p-4 sm:p-6 space-y-4">
-          <div>
-            <h2 className="text-base sm:text-xl font-semibold">Schedule This Week</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Choose two Monday-to-Saturday training session times in the same week. Your tutor must confirm both dates before TT creates the Meet links.
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-2 rounded-lg border border-border p-3">
-              <label className="text-sm font-medium">Session 1</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button type="button" variant="outline" className="w-full justify-start text-left font-normal">
-                    <CalendarDays className="mr-2 h-4 w-4" />
-                    {formatScheduleLabel(slotOneDate)}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent align="start" className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={slotOneDate}
-                    onSelect={setSlotOneDate}
-                    disabled={(date) => {
-                      const day = date.getDay();
-                      return day < 1 || day > 6 || date < new Date(new Date().setHours(0, 0, 0, 0));
-                    }}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <Input type="time" value={slotOneTime} onChange={(e) => setSlotOneTime(e.target.value)} />
-              <p className="text-xs text-muted-foreground">
-                {slotOneDate ? `${formatScheduleLabel(slotOneDate)} at ${slotOneTime}` : "Pick a Monday-Saturday date and time."}
+        {schedulingEnabled ? (
+          <div className="rounded-lg border border-border bg-card p-4 sm:p-6 space-y-4">
+            <div>
+              <h2 className="text-base sm:text-xl font-semibold">Schedule This Week</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Choose two Monday-to-Saturday training session times in the same week. Your tutor must confirm both dates before TT creates the Meet links.
               </p>
             </div>
-            <div className="space-y-2 rounded-lg border border-border p-3">
-              <label className="text-sm font-medium">Session 2</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button type="button" variant="outline" className="w-full justify-start text-left font-normal">
-                    <CalendarDays className="mr-2 h-4 w-4" />
-                    {formatScheduleLabel(slotTwoDate)}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent align="start" className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={slotTwoDate}
-                    onSelect={setSlotTwoDate}
-                    disabled={(date) => {
-                      const day = date.getDay();
-                      return day < 1 || day > 6 || date < new Date(new Date().setHours(0, 0, 0, 0));
-                    }}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <Input type="time" value={slotTwoTime} onChange={(e) => setSlotTwoTime(e.target.value)} />
-              <p className="text-xs text-muted-foreground">
-                {slotTwoDate ? `${formatScheduleLabel(slotTwoDate)} at ${slotTwoTime}` : "Pick a Monday-Saturday date and time."}
-              </p>
-            </div>
-          </div>
 
-          <Button onClick={handleScheduleWeek} disabled={isSubmitting || !schedulingEnabled}>
-            {!schedulingEnabled ? "Scheduling Disabled" : isSubmitting ? "Scheduling..." : "Schedule Week"}
-          </Button>
-        </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-2 rounded-lg border border-border p-3">
+                <label className="text-sm font-medium">Session 1</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button type="button" variant="outline" className="w-full justify-start text-left font-normal">
+                      <CalendarDays className="mr-2 h-4 w-4" />
+                      {formatScheduleLabel(slotOneDate)}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="start" className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={slotOneDate}
+                      onSelect={setSlotOneDate}
+                      disabled={(date) => {
+                        const day = date.getDay();
+                        return day < 1 || day > 6 || date < new Date(new Date().setHours(0, 0, 0, 0));
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <Input type="time" value={slotOneTime} onChange={(e) => setSlotOneTime(e.target.value)} />
+                <p className="text-xs text-muted-foreground">
+                  {slotOneDate ? `${formatScheduleLabel(slotOneDate)} at ${slotOneTime}` : "Pick a Monday-Saturday date and time."}
+                </p>
+              </div>
+              <div className="space-y-2 rounded-lg border border-border p-3">
+                <label className="text-sm font-medium">Session 2</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button type="button" variant="outline" className="w-full justify-start text-left font-normal">
+                      <CalendarDays className="mr-2 h-4 w-4" />
+                      {formatScheduleLabel(slotTwoDate)}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="start" className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={slotTwoDate}
+                      onSelect={setSlotTwoDate}
+                      disabled={(date) => {
+                        const day = date.getDay();
+                        return day < 1 || day > 6 || date < new Date(new Date().setHours(0, 0, 0, 0));
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <Input type="time" value={slotTwoTime} onChange={(e) => setSlotTwoTime(e.target.value)} />
+                <p className="text-xs text-muted-foreground">
+                  {slotTwoDate ? `${formatScheduleLabel(slotTwoDate)} at ${slotTwoTime}` : "Pick a Monday-Saturday date and time."}
+                </p>
+              </div>
+            </div>
+
+            <Button onClick={handleScheduleWeek} disabled={isSubmitting}>
+              {isSubmitting ? "Scheduling..." : "Schedule Week"}
+            </Button>
+          </div>
+        ) : null}
 
         <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
           <h2 className="text-base sm:text-xl font-semibold mb-3 sm:mb-4">Upcoming Sessions</h2>
