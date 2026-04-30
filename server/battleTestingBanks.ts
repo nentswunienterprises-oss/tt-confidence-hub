@@ -95,6 +95,10 @@ function isSectionHeader(line: string) {
   return line.includes("SECTION ") || /^FINAL TEST\s*$/.test(line);
 }
 
+function isPostQuestionMeta(line: string) {
+  return /WHAT THIS /i.test(line) || /FINAL TRUTH/i.test(line) || /AUTO-FAIL SIGNALS:/i.test(line) || /^TRUTH$/i.test(line);
+}
+
 function extractSectionLabel(line: string) {
   if (/^FINAL TEST\s*$/.test(line.trim())) return "FINAL TEST";
   const sectionIndex = line.indexOf("SECTION ");
@@ -153,13 +157,13 @@ function parseBattleTestDocument(phaseKey: string, title: string, description: s
     i += 1;
 
     const expectedAnswerLines: string[] = [];
-    while (i < lines.length) {
-      const next = lines[i].trim();
-      if (/^Fail Answer/.test(next)) break;
-      if (isQuestionStart(next) || isSectionHeader(next)) break;
-      expectedAnswerLines.push(lines[i]);
-      i += 1;
-    }
+      while (i < lines.length) {
+        const next = lines[i].trim();
+        if (/^Fail Answer/.test(next)) break;
+        if (isQuestionStart(next) || isSectionHeader(next) || isPostQuestionMeta(next)) break;
+        expectedAnswerLines.push(lines[i]);
+        i += 1;
+      }
 
     const failIndicators: string[] = [];
     if (i < lines.length && /^Fail Answer/.test(lines[i].trim())) {
@@ -170,7 +174,7 @@ function parseBattleTestDocument(phaseKey: string, title: string, description: s
           i += 1;
           continue;
         }
-        if (isQuestionStart(next) || isSectionHeader(next) || /^Auto-fail signals:/i.test(next) || /^WHAT THIS /i.test(next) || /^TRUTH$/i.test(next)) {
+        if (isQuestionStart(next) || isSectionHeader(next) || isPostQuestionMeta(next)) {
           break;
         }
         failIndicators.push(lines[i]);

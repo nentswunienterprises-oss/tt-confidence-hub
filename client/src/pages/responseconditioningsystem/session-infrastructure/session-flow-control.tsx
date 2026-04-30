@@ -56,7 +56,7 @@ const introFlow = [
   "Start from the recommended entry point.",
   "Run one diagnosis block.",
   "Score the block.",
-  "Escalate, de-escalate, or stop when placement is clear.",
+  "Escalate, de-escalate, or stop when placement is clear according to the score.",
 ];
 
 const verificationFlow = [

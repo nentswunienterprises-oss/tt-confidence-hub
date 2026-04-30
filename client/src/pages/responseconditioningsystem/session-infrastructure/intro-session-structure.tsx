@@ -99,7 +99,7 @@ export default function ResponseConditioningIntroSessionStructure() {
         <Card className="p-6 space-y-4">
           <h2 className="text-2xl font-bold">What The Tutor Brings In</h2>
           <p className="text-muted-foreground">
-            The tutor does not start from a blank slate anymore. The tutor starts with:
+            The tutor does not start from a blank slate. The tutor starts with:
           </p>
           <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
             <li>parent-reported topic friction</li>
