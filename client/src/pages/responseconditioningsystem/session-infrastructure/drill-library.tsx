@@ -76,12 +76,17 @@ const hierarchy = [
 ];
 
 const introRules = [
+  "Intro happens when a student is entering TT in a topic for the first time.",
+  "The tutor does not yet know the student's correct starting phase in that topic.",
   "Intro does not run full training sets.",
   "Intro uses diagnosis blocks to find the right starting phase.",
   "A high intro score means check the next phase, not start teaching more.",
 ];
 
 const handoverRules = [
+  "Handover happens when a tutor is being replaced.",
+  "The student has already been trained in TT before this session.",
+  "The student already has an inherited topic, phase, and stability from the previous tutor.",
   "Handover does not restart the student.",
   "Handover uses short verification blocks, not a full intro again.",
   "If the current state does not hold, the system tightens it or checks further before normal training resumes.",
@@ -197,6 +202,10 @@ export default function ResponseConditioningDrillLibrary() {
 
         <Card className="p-6 space-y-4">
           <h2 className="text-2xl font-bold">How Intro Uses The Library</h2>
+          <p className="text-muted-foreground">
+            Start with the session context. Intro is used when a student is entering TT in a topic
+            and the tutor still needs to find the correct starting phase.
+          </p>
           <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
             {introRules.map((rule) => (
               <li key={rule}>{rule}</li>
@@ -210,6 +219,10 @@ export default function ResponseConditioningDrillLibrary() {
 
         <Card className="p-6 space-y-4">
           <h2 className="text-2xl font-bold">How Handover Uses The Library</h2>
+          <p className="text-muted-foreground">
+            Start with the session context. Handover is used when one tutor is replacing another
+            and the student has already been actively trained in TT before.
+          </p>
           <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
             {handoverRules.map((rule) => (
               <li key={rule}>{rule}</li>
@@ -217,7 +230,8 @@ export default function ResponseConditioningDrillLibrary() {
           </ul>
           <p className="text-sm text-muted-foreground">
             Handover uses the same phase structure, but in a shorter check format.
-            It is not a fresh intro and it is not normal training.
+            Its job is to confirm where training should continue from, not to place the student from
+            scratch and not to jump straight back into normal training.
           </p>
         </Card>
 
