@@ -68,6 +68,10 @@ export default function ResponseConditioningHandoverVerification() {
           <p className="text-lg font-semibold">
             The student is continuing. The new tutor is verifying where to continue from.
           </p>
+          <p className="font-semibold">
+            In handover, the tutor does not choose the student's state by instinct. The tutor runs
+            the verification block, logs honestly, and follows the verification result.
+          </p>
           <p className="text-sm text-muted-foreground">
             See <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/drill-library">Drill Library</Link> for the verification structure and{" "}
             <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/logging-system">Logging System</Link> for how continuity-check evidence is recorded.
@@ -81,6 +85,10 @@ export default function ResponseConditioningHandoverVerification() {
             <li>Protects the student from being re-onboarded unnecessarily.</li>
             <li>Gives the new tutor enough proof to continue with confidence.</li>
           </ul>
+          <p className="text-sm text-muted-foreground">
+            That proof is not for free interpretation. It is there so the tutor can follow the
+            verification outcome cleanly.
+          </p>
         </Card>
 
         <Card className="p-6 space-y-4">
@@ -89,7 +97,7 @@ export default function ResponseConditioningHandoverVerification() {
             <li>1. Review the inherited topic, phase, and stability.</li>
             <li>2. Confirm the continuity-check booking.</li>
             <li>3. Run the short verification on the active topic-state.</li>
-            <li>4. Decide whether the inherited state holds, needs adjustment, or needs deeper verification.</li>
+            <li>4. Follow the verification result: the inherited state either holds, needs tightening, or needs deeper verification.</li>
             <li>5. Mark handover complete so normal training systems reopen.</li>
           </ol>
         </Card>
@@ -123,6 +131,10 @@ export default function ResponseConditioningHandoverVerification() {
           </p>
           <p className="font-semibold">
             Handover verification protects continuity without pretending the student is brand new.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            The tutor's job is not to re-judge the student from scratch. The tutor's job is to run
+            the continuity check properly and follow what it shows.
           </p>
         </Card>
       </div>
