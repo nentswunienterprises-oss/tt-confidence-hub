@@ -12,7 +12,27 @@ export type TutorBattleTestPhaseKey =
   | "structured_execution"
   | "controlled_discomfort"
   | "time_pressure_stability"
-  | "topic_conditioning";
+  | "topic_conditioning"
+  | "intro_session_structure"
+  | "logging_system"
+  | "session_flow_control"
+  | "drill_library"
+  | "handover_verification"
+  | "tools_required";
+
+const TUTOR_BATTLE_TEST_KEYS: TutorBattleTestPhaseKey[] = [
+  "clarity",
+  "structured_execution",
+  "controlled_discomfort",
+  "time_pressure_stability",
+  "topic_conditioning",
+  "intro_session_structure",
+  "logging_system",
+  "session_flow_control",
+  "drill_library",
+  "handover_verification",
+  "tools_required",
+];
 
 export interface BattleTestQuestionDefinition {
   key: string;
@@ -898,7 +918,7 @@ const tdSystemIntegrityDefinition: BattleTestPhaseDefinition = {
 
 export const TUTOR_BATTLE_TEST_PHASES = tutorPhaseDefinitions;
 export const TD_BATTLE_TEST_PHASE = tdSystemIntegrityDefinition;
-export const TUTOR_BATTLE_TEST_PHASE_ORDER = tutorPhaseDefinitions.map((phase) => phase.key as TutorBattleTestPhaseKey);
+export const TUTOR_BATTLE_TEST_PHASE_ORDER = TUTOR_BATTLE_TEST_KEYS;
 
 export function getTutorBattleTestPhaseDefinition(phaseKey: string) {
   return tutorPhaseDefinitions.find((phase) => phase.key === phaseKey) || null;

@@ -86,8 +86,8 @@ function formatTutorAuditTimestamp(value: string | null | undefined) {
 
 function formatTutorAlignmentStatus(value: string | null | undefined) {
   if (!value) return "You have not been fully reviewed yet.";
-  if (value === "Complete the remaining transformation phase audits.") {
-    return "Your full alignment review is not complete yet. Remaining phases still need to be checked.";
+  if (value === "Complete the remaining tutor battle-test audits.") {
+    return "Your full alignment review is not complete yet. Remaining TT audit modules still need to be checked.";
   }
   if (value === "Continue. Eligible for greater responsibility if other operating criteria hold.") {
     return "You are in good standing. Keep operating at this level.";
@@ -440,7 +440,7 @@ export default function TutorPod() {
                 <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Tutor Alignment</p>
                 <h2 className="mt-1 text-xl font-semibold tracking-[-0.01em]">Your standing in the system</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  This shows your latest audited alignment state and the transformation phases already checked by TT.
+                  This shows your latest audited alignment state and the TT battle-test modules already checked by TT.
                 </p>
               </div>
             </div>
@@ -467,7 +467,7 @@ export default function TutorPod() {
             </div>
 
             <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-4">
-              <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Transformation Phases</p>
+              <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Audit Modules</p>
               {tutorAlignmentSummary?.alignmentSummary?.phaseScores?.length ? (
                 <div className="mt-3 grid gap-2 sm:grid-cols-2">
                   {tutorAlignmentSummary.alignmentSummary.phaseScores.map((phase) => (

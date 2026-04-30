@@ -76,6 +76,8 @@ interface StudentActionRecord {
   concept_mastery?: any;
 }
 
+type TutorAuditGroupKey = "transformation_phases" | "session_infrastructure";
+
 const EMPTY_BATTLE_TESTING_SUMMARY: PodBattleTestingSummary = {
   podId: "",
   weeklyAlignmentPercent: null,
@@ -108,6 +110,32 @@ function getOperationalModeBadge(mode?: string | null) {
   return String(mode || "").toLowerCase() === "certified_live" ? "default" : "secondary";
 }
 
+function getTutorAuditGroupMeta(groupKey: TutorAuditGroupKey) {
+  if (groupKey === "transformation_phases") {
+    return {
+      title: "Transformation Phases",
+      description: "Recognition, execution, discomfort, time pressure, and topic conditioning.",
+    };
+  }
+
+  return {
+    title: "Session Infrastructure",
+    description: "Intro flow, logging, session control, drill library, handover, and tools.",
+  };
+}
+
+function getTutorAuditGroupKey(phaseKey: string): TutorAuditGroupKey {
+  return [
+    "clarity",
+    "structured_execution",
+    "controlled_discomfort",
+    "time_pressure_stability",
+    "topic_conditioning",
+  ].includes(phaseKey)
+    ? "transformation_phases"
+    : "session_infrastructure";
+}
+
 export default function TDOverview() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -128,6 +156,7 @@ export default function TDOverview() {
   const [expandedTutorDetails, setExpandedTutorDetails] = useState<Record<string, boolean>>({});
   const [expandedPhaseScores, setExpandedPhaseScores] = useState<Record<string, boolean>>({});
   const [expandedTutorsSection, setExpandedTutorsSection] = useState<Record<string, boolean>>({});
+  const [expandedTutorAuditGroups, setExpandedTutorAuditGroups] = useState<Record<string, boolean>>({});
 
   const {
     data: podsData,
@@ -190,6 +219,18 @@ export default function TDOverview() {
   }, [error, toast]);
 
   const activePhaseOptions = useMemo<BattleTestPhaseDefinition[]>(() => tutorBattleTestPhases, [tutorBattleTestPhases]);
+  const groupedTutorPhaseOptions = useMemo(() => {
+    const groups: Record<TutorAuditGroupKey, BattleTestPhaseDefinition[]> = {
+      transformation_phases: [],
+      session_infrastructure: [],
+    };
+
+    for (const phase of activePhaseOptions) {
+      groups[getTutorAuditGroupKey(phase.key)].push(phase);
+    }
+
+    return groups;
+  }, [activePhaseOptions]);
   const overviewBasePath = location.pathname.startsWith("/operational/td")
     ? "/operational/td/my-pods"
     : "/td/overview";
@@ -292,6 +333,14 @@ export default function TDOverview() {
     setExpandedTutorsSection((current) => ({
       ...current,
       [podId]: !current[podId],
+    }));
+  };
+
+  const toggleTutorAuditGroup = (assignmentId: string, groupKey: TutorAuditGroupKey) => {
+    const stateKey = `${assignmentId}:${groupKey}`;
+    setExpandedTutorAuditGroups((current) => ({
+      ...current,
+      [stateKey]: !current[stateKey],
     }));
   };
 
@@ -640,33 +689,65 @@ export default function TDOverview() {
                                               <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
                                                 Tutor Audit
                                               </p>
-                                              <div className="mt-3 grid gap-2">
-                                                {activePhaseOptions.map((phaseDefinition) => {
-                                                  const phaseAudit =
-                                                    latestPhaseScores.find(
-                                                      (entry) => entry.phaseKey === phaseDefinition.key
-                                                    ) ||
-                                                    tutorAudit?.phaseScores?.find(
-                                                    (entry) => entry.phaseKey === phaseDefinition.key
-                                                  );
+                                              <div className="mt-3 space-y-3">
+                                                {(["transformation_phases", "session_infrastructure"] as TutorAuditGroupKey[]).map((groupKey) => {
+                                                  const groupMeta = getTutorAuditGroupMeta(groupKey);
+                                                  const groupPhases = groupedTutorPhaseOptions[groupKey];
+                                                  const expandKey = `${tutor.assignment.id}:${groupKey}`;
+                                                  const isGroupExpanded = expandedTutorAuditGroups[expandKey] ?? true;
 
                                                   return (
-                                                    <div
-                                                      key={`${tutor.assignment.id}-${phaseDefinition.key}`}
-                                                      className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-background/80 px-3 py-2"
-                                                    >
-                                                      <span className="text-sm font-medium text-foreground">
-                                                        {phaseDefinition.title}
-                                                      </span>
-                                                      {phaseAudit ? (
-                                                        <Badge variant="outline">
-                                                          {Math.round(phaseAudit.percent)}%
-                                                        </Badge>
-                                                      ) : (
-                                                        <span className="text-xs text-muted-foreground">
-                                                          Not yet audited
-                                                        </span>
-                                                      )}
+                                                    <div key={expandKey} className="rounded-xl border border-border/60 bg-background/60">
+                                                      <button
+                                                        type="button"
+                                                        onClick={() => toggleTutorAuditGroup(tutor.assignment.id, groupKey)}
+                                                        className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left transition-colors hover:bg-muted/30"
+                                                      >
+                                                        <div>
+                                                          <p className="text-sm font-semibold text-foreground">{groupMeta.title}</p>
+                                                          <p className="text-xs text-muted-foreground">{groupMeta.description}</p>
+                                                        </div>
+                                                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background text-foreground shadow-sm">
+                                                          {isGroupExpanded ? (
+                                                            <ChevronUp className="h-4 w-4 text-foreground" />
+                                                          ) : (
+                                                            <ChevronDown className="h-4 w-4 text-foreground" />
+                                                          )}
+                                                        </div>
+                                                      </button>
+                                                      {isGroupExpanded ? (
+                                                        <div className="grid gap-2 border-t border-border/60 px-3 py-3">
+                                                          {groupPhases.map((phaseDefinition) => {
+                                                            const phaseAudit =
+                                                              latestPhaseScores.find(
+                                                                (entry) => entry.phaseKey === phaseDefinition.key
+                                                              ) ||
+                                                              tutorAudit?.phaseScores?.find(
+                                                                (entry) => entry.phaseKey === phaseDefinition.key
+                                                              );
+
+                                                            return (
+                                                              <div
+                                                                key={`${tutor.assignment.id}-${phaseDefinition.key}`}
+                                                                className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-background/80 px-3 py-2"
+                                                              >
+                                                                <span className="text-sm font-medium text-foreground">
+                                                                  {phaseDefinition.title}
+                                                                </span>
+                                                                {phaseAudit ? (
+                                                                  <Badge variant="outline">
+                                                                    {Math.round(phaseAudit.percent)}%
+                                                                  </Badge>
+                                                                ) : (
+                                                                  <span className="text-xs text-muted-foreground">
+                                                                    Not yet audited
+                                                                  </span>
+                                                                )}
+                                                              </div>
+                                                            );
+                                                          })}
+                                                        </div>
+                                                      ) : null}
                                                     </div>
                                                   );
                                                 })}

@@ -7,6 +7,7 @@ type ParsedQuestion = BattleTestQuestionDefinition & { sourceLabel: string };
 const ROOT = resolve(process.cwd(), "Battle-Testing Infrastructure");
 const TUTOR_BATTLE_TESTING_ROOT = resolve(ROOT, "Tutor Battle-Testing");
 const TUTOR_TRANSFORMATION_PHASE_ROOT = resolve(TUTOR_BATTLE_TESTING_ROOT, "Transformation Phases");
+const TUTOR_SESSION_INFRASTRUCTURE_ROOT = resolve(TUTOR_BATTLE_TESTING_ROOT, "Session Infrastructure");
 
 function resolveExistingPath(...candidates: string[]) {
   const match = candidates.find((candidate) => existsSync(candidate));
@@ -62,6 +63,42 @@ const TUTOR_SOURCE_FILES = [
       resolve(TUTOR_BATTLE_TESTING_ROOT, "TT-OS Trasnformation Phases Battle-Testing = Topic Conditioning.md")
     ),
   },
+  {
+    key: "intro_session_structure",
+    title: "Intro Session Structure",
+    description: "TT-OS BATTLE TEST: INTRO SESSION STRUCTURE (SCORING VERSION)",
+    path: resolve(TUTOR_SESSION_INFRASTRUCTURE_ROOT, "Intro Session Structure.md"),
+  },
+  {
+    key: "logging_system",
+    title: "Logging System",
+    description: "TT-OS BATTLE TEST: LOGGING SYSTEM (SCORING VERSION)",
+    path: resolve(TUTOR_SESSION_INFRASTRUCTURE_ROOT, "Logging System.md"),
+  },
+  {
+    key: "session_flow_control",
+    title: "Session Flow Control",
+    description: "TT-OS BATTLE TEST: SESSION CONTEXT & DRILL FLOW (SCORING VERSION)",
+    path: resolve(TUTOR_SESSION_INFRASTRUCTURE_ROOT, "Session Flow Control.md"),
+  },
+  {
+    key: "drill_library",
+    title: "Drill Library",
+    description: "TT-OS BATTLE TEST: DRILL LIBRARY (SCORING VERSION)",
+    path: resolve(TUTOR_SESSION_INFRASTRUCTURE_ROOT, "Drill Library.md"),
+  },
+  {
+    key: "handover_verification",
+    title: "Handover Verification",
+    description: "TT-OS BATTLE TEST: HANDOVER VERIFICATION (SCORING VERSION)",
+    path: resolve(TUTOR_SESSION_INFRASTRUCTURE_ROOT, "Handover verification.md"),
+  },
+  {
+    key: "tools_required",
+    title: "Tools Required",
+    description: "TT-OS BATTLE TEST: TOOLS REQUIRED (SCORING VERSION)",
+    path: resolve(TUTOR_SESSION_INFRASTRUCTURE_ROOT, "Tools Required.md"),
+  },
 ] as const;
 
 const TD_SOURCE_FILE = {
@@ -77,6 +114,12 @@ const AUTO_CRITICAL_BY_PHASE: Record<string, Set<string>> = {
   controlled_discomfort: new Set(["Q2", "Q4", "Q7", "Q8", "Scenario 1", "Scenario 2", "Scenario 3", "FINAL QUESTION"]),
   time_pressure_stability: new Set(["Q7", "Scenario 1", "Scenario 2", "Scenario 3", "FINAL QUESTION"]),
   topic_conditioning: new Set(["Scenario 1", "Scenario 3", "Scenario 4", "FINAL QUESTION"]),
+  intro_session_structure: new Set(["Q7", "Scenario 1", "Scenario 2", "Scenario 3", "FINAL QUESTION"]),
+  logging_system: new Set(["Q7", "Scenario 1", "Scenario 3", "Scenario 4", "FINAL QUESTION"]),
+  session_flow_control: new Set(["Q9", "Scenario 1", "Scenario 2", "Scenario 4", "FINAL QUESTION"]),
+  drill_library: new Set(["Q10", "Scenario 1", "Scenario 2", "Scenario 4", "FINAL QUESTION"]),
+  handover_verification: new Set(["Q10", "Scenario 1", "Scenario 2", "Scenario 4", "FINAL QUESTION"]),
+  tools_required: new Set(["Q6", "Scenario 1", "Scenario 2", "Scenario 4", "FINAL QUESTION"]),
   td_system_integrity: new Set([
     "Q4",
     "Q5",
@@ -239,6 +282,36 @@ function parseBattleTestDocument(phaseKey: string, title: string, description: s
               if (/^scenario\s+1$/i.test(sourceLabel.trim())) return "topic_conditioning_q15";
               if (/^scenario\s+3$/i.test(sourceLabel.trim())) return "topic_conditioning_q16";
               if (/^scenario\s+4$/i.test(sourceLabel.trim())) return "topic_conditioning_q17";
+            } else if (phaseKey === "intro_session_structure") {
+              if (/^scenario\s+1$/i.test(sourceLabel.trim())) return "intro_session_structure_q11";
+              if (/^scenario\s+2$/i.test(sourceLabel.trim())) return "intro_session_structure_q12";
+              if (/^scenario\s+3$/i.test(sourceLabel.trim())) return "intro_session_structure_q13";
+              if (/^scenario\s+4$/i.test(sourceLabel.trim())) return "intro_session_structure_q14";
+            } else if (phaseKey === "logging_system") {
+              if (/^scenario\s+1$/i.test(sourceLabel.trim())) return "logging_system_q11";
+              if (/^scenario\s+2$/i.test(sourceLabel.trim())) return "logging_system_q12";
+              if (/^scenario\s+3$/i.test(sourceLabel.trim())) return "logging_system_q13";
+              if (/^scenario\s+4$/i.test(sourceLabel.trim())) return "logging_system_q14";
+            } else if (phaseKey === "session_flow_control") {
+              if (/^scenario\s+1$/i.test(sourceLabel.trim())) return "session_flow_control_q11";
+              if (/^scenario\s+2$/i.test(sourceLabel.trim())) return "session_flow_control_q12";
+              if (/^scenario\s+3$/i.test(sourceLabel.trim())) return "session_flow_control_q13";
+              if (/^scenario\s+4$/i.test(sourceLabel.trim())) return "session_flow_control_q14";
+            } else if (phaseKey === "drill_library") {
+              if (/^scenario\s+1$/i.test(sourceLabel.trim())) return "drill_library_q11";
+              if (/^scenario\s+2$/i.test(sourceLabel.trim())) return "drill_library_q12";
+              if (/^scenario\s+3$/i.test(sourceLabel.trim())) return "drill_library_q13";
+              if (/^scenario\s+4$/i.test(sourceLabel.trim())) return "drill_library_q14";
+            } else if (phaseKey === "handover_verification") {
+              if (/^scenario\s+1$/i.test(sourceLabel.trim())) return "handover_verification_q11";
+              if (/^scenario\s+2$/i.test(sourceLabel.trim())) return "handover_verification_q12";
+              if (/^scenario\s+3$/i.test(sourceLabel.trim())) return "handover_verification_q13";
+              if (/^scenario\s+4$/i.test(sourceLabel.trim())) return "handover_verification_q14";
+            } else if (phaseKey === "tools_required") {
+              if (/^scenario\s+1$/i.test(sourceLabel.trim())) return "tools_required_q11";
+              if (/^scenario\s+2$/i.test(sourceLabel.trim())) return "tools_required_q12";
+              if (/^scenario\s+3$/i.test(sourceLabel.trim())) return "tools_required_q13";
+              if (/^scenario\s+4$/i.test(sourceLabel.trim())) return "tools_required_q14";
             }
             return `${phaseKey}_${toQuestionKey(sourceLabel)}`;
           })();

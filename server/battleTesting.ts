@@ -91,7 +91,7 @@ function getAggregateBattleTestActionRequired(state: BattleTestState, hasCritica
     return "Remove from live responsibility and recondition before returning.";
   }
   if (isIncomplete) {
-    return "Complete the remaining transformation phase audits.";
+    return "Complete the remaining tutor battle-test audits.";
   }
   if (state === "watchlist") {
     return "Correct immediately and retest in the next cycle.";

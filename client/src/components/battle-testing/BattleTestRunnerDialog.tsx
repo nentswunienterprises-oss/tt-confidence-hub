@@ -48,6 +48,15 @@ type ResponseDraft = {
   isCriticalFail: boolean;
 };
 
+type BattleTestModuleGroup = {
+  key: "transformation_phases" | "session_infrastructure" | "other";
+  title: string;
+  description: string;
+  phases: BattleTestPhaseDefinition[];
+};
+
+type SelectionStage = "group" | "module" | "questions";
+
 const SCORE_META: Record<
   BattleTestScore,
   { label: string; description: string; className: string; icon: LucideIcon }
@@ -76,6 +85,69 @@ function getQuestionId(phaseKey: string, questionKey: string) {
   return `${phaseKey}:${questionKey}`;
 }
 
+function getPhaseGroupKey(phaseKey: string): BattleTestModuleGroup["key"] {
+  if (
+    [
+      "clarity",
+      "structured_execution",
+      "controlled_discomfort",
+      "time_pressure_stability",
+      "topic_conditioning",
+    ].includes(phaseKey)
+  ) {
+    return "transformation_phases";
+  }
+
+  if (
+    [
+      "intro_session_structure",
+      "logging_system",
+      "session_flow_control",
+      "drill_library",
+      "handover_verification",
+      "tools_required",
+    ].includes(phaseKey)
+  ) {
+    return "session_infrastructure";
+  }
+
+  return "other";
+}
+
+function groupPhaseOptions(phaseOptions: BattleTestPhaseDefinition[]): BattleTestModuleGroup[] {
+  const groups = new Map<BattleTestModuleGroup["key"], BattleTestModuleGroup>();
+
+  for (const phase of phaseOptions) {
+    const groupKey = getPhaseGroupKey(phase.key);
+    if (!groups.has(groupKey)) {
+      groups.set(groupKey, {
+        key: groupKey,
+        title:
+          groupKey === "transformation_phases"
+            ? "Transformation Phases"
+            : groupKey === "session_infrastructure"
+            ? "Session Infrastructure"
+            : "Other Modules",
+        description:
+          groupKey === "transformation_phases"
+            ? "Tutor discipline inside the TT transformation engine."
+            : groupKey === "session_infrastructure"
+            ? "Tutor discipline inside session setup, control, logging, and continuity systems."
+            : "Additional tutor battle-test modules.",
+        phases: [],
+      });
+    }
+
+    groups.get(groupKey)!.phases.push(phase);
+  }
+
+  return [
+    groups.get("transformation_phases"),
+    groups.get("session_infrastructure"),
+    groups.get("other"),
+  ].filter((group): group is BattleTestModuleGroup => Boolean(group));
+}
+
 export default function BattleTestRunnerDialog({
   open,
   onOpenChange,
@@ -90,8 +162,6 @@ export default function BattleTestRunnerDialog({
     () =>
       selectionMode === "fixed"
         ? phaseOptions.map((phase) => phase.key)
-        : phaseOptions.length > 0
-        ? [phaseOptions[0].key]
         : [],
     [phaseOptions, selectionMode]
   );
@@ -100,6 +170,13 @@ export default function BattleTestRunnerDialog({
   const [responses, setResponses] = useState<Record<string, ResponseDraft>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [runSummaryExpanded, setRunSummaryExpanded] = useState(true);
+  const [selectionStage, setSelectionStage] = useState<SelectionStage>(selectionMode === "fixed" ? "questions" : "group");
+  const [activeGroupKey, setActiveGroupKey] = useState<BattleTestModuleGroup["key"] | null>(null);
+  const groupedPhaseOptions = useMemo(() => groupPhaseOptions(phaseOptions), [phaseOptions]);
+  const activeGroup = useMemo(
+    () => groupedPhaseOptions.find((group) => group.key === activeGroupKey) || null,
+    [groupedPhaseOptions, activeGroupKey]
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -107,6 +184,8 @@ export default function BattleTestRunnerDialog({
     setHasStarted(selectionMode === "fixed");
     setResponses({});
     setIsSubmitting(false);
+    setSelectionStage(selectionMode === "fixed" ? "questions" : "group");
+    setActiveGroupKey(null);
   }, [open, initialPhaseKeys, selectionMode]);
 
   const selectedPhases = useMemo(
@@ -142,13 +221,35 @@ export default function BattleTestRunnerDialog({
     return sum + (score ? BATTLE_TEST_SCORE_POINTS[score] : 0);
   }, 0);
 
-  const handlePhaseToggle = (phaseKey: string, checked: boolean) => {
-    setSelectedPhaseKeys((current) => {
-      if (selectionMode === "fixed") return current;
-      if (checked) return Array.from(new Set([...current, phaseKey]));
-      if (current.length === 1) return current;
-      return current.filter((key) => key !== phaseKey);
-    });
+  const handleModuleOpen = (phaseKey: string) => {
+    if (selectionMode === "fixed") return;
+    setSelectedPhaseKeys([phaseKey]);
+    setHasStarted(true);
+    setSelectionStage("questions");
+    setResponses({});
+  };
+
+  const handleGroupOpen = (groupKey: BattleTestModuleGroup["key"]) => {
+    if (selectionMode === "fixed") return;
+    setActiveGroupKey(groupKey);
+    setSelectionStage("module");
+  };
+
+  const handleReturnToGroupList = () => {
+    if (selectionMode === "fixed") return;
+    setSelectionStage("group");
+    setActiveGroupKey(null);
+    setSelectedPhaseKeys([]);
+    setHasStarted(false);
+    setResponses({});
+  };
+
+  const handleReturnToModuleList = () => {
+    if (selectionMode === "fixed") return;
+    setSelectionStage("module");
+    setHasStarted(false);
+    setSelectedPhaseKeys([]);
+    setResponses({});
   };
 
   const handleScoreChange = (phaseKey: string, questionKey: string, score: BattleTestScore) => {
@@ -209,43 +310,98 @@ export default function BattleTestRunnerDialog({
             {!hasStarted ? (
               <ScrollArea className="h-[58dvh] sm:h-auto sm:max-h-none lg:h-full lg:max-h-full">
                 <div className="space-y-5 p-4 sm:p-6 lg:mx-auto lg:max-w-4xl lg:space-y-6 lg:p-8">
-                  <div className="rounded-2xl border border-[#E7D5C8] bg-[#FFF5ED] p-4 text-[#1A1A1A] sm:p-5">
-                    <p className="text-sm font-medium text-foreground">Select phases to drill</p>
-                    <p className="mt-1 text-sm text-[#6B5B52]">
-                      TD picks the exact tutor transformation phases to battle-test in this run.
-                    </p>
-                  </div>
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {phaseOptions.map((phase) => (
-                      <Card key={phase.key} className="rounded-2xl border border-[#E7D5C8] bg-white p-4 shadow-sm">
-                        <div className="flex items-start gap-3">
-                          <Checkbox
-                            checked={selectedPhaseKeys.includes(phase.key)}
-                            onCheckedChange={(checked) => handlePhaseToggle(phase.key, checked === true)}
-                            id={`phase-${phase.key}`}
-                          />
-                          <div className="space-y-1">
-                            <Label htmlFor={`phase-${phase.key}`} className="text-sm font-semibold text-foreground">
-                              {phase.title}
-                            </Label>
-                            <p className="text-sm text-[#6B5B52]">{phase.description}</p>
-                            <Badge variant="outline">{phase.questions.length} reps</Badge>
-                          </div>
+                  {selectionStage === "group" ? (
+                    <>
+                      <div className="rounded-2xl border border-[#E7D5C8] bg-[#FFF5ED] p-4 text-[#1A1A1A] sm:p-5">
+                        <p className="text-sm font-medium text-foreground">Choose an audit module family</p>
+                        <p className="mt-1 text-sm text-[#6B5B52]">
+                          TD first chooses the TT audit module family, then opens a specific deep-dive battle-test bank.
+                        </p>
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        {groupedPhaseOptions
+                          .filter((group) => group.key !== "other")
+                          .map((group) => (
+                            <button
+                              key={group.key}
+                              type="button"
+                              onClick={() => handleGroupOpen(group.key)}
+                              className="text-left"
+                            >
+                              <Card className="rounded-2xl border border-[#E7D5C8] bg-white p-5 shadow-sm transition-colors hover:border-primary/40 hover:bg-[#FFF9F3]">
+                                <div className="space-y-3">
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div className="space-y-1">
+                                      <p className="text-base font-semibold text-foreground">{group.title}</p>
+                                      <p className="text-sm text-[#6B5B52]">{group.description}</p>
+                                    </div>
+                                    <ChevronRight className="mt-0.5 h-4 w-4 text-[#6B5B52]" />
+                                  </div>
+                                  <Badge variant="outline">{group.phases.length} banks</Badge>
+                                </div>
+                              </Card>
+                            </button>
+                          ))}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#E7D5C8] bg-[#FFF5ED] p-4 text-[#1A1A1A] sm:p-5">
+                        <div>
+                          <p className="text-sm font-medium text-foreground">{activeGroup?.title || "Audit Modules"}</p>
+                          <p className="mt-1 text-sm text-[#6B5B52]">
+                            Click a module to open its deep-dive battle-test question bank.
+                          </p>
                         </div>
-                      </Card>
-                    ))}
-                  </div>
-                  <div className="flex justify-end lg:pt-2">
-                    <Button className="lg:min-w-48" disabled={selectedPhaseKeys.length === 0} onClick={() => setHasStarted(true)}>
-                      Start Battle Test
-                      <ChevronRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </div>
+                        <Button variant="outline" size="sm" onClick={handleReturnToGroupList}>
+                          Back
+                        </Button>
+                      </div>
+                      <div className="grid gap-3 md:grid-cols-2">
+                        {(activeGroup?.phases || []).map((phase) => (
+                          <button
+                            key={phase.key}
+                            type="button"
+                            onClick={() => handleModuleOpen(phase.key)}
+                            className="text-left"
+                          >
+                            <Card className="rounded-2xl border border-[#E7D5C8] bg-white p-4 shadow-sm transition-colors hover:border-primary/40 hover:bg-[#FFF9F3]">
+                              <div className="space-y-2">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="space-y-1">
+                                    <p className="text-sm font-semibold text-foreground">{phase.title}</p>
+                                    <p className="text-sm text-[#6B5B52]">{phase.description}</p>
+                                  </div>
+                                  <ChevronRight className="mt-0.5 h-4 w-4 text-[#6B5B52]" />
+                                </div>
+                                <Badge variant="outline">{phase.questions.length} reps</Badge>
+                              </div>
+                            </Card>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
               </ScrollArea>
             ) : (
               <ScrollArea className="h-screen lg:h-full lg:max-h-full">
                 <div className="space-y-5 p-4 pb-20 sm:p-6 sm:pb-24 lg:mx-auto lg:max-w-4xl lg:space-y-6 lg:p-8 lg:pb-8">
+                  {selectionMode !== "fixed" ? (
+                    <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#E7D5C8] bg-white px-4 py-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                          Active Module
+                        </p>
+                        <p className="text-sm font-medium text-foreground">
+                          {selectedPhases[0]?.title || "Battle Test"}
+                        </p>
+                      </div>
+                      <Button variant="outline" size="sm" onClick={handleReturnToModuleList}>
+                        Back to modules
+                      </Button>
+                    </div>
+                  ) : null}
                   {questions.map(({ phase, question, questionId }, index) => {
                     const response = responses[questionId] || { note: "", isCriticalFail: false };
                     return (

@@ -158,7 +158,7 @@ function normalizeText(raw: string): string {
     .replace(/\u0000/g, "")
     .replace(/[â€œâ€]/g, '"')
     .replace(/[â€˜â€™]/g, "'")
-    .replace(/[â€“—]/g, "-")
+    .replace(/[â€“-]/g, "-")
     .replace(/\uFFFD/g, "")
     .trim();
 }
