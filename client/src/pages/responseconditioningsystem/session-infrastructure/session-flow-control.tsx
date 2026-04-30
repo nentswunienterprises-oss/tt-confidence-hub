@@ -215,6 +215,10 @@ export default function ResponseConditioningSessionFlowControl() {
           <p className="font-semibold">
             Diagnosis can appear inside active training when a newly activated topic needs entry placement, but that does not turn the whole session into an intro session.
           </p>
+          <p className="text-sm text-muted-foreground">
+            For the full drill taxonomy, see{" "}
+            <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/drill-library">Drill Library</Link>.
+          </p>
         </Card>
 
         <Card className="p-6 space-y-4">
@@ -230,7 +234,8 @@ export default function ResponseConditioningSessionFlowControl() {
             Diagnosis is topic-entry placement. In intro, diagnosis is the whole session. During active training, diagnosis is only used when a newly activated topic needs entry placement.
           </p>
           <p className="text-sm text-muted-foreground">
-            See <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/intro-session-structure">Intro Session Structure</Link> and{" "}
+            See <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/intro-session-structure">Intro Session Structure</Link>,{" "}
+            <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/drill-library">Drill Library</Link>, and{" "}
             <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/logging-system">Logging System</Link>.
           </p>
         </Card>
@@ -284,7 +289,8 @@ export default function ResponseConditioningSessionFlowControl() {
           </ol>
           <p className="font-semibold">Handover is verification, not re-onboarding and not normal training.</p>
           <p className="text-sm text-muted-foreground">
-            See <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/handover-verification">Handover Verification</Link> and{" "}
+            See <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/handover-verification">Handover Verification</Link>,{" "}
+            <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/drill-library">Drill Library</Link>, and{" "}
             <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/logging-system">Logging System</Link>.
           </p>
         </Card>

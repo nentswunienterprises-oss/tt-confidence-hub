@@ -109,6 +109,10 @@ const modules = [
         href: "/responseconditioningsystem/session-infrastructure/session-flow-control",
       },
       {
+        label: "Drill Library",
+        href: "/responseconditioningsystem/session-infrastructure/drill-library",
+      },
+      {
         label: "Logging system",
         href: "/responseconditioningsystem/session-infrastructure/logging-system",
       },

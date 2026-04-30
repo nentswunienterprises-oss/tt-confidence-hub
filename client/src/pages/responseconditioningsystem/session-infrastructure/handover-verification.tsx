@@ -69,7 +69,8 @@ export default function ResponseConditioningHandoverVerification() {
             The student is continuing. The new tutor is verifying where to continue from.
           </p>
           <p className="text-sm text-muted-foreground">
-            See <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/logging-system">Logging System</Link> for how continuity-check evidence is recorded.
+            See <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/drill-library">Drill Library</Link> for the verification structure and{" "}
+            <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/logging-system">Logging System</Link> for how continuity-check evidence is recorded.
           </p>
         </Card>
 

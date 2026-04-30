@@ -52,6 +52,7 @@ import ResponseConditioningBreakdownPatterns from "@/pages/responseconditionings
 import ResponseConditioningBeforeVsAfter from "@/pages/responseconditioningsystem/system-intelligence/before-vs-after";
 import ResponseConditioningIntroSessionStructure from "@/pages/responseconditioningsystem/session-infrastructure/intro-session-structure";
 import ResponseConditioningSessionFlowControl from "@/pages/responseconditioningsystem/session-infrastructure/session-flow-control";
+import ResponseConditioningDrillLibrary from "@/pages/responseconditioningsystem/session-infrastructure/drill-library";
 import ResponseConditioningLoggingSystem from "@/pages/responseconditioningsystem/session-infrastructure/logging-system";
 import ResponseConditioningHandoverVerification from "@/pages/responseconditioningsystem/session-infrastructure/handover-verification";
 import ResponseConditioningToolsRequired from "@/pages/responseconditioningsystem/session-infrastructure/tools-required";
@@ -305,6 +306,14 @@ function Router() {
       <Route
         path="/responseconditioningsystem/session-infrastructure/session-flow-control"
         element={<ResponseConditioningSessionFlowControl />}
+      />
+      <Route
+        path="/responseconditioningsystem/drill-library"
+        element={<ResponseConditioningDrillLibrary />}
+      />
+      <Route
+        path="/responseconditioningsystem/session-infrastructure/drill-library"
+        element={<ResponseConditioningDrillLibrary />}
       />
       <Route
         path="/responseconditioningsystem/topic-conditioning"

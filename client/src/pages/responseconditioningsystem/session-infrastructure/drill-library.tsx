@@ -1,0 +1,255 @@
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, LibraryBig } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+
+const drillTypes = [
+  {
+    title: "Diagnosis",
+    purpose: "Find where the student should begin in a topic.",
+    usedIn: "Intro, and any new topic that appears during active training.",
+    howItWorks:
+      "Run one phase block, score it out of 100, then move down, place here, or move up.",
+  },
+  {
+    title: "Training",
+    purpose: "Build the student's current skill once the starting point is already known.",
+    usedIn: "Normal active training sessions.",
+    howItWorks:
+      "The app identifies the current phase, and the tutor runs the training sets exactly as written.",
+  },
+  {
+    title: "Verification",
+    purpose: "Check whether the current placement still holds without restarting the topic.",
+    usedIn: "Tutor handover and continuity checks.",
+    howItWorks:
+      "Run a short check on the current state, then confirm it, tighten it, or check more deeply.",
+  },
+];
+
+const drillLanes = [
+  {
+    phase: "Clarity",
+    purpose: "Make sure the student can see and explain the work before solving alone.",
+    diagnosis: ["Recognition Probe", "Light Apply Probe"],
+    training: ["Modeling", "Identification", "Light Apply"],
+    verification: "A short Clarity check using the same recognition focus, without turning into a full lesson.",
+    logging:
+      "The tutor logs vocabulary, method, reason, and how the student responds when asked to act.",
+  },
+  {
+    phase: "Structured Execution",
+    purpose: "Make sure the student can start and carry out the method on their own.",
+    diagnosis: ["Start + Structure", "Repeatability"],
+    training: ["Forced Structure", "Independent Execution", "Variation Control"],
+    verification: "A short cold-start check to see whether the student's structure still holds.",
+    logging:
+      "The tutor logs how the student starts, follows steps, repeats the method, and works independently.",
+  },
+  {
+    phase: "Controlled Discomfort",
+    purpose: "Build steadiness when the work feels difficult, without rescuing the student.",
+    diagnosis: ["First Contact", "Pressure Hold"],
+    training: ["Controlled Entry", "No Rescue", "Repeat Exposure"],
+    verification: "A short difficulty check to see whether the student still holds under pressure.",
+    logging:
+      "The tutor logs the student's first reaction, first-step control, steadiness, and rescue-seeking.",
+  },
+  {
+    phase: "Time Pressure Stability",
+    purpose: "Keep method and completion stable while working under time pressure.",
+    diagnosis: ["Light Timer", "Consistency"],
+    training: ["Structure Under Timer", "Repeated Timed Execution", "Full Constraint"],
+    verification: "A short timed check to see whether the student's timed stability is still real.",
+    logging:
+      "The tutor logs start under time, structure, pace, and whether the student still finishes cleanly.",
+  },
+];
+
+const hierarchy = [
+  "Session context: why this session exists.",
+  "Drill type: diagnosis, training, or verification.",
+  "Phase: clarity, structured execution, controlled discomfort, or time pressure stability.",
+  "Drill set: the exact procedure the tutor runs.",
+  "Rep logging: the option chosen for each rep.",
+  "Result: score, placement, hold, adjustment, or move-forward signal.",
+];
+
+const introRules = [
+  "Intro does not run full training sets.",
+  "Intro uses diagnosis blocks to find the right starting phase.",
+  "A high intro score means check the next phase, not start teaching more.",
+];
+
+const handoverRules = [
+  "Handover does not restart the student.",
+  "Handover uses short verification blocks, not a full intro again.",
+  "If the current state does not hold, the system tightens it or checks further before normal training resumes.",
+];
+
+const loggingSteps = [
+  "Run the rep exactly as written.",
+  "Choose the option that best matches what the student actually did.",
+  "Let the app turn those choices into rep scores, set totals, and a phase summary.",
+  "Use that output to decide placement, hold, or progression.",
+];
+
+export default function ResponseConditioningDrillLibrary() {
+  const navigate = useNavigate();
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="border-b bg-card">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+          <Button
+            variant="ghost"
+            className="mb-4 -ml-2"
+            onClick={() => navigate("/responseconditioningsystem")}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Response Conditioning System
+          </Button>
+
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <LibraryBig className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">
+                TT-OS Deep Dive
+              </p>
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-1">
+                Drill Library
+              </h1>
+              <p className="text-muted-foreground mt-1">under Session Infrastructure</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-8">
+        <Card className="p-6 space-y-4 border-2 border-primary/20 bg-primary/5">
+          <h2 className="text-2xl font-bold">What This Page Does</h2>
+          <p className="text-muted-foreground">
+            This page explains the full drill structure in one place: the main drill types,
+            the four phases, the drill sets inside each phase, and what the tutor logs.
+          </p>
+          <p className="font-semibold">
+            Use this page when you want the full map. Use the phase pages when you want the exact
+            details for one phase.
+          </p>
+        </Card>
+
+        <Card className="p-6 space-y-4">
+          <h2 className="text-2xl font-bold">Read It In This Order</h2>
+          <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
+            {hierarchy.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </Card>
+
+        <Card className="p-6 space-y-4">
+          <h2 className="text-2xl font-bold">The Three Drill Types</h2>
+          <div className="grid gap-4 md:grid-cols-3">
+            {drillTypes.map((drill) => (
+              <div key={drill.title} className="rounded-xl border bg-card p-4 space-y-2">
+                <h3 className="text-lg font-semibold">{drill.title}</h3>
+                <p className="text-sm text-muted-foreground">{drill.purpose}</p>
+                <p className="text-sm">
+                  <span className="font-medium">Used in:</span> {drill.usedIn}
+                </p>
+                <p className="text-sm text-muted-foreground">{drill.howItWorks}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        <Card className="p-6 space-y-4">
+          <h2 className="text-2xl font-bold">The Four Phase Lanes</h2>
+          <p className="text-muted-foreground">
+            Each phase has its own job, its own drill sets, and its own logging focus.
+            They are not interchangeable.
+          </p>
+          <div className="space-y-4">
+            {drillLanes.map((lane) => (
+              <div key={lane.phase} className="rounded-xl border p-5 space-y-3">
+                <div>
+                  <h3 className="text-xl font-semibold">{lane.phase}</h3>
+                  <p className="text-sm text-muted-foreground mt-1">{lane.purpose}</p>
+                </div>
+                <p className="text-sm">
+                  <span className="font-medium">Diagnosis sets:</span> {lane.diagnosis.join(", ")}
+                </p>
+                <p className="text-sm">
+                  <span className="font-medium">Training sets:</span> {lane.training.join(", ")}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">Verification:</span> {lane.verification}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">What the tutor logs:</span> {lane.logging}
+                </p>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        <Card className="p-6 space-y-4">
+          <h2 className="text-2xl font-bold">How Intro Uses The Library</h2>
+          <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
+            {introRules.map((rule) => (
+              <li key={rule}>{rule}</li>
+            ))}
+          </ul>
+          <p className="text-sm text-muted-foreground">
+            See <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/intro-session-structure">Intro Session Structure</Link> for the
+            placement logic and <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/logging-system"> Logging System</Link> for the scoring model.
+          </p>
+        </Card>
+
+        <Card className="p-6 space-y-4">
+          <h2 className="text-2xl font-bold">How Handover Uses The Library</h2>
+          <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
+            {handoverRules.map((rule) => (
+              <li key={rule}>{rule}</li>
+            ))}
+          </ul>
+          <p className="text-sm text-muted-foreground">
+            Handover uses the same phase structure, but in a shorter check format.
+            It is not a fresh intro and it is not normal training.
+          </p>
+        </Card>
+
+        <Card className="p-6 space-y-4">
+          <h2 className="text-2xl font-bold">How Logging Works</h2>
+          <ol className="space-y-1 pl-5 text-muted-foreground">
+            {loggingSteps.map((step, index) => (
+              <li key={step}>
+                {index + 1}. {step}
+              </li>
+            ))}
+          </ol>
+          <p className="font-semibold">
+            The tutor does not decide the result by feel. The tutor runs the drill, logs honestly,
+            and the app computes the summary.
+          </p>
+        </Card>
+
+        <Card className="p-6 border-2 border-primary/20 space-y-4">
+          <h2 className="text-2xl font-bold">Where To Go Next</h2>
+          <p className="text-muted-foreground">
+            If you want the exact procedure for one phase, go to that phase page.
+            If you want the live runner and scoring logic, go to Logging System.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Recommended next pages:{" "}
+            <Link className="underline underline-offset-2" to="/responseconditioningsystem/clarity">Clarity</Link>,{" "}
+            <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/session-flow-control">Session Context and Drill Flow</Link>,{" "}
+            <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/logging-system">Logging System</Link>.
+          </p>
+        </Card>
+      </div>
+    </div>
+  );
+}

@@ -102,7 +102,8 @@ export default function ResponseConditioningIntroSessionStructure() {
             That recommendation is a starting hypothesis, not the final answer.
           </p>
           <p className="text-sm text-muted-foreground">
-            See <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/logging-system">Logging System</Link> for how each verification block is recorded.
+            See <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/drill-library">Drill Library</Link> for the actual verification blocks and{" "}
+            <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/logging-system">Logging System</Link> for how each block is recorded.
           </p>
         </Card>
 
