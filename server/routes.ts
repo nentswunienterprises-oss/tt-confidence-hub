@@ -17169,10 +17169,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
+      const student = await storage.getStudent(studentId);
+      if (!student) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+
+      if (student?.tutorId && student.tutorId !== tutorId) {
+        return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
+      }
+
+      const existingProfile = (student.personalProfile as any) || {};
+      const workflow = existingProfile.workflow || {};
+      const assignmentAccepted = !!workflow.assignmentAcceptedAt;
+      if (!assignmentAccepted) {
+        return res.status(403).json({ message: "Accept this assignment before sending a proposal." });
+      }
+
+      const { data: confirmedIntroSession, error: confirmedIntroSessionError } = await supabase
+        .from("scheduled_sessions")
+        .select("id, status, type, tutor_id, student_id")
+        .eq("student_id", studentId)
+        .eq("tutor_id", tutorId)
+        .eq("type", "intro")
+        .in("status", ["confirmed", "ready", "live", "completed"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (confirmedIntroSessionError) {
+        console.error("Error validating confirmed intro session before proposal:", confirmedIntroSessionError);
+        return res.status(500).json({ message: "Failed to validate confirmed intro session before proposal" });
+      }
+
+      if (!confirmedIntroSession) {
+        return res.status(400).json({ message: "Confirm the intro session before sending a proposal." });
+      }
+
       // Tie proposal generation to latest intro drill result for this tutor+student.
       const { data: latestIntroDrills, error: introDrillError } = await supabase
         .from("intro_session_drills")
-        .select("id, drill, submitted_at")
+        .select("id, drill, submitted_at, scheduled_session_id")
         .eq("student_id", studentId)
         .eq("tutor_id", tutorId)
         .order("submitted_at", { ascending: false })
@@ -17196,7 +17232,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch {
           parsed = null;
         }
-        if ((parsed?.drillType || "diagnosis") === "diagnosis") {
+        if (
+          (parsed?.drillType || "diagnosis") === "diagnosis" &&
+          String(row.scheduled_session_id || parsed?.scheduledSessionId || "").trim() === String(confirmedIntroSession.id)
+        ) {
           latestIntroDrill = row;
           parsedIntro = parsed;
           break;
@@ -17204,7 +17243,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!latestIntroDrill || !parsedIntro) {
-        return res.status(400).json({ message: "Complete intro diagnosis drill before generating proposal" });
+        return res.status(400).json({
+          message: "Complete the diagnosis drill from the confirmed intro session before generating proposal",
+        });
       }
 
       const introTopicFromDrill = String(parsedIntro?.introTopic || "").trim();
@@ -17245,17 +17286,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Find the enrollment record for this student
       let actualEnrollmentId = enrollmentId;
       if (!actualEnrollmentId) {
-        const student = await storage.getStudent(studentId);
-
-        if (student?.tutorId && student.tutorId !== tutorId) {
-          return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
-        }
-
-        // Prefer canonical student linkage first. Older deployments may not have
-        // assigned_student_id on parent_enrollments, so treat that as a soft miss.
         const { data: enrollmentByAssignedStudent, error: assignedStudentLookupError } = await supabase
           .from("parent_enrollments")
-          .select("id")
+          .select("id, status, current_step, assigned_tutor_id, assigned_student_id, user_id")
           .eq("assigned_student_id", studentId)
           .eq("assigned_tutor_id", tutorId)
           .maybeSingle();
@@ -17269,108 +17302,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         actualEnrollmentId = enrollmentByAssignedStudent?.id || null;
-
-        if (!actualEnrollmentId) {
-          const { data: enrollmentByLegacyStudentId, error: legacyStudentLookupError } = await supabase
-            .from("parent_enrollments")
-            .select("id")
-            .eq("student_id", studentId)
-            .eq("assigned_tutor_id", tutorId)
-            .maybeSingle();
-
-          if (
-            legacyStudentLookupError &&
-            !String(legacyStudentLookupError.message || "").includes("student_id")
-          ) {
-            console.error("Error looking up enrollment by legacy student_id:", legacyStudentLookupError);
-            return res.status(500).json({ message: "Failed to resolve enrollment for proposal" });
-          }
-
-          actualEnrollmentId = enrollmentByLegacyStudentId?.id || null;
-        }
-
-        if (!actualEnrollmentId && (student as any)?.parentEnrollmentId) {
-          actualEnrollmentId = (student as any).parentEnrollmentId;
-        }
-
-        if (!actualEnrollmentId && (student as any)?.parent_enrollment_id) {
-          actualEnrollmentId = (student as any).parent_enrollment_id;
-        }
-
-        if (!actualEnrollmentId && (student as any)?.parentId && student?.name) {
-          const { data: enrollmentByParentAndName, error: parentAndNameLookupError } = await supabase
-            .from("parent_enrollments")
-            .select("id")
-            .eq("user_id", (student as any).parentId)
-            .eq("assigned_tutor_id", tutorId)
-            .eq("student_full_name", student.name)
-            .order("updated_at", { ascending: false })
-            .limit(1);
-
-          if (parentAndNameLookupError) {
-            console.error("Error looking up enrollment by parent_id + student name:", parentAndNameLookupError);
-            return res.status(500).json({ message: "Failed to resolve enrollment for proposal" });
-          }
-
-          actualEnrollmentId = enrollmentByParentAndName?.[0]?.id || null;
-        }
-
-        if (!actualEnrollmentId && student?.parentId) {
-          const { data: enrollmentByParentOnly, error: parentOnlyLookupError } = await supabase
-            .from("parent_enrollments")
-            .select("id")
-            .eq("user_id", (student as any).parentId)
-            .eq("assigned_tutor_id", tutorId)
-            .order("updated_at", { ascending: false })
-            .limit(1);
-
-          if (parentOnlyLookupError) {
-            console.error("Error looking up enrollment by parent_id:", parentOnlyLookupError);
-            return res.status(500).json({ message: "Failed to resolve enrollment for proposal" });
-          }
-
-          actualEnrollmentId = enrollmentByParentOnly?.[0]?.id || null;
-        }
-
-        if (!actualEnrollmentId && student?.parentContact && student?.name) {
-          const { data: enrollmentByEmailAndName, error: emailAndNameLookupError } = await supabase
-            .from("parent_enrollments")
-            .select("id")
-            .eq("parent_email", student.parentContact)
-            .eq("assigned_tutor_id", tutorId)
-            .eq("student_full_name", student.name)
-            .order("updated_at", { ascending: false })
-            .limit(1);
-
-          if (emailAndNameLookupError) {
-            console.error("Error looking up enrollment by parent_email + student name:", emailAndNameLookupError);
-            return res.status(500).json({ message: "Failed to resolve enrollment for proposal" });
-          }
-
-          actualEnrollmentId = enrollmentByEmailAndName?.[0]?.id || null;
-        }
-
-        if (!actualEnrollmentId && student?.parentContact) {
-          const { data: enrollmentByEmailOnly, error: emailOnlyLookupError } = await supabase
-            .from("parent_enrollments")
-            .select("id")
-            .eq("parent_email", student.parentContact)
-            .eq("assigned_tutor_id", tutorId)
-            .order("updated_at", { ascending: false })
-            .limit(1);
-
-          if (emailOnlyLookupError) {
-            console.error("Error looking up enrollment by parent_email:", emailOnlyLookupError);
-            return res.status(500).json({ message: "Failed to resolve enrollment for proposal" });
-          }
-
-          actualEnrollmentId = enrollmentByEmailOnly?.[0]?.id || null;
-        }
       }
 
       if (!actualEnrollmentId) {
         return res.status(400).json({
-          message: "No linked enrollment found for this student+tutor. Accept assignment and confirm intro before sending proposal.",
+          message: "No canonical enrollment linked to this assigned student+tutor. Confirm assignment and intro flow before sending proposal.",
         });
       }
 
