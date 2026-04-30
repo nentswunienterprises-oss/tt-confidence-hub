@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 const sessionRules = [
   "Intro is for placement verification, not teaching volume.",
   "Use one phase verification block at a time.",
-  "Let the score band decide whether to move up, move down, or stop.",
+  "Follow the score band result. Do not choose the next phase by instinct.",
   "Do not turn the intro into a full training lesson.",
 ];
 
@@ -21,7 +21,7 @@ const sessionFlow = [
   "Choose one topic that represents the student's real friction point.",
   "Run the verification block for the starting phase only.",
   "Score that phase block out of 100.",
-  "Move up, move down, or stop based on the score band.",
+  "Follow the score band result: move down, place here, or move up.",
   "End the intro as soon as the correct entry point is found.",
 ];
 
@@ -76,6 +76,10 @@ export default function ResponseConditioningIntroSessionStructure() {
           <p className="text-lg font-semibold">
             Where should this student's training begin in this topic?
           </p>
+          <p className="font-semibold">
+            In intro, the tutor does not choose the next phase by feel. The tutor runs the block,
+            logs honestly, and follows the score result.
+          </p>
         </Card>
 
         <Card className="p-6 space-y-4">
@@ -86,6 +90,10 @@ export default function ResponseConditioningIntroSessionStructure() {
             <li>Lock the entry point with the least friction possible.</li>
           </ul>
           <p className="font-semibold">Intro is diagnostic verification, not intensive teaching.</p>
+          <p className="text-sm text-muted-foreground">
+            The tutor's job is to run the correct block and record what happened. The system result
+            determines whether the session moves down, places here, or moves up.
+          </p>
         </Card>
 
         <Card className="p-6 space-y-4">
@@ -100,6 +108,10 @@ export default function ResponseConditioningIntroSessionStructure() {
           </ul>
           <p className="font-medium">
             That recommendation is a starting hypothesis, not the final answer.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            The tutor does not replace that process with personal judgment. The tutor tests the
+            recommendation by running the block and following the score result.
           </p>
           <p className="text-sm text-muted-foreground">
             See <Link className="underline underline-offset-2" to="/responseconditioningsystem/session-infrastructure/drill-library">Drill Library</Link> for the actual verification blocks and{" "}
@@ -121,7 +133,8 @@ export default function ResponseConditioningIntroSessionStructure() {
         <Card className="p-6 space-y-4">
           <h2 className="text-2xl font-bold">Score Bands</h2>
           <p className="text-muted-foreground">
-            Each phase verification block resolves to a score out of 100. That score decides the next move.
+            Each phase verification block resolves to a score out of 100. The tutor follows that
+            result. The tutor does not decide the next move separately.
           </p>
           <div className="grid gap-3 md:grid-cols-3">
             {scoreBands.map((band) => (
@@ -160,8 +173,13 @@ export default function ResponseConditioningIntroSessionStructure() {
             <div className="rounded-xl border p-4">
               <p className="font-semibold">Concept Lens</p>
               <p className="text-sm text-muted-foreground">
-                Vocabulary, method, and reason. This lens helps the tutor understand the concept work
-                inside a problem, but it is not the same thing as the placement phase.
+                Vocabulary, method, and reason. This is the 3-Layer Lens. It is the foundation of
+                structured thinking in TT. Clarity is where that structure is first built. The later
+                phases then condition whether the student can keep that same structure under
+                repeatability, difficulty, uncertainty, and time pressure. So the 3-Layer Lens is not
+                separate from training. It is the core structure the tutor is building and protecting
+                across phases, even though the placement phase still tells the tutor which kind of
+                conditioning must happen next.
               </p>
             </div>
           </div>
@@ -186,6 +204,10 @@ export default function ResponseConditioningIntroSessionStructure() {
           </ul>
           <p className="font-semibold">
             Once the entry point is locked, intro stops and active training begins later.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            That entry point is not selected by tutor preference. It is the result produced by the
+            verification flow.
           </p>
         </Card>
       </div>
