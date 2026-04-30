@@ -7,8 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { TTLogo } from "@/components/TTLogo";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { getQueryFn } from "@/lib/queryClient";
-import { API_URL } from "@/lib/config";
+import { apiRequest, getQueryFn } from "@/lib/queryClient";
 import { TdApplicationForm } from "@/components/td/application-form";
 import { TdSequentialAgreementAcceptance } from "@/components/td/SequentialAgreementAcceptance";
 
@@ -51,14 +50,11 @@ export default function TdGateway() {
     if (!applicationStatus?.applicationId || continuing) return;
     setContinuing(true);
     try {
-      const response = await fetch(`${API_URL}/api/td/complete-onboarding`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ applicationId: applicationStatus.applicationId }),
+      const response = await apiRequest("POST", "/api/td/complete-onboarding", {
+        applicationId: applicationStatus.applicationId,
       });
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload?.message || "Failed to complete onboarding");
+      await queryClient.invalidateQueries({ queryKey: ["/api/td/application-status"] });
       await queryClient.invalidateQueries({ queryKey: ["/api/td/gateway-session"] });
       window.location.href = payload?.redirectTo || (hasAssignedPods ? "/operational/td/dashboard" : "/operational/td/no-pod");
     } catch (completionError) {
