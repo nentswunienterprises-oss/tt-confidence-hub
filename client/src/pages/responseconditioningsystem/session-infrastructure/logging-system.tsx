@@ -586,14 +586,13 @@ const scoringRules = [
 ];
 
 const resultOutputs = [
-  "Set 1 total",
-  "Set 2 total",
+  "Rep totals and grouped drill totals",
   "Phase total",
   "System output",
   "Reason",
   "Tutor meaning",
   "Next action",
-  "Constraint",
+  "Current phase rule or drill constraint",
 ];
 
 const auditRisks = [
