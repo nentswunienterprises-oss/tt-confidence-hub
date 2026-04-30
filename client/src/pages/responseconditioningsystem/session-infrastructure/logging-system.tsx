@@ -1047,6 +1047,7 @@ function DemoRunnerOverlay({
   const [observations, setObservations] = useState<Record<string, string>>({});
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [prepComplete, setPrepComplete] = useState(false);
+  const [prepChecks, setPrepChecks] = useState<Record<string, boolean>>({});
   const [adaptiveTrail, setAdaptiveTrail] = useState<DemoAdaptiveStep[]>([]);
   const [adaptiveMessage, setAdaptiveMessage] = useState<string | null>(null);
   const [adaptiveTransition, setAdaptiveTransition] = useState<DemoAdaptiveTransition | null>(null);
@@ -1066,11 +1067,16 @@ function DemoRunnerOverlay({
     setObservations({});
     setSubmitSuccess(false);
     setPrepComplete(false);
+    setPrepChecks({});
     setAdaptiveTrail([]);
     setAdaptiveMessage(null);
     setAdaptiveTransition(null);
     setFinalSummary(null);
   }, [open, phase, mode]);
+
+  const prepChecklistComplete = prepPlan
+    ? prepPlan.checklist.every((_, index) => prepChecks[`prep-${index}`])
+    : true;
 
   const currentSetConfig = drillStructure[currentSet];
   const fields = currentSetConfig ? getObservationBlockForRep(currentSetConfig, currentRep) : [];
@@ -1289,14 +1295,31 @@ function DemoRunnerOverlay({
                       </div>
                       <div>
                         <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Required Confirmations</p>
-                        <ul className="space-y-0.5 text-xs text-muted-foreground">
-                          {prepPlan.checklist.map((item) => (
-                            <li key={item} className="flex items-start gap-1.5">
-                              <span className="shrink-0 text-foreground/40">[ ]</span>
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
+                        <div className="space-y-1.5">
+                          {prepPlan.checklist.map((item, index) => {
+                            const checkKey = `prep-${index}`;
+                            const checked = !!prepChecks[checkKey];
+                            return (
+                              <button
+                                type="button"
+                                key={item}
+                                className={`w-full rounded border px-2 py-1.5 text-left text-xs transition-colors ${
+                                  checked
+                                    ? "border-primary bg-primary/10 text-foreground"
+                                    : "border-primary/20 bg-background/70 text-muted-foreground hover:bg-primary/5"
+                                }`}
+                                onClick={() =>
+                                  setPrepChecks((prev) => ({
+                                    ...prev,
+                                    [checkKey]: !checked,
+                                  }))
+                                }
+                              >
+                                <span className="font-medium">{checked ? "[x]" : "[ ]"}</span> {item}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                       <p className="text-[11px] text-muted-foreground">{prepPlan.derivedFrom}</p>
                   </div>
@@ -1328,14 +1351,31 @@ function DemoRunnerOverlay({
                       </div>
                       <div>
                         <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Required Confirmations</p>
-                        <ul className="space-y-0.5 text-xs text-muted-foreground">
-                          {prepPlan.checklist.map((item) => (
-                            <li key={item} className="flex items-start gap-1.5">
-                              <span className="shrink-0 text-foreground/40">[ ]</span>
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
+                        <div className="space-y-1.5">
+                          {prepPlan.checklist.map((item, index) => {
+                            const checkKey = `prep-${index}`;
+                            const checked = !!prepChecks[checkKey];
+                            return (
+                              <button
+                                type="button"
+                                key={item}
+                                className={`w-full rounded border px-2 py-1.5 text-left text-xs transition-colors ${
+                                  checked
+                                    ? "border-primary bg-primary/10 text-foreground"
+                                    : "border-primary/20 bg-background/70 text-muted-foreground hover:bg-primary/5"
+                                }`}
+                                onClick={() =>
+                                  setPrepChecks((prev) => ({
+                                    ...prev,
+                                    [checkKey]: !checked,
+                                  }))
+                                }
+                              >
+                                <span className="font-medium">{checked ? "[x]" : "[ ]"}</span> {item}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                       <p className="text-[11px] text-muted-foreground">{prepPlan.derivedFrom}</p>
                   </div>
@@ -1625,19 +1665,22 @@ function DemoRunnerOverlay({
                   <Button onClick={onClose}>Close Demo</Button>
                 </>
               ) : (
-                <Button
-                  onClick={() => {
-                    if (!prepComplete) {
-                      setPrepComplete(true);
-                      return;
-                    }
+                  <Button
+                    onClick={() => {
+                      if (!prepComplete) {
+                        if (!prepChecklistComplete) {
+                          return;
+                        }
+                        setPrepComplete(true);
+                        return;
+                      }
                     if (adaptiveTransition) {
                       handleContinueAdaptiveTransition();
                       return;
                     }
                     handleNext();
                   }}
-                  disabled={prepComplete ? (!adaptiveTransition && !canAdvance) : false}
+                  disabled={prepComplete ? (!adaptiveTransition && !canAdvance) : !prepChecklistComplete}
                 >
                   {!prepComplete
                     ? "Start Demo Drill"
