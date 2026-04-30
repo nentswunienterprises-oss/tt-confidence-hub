@@ -16769,7 +16769,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get parent enrollment status
   app.get("/api/parent/enrollment-status", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const userId = (req.session as any).userId;
+      const userId = (req as any).dbUser?.id || (req.session as any)?.userId;
       const dbUser = (req as any).dbUser;
 
       console.log("📍 Enrollment status check for user:", userId, "role:", dbUser?.role);
@@ -16882,7 +16882,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Submit parent enrollment form
   app.post("/api/parent/enroll", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const userId = (req.session as any).userId;
+      const userId = (req as any).dbUser?.id || (req.session as any)?.userId;
       const dbUser = (req as any).dbUser;
 
       console.log("📍 Enrollment submission for user:", userId, "role:", dbUser?.role);
