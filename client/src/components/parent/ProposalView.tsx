@@ -45,6 +45,15 @@ interface ProposalData {
     phone?: string;
   };
   createdAt?: string;
+  payment?: {
+    provider?: string;
+    status?: string;
+    amount?: number;
+    plan?: string;
+    paymentDate?: string | null;
+  } | null;
+  onboardingType?: "pilot" | "commercial";
+  freeSessionsRemaining?: number;
 }
 
 interface ProposalTopicState {
@@ -77,6 +86,7 @@ export default function ProposalView({
 
   const studentName = proposal.student?.name || "Your Child";
   const studentFirstName = studentName.trim().split(/\s+/)[0] || "Your child";
+  const isPilotOnboarding = proposal.onboardingType === "pilot";
 
   const splitList = (value?: string): string[] => {
     if (!value) return [];
@@ -720,7 +730,9 @@ export default function ProposalView({
           <CardContent className="pt-6">
             <h3 className="font-bold text-lg mb-3 text-center">Ready to Begin?</h3>
             <p className="text-sm text-muted-foreground text-center mb-6">
-              Accept this program to move forward with {studentName}'s training
+              {isPilotOnboarding
+                ? `Accept this pilot plan to unlock ${studentName}'s free-session access`
+                : `Pay R1000 for the Premium plan to unlock ${studentName}'s training sessions`}
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
@@ -740,7 +752,7 @@ export default function ProposalView({
                 size="lg"
               >
                 <Check className="w-4 h-4" />
-                {isProcessing ? "Processing..." : "Accept Program"}
+                {isProcessing ? "Processing..." : isPilotOnboarding ? "Accept Pilot Access" : "Pay R1000 & Accept"}
               </Button>
             </div>
           </CardContent>

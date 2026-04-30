@@ -34,6 +34,11 @@ import {
 interface EnrollmentStatus {
   status: "not_enrolled" | "awaiting_assignment" | "awaiting_tutor_acceptance" | "assigned" | "proposal_sent" | "session_booked" | "report_received" | "confirmed";
   step?: string;
+  plan?: string;
+  onboardingType?: "pilot" | "commercial";
+  freeSessionsRemaining?: number;
+  paymentStatus?: "UNPAID" | "PENDING" | "PAID" | "FAILED" | "CANCELLED" | "FREE_ACCESS";
+  paymentDate?: string | null;
 }
 
 interface IntroSessionConfirmation {
@@ -74,6 +79,24 @@ function getGroupFallbackOptionIds(groupId: string) {
   return [`${groupId}_none_of_above`, `${groupId}_not_sure`];
 }
 
+function submitExternalPaymentForm(action: string, fields: Record<string, string>) {
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = action;
+  form.style.display = "none";
+
+  Object.entries(fields).forEach(([key, value]) => {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = key;
+    input.value = value;
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+}
+
 export default function ParentGateway() {
   const [justBooked, setJustBooked] = useState(false);
   const { toast } = useToast();
@@ -94,6 +117,30 @@ export default function ParentGateway() {
   const [debugError, setDebugError] = useState<string | null>(null);
   const [hideStudentCodeCard, setHideStudentCodeCard] = useState(false);
   const [mathTopicDraft, setMathTopicDraft] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const payfastState = params.get("payfast");
+    if (!payfastState) return;
+
+    if (payfastState === "return") {
+      toast({
+        title: "Payment Submitted",
+        description: "We are waiting for PayFast to confirm the Premium payment.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/parent/enrollment-status"] });
+    }
+
+    if (payfastState === "cancelled") {
+      toast({
+        title: "Payment Cancelled",
+        description: "Premium payment was cancelled. Sessions stay locked until payment is completed.",
+        variant: "destructive",
+      });
+    }
+
+    window.history.replaceState({}, "", window.location.pathname);
+  }, [queryClient, toast]);
 
   // Fetch current user data
   const { data: user } = useQuery<any>({
@@ -521,30 +568,42 @@ export default function ParentGateway() {
         headers,
         credentials: "include",
       });
+      const data = await response.json().catch(() => null);
       if (!response.ok) {
-        const err = await response.json().catch(() => ({ message: "Failed to accept proposal" }));
-        throw new Error(err.message || "Failed to accept proposal");
+        throw new Error(data?.message || "Failed to start Premium payment");
       }
 
-      const data = await response.json();
-      
-      // Store the parent code
-      if (data.parentCode) {
-        setParentCode(data.parentCode);
+      if (data?.paymentStatus === "PAID" || data?.paymentStatus === "FREE_ACCESS") {
+        if (data.parentCode) {
+          setParentCode(data.parentCode);
+        }
+
+        toast({
+          title: data?.paymentStatus === "FREE_ACCESS" ? "Pilot Access Active" : "Payment Confirmed",
+          description:
+            data?.paymentStatus === "FREE_ACCESS"
+              ? "Pilot onboarding is active and sessions are unlocked."
+              : "Premium payment is already confirmed and sessions are unlocked.",
+        });
+        queryClient.invalidateQueries({ queryKey: ["/api/parent/enrollment-status"] });
+        return;
+      }
+
+      if (!data?.checkoutUrl || !data?.formFields) {
+        throw new Error("PayFast checkout details were not returned.");
       }
 
       toast({
-        title: "Proposal Accepted!",
-        description: "Great! Your student code has been generated.",
+        title: "Redirecting to PayFast",
+        description: "Complete the R1000 Premium payment to unlock sessions.",
       });
 
-      // Refresh enrollment status
-      queryClient.invalidateQueries({ queryKey: ["/api/parent/enrollment-status"] });
+      submitExternalPaymentForm(data.checkoutUrl, data.formFields);
     } catch (error) {
       console.error("Error accepting proposal:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to accept proposal. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to start Premium payment. Please try again.",
         variant: "destructive",
       });
     } finally {

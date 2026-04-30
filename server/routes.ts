@@ -61,6 +61,12 @@ import {
 import { getWebPushPublicKey, sendWebPushToUser } from "./webPush";
 import { getAllowedOdEmailList, isAllowedOdEmail } from "@shared/odAccess";
 import {
+  getPayfastProcessUrl,
+  normalizePayfastPaymentStatus,
+  verifyPayfastSignature,
+  withPayfastSignature,
+} from "./payfast";
+import {
   type BattleTestResponseInput,
 } from "@shared/battleTesting";
 import {
@@ -75,6 +81,42 @@ import {
   TUTOR_BATTLE_TEST_PHASES_EXACT,
   getTutorBattleTestPhaseDefinitionsExact,
 } from "./battleTestingBanks";
+
+const PREMIUM_PLAN_NAME = "Premium";
+const PREMIUM_PLAN_AMOUNT = "1000.00";
+const PREMIUM_TUTOR_SHARE = "750.00";
+const PREMIUM_TT_SHARE = "250.00";
+const PAYMENT_PROVIDER_PAYFAST = "payfast";
+
+function getAppBaseUrl() {
+  return (
+    String(process.env.APP_BASE_URL || "").trim() ||
+    "https://app.territorialtutoring.co.za"
+  );
+}
+
+function getApiPublicUrl() {
+  return (
+    String(process.env.API_PUBLIC_URL || "").trim() ||
+    "https://tt-confidence-hub-api.onrender.com"
+  );
+}
+
+function usePayfastSandbox() {
+  return String(process.env.PAYFAST_SANDBOX || "").trim().toLowerCase() === "true";
+}
+
+function isPremiumPlanPaymentReady() {
+  return !!(
+    process.env.PAYFAST_MERCHANT_ID &&
+    process.env.PAYFAST_MERCHANT_KEY
+  );
+}
+
+function buildPremiumPaymentDescription(studentName: string | null | undefined) {
+  const label = String(studentName || "student").trim() || "student";
+  return `TT Premium monthly plan for ${label}`;
+}
 
 // Extend Express session type to include affiliateCode
 declare module 'express-session' {
@@ -315,6 +357,409 @@ function getSessionLaunchState(session: any, kind: "intro" | "handover" | "train
       (RELAX_TRAINING_SESSION_LAUNCH_WINDOW || isLive || isImminent),
     isLive,
     isImminent,
+  };
+}
+
+function formatAmountForPayfast(value: string | number | null | undefined) {
+  const amount = Number(value || 0);
+  return amount.toFixed(2);
+}
+
+async function getLatestPaymentForEnrollment(enrollmentId: string) {
+  const { data, error } = await supabase
+    .from("payment_transactions")
+    .select("*")
+    .eq("enrollment_id", enrollmentId)
+    .eq("provider", PAYMENT_PROVIDER_PAYFAST)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return { data, error };
+}
+
+async function getLatestPaidPaymentForParent(parentId: string, studentId?: string | null) {
+  let query = supabase
+    .from("payment_transactions")
+    .select("*")
+    .eq("parent_id", parentId)
+    .eq("provider", PAYMENT_PROVIDER_PAYFAST)
+    .eq("payment_status", "paid")
+    .order("paid_at", { ascending: false })
+    .limit(1);
+
+  if (studentId) {
+    query = query.eq("student_id", studentId);
+  }
+
+  return query.maybeSingle();
+}
+
+async function getParentBillingModel(parentId: string) {
+  const { data, error } = await supabase
+    .from("parents")
+    .select("onboarding_type, affiliate_code, affiliate_type")
+    .eq("user_id", parentId)
+    .maybeSingle();
+
+  const onboardingType = String(data?.onboarding_type || "").trim().toLowerCase() === "pilot"
+    ? "pilot"
+    : "commercial";
+
+  return {
+    data: {
+      onboardingType,
+      affiliateCode: data?.affiliate_code || null,
+      affiliateType: data?.affiliate_type || null,
+    },
+    error,
+  };
+}
+
+async function getCompletedSessionCountForStudent(studentId: string) {
+  const { count, error } = await supabase
+    .from("intro_session_drills")
+    .select("id", { count: "exact", head: true })
+    .eq("student_id", studentId);
+
+  return {
+    count: count || 0,
+    error,
+  };
+}
+
+async function ensurePremiumAccessForParent(parentId: string, studentId?: string | null) {
+  const billingModel = await getParentBillingModel(parentId);
+  if (billingModel.error) {
+    return {
+      allowed: false,
+      status: 500,
+      message: "Failed to resolve onboarding type for payment rules.",
+    };
+  }
+
+  if (billingModel.data.onboardingType === "pilot") {
+    if (!studentId) {
+      return {
+        allowed: true,
+        status: 200,
+        message: null,
+        onboardingType: "pilot",
+        freeSessionsRemaining: 9,
+      };
+    }
+
+    const sessionProgress = await getCompletedSessionCountForStudent(studentId);
+    if (sessionProgress.error) {
+      return {
+        allowed: false,
+        status: 500,
+        message: "Failed to verify pilot session usage.",
+      };
+    }
+
+    const completedSessions = sessionProgress.count;
+    const freeSessionsRemaining = Math.max(0, 9 - completedSessions);
+
+    if (completedSessions < 9) {
+      return {
+        allowed: true,
+        status: 200,
+        message: null,
+        onboardingType: "pilot",
+        completedSessions,
+        freeSessionsRemaining,
+      };
+    }
+  }
+
+  const { data, error } = await getLatestPaidPaymentForParent(parentId, studentId);
+  if (error) {
+    return {
+      allowed: false,
+      status: 500,
+      message: "Failed to verify payment status.",
+    };
+  }
+
+  if (!data) {
+    return {
+      allowed: false,
+      status: 402,
+      message:
+        billingModel.data.onboardingType === "pilot"
+          ? "Pilot access is exhausted. Premium payment is now required before more training sessions can be accessed."
+          : "Premium payment is required before training sessions can be accessed.",
+      onboardingType: billingModel.data.onboardingType,
+    };
+  }
+
+  return {
+    allowed: true,
+    status: 200,
+    message: null,
+    onboardingType: billingModel.data.onboardingType,
+    payment: data,
+  };
+}
+
+async function ensurePremiumAccessForStudent(student: any) {
+  const parentId = String((student as any)?.parentId || "").trim();
+  if (!parentId) {
+    return {
+      allowed: false,
+      status: 400,
+      message: "Student must be linked to a parent before payment status can be verified.",
+    };
+  }
+
+  return ensurePremiumAccessForParent(parentId, String(student?.id || "").trim() || null);
+}
+
+async function finalizeAcceptedProposalFromPayment(transaction: any) {
+  const enrollmentId = String(transaction?.enrollment_id || "").trim();
+  const proposalId = String(transaction?.proposal_id || "").trim();
+
+  if (!enrollmentId || !proposalId) {
+    throw new Error("Payment transaction is missing enrollment or proposal linkage.");
+  }
+
+  const { data: enrollment, error: enrollmentError } = await supabase
+    .from("parent_enrollments")
+    .select("id, status, proposal_id")
+    .eq("id", enrollmentId)
+    .maybeSingle();
+
+  if (enrollmentError || !enrollment) {
+    throw new Error("Failed to resolve parent enrollment for paid transaction.");
+  }
+
+  const { data: proposal } = await supabase
+    .from("onboarding_proposals")
+    .select("id, accepted_at, parent_code, student_id, tutor_id, topic_conditioning_topic, topic_conditioning_entry_phase, topic_conditioning_stability")
+    .eq("id", proposalId)
+    .maybeSingle();
+
+  if (!proposal) {
+    throw new Error("Failed to resolve onboarding proposal for paid transaction.");
+  }
+
+  if (proposal.accepted_at && proposal.parent_code && enrollment.status === "session_booked") {
+    return {
+      status: "session_booked",
+      parentCode: proposal.parent_code,
+    };
+  }
+
+  const generateParentCode = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let code = "";
+    for (let i = 0; i < 8; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  };
+
+  let parentCode = proposal.parent_code || generateParentCode();
+  let codeIsUnique = !!proposal.parent_code;
+  let attempts = 0;
+
+  while (!codeIsUnique && attempts < 10) {
+    const { data: existing } = await supabase
+      .from("onboarding_proposals")
+      .select("id")
+      .eq("parent_code", parentCode)
+      .neq("id", proposal.id)
+      .maybeSingle();
+
+    if (!existing) {
+      codeIsUnique = true;
+    } else {
+      parentCode = generateParentCode();
+      attempts++;
+    }
+  }
+
+  const nowIso = new Date().toISOString();
+
+  const { error: updateError } = await supabase
+    .from("parent_enrollments")
+    .update({
+      status: "session_booked",
+      updated_at: nowIso,
+    })
+    .eq("id", enrollment.id);
+
+  if (updateError) {
+    throw new Error("Failed to unlock session flow after payment.");
+  }
+
+  await supabase
+    .from("onboarding_proposals")
+    .update({
+      enrollment_id: enrollment.id,
+      accepted_at: proposal.accepted_at || nowIso,
+      parent_code: parentCode,
+      updated_at: nowIso,
+    })
+    .eq("id", proposal.id);
+
+  const acceptedTopic = String(proposal?.topic_conditioning_topic || "").trim();
+  const acceptedPhase = tryParsePhase(proposal?.topic_conditioning_entry_phase) || "Clarity";
+  const acceptedStability = normalizeStability(proposal?.topic_conditioning_stability || "Low");
+
+  if (proposal?.student_id && proposal?.tutor_id && acceptedTopic) {
+    const activationReason = [
+      "Auto-activated from accepted proposal",
+      `Phase ${acceptedPhase}`,
+      `Stability ${acceptedStability}`,
+    ].join(" | ");
+
+    const { data: existingActivation } = await supabase
+      .from("topic_conditioning_activations")
+      .select("id")
+      .eq("student_id", proposal.student_id)
+      .eq("topic", acceptedTopic)
+      .limit(1)
+      .maybeSingle();
+
+    if (!existingActivation) {
+      const { error: activationInsertError } = await supabase
+        .from("topic_conditioning_activations")
+        .insert({
+          student_id: proposal.student_id,
+          tutor_id: proposal.tutor_id,
+          topic: acceptedTopic,
+          reason: activationReason,
+        });
+
+      if (activationInsertError) {
+        console.error("Error auto-activating accepted proposal topic:", activationInsertError);
+      }
+    }
+
+    const { data: studentForConcept } = await supabase
+      .from("students")
+      .select("id, concept_mastery")
+      .eq("id", proposal.student_id)
+      .maybeSingle();
+
+    if (studentForConcept) {
+      const currentConceptMastery =
+        studentForConcept.concept_mastery && typeof studentForConcept.concept_mastery === "object"
+          ? studentForConcept.concept_mastery
+          : {};
+
+      const topicConditioning =
+        currentConceptMastery.topicConditioning && typeof currentConceptMastery.topicConditioning === "object"
+          ? currentConceptMastery.topicConditioning
+          : {};
+
+      const topics =
+        topicConditioning.topics && typeof topicConditioning.topics === "object"
+          ? { ...topicConditioning.topics }
+          : {};
+
+      const key = acceptedTopic;
+      const existingTopicState = topics[key] && typeof topics[key] === "object" ? topics[key] : {};
+      const existingHistory = Array.isArray(existingTopicState.history) ? existingTopicState.history : [];
+
+      topics[key] = {
+        ...existingTopicState,
+        topic: acceptedTopic,
+        phase: acceptedPhase,
+        stability: acceptedStability,
+        lastUpdated: nowIso,
+        observationNotes: "Auto-activated from accepted proposal after confirmed premium payment.",
+        history: [
+          ...existingHistory,
+          {
+            date: nowIso,
+            phase: acceptedPhase,
+            stability: acceptedStability,
+            nextAction: NEXT_ACTION_ENGINE[acceptedPhase][acceptedStability].primaryAction,
+            observationNotes: "Auto-activated from accepted proposal.",
+          },
+        ],
+      };
+
+      const mergedConceptMastery = {
+        ...currentConceptMastery,
+        topicConditioning: {
+          ...topicConditioning,
+          topic: acceptedTopic,
+          entry_phase: acceptedPhase,
+          stability: acceptedStability,
+          lastUpdated: nowIso,
+          topics,
+        },
+      };
+
+      const { error: conceptUpdateError } = await supabase
+        .from("students")
+        .update({ concept_mastery: mergedConceptMastery })
+        .eq("id", proposal.student_id);
+
+      if (conceptUpdateError) {
+        console.error("Error updating concept mastery after proposal acceptance:", conceptUpdateError);
+      }
+    }
+  }
+
+  const parentId = String(transaction.parent_id || "").trim();
+  const { data: lead } = await supabase
+    .from("leads")
+    .select("id, affiliate_id")
+    .eq("user_id", parentId)
+    .maybeSingle();
+
+  if (lead && proposal?.student_id) {
+    const { data: existingClose } = await supabase
+      .from("closes")
+      .select("id")
+      .eq("lead_id", lead.id)
+      .eq("parent_id", parentId)
+      .eq("child_id", proposal.student_id)
+      .maybeSingle();
+
+    if (!existingClose) {
+      const { data: tutorAssignment } = await supabase
+        .from("tutor_assignments")
+        .select("id")
+        .eq("tutor_id", proposal.tutor_id)
+        .maybeSingle();
+
+      const { error: closeError } = await supabase
+        .from("closes")
+        .insert({
+          affiliate_id: lead.affiliate_id,
+          parent_id: parentId,
+          lead_id: lead.id,
+          child_id: proposal.student_id,
+          pod_assignment_id: tutorAssignment?.id || null,
+          closed_at: nowIso,
+        });
+
+      if (closeError) {
+        console.error("Error creating affiliate close:", closeError);
+      }
+    }
+  }
+
+  await safeSendPush(
+    proposal?.tutor_id,
+    {
+      title: "Proposal paid and accepted",
+      body: "A parent completed Premium payment. Continue with the scheduled session flow.",
+      url: "/operational/tutor/pod",
+      tag: `tutor-proposal-paid-${proposal.id}`,
+    },
+    "tutor premium payment completed",
+  );
+
+  return {
+    status: "session_booked",
+    parentCode,
   };
 }
 
@@ -5824,6 +6269,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
         }
 
+        const premiumAccess = await ensurePremiumAccessForStudent(student);
+        if (!premiumAccess.allowed) {
+          return res.status(premiumAccess.status).json({ message: premiumAccess.message, sessions: [] });
+        }
+
         const { data, error } = await supabase
           .from("scheduled_sessions")
           .select(SCHEDULED_SESSION_SELECT)
@@ -5877,6 +6327,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const student = await storage.getStudent(studentId);
         if (!student || student.tutorId !== tutorId) {
           return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
+        }
+
+        const premiumAccess = await ensurePremiumAccessForStudent(student);
+        if (!premiumAccess.allowed) {
+          return res.status(premiumAccess.status).json({ message: premiumAccess.message });
         }
 
         const assignmentAccepted = await isTutorAssignmentAcceptedForStudent(student, tutorId);
@@ -5963,6 +6418,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
         }
 
+        const premiumAccess = await ensurePremiumAccessForStudent(student);
+        if (!premiumAccess.allowed) {
+          return res.status(premiumAccess.status).json({ message: premiumAccess.message });
+        }
+
         const { data: session, error: sessionError } = await supabase
           .from("scheduled_sessions")
           .select(SCHEDULED_SESSION_SELECT)
@@ -6027,6 +6487,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const student = await storage.getStudent(studentId);
         if (!student || student.tutorId !== tutorId) {
           return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
+        }
+
+        const premiumAccess = await ensurePremiumAccessForStudent(student);
+        if (!premiumAccess.allowed) {
+          return res.status(premiumAccess.status).json({ message: premiumAccess.message });
         }
 
         const { data: session, error: sessionError } = await supabase
@@ -6458,6 +6923,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ sessions: [] });
       }
 
+      const premiumAccess = await ensurePremiumAccessForParent(userId, enrollment.assigned_student_id || null);
+      if (!premiumAccess.allowed) {
+        return res.json({
+          operationalMode,
+          sessionSchedulingEnabled: false,
+          paymentRequired: true,
+          paymentStatus: "UNPAID",
+          sessions: [],
+        });
+      }
+
       const studentRecord = await resolveCanonicalStudentForEnrollment(enrollment);
       const studentId = studentRecord?.id || enrollment.assigned_student_id || null;
 
@@ -6586,6 +7062,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (enrollmentError || !enrollment?.assigned_tutor_id) {
         return res.status(400).json({ message: "Assigned tutor is required before weekly scheduling." });
+      }
+
+      const premiumAccess = await ensurePremiumAccessForParent(userId, enrollment.assigned_student_id || null);
+      if (!premiumAccess.allowed) {
+        return res.status(premiumAccess.status).json({ message: premiumAccess.message });
       }
 
       let studentId = enrollment.assigned_student_id || null;
@@ -6723,6 +7204,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         scheduledStart?: string;
       };
       const timezone = String(req.body?.timezone || "Africa/Johannesburg");
+
+      const premiumAccess = await ensurePremiumAccessForParent(userId);
+      if (!premiumAccess.allowed) {
+        return res.status(premiumAccess.status).json({ message: premiumAccess.message });
+      }
 
       if (!sessionId) {
         return res.status(400).json({ message: "Missing sessionId" });
@@ -16310,6 +16796,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       let status = enrollmentData.status || "not_enrolled";
+      const billingModel = await getParentBillingModel(userId);
+      const sessionProgress = enrollmentData.assigned_student_id
+        ? await getCompletedSessionCountForStudent(String(enrollmentData.assigned_student_id))
+        : { count: 0, error: null as any };
 
       // Auto-correct: if status is 'awaiting_tutor_acceptance', check if tutor has accepted
       if (status === "awaiting_tutor_acceptance" && enrollmentData.assigned_tutor_id) {
@@ -16326,9 +16816,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      const { data: latestPayment } = await getLatestPaymentForEnrollment(String(enrollmentData.id));
+
       res.json({
         status,
         step: enrollmentData.current_step,
+        onboardingType: billingModel.data.onboardingType,
+        freeSessionsRemaining:
+          billingModel.data.onboardingType === "pilot"
+            ? Math.max(0, 9 - (sessionProgress.count || 0))
+            : 0,
+        plan: latestPayment?.plan || PREMIUM_PLAN_NAME,
+        paymentStatus: latestPayment
+          ? String(latestPayment.payment_status || "").toUpperCase()
+          : billingModel.data.onboardingType === "pilot" && (sessionProgress.count || 0) < 9
+            ? "FREE_ACCESS"
+            : "UNPAID",
+        paymentDate: latestPayment?.payment_date || latestPayment?.paid_at || null,
       });
     } catch (error) {
       console.error("Error in enrollment-status:", error);
@@ -17181,7 +17685,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
           bio: tutor.user_metadata?.bio,
           phone: tutor.user_metadata?.phone,
         } : null,
+        payment: null as any,
       };
+
+      const { data: latestPayment } = await getLatestPaymentForEnrollment(String(enrollment.id));
+      const billingModel = await getParentBillingModel(parentId);
+      const sessionProgress = proposal?.student_id
+        ? await getCompletedSessionCountForStudent(String(proposal.student_id))
+        : { count: 0, error: null as any };
+      if (latestPayment) {
+        enrichedProposal.payment = {
+          provider: latestPayment.provider,
+          status: String(latestPayment.payment_status || "").toUpperCase(),
+          amount: Number(latestPayment.amount || 0),
+          plan: latestPayment.plan,
+          paymentDate: latestPayment.payment_date || latestPayment.paid_at || null,
+        };
+      } else if (billingModel.data.onboardingType === "pilot") {
+        const pilotFreeSessionsRemaining = Math.max(0, 9 - (sessionProgress.count || 0));
+        enrichedProposal.payment = {
+          provider: "pilot",
+          status: pilotFreeSessionsRemaining > 0 ? "FREE_ACCESS" : "UNPAID",
+          amount: 0,
+          plan: "Pilot",
+          paymentDate: null,
+        };
+      }
+
+      (enrichedProposal as any).onboardingType = billingModel.data.onboardingType;
+      (enrichedProposal as any).freeSessionsRemaining =
+        billingModel.data.onboardingType === "pilot"
+          ? Math.max(0, 9 - (sessionProgress.count || 0))
+          : 0;
 
       // Track view
       await supabase
@@ -17204,6 +17739,168 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/parent/proposal/accept", isAuthenticated, requireRole(["parent"]), async (req: Request, res: Response) => {
     try {
       const parentId = (req as any).dbUser.id;
+      const billingModel = await getParentBillingModel(parentId);
+      if (billingModel.error) {
+        return res.status(500).json({ message: "Failed to resolve onboarding type for billing." });
+      }
+
+      if (billingModel.data.onboardingType === "commercial" && !isPremiumPlanPaymentReady()) {
+        return res.status(500).json({ message: "PayFast is not configured on this deployment." });
+      }
+
+      const { data: paymentEnrollment, error: paymentEnrollmentError } = await supabase
+        .from("parent_enrollments")
+        .select("id, status, proposal_id, student_full_name")
+        .eq("user_id", parentId)
+        .eq("status", "proposal_sent")
+        .not("proposal_id", "is", null)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (paymentEnrollmentError) {
+        console.error("Error fetching pending enrollment for payment:", paymentEnrollmentError);
+        return res.status(500).json({ message: "Failed to find pending proposal" });
+      }
+
+      if (!paymentEnrollment?.proposal_id) {
+        return res.status(404).json({ message: "No pending proposal found" });
+      }
+
+      const { data: existingPayment, error: latestPaymentError } = await getLatestPaymentForEnrollment(paymentEnrollment.id);
+      if (latestPaymentError) {
+        console.error("Error fetching latest payment transaction:", latestPaymentError);
+        return res.status(500).json({ message: "Failed to prepare payment" });
+      }
+
+      if (existingPayment?.payment_status === "paid") {
+        const finalized = await finalizeAcceptedProposalFromPayment(existingPayment);
+        return res.json({
+          message: "Premium payment already confirmed.",
+          paymentStatus: "PAID",
+          status: finalized.status,
+          parentCode: finalized.parentCode,
+        });
+      }
+
+      const { data: paymentProposal } = await supabase
+        .from("onboarding_proposals")
+        .select("id, student_id, tutor_id")
+        .eq("id", paymentEnrollment.proposal_id)
+        .maybeSingle();
+
+      if (!paymentProposal?.student_id || !paymentProposal?.tutor_id) {
+        return res.status(400).json({ message: "Proposal is missing student or tutor linkage." });
+      }
+
+      if (billingModel.data.onboardingType === "pilot") {
+        const finalizationSeed = existingPayment || {
+          parent_id: parentId,
+          enrollment_id: paymentEnrollment.id,
+          proposal_id: paymentProposal.id,
+        };
+        const finalized = await finalizeAcceptedProposalFromPayment(finalizationSeed);
+        const sessionProgress = await getCompletedSessionCountForStudent(String(paymentProposal.student_id));
+
+        return res.json({
+          message: "Pilot proposal accepted. Free access is active.",
+          onboardingType: "pilot",
+          paymentStatus: "FREE_ACCESS",
+          status: finalized.status,
+          parentCode: finalized.parentCode,
+          freeSessionsRemaining: Math.max(0, 9 - (sessionProgress.count || 0)),
+        });
+      }
+
+      const merchantReference = String(existingPayment?.merchant_reference || `tt-premium-${uuidv4()}`);
+      const nowIso = new Date().toISOString();
+      const paymentRecord = existingPayment
+        ? {
+            id: existingPayment.id,
+            parent_id: parentId,
+            enrollment_id: paymentEnrollment.id,
+            proposal_id: paymentProposal.id,
+            student_id: paymentProposal.student_id,
+            tutor_id: paymentProposal.tutor_id,
+            provider: PAYMENT_PROVIDER_PAYFAST,
+            payment_status: "pending",
+            plan: PREMIUM_PLAN_NAME,
+            amount: PREMIUM_PLAN_AMOUNT,
+            currency: "ZAR",
+            tutor_share: PREMIUM_TUTOR_SHARE,
+            platform_share: PREMIUM_TT_SHARE,
+            merchant_reference: merchantReference,
+            item_name: `${PREMIUM_PLAN_NAME} Plan`,
+            item_description: buildPremiumPaymentDescription(paymentEnrollment.student_full_name),
+            updated_at: nowIso,
+          }
+        : {
+            parent_id: parentId,
+            enrollment_id: paymentEnrollment.id,
+            proposal_id: paymentProposal.id,
+            student_id: paymentProposal.student_id,
+            tutor_id: paymentProposal.tutor_id,
+            provider: PAYMENT_PROVIDER_PAYFAST,
+            payment_status: "pending",
+            plan: PREMIUM_PLAN_NAME,
+            amount: PREMIUM_PLAN_AMOUNT,
+            currency: "ZAR",
+            tutor_share: PREMIUM_TUTOR_SHARE,
+            platform_share: PREMIUM_TT_SHARE,
+            merchant_reference: merchantReference,
+            item_name: `${PREMIUM_PLAN_NAME} Plan`,
+            item_description: buildPremiumPaymentDescription(paymentEnrollment.student_full_name),
+            created_at: nowIso,
+            updated_at: nowIso,
+          };
+
+      const { data: savedPayment, error: paymentSaveError } = await supabase
+        .from("payment_transactions")
+        .upsert(paymentRecord, { onConflict: "merchant_reference" })
+        .select("*")
+        .single();
+
+      if (paymentSaveError || !savedPayment) {
+        console.error("Error saving payment transaction:", paymentSaveError);
+        return res.status(500).json({ message: "Failed to prepare payment transaction" });
+      }
+
+      const payfastFields = withPayfastSignature(
+        {
+          merchant_id: String(process.env.PAYFAST_MERCHANT_ID || "").trim(),
+          merchant_key: String(process.env.PAYFAST_MERCHANT_KEY || "").trim(),
+          return_url: `${getAppBaseUrl()}/client/parent/gateway?payfast=return`,
+          cancel_url: `${getAppBaseUrl()}/client/parent/gateway?payfast=cancelled`,
+          notify_url: `${getApiPublicUrl()}/api/payments/payfast/notify`,
+          name_first: String((req as any).dbUser?.firstName || "").trim(),
+          name_last: String((req as any).dbUser?.lastName || "").trim(),
+          email_address: String((req as any).dbUser?.email || "").trim(),
+          m_payment_id: merchantReference,
+          amount: PREMIUM_PLAN_AMOUNT,
+          item_name: `${PREMIUM_PLAN_NAME} Plan`,
+          item_description: buildPremiumPaymentDescription(paymentEnrollment.student_full_name),
+          custom_str1: String(paymentEnrollment.id),
+          custom_str2: String(paymentProposal.id),
+          custom_str3: String(paymentProposal.student_id),
+          custom_str4: String(paymentProposal.tutor_id),
+          custom_str5: PREMIUM_PLAN_NAME,
+        },
+        process.env.PAYFAST_PASSPHRASE,
+      );
+
+      return res.json({
+        message: "PayFast payment prepared.",
+        onboardingType: "commercial",
+        paymentStatus: "UNPAID",
+        paymentProvider: PAYMENT_PROVIDER_PAYFAST,
+        plan: PREMIUM_PLAN_NAME,
+        amount: Number(PREMIUM_PLAN_AMOUNT),
+        tutorShare: Number(PREMIUM_TUTOR_SHARE),
+        ttShare: Number(PREMIUM_TT_SHARE),
+        merchantReference,
+        checkoutUrl: getPayfastProcessUrl(usePayfastSandbox()),
+        formFields: payfastFields,
+      });
 
       // Get latest pending proposal enrollment for this parent.
       const { data: enrollment, error: enrollmentError } = await supabase
@@ -17447,6 +18144,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error accepting proposal:", error);
       res.status(500).json({ message: "Failed to accept proposal" });
+    }
+  });
+
+  app.post("/api/payments/payfast/notify", async (req: Request, res: Response) => {
+    try {
+      const payload = req.body && typeof req.body === "object" ? req.body as Record<string, unknown> : {};
+      const merchantReference = String(payload.m_payment_id || "").trim();
+
+      if (!merchantReference) {
+        return res.status(400).send("Missing m_payment_id");
+      }
+
+      const { data: transaction, error: transactionError } = await supabase
+        .from("payment_transactions")
+        .select("*")
+        .eq("merchant_reference", merchantReference)
+        .maybeSingle();
+
+      if (transactionError || !transaction) {
+        console.error("PayFast ITN transaction lookup failed:", transactionError);
+        return res.status(404).send("Unknown transaction");
+      }
+
+      const signatureValid = verifyPayfastSignature(payload, process.env.PAYFAST_PASSPHRASE);
+      const merchantIdMatches =
+        String(payload.merchant_id || "").trim() === String(process.env.PAYFAST_MERCHANT_ID || "").trim();
+      const amountMatches =
+        formatAmountForPayfast(payload.amount_gross || payload.amount_fee || payload.amount) ===
+        formatAmountForPayfast(transaction.amount);
+
+      if (!signatureValid || !merchantIdMatches || !amountMatches) {
+        console.error("PayFast ITN validation failed:", {
+          merchantReference,
+          signatureValid,
+          merchantIdMatches,
+          amountMatches,
+        });
+
+        await supabase
+          .from("payment_transactions")
+          .update({
+            payment_status: "failed",
+            raw_payload: payload,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", transaction.id);
+
+        return res.status(400).send("Invalid ITN");
+      }
+
+      const internalStatus = normalizePayfastPaymentStatus(payload.payment_status);
+      const nowIso = new Date().toISOString();
+
+      const { data: updatedTransaction, error: updateError } = await supabase
+        .from("payment_transactions")
+        .update({
+          payment_status: internalStatus,
+          payment_date: internalStatus === "paid" ? nowIso : transaction.payment_date,
+          paid_at: internalStatus === "paid" ? nowIso : transaction.paid_at,
+          cancelled_at: internalStatus === "cancelled" ? nowIso : transaction.cancelled_at,
+          payfast_payment_id: String(payload.pf_payment_id || transaction.payfast_payment_id || "").trim() || null,
+          raw_payload: payload,
+          itn_received_at: nowIso,
+          updated_at: nowIso,
+        })
+        .eq("id", transaction.id)
+        .select("*")
+        .single();
+
+      if (updateError || !updatedTransaction) {
+        console.error("PayFast ITN update failed:", updateError);
+        return res.status(500).send("Failed to update transaction");
+      }
+
+      if (internalStatus === "paid") {
+        await finalizeAcceptedProposalFromPayment(updatedTransaction);
+      }
+
+      return res.status(200).send("OK");
+    } catch (error) {
+      console.error("PayFast ITN error:", error);
+      return res.status(500).send("ITN error");
     }
   });
 
