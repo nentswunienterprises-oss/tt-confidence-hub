@@ -99,6 +99,43 @@ const loggingSteps = [
   "Use that output to decide placement, hold, or progression.",
 ];
 
+const prepBasics = [
+  "Prep is the work the tutor does before the drill starts.",
+  "Prep means choosing and organizing the exact problems, examples, or timed reps needed for that drill.",
+  "Prep is not free teaching. Prep is readiness for accurate drill execution.",
+];
+
+const prepImportance = [
+  "Without prep, the tutor is forced to improvise in the session.",
+  "Improvising usually breaks drill accuracy, pacing, and logging quality.",
+  "Good prep protects the session from becoming random, slow, or over-guided.",
+];
+
+const prepByContext = [
+  {
+    title: "Intro Prep",
+    detail:
+      "Prepare the starting diagnosis block and the nearby phase coverage the system may move into. Intro prep is for finding the right starting phase, not for running a full training lesson.",
+  },
+  {
+    title: "Active Training Prep",
+    detail:
+      "Prepare the full drill set for the student's current phase and stability. Training prep is for clean repetition inside the current lane, not for re-placing the topic.",
+  },
+  {
+    title: "Handover Prep",
+    detail:
+      "Prepare a short verification block for the student's inherited topic, phase, and stability. Handover prep is for checking whether training can continue from the current point.",
+  },
+];
+
+const tutorPrepares = [
+  "The exact number of problems or reps the drill requires.",
+  "Problems that match the correct phase purpose.",
+  "Any timer or constraint the drill requires.",
+  "A clean order of delivery so the tutor can run the drill without making it up mid-session.",
+];
+
 export default function ResponseConditioningDrillLibrary() {
   const navigate = useNavigate();
 
@@ -248,6 +285,45 @@ export default function ResponseConditioningDrillLibrary() {
             The tutor does not decide the result by feel. The tutor runs the drill, logs honestly,
             and the app computes the summary.
           </p>
+        </Card>
+
+        <Card className="p-6 space-y-4">
+          <h2 className="text-2xl font-bold">What Prep Is</h2>
+          <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
+            {prepBasics.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </Card>
+
+        <Card className="p-6 space-y-4">
+          <h2 className="text-2xl font-bold">Why Prep Matters</h2>
+          <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
+            {prepImportance.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </Card>
+
+        <Card className="p-6 space-y-4">
+          <h2 className="text-2xl font-bold">What The Tutor Prepares</h2>
+          <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
+            {tutorPrepares.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </Card>
+
+        <Card className="p-6 space-y-4">
+          <h2 className="text-2xl font-bold">How Prep Changes By Context</h2>
+          <div className="grid gap-4 md:grid-cols-3">
+            {prepByContext.map((item) => (
+              <div key={item.title} className="rounded-xl border bg-card p-4 space-y-2">
+                <h3 className="text-lg font-semibold">{item.title}</h3>
+                <p className="text-sm text-muted-foreground">{item.detail}</p>
+              </div>
+            ))}
+          </div>
         </Card>
 
         <Card className="p-6 border-2 border-primary/20 space-y-4">
