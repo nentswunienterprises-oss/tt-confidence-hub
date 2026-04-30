@@ -28,6 +28,7 @@ import {
   MapPin,
   BookOpen,
   ChevronDown,
+  ChevronUp,
   FileText,
   UserMinus,
   School,
@@ -56,6 +57,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+
+type TutorAuditGroupKey = "transformation_phases" | "session_infrastructure";
 
 function formatEnrollmentTopics(rawValue: string | null | undefined) {
   const ignoredContexts = new Set([
@@ -97,7 +100,45 @@ function getBattleTestStateBadgeClass(state: string | null | undefined) {
 }
 
 function getOperationalModeBadge(mode?: string | null) {
-  return String(mode || "").toLowerCase() === "certified_live" ? "default" : "secondary";
+  const normalized = String(mode || "").toLowerCase();
+  if (normalized === "certified_live") return "default";
+  if (normalized === "watchlist") return "destructive";
+  return "secondary";
+}
+
+function formatOperationalModeLabel(mode?: string | null) {
+  const normalized = String(mode || "").toLowerCase();
+  if (normalized === "certified_live") return "Certified Live";
+  if (normalized === "sandbox") return "Sandbox";
+  if (normalized === "watchlist") return "Watchlist";
+  if (normalized === "suspended") return "Suspended";
+  return "Training";
+}
+
+function getTutorAuditGroupMeta(groupKey: TutorAuditGroupKey) {
+  if (groupKey === "transformation_phases") {
+    return {
+      title: "Transformation Phases",
+      description: "Recognition, execution, discomfort, time pressure, and topic conditioning.",
+    };
+  }
+
+  return {
+    title: "Session Infrastructure",
+    description: "Intro flow, logging, session control, drill library, handover, and tools.",
+  };
+}
+
+function getTutorAuditGroupKey(phaseKey: string): TutorAuditGroupKey {
+  return [
+    "clarity",
+    "structured_execution",
+    "controlled_discomfort",
+    "time_pressure_stability",
+    "topic_conditioning",
+  ].includes(phaseKey)
+    ? "transformation_phases"
+    : "session_infrastructure";
 }
 
 function formatAuditTimestamp(value: string) {
@@ -197,6 +238,7 @@ export default function PodDetail() {
   const [tutorToRemove, setTutorToRemove] = useState<string | null>(null);
   const [expandedTutors, setExpandedTutors] = useState<Set<string>>(new Set());
   const [expandedTutorDetails, setExpandedTutorDetails] = useState<Record<string, boolean>>({});
+  const [expandedTutorAuditGroups, setExpandedTutorAuditGroups] = useState<Record<string, boolean>>({});
   const [podIntegrityExpanded, setPodIntegrityExpanded] = useState(false);
   const [tutorsSectionExpanded, setTutorsSectionExpanded] = useState(true);
   
@@ -313,6 +355,18 @@ export default function PodDetail() {
       return response.json();
     },
   });
+  const groupedTutorPhaseOptions = useMemo(() => {
+    const groups: Record<TutorAuditGroupKey, BattleTestPhaseDefinition[]> = {
+      transformation_phases: [],
+      session_infrastructure: [],
+    };
+
+    tutorBattleTestPhases.forEach((phase) => {
+      groups[getTutorAuditGroupKey(phase.key)].push(phase);
+    });
+
+    return groups;
+  }, [tutorBattleTestPhases]);
   const { data: podBattleTestRuns = [] } = useQuery<BattleTestRunHistoryItem[]>({
     queryKey: [`/api/battle-tests/pods/${podId}/runs`],
     enabled: isAuthenticated && !authLoading && !!podId,
@@ -452,39 +506,6 @@ export default function PodDetail() {
     },
   });
 
-  const updateOperationalModeMutation = useMutation({
-    mutationFn: async ({
-      assignmentId,
-      operationalMode,
-    }: {
-      assignmentId: string;
-      operationalMode: "training" | "certified_live";
-    }) => {
-      await apiRequest("PATCH", `/api/coo/pods/${podId}/tutors/${assignmentId}/operational-mode`, {
-        operationalMode,
-      });
-    },
-    onSuccess: (_data, variables) => {
-      refetchPodTutors();
-      queryClient.invalidateQueries({ queryKey: [`/api/coo/pods/${podId}/tutors`] });
-      queryClient.invalidateQueries({ queryKey: ["/api/coo/pods"] });
-      toast({
-        title: "Tutor mode updated",
-        description:
-          variables.operationalMode === "certified_live"
-            ? "Tutor switched to Certified Live."
-            : "Tutor switched to Training Mode.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Mode update failed",
-        description: error?.message || "Failed to update tutor operational mode.",
-        variant: "destructive",
-      });
-    },
-  });
-
   // Delete Pod mutation (soft delete) ✅
   const deletePodMutation = useMutation({
     mutationFn: async () => {
@@ -565,6 +586,14 @@ export default function PodDetail() {
     setExpandedTutorDetails((current) => ({
       ...current,
       [assignmentId]: !current[assignmentId],
+    }));
+  };
+
+  const toggleTutorAuditGroup = (assignmentId: string, groupKey: TutorAuditGroupKey) => {
+    const stateKey = `${assignmentId}:${groupKey}`;
+    setExpandedTutorAuditGroups((current) => ({
+      ...current,
+      [stateKey]: !current[stateKey],
     }));
   };
 
@@ -889,11 +918,10 @@ export default function PodDetail() {
                             (entry) => entry.assignmentId === assignment.id
                           );
                           const operationalMode =
-                            (assignment.operational_mode || assignment.operationalMode || "training") as
-                              | "training"
-                              | "certified_live";
-                          const nextOperationalMode =
-                            operationalMode === "certified_live" ? "training" : "certified_live";
+                            tutorAudit?.mode ||
+                            assignment.operational_mode ||
+                            assignment.operationalMode ||
+                            "training";
                           const latestPhaseScores =
                             Array.from(
                               latestTutorPhaseScoresByAssignment.get(assignment.id)?.values() || []
@@ -921,7 +949,7 @@ export default function PodDetail() {
                                           </Badge>
                                         )}
                                         <Badge variant={getOperationalModeBadge(operationalMode)}>
-                                          {operationalMode === "certified_live" ? "Certified Live" : "Training Mode"}
+                                          {formatOperationalModeLabel(operationalMode)}
                                         </Badge>
                                         <Badge className={getBattleTestStateBadgeClass(tutorAudit?.state)}>
                                           {getBattleTestStateLabel(tutorAudit?.state)}
@@ -985,33 +1013,66 @@ export default function PodDetail() {
                                       <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
                                         Tutor Audit
                                       </p>
-                                      <div className="mt-3 grid gap-2">
-                                        {tutorBattleTestPhases.map((phaseDefinition) => {
-                                          const phaseAudit =
-                                            latestPhaseScores.find(
-                                              (entry) => entry.phaseKey === phaseDefinition.key
-                                            ) ||
-                                            tutorAudit?.phaseScores?.find(
-                                              (entry) => entry.phaseKey === phaseDefinition.key
-                                            );
+                                      <div className="mt-3 space-y-3">
+                                        {(["transformation_phases", "session_infrastructure"] as TutorAuditGroupKey[]).map((groupKey) => {
+                                          const groupMeta = getTutorAuditGroupMeta(groupKey);
+                                          const groupPhases = groupedTutorPhaseOptions[groupKey];
+                                          const expandKey = `${assignment.id}:${groupKey}`;
+                                          const isGroupExpanded = expandedTutorAuditGroups[expandKey] ?? true;
 
                                           return (
-                                            <div
-                                              key={`${assignment.id}-${phaseDefinition.key}`}
-                                              className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-background/80 px-3 py-2"
-                                            >
-                                              <span className="text-sm font-medium text-foreground">
-                                                {phaseDefinition.title}
-                                              </span>
-                                              {phaseAudit ? (
-                                                <Badge variant="outline">
-                                                  {Math.round(phaseAudit.percent)}%
-                                                </Badge>
-                                              ) : (
-                                                <span className="text-xs text-muted-foreground">
-                                                  Not yet audited
-                                                </span>
-                                              )}
+                                            <div key={expandKey} className="rounded-xl border border-border/60 bg-background/60">
+                                              <button
+                                                type="button"
+                                                onClick={() => toggleTutorAuditGroup(assignment.id, groupKey)}
+                                                className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left transition-colors hover:bg-muted/30"
+                                              >
+                                                <div>
+                                                  <p className="text-sm font-semibold text-foreground">{groupMeta.title}</p>
+                                                  <p className="text-xs text-muted-foreground">{groupMeta.description}</p>
+                                                </div>
+                                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background text-foreground shadow-sm">
+                                                  {isGroupExpanded ? (
+                                                    <ChevronUp className="h-4 w-4 text-foreground" />
+                                                  ) : (
+                                                    <ChevronDown className="h-4 w-4 text-foreground" />
+                                                  )}
+                                                </div>
+                                              </button>
+
+                                              {isGroupExpanded ? (
+                                                <div className="grid gap-2 border-t border-border/60 px-3 py-3">
+                                                  {groupPhases.map((phaseDefinition) => {
+                                                    const phaseAudit =
+                                                      latestPhaseScores.find(
+                                                        (entry) => entry.phaseKey === phaseDefinition.key
+                                                      ) ||
+                                                      tutorAudit?.phaseScores?.find(
+                                                        (entry) => entry.phaseKey === phaseDefinition.key
+                                                      );
+
+                                                    return (
+                                                      <div
+                                                        key={`${assignment.id}-${phaseDefinition.key}`}
+                                                        className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-background/80 px-3 py-2"
+                                                      >
+                                                        <span className="text-sm font-medium text-foreground">
+                                                          {phaseDefinition.title}
+                                                        </span>
+                                                        {phaseAudit ? (
+                                                          <Badge variant="outline">
+                                                            {Math.round(phaseAudit.percent)}%
+                                                          </Badge>
+                                                        ) : (
+                                                          <span className="text-xs text-muted-foreground">
+                                                            Not yet audited
+                                                          </span>
+                                                        )}
+                                                      </div>
+                                                    );
+                                                  })}
+                                                </div>
+                                              ) : null}
                                             </div>
                                           );
                                         })}
@@ -1048,26 +1109,12 @@ export default function PodDetail() {
                                         >
                                           Audit History
                                         </Button>
-                                        <Button
-                                          size="sm"
-                                          variant={operationalMode === "certified_live" ? "secondary" : "default"}
-                                          disabled={updateOperationalModeMutation.isPending}
-                                          onClick={() =>
-                                            updateOperationalModeMutation.mutate({
-                                              assignmentId: assignment.id,
-                                              operationalMode: nextOperationalMode,
-                                            })
-                                          }
-                                        >
-                                          {updateOperationalModeMutation.isPending
-                                            ? "Updating..."
-                                            : operationalMode === "certified_live"
-                                            ? "Switch to Training"
-                                            : "Switch to Certified Live"}
-                                        </Button>
                                       </div>
                                       <p className="mt-3 text-sm text-muted-foreground">
                                         {assignment.student_count || 0}/{maxStudentsPerTutor} students assigned.
+                                      </p>
+                                      <p className="mt-2 text-xs text-muted-foreground">
+                                        Certification owns mode progression. COO switching is disabled here.
                                       </p>
                                     </div>
                                   </div>

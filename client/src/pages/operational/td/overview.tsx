@@ -107,7 +107,18 @@ function getStatusColor(status: string) {
 }
 
 function getOperationalModeBadge(mode?: string | null) {
-  return String(mode || "").toLowerCase() === "certified_live" ? "default" : "secondary";
+  const normalized = String(mode || "").toLowerCase();
+  if (normalized === "certified_live") return "default";
+  if (normalized === "watchlist") return "destructive";
+  return "secondary";
+}
+
+function formatOperationalModeLabel(mode?: string | null) {
+  const normalized = String(mode || "").toLowerCase();
+  if (normalized === "certified_live") return "Certified Live";
+  if (normalized === "sandbox") return "Sandbox Mode";
+  if (normalized === "watchlist") return "Watchlist";
+  return "Training Mode";
 }
 
 function getTutorAuditGroupMeta(groupKey: TutorAuditGroupKey) {
@@ -621,13 +632,14 @@ export default function TDOverview() {
                           <div className="space-y-2">
                             {tutors.map((tutor) => {
                               const tutorName = tutor.name || tutor.firstName || "Unknown Tutor";
-                              const operationalMode =
-                                (tutor.assignment as any)?.operational_mode ||
-                                (tutor.assignment as any)?.operationalMode ||
-                                "training";
                               const tutorAudit = battleTestingSummary.tutorSummaries.find(
                                 (entry) => entry.assignmentId === tutor.assignment.id
                               );
+                              const operationalMode =
+                                tutorAudit?.mode ||
+                                (tutor.assignment as any)?.operational_mode ||
+                                (tutor.assignment as any)?.operationalMode ||
+                                "training";
                               const latestPhaseScores =
                                 Array.from(
                                   latestTutorPhaseScoresByAssignment.get(tutor.assignment.id)?.values() || []
@@ -656,7 +668,7 @@ export default function TDOverview() {
                                               </Badge>
                                             )}
                                             <Badge variant={getOperationalModeBadge(operationalMode)}>
-                                              {operationalMode === "certified_live" ? "Certified Live" : "Training Mode"}
+                                              {formatOperationalModeLabel(operationalMode)}
                                             </Badge>
                                             <Badge className={getBattleTestStateBadgeClass(tutorAudit?.state)}>
                                               {getBattleTestStateLabel(tutorAudit?.state)}
@@ -754,6 +766,33 @@ export default function TDOverview() {
                                               </div>
                                               {tutorAudit?.actionRequired ? (
                                                 <p className="mt-3 text-sm text-muted-foreground">{tutorAudit.actionRequired}</p>
+                                              ) : null}
+                                              {tutorAudit?.moduleProgress?.length ? (
+                                                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                                                  {tutorAudit.moduleProgress.map((module) => (
+                                                    <div key={`${tutor.assignment.id}-${module.moduleKey}`} className="rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-xs text-foreground">
+                                                      <span className="font-medium">{module.title}</span>
+                                                      <span className="ml-2 text-muted-foreground">
+                                                        {module.completedCount}/{module.totalCount}
+                                                      </span>
+                                                    </div>
+                                                  ))}
+                                                </div>
+                                              ) : null}
+                                              {tutorAudit?.nextBattleTests?.length ? (
+                                                <div className="mt-3 rounded-lg border border-border/60 bg-background/80 px-3 py-3">
+                                                  <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                                                    Next Battle Test
+                                                  </p>
+                                                  <div className="mt-2 space-y-2">
+                                                    {tutorAudit.nextBattleTests.map((entry) => (
+                                                      <div key={`${tutor.assignment.id}-${entry.phaseKey}`} className="text-sm text-foreground">
+                                                        <span className="font-medium">{entry.title}</span>
+                                                        <span className="ml-2 text-muted-foreground">{entry.reason}</span>
+                                                      </div>
+                                                    ))}
+                                                  </div>
+                                                </div>
                                               ) : null}
                                               {tutorAudit?.lastAuditAt ? (
                                                 <p className="mt-2 text-xs text-muted-foreground">

@@ -9785,7 +9785,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           podId: assignment.podId,
           podName: assignment.pod.podName,
           assignmentId: assignment.id,
-          operationalMode: assignment.operationalMode || "training",
+          operationalMode: alignmentSummary?.mode || assignment.operationalMode || "training",
           alignmentSummary,
         });
       } catch (error) {
@@ -13000,18 +13000,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["coo"]),
     async (req: Request, res: Response) => {
       try {
-        const { podId, assignmentId } = req.params;
-        const operationalMode =
-          req.body?.operationalMode === "certified_live" ? "certified_live" : "training";
-
-        const assignments = await storage.getTutorAssignmentsByPod(podId);
-        const assignment = assignments.find((item) => item.id === assignmentId);
-        if (!assignment) {
-          return res.status(404).json({ message: "Tutor assignment not found for this pod." });
-        }
-
-        await storage.updateTutorOperationalMode(assignmentId, operationalMode);
-        res.json({ message: "Tutor operational mode updated.", operationalMode });
+        return res.status(409).json({
+          message: "Tutor mode is certification-driven and can no longer be switched manually.",
+        });
       } catch (error) {
         console.error("Error updating tutor operational mode:", error);
         res.status(500).json({ message: "Failed to update tutor operational mode" });

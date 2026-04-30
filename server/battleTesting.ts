@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { supabase } from "./storage";
+import { TUTOR_BATTLE_TEST_PHASES_EXACT } from "./battleTestingBanks";
 import {
   BATTLE_TEST_SCORE_POINTS,
   TUTOR_BATTLE_TEST_PHASE_ORDER,
@@ -17,6 +18,11 @@ import {
   type BattleTestState,
   type BattleTestSubjectType,
   type PodBattleTestingSummary,
+  type TutorBattleTestDeepDiveProgress,
+  type TutorBattleTestModuleKey,
+  type TutorBattleTestModuleProgress,
+  type TutorBattleTestRecommendation,
+  type TutorTrainingMode,
 } from "@shared/battleTesting";
 
 interface PersistBattleTestRunInput {
@@ -82,8 +88,422 @@ interface BattleTestRepLogRow {
   is_critical_fail: boolean;
 }
 
+interface TutorBattleTestStatusRow {
+  tutor_assignment_id: string;
+  tutor_id: string;
+  mode: TutorTrainingMode | "suspended";
+  module_progress: TutorBattleTestModuleProgress[];
+  next_battle_tests: TutorBattleTestRecommendation[];
+  last_synced_at: string;
+}
+
+interface TutorBattleTestDeepDiveProgressRowDb {
+  tutor_assignment_id: string;
+  tutor_id: string;
+  phase_key: string;
+  title: string;
+  module_key: string;
+  module_title: string;
+  historical_state: TutorBattleTestDeepDiveProgress["historicalState"];
+  current_health_state: TutorBattleTestDeepDiveProgress["currentHealthState"];
+  current_streak: number;
+  latest_score: number | null;
+  completed_at: string | null;
+  last_tested_at: string | null;
+  attempts_count: number;
+  critical_flag: boolean;
+}
+
 function roundValue(value: number) {
   return Math.round(value * 100) / 100;
+}
+
+const TUTOR_PHASE_TITLE_MAP = new Map(
+  TUTOR_BATTLE_TEST_PHASES_EXACT.map((phase) => [phase.key, phase.title] as const)
+);
+
+const TUTOR_MODULES: Array<{
+  moduleKey: TutorBattleTestModuleKey;
+  title: string;
+  phaseKeys: string[];
+}> = [
+  {
+    moduleKey: "transformation_phases",
+    title: "Transformation Phases",
+    phaseKeys: ["clarity", "structured_execution", "controlled_discomfort", "time_pressure_stability", "topic_conditioning"],
+  },
+  {
+    moduleKey: "session_infrastructure",
+    title: "Session Infrastructure",
+    phaseKeys: [
+      "intro_session_structure",
+      "logging_system",
+      "session_flow_control",
+      "drill_library",
+      "handover_verification",
+      "tools_required",
+    ],
+  },
+];
+
+function getTutorModuleMetaByPhaseKey(phaseKey: string) {
+  return (
+    TUTOR_MODULES.find((module) => module.phaseKeys.includes(phaseKey)) || {
+      moduleKey: "session_infrastructure" as TutorBattleTestModuleKey,
+      title: "Session Infrastructure",
+      phaseKeys: [],
+    }
+  );
+}
+
+function getTutorBattleTestHealthState(score: number | null): TutorBattleTestDeepDiveProgress["currentHealthState"] {
+  if (score == null) return "drift";
+  if (score >= 96) return "locked";
+  if (score >= 90) return "watchlist";
+  return "drift";
+}
+
+function buildTutorDeepDiveProgress(phaseScores: BattleTestPhaseScore[], runs: BattleTestRunRow[]): TutorBattleTestDeepDiveProgress[] {
+  const progressByPhaseKey = new Map<string, TutorBattleTestDeepDiveProgress>();
+  const phaseTitleByKey = new Map(phaseScores.map((phase) => [phase.phaseKey, phase.title] as const));
+
+  const chronologicalRuns = [...runs].sort(
+    (left, right) => new Date(left.completed_at).getTime() - new Date(right.completed_at).getTime()
+  );
+
+  for (const phaseKey of TUTOR_BATTLE_TEST_PHASE_ORDER) {
+    const moduleMeta = getTutorModuleMetaByPhaseKey(phaseKey);
+    progressByPhaseKey.set(phaseKey, {
+      phaseKey,
+      title: phaseTitleByKey.get(phaseKey) || TUTOR_PHASE_TITLE_MAP.get(phaseKey) || phaseKey,
+      moduleKey: moduleMeta.moduleKey,
+      moduleTitle: moduleMeta.title,
+      historicalState: "in_progress",
+      currentHealthState: "drift",
+      currentStreak: 0,
+      latestScore: null,
+      completedAt: null,
+      lastTestedAt: null,
+      attemptsCount: 0,
+      criticalFlag: false,
+    });
+  }
+
+  const consecutiveByPhase = new Map<string, number>();
+  for (const run of chronologicalRuns) {
+    for (const phase of run.phase_scores || []) {
+      const entry = progressByPhaseKey.get(phase.phaseKey);
+      if (!entry) continue;
+
+      entry.attemptsCount += 1;
+      entry.latestScore = roundValue(phase.percent);
+      entry.lastTestedAt = run.completed_at;
+      entry.currentHealthState = getTutorBattleTestHealthState(entry.latestScore);
+      if (run.has_critical_fail) {
+        const criticalReasonMatch = (run.critical_fail_reasons || []).some((reason) =>
+          String(reason).toLowerCase().startsWith(`${phase.title.toLowerCase()}:`)
+        );
+        if (criticalReasonMatch) entry.criticalFlag = true;
+      }
+
+      const nextStreak = phase.percent >= 96 ? (consecutiveByPhase.get(phase.phaseKey) || 0) + 1 : 0;
+      consecutiveByPhase.set(phase.phaseKey, nextStreak);
+      entry.currentStreak = nextStreak;
+
+      if (nextStreak >= 3 && entry.historicalState !== "completed") {
+        entry.historicalState = "completed";
+        entry.completedAt = run.completed_at;
+      }
+    }
+  }
+
+  return TUTOR_BATTLE_TEST_PHASE_ORDER.map((phaseKey) => progressByPhaseKey.get(phaseKey)!).filter(Boolean);
+}
+
+function mapPersistedModuleProgress(rawValue: unknown): TutorBattleTestModuleProgress[] {
+  if (!Array.isArray(rawValue)) return [];
+  return rawValue
+    .map((entry) => {
+      const item = entry as Partial<TutorBattleTestModuleProgress>;
+      if (!item?.moduleKey || !item?.title) return null;
+      return {
+        moduleKey: item.moduleKey,
+        title: String(item.title),
+        completedCount: Number(item.completedCount || 0),
+        totalCount: Number(item.totalCount || 0),
+        completed: !!item.completed,
+      } satisfies TutorBattleTestModuleProgress;
+    })
+    .filter((entry): entry is TutorBattleTestModuleProgress => Boolean(entry));
+}
+
+function mapPersistedRecommendations(rawValue: unknown): TutorBattleTestRecommendation[] {
+  if (!Array.isArray(rawValue)) return [];
+  return rawValue
+    .map((entry) => {
+      const item = entry as Partial<TutorBattleTestRecommendation>;
+      if (!item?.phaseKey || !item?.title || !item?.moduleKey) return null;
+      return {
+        phaseKey: String(item.phaseKey),
+        title: String(item.title),
+        moduleKey: item.moduleKey,
+        priorityScore: Number(item.priorityScore || 0),
+        reason: String(item.reason || ""),
+      } satisfies TutorBattleTestRecommendation;
+    })
+    .filter((entry): entry is TutorBattleTestRecommendation => Boolean(entry));
+}
+
+function mapPersistedDeepDiveProgressRows(rows: any[]): TutorBattleTestDeepDiveProgress[] {
+  return rows
+    .map((rawRow) => ({
+      phaseKey: String(rawRow.phase_key),
+      title: String(rawRow.title),
+      moduleKey: rawRow.module_key as TutorBattleTestModuleKey,
+      moduleTitle: String(rawRow.module_title),
+      historicalState: rawRow.historical_state as TutorBattleTestDeepDiveProgress["historicalState"],
+      currentHealthState: rawRow.current_health_state as TutorBattleTestDeepDiveProgress["currentHealthState"],
+      currentStreak: Number(rawRow.current_streak || 0),
+      latestScore: rawRow.latest_score == null ? null : Number(rawRow.latest_score),
+      completedAt: rawRow.completed_at ? String(rawRow.completed_at) : null,
+      lastTestedAt: rawRow.last_tested_at ? String(rawRow.last_tested_at) : null,
+      attemptsCount: Number(rawRow.attempts_count || 0),
+      criticalFlag: !!rawRow.critical_flag,
+    }))
+    .sort(
+      (left, right) =>
+        TUTOR_BATTLE_TEST_PHASE_ORDER.indexOf(left.phaseKey as any) -
+        TUTOR_BATTLE_TEST_PHASE_ORDER.indexOf(right.phaseKey as any)
+    );
+}
+
+async function syncTutorCertificationState(
+  tutorAssignmentId: string,
+  tutorId: string,
+  currentState: BattleTestState | null
+) {
+  const { data, error } = await supabase
+    .from("battle_test_runs")
+    .select("*")
+    .eq("subject_type", "tutor")
+    .eq("tutor_assignment_id", tutorAssignmentId)
+    .order("completed_at", { ascending: false });
+
+  if (error) {
+    throw new Error(`Failed to load tutor battle-test runs for certification sync: ${error.message}`);
+  }
+
+  const runs = (data || []).map(mapRunRow);
+  const latestPhaseScoreMap = new Map<string, BattleTestPhaseScore>();
+  for (const run of runs) {
+    for (const phaseScore of run.phase_scores || []) {
+      if (!latestPhaseScoreMap.has(phaseScore.phaseKey)) {
+        latestPhaseScoreMap.set(phaseScore.phaseKey, phaseScore);
+      }
+    }
+  }
+
+  const phaseScores = Array.from(latestPhaseScoreMap.values());
+  const deepDiveProgress = buildTutorDeepDiveProgress(phaseScores, runs);
+  const moduleProgress = buildTutorModuleProgress(deepDiveProgress);
+  const mode = deriveTutorTrainingMode(moduleProgress, deepDiveProgress, currentState);
+  const nextBattleTests = buildTutorNextBattleTests(deepDiveProgress);
+  const syncedAt = new Date().toISOString();
+
+  const { error: deleteProgressError } = await supabase
+    .from("tutor_battle_test_deep_dive_progress")
+    .delete()
+    .eq("tutor_assignment_id", tutorAssignmentId);
+  if (deleteProgressError) {
+    throw new Error(`Failed to reset tutor deep dive progress: ${deleteProgressError.message}`);
+  }
+
+  if (deepDiveProgress.length) {
+    const progressRows = deepDiveProgress.map((entry) => ({
+      tutor_assignment_id: tutorAssignmentId,
+      tutor_id: tutorId,
+      phase_key: entry.phaseKey,
+      title: entry.title,
+      module_key: entry.moduleKey,
+      module_title: entry.moduleTitle,
+      historical_state: entry.historicalState,
+      current_health_state: entry.currentHealthState,
+      current_streak: entry.currentStreak,
+      latest_score: entry.latestScore,
+      completed_at: entry.completedAt,
+      last_tested_at: entry.lastTestedAt,
+      attempts_count: entry.attemptsCount,
+      critical_flag: entry.criticalFlag,
+      updated_at: syncedAt,
+    }));
+
+    const { error: insertProgressError } = await supabase
+      .from("tutor_battle_test_deep_dive_progress")
+      .insert(progressRows);
+    if (insertProgressError) {
+      throw new Error(`Failed to save tutor deep dive progress: ${insertProgressError.message}`);
+    }
+  }
+
+  const { error: deleteStatusError } = await supabase
+    .from("tutor_battle_test_statuses")
+    .delete()
+    .eq("tutor_assignment_id", tutorAssignmentId);
+  if (deleteStatusError) {
+    throw new Error(`Failed to reset tutor certification status: ${deleteStatusError.message}`);
+  }
+
+  const { error: insertStatusError } = await supabase.from("tutor_battle_test_statuses").insert({
+    tutor_assignment_id: tutorAssignmentId,
+    tutor_id: tutorId,
+    mode,
+    module_progress: moduleProgress,
+    next_battle_tests: nextBattleTests,
+    last_synced_at: syncedAt,
+    updated_at: syncedAt,
+  });
+  if (insertStatusError) {
+    throw new Error(`Failed to save tutor certification status: ${insertStatusError.message}`);
+  }
+}
+
+async function loadTutorCertificationSnapshots(assignmentIds: string[]) {
+  if (!assignmentIds.length) {
+    return {
+      statusByAssignmentId: new Map<string, TutorBattleTestStatusRow>(),
+      deepDiveProgressByAssignmentId: new Map<string, TutorBattleTestDeepDiveProgress[]>(),
+    };
+  }
+
+  const { data: statusRows, error: statusError } = await supabase
+    .from("tutor_battle_test_statuses")
+    .select("tutor_assignment_id, tutor_id, mode, module_progress, next_battle_tests, last_synced_at")
+    .in("tutor_assignment_id", assignmentIds);
+  if (statusError) {
+    throw new Error(`Failed to load tutor certification statuses: ${statusError.message}`);
+  }
+
+  const { data: deepDiveRows, error: deepDiveError } = await supabase
+    .from("tutor_battle_test_deep_dive_progress")
+    .select(
+      "tutor_assignment_id, tutor_id, phase_key, title, module_key, module_title, historical_state, current_health_state, current_streak, latest_score, completed_at, last_tested_at, attempts_count, critical_flag"
+    )
+    .in("tutor_assignment_id", assignmentIds);
+  if (deepDiveError) {
+    throw new Error(`Failed to load tutor deep dive certification progress: ${deepDiveError.message}`);
+  }
+
+  const statusByAssignmentId = new Map<string, TutorBattleTestStatusRow>();
+  for (const rawRow of statusRows || []) {
+    statusByAssignmentId.set(String(rawRow.tutor_assignment_id), {
+      tutor_assignment_id: String(rawRow.tutor_assignment_id),
+      tutor_id: String(rawRow.tutor_id),
+      mode: rawRow.mode as TutorTrainingMode | "suspended",
+      module_progress: mapPersistedModuleProgress(rawRow.module_progress),
+      next_battle_tests: mapPersistedRecommendations(rawRow.next_battle_tests),
+      last_synced_at: String(rawRow.last_synced_at),
+    });
+  }
+
+  const groupedDeepDiveRows = new Map<string, TutorBattleTestDeepDiveProgress[]>();
+  const rowsByAssignment = new Map<string, any[]>();
+  for (const rawRow of deepDiveRows || []) {
+    const assignmentId = String(rawRow.tutor_assignment_id);
+    if (!rowsByAssignment.has(assignmentId)) rowsByAssignment.set(assignmentId, []);
+    rowsByAssignment.get(assignmentId)!.push(rawRow);
+  }
+  for (const [assignmentId, rows] of rowsByAssignment.entries()) {
+    groupedDeepDiveRows.set(assignmentId, mapPersistedDeepDiveProgressRows(rows));
+  }
+
+  return {
+    statusByAssignmentId,
+    deepDiveProgressByAssignmentId: groupedDeepDiveRows,
+  };
+}
+
+function buildTutorModuleProgress(deepDiveProgress: TutorBattleTestDeepDiveProgress[]): TutorBattleTestModuleProgress[] {
+  return TUTOR_MODULES.map((module) => {
+    const moduleDeepDives = deepDiveProgress.filter((entry) => entry.moduleKey === module.moduleKey);
+    const completedCount = moduleDeepDives.filter((entry) => entry.historicalState === "completed").length;
+    return {
+      moduleKey: module.moduleKey,
+      title: module.title,
+      completedCount,
+      totalCount: module.phaseKeys.length,
+      completed: completedCount === module.phaseKeys.length,
+    };
+  });
+}
+
+function deriveTutorTrainingMode(
+  moduleProgress: TutorBattleTestModuleProgress[],
+  deepDiveProgress: TutorBattleTestDeepDiveProgress[],
+  currentState: BattleTestState | null
+): TutorTrainingMode {
+  if (deepDiveProgress.some((entry) => entry.currentHealthState === "drift" || entry.criticalFlag) || currentState === "fail") {
+    return "watchlist";
+  }
+
+  const transformationComplete = moduleProgress.find((entry) => entry.moduleKey === "transformation_phases")?.completed || false;
+  const sessionComplete = moduleProgress.find((entry) => entry.moduleKey === "session_infrastructure")?.completed || false;
+
+  if (transformationComplete && sessionComplete) return "certified_live";
+  if (transformationComplete) return "sandbox";
+  return "training";
+}
+
+function buildTutorNextBattleTests(
+  deepDiveProgress: TutorBattleTestDeepDiveProgress[],
+  limit = 3
+): TutorBattleTestRecommendation[] {
+  const now = Date.now();
+  const ranked = deepDiveProgress.map((entry) => {
+    const daysSinceLastTest = entry.lastTestedAt
+      ? Math.max(0, Math.floor((now - new Date(entry.lastTestedAt).getTime()) / (1000 * 60 * 60 * 24)))
+      : 30;
+
+    let priorityScore = 0;
+    const reasons: string[] = [];
+
+    if (entry.historicalState !== "completed") {
+      priorityScore += 100;
+      reasons.push("not completed");
+    }
+    if (entry.currentStreak === 2) {
+      priorityScore += 30;
+      reasons.push("one pass away from completion");
+    } else if (entry.currentStreak === 0 && entry.historicalState !== "completed") {
+      priorityScore += 18;
+      reasons.push("streak needs rebuilding");
+    }
+    if (entry.latestScore != null && entry.latestScore < 96) {
+      priorityScore += 24;
+      reasons.push(entry.latestScore < 90 ? "recent drift" : "watchlist retest");
+    }
+    if (entry.criticalFlag) {
+      priorityScore += 28;
+      reasons.push("critical fail history");
+    }
+    priorityScore += Math.min(daysSinceLastTest, 30);
+    if (daysSinceLastTest >= 14) {
+      reasons.push("longest time since last tested");
+    }
+    if (entry.historicalState === "completed" && entry.latestScore != null && entry.latestScore >= 96) {
+      priorityScore += 6;
+      if (!reasons.length) reasons.push("maintenance retest");
+    }
+
+    return {
+      phaseKey: entry.phaseKey,
+      title: entry.title,
+      moduleKey: entry.moduleKey,
+      priorityScore,
+      reason: reasons[0] || "maintenance retest",
+    } satisfies TutorBattleTestRecommendation;
+  });
+
+  return ranked.sort((left, right) => right.priorityScore - left.priorityScore).slice(0, limit);
 }
 
 function getAggregateBattleTestActionRequired(state: BattleTestState, hasCriticalFail: boolean, isIncomplete = false) {
@@ -306,6 +726,10 @@ export async function persistBattleTestRun(input: PersistBattleTestRunInput) {
     if (repLogError) {
       throw new Error(`Failed to save battle test logs: ${repLogError.message}`);
     }
+
+    if (subjectType === "tutor" && tutorAssignmentId) {
+      await syncTutorCertificationState(tutorAssignmentId, subjectUserId, outcome.state);
+    }
   } catch (repLogFailure) {
     await supabase.from("battle_test_runs").delete().eq("id", runRow.id);
     throw repLogFailure instanceof Error
@@ -340,11 +764,19 @@ export async function buildPodBattleTestingSummary(
   const latestTutorRunByAssignment = new Map<string, BattleTestRunRow>();
   const latestTutorPhaseScoresByAssignment = new Map<string, Map<string, BattleTestPhaseScore>>();
   const latestTutorPhaseRunByAssignment = new Map<string, Map<string, BattleTestRunRow>>();
+  const tutorRunsByAssignment = new Map<string, BattleTestRunRow[]>();
   const phaseAggregates = new Map<string, { title: string; total: number; count: number; weakCount: number }>();
+  const { statusByAssignmentId, deepDiveProgressByAssignmentId } = await loadTutorCertificationSnapshots(
+    tutorMeta.map((entry) => entry.assignmentId)
+  );
 
   for (const run of runRows) {
     if (run.subject_type !== "tutor") continue;
     const assignmentKey = run.tutor_assignment_id || run.subject_user_id;
+    if (!tutorRunsByAssignment.has(assignmentKey)) {
+      tutorRunsByAssignment.set(assignmentKey, []);
+    }
+    tutorRunsByAssignment.get(assignmentKey)!.push(run);
     if (!latestTutorRunByAssignment.has(assignmentKey)) {
       latestTutorRunByAssignment.set(assignmentKey, run);
       for (const phase of run.phase_scores) {
@@ -389,7 +821,12 @@ export async function buildPodBattleTestingSummary(
       latestTutorPhaseRunByAssignment.get(meta.tutorId) ||
       new Map<string, BattleTestRunRow>();
     const phaseScores = Array.from(latestPhaseScoreMap.values());
-    const contributingRuns = Array.from(latestPhaseRunMap.values());
+    const contributingRuns =
+      tutorRunsByAssignment.get(meta.assignmentId) ||
+      tutorRunsByAssignment.get(meta.tutorId) ||
+      Array.from(latestPhaseRunMap.values());
+    const deepDiveProgress = buildTutorDeepDiveProgress(phaseScores, contributingRuns);
+    const moduleProgress = buildTutorModuleProgress(deepDiveProgress);
     const derivedHasCriticalFail = contributingRuns.some((run) => run.has_critical_fail);
     const derivedLastAuditAt = contributingRuns.length
       ? contributingRuns
@@ -409,6 +846,12 @@ export async function buildPodBattleTestingSummary(
       actionRequired: derivedSummary.actionRequired || latestRun?.action_required || null,
       lastAuditAt: derivedLastAuditAt ? new Date(derivedLastAuditAt).toISOString() : latestRun?.completed_at || null,
       phaseScores,
+      mode:
+        (statusByAssignmentId.get(meta.assignmentId)?.mode as TutorTrainingMode | undefined) ||
+        deriveTutorTrainingMode(moduleProgress, deepDiveProgress, derivedSummary.state || latestRun?.state || null),
+      moduleProgress: statusByAssignmentId.get(meta.assignmentId)?.module_progress || moduleProgress,
+      deepDiveProgress: deepDiveProgressByAssignmentId.get(meta.assignmentId) || deepDiveProgress,
+      nextBattleTests: statusByAssignmentId.get(meta.assignmentId)?.next_battle_tests || buildTutorNextBattleTests(deepDiveProgress),
     };
     if (tutorSummary.state === "locked") summary.lockedTutors += 1;
     if (tutorSummary.state === "watchlist") summary.watchlistTutors += 1;

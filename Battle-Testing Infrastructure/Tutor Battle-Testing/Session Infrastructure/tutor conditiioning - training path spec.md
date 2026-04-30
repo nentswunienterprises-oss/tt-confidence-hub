@@ -165,15 +165,223 @@ Optional random maintenance on completed dives
 Output
 
 Generate weekly assigned session:
-
+e.g
 Tutor A:
 1. Clarity
 2. Logging System
 3. Controlled Discomfort
 
+After Each Deep Dive
 
-TD Dashboard
+System updates:
 
-Button:
+latest_score
+health_state
+streak
+completion if earned
 
-Run Weekly Tutor Audit/Battle Test
+Battle Test Selection Engine (the brain)
+
+Each live check should auto-select 2–3 deep dives using priority scoring.
+
+Priority Order
+1. Uncertified + Highest Need
+
+Deep dives not yet completed with lowest streaks.
+
+2. Near Completion Opportunities
+
+Deep dives sitting at streak 2 (chance to complete now).
+
+3. Recent Drift
+
+Any latest score under 96 gets bumped up.
+
+4. Time Since Last Tested
+
+Prevent neglect.
+
+5. Random Maintenance Pull
+
+Occasionally include one completed deep dive to prevent decay.
+
+Example Tutor State
+Deep Dive	Certified	Streak	Last Score
+Clarity	❌	2	98
+Structured Execution	❌	0	88
+Controlled Discomfort	✅	-	97
+Time Pressure Stability	❌	1	96
+Topic Conditioning	✅	-	94
+Next Session Auto-Select
+Clarity (can complete now)
+Structured Execution (needs repair)
+Topic Conditioning (maintenance retest)
+Session Result Updates
+
+After TD logs answers:
+
+streaks update
+certifications trigger
+health states update
+next session priorities recalculate
+
+Why This Wins
+
+No human admin headache.
+No arbitrary schedules.
+No forgotten weak spots.
+
+The system always knows the next best pressure points.
+
+CURRENT HEALTH ACTIONS
+Locked (96+)
+
+No issue.
+
+Watchlist (90–95)
+
+Flags tutor.
+
+Rules configurable:
+
+mandatory retest next session
+visible warning badge
+Drift (<90)
+
+Actions configurable:
+
+remove from live assignment pool
+retraining mode
+
+CRITICAL FAIL OVERRIDES
+
+Certain answer tags can instantly trigger Drift regardless of score
+
+If triggered:
+
+critical_flag = true
+health_state = Drift
+
+POST-CERTIFICATION MAINTENANCE
+
+Certification is not permanent immunity.
+
+Completed deep dives remain completed historically.
+
+But current health still updates from retests.
+
+Example:
+
+Clarity:
+completed = true
+latest_score = 91
+health = Watchlist
+
+TD ACCOUNTABILITY LAYER
+
+Track tutor results grouped by TD.
+
+If multiple tutors under one TD repeatedly drift in same deep dive:
+
+Flag TD.
+
+Example:
+
+3 tutors under TD fail Logging System in 14 days
+=> TD operational weakness flag
+
+DATABASE TABLES (if not already existing)
+tutors
+id
+status_mode
+assigned_td_id
+modules
+id
+name
+order_index
+deep_dives
+id
+module_id
+name
+order_index
+tutor_deep_dive_progress
+id
+tutor_id
+deep_dive_id
+completed_bool
+current_streak
+latest_score
+health_state
+completed_at
+last_tested_at
+attempts_count
+battle_test_sessions
+id
+tutor_id
+td_id
+started_at
+completed_at
+overall_score
+battle_test_session_dives
+id
+session_id
+deep_dive_id
+score
+health_state
+
+TUTOR DASHBOARD (Where tutor stands in system feature update)
+
+Show:
+
+Current Mode
+
+Training / Sandbox / Certified / Watchlist / Suspended
+
+Module Progress
+
+Module 1: 4/5 complete
+Module 2: 2/6 complete
+
+Deep Dive Cards
+streak
+latest score
+health state
+completed badge
+Next Battle Test
+
+Auto-assigned dives
+
+TD pod tutor cards update:
+
+add:
+
+mode
+next due battle test
+module progress
+
+HOW PROGRESSION SHOULD WORK NOW
+Consecutive streaks tracked PER DEEP DIVE, not per session.
+
+That means:
+
+Even though multiple deep dives are tested in one sitting:
+
+Clarity streak updates separately
+Structured Execution streak updates separately
+Logging streak updates separately
+
+SYSTEM PRINCIPLES
+
+Never progress by time.
+
+Never allow manual completion override.
+
+Never rely on memory.
+
+Everything based on logged proof.
+
+FINAL PRODUCT PHILOSOPHY
+
+We do not hire tutors and hope.
+
+We condition operators until certification becomes inevitable.

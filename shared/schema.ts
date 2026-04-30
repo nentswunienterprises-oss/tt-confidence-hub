@@ -77,6 +77,22 @@ export const onboardingAcceptanceMethodEnum = pgEnum("onboarding_acceptance_meth
 export const battleTestSubjectEnum = pgEnum("battle_test_subject", ["tutor", "td"]);
 export const battleTestScoreEnum = pgEnum("battle_test_score", ["clear", "partial", "fail"]);
 export const battleTestStateEnum = pgEnum("battle_test_state", ["locked", "watchlist", "fail"]);
+export const tutorCertificationModeEnum = pgEnum("tutor_certification_mode", [
+  "training",
+  "sandbox",
+  "certified_live",
+  "watchlist",
+  "suspended",
+]);
+export const tutorDeepDiveHistoricalStateEnum = pgEnum("tutor_deep_dive_historical_state", [
+  "in_progress",
+  "completed",
+]);
+export const tutorDeepDiveHealthStateEnum = pgEnum("tutor_deep_dive_health_state", [
+  "locked",
+  "watchlist",
+  "drift",
+]);
 
 // ============================================
 // SESSION STORAGE (Required for Replit Auth)
@@ -248,10 +264,61 @@ export const battleTestRepLogs = pgTable("battle_test_rep_logs", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const tutorBattleTestStatuses = pgTable("tutor_battle_test_statuses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tutorAssignmentId: varchar("tutor_assignment_id")
+    .notNull()
+    .references(() => tutorAssignments.id),
+  tutorId: varchar("tutor_id")
+    .notNull()
+    .references(() => users.id),
+  mode: tutorCertificationModeEnum("mode").notNull().default("training"),
+  moduleProgress: jsonb("module_progress").notNull().default(sql`'[]'::jsonb`),
+  nextBattleTests: jsonb("next_battle_tests").notNull().default(sql`'[]'::jsonb`),
+  lastSyncedAt: timestamp("last_synced_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  assignmentIdx: index("idx_tutor_battle_test_status_assignment").on(table.tutorAssignmentId),
+  tutorIdx: index("idx_tutor_battle_test_status_tutor").on(table.tutorId),
+}));
+
+export const tutorBattleTestDeepDiveProgress = pgTable("tutor_battle_test_deep_dive_progress", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tutorAssignmentId: varchar("tutor_assignment_id")
+    .notNull()
+    .references(() => tutorAssignments.id),
+  tutorId: varchar("tutor_id")
+    .notNull()
+    .references(() => users.id),
+  phaseKey: varchar("phase_key").notNull(),
+  title: varchar("title").notNull(),
+  moduleKey: varchar("module_key").notNull(),
+  moduleTitle: varchar("module_title").notNull(),
+  historicalState: tutorDeepDiveHistoricalStateEnum("historical_state").notNull().default("in_progress"),
+  currentHealthState: tutorDeepDiveHealthStateEnum("current_health_state").notNull().default("drift"),
+  currentStreak: integer("current_streak").notNull().default(0),
+  latestScore: real("latest_score"),
+  completedAt: timestamp("completed_at"),
+  lastTestedAt: timestamp("last_tested_at"),
+  attemptsCount: integer("attempts_count").notNull().default(0),
+  criticalFlag: boolean("critical_flag").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  assignmentIdx: index("idx_tutor_deep_dive_progress_assignment").on(table.tutorAssignmentId),
+  tutorIdx: index("idx_tutor_deep_dive_progress_tutor").on(table.tutorId),
+  phaseIdx: index("idx_tutor_deep_dive_progress_phase").on(table.phaseKey),
+}));
+
 export type BattleTestRun = typeof battleTestRuns.$inferSelect;
 export type InsertBattleTestRun = typeof battleTestRuns.$inferInsert;
 export type BattleTestRepLog = typeof battleTestRepLogs.$inferSelect;
 export type InsertBattleTestRepLog = typeof battleTestRepLogs.$inferInsert;
+export type TutorBattleTestStatus = typeof tutorBattleTestStatuses.$inferSelect;
+export type InsertTutorBattleTestStatus = typeof tutorBattleTestStatuses.$inferInsert;
+export type TutorBattleTestDeepDiveProgressRow = typeof tutorBattleTestDeepDiveProgress.$inferSelect;
+export type InsertTutorBattleTestDeepDiveProgress = typeof tutorBattleTestDeepDiveProgress.$inferInsert;
 
 export const insertBattleTestRunSchema = createInsertSchema(battleTestRuns).omit({
   id: true,
@@ -262,6 +329,19 @@ export const insertBattleTestRunSchema = createInsertSchema(battleTestRuns).omit
 export const insertBattleTestRepLogSchema = createInsertSchema(battleTestRepLogs).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertTutorBattleTestStatusSchema = createInsertSchema(tutorBattleTestStatuses).omit({
+  id: true,
+  lastSyncedAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTutorBattleTestDeepDiveProgressSchema = createInsertSchema(tutorBattleTestDeepDiveProgress).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 // ============================================

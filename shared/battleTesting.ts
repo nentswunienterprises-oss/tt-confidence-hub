@@ -7,6 +7,10 @@ export const BATTLE_TEST_SCORE_POINTS = {
 export type BattleTestScore = keyof typeof BATTLE_TEST_SCORE_POINTS;
 export type BattleTestState = "locked" | "watchlist" | "fail";
 export type BattleTestSubjectType = "tutor" | "td";
+export type TutorBattleTestModuleKey = "transformation_phases" | "session_infrastructure";
+export type TutorBattleTestHistoricalState = "in_progress" | "completed";
+export type TutorBattleTestHealthState = "locked" | "watchlist" | "drift";
+export type TutorTrainingMode = "training" | "sandbox" | "certified_live" | "watchlist";
 export type TutorBattleTestPhaseKey =
   | "clarity"
   | "structured_execution"
@@ -93,6 +97,41 @@ export interface BattleTestingTutorSummary {
   actionRequired: string | null;
   lastAuditAt: string | null;
   phaseScores: BattleTestPhaseScore[];
+  mode?: TutorTrainingMode | null;
+  moduleProgress?: TutorBattleTestModuleProgress[];
+  deepDiveProgress?: TutorBattleTestDeepDiveProgress[];
+  nextBattleTests?: TutorBattleTestRecommendation[];
+}
+
+export interface TutorBattleTestModuleProgress {
+  moduleKey: TutorBattleTestModuleKey;
+  title: string;
+  completedCount: number;
+  totalCount: number;
+  completed: boolean;
+}
+
+export interface TutorBattleTestDeepDiveProgress {
+  phaseKey: string;
+  title: string;
+  moduleKey: TutorBattleTestModuleKey;
+  moduleTitle: string;
+  historicalState: TutorBattleTestHistoricalState;
+  currentHealthState: TutorBattleTestHealthState;
+  currentStreak: number;
+  latestScore: number | null;
+  completedAt: string | null;
+  lastTestedAt: string | null;
+  attemptsCount: number;
+  criticalFlag: boolean;
+}
+
+export interface TutorBattleTestRecommendation {
+  phaseKey: string;
+  title: string;
+  moduleKey: TutorBattleTestModuleKey;
+  priorityScore: number;
+  reason: string;
 }
 
 export interface BattleTestingTdSummary {

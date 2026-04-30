@@ -15,7 +15,7 @@ import { StudentCard } from "@/components/tutor/StudentCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { FileText } from "lucide-react";
+import { ChevronDown, ChevronUp, FileText } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { ApplicationForm } from "@/components/tutor/application-form";
@@ -28,7 +28,7 @@ import StudentTopicConditioningDialog from "@/components/tutor/StudentTopicCondi
 import StudentCommunicationDialog from "@/components/communications/StudentCommunicationDialog";
 import { PushOptInCard } from "@/components/push/PushOptInCard";
 import type { Student, TutorAssignment, Pod } from "@shared/schema";
-import type { BattleTestingTutorSummary } from "@shared/battleTesting";
+import type { BattleTestingTutorSummary, TutorTrainingMode } from "@shared/battleTesting";
 
 interface PodData {
   assignment: TutorAssignment & { pod: Pod };
@@ -70,7 +70,7 @@ interface TutorAlignmentSummaryData {
   podId: string | null;
   podName: string | null;
   assignmentId: string | null;
-  operationalMode: "training" | "certified_live";
+  operationalMode: TutorTrainingMode | "training" | "certified_live";
   alignmentSummary: BattleTestingTutorSummary | null;
 }
 
@@ -101,6 +101,13 @@ function formatTutorAlignmentStatus(value: string | null | undefined) {
   return value;
 }
 
+function formatTutorMode(value: TutorAlignmentSummaryData["operationalMode"]) {
+  if (value === "certified_live") return "Certified Live";
+  if (value === "sandbox") return "Sandbox Mode";
+  if (value === "watchlist") return "Watchlist";
+  return "Training Mode";
+}
+
 export default function TutorPod() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
@@ -111,6 +118,7 @@ export default function TutorPod() {
   const [identitySheetOpen, setIdentitySheetOpen] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string>("");
   const [selectedStudentName, setSelectedStudentName] = useState<string>("");
+  const [showFullStanding, setShowFullStanding] = useState(false);
   const [proposalOpen, setProposalOpen] = useState(false);
   const [assignmentsDialogOpen, setAssignmentsDialogOpen] = useState(false);
   const [trackingDialogOpen, setTrackingDialogOpen] = useState(false);
@@ -151,6 +159,10 @@ export default function TutorPod() {
     queryKey: ["/api/tutor/pod-alignment-summary"],
     enabled: isAuthenticated && !authLoading,
   });
+  const hasExpandedStanding =
+    Boolean(tutorAlignmentSummary?.alignmentSummary?.moduleProgress?.length) ||
+    Boolean(tutorAlignmentSummary?.alignmentSummary?.nextBattleTests?.length) ||
+    Boolean(tutorAlignmentSummary?.alignmentSummary?.deepDiveProgress?.length);
 
   const hasSubmittedApplication = applications && applications.length > 0;
   const hasPendingApplication = applications && applications.some((app: any) => app.status === "pending");
@@ -449,7 +461,7 @@ export default function TutorPod() {
               <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-4">
                 <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Operational Mode</p>
                 <p className="mt-2 text-sm font-medium text-foreground">
-                  {tutorAlignmentSummary?.operationalMode === "certified_live" ? "Certified Live" : "Training Mode"}
+                  {formatTutorMode(tutorAlignmentSummary?.operationalMode || "training")}
                 </p>
               </div>
               <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-4">
@@ -483,6 +495,92 @@ export default function TutorPod() {
                 </p>
               )}
             </div>
+
+            {hasExpandedStanding ? (
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 rounded-full px-3 text-xs text-muted-foreground hover:text-foreground"
+                  onClick={() => setShowFullStanding((current) => !current)}
+                >
+                  {showFullStanding ? "Hide Full Standing" : "View Full Standing"}
+                  {showFullStanding ? <ChevronUp className="ml-1.5 h-3.5 w-3.5" /> : <ChevronDown className="ml-1.5 h-3.5 w-3.5" />}
+                </Button>
+              </div>
+            ) : null}
+
+            {showFullStanding ? (
+              <>
+                {tutorAlignmentSummary?.alignmentSummary?.moduleProgress?.length ? (
+                  <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-4">
+                    <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Module Progress</p>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      {tutorAlignmentSummary.alignmentSummary.moduleProgress.map((module) => (
+                        <div key={module.moduleKey} className="rounded-xl border border-primary/15 bg-background px-3 py-2 text-sm text-foreground">
+                          <span className="font-medium">{module.title}</span>
+                          <span className="ml-2 text-muted-foreground">
+                            {module.completedCount}/{module.totalCount}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {tutorAlignmentSummary?.alignmentSummary?.nextBattleTests?.length ? (
+                  <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-4">
+                    <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Next Battle Test</p>
+                    <div className="mt-3 space-y-2">
+                      {tutorAlignmentSummary.alignmentSummary.nextBattleTests.map((entry) => (
+                        <div key={entry.phaseKey} className="rounded-xl border border-primary/15 bg-background px-3 py-2 text-sm text-foreground">
+                          <span className="font-medium">{entry.title}</span>
+                          <span className="ml-2 text-muted-foreground">{entry.reason}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {tutorAlignmentSummary?.alignmentSummary?.deepDiveProgress?.length ? (
+                  <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-4">
+                    <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Deep Dive Progress</p>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      {tutorAlignmentSummary.alignmentSummary.deepDiveProgress.map((entry) => (
+                        <div
+                          key={entry.phaseKey}
+                          className="rounded-xl border border-primary/10 bg-background px-3 py-3 text-sm text-foreground"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="font-medium">{entry.title}</p>
+                              <p className="mt-0.5 text-xs text-muted-foreground">{entry.moduleTitle}</p>
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              {entry.historicalState === "completed" ? "Completed" : "In progress"}
+                            </span>
+                          </div>
+                          <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                            <span>Streak {entry.currentStreak}/3</span>
+                            <span>
+                              Score {entry.latestScore == null ? "N/A" : `${Math.round(entry.latestScore)}%`}
+                            </span>
+                            <span>
+                              {entry.currentHealthState === "locked"
+                                ? "Locked"
+                                : entry.currentHealthState === "watchlist"
+                                ? "Watchlist"
+                                : "Drift"}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </>
+            ) : null}
           </div>
         </Card>
 
