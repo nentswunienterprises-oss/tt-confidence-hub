@@ -1,41 +1,66 @@
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { resolve } from "path";
 import type { BattleTestPhaseDefinition, BattleTestQuestionDefinition } from "@shared/battleTesting";
 
 type ParsedQuestion = BattleTestQuestionDefinition & { sourceLabel: string };
 
 const ROOT = resolve(process.cwd(), "Battle-Testing Infrastructure");
+const TUTOR_BATTLE_TESTING_ROOT = resolve(ROOT, "Tutor Battle-Testing");
+const TUTOR_TRANSFORMATION_PHASE_ROOT = resolve(TUTOR_BATTLE_TESTING_ROOT, "Transformation Phases");
+
+function resolveExistingPath(...candidates: string[]) {
+  const match = candidates.find((candidate) => existsSync(candidate));
+  if (!match) {
+    throw new Error(`Battle testing source file not found. Checked: ${candidates.join(" | ")}`);
+  }
+  return match;
+}
 
 const TUTOR_SOURCE_FILES = [
   {
     key: "clarity",
     title: "Clarity",
     description: "TT-OS BATTLE TEST: CLARITY (SCORING VERSION)",
-    path: resolve(ROOT, "Tutor Battle-Testing", "TT-OS Trasnformation Phases Battle-Testing = Clarity.md"),
+    path: resolveExistingPath(
+      resolve(TUTOR_TRANSFORMATION_PHASE_ROOT, "TT-OS Trasnformation Phases Battle-Testing = Clarity.md"),
+      resolve(TUTOR_BATTLE_TESTING_ROOT, "TT-OS Trasnformation Phases Battle-Testing = Clarity.md")
+    ),
   },
   {
     key: "structured_execution",
     title: "Structured Execution",
     description: "TT-OS BATTLE TEST: STRUCTURED EXECUTION (SCORING VERSION)",
-    path: resolve(ROOT, "Tutor Battle-Testing", "TT-OS Trasnformation Phases Battle-Testing = Structured Execution.md"),
+    path: resolveExistingPath(
+      resolve(TUTOR_TRANSFORMATION_PHASE_ROOT, "TT-OS Trasnformation Phases Battle-Testing = Structured Execution.md"),
+      resolve(TUTOR_BATTLE_TESTING_ROOT, "TT-OS Trasnformation Phases Battle-Testing = Structured Execution.md")
+    ),
   },
   {
     key: "controlled_discomfort",
     title: "Controlled Discomfort",
     description: "TT-OS BATTLE TEST: CONTROLLED DISCOMFORT (SCORING VERSION)",
-    path: resolve(ROOT, "Tutor Battle-Testing", "TT-OS Trasnformation Phases Battle-Testing = Controlled Discomfort.md"),
+    path: resolveExistingPath(
+      resolve(TUTOR_TRANSFORMATION_PHASE_ROOT, "TT-OS Trasnformation Phases Battle-Testing = Controlled Discomfort.md"),
+      resolve(TUTOR_BATTLE_TESTING_ROOT, "TT-OS Trasnformation Phases Battle-Testing = Controlled Discomfort.md")
+    ),
   },
   {
     key: "time_pressure_stability",
     title: "Time Pressure Stability",
     description: "TT-OS BATTLE TEST: TIME PRESSURE STABILITY (SCORING VERSION)",
-    path: resolve(ROOT, "Tutor Battle-Testing", "TT-OS Trasnformation Phases Battle-Testing = Time Pressure Stability.md"),
+    path: resolveExistingPath(
+      resolve(TUTOR_TRANSFORMATION_PHASE_ROOT, "TT-OS Trasnformation Phases Battle-Testing = Time Pressure Stability.md"),
+      resolve(TUTOR_BATTLE_TESTING_ROOT, "TT-OS Trasnformation Phases Battle-Testing = Time Pressure Stability.md")
+    ),
   },
   {
     key: "topic_conditioning",
     title: "Topic Conditioning",
     description: "TT-OS BATTLE TEST: TOPIC CONDITIONING (SCORING VERSION)",
-    path: resolve(ROOT, "Tutor Battle-Testing", "TT-OS Trasnformation Phases Battle-Testing = Topic Conditioning.md"),
+    path: resolveExistingPath(
+      resolve(TUTOR_TRANSFORMATION_PHASE_ROOT, "TT-OS Trasnformation Phases Battle-Testing = Topic Conditioning.md"),
+      resolve(TUTOR_BATTLE_TESTING_ROOT, "TT-OS Trasnformation Phases Battle-Testing = Topic Conditioning.md")
+    ),
   },
 ] as const;
 
