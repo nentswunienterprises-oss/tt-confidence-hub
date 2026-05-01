@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { CheckCircle2, Circle, ArrowLeft, Check, Plus, X } from "lucide-react";
 import { TTLogo } from "@/components/TTLogo";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
 import ProposalView from "@/components/parent/ProposalView";
@@ -100,6 +101,7 @@ function submitExternalPaymentForm(action: string, fields: Record<string, string
 export default function ParentGateway() {
   const [justBooked, setJustBooked] = useState(false);
   const { toast } = useToast();
+  const { user, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [step, setStep] = useState<"enrollment" | "submitted" | "loading" | "awaiting_tutor_acceptance">("loading");
@@ -142,17 +144,11 @@ export default function ParentGateway() {
     window.history.replaceState({}, "", window.location.pathname);
   }, [queryClient, toast]);
 
-  // Fetch current user data
-  const { data: user } = useQuery<any>({
-    queryKey: ["/api/auth/user"],
-    queryFn: getQueryFn({ on401: "returnNull" }),
-  });
-
   // Fetch enrollment status
   const { data: enrollmentStatus } = useQuery<EnrollmentStatus>({
     queryKey: ["/api/parent/enrollment-status"],
     queryFn: getQueryFn({ on401: "returnNull" }),
-    enabled: !!user,
+    enabled: !!user && !authLoading,
     staleTime: 0,
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
@@ -166,6 +162,7 @@ export default function ParentGateway() {
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled:
       !!user &&
+      !authLoading &&
       (
         enrollmentStatus?.status === "assigned" ||
         enrollmentStatus?.status === "proposal_sent" ||
@@ -187,6 +184,7 @@ export default function ParentGateway() {
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled:
       !!user &&
+      !authLoading &&
       (
         enrollmentStatus?.status === "proposal_sent" ||
         enrollmentStatus?.status === "session_booked" ||
@@ -232,7 +230,7 @@ export default function ParentGateway() {
       }
       return data;
     },
-    enabled: !!user && !!enrollmentStatus,
+    enabled: !!user && !authLoading && !!enrollmentStatus,
     staleTime: 0,
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
