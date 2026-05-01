@@ -6706,12 +6706,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
 
-        const operationalMode = await getStudentOperationalMode(studentId);
+        const studentOperationalMode = await getStudentOperationalMode(studentId);
         const { session, error } = await resolveTutorScheduledSession(tutorId, studentId, kind, sessionId);
         if (error) {
           return res.status(500).json({ message: "Failed to resolve scheduled session" });
         }
-        if (operationalMode === "training" && (kind === "intro" || kind === "handover")) {
+        if (studentOperationalMode === "training" && (kind === "intro" || kind === "handover")) {
           return res.json({
             canLaunch: true,
             session: session
@@ -6724,7 +6724,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   },
                 }
               : null,
-            operationalMode,
+            operationalMode: studentOperationalMode,
             googleMeetConfigured: false,
           });
         }
@@ -6763,7 +6763,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ...session,
             launch,
           },
-          operationalMode,
+          operationalMode: studentOperationalMode,
           googleMeetConfigured: isGoogleMeetIntegrationAvailable(),
         });
       } catch (error) {
