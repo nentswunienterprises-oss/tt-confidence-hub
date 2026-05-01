@@ -9,6 +9,8 @@ import {
   getAdjacentDiagnosisPhase,
 } from "@shared/adaptiveDiagnosis";
 import { useStudentWorkflowState } from "@/hooks/useStudentWorkflowState";
+import { supabase } from "@/lib/supabaseClient";
+import { API_URL } from "@/lib/config";
 
 type PhaseLabel = "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability";
 type DrillMode = "diagnosis" | "training" | "session" | "handover";
@@ -698,8 +700,20 @@ export default function IntroSessionDrillRunner() {
     queryFn: async () => {
       const params = new URLSearchParams({ kind: sessionKind });
       if (scheduledSessionId) params.set("sessionId", scheduledSessionId);
-      const res = await axios.get(`/api/tutor/students/${studentId}/drill-session-access?${params.toString()}`);
-      return res.data;
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: HeadersInit = {};
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+      const res = await fetch(`${API_URL}/api/tutor/students/${studentId}/drill-session-access?${params.toString()}`, {
+        headers,
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Failed to load drill session access (${res.status})`);
+      }
+      return res.json();
     },
     enabled: !!studentId,
     retry: false,
