@@ -7655,9 +7655,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let studentQuery = supabase
         .from("students")
-        .select("id, parent_enrollment_id, updated_at")
+        .select("id, parent_enrollment_id, created_at")
         .eq("parent_id", parentId)
-        .order("updated_at", { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(1);
 
       let studentResult = await studentQuery;
@@ -7666,9 +7666,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!student && parentEmail) {
         studentResult = await supabase
           .from("students")
-          .select("id, parent_enrollment_id, updated_at")
+          .select("id, parent_enrollment_id, created_at")
           .eq("parent_contact", parentEmail)
-          .order("updated_at", { ascending: false })
+          .order("created_at", { ascending: false })
           .limit(1);
         student = studentResult.data?.[0] || null;
       }
