@@ -4597,7 +4597,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check for existing pending intro session for this parent/tutor
       const { data: existingSessions, error: existingSessionError } = await supabase
         .from("scheduled_sessions")
-        .select(SCHEDULED_SESSION_SELECT)
+        .select("id, scheduled_time, status, parent_confirmed, tutor_confirmed, created_at, updated_at")
         .eq("parent_id", userId)
         .eq("tutor_id", enrollmentData.assigned_tutor_id)
         .eq("type", sessionType)
@@ -4619,30 +4619,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .update({
             student_id: assignedStudent?.id || null,
             scheduled_time: `${proposedDate}T${proposedTime}`,
-            scheduled_end: addMinutesToIso(`${proposedDate}T${proposedTime}`, INTRO_SESSION_DURATION_MINUTES),
-            timezone: String(req.body?.timezone || "Africa/Johannesburg"),
-            workflow_stage: sessionType === "handover" ? "handover_verification_booking" : "intro_booking",
             parent_confirmed: true,
             tutor_confirmed: false,
             status: "pending_tutor_confirmation",
-            google_calendar_id: null,
-            google_event_id: null,
-            google_meet_url: null,
-            google_conference_id: null,
-            google_meet_space_name: null,
-            google_meet_code: null,
-            host_account_id: null,
-            recording_file_id: null,
-            recording_detected_at: null,
-            recording_status: "not_expected_yet",
-            transcript_file_id: null,
-            transcript_detected_at: null,
-            transcript_status: "not_expected_yet",
-            attendance_report_file_id: null,
-            cohost_sync_status: "not_configured",
-            cohost_sync_error: null,
-            last_artifact_sync_at: null,
-            last_meet_sync_error: null,
             updated_at: new Date().toISOString(),
           })
           .eq("id", existingSession.id);
@@ -4677,10 +4656,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             tutor_id: enrollmentData.assigned_tutor_id,
             student_id: assignedStudent?.id || null,
             scheduled_time: `${proposedDate}T${proposedTime}`,
-            scheduled_end: addMinutesToIso(`${proposedDate}T${proposedTime}`, INTRO_SESSION_DURATION_MINUTES),
-            timezone: String(req.body?.timezone || "Africa/Johannesburg"),
             type: sessionType,
-            workflow_stage: sessionType === "handover" ? "handover_verification_booking" : "intro_booking",
             status: "pending_tutor_confirmation",
             parent_confirmed: true,
             tutor_confirmed: false,
