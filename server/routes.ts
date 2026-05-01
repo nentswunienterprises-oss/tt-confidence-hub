@@ -5528,14 +5528,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!assignment) {
           return res.json({ assignment: null, students: [] });
         }
-        
+
+        const activeEnrollmentStatuses = ["awaiting_tutor_acceptance", "assigned", "proposal_sent", "session_booked", "report_received", "confirmed"];
+
         // First, check for parent enrollments assigned to this tutor that don't have students yet
         const { data: assignedEnrollments } = await supabase
           .from("parent_enrollments")
           .select("*")
           .eq("assigned_tutor_id", tutorId)
-          .in("status", ["awaiting_tutor_acceptance", "assigned", "proposal_sent", "session_booked", "report_received", "confirmed"]);
-        
+          .in("status", activeEnrollmentStatuses);
+
         // For each enrollment, check if a student exists, if not create one
         if (assignedEnrollments && assignedEnrollments.length > 0) {
           for (const enrollment of assignedEnrollments) {
@@ -5549,90 +5551,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
         }
-        
+
+        // Re-read after backfill so assigned_student_id links are current.
+        const { data: refreshedAssignedEnrollments, error: refreshedAssignedEnrollmentsError } = await supabase
+          .from("parent_enrollments")
+          .select("*")
+          .eq("assigned_tutor_id", tutorId)
+          .in("status", activeEnrollmentStatuses)
+          .order("updated_at", { ascending: false });
+
+        if (refreshedAssignedEnrollmentsError) {
+          console.error("Error refreshing assigned enrollments for pod:", refreshedAssignedEnrollmentsError);
+          return res.status(500).json({ message: "Failed to refresh assigned enrollments" });
+        }
+
         const students = await hydrateStudentsWithSessionProgress(tutorId, await storage.getStudentsByTutor(tutorId));
-
-        const assignedEnrollmentByStudentId = new Set(
-          (assignedEnrollments || [])
-            .map((e: any) => e.assigned_student_id)
-            .filter((v: any) => !!v)
-            .map((v: any) => String(v))
+        const studentsById = new Map(
+          students
+            .filter((student: any) => !!student?.id)
+            .map((student: any) => [String(student.id), student])
         );
-        const assignedEnrollmentByParentId = new Set(
-          (assignedEnrollments || [])
-            .map((e: any) => e.user_id)
-            .filter((v: any) => !!v)
-            .map((v: any) => String(v))
-        );
-        const assignedEnrollmentByStudentName = new Set(
-          (assignedEnrollments || [])
-            .map((e: any) => e.student_full_name)
-            .filter((v: any) => !!v)
-            .map((v: any) => String(v).trim().toLowerCase())
+        const studentsByEnrollmentId = new Map(
+          students
+            .filter((student: any) => !!(student as any)?.parentEnrollmentId)
+            .map((student: any) => [String((student as any).parentEnrollmentId), student])
         );
 
-        const activeStudents = students.filter((student: any) => {
-          const studentId = String(student.id || "");
-          const parentId = String((student as any).parentId || "");
-          const studentName = String(student.name || "").trim().toLowerCase();
+        const canonicalStudents = (refreshedAssignedEnrollments || [])
+          .map((enrollment: any) => {
+            const assignedStudentId = String(enrollment?.assigned_student_id || "").trim();
+            const enrollmentId = String(enrollment?.id || "").trim();
 
-          return (
-            assignedEnrollmentByStudentId.has(studentId) ||
-            (!!parentId && assignedEnrollmentByParentId.has(parentId)) ||
-            (!!studentName && assignedEnrollmentByStudentName.has(studentName))
-          );
-        });
-        
-        // Fetch parent enrollment info for each student
+            const canonicalStudent =
+              (assignedStudentId ? studentsById.get(assignedStudentId) : null) ||
+              (enrollmentId ? studentsByEnrollmentId.get(enrollmentId) : null) ||
+              null;
+
+            if (!canonicalStudent) return null;
+
+            return {
+              student: canonicalStudent,
+              enrollment,
+            };
+          })
+          .filter((entry): entry is { student: any; enrollment: any } => !!entry)
+          .filter((entry, index, arr) => {
+            const studentId = String(entry.student.id || "");
+            return arr.findIndex((candidate) => String(candidate.student.id || "") === studentId) === index;
+          });
+
+        // Fetch parent enrollment info for each canonical student
         const studentsWithParentInfo = await Promise.all(
-          activeStudents.map(async (student: any) => {
-
+          canonicalStudents.map(async ({ student, enrollment }: { student: any; enrollment: any }) => {
             try {
-              // Get parent enrollment for this student (match by studentId, name, or parentId)
-              let parentEnrollment: any = null;
-              let joinType = null;
-
-              // 1. Try assigned_student_id
-              const { data: linkedEnrollment } = await supabase
-                .from("parent_enrollments")
-                .select("*")
-                .eq("assigned_tutor_id", tutorId)
-                .eq("assigned_student_id", student.id)
-                .maybeSingle();
-              if (linkedEnrollment) {
-                parentEnrollment = linkedEnrollment;
-                joinType = "studentId";
-              }
-
-              // 2. Try student_full_name
-              if (!parentEnrollment) {
-                const { data: namedEnrollment } = await supabase
-                  .from("parent_enrollments")
-                  .select("*")
-                  .eq("assigned_tutor_id", tutorId)
-                  .eq("student_full_name", student.name)
-                  .maybeSingle();
-                if (namedEnrollment) {
-                  parentEnrollment = namedEnrollment;
-                  joinType = "studentName";
-                }
-              }
-
-              // 3. Try parent_id (new fallback)
-              if (!parentEnrollment && (student as any).parentId) {
-                const { data: parentIdEnrollment } = await supabase
-                  .from("parent_enrollments")
-                  .select("*")
-                  .eq("assigned_tutor_id", tutorId)
-                  .eq("parent_id", (student as any).parentId)
-                  .maybeSingle();
-                if (parentIdEnrollment) {
-                  parentEnrollment = parentIdEnrollment;
-                  joinType = "parentId";
-                }
-              }
-
-              console.log(`[POD JOIN DEBUG] Student: ${student.name} (${student.id}) | parentId: ${(student as any).parentId} | joinType: ${joinType} | parentEnrollment:`, parentEnrollment);
+              const parentEnrollment = enrollment;
 
               // Check if proposal was accepted by querying the proposal table
               let proposalAcceptedAt = null;
@@ -5665,7 +5637,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 parentApprovedAt: isApproved ? (proposalAcceptedAt || parentEnrollment?.updated_at) : null,
               };
             } catch (err) {
-              // If no parent enrollment found, return student without parentInfo
               return {
                 ...student,
                 parentInfo: null,
