@@ -743,34 +743,31 @@ export async function setupAuth(app: Express) {
       console.log("🔍 GET /api/auth/user - Checking authentication...");
       console.log("🔍 Session check - Session ID:", req.sessionID);
       
-      // First, try to get user ID from server session
-      let userId = (req.session as any).userId;
+      // Prefer explicit Bearer token auth over any backend session cookie.
+      let userId: string | undefined = undefined;
       let authSource = "session";
-      console.log("🔍 User ID from session:", userId);
-
-      // If no server session, try to get user from Supabase auth token
-      if (!userId) {
-        console.log("📝 No server session, checking for Supabase auth token...");
-        const authHeader = req.headers.authorization;
-        if (authHeader && authHeader.startsWith("Bearer ")) {
-          const token = authHeader.substring(7);
-          try {
-            // Verify and decode the token using Supabase
-            const { data: { user: supabaseUser }, error: supabaseError } = await supabase.auth.getUser(token);
-            
-            if (supabaseError || !supabaseUser) {
-              console.log("❌ Supabase token invalid:", supabaseError?.message);
-              return res.status(401).json({ message: "Invalid token" });
-            }
-            
-            console.log("✅ Supabase token valid, user ID:", supabaseUser.id);
-            userId = supabaseUser.id;
-            authSource = "jwt";
-          } catch (tokenError) {
-            console.log("❌ Error verifying token:", tokenError);
-            return res.status(401).json({ message: "Unauthorized" });
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        const token = authHeader.substring(7);
+        try {
+          const { data: { user: supabaseUser }, error: supabaseError } = await supabase.auth.getUser(token);
+          
+          if (supabaseError || !supabaseUser) {
+            console.log("❌ Supabase token invalid:", supabaseError?.message);
+            return res.status(401).json({ message: "Invalid token" });
           }
+          
+          console.log("✅ Supabase token valid, user ID:", supabaseUser.id);
+          userId = supabaseUser.id;
+          authSource = "jwt";
+        } catch (tokenError) {
+          console.log("❌ Error verifying token:", tokenError);
+          return res.status(401).json({ message: "Unauthorized" });
         }
+      } else {
+        userId = (req.session as any).userId;
+        authSource = "session";
+        console.log("🔍 User ID from session:", userId);
       }
 
       if (!userId) {
