@@ -4609,7 +4609,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (existingSessionError) {
         console.error("Error fetching existing intro session:", existingSessionError);
-        return res.status(500).json({ message: "Failed to propose session" });
+        return res.status(500).json({
+          message: "Failed to propose session",
+          debug: {
+            stage: "fetch_existing_session",
+            error: String(existingSessionError?.message || existingSessionError),
+          },
+        });
       }
 
       if (existingSession) {
@@ -4627,7 +4633,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .eq("id", existingSession.id);
         if (updateError) {
           console.error("Error updating existing intro session:", updateError);
-          return res.status(500).json({ message: "Failed to update session" });
+          return res.status(500).json({
+            message: "Failed to update session",
+            debug: {
+              stage: "update_existing_session",
+              error: String(updateError?.message || updateError),
+            },
+          });
         }
 
         // Update enrollment current_step to intro_session_booked
@@ -4668,7 +4680,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (sessionError) {
         console.error("Error inserting intro session:", sessionError);
-        return res.status(500).json({ message: "Failed to propose session" });
+        return res.status(500).json({
+          message: "Failed to propose session",
+          debug: {
+            stage: "insert_session",
+            error: String(sessionError?.message || sessionError),
+          },
+        });
       }
 
       try {
@@ -4697,7 +4715,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error in propose intro session:", error);
-      res.status(500).json({ message: "Failed to propose session" });
+      res.status(500).json({
+        message: "Failed to propose session",
+        debug: {
+          stage: "route_catch",
+          error: error instanceof Error ? error.message : String(error),
+        },
+      });
     }
   });
 
