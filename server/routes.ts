@@ -16753,12 +16753,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Allow all authenticated users to check their enrollment status
       // (mainly parents, but be lenient)
       
-      // Check if parent has completed enrollment
-      const { data: enrollmentData, error } = await supabase
-        .from("parent_enrollments")
-        .select("*")
-        .eq("user_id", userId)
-        .maybeSingle();
+      // Check if parent has completed enrollment using canonical latest-enrollment lookup.
+      const { data: enrollmentData, error } = await selectLatestParentEnrollment({
+        parentId: userId,
+        primarySelect: "*",
+      });
 
       if (error) {
         console.warn("⚠️  Error fetching enrollment status (table may not exist yet):", error.message);
