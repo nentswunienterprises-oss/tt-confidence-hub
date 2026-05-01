@@ -6140,8 +6140,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (action === "accept") {
         updateFields = {
           tutor_confirmed: true,
-          parent_confirmed: false,
-          status: "pending_parent_confirmation",
+          parent_confirmed: true,
+          status: "confirmed",
           updated_at: new Date().toISOString(),
         };
       } else if (action === "propose_adjustment") {
@@ -6239,8 +6239,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (action === "accept") {
         updateFields = {
           tutor_confirmed: true,
-          parent_confirmed: false,
-          status: "pending_parent_confirmation",
+          parent_confirmed: true,
+          status: "confirmed",
           updated_at: new Date().toISOString(),
         };
       } else if (action === "propose_adjustment") {
