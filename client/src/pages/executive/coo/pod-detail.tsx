@@ -102,6 +102,7 @@ function getBattleTestStateBadgeClass(state: string | null | undefined) {
 function getOperationalModeBadge(mode?: string | null) {
   const normalized = String(mode || "").toLowerCase();
   if (normalized === "certified_live") return "default";
+  if (normalized === "suspended") return "destructive";
   if (normalized === "watchlist") return "destructive";
   return "secondary";
 }
@@ -834,6 +835,24 @@ export default function PodDetail() {
                     </div>
                   </div>
 
+                  {battleTestingSummary.tdOperationalFlags.length ? (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-3">
+                      <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-amber-900">
+                        TD Accountability Flags
+                      </p>
+                      <div className="mt-2 space-y-1">
+                        {battleTestingSummary.tdOperationalFlags.map((flag) => (
+                          <p key={flag.phaseKey} className="text-sm text-amber-950">
+                            <span className="font-medium">{flag.title}</span>
+                            <span className="ml-2 text-amber-900">
+                              {flag.affectedTutors} tutors drifted in the last {flag.windowDays} days.
+                            </span>
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
                   {battleTestingSummary?.tdSummary && (
                     <div className="pt-4 border-t space-y-3">
                       <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">TD Integrity</p>
@@ -1079,6 +1098,17 @@ export default function PodDetail() {
                                       </div>
                                       {tutorAudit?.actionRequired ? (
                                         <p className="mt-3 text-sm text-muted-foreground">{tutorAudit.actionRequired}</p>
+                                      ) : null}
+                                      {tutorAudit?.deepDiveProgress?.some((entry) => entry.consecutiveDriftCount > 0) ? (
+                                        <div className="mt-3 rounded-lg border border-amber-200/70 bg-amber-50/50 px-3 py-2">
+                                          <p className="text-[10px] uppercase tracking-[0.08em] text-amber-900">Drift Pressure</p>
+                                          <p className="mt-1 text-xs text-amber-950">
+                                            {tutorAudit.deepDiveProgress
+                                              .filter((entry) => entry.consecutiveDriftCount > 0)
+                                              .map((entry) => `${entry.title} ${entry.consecutiveDriftCount}/3`)
+                                              .join(" • ")}
+                                          </p>
+                                        </div>
                                       ) : null}
                                       {tutorAudit?.lastAuditAt ? (
                                         <p className="mt-2 text-xs text-muted-foreground">

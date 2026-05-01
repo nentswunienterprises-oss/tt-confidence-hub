@@ -165,6 +165,20 @@ const requireRole = (roles: string[]) => {
 
 async function getTutorOperationalMode(tutorId: string): Promise<"training" | "certified_live"> {
   const assignment = await storage.getTutorAssignment(tutorId);
+  if (!assignment?.id) {
+    return "training";
+  }
+
+  const { data: certificationStatus } = await supabase
+    .from("tutor_battle_test_statuses")
+    .select("mode")
+    .eq("tutor_assignment_id", assignment.id)
+    .maybeSingle();
+
+  if (certificationStatus?.mode) {
+    return certificationStatus.mode === "certified_live" ? "certified_live" : "training";
+  }
+
   return (assignment?.operationalMode as "training" | "certified_live" | undefined) || "training";
 }
 

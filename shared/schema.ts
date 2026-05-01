@@ -298,6 +298,7 @@ export const tutorBattleTestDeepDiveProgress = pgTable("tutor_battle_test_deep_d
   historicalState: tutorDeepDiveHistoricalStateEnum("historical_state").notNull().default("in_progress"),
   currentHealthState: tutorDeepDiveHealthStateEnum("current_health_state").notNull().default("drift"),
   currentStreak: integer("current_streak").notNull().default(0),
+  consecutiveDriftCount: integer("consecutive_drift_count").notNull().default(0),
   latestScore: real("latest_score"),
   completedAt: timestamp("completed_at"),
   lastTestedAt: timestamp("last_tested_at"),

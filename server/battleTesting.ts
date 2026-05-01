@@ -107,6 +107,7 @@ interface TutorBattleTestDeepDiveProgressRowDb {
   historical_state: TutorBattleTestDeepDiveProgress["historicalState"];
   current_health_state: TutorBattleTestDeepDiveProgress["currentHealthState"];
   current_streak: number;
+  consecutive_drift_count: number;
   latest_score: number | null;
   completed_at: string | null;
   last_tested_at: string | null;
@@ -117,6 +118,11 @@ interface TutorBattleTestDeepDiveProgressRowDb {
 function roundValue(value: number) {
   return Math.round(value * 100) / 100;
 }
+
+const LIVE_RESTRICTION_DRIFT_THRESHOLD = 2;
+const SUSPENSION_DRIFT_THRESHOLD = 3;
+const TD_OPERATIONAL_WEAKNESS_WINDOW_DAYS = 14;
+const TD_OPERATIONAL_WEAKNESS_TUTOR_THRESHOLD = 3;
 
 const TUTOR_PHASE_TITLE_MAP = new Map(
   TUTOR_BATTLE_TEST_PHASES_EXACT.map((phase) => [phase.key, phase.title] as const)
@@ -181,6 +187,7 @@ function buildTutorDeepDiveProgress(phaseScores: BattleTestPhaseScore[], runs: B
       historicalState: "in_progress",
       currentHealthState: "drift",
       currentStreak: 0,
+      consecutiveDriftCount: 0,
       latestScore: null,
       completedAt: null,
       lastTestedAt: null,
@@ -190,6 +197,7 @@ function buildTutorDeepDiveProgress(phaseScores: BattleTestPhaseScore[], runs: B
   }
 
   const consecutiveByPhase = new Map<string, number>();
+  const consecutiveDriftByPhase = new Map<string, number>();
   for (const run of chronologicalRuns) {
     for (const phase of run.phase_scores || []) {
       const entry = progressByPhaseKey.get(phase.phaseKey);
@@ -198,17 +206,25 @@ function buildTutorDeepDiveProgress(phaseScores: BattleTestPhaseScore[], runs: B
       entry.attemptsCount += 1;
       entry.latestScore = roundValue(phase.percent);
       entry.lastTestedAt = run.completed_at;
-      entry.currentHealthState = getTutorBattleTestHealthState(entry.latestScore);
+      const criticalReasonMatch = run.has_critical_fail
+        ? (run.critical_fail_reasons || []).some((reason) =>
+            String(reason).toLowerCase().startsWith(`${phase.title.toLowerCase()}:`)
+          )
+        : false;
+      entry.currentHealthState = criticalReasonMatch ? "drift" : getTutorBattleTestHealthState(entry.latestScore);
       if (run.has_critical_fail) {
-        const criticalReasonMatch = (run.critical_fail_reasons || []).some((reason) =>
-          String(reason).toLowerCase().startsWith(`${phase.title.toLowerCase()}:`)
-        );
         if (criticalReasonMatch) entry.criticalFlag = true;
       }
 
-      const nextStreak = phase.percent >= 96 ? (consecutiveByPhase.get(phase.phaseKey) || 0) + 1 : 0;
+      const nextStreak =
+        phase.percent >= 96 && !criticalReasonMatch ? (consecutiveByPhase.get(phase.phaseKey) || 0) + 1 : 0;
       consecutiveByPhase.set(phase.phaseKey, nextStreak);
       entry.currentStreak = nextStreak;
+
+      const nextDriftCount =
+        entry.currentHealthState === "drift" ? (consecutiveDriftByPhase.get(phase.phaseKey) || 0) + 1 : 0;
+      consecutiveDriftByPhase.set(phase.phaseKey, nextDriftCount);
+      entry.consecutiveDriftCount = nextDriftCount;
 
       if (nextStreak >= 3 && entry.historicalState !== "completed") {
         entry.historicalState = "completed";
@@ -264,6 +280,7 @@ function mapPersistedDeepDiveProgressRows(rows: any[]): TutorBattleTestDeepDiveP
       historicalState: rawRow.historical_state as TutorBattleTestDeepDiveProgress["historicalState"],
       currentHealthState: rawRow.current_health_state as TutorBattleTestDeepDiveProgress["currentHealthState"],
       currentStreak: Number(rawRow.current_streak || 0),
+      consecutiveDriftCount: Number(rawRow.consecutive_drift_count || 0),
       latestScore: rawRow.latest_score == null ? null : Number(rawRow.latest_score),
       completedAt: rawRow.completed_at ? String(rawRow.completed_at) : null,
       lastTestedAt: rawRow.last_tested_at ? String(rawRow.last_tested_at) : null,
@@ -329,6 +346,7 @@ async function syncTutorCertificationState(
       historical_state: entry.historicalState,
       current_health_state: entry.currentHealthState,
       current_streak: entry.currentStreak,
+      consecutive_drift_count: entry.consecutiveDriftCount,
       latest_score: entry.latestScore,
       completed_at: entry.completedAt,
       last_tested_at: entry.lastTestedAt,
@@ -365,6 +383,15 @@ async function syncTutorCertificationState(
   if (insertStatusError) {
     throw new Error(`Failed to save tutor certification status: ${insertStatusError.message}`);
   }
+
+  const effectiveOperationalMode = mode === "certified_live" ? "certified_live" : "training";
+  const { error: assignmentModeError } = await supabase
+    .from("tutor_assignments")
+    .update({ operational_mode: effectiveOperationalMode })
+    .eq("id", tutorAssignmentId);
+  if (assignmentModeError) {
+    throw new Error(`Failed to sync tutor assignment operational mode: ${assignmentModeError.message}`);
+  }
 }
 
 async function loadTutorCertificationSnapshots(assignmentIds: string[]) {
@@ -386,7 +413,7 @@ async function loadTutorCertificationSnapshots(assignmentIds: string[]) {
   const { data: deepDiveRows, error: deepDiveError } = await supabase
     .from("tutor_battle_test_deep_dive_progress")
     .select(
-      "tutor_assignment_id, tutor_id, phase_key, title, module_key, module_title, historical_state, current_health_state, current_streak, latest_score, completed_at, last_tested_at, attempts_count, critical_flag"
+      "tutor_assignment_id, tutor_id, phase_key, title, module_key, module_title, historical_state, current_health_state, current_streak, consecutive_drift_count, latest_score, completed_at, last_tested_at, attempts_count, critical_flag"
     )
     .in("tutor_assignment_id", assignmentIds);
   if (deepDiveError) {
@@ -441,12 +468,27 @@ function deriveTutorTrainingMode(
   deepDiveProgress: TutorBattleTestDeepDiveProgress[],
   currentState: BattleTestState | null
 ): TutorTrainingMode {
+  const transformationComplete = moduleProgress.find((entry) => entry.moduleKey === "transformation_phases")?.completed || false;
+  const sessionComplete = moduleProgress.find((entry) => entry.moduleKey === "session_infrastructure")?.completed || false;
+  const fullyCertified = transformationComplete && sessionComplete;
+  const hasSuspensionTrigger = deepDiveProgress.some(
+    (entry) => entry.consecutiveDriftCount >= SUSPENSION_DRIFT_THRESHOLD
+  );
+  const hasRetrainingTrigger = deepDiveProgress.some(
+    (entry) => entry.consecutiveDriftCount >= LIVE_RESTRICTION_DRIFT_THRESHOLD
+  );
+
+  if (fullyCertified && hasSuspensionTrigger) {
+    return "suspended";
+  }
+
+  if (fullyCertified && hasRetrainingTrigger) {
+    return "training";
+  }
+
   if (deepDiveProgress.some((entry) => entry.currentHealthState === "drift" || entry.criticalFlag) || currentState === "fail") {
     return "watchlist";
   }
-
-  const transformationComplete = moduleProgress.find((entry) => entry.moduleKey === "transformation_phases")?.completed || false;
-  const sessionComplete = moduleProgress.find((entry) => entry.moduleKey === "session_infrastructure")?.completed || false;
 
   if (transformationComplete && sessionComplete) return "certified_live";
   if (transformationComplete) return "sandbox";
@@ -504,6 +546,26 @@ function buildTutorNextBattleTests(
   });
 
   return ranked.sort((left, right) => right.priorityScore - left.priorityScore).slice(0, limit);
+}
+
+function getTutorCertificationActionRequired(
+  mode: TutorTrainingMode,
+  deepDiveProgress: TutorBattleTestDeepDiveProgress[],
+  fallback: string | null
+) {
+  if (mode === "suspended") {
+    return "Suspended after repeated drift. Return to retraining before live responsibility can resume.";
+  }
+
+  if (
+    mode === "training" &&
+    deepDiveProgress.every((entry) => entry.historicalState === "completed") &&
+    deepDiveProgress.some((entry) => entry.consecutiveDriftCount >= LIVE_RESTRICTION_DRIFT_THRESHOLD)
+  ) {
+    return "Live assignments are restricted. Tutor has been moved back to retraining mode after repeated drift.";
+  }
+
+  return fallback;
 }
 
 function getAggregateBattleTestActionRequired(state: BattleTestState, hasCriticalFail: boolean, isIncomplete = false) {
@@ -629,6 +691,7 @@ function getEmptySummary(podId: string): PodBattleTestingSummary {
     lockedTutors: 0,
     watchlistTutors: 0,
     failTutors: 0,
+    tdOperationalFlags: [],
     phaseWeaknesses: [],
     phaseScores: [],
     tutorSummaries: [],
@@ -834,6 +897,9 @@ export async function buildPodBattleTestingSummary(
           .reduce((latest, current) => Math.max(latest, current), 0)
       : null;
     const derivedSummary = deriveTutorSummaryFromPhaseScores(phaseScores, derivedHasCriticalFail);
+    const derivedMode =
+      (statusByAssignmentId.get(meta.assignmentId)?.mode as TutorTrainingMode | undefined) ||
+      deriveTutorTrainingMode(moduleProgress, deepDiveProgress, derivedSummary.state || latestRun?.state || null);
     const tutorSummary: BattleTestingTutorSummary = {
       assignmentId: meta.assignmentId,
       tutorId: meta.tutorId,
@@ -843,12 +909,14 @@ export async function buildPodBattleTestingSummary(
       alignmentPercent: derivedSummary.alignmentPercent ?? (latestRun ? roundValue(latestRun.alignment_percent) : null),
       state: derivedSummary.state || latestRun?.state || null,
       hasCriticalFail: derivedSummary.hasCriticalFail,
-      actionRequired: derivedSummary.actionRequired || latestRun?.action_required || null,
+      actionRequired: getTutorCertificationActionRequired(
+        derivedMode,
+        deepDiveProgressByAssignmentId.get(meta.assignmentId) || deepDiveProgress,
+        derivedSummary.actionRequired || latestRun?.action_required || null
+      ),
       lastAuditAt: derivedLastAuditAt ? new Date(derivedLastAuditAt).toISOString() : latestRun?.completed_at || null,
       phaseScores,
-      mode:
-        (statusByAssignmentId.get(meta.assignmentId)?.mode as TutorTrainingMode | undefined) ||
-        deriveTutorTrainingMode(moduleProgress, deepDiveProgress, derivedSummary.state || latestRun?.state || null),
+      mode: derivedMode,
       moduleProgress: statusByAssignmentId.get(meta.assignmentId)?.module_progress || moduleProgress,
       deepDiveProgress: deepDiveProgressByAssignmentId.get(meta.assignmentId) || deepDiveProgress,
       nextBattleTests: statusByAssignmentId.get(meta.assignmentId)?.next_battle_tests || buildTutorNextBattleTests(deepDiveProgress),
@@ -877,6 +945,32 @@ export async function buildPodBattleTestingSummary(
       (run.state !== "locked" || run.has_critical_fail)
     );
   }).length;
+
+  const tdOperationalFlagCutoff = Date.now() - TD_OPERATIONAL_WEAKNESS_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+  const tdOperationalFlagGroups = new Map<string, { title: string; tutorIds: Set<string> }>();
+  for (const tutorSummary of summary.tutorSummaries) {
+    for (const entry of tutorSummary.deepDiveProgress || []) {
+      if (entry.currentHealthState !== "drift" || !entry.lastTestedAt) continue;
+      if (new Date(entry.lastTestedAt).getTime() < tdOperationalFlagCutoff) continue;
+
+      const current = tdOperationalFlagGroups.get(entry.phaseKey) || {
+        title: entry.title,
+        tutorIds: new Set<string>(),
+      };
+      current.title = entry.title;
+      current.tutorIds.add(tutorSummary.tutorId);
+      tdOperationalFlagGroups.set(entry.phaseKey, current);
+    }
+  }
+  summary.tdOperationalFlags = Array.from(tdOperationalFlagGroups.entries())
+    .map(([phaseKey, group]) => ({
+      phaseKey,
+      title: group.title,
+      affectedTutors: group.tutorIds.size,
+      windowDays: TD_OPERATIONAL_WEAKNESS_WINDOW_DAYS,
+    }))
+    .filter((entry) => entry.affectedTutors >= TD_OPERATIONAL_WEAKNESS_TUTOR_THRESHOLD)
+    .sort((left, right) => right.affectedTutors - left.affectedTutors);
 
   summary.phaseWeaknesses = Array.from(phaseAggregates.entries())
     .map(([phaseKey, aggregate]) => ({

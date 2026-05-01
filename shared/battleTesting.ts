@@ -10,7 +10,7 @@ export type BattleTestSubjectType = "tutor" | "td";
 export type TutorBattleTestModuleKey = "transformation_phases" | "session_infrastructure";
 export type TutorBattleTestHistoricalState = "in_progress" | "completed";
 export type TutorBattleTestHealthState = "locked" | "watchlist" | "drift";
-export type TutorTrainingMode = "training" | "sandbox" | "certified_live" | "watchlist";
+export type TutorTrainingMode = "training" | "sandbox" | "certified_live" | "watchlist" | "suspended";
 export type TutorBattleTestPhaseKey =
   | "clarity"
   | "structured_execution"
@@ -119,6 +119,7 @@ export interface TutorBattleTestDeepDiveProgress {
   historicalState: TutorBattleTestHistoricalState;
   currentHealthState: TutorBattleTestHealthState;
   currentStreak: number;
+  consecutiveDriftCount: number;
   latestScore: number | null;
   completedAt: string | null;
   lastTestedAt: string | null;
@@ -187,6 +188,12 @@ export interface PodBattleTestingSummary {
   lockedTutors: number;
   watchlistTutors: number;
   failTutors: number;
+  tdOperationalFlags: Array<{
+    phaseKey: string;
+    title: string;
+    affectedTutors: number;
+    windowDays: number;
+  }>;
   phaseWeaknesses: Array<{
     phaseKey: string;
     title: string;

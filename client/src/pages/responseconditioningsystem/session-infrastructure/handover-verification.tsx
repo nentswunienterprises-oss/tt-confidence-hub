@@ -83,7 +83,7 @@ export default function ResponseConditioningHandoverVerification() {
           <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
             <li>Protects inherited topic-state from being ignored.</li>
             <li>Protects the student from being re-onboarded unnecessarily.</li>
-            <li>Gives the new tutor enough proof to continue with confidence.</li>
+            <li>Produces enough proof for the system to confirm whether training should continue from the inherited state.</li>
           </ul>
           <p className="text-sm text-muted-foreground">
             That proof is not for free interpretation. It is there so the tutor can follow the
@@ -98,7 +98,7 @@ export default function ResponseConditioningHandoverVerification() {
             <li>2. Confirm the continuity-check booking.</li>
             <li>3. Run the short verification on the active topic-state.</li>
             <li>4. Follow the verification result: the inherited state either holds, needs tightening, or needs deeper verification.</li>
-            <li>5. Mark handover complete so normal training systems reopen.</li>
+            <li>5. If the verification result clears continuation, mark handover complete so normal training systems reopen.</li>
           </ol>
         </Card>
 

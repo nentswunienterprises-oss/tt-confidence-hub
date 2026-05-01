@@ -105,6 +105,7 @@ function formatTutorMode(value: TutorAlignmentSummaryData["operationalMode"]) {
   if (value === "certified_live") return "Certified Live";
   if (value === "sandbox") return "Sandbox Mode";
   if (value === "watchlist") return "Watchlist";
+  if (value === "suspended") return "Suspended";
   return "Training Mode";
 }
 
