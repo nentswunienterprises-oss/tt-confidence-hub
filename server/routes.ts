@@ -59,7 +59,7 @@ import {
   syncGoogleMeetEvent,
 } from "./googleMeet";
 import { getWebPushPublicKey, sendWebPushToUser } from "./webPush";
-import { getAllowedOdEmailList, isAllowedOdEmail } from "@shared/odAccess";
+import { getAllowedOdEmailList, isAllowedOdEmail, normalizeEmail } from "@shared/odAccess";
 import {
   getPayfastProcessUrl,
   normalizePayfastPaymentStatus,
@@ -7602,6 +7602,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     primarySelect: string;
     fallbackSelect?: string;
   }) => {
+    const resolveParentEmail = async () => {
+      const { data: userRow, error: userError } = await supabase
+        .from("users")
+        .select("email")
+        .eq("id", parentId)
+        .maybeSingle();
+
+      if (userError) {
+        console.warn("[selectLatestParentEnrollment] Failed to resolve parent email:", userError.message);
+        return null;
+      }
+
+      const email = normalizeEmail(userRow?.email);
+      return email || null;
+    };
+
     const primaryResult = await supabase
       .from("parent_enrollments")
       .select(primarySelect)
@@ -7628,6 +7644,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? { ...fallbackResult.data[0], assigned_student_id: null }
         : null;
       error = fallbackResult.error || null;
+    }
+
+    if (!data && !error) {
+      const parentEmail = await resolveParentEmail();
+
+      if (parentEmail) {
+        const emailResult = await supabase
+          .from("parent_enrollments")
+          .select(primarySelect)
+          .eq("parent_email", parentEmail)
+          .order("updated_at", { ascending: false })
+          .limit(1);
+
+        data = emailResult.data?.[0] || null;
+        error = emailResult.error || null;
+
+        if (
+          error &&
+          fallbackSelect &&
+          String(error.message || "").includes("assigned_student_id")
+        ) {
+          const emailFallbackResult = await supabase
+            .from("parent_enrollments")
+            .select(fallbackSelect)
+            .eq("parent_email", parentEmail)
+            .order("updated_at", { ascending: false })
+            .limit(1);
+
+          data = emailFallbackResult.data?.[0]
+            ? { ...emailFallbackResult.data[0], assigned_student_id: null }
+            : null;
+          error = emailFallbackResult.error || null;
+        }
+      }
     }
 
     return { data, error };
