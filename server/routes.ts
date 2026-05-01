@@ -7618,6 +7618,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return email || null;
     };
 
+    const selectEnrollmentById = async (enrollmentId: string) => {
+      const result = await supabase
+        .from("parent_enrollments")
+        .select(primarySelect)
+        .eq("id", enrollmentId)
+        .order("updated_at", { ascending: false })
+        .limit(1);
+
+      let row = result.data?.[0] || null;
+      let rowError: any = result.error || null;
+
+      if (
+        rowError &&
+        fallbackSelect &&
+        String(rowError.message || "").includes("assigned_student_id")
+      ) {
+        const fallbackResult = await supabase
+          .from("parent_enrollments")
+          .select(fallbackSelect)
+          .eq("id", enrollmentId)
+          .order("updated_at", { ascending: false })
+          .limit(1);
+
+        row = fallbackResult.data?.[0]
+          ? { ...fallbackResult.data[0], assigned_student_id: null }
+          : null;
+        rowError = fallbackResult.error || null;
+      }
+
+      return { data: row, error: rowError };
+    };
+
+    const resolveEnrollmentFromStudent = async () => {
+      const parentEmail = await resolveParentEmail();
+
+      let studentQuery = supabase
+        .from("students")
+        .select("id, parent_enrollment_id, updated_at")
+        .eq("parent_id", parentId)
+        .order("updated_at", { ascending: false })
+        .limit(1);
+
+      let studentResult = await studentQuery;
+      let student = studentResult.data?.[0] || null;
+
+      if (!student && parentEmail) {
+        studentResult = await supabase
+          .from("students")
+          .select("id, parent_enrollment_id, updated_at")
+          .eq("parent_contact", parentEmail)
+          .order("updated_at", { ascending: false })
+          .limit(1);
+        student = studentResult.data?.[0] || null;
+      }
+
+      if (studentResult.error) {
+        return { data: null, error: studentResult.error };
+      }
+
+      const parentEnrollmentId = String(student?.parent_enrollment_id || "").trim();
+      if (parentEnrollmentId) {
+        return selectEnrollmentById(parentEnrollmentId);
+      }
+
+      const studentId = String(student?.id || "").trim();
+      if (!studentId) {
+        return { data: null, error: null };
+      }
+
+      const assignedStudentResult = await supabase
+        .from("parent_enrollments")
+        .select(primarySelect)
+        .eq("assigned_student_id", studentId)
+        .order("updated_at", { ascending: false })
+        .limit(1);
+
+      let row = assignedStudentResult.data?.[0] || null;
+      let rowError: any = assignedStudentResult.error || null;
+
+      if (
+        rowError &&
+        fallbackSelect &&
+        String(rowError.message || "").includes("assigned_student_id")
+      ) {
+        rowError = null;
+      }
+
+      return { data: row, error: rowError };
+    };
+
     const primaryResult = await supabase
       .from("parent_enrollments")
       .select(primarySelect)
@@ -7678,6 +7768,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           error = emailFallbackResult.error || null;
         }
       }
+    }
+
+    if (!data && !error) {
+      const studentLinkedResult = await resolveEnrollmentFromStudent();
+      data = studentLinkedResult.data;
+      error = studentLinkedResult.error;
     }
 
     return { data, error };
