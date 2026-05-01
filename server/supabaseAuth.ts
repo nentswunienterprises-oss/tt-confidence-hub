@@ -827,8 +827,8 @@ export const isAuthenticated: RequestHandler = async (
   next: NextFunction,
 ) => {
   try {
-    // First, try session-based auth (for same-origin requests)
-    if (req.session && (req.session as any).userId) {
+    // First, try session-based auth only when no explicit Bearer token is present.
+    if (!(req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) && req.session && (req.session as any).userId) {
       const sessionUserId = (req.session as any).userId;
       // Session auth found - use it
       try {
