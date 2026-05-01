@@ -183,14 +183,62 @@ async function getTutorOperationalMode(tutorId: string): Promise<"training" | "c
 }
 
 async function getParentAssignedTutorOperationalMode(parentId: string): Promise<"training" | "certified_live"> {
-  const { data: enrollment } = await selectLatestParentEnrollment({
-    parentId,
-    primarySelect: "assigned_tutor_id",
-    fallbackSelect: "assigned_tutor_id",
-  });
+  let assignedTutorId: string | null = null;
 
-  if (!enrollment?.assigned_tutor_id) return "training";
-  return getTutorOperationalMode(String(enrollment.assigned_tutor_id));
+  const directEnrollmentResult = await supabase
+    .from("parent_enrollments")
+    .select("assigned_tutor_id, updated_at")
+    .eq("user_id", parentId)
+    .order("updated_at", { ascending: false })
+    .limit(1);
+
+  assignedTutorId = String(directEnrollmentResult.data?.[0]?.assigned_tutor_id || "").trim() || null;
+
+  if (!assignedTutorId) {
+    const { data: userRow } = await supabase
+      .from("users")
+      .select("email")
+      .eq("id", parentId)
+      .maybeSingle();
+
+    const parentEmail = normalizeEmail(userRow?.email);
+
+    if (parentEmail) {
+      const emailEnrollmentResult = await supabase
+        .from("parent_enrollments")
+        .select("assigned_tutor_id, updated_at")
+        .eq("parent_email", parentEmail)
+        .order("updated_at", { ascending: false })
+        .limit(1);
+
+      assignedTutorId = String(emailEnrollmentResult.data?.[0]?.assigned_tutor_id || "").trim() || null;
+
+      if (!assignedTutorId) {
+        const studentResult = await supabase
+          .from("students")
+          .select("tutor_id, created_at")
+          .eq("parent_contact", parentEmail)
+          .order("created_at", { ascending: false })
+          .limit(1);
+
+        assignedTutorId = String(studentResult.data?.[0]?.tutor_id || "").trim() || null;
+      }
+    }
+  }
+
+  if (!assignedTutorId) {
+    const studentResult = await supabase
+      .from("students")
+      .select("tutor_id, created_at")
+      .eq("parent_id", parentId)
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    assignedTutorId = String(studentResult.data?.[0]?.tutor_id || "").trim() || null;
+  }
+
+  if (!assignedTutorId) return "training";
+  return getTutorOperationalMode(assignedTutorId);
 }
 
 async function getStudentOperationalMode(studentId: string): Promise<"training" | "certified_live"> {
