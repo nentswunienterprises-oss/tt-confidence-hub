@@ -16893,6 +16893,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = (req as any).dbUser?.id || (req.session as any)?.userId;
       const dbUser = (req as any).dbUser;
+      const enrollmentDebug: Record<string, any> = {
+        userId,
+        dbUserEmail: dbUser?.email || null,
+      };
 
       console.log("📍 Enrollment status check for user:", userId, "role:", dbUser?.role);
 
@@ -16904,25 +16908,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         parentId: userId,
         primarySelect: "*",
       });
+      enrollmentDebug.lookupError = error ? String(error.message || error) : null;
+      enrollmentDebug.enrollmentId = enrollmentData?.id || null;
+      enrollmentDebug.enrollmentStatus = enrollmentData?.status || null;
+      enrollmentDebug.enrollmentStep = enrollmentData?.current_step || null;
 
       if (error) {
         console.warn("⚠️  Error fetching enrollment status (table may not exist yet):", error.message);
         // If table doesn't exist or there's an error, just return not_enrolled
         // This allows the gateway to load and user can submit their enrollment
-        return res.json({ status: "not_enrolled" });
+        return res.json({ status: "not_enrolled", debug: enrollmentDebug });
       }
 
       if (!enrollmentData) {
-        return res.json({ status: "not_enrolled" });
+        return res.json({ status: "not_enrolled", debug: enrollmentDebug });
       }
 
       let status = enrollmentData.status || "not_enrolled";
       const operationalMode = await getParentAssignedTutorOperationalMode(userId);
+      enrollmentDebug.operationalMode = operationalMode;
       const sessionType = getEnrollmentSessionType(enrollmentData);
+      enrollmentDebug.sessionType = sessionType;
       const billingModel = await getParentBillingModel(userId);
+      enrollmentDebug.billingModelError = billingModel.error ? String(billingModel.error.message || billingModel.error) : null;
+      enrollmentDebug.onboardingType = billingModel.data.onboardingType;
       const sessionProgress = enrollmentData.assigned_student_id
         ? await getCompletedSessionCountForStudent(String(enrollmentData.assigned_student_id))
         : { count: 0, error: null as any };
+      enrollmentDebug.sessionProgressError = sessionProgress.error ? String(sessionProgress.error.message || sessionProgress.error) : null;
+      enrollmentDebug.sessionProgressCount = sessionProgress.count || 0;
 
       // Auto-correct: if status is 'awaiting_tutor_acceptance', check if tutor has accepted
       if (status === "awaiting_tutor_acceptance" && enrollmentData.assigned_tutor_id) {
@@ -16982,6 +16996,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { data: latestPayment } = await getLatestPaymentForEnrollment(String(enrollmentData.id));
+      enrollmentDebug.latestPaymentId = latestPayment?.id || null;
+      enrollmentDebug.latestPaymentStatus = latestPayment?.payment_status || null;
 
       res.json({
         status,
@@ -16998,11 +17014,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ? "FREE_ACCESS"
             : "UNPAID",
         paymentDate: latestPayment?.payment_date || latestPayment?.paid_at || null,
+        debug: enrollmentDebug,
       });
     } catch (error) {
       console.error("Error in enrollment-status:", error);
       // On error, assume not_enrolled so gateway can proceed
-      res.json({ status: "not_enrolled" });
+      res.json({
+        status: "not_enrolled",
+        debug: {
+          routeError: error instanceof Error ? error.message : String(error),
+        },
+      });
     }
   });
 
