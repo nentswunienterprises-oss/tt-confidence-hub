@@ -688,17 +688,20 @@ export default function ParentDashboard() {
     : topicCards
   ).map((item) => item.topic);
   const currentBreakpointSummary = formatListWithAnd(currentBreakpointTopics) || focusArea;
-  const dashboardSignals = topicCards.length > 1
-    ? [`Each topic is tracked independently. Use the topic cards above to read the current position for ${currentBreakpointSummary}.`]
-    : getDashboardSignalsForState(primaryDashboardPhase, isDiagnosisOnlyView);
-  const parentRoleLines = topicCards.length > 1
-    ? [
-        "Keep session attendance steady and protected.",
-        "Use the tutor and training plan as the operating reference.",
-        `Read the topic cards above individually because ${studentFirstName}'s current position is different across ${currentBreakpointSummary}.`,
-        "Do not collapse multiple topic states into one overall judgment.",
-      ]
-    : getParentRoleLinesForState(primaryDashboardPhase, isDiagnosisOnlyView);
+  const dashboardSignals = getDashboardSignalsForState(primaryDashboardPhase, isDiagnosisOnlyView);
+  const parentRoleLines = getParentRoleLinesForState(primaryDashboardPhase, isDiagnosisOnlyView);
+  const multiTopicObservationBlocks = topicCards.length > 1
+    ? topicCards.map((item) => ({
+        topic: item.topic,
+        signals: getDashboardSignalsForState(normalizePhaseLabel(item.phase), isDiagnosisOnlyView).slice(0, 2),
+      }))
+    : [];
+  const multiTopicParentRoleBlocks = topicCards.length > 1
+    ? topicCards.map((item) => ({
+        topic: item.topic,
+        lines: getParentRoleLinesForState(normalizePhaseLabel(item.phase), isDiagnosisOnlyView).slice(-2),
+      }))
+    : [];
 
   const sessionMarkers = [
     {
@@ -904,11 +907,26 @@ export default function ParentDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-2 text-sm text-muted-foreground leading-relaxed">
-              {dashboardSignals.map((signal) => (
-                <li key={signal}>{signal}</li>
-              ))}
-            </ul>
+            {topicCards.length > 1 ? (
+              <div className="space-y-3">
+                {multiTopicObservationBlocks.map((block) => (
+                  <div key={block.topic} className="rounded-lg border border-primary/10 bg-muted/20 px-3 py-2">
+                    <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">{block.topic}</p>
+                    <ul className="mt-2 space-y-1 text-sm text-muted-foreground leading-relaxed">
+                      {block.signals.map((signal) => (
+                        <li key={`${block.topic}-${signal}`}>{signal}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <ul className="space-y-2 text-sm text-muted-foreground leading-relaxed">
+                {dashboardSignals.map((signal) => (
+                  <li key={signal}>{signal}</li>
+                ))}
+              </ul>
+            )}
           </CardContent>
         </Card>
 
@@ -922,11 +940,30 @@ export default function ParentDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-2 text-sm text-muted-foreground leading-relaxed">
-              {parentRoleLines.map((line) => (
-                <li key={line}>{line}</li>
-              ))}
-            </ul>
+            {topicCards.length > 1 ? (
+              <div className="space-y-3">
+                <ul className="space-y-2 text-sm text-muted-foreground leading-relaxed">
+                  <li>Keep session attendance steady and protected.</li>
+                  <li>Use the tutor and training plan as the operating reference.</li>
+                </ul>
+                {multiTopicParentRoleBlocks.map((block) => (
+                  <div key={block.topic} className="rounded-lg border border-primary/10 bg-muted/20 px-3 py-2">
+                    <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">{block.topic}</p>
+                    <ul className="mt-2 space-y-1 text-sm text-muted-foreground leading-relaxed">
+                      {block.lines.map((line) => (
+                        <li key={`${block.topic}-${line}`}>{line}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <ul className="space-y-2 text-sm text-muted-foreground leading-relaxed">
+                {parentRoleLines.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            )}
           </CardContent>
         </Card>
       </div>
