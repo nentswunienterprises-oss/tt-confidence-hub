@@ -17591,8 +17591,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .filter(Boolean)
         .join("\n");
 
-      // Find the enrollment record for this student
-      let actualEnrollmentId = enrollmentId;
+      // Find the canonical enrollment record for this student+tutor
+      const normalizedStudent = normalizeStudentRecord(student);
+      let actualEnrollmentId =
+        enrollmentId ||
+        normalizedStudent?.parentEnrollmentId ||
+        null;
+
+      if (!actualEnrollmentId && normalizedStudent?.parentId) {
+        const { data: enrollmentByParentAndTutor, error: parentTutorLookupError } = await supabase
+          .from("parent_enrollments")
+          .select("id, assigned_tutor_id, user_id, student_full_name, student_grade")
+          .eq("user_id", normalizedStudent.parentId)
+          .eq("assigned_tutor_id", tutorId)
+          .order("updated_at", { ascending: false })
+          .limit(5);
+
+        if (parentTutorLookupError) {
+          console.error("Error looking up enrollment by parent+tutor:", parentTutorLookupError);
+          return res.status(500).json({ message: "Failed to resolve enrollment for proposal" });
+        }
+
+        const enrollmentRows = enrollmentByParentAndTutor || [];
+        const exactNameMatch = enrollmentRows.find(
+          (row: any) => String(row.student_full_name || "").trim() === String(normalizedStudent.name || student.name || "").trim()
+        );
+        const candidateEnrollment = exactNameMatch || enrollmentRows[0] || null;
+
+        if (candidateEnrollment) {
+          actualEnrollmentId = candidateEnrollment.id;
+          try {
+            await ensureStudentForEnrollment(candidateEnrollment, tutorId);
+          } catch (error) {
+            console.error("Failed to backfill canonical enrollment link for proposal:", error);
+          }
+        }
+      }
+
       if (!actualEnrollmentId) {
         const { data: enrollmentByAssignedStudent, error: assignedStudentLookupError } = await supabase
           .from("parent_enrollments")
