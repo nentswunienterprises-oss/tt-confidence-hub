@@ -18508,6 +18508,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/parent/payments/payfast/sandbox-confirm", isAuthenticated, requireRole(["parent"]), async (req: Request, res: Response) => {
+    try {
+      if (!usePayfastSandbox()) {
+        return res.status(403).json({ message: "Sandbox confirmation is only available in PayFast sandbox mode." });
+      }
+
+      const parentId = String((req as any).dbUser?.id || "").trim();
+      if (!parentId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { data: transaction, error: transactionError } = await supabase
+        .from("payment_transactions")
+        .select("*")
+        .eq("parent_id", parentId)
+        .eq("provider", PAYMENT_PROVIDER_PAYFAST)
+        .in("payment_status", ["pending"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (transactionError) {
+        console.error("Sandbox PayFast confirmation lookup failed:", transactionError);
+        return res.status(500).json({ message: "Failed to look up sandbox payment" });
+      }
+
+      if (!transaction) {
+        return res.status(404).json({ message: "No pending sandbox PayFast payment found" });
+      }
+
+      const nowIso = new Date().toISOString();
+      const rawPayload =
+        transaction.raw_payload && typeof transaction.raw_payload === "object"
+          ? transaction.raw_payload
+          : {};
+
+      const mergedPayload = {
+        ...rawPayload,
+        sandbox_manual_confirmation: true,
+        sandbox_manual_confirmation_at: nowIso,
+      };
+
+      const { data: updatedTransaction, error: updateError } = await supabase
+        .from("payment_transactions")
+        .update({
+          payment_status: "paid",
+          payment_date: nowIso,
+          paid_at: nowIso,
+          itn_received_at: transaction.itn_received_at || nowIso,
+          raw_payload: mergedPayload,
+          updated_at: nowIso,
+        })
+        .eq("id", transaction.id)
+        .select("*")
+        .single();
+
+      if (updateError || !updatedTransaction) {
+        console.error("Sandbox PayFast confirmation update failed:", updateError);
+        return res.status(500).json({ message: "Failed to confirm sandbox payment" });
+      }
+
+      const finalized = await finalizeAcceptedProposalFromPayment(updatedTransaction);
+
+      return res.json({
+        message: "Sandbox PayFast payment confirmed.",
+        paymentStatus: "PAID",
+        status: finalized.status,
+        parentCode: finalized.parentCode,
+        sandbox: true,
+      });
+    } catch (error) {
+      console.error("Sandbox PayFast confirmation error:", error);
+      return res.status(500).json({ message: "Failed to confirm sandbox payment" });
+    }
+  });
+
   // Generate student code for accepted proposal (Parent)
   app.post("/api/parent/generate-student-code", isAuthenticated, requireRole(["parent"]), async (req: Request, res: Response) => {
     try {

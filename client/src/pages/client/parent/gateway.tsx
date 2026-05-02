@@ -125,23 +125,74 @@ export default function ParentGateway() {
     const payfastState = params.get("payfast");
     if (!payfastState) return;
 
-    if (payfastState === "return") {
-      toast({
-        title: "Payment Submitted",
-        description: "We are waiting for PayFast to confirm the Premium payment.",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/parent/enrollment-status"] });
-    }
+    let cancelled = false;
 
-    if (payfastState === "cancelled") {
-      toast({
-        title: "Payment Cancelled",
-        description: "Premium payment was cancelled. Sessions stay locked until payment is completed.",
-        variant: "destructive",
-      });
-    }
+    const handlePayfastReturn = async () => {
+      if (payfastState === "return") {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          const headers: HeadersInit = {
+            "Content-Type": "application/json",
+          };
 
-    window.history.replaceState({}, "", window.location.pathname);
+          if (session?.access_token) {
+            headers["Authorization"] = `Bearer ${session.access_token}`;
+          }
+
+          const response = await fetch(`${API_URL}/api/parent/payments/payfast/sandbox-confirm`, {
+            method: "POST",
+            credentials: "include",
+            headers,
+          });
+
+          if (!cancelled && response.ok) {
+            const data = await response.json().catch(() => ({}));
+            toast({
+              title: "Sandbox Payment Confirmed",
+              description: "Sandbox payment was confirmed and Premium access is now active.",
+            });
+            if (data?.parentCode) {
+              setParentCode(data.parentCode);
+            }
+            await Promise.all([
+              queryClient.invalidateQueries({ queryKey: ["/api/parent/enrollment-status"] }),
+              queryClient.invalidateQueries({ queryKey: ["/api/parent/proposal"] }),
+              queryClient.invalidateQueries({ queryKey: ["/api/parent/intro-session-confirmation"] }),
+            ]);
+          } else if (!cancelled) {
+            toast({
+              title: "Payment Submitted",
+              description: "We are waiting for PayFast to confirm the Premium payment.",
+            });
+            queryClient.invalidateQueries({ queryKey: ["/api/parent/enrollment-status"] });
+          }
+        } catch {
+          if (!cancelled) {
+            toast({
+              title: "Payment Submitted",
+              description: "We are waiting for PayFast to confirm the Premium payment.",
+            });
+            queryClient.invalidateQueries({ queryKey: ["/api/parent/enrollment-status"] });
+          }
+        }
+      }
+
+      if (payfastState === "cancelled" && !cancelled) {
+        toast({
+          title: "Payment Cancelled",
+          description: "Premium payment was cancelled. Sessions stay locked until payment is completed.",
+          variant: "destructive",
+        });
+      }
+
+      window.history.replaceState({}, "", window.location.pathname);
+    };
+
+    handlePayfastReturn();
+
+    return () => {
+      cancelled = true;
+    };
   }, [queryClient, toast]);
 
   // Fetch enrollment status
