@@ -479,12 +479,33 @@ export default function ProposalView({
 
   const progressSignals = expectedChanges.length > 0
     ? expectedChanges
-    : [
-        "Earlier independent starts",
-        "Less hesitation when beginning problems",
-        "More consistent method use",
-        "Better calm under difficulty",
-      ];
+    : trainingStartPhase === "Clarity"
+      ? [
+          "Clearer recognition of what the question is asking",
+          "Earlier correct method selection",
+          "Less confusion when beginning problems",
+          "More accurate first steps",
+        ]
+      : trainingStartPhase === "Structured Execution"
+        ? [
+            "Earlier independent starts",
+            "Less hesitation when beginning problems",
+            "More consistent method use",
+            "More stable step order without prompting",
+          ]
+        : trainingStartPhase === "Controlled Discomfort"
+          ? [
+              "Calmer starts when questions feel less familiar",
+              "Better structure holding in harder work",
+              "Less visible shutdown under challenge",
+              "More complete attempts on difficult questions",
+            ]
+          : [
+              "Stronger structure while work is timed",
+              "Fewer rushed breakdowns",
+              "More reliable decisions under pace pressure",
+              "Less instability when speed is added",
+            ];
 
   const liveTopicBlocks = currentLiveTopicStates.map((item) => {
     const phase = normalizePhaseLabel(item.phase) || "Clarity";
