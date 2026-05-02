@@ -685,7 +685,7 @@ export default function ProposalView({
 
       <Card>
         <CardHeader>
-          <CardTitle>{isLiveTrainingView ? "How Progress Will Show" : "How We Will Know It Is Improving"}</CardTitle>
+          <CardTitle>{isLiveTrainingView ? "How Progress Will Show" : "How Progress Will Be Observed"}</CardTitle>
         </CardHeader>
         <CardContent>
           {(isLiveTrainingView ? liveProgressMarkers : progressSignals).length > 0 ? (
