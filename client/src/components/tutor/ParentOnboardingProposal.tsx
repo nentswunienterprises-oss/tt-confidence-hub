@@ -87,6 +87,46 @@ export default function ParentOnboardingProposal({
     }
   };
 
+  const getProgressSignals = (trainingPhase: string) => {
+    switch (trainingPhase) {
+      case "Clarity":
+        return [
+          "Clearer recognition of what the question is asking",
+          "Earlier correct method selection",
+          "Less confusion when beginning problems",
+          "More accurate first steps",
+        ];
+      case "Structured Execution":
+        return [
+          "Earlier independent starts",
+          "Less hesitation when beginning problems",
+          "More consistent method use",
+          "More stable step order without prompting",
+        ];
+      case "Controlled Discomfort":
+        return [
+          "Calmer starts when questions feel less familiar",
+          "Better structure holding in harder work",
+          "Less visible shutdown under challenge",
+          "More complete attempts on difficult questions",
+        ];
+      case "Time Pressure Stability":
+        return [
+          "Stronger structure while work is timed",
+          "Fewer rushed breakdowns",
+          "More reliable decisions under pace pressure",
+          "Less instability when speed is added",
+        ];
+      default:
+        return [
+          "Earlier independent starts",
+          "Less hesitation when beginning problems",
+          "More consistent method use",
+          "More stable step order without prompting",
+        ];
+    }
+  };
+
   const handleSendProposal = async () => {
     if (!drillData) {
       toast({
@@ -193,6 +233,7 @@ export default function ParentOnboardingProposal({
   const trainingEntryPhase = deriveTrainingEntryPhase(diagnosisPhase, stability);
   const breakdown = getParentFacingBreakdown(trainingEntryPhase, diagnosisPhase, stability);
   const priority = getParentFacingPriority(trainingEntryPhase, diagnosisPhase, stability);
+  const progressSignals = getProgressSignals(trainingEntryPhase);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -304,15 +345,14 @@ export default function ParentOnboardingProposal({
           <Card>
             <CardHeader className="pb-2 pt-4 px-4">
               <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                How We Will Know It Is Improving
+                How Progress Will Be Observed
               </CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-4">
               <ul className="text-xs text-muted-foreground space-y-0.5 ml-2">
-                <li>Starts problems earlier without prompting</li>
-                <li>Follows the method more consistently</li>
-                <li>Asks fewer rescue questions</li>
-                <li>Handles similar problems more reliably</li>
+                {progressSignals.map((signal) => (
+                  <li key={signal}>{signal}</li>
+                ))}
               </ul>
             </CardContent>
           </Card>
