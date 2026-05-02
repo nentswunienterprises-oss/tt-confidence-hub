@@ -702,6 +702,9 @@ export default function ParentDashboard() {
         lines: getParentRoleLinesForState(normalizePhaseLabel(item.phase), isDiagnosisOnlyView).slice(-2),
       }))
     : [];
+  const parentRoleNowLine = topicCards.length > 1
+    ? `Read the topic cards individually because ${studentFirstName}'s current position is different across ${currentBreakpointSummary}.`
+    : parentRoleLines[2] || parentRoleLines[0] || "Use the tutor and training plan as the operating reference.";
 
   const sessionMarkers = [
     {
@@ -845,7 +848,7 @@ export default function ParentDashboard() {
               )}
               <div className="pt-2 border-t">
                 <p className="text-muted-foreground">Parent role now</p>
-                <p className="font-medium text-foreground">Hold consistency. Do not rescue the struggle too early.</p>
+                <p className="font-medium text-foreground">{parentRoleNowLine}</p>
               </div>
             </CardContent>
           </Card>
