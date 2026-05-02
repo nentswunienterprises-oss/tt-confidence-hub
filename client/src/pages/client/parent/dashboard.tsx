@@ -734,7 +734,11 @@ export default function ParentDashboard() {
         <div className="relative flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-[11px] sm:text-xs font-medium uppercase tracking-[0.08em] text-foreground/65">Parent Dashboard</p>
-            <p className="text-sm text-foreground/70 mt-1.5">Hi {firstParentName}, here is the live TT operating view.</p>
+            <p className="text-sm text-foreground/70 mt-1.5">
+              {isDiagnosisOnlyView
+                ? `Hi ${firstParentName}, here is the current TT diagnosis view.`
+                : `Hi ${firstParentName}, here is the live TT operating view.`}
+            </p>
             <h1
               className="text-2xl sm:text-[2.1rem] font-semibold tracking-[-0.01em] leading-tight mt-2"
               style={{ fontFamily: '"Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif' }}

@@ -1991,6 +1991,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const groupedSessions = (drillRows || []).reduce((acc: Record<string, { date: string; rows: any[] }>, row: any) => {
               const mappedSession = mapDrillRowToDeterministicSession(row);
               if (!mappedSession?.deterministicLog) return acc;
+              if (mappedSession.drillType !== "training") return acc;
 
               const key = String(mappedSession.sessionGroupId || mappedSession.id || row.id);
               if (!acc[key]) {
@@ -2029,6 +2030,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const groupedSessions = (drillRows || []).reduce((acc: Record<string, { date: string; rows: any[] }>, row: any) => {
               const mappedSession = mapDrillRowToDeterministicSession(row);
               if (!mappedSession?.deterministicLog) return acc;
+              if (mappedSession.drillType !== "training") return acc;
 
               const key = String(mappedSession.sessionGroupId || mappedSession.id || row.id);
               if (!acc[key]) {
