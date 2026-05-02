@@ -19,6 +19,7 @@ interface StudentStats {
   solutionsUnlocked: number;
   confidenceGrowth: number;
   sessionsCompleted: number;
+  trainingSessionsCompleted?: number;
   currentStreak: number;
   totalCommitments: number;
 }
@@ -525,7 +526,7 @@ export default function ParentDashboard() {
   const progressSignals = getProgressSignals(proposal);
   const hasAccessCode = !!proposal?.parentCode;
   const currentStep = getCurrentStepCopy(introSession || null, !!proposal, hasAccessCode);
-  const isDiagnosisOnlyView = (stats?.sessionsCompleted || 0) === 0;
+  const isDiagnosisOnlyView = (stats?.trainingSessionsCompleted || 0) === 0;
   const nextSessionTime = introSession?.scheduled_time
     ? new Date(introSession.scheduled_time).toLocaleString()
     : null;

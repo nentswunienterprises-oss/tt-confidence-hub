@@ -8323,6 +8323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         solutionsUnlocked: 0,
         currentStreak: 0,
         totalSessions: 0,
+        trainingSessionsCompleted: 0,
         confidenceLevel: 50,
       };
     }
@@ -8420,6 +8421,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       solutionsUnlocked: derivedSolutionsUnlocked,
       currentStreak,
       totalSessions: completedSessionKeys.size,
+      trainingSessionsCompleted:
+        normalizedTrainingRuns.length > 0
+          ? normalizedTrainingRuns.length
+          : new Set(
+              trainingDrills.map((row) => row.trainingSessionRunId || row.id).filter(Boolean)
+            ).size,
       confidenceLevel: 50,
     };
   };
@@ -20169,6 +20176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           solutionsUnlocked: 0,
           confidenceGrowth: 0,
           sessionsCompleted: 0,
+          trainingSessionsCompleted: 0,
           currentStreak: 0,
           totalCommitments: 0,
         });
@@ -20184,6 +20192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             solutionsUnlocked: 0,
             currentStreak: 0,
             totalSessions: 0,
+            trainingSessionsCompleted: 0,
             confidenceLevel: 50,
           };
 
@@ -20203,6 +20212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         solutionsUnlocked: stats.solutionsUnlocked,
         confidenceGrowth: 50,
         sessionsCompleted: stats.totalSessions,
+        trainingSessionsCompleted: stats.trainingSessionsCompleted,
         currentStreak: stats.currentStreak,
         totalCommitments: commitments?.length || 0,
       });
