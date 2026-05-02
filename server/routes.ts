@@ -18557,7 +18557,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      if (transaction.payment_status !== "pending") {
+      if (!["pending", "failed", "cancelled"].includes(String(transaction.payment_status || "").toLowerCase())) {
         return res.status(409).json({
           message: `Sandbox payment cannot be confirmed from status ${transaction.payment_status}.`,
         });
