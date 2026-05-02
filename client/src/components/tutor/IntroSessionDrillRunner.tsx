@@ -640,6 +640,7 @@ export default function IntroSessionDrillRunner() {
   const [sessionResults, setSessionResults] = useState<any[]>([]);
   const [prepReady, setPrepReady] = useState(false);
   const [prepChecks, setPrepChecks] = useState<Record<string, boolean>>({});
+  const [showModeInstructions, setShowModeInstructions] = useState(true);
 
   const requestedMode = searchParams.get("mode");
   const requestedContext = searchParams.get("context");
@@ -698,6 +699,10 @@ export default function IntroSessionDrillRunner() {
   const diagnosisSessionKind = requestedContext === "training" ? "training" : "intro";
   const sessionKind =
     drillMode === "diagnosis" ? diagnosisSessionKind : drillMode === "handover" ? "handover" : "training";
+
+  useEffect(() => {
+    setShowModeInstructions(true);
+  }, [drillMode, handoverReDiagnosisMode, currentTopicName, activeDiagnosisPhase, studentId]);
 
   const {
     data: drillSessionAccess,
@@ -1688,38 +1693,54 @@ export default function IntroSessionDrillRunner() {
           </ul>
         </div>
       )}
-      {drillMode === "diagnosis" && (
-      <div className="mb-4 p-3 rounded-md border border-primary/20 bg-primary/5">
-        <p className="font-semibold mb-1">Instructions:</p>
-        <ul className="list-disc pl-5 text-sm text-foreground/90 space-y-1">
-          <li>
-            This diagnosis is adaptive. Complete the current phase verification block exactly as shown.
-          </li>
-          <li><strong>Before you begin:</strong> Prepare <span className="font-semibold">3 distinct problems</span> for the current phase block.</li>
-          <li>The system will move up, place here, or move down after each phase block based on the score band.</li>
-          <li>You cannot skip steps or edit outside the verification structure. Complete each observation in order.</li>
-          <li>Diagnosis stops automatically once the correct entry phase is verified.</li>
-        </ul>
-      </div>
+      {drillMode === "diagnosis" && showModeInstructions && (
+        <div className="mb-4 rounded-md border border-primary/20 bg-primary/5 p-3">
+          <div className="mb-2 flex items-start justify-between gap-3">
+            <p className="font-semibold">Instructions</p>
+            <button
+              type="button"
+              className="text-xs font-medium text-muted-foreground hover:text-foreground"
+              onClick={() => setShowModeInstructions(false)}
+            >
+              Dismiss
+            </button>
+          </div>
+          <ul className="list-disc pl-5 text-sm text-foreground/90 space-y-1">
+            <li>This diagnosis is adaptive. Complete the current phase verification block exactly as shown.</li>
+            <li><strong>Before you begin:</strong> Prepare <span className="font-semibold">3 distinct problems</span> for the current phase block.</li>
+            <li>The system will move up, place here, or move down after each phase block based on the score band.</li>
+            <li>You cannot skip steps or edit outside the verification structure. Complete each observation in order.</li>
+            <li>Diagnosis stops automatically once the correct entry phase is verified.</li>
+          </ul>
+        </div>
       )}
-      {drillMode === "handover" && (
-      <div className="mb-4 p-3 rounded-md border border-primary/20 bg-primary/5">
-        <p className="font-semibold mb-1">Instructions:</p>
-        <ul className="list-disc pl-5 text-sm text-foreground/90 space-y-1">
-          <li>
-            {handoverReDiagnosisMode
-              ? "This is targeted re-diagnosis inside handover. The inherited topic-state was not trustworthy enough to continue from."
-              : "This is handover verification. You are checking whether the inherited topic-state is still trustworthy."}
-          </li>
-          <li><strong>Before you begin:</strong> Prepare <span className="font-semibold">3 distinct problems</span> for this phase verification block.</li>
-          <li>Do not turn this into normal training.</li>
-          <li>
-            {handoverReDiagnosisMode
-              ? "Run adaptive diagnosis only for this flagged topic until the correct current phase is clear."
-              : "Run the single verification block exactly as shown, score it honestly, and let the system decide whether the inherited state holds."}
-          </li>
-        </ul>
-      </div>
+      {drillMode === "handover" && showModeInstructions && (
+        <div className="mb-4 rounded-md border border-primary/20 bg-primary/5 p-3">
+          <div className="mb-2 flex items-start justify-between gap-3">
+            <p className="font-semibold">Instructions</p>
+            <button
+              type="button"
+              className="text-xs font-medium text-muted-foreground hover:text-foreground"
+              onClick={() => setShowModeInstructions(false)}
+            >
+              Dismiss
+            </button>
+          </div>
+          <ul className="list-disc pl-5 text-sm text-foreground/90 space-y-1">
+            <li>
+              {handoverReDiagnosisMode
+                ? "This is targeted re-diagnosis inside handover. The inherited topic-state was not trustworthy enough to continue from."
+                : "This is handover verification. You are checking whether the inherited topic-state is still trustworthy."}
+            </li>
+            <li><strong>Before you begin:</strong> Prepare <span className="font-semibold">3 distinct problems</span> for this phase verification block.</li>
+            <li>Do not turn this into normal training.</li>
+            <li>
+              {handoverReDiagnosisMode
+                ? "Run adaptive diagnosis only for this flagged topic until the correct current phase is clear."
+                : "Run the single verification block exactly as shown, score it honestly, and let the system decide whether the inherited state holds."}
+            </li>
+          </ul>
+        </div>
       )}
 
       {/* Phase-level context bar -shown only on set 1 */}
