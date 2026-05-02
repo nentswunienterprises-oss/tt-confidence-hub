@@ -717,10 +717,9 @@ export default function ProposalView({
             </ul>
           ) : (
             <ul className="text-sm text-muted-foreground space-y-1">
-              <li>- Earlier independent starts</li>
-              <li>- Reduced hesitation</li>
-              <li>- More consistent step execution</li>
-              <li>- Improved stability under difficulty</li>
+              {progressSignals.map((item) => (
+                <li key={item}>- {item}</li>
+              ))}
             </ul>
           )}
         </CardContent>
