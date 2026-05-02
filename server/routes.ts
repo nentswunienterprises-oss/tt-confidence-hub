@@ -3459,7 +3459,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   .update({
                     status: "completed",
                     attendance_status: "both_joined",
-                    recording_status: scheduledSession.recording_file_id ? "recording_uploaded" : "recording_required",
+                    recording_status: "manual_not_tracked",
                     transcript_status: "manual_not_tracked",
                     updated_at: new Date().toISOString(),
                   })
@@ -3716,7 +3716,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 .update({
                   status: "completed",
                   attendance_status: "both_joined",
-                  recording_status: scheduledSession.recording_file_id ? "recording_uploaded" : "recording_required",
+                  recording_status: "manual_not_tracked",
                   transcript_status: "manual_not_tracked",
                   updated_at: new Date().toISOString(),
                 })
@@ -4020,7 +4020,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   .update({
                     status: "completed",
                     attendance_status: "both_joined",
-                    recording_status: scheduledSession.recording_file_id ? "recording_uploaded" : "recording_required",
+                    recording_status: "manual_not_tracked",
                     transcript_status: "manual_not_tracked",
                     updated_at: new Date().toISOString(),
                   })
@@ -18519,15 +18519,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      const { data: transaction, error: transactionError } = await supabase
+      const merchantReference = String(req.body?.merchantReference || "").trim();
+      let transactionQuery = supabase
         .from("payment_transactions")
         .select("*")
         .eq("parent_id", parentId)
-        .eq("provider", PAYMENT_PROVIDER_PAYFAST)
-        .in("payment_status", ["pending"])
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .eq("provider", PAYMENT_PROVIDER_PAYFAST);
+
+      if (merchantReference) {
+        transactionQuery = transactionQuery.eq("merchant_reference", merchantReference);
+      } else {
+        transactionQuery = transactionQuery
+          .in("payment_status", ["pending"])
+          .order("created_at", { ascending: false })
+          .limit(1);
+      }
+
+      const { data: transaction, error: transactionError } = await transactionQuery.maybeSingle();
 
       if (transactionError) {
         console.error("Sandbox PayFast confirmation lookup failed:", transactionError);
@@ -18536,6 +18544,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!transaction) {
         return res.status(404).json({ message: "No pending sandbox PayFast payment found" });
+      }
+
+      if (transaction.payment_status === "paid") {
+        const finalized = await finalizeAcceptedProposalFromPayment(transaction);
+        return res.json({
+          message: "Sandbox PayFast payment already confirmed.",
+          paymentStatus: "PAID",
+          status: finalized.status,
+          parentCode: finalized.parentCode,
+          sandbox: true,
+        });
+      }
+
+      if (transaction.payment_status !== "pending") {
+        return res.status(409).json({
+          message: `Sandbox payment cannot be confirmed from status ${transaction.payment_status}.`,
+        });
       }
 
       const nowIso = new Date().toISOString();

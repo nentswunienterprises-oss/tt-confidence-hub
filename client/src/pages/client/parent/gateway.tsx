@@ -98,6 +98,8 @@ function submitExternalPaymentForm(action: string, fields: Record<string, string
   form.submit();
 }
 
+const PAYFAST_MERCHANT_REFERENCE_STORAGE_KEY = "parent-gateway:payfast-merchant-reference";
+
 export default function ParentGateway() {
   const [justBooked, setJustBooked] = useState(false);
   const { toast } = useToast();
@@ -149,6 +151,9 @@ export default function ParentGateway() {
             method: "POST",
             credentials: "include",
             headers,
+            body: JSON.stringify({
+              merchantReference: window.sessionStorage.getItem(PAYFAST_MERCHANT_REFERENCE_STORAGE_KEY),
+            }),
           });
 
           if (!cancelled && response.ok) {
@@ -160,6 +165,7 @@ export default function ParentGateway() {
             if (data?.parentCode) {
               setParentCode(data.parentCode);
             }
+            window.sessionStorage.removeItem(PAYFAST_MERCHANT_REFERENCE_STORAGE_KEY);
             await Promise.all([
               queryClient.invalidateQueries({ queryKey: ["/api/parent/enrollment-status"] }),
               queryClient.invalidateQueries({ queryKey: ["/api/parent/proposal"] }),
@@ -647,6 +653,10 @@ export default function ParentGateway() {
 
       if (!data?.checkoutUrl || !data?.formFields) {
         throw new Error("PayFast checkout details were not returned.");
+      }
+
+      if (data?.merchantReference) {
+        window.sessionStorage.setItem(PAYFAST_MERCHANT_REFERENCE_STORAGE_KEY, String(data.merchantReference));
       }
 
       toast({
