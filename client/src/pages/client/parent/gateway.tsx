@@ -119,15 +119,21 @@ export default function ParentGateway() {
   const [debugError, setDebugError] = useState<string | null>(null);
   const [hideStudentCodeCard, setHideStudentCodeCard] = useState(false);
   const [mathTopicDraft, setMathTopicDraft] = useState("");
+  const handledPayfastReturnRef = useRef(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const payfastState = params.get("payfast");
     if (!payfastState) return;
+    if (handledPayfastReturnRef.current) return;
+    if (authLoading) return;
+    if (!user) return;
 
     let cancelled = false;
 
     const handlePayfastReturn = async () => {
+      handledPayfastReturnRef.current = true;
+
       if (payfastState === "return") {
         try {
           const { data: { session } } = await supabase.auth.getSession();
@@ -193,7 +199,7 @@ export default function ParentGateway() {
     return () => {
       cancelled = true;
     };
-  }, [queryClient, toast]);
+  }, [authLoading, queryClient, toast, user]);
 
   // Fetch enrollment status
   const { data: enrollmentStatus } = useQuery<EnrollmentStatus>({
