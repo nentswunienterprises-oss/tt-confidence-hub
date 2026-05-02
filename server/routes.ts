@@ -3534,7 +3534,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
 
               const student = await storage.getStudent(studentId);
-              if (!student || student.tutorId !== tutorId) {
+              const normalizedStudent = normalizeStudentRecord(student);
+              let tutorOwnsStudent = !!normalizedStudent && String(normalizedStudent.tutorId || "") === String(tutorId);
+
+              if (!tutorOwnsStudent) {
+                const parentEnrollmentId = String(
+                  (normalizedStudent as any)?.parentEnrollmentId || (normalizedStudent as any)?.parent_enrollment_id || ""
+                ).trim();
+
+                if (parentEnrollmentId) {
+                  const { data: linkedEnrollment } = await supabase
+                    .from("parent_enrollments")
+                    .select("id, assigned_tutor_id, user_id, student_full_name, student_grade")
+                    .eq("id", parentEnrollmentId)
+                    .maybeSingle();
+
+                  tutorOwnsStudent = String(linkedEnrollment?.assigned_tutor_id || "") === String(tutorId);
+
+                  if (tutorOwnsStudent && linkedEnrollment) {
+                    try {
+                      await ensureStudentForEnrollment(linkedEnrollment, tutorId);
+                    } catch (error) {
+                      console.error("Failed to backfill canonical tutor link for intro drill:", error);
+                    }
+                  }
+                }
+              }
+
+              if (!normalizedStudent || !tutorOwnsStudent) {
                 return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
               }
 

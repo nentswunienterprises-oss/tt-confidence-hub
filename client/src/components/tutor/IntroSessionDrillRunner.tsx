@@ -555,17 +555,17 @@ function buildVerificationPrepSpec(
     return {
       title: "Diagnosis Prep",
       objective: `Place the topic correctly inside ${phase}. ${phasePurpose}`,
-      problemPlan: `Prepare bidirectionally before the session starts. Cover the starting ${phase} block and any adjacent phase the system may move into: ${adaptiveCoveragePlan}.`,
+      problemPlan: `Prepare the starting ${phase} block first. Also prepare the phase just below and the phase just above it, because the system may move there during diagnosis. Coverage for this session: ${adaptiveCoveragePlan}.`,
       tutorRules: [
         ...verificationRules,
         ...phaseRules,
-        "Diagnosis is adaptive, so prep for the starting phase plus the immediate lower and higher phase where they exist.",
+        "Diagnosis is adaptive, so prep the starting phase and the nearest lower and higher phase where they exist.",
         "Do not expand into full training volume.",
       ],
       derivedFrom: `Derived from the ${phase} training lane and reduced to adaptive verification coverage around the ${diagnosisBlock.setName} block. Training reference: ${trainingReference}.`,
       checklist: [
-        `I prepared the starting ${phase} block and the adjacent adaptive diagnosis blocks the system may move into.`,
-        `My diagnosis prep covers: ${adaptiveCoverage.join(", ")}.`,
+        `I prepared the starting ${phase} block and the adjacent phase blocks the system may move into.`,
+        `My diagnosis prep covers these phases: ${adaptiveCoverage.join(", ")}.`,
         "I will keep this as placement verification, not normal training.",
         `I will hold the ${phase} phase rules exactly as shown by the system.`,
       ],
@@ -1032,10 +1032,27 @@ export default function IntroSessionDrillRunner() {
               adaptiveBlocks: finalAdaptiveBlocks,
               scheduledSessionId,
             };
-        const res = await axios.post(
-          isHandoverMode ? "/api/tutor/handover-verification-drill" : "/api/tutor/intro-session-drill",
-          payload
-        );
+        const { data: { session } } = await supabase.auth.getSession();
+        const headers: HeadersInit = {
+          "Content-Type": "application/json",
+        };
+        if (session?.access_token) {
+          headers.Authorization = `Bearer ${session.access_token}`;
+        }
+        const adaptiveEndpoint = isHandoverMode ? "/api/tutor/handover-verification-drill" : "/api/tutor/intro-session-drill";
+        const adaptiveResponse = await fetch(`${API_URL}${adaptiveEndpoint}`, {
+          method: "POST",
+          headers,
+          credentials: "include",
+          body: JSON.stringify(payload),
+        });
+        if (!adaptiveResponse.ok) {
+          const errorData = await adaptiveResponse.json().catch(() => ({}));
+          const error = new Error(errorData?.message || `Request failed with status code ${adaptiveResponse.status}`) as any;
+          error.response = { status: adaptiveResponse.status, data: errorData };
+          throw error;
+        }
+        const res = { data: await adaptiveResponse.json() };
 
         const queryClient = (window as any).__queryClient;
         if (queryClient) {
@@ -1155,7 +1172,26 @@ export default function IntroSessionDrillRunner() {
               sessionDrills: allDrills,
               scheduledSessionId,
             };
-        const res = await axios.post(endpoint, payload);
+        const { data: { session } } = await supabase.auth.getSession();
+        const headers: HeadersInit = {
+          "Content-Type": "application/json",
+        };
+        if (session?.access_token) {
+          headers.Authorization = `Bearer ${session.access_token}`;
+        }
+        const submitResponse = await fetch(`${API_URL}${endpoint}`, {
+          method: "POST",
+          headers,
+          credentials: "include",
+          body: JSON.stringify(payload),
+        });
+        if (!submitResponse.ok) {
+          const errorData = await submitResponse.json().catch(() => ({}));
+          const error = new Error(errorData?.message || `Request failed with status code ${submitResponse.status}`) as any;
+          error.response = { status: submitResponse.status, data: errorData };
+          throw error;
+        }
+        const res = { data: await submitResponse.json() };
         
         // Invalidate relevant caches so updated status/stage/state appear immediately
         const queryClient = (window as any).__queryClient;
