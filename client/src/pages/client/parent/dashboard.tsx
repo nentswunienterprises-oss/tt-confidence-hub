@@ -317,16 +317,108 @@ function extractTopicConditioning(proposal: any) {
   };
 }
 
-function getProgressSignals(proposal: any) {
-  const signals = splitList(proposal?.childWillWin);
-  if (signals.length > 0) return signals;
+function getDashboardSignalsForState(
+  phase: PhaseLabel | null,
+  diagnosisOnly: boolean,
+): string[] {
+  switch (phase) {
+    case "Clarity":
+      return diagnosisOnly
+        ? [
+            "Clearer recognition of what the question is asking",
+            "Earlier correct method selection",
+            "Less confusion when beginning problems",
+            "More accurate first steps",
+          ]
+        : [
+            "Clearer recognition of what the question is asking",
+            "Earlier correct method selection",
+            "Less confusion during setup",
+            "More accurate first steps across sessions",
+          ];
+    case "Structured Execution":
+      return [
+        "Earlier independent starts",
+        "Less hesitation when beginning problems",
+        "More consistent method use",
+        "More stable step order without prompting",
+      ];
+    case "Controlled Discomfort":
+      return [
+        "Calmer starts when questions feel less familiar",
+        "Better structure holding in harder work",
+        "Less visible shutdown under challenge",
+        "More complete attempts on difficult questions",
+      ];
+    case "Time Pressure Stability":
+      return [
+        "Stronger structure while work is timed",
+        "Fewer rushed breakdowns",
+        "More reliable decisions under pace pressure",
+        "Less instability when speed is added",
+      ];
+    default:
+      return diagnosisOnly
+        ? [
+            "Clearer recognition of what the question is asking",
+            "Earlier correct method selection",
+            "Less confusion when beginning problems",
+            "More accurate first steps",
+          ]
+        : [
+            "Earlier independent starts",
+            "More consistent method use",
+            "Clearer structure across attempts",
+            "Steadier completion of the method",
+          ];
+  }
+}
 
-  return [
-    "Earlier independent starts",
-    "Less hesitation under difficulty",
-    "More consistent method use",
-    "Calmer response when work becomes uncomfortable",
+function getParentRoleLinesForState(
+  phase: PhaseLabel | null,
+  diagnosisOnly: boolean,
+): string[] {
+  const baseLines = [
+    "Keep session attendance steady and protected.",
+    "Use the tutor and training plan as the operating reference.",
   ];
+
+  switch (phase) {
+    case "Clarity":
+      return [
+        ...baseLines,
+        diagnosisOnly
+          ? "Let your child explain what the question is asking before stepping in with the answer."
+          : "Look for clearer reading and better first-step recognition, not only marks.",
+        "Do not rush them into speed before the structure is clear.",
+      ];
+    case "Structured Execution":
+      return [
+        ...baseLines,
+        "Let your child start the problem independently before stepping in.",
+        diagnosisOnly
+          ? "Look for steadier starts and method order, not speed or perfection yet."
+          : "Look for more repeatable method use and steadier starts, not only marks.",
+      ];
+    case "Controlled Discomfort":
+      return [
+        ...baseLines,
+        "Let discomfort happen before stepping in with reassurance.",
+        "Look for calmer starts and steadier attempts when the work feels harder.",
+      ];
+    case "Time Pressure Stability":
+      return [
+        ...baseLines,
+        "Protect focused timed work without adding extra panic from outside the session.",
+        "Look for structure under pace, not just whether the answer was finished quickly.",
+      ];
+    default:
+      return [
+        ...baseLines,
+        "Look for steadier starts and clearer structure in the work.",
+        "Do not rescue too early when the child is still trying to organize the method.",
+      ];
+  }
 }
 
 function normalizePhaseLabel(phase?: string | null) {
@@ -523,7 +615,6 @@ export default function ParentDashboard() {
   const studentFirstName = studentName.trim().split(/\s+/)[0] || "Your child";
   const topicConditioning = extractTopicConditioning(proposal);
   const focusArea = topicConditioning.topic || splitList(proposal?.currentTopics)[0] || "Current school topic";
-  const progressSignals = getProgressSignals(proposal);
   const hasAccessCode = !!proposal?.parentCode;
   const currentStep = getCurrentStepCopy(introSession || null, !!proposal, hasAccessCode);
   const isDiagnosisOnlyView = (stats?.trainingSessionsCompleted || 0) === 0;
@@ -590,11 +681,24 @@ export default function ParentDashboard() {
   }));
 
   const topicCards = normalizedTopicStates.length > 0 ? normalizedTopicStates : fallbackTopicCards;
+  const primaryDashboardTopic = topicCards[0] || null;
+  const primaryDashboardPhase = normalizePhaseLabel(primaryDashboardTopic?.phase);
   const currentBreakpointTopics = (topicCards.filter((item) => item.bucket === "active").length > 0
     ? topicCards.filter((item) => item.bucket === "active")
     : topicCards
   ).map((item) => item.topic);
   const currentBreakpointSummary = formatListWithAnd(currentBreakpointTopics) || focusArea;
+  const dashboardSignals = topicCards.length > 1
+    ? [`Each topic is tracked independently. Use the topic cards above to read the current position for ${currentBreakpointSummary}.`]
+    : getDashboardSignalsForState(primaryDashboardPhase, isDiagnosisOnlyView);
+  const parentRoleLines = topicCards.length > 1
+    ? [
+        "Keep session attendance steady and protected.",
+        "Use the tutor and training plan as the operating reference.",
+        `Read the topic cards above individually because ${studentFirstName}'s current position is different across ${currentBreakpointSummary}.`,
+        "Do not collapse multiple topic states into one overall judgment.",
+      ]
+    : getParentRoleLinesForState(primaryDashboardPhase, isDiagnosisOnlyView);
 
   const sessionMarkers = [
     {
@@ -791,11 +895,17 @@ export default function ParentDashboard() {
         <Card className="border-primary/15">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-semibold tracking-[-0.01em]">What is Being Observed</CardTitle>
-            <CardDescription>The training is taking hold:</CardDescription>
+            <CardDescription>
+              {topicCards.length > 1
+                ? "These observations vary by topic:"
+                : isDiagnosisOnlyView
+                  ? "The diagnosis is pointing to these observable targets:"
+                  : "The current training is being tracked through these observable signals:"}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-sm text-muted-foreground leading-relaxed">
-              {progressSignals.map((signal) => (
+              {dashboardSignals.map((signal) => (
                 <li key={signal}>{signal}</li>
               ))}
             </ul>
@@ -805,14 +915,17 @@ export default function ParentDashboard() {
         <Card className="border-primary/25 bg-background">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-semibold tracking-[-0.01em]">Parent Role</CardTitle>
-            <CardDescription>What helps the system work as intended outside the session:</CardDescription>
+            <CardDescription>
+              {isDiagnosisOnlyView
+                ? "What helps the diagnosed starting point become trainable once sessions begin:"
+                : "What helps the system work as intended outside the session:"}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-sm text-muted-foreground leading-relaxed">
-              <li>Keep session attendance steady and protected.</li>
-              <li>Let discomfort happen before stepping in with reassurance.</li>
-              <li>Look for calmer starts and steadier attempts, not only marks.</li>
-              <li>Use the tutor and training plan as the operating reference.</li>
+              {parentRoleLines.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
             </ul>
           </CardContent>
         </Card>
@@ -822,13 +935,19 @@ export default function ParentDashboard() {
         <Card className="lg:col-span-2 border-primary/15">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-semibold tracking-[-0.01em]">Training Plan</CardTitle>
-            <CardDescription>The accepted plan is the current operating reference for this student.</CardDescription>
+            <CardDescription>
+              {isDiagnosisOnlyView
+                ? "The accepted plan is the starting operating reference for this student."
+                : "The accepted plan is the current operating reference for this student."}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
               <p className="text-sm text-muted-foreground">
                 {proposal
-                  ? `TT is operating from ${studentFirstName}'s current breakpoint inside ${currentBreakpointSummary}.`
+                  ? isDiagnosisOnlyView
+                    ? `TT is starting from ${studentFirstName}'s diagnosed breakpoint inside ${currentBreakpointSummary}.`
+                    : `TT is operating from ${studentFirstName}'s current breakpoint inside ${currentBreakpointSummary}.`
                   : `The training plan is still being loaded for ${studentFirstName}.`}
               </p>
             </div>
