@@ -404,7 +404,33 @@ export default function ProposalView({
     meaning: personalizeCopy(getParentDashboardCopyByState(trainingStartPhase as TopicPhase, normalizedStability as TopicStability).meaning),
     focus: personalizeCopy(getParentDashboardCopyByState(trainingStartPhase as TopicPhase, normalizedStability as TopicStability).focus),
   };
-  const derivedObserved = [stateCopy.status, stateCopy.meaning];
+  const diagnosisObserved = (() => {
+    switch (trainingStartPhase) {
+      case "Clarity":
+        return [
+          `${studentFirstName} is not yet reading this topic with full clarity.`,
+          `${pronounCapitalized} still needs support to identify the structure and meaning of the work correctly.`,
+        ];
+      case "Structured Execution":
+        return [
+          `${studentFirstName} can begin solving, but does not yet hold a stable method independently.`,
+          `${pronounCapitalized} can follow the steps in some cases, but still loses consistency without support.`,
+        ];
+      case "Controlled Discomfort":
+        return [
+          `${studentFirstName} can work through familiar questions, but becomes less stable when difficulty increases.`,
+          `${pronounCapitalized} still needs support to stay composed and structured when the work feels unfamiliar.`,
+        ];
+      case "Time Pressure Stability":
+        return [
+          `${studentFirstName} can solve correctly, but timed pressure still affects consistency.`,
+          `${pronounCapitalized} needs reinforcement to keep structure stable when speed is added.`,
+        ];
+      default:
+        return [stateCopy.status, stateCopy.meaning];
+    }
+  })();
+  const derivedObserved = isLiveTrainingView ? [stateCopy.status, stateCopy.meaning] : diagnosisObserved;
 
   const observedResponse = [
     proposal.mathRelationship,
