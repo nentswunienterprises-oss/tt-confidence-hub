@@ -68,6 +68,7 @@ interface ProposalTopicState {
 interface ProposalViewProps {
   proposal: ProposalData;
   topicStates?: ProposalTopicState[];
+  forceDiagnosisView?: boolean;
   showActions?: boolean;
   onAccept?: () => void;
   onDecline?: () => void;
@@ -77,6 +78,7 @@ interface ProposalViewProps {
 export default function ProposalView({ 
   proposal, 
   topicStates = [],
+  forceDiagnosisView = false,
   showActions = false,
   onAccept,
   onDecline,
@@ -235,7 +237,7 @@ export default function ProposalView({
 
   const activeLiveTopicStates = normalizedLiveTopicStates.filter((item) => item.bucket === "active");
   const currentLiveTopicStates = activeLiveTopicStates.length > 0 ? activeLiveTopicStates : normalizedLiveTopicStates;
-  const isLiveTrainingView = currentLiveTopicStates.length > 0;
+  const isLiveTrainingView = !forceDiagnosisView && currentLiveTopicStates.length > 0;
 
   const currentTopicNames = currentLiveTopicStates.map((item) => item.topic);
   const currentTopicSummary = formatListWithAnd(currentTopicNames);

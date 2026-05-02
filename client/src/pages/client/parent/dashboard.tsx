@@ -155,6 +155,97 @@ const PARENT_STATE_ENGINE: Record<PhaseLabel, Record<StabilityLabel, ParentState
   },
 };
 
+const PARENT_DIAGNOSIS_ENGINE: Record<PhaseLabel, Record<StabilityLabel, ParentStateCopy>> = {
+  Clarity: {
+    Low: {
+      status: "The intro diagnosis shows that this topic still needs foundation building.",
+      meaning: "Your child is not yet consistently clear on what the problem is asking or what structure to use first.",
+      focus: "Training will begin by rebuilding recognition, language, and first-step accuracy.",
+    },
+    Medium: {
+      status: "The intro diagnosis shows that clarity is starting to form in this topic.",
+      meaning: "Your child can follow parts of the explanation, but the structure is not yet stable enough to apply independently.",
+      focus: "Training will begin by strengthening problem recognition and clearer first steps.",
+    },
+    High: {
+      status: "The intro diagnosis shows that this topic is already clear enough to move beyond explanation alone.",
+      meaning: "Your child can recognize the problem and explain the structure, but still needs training to hold that understanding independently.",
+      focus: "Training will begin by moving from clarity into more independent execution.",
+    },
+    "High Maintenance": {
+      status: "The intro diagnosis shows strong clarity in this topic.",
+      meaning: "Your child is entering with a clear enough understanding to begin higher-order execution work.",
+      focus: "Training will begin from Structured Execution rather than reteaching the foundation.",
+    },
+  },
+  "Structured Execution": {
+    Low: {
+      status: "The intro diagnosis shows that the method is not yet stable in this topic.",
+      meaning: "Your child can begin the work, but the step order and method use still break down without support.",
+      focus: "Training will begin by building a more repeatable step-by-step method.",
+    },
+    Medium: {
+      status: "The intro diagnosis shows partial execution consistency in this topic.",
+      meaning: "Your child can use the correct method in many cases, but it is not yet stable enough to treat as trained performance.",
+      focus: "Training will begin by strengthening independent starts and more consistent method use.",
+    },
+    High: {
+      status: "The intro diagnosis shows strong execution in this topic.",
+      meaning: "Your child is entering with a method that is mostly intact, but it still needs training under harder conditions before progression.",
+      focus: "Training will begin by confirming this execution level and then increasing challenge carefully.",
+    },
+    "High Maintenance": {
+      status: "The intro diagnosis shows sustained execution strength in this topic.",
+      meaning: "Your child is entering above basic execution and may be ready for challenge-based work sooner.",
+      focus: "Training will begin from a stronger starting point and test stability before advancing further.",
+    },
+  },
+  "Controlled Discomfort": {
+    Low: {
+      status: "The intro diagnosis shows that challenge currently destabilizes this topic.",
+      meaning: "Your child can work in familiar conditions, but structure breaks when the work feels harder or less familiar.",
+      focus: "Training will begin by keeping structure intact when discomfort appears.",
+    },
+    Medium: {
+      status: "The intro diagnosis shows partial stability under challenge in this topic.",
+      meaning: "Your child can handle some unfamiliar difficulty, but hesitation and inconsistency still show up.",
+      focus: "Training will begin by building steadier responses in harder work.",
+    },
+    High: {
+      status: "The intro diagnosis shows strong handling of challenge in this topic.",
+      meaning: "Your child can stay relatively structured when the work pushes back, but that still needs to be confirmed through training.",
+      focus: "Training will begin from this stronger challenge-response position and prepare for time pressure later.",
+    },
+    "High Maintenance": {
+      status: "The intro diagnosis shows unusually strong challenge handling in this topic.",
+      meaning: "Your child is entering with a stable response to unfamiliar work and may be near time-pressure preparation.",
+      focus: "Training will begin by confirming that stability before introducing more pace pressure.",
+    },
+  },
+  "Time Pressure Stability": {
+    Low: {
+      status: "The intro diagnosis shows that time pressure currently disrupts this topic.",
+      meaning: "Your child can solve the work, but loses structure once pace is added.",
+      focus: "Training will begin by protecting method and decision-making under time pressure.",
+    },
+    Medium: {
+      status: "The intro diagnosis shows partial time-pressure stability in this topic.",
+      meaning: "Your child can hold some structure while timed, but not consistently enough yet.",
+      focus: "Training will begin by stabilizing decisions and method under pace.",
+    },
+    High: {
+      status: "The intro diagnosis shows strong timed stability in this topic.",
+      meaning: "Your child is entering with relatively stable structure under pace, but that still needs confirmation across training.",
+      focus: "Training will begin from this stronger timed baseline and test whether it holds reliably.",
+    },
+    "High Maintenance": {
+      status: "The intro diagnosis shows top-end timed stability in this topic.",
+      meaning: "Your child is entering from a highly stable timed starting point rather than building up from earlier phases.",
+      focus: "Training will begin by maintaining that level and checking transfer across related work.",
+    },
+  },
+};
+
 function normalizeTopicText(value?: string | null): string[] {
   const raw = String(value || "").trim();
   if (!raw) return [];
@@ -260,7 +351,7 @@ function stabilityIndicator(stability: StabilityLabel | null): "Developing" | "S
   return "Developing";
 }
 
-function parentCopyForState(phase?: string | null, stability?: string | null): ParentStateCopy {
+function parentCopyForState(phase?: string | null, stability?: string | null, diagnosisOnly = false): ParentStateCopy {
   const normalizedPhase = normalizePhaseLabel(phase);
   const normalizedStability = normalizeStabilityLabel(stability);
 
@@ -272,7 +363,9 @@ function parentCopyForState(phase?: string | null, stability?: string | null): P
     };
   }
 
-  return PARENT_STATE_ENGINE[normalizedPhase][normalizedStability];
+  return diagnosisOnly
+    ? PARENT_DIAGNOSIS_ENGINE[normalizedPhase][normalizedStability]
+    : PARENT_STATE_ENGINE[normalizedPhase][normalizedStability];
 }
 
 function formatDateLabel(dateText?: string | null): string {
@@ -432,6 +525,7 @@ export default function ParentDashboard() {
   const progressSignals = getProgressSignals(proposal);
   const hasAccessCode = !!proposal?.parentCode;
   const currentStep = getCurrentStepCopy(introSession || null, !!proposal, hasAccessCode);
+  const isDiagnosisOnlyView = (stats?.sessionsCompleted || 0) === 0;
   const nextSessionTime = introSession?.scheduled_time
     ? new Date(introSession.scheduled_time).toLocaleString()
     : null;
@@ -534,10 +628,12 @@ export default function ParentDashboard() {
               className="text-2xl sm:text-[2.1rem] font-semibold tracking-[-0.01em] leading-tight mt-2"
               style={{ fontFamily: '"Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif' }}
             >
-              Current training state for {studentName}
+              {isDiagnosisOnlyView ? `Current diagnosed starting point for ${studentName}` : `Current training state for ${studentName}`}
             </h1>
             <p className="text-sm sm:text-base text-foreground/75 mt-2.5 max-w-2xl leading-relaxed">
-              Stay aligned with how TT is training {studentFirstName} right now.
+              {isDiagnosisOnlyView
+                ? `Stay aligned with the starting position TT diagnosed before training sessions begin.`
+                : `Stay aligned with how TT is training ${studentFirstName} right now.`}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -566,8 +662,8 @@ export default function ParentDashboard() {
             ) : (
               <div className="grid sm:grid-cols-2 gap-4">
                 {topicCards.map((row) => {
-                  const copy = parentCopyForState(row.phase, row.stability);
-                  const hasProgressUpdate = row.movement === "improved";
+                  const copy = parentCopyForState(row.phase, row.stability, isDiagnosisOnlyView);
+                  const hasProgressUpdate = !isDiagnosisOnlyView && row.movement === "improved";
 
                   return (
                     <div key={`${row.topic}-${row.phase}-${row.stability}`} className="rounded-xl border border-primary/20 bg-background p-4 space-y-3">
@@ -828,7 +924,7 @@ export default function ParentDashboard() {
             <DialogHeader>
               <DialogTitle>{studentName} Training Plan</DialogTitle>
             </DialogHeader>
-            <ProposalView proposal={proposal} topicStates={topicCards} />
+            <ProposalView proposal={proposal} topicStates={topicCards} forceDiagnosisView={isDiagnosisOnlyView} />
           </DialogContent>
         </Dialog>
       )}
