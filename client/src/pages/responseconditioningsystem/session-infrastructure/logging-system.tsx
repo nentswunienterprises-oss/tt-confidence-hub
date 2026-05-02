@@ -807,6 +807,10 @@ function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null
     const coverageBlock = ADAPTIVE_DIAGNOSIS_BLOCK_BY_PHASE[coveragePhase];
     return `${coveragePhase}: ${coverageBlock.reps} ${coverageBlock.setName} problems`;
   });
+  const adaptiveCoverageProblemTotal = adaptiveCoverage.reduce((total, coveragePhase) => {
+    const coverageBlock = ADAPTIVE_DIAGNOSIS_BLOCK_BY_PHASE[coveragePhase];
+    return total + coverageBlock.reps;
+  }, 0);
 
   if (phase === "Clarity") {
     return {
@@ -825,9 +829,10 @@ function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null
           ? [
               ...(mode === "diagnosis"
                 ? [
-                    "Prepare bidirectionally before the session starts.",
+                    "Prepare the starting phase first.",
                     ...adaptiveCoverageNotes,
-                    "The tutor should be ready for the starting phase and the immediate adjacent phase the system may move into.",
+                    `Total problems across this diagnosis coverage: ${adaptiveCoverageProblemTotal}.`,
+                    "Also prepare the phase just below and the phase just above it, because the system may move there during diagnosis.",
                   ]
                 : [
                     "Prepare exactly 3 clean Clarity phase-block problems.",
@@ -845,7 +850,7 @@ function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null
       checklist: isVerificationMode
         ? [
             mode === "diagnosis"
-              ? `I prepared bidirectional diagnosis coverage for ${adaptiveCoverage.join(", ")}.`
+              ? `I prepared the starting phase and adjacent coverage for: ${adaptiveCoverage.join(", ")}.`
               : "I prepared exactly 3 clean Clarity verification problems.",
             mode === "diagnosis"
               ? "I will use this to place the topic, not to run a normal training session."
@@ -882,9 +887,10 @@ function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null
           ? [
               ...(mode === "diagnosis"
                 ? [
-                    "Prepare bidirectionally before the session starts.",
+                    "Prepare the starting phase first.",
                     ...adaptiveCoverageNotes,
-                    "The tutor should be ready for the starting phase and both adjacent phases where they exist.",
+                    `Total problems across this diagnosis coverage: ${adaptiveCoverageProblemTotal}.`,
+                    "Also prepare the phase just below and the phase just above it, because the system may move there during diagnosis.",
                   ]
                 : [
                     "Prepare exactly 3 clean Structured Execution phase-block problems.",
@@ -901,7 +907,7 @@ function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null
       checklist: isVerificationMode
         ? [
             mode === "diagnosis"
-              ? `I prepared bidirectional diagnosis coverage for ${adaptiveCoverage.join(", ")}.`
+              ? `I prepared the starting phase and adjacent coverage for: ${adaptiveCoverage.join(", ")}.`
               : "I prepared exactly 3 Structured Execution verification problems.",
             "I will hold the no-help start window and structure target.",
             mode === "diagnosis"
@@ -938,9 +944,10 @@ function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null
           ? [
               ...(mode === "diagnosis"
                 ? [
-                    "Prepare bidirectionally before the session starts.",
+                    "Prepare the starting phase first.",
                     ...adaptiveCoverageNotes,
-                    "The tutor should be ready for the starting phase and both adjacent phases where they exist.",
+                    `Total problems across this diagnosis coverage: ${adaptiveCoverageProblemTotal}.`,
+                    "Also prepare the phase just below and the phase just above it, because the system may move there during diagnosis.",
                   ]
                 : [
                     "Prepare exactly 3 clean Controlled Discomfort verification problems.",
@@ -956,7 +963,7 @@ function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null
       checklist: isVerificationMode
         ? [
             mode === "diagnosis"
-              ? `I prepared bidirectional diagnosis coverage for ${adaptiveCoverage.join(", ")}.`
+              ? `I prepared the starting phase and adjacent coverage for: ${adaptiveCoverage.join(", ")}.`
               : "I prepared exactly 3 Controlled Discomfort verification problems.",
             "The problems are challenging enough to test the phase honestly.",
             mode === "diagnosis"
@@ -990,15 +997,16 @@ function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null
     prepNotes: [
       ...(isVerificationMode
         ? [
-            ...(mode === "diagnosis"
-              ? [
-                  "Prepare bidirectionally before the session starts.",
-                  ...adaptiveCoverageNotes,
-                  "The tutor should be ready for the starting phase and the immediate lower phase the system may drop into.",
-                ]
-              : [
-                  "Prepare exactly 3 clean Time Pressure Stability verification problems.",
-                ]),
+              ...(mode === "diagnosis"
+                ? [
+                    "Prepare the starting phase first.",
+                    ...adaptiveCoverageNotes,
+                    `Total problems across this diagnosis coverage: ${adaptiveCoverageProblemTotal}.`,
+                    "Also prepare the nearest adjacent phase the system may move into during diagnosis.",
+                  ]
+                : [
+                    "Prepare exactly 3 clean Time Pressure Stability verification problems.",
+                  ]),
             "Use timed pressure only to verify whether structure survives urgency.",
             "Keep pressure controlled. Structure matters more than speed.",
           ]
@@ -1010,7 +1018,7 @@ function demoPrepPlanFor(phase: PhaseLabel, mode: DemoMode): DemoPrepPlan | null
     checklist: isVerificationMode
       ? [
           mode === "diagnosis"
-            ? `I prepared bidirectional diagnosis coverage for ${adaptiveCoverage.join(", ")}.`
+            ? `I prepared the starting phase and adjacent coverage for: ${adaptiveCoverage.join(", ")}.`
             : "I prepared exactly 3 Time Pressure Stability verification problems.",
           "I will keep pressure controlled and score structure honestly.",
           mode === "diagnosis"

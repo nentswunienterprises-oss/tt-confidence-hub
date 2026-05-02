@@ -30,6 +30,8 @@ type VerificationPrepSpec = {
   title: string;
   objective: string;
   problemPlan: string;
+  problemCoverage?: string[];
+  totalProblems?: number;
   tutorRules: string[];
   derivedFrom: string;
   checklist: string[];
@@ -544,18 +546,23 @@ function buildVerificationPrepSpec(
   const previousPhase = getAdjacentDiagnosisPhase(phase, "previous");
   const nextPhase = getAdjacentDiagnosisPhase(phase, "next");
   const adaptiveCoverage = [previousPhase, phase, nextPhase].filter(Boolean) as PhaseLabel[];
-  const adaptiveCoveragePlan = adaptiveCoverage
+  const adaptiveCoverageNotes = adaptiveCoverage
     .map((coveragePhase) => {
       const coverageBlock = ADAPTIVE_DIAGNOSIS_BLOCK_BY_PHASE[coveragePhase];
       return `${coveragePhase}: ${coverageBlock.reps} ${coverageBlock.setName} problems`;
-    })
-    .join(" | ");
+    });
+  const adaptiveCoverageProblemTotal = adaptiveCoverage.reduce((total, coveragePhase) => {
+    const coverageBlock = ADAPTIVE_DIAGNOSIS_BLOCK_BY_PHASE[coveragePhase];
+    return total + coverageBlock.reps;
+  }, 0);
 
   if (mode === "diagnosis") {
     return {
       title: "Diagnosis Prep",
       objective: `Place the topic correctly inside ${phase}. ${phasePurpose}`,
-      problemPlan: `Prepare the starting ${phase} block first. Also prepare the phase just below and the phase just above it, because the system may move there during diagnosis. Coverage for this session: ${adaptiveCoveragePlan}.`,
+      problemPlan: `Prepare the starting ${phase} block first. Also prepare the nearest phase below and above it, because the system may move there during diagnosis.`,
+      problemCoverage: adaptiveCoverageNotes,
+      totalProblems: adaptiveCoverageProblemTotal,
       tutorRules: [
         ...verificationRules,
         ...phaseRules,
@@ -576,7 +583,7 @@ function buildVerificationPrepSpec(
     return {
       title: "Handover Prep",
       objective: `Verify whether the inherited ${phase} topic-state is still trustworthy. ${phasePurpose}`,
-      problemPlan: `Prepare exactly ${diagnosisBlock.reps} clean verification problems at the inherited ${phase} level. Keep the same phase target the training system would use, but do not open the full training drill.`,
+      problemPlan: `Prepare exactly ${diagnosisBlock.reps} clean verification problems at the inherited ${phase} level. Keep the same phase target, but do not open the full training drill.`,
       tutorRules: [
         ...verificationRules,
         ...phaseRules,
@@ -595,7 +602,7 @@ function buildVerificationPrepSpec(
   return {
     title: "Targeted Re-Diagnosis Prep",
     objective: `Reclassify the current topic state inside ${phase} with no drift. ${phasePurpose}`,
-    problemPlan: `Prepare exactly ${diagnosisBlock.reps} clean ${phase} phase-block problems and let the adaptive path resolve from there. This is the same phase-block logic as diagnosis, triggered from handover because inherited state failed verification.`,
+    problemPlan: `Prepare exactly ${diagnosisBlock.reps} clean ${phase} phase-block problems. Use this to reclassify the flagged topic, not to open normal training.`,
     tutorRules: [
       ...verificationRules,
       ...phaseRules,
@@ -1564,9 +1571,26 @@ export default function IntroSessionDrillRunner() {
             <p>
               <span className="font-medium text-foreground">Objective:</span> {verificationPrepSpec.objective}
             </p>
-            <p>
-              <span className="font-medium text-foreground">Problem Prep:</span> {verificationPrepSpec.problemPlan}
-            </p>
+            <div className="space-y-1">
+              <p>
+                <span className="font-medium text-foreground">Problem Prep:</span> {verificationPrepSpec.problemPlan}
+              </p>
+              {verificationPrepSpec.problemCoverage?.length ? (
+                <div className="pl-0.5">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Coverage For This Session</p>
+                  <ul className="mt-1 space-y-1 text-sm text-muted-foreground">
+                    {verificationPrepSpec.problemCoverage.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                  {typeof verificationPrepSpec.totalProblems === "number" ? (
+                    <p className="mt-2 text-sm text-foreground">
+                      <span className="font-medium">Total problems:</span> {verificationPrepSpec.totalProblems}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
           </div>
           <ul className="list-disc pl-5 text-sm text-foreground/90 space-y-1">
             {verificationPrepSpec.tutorRules.map((rule) => (
