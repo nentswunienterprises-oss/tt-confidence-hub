@@ -410,12 +410,29 @@ async function loadTutorCertificationSnapshots(assignmentIds: string[]) {
     throw new Error(`Failed to load tutor certification statuses: ${statusError.message}`);
   }
 
-  const { data: deepDiveRows, error: deepDiveError } = await supabase
+  const deepDiveSelectFields =
+    "tutor_assignment_id, tutor_id, phase_key, title, module_key, module_title, historical_state, current_health_state, current_streak, consecutive_drift_count, latest_score, completed_at, last_tested_at, attempts_count, critical_flag";
+  const legacyDeepDiveSelectFields =
+    "tutor_assignment_id, tutor_id, phase_key, title, module_key, module_title, historical_state, current_health_state, current_streak, latest_score, completed_at, last_tested_at, attempts_count, critical_flag";
+
+  let { data: deepDiveRows, error: deepDiveError } = await supabase
     .from("tutor_battle_test_deep_dive_progress")
-    .select(
-      "tutor_assignment_id, tutor_id, phase_key, title, module_key, module_title, historical_state, current_health_state, current_streak, consecutive_drift_count, latest_score, completed_at, last_tested_at, attempts_count, critical_flag"
-    )
+    .select(deepDiveSelectFields)
     .in("tutor_assignment_id", assignmentIds);
+
+  if (deepDiveError?.message?.includes("consecutive_drift_count")) {
+    const legacyQuery = await supabase
+      .from("tutor_battle_test_deep_dive_progress")
+      .select(legacyDeepDiveSelectFields)
+      .in("tutor_assignment_id", assignmentIds);
+
+    deepDiveRows = (legacyQuery.data || []).map((row) => ({
+      ...row,
+      consecutive_drift_count: 0,
+    }));
+    deepDiveError = legacyQuery.error;
+  }
+
   if (deepDiveError) {
     throw new Error(`Failed to load tutor deep dive certification progress: ${deepDiveError.message}`);
   }

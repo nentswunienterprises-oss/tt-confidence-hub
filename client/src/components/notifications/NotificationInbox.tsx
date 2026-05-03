@@ -16,6 +16,18 @@ export interface NotificationItem {
   entityType?: string | null;
 }
 
+function isLegacyRecordingNotification(notification: NotificationItem) {
+  const title = String(notification.title || "").toLowerCase();
+  const message = String(notification.message || "").toLowerCase();
+  return (
+    title.includes("recording required") ||
+    title.includes("upload the recording") ||
+    message.includes("upload the recording") ||
+    message.includes("recording for intro") ||
+    message.includes("recording required")
+  );
+}
+
 export function NotificationInbox({
   title,
   description,
@@ -46,7 +58,10 @@ export function NotificationInbox({
     },
   });
   const visibleNotifications = useMemo(
-    () => notificationList.filter((n) => !excludeEntityTypes.includes(n.entityType || "")),
+    () =>
+      notificationList.filter(
+        (n) => !excludeEntityTypes.includes(n.entityType || "") && !isLegacyRecordingNotification(n)
+      ),
     [excludeEntityTypes, notificationList]
   );
   const unread = useMemo(() => visibleNotifications.filter((n) => !n.isRead), [visibleNotifications]);

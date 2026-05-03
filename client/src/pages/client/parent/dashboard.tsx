@@ -1021,8 +1021,8 @@ export default function ParentDashboard() {
             <Button variant="outline" className="w-full justify-start text-sm" onClick={() => setProposalDialogOpen(true)}>
               Review Training Plan
             </Button>
-            <Button variant="outline" className="w-full justify-start text-sm" onClick={() => setLocation("/client/parent/gateway")}>
-              Review Onboarding Flow
+            <Button variant="outline" className="w-full justify-start text-sm" onClick={() => setLocation("/client/parent/updates")}>
+              Message Tutor
             </Button>
             {proposal?.parentCode && (
               <Button variant="outline" className="w-full justify-start text-sm" onClick={() => navigator.clipboard.writeText(proposal.parentCode)}>
