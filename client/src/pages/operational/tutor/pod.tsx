@@ -475,6 +475,20 @@ export default function TutorPod() {
               </div>
             </div>
 
+            {tutorAlignmentSummary?.alignmentSummary?.certificationRecoveryNote && (
+              <div className="rounded-xl border border-orange-200 bg-orange-50/50 px-4 py-4 dark:border-orange-800 dark:bg-orange-950/20">
+                <p className="text-[10px] uppercase tracking-[0.08em] text-orange-600 dark:text-orange-400">Recovery Required</p>
+                <p className="mt-2 text-sm font-medium text-orange-900 dark:text-orange-100">
+                  {tutorAlignmentSummary.alignmentSummary.certificationRecoveryNote}
+                </p>
+                {tutorAlignmentSummary.alignmentSummary.recoveryRequiredUntil && (
+                  <p className="mt-1 text-xs text-orange-700 dark:text-orange-300">
+                    Required by: {new Date(tutorAlignmentSummary.alignmentSummary.recoveryRequiredUntil).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+            )}
+
             <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-4">
               <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Audit Modules</p>
               {tutorAlignmentSummary?.alignmentSummary?.phaseScores?.length ? (

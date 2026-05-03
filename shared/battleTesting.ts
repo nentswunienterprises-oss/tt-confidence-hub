@@ -101,6 +101,8 @@ export interface BattleTestingTutorSummary {
   moduleProgress?: TutorBattleTestModuleProgress[];
   deepDiveProgress?: TutorBattleTestDeepDiveProgress[];
   nextBattleTests?: TutorBattleTestRecommendation[];
+  certificationRecoveryNote?: string | null;
+  recoveryRequiredUntil?: string | null;
 }
 
 export interface TutorBattleTestModuleProgress {

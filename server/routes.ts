@@ -5803,6 +5803,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  // Provision sandbox accounts for tutor training (COO-controlled)
+  app.post(
+    "/api/coo/tutors/:tutorId/provision-sandbox-accounts",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const { tutorId } = req.params;
+        const { count = 3 } = req.body;
+
+        // Verify tutor is in sandbox mode
+        const { data: tutorStatus, error: statusError } = await supabase
+          .from("tutor_battle_test_statuses")
+          .select("mode")
+          .eq("tutor_id", tutorId)
+          .single();
+
+        if (statusError || !tutorStatus) {
+          return res.status(400).json({ message: "Tutor certification status not found" });
+        }
+
+        if (tutorStatus.mode !== "sandbox") {
+          return res.status(400).json({
+            message: `Tutor must be in sandbox mode to provision fake accounts. Current status: ${tutorStatus.mode}`
+          });
+        }
+
+        const createdAccounts = [];
+
+        for (let i = 0; i < count; i++) {
+          // Create fake parent user
+          const fakeParentEmail = `sandbox-parent-${tutorId}-${Date.now()}-${i}@territorialtutoring.com`;
+          const fakeParentName = `Sandbox Parent ${i + 1}`;
+
+          const { data: parentUser, error: parentError } = await supabase.auth.admin.createUser({
+            email: fakeParentEmail,
+            password: "SandboxPass123!", // Fixed password for sandbox
+            email_confirm: true,
+            user_metadata: {
+              name: fakeParentName,
+              role: "parent",
+              is_sandbox: true,
+            },
+          });
+
+          if (parentError) {
+            console.error("Error creating sandbox parent:", parentError);
+            continue;
+          }
+
+          // Create fake enrollment
+          const { data: enrollment, error: enrollError } = await supabase
+            .from("parent_enrollments")
+            .insert({
+              user_id: parentUser.user.id,
+              parent_full_name: fakeParentName,
+              parent_email: fakeParentEmail,
+              student_full_name: `Sandbox Student ${i + 1}`,
+              student_grade: ["8", "9", "10", "11", "12"][Math.floor(Math.random() * 5)],
+              school_name: "Sandbox School",
+              math_struggle_areas: "algebra, fractions, word problems",
+              previous_tutoring: "Some tutoring before",
+              internet_access: "Yes",
+              parent_motivation: "Want to help child succeed",
+              status: "awaiting_tutor_acceptance",
+              assigned_tutor_id: tutorId,
+              is_sandbox_account: true,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .select()
+            .single();
+
+          if (enrollError) {
+            console.error("Error creating sandbox enrollment:", enrollError);
+            continue;
+          }
+
+          // Create fake student record
+          try {
+            await ensureStudentForEnrollment(enrollment, tutorId);
+          } catch (studentErr) {
+            console.error("Error creating sandbox student:", studentErr);
+          }
+
+          createdAccounts.push({
+            parentId: parentUser.user.id,
+            enrollmentId: enrollment.id,
+            parentEmail: fakeParentEmail,
+            studentName: enrollment.student_full_name,
+          });
+        }
+
+        res.json({
+          message: `Created ${createdAccounts.length} sandbox accounts for tutor training`,
+          accounts: createdAccounts,
+        });
+      } catch (error) {
+        console.error("Error provisioning sandbox accounts:", error);
+        res.status(500).json({ message: "Failed to provision sandbox accounts" });
+      }
+    }
+  );
+
   // Backfill students from assigned parent_enrollments for the authenticated tutor
   // Useful in split deployments if automatic creation didn't run
   app.post(
@@ -15658,6 +15762,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (podId && tutorAssignment.podId !== podId) {
           return res.status(400).json({ message: "Tutor is not assigned to the selected pod" });
+        }
+
+        // Check tutor certification status - only certified_live tutors can receive real assignments
+        const { data: tutorStatus, error: statusError } = await supabase
+          .from("tutor_battle_test_statuses")
+          .select("mode")
+          .eq("tutor_id", tutorId)
+          .single();
+
+        if (statusError || !tutorStatus) {
+          return res.status(400).json({ message: "Tutor certification status not found. Complete battle testing first." });
+        }
+
+        if (tutorStatus.mode !== "certified_live") {
+          return res.status(400).json({
+            message: `Tutor is not certified for live assignments. Current status: ${tutorStatus.mode}. Must complete all modules and pass battle tests.`
+          });
         }
 
         const maxStudentsPerTutor = getMaxStudentsPerTutorForVehicle(tutorAssignment.pod.vehicle);

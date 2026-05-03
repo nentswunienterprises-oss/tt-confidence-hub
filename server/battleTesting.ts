@@ -95,6 +95,8 @@ interface TutorBattleTestStatusRow {
   module_progress: TutorBattleTestModuleProgress[];
   next_battle_tests: TutorBattleTestRecommendation[];
   last_synced_at: string;
+  certification_recovery_note?: string | null;
+  recovery_required_until?: string | null;
 }
 
 interface TutorBattleTestDeepDiveProgressRowDb {
@@ -294,11 +296,37 @@ function mapPersistedDeepDiveProgressRows(rows: any[]): TutorBattleTestDeepDiveP
     );
 }
 
+// Check if all required tutor documents are uploaded and verified
+async function checkTutorDocumentationComplete(tutorId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("tutor_applications")
+    .select("doc_1_submission_verified, doc_2_submission_verified, doc_3_submission_verified, doc_4_submission_verified, doc_5_submission_verified, doc_6_submission_verified")
+    .eq("user_id", tutorId)
+    .single();
+
+  if (error || !data) {
+    return false;
+  }
+
+  // All 6 documents must be verified to move past applicant mode
+  return !!(
+    data.doc_1_submission_verified &&
+    data.doc_2_submission_verified &&
+    data.doc_3_submission_verified &&
+    data.doc_4_submission_verified &&
+    data.doc_5_submission_verified &&
+    data.doc_6_submission_verified
+  );
+}
+
 async function syncTutorCertificationState(
   tutorAssignmentId: string,
   tutorId: string,
   currentState: BattleTestState | null
 ) {
+  // Check if tutor has completed all documentation
+  const docsComplete = await checkTutorDocumentationComplete(tutorId);
+
   const { data, error } = await supabase
     .from("battle_test_runs")
     .select("*")
@@ -323,7 +351,7 @@ async function syncTutorCertificationState(
   const phaseScores = Array.from(latestPhaseScoreMap.values());
   const deepDiveProgress = buildTutorDeepDiveProgress(phaseScores, runs);
   const moduleProgress = buildTutorModuleProgress(deepDiveProgress);
-  const mode = deriveTutorTrainingMode(moduleProgress, deepDiveProgress, currentState);
+  const mode = deriveTutorTrainingMode(moduleProgress, deepDiveProgress, currentState, docsComplete);
   const nextBattleTests = buildTutorNextBattleTests(deepDiveProgress);
   const syncedAt = new Date().toISOString();
 
@@ -371,6 +399,24 @@ async function syncTutorCertificationState(
     throw new Error(`Failed to reset tutor certification status: ${deleteStatusError.message}`);
   }
 
+  // Check if this is a recovery scenario (moving back to training from certified_live)
+  let recoveryNote: string | null = null;
+  let recoveryRequiredUntil: string | null = null;
+
+  const { data: previousStatus } = await supabase
+    .from("tutor_battle_test_statuses")
+    .select("mode")
+    .eq("tutor_assignment_id", tutorAssignmentId)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (previousStatus?.mode === "certified_live" && mode === "training") {
+    const driftTriggers = deepDiveProgress.filter(entry => entry.consecutiveDriftCount >= LIVE_RESTRICTION_DRIFT_THRESHOLD);
+    recoveryNote = `Moved back to training due to drift in: ${driftTriggers.map(d => d.title).join(", ")}. Must pass all deep dives 3x consecutively to recertify.`;
+    recoveryRequiredUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(); // 30 days
+  }
+
   const { error: insertStatusError } = await supabase.from("tutor_battle_test_statuses").insert({
     tutor_assignment_id: tutorAssignmentId,
     tutor_id: tutorId,
@@ -379,6 +425,8 @@ async function syncTutorCertificationState(
     next_battle_tests: nextBattleTests,
     last_synced_at: syncedAt,
     updated_at: syncedAt,
+    certification_recovery_note: recoveryNote,
+    recovery_required_until: recoveryRequiredUntil,
   });
   if (insertStatusError) {
     throw new Error(`Failed to save tutor certification status: ${insertStatusError.message}`);
@@ -404,7 +452,7 @@ async function loadTutorCertificationSnapshots(assignmentIds: string[]) {
 
   const { data: statusRows, error: statusError } = await supabase
     .from("tutor_battle_test_statuses")
-    .select("tutor_assignment_id, tutor_id, mode, module_progress, next_battle_tests, last_synced_at")
+    .select("tutor_assignment_id, tutor_id, mode, module_progress, next_battle_tests, last_synced_at, certification_recovery_note, recovery_required_until")
     .in("tutor_assignment_id", assignmentIds);
   if (statusError) {
     throw new Error(`Failed to load tutor certification statuses: ${statusError.message}`);
@@ -446,6 +494,8 @@ async function loadTutorCertificationSnapshots(assignmentIds: string[]) {
       module_progress: mapPersistedModuleProgress(rawRow.module_progress),
       next_battle_tests: mapPersistedRecommendations(rawRow.next_battle_tests),
       last_synced_at: String(rawRow.last_synced_at),
+      certification_recovery_note: rawRow.certification_recovery_note,
+      recovery_required_until: rawRow.recovery_required_until,
     });
   }
 
@@ -483,8 +533,14 @@ function buildTutorModuleProgress(deepDiveProgress: TutorBattleTestDeepDiveProgr
 function deriveTutorTrainingMode(
   moduleProgress: TutorBattleTestModuleProgress[],
   deepDiveProgress: TutorBattleTestDeepDiveProgress[],
-  currentState: BattleTestState | null
+  currentState: BattleTestState | null,
+  docsComplete: boolean
 ): TutorTrainingMode {
+  // Applicant mode: blocks all access until documentation is complete
+  if (!docsComplete) {
+    return "applicant";
+  }
+
   const transformationComplete = moduleProgress.find((entry) => entry.moduleKey === "transformation_phases")?.completed || false;
   const sessionComplete = moduleProgress.find((entry) => entry.moduleKey === "session_infrastructure")?.completed || false;
   const fullyCertified = transformationComplete && sessionComplete;
@@ -937,6 +993,8 @@ export async function buildPodBattleTestingSummary(
       moduleProgress: statusByAssignmentId.get(meta.assignmentId)?.module_progress || moduleProgress,
       deepDiveProgress: deepDiveProgressByAssignmentId.get(meta.assignmentId) || deepDiveProgress,
       nextBattleTests: statusByAssignmentId.get(meta.assignmentId)?.next_battle_tests || buildTutorNextBattleTests(deepDiveProgress),
+      certificationRecoveryNote: statusByAssignmentId.get(meta.assignmentId)?.certification_recovery_note || null,
+      recoveryRequiredUntil: statusByAssignmentId.get(meta.assignmentId)?.recovery_required_until || null,
     };
     if (tutorSummary.state === "locked") summary.lockedTutors += 1;
     if (tutorSummary.state === "watchlist") summary.watchlistTutors += 1;
