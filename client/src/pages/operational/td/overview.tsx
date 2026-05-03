@@ -39,6 +39,7 @@ import {
   type BattleTestState,
   type BattleTestResponseInput,
   type PodBattleTestingSummary,
+  TUTOR_BATTLE_TEST_PHASES,
 } from "@shared/battleTesting";
 import type { Pod, TutorAssignment, User } from "@shared/schema";
 
@@ -232,7 +233,10 @@ export default function TDOverview() {
     }
   }, [error, toast]);
 
-  const activePhaseOptions = useMemo<BattleTestPhaseDefinition[]>(() => tutorBattleTestPhases, [tutorBattleTestPhases]);
+  const activePhaseOptions = useMemo<BattleTestPhaseDefinition[]>(
+    () => (tutorBattleTestPhases.length ? tutorBattleTestPhases : TUTOR_BATTLE_TEST_PHASES),
+    [tutorBattleTestPhases]
+  );
   const groupedTutorPhaseOptions = useMemo(() => {
     const groups: Record<TutorAuditGroupKey, BattleTestPhaseDefinition[]> = {
       transformation_phases: [],
@@ -253,16 +257,24 @@ export default function TDOverview() {
     const phaseMapByAssignment = new Map<string, Map<string, BattleTestPhaseScore>>();
 
     for (const run of podBattleTestRuns) {
-      if (run.subjectType !== "tutor" || !run.tutorAssignmentId) continue;
+      if (run.subjectType !== "tutor") continue;
+      const runKeys = [run.tutorAssignmentId, run.subjectUserId].filter(
+        (value): value is string => typeof value === "string" && value.length > 0
+      );
+      if (!runKeys.length) continue;
 
-      if (!phaseMapByAssignment.has(run.tutorAssignmentId)) {
-        phaseMapByAssignment.set(run.tutorAssignmentId, new Map<string, BattleTestPhaseScore>());
+      for (const runKey of runKeys) {
+        if (!phaseMapByAssignment.has(runKey)) {
+          phaseMapByAssignment.set(runKey, new Map<string, BattleTestPhaseScore>());
+        }
       }
 
-      const assignmentPhaseMap = phaseMapByAssignment.get(run.tutorAssignmentId)!;
-      for (const phaseScore of run.phaseScores || []) {
-        if (!assignmentPhaseMap.has(phaseScore.phaseKey)) {
-          assignmentPhaseMap.set(phaseScore.phaseKey, phaseScore);
+      for (const runKey of runKeys) {
+        const assignmentPhaseMap = phaseMapByAssignment.get(runKey)!;
+        for (const phaseScore of run.phaseScores || []) {
+          if (!assignmentPhaseMap.has(phaseScore.phaseKey)) {
+            assignmentPhaseMap.set(phaseScore.phaseKey, phaseScore);
+          }
         }
       }
     }
@@ -653,7 +665,9 @@ export default function TDOverview() {
                             {tutors.map((tutor) => {
                               const tutorName = tutor.name || tutor.firstName || "Unknown Tutor";
                               const tutorAudit = battleTestingSummary.tutorSummaries.find(
-                                (entry) => entry.assignmentId === tutor.assignment.id
+                                (entry) =>
+                                  entry.assignmentId === tutor.assignment.id ||
+                                  entry.tutorId === tutor.id
                               );
                               const operationalMode =
                                 tutorAudit?.mode ||
@@ -662,7 +676,10 @@ export default function TDOverview() {
                                 "training";
                               const latestPhaseScores =
                                 Array.from(
-                                  latestTutorPhaseScoresByAssignment.get(tutor.assignment.id)?.values() || []
+                                  (
+                                    latestTutorPhaseScoresByAssignment.get(tutor.assignment.id) ||
+                                    latestTutorPhaseScoresByAssignment.get(tutor.id)
+                                  )?.values() || []
                                 ) || [];
                               const isExpanded = !!expandedTutors[tutor.assignment.id];
 

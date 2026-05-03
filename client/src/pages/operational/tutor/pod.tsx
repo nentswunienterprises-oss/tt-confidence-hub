@@ -160,10 +160,6 @@ export default function TutorPod() {
     queryKey: ["/api/tutor/pod-alignment-summary"],
     enabled: isAuthenticated && !authLoading,
   });
-  const hasExpandedStanding =
-    Boolean(tutorAlignmentSummary?.alignmentSummary?.moduleProgress?.length) ||
-    Boolean(tutorAlignmentSummary?.alignmentSummary?.nextBattleTests?.length) ||
-    Boolean(tutorAlignmentSummary?.alignmentSummary?.deepDiveProgress?.length);
 
   const hasSubmittedApplication = applications && applications.length > 0;
   const hasPendingApplication = applications && applications.some((app: any) => app.status === "pending");
@@ -497,23 +493,32 @@ export default function TutorPod() {
               )}
             </div>
 
-            {hasExpandedStanding ? (
-              <div className="flex justify-end">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 rounded-full px-3 text-xs text-muted-foreground hover:text-foreground"
-                  onClick={() => setShowFullStanding((current) => !current)}
-                >
-                  {showFullStanding ? "Hide Full Standing" : "View Full Standing"}
-                  {showFullStanding ? <ChevronUp className="ml-1.5 h-3.5 w-3.5" /> : <ChevronDown className="ml-1.5 h-3.5 w-3.5" />}
-                </Button>
-              </div>
-            ) : null}
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 rounded-full px-3 text-xs text-muted-foreground hover:text-foreground"
+                onClick={() => setShowFullStanding((current) => !current)}
+              >
+                {showFullStanding ? "Hide Full Standing" : "View Full Standing"}
+                {showFullStanding ? <ChevronUp className="ml-1.5 h-3.5 w-3.5" /> : <ChevronDown className="ml-1.5 h-3.5 w-3.5" />}
+              </Button>
+            </div>
 
             {showFullStanding ? (
               <>
+                {!tutorAlignmentSummary?.alignmentSummary?.moduleProgress?.length &&
+                !tutorAlignmentSummary?.alignmentSummary?.nextBattleTests?.length &&
+                !tutorAlignmentSummary?.alignmentSummary?.deepDiveProgress?.length ? (
+                  <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-4">
+                    <p className="text-sm font-medium text-foreground">No detailed standing data available yet.</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Your summary standing is shown above. Detailed module, battle test, and deep dive progress will appear here once audit data is available.
+                    </p>
+                  </div>
+                ) : null}
+
                 {tutorAlignmentSummary?.alignmentSummary?.moduleProgress?.length ? (
                   <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-4">
                     <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Module Progress</p>
