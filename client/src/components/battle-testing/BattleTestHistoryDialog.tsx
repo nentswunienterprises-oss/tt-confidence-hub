@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { API_URL } from "@/lib/config";
+import { apiRequest } from "@/lib/queryClient";
 import type { BattleTestRunDetail, BattleTestRunHistoryItem } from "@shared/battleTesting";
 
 interface BattleTestHistoryDialogProps {
@@ -45,11 +45,7 @@ export default function BattleTestHistoryDialog({
     queryKey: [historyQueryKey],
     enabled: open,
     queryFn: async () => {
-      const response = await fetch(`${API_URL}${historyEndpoint}`, {
-        credentials: "include",
-        cache: "no-store",
-      });
-      if (!response.ok) throw new Error("Failed to load battle-testing history");
+      const response = await apiRequest("GET", historyEndpoint);
       return response.json();
     },
   });
@@ -60,11 +56,7 @@ export default function BattleTestHistoryDialog({
     queryKey: [`battle-test-run-detail-${selectedRunId}`],
     enabled: open && !!selectedRunId,
     queryFn: async () => {
-      const response = await fetch(`${API_URL}/api/battle-tests/runs/${selectedRunId}`, {
-        credentials: "include",
-        cache: "no-store",
-      });
-      if (!response.ok) throw new Error("Failed to load battle-testing run detail");
+      const response = await apiRequest("GET", `/api/battle-tests/runs/${selectedRunId}`);
       return response.json();
     },
   });

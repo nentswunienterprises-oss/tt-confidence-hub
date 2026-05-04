@@ -186,11 +186,7 @@ export default function TDOverview() {
     queryKey: ["/api/battle-tests/banks/tutor"],
     enabled: isAuthenticated && !authLoading,
     queryFn: async () => {
-      const response = await fetch(`${API_URL}/api/battle-tests/banks/tutor`, {
-        credentials: "include",
-        cache: "no-store",
-      });
-      if (!response.ok) throw new Error("Failed to load tutor battle-testing banks");
+      const response = await apiRequest("GET", "/api/battle-tests/banks/tutor");
       return response.json();
     },
   });
@@ -198,11 +194,7 @@ export default function TDOverview() {
     queryKey: ["/api/battle-tests/pods", podId, "runs"],
     enabled: isAuthenticated && !authLoading && !!podId,
     queryFn: async () => {
-      const response = await fetch(`${API_URL}/api/battle-tests/pods/${podId}/runs`, {
-        credentials: "include",
-        cache: "no-store",
-      });
-      if (!response.ok) throw new Error("Failed to load battle-test run history");
+      const response = await apiRequest("GET", `/api/battle-tests/pods/${podId}/runs`);
       return response.json();
     },
   });
