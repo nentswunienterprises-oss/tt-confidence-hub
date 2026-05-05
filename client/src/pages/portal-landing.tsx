@@ -2,7 +2,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { TTLogo } from "@/components/TTLogo";
-import { TerritorialTutoringLogoSVG } from "@/components/TerritorialTutoringLogoSVG";
 import { buildTrackedPath, buildTrackedReturnTo } from "@/lib/publicTracking";
 
 import { useLocation, useNavigate } from "react-router-dom";
@@ -56,7 +55,7 @@ function PortalLanding() {
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
           <div className="flex-shrink-0">
-            <TerritorialTutoringLogoSVG width={165} />
+            <TTLogo size="lg" variant="integrity" />
           </div>
 
           <div className="hidden md:block">
