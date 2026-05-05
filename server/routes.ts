@@ -295,6 +295,19 @@ function isMissingSandboxAccountColumnError(error: any) {
   return message.includes("is_sandbox_account");
 }
 
+function isHeuristicSandboxEnrollment(enrollment: any, tutorId?: string) {
+  const parentEmail = String(enrollment?.parent_email || "").trim().toLowerCase();
+  const parentName = String(enrollment?.parent_full_name || "").trim().toLowerCase();
+  const studentName = String(enrollment?.student_full_name || "").trim().toLowerCase();
+  const expectedEmailPrefix = tutorId ? `sandbox-parent-${String(tutorId).trim().toLowerCase()}-` : "sandbox-parent-";
+
+  return (
+    (parentEmail.startsWith(expectedEmailPrefix) && parentEmail.endsWith("@territorialtutoring.com")) ||
+    parentName.startsWith("sandbox ") ||
+    studentName.startsWith("sandbox ")
+  );
+}
+
 async function loadTutorAssignedEnrollments(
   tutorId: string,
   options?: {
@@ -332,7 +345,7 @@ async function loadTutorAssignedEnrollments(
     }
 
     const fallback = await fallbackQuery;
-    data = fallback.data;
+    data = (fallback.data || []).filter((enrollment: any) => isHeuristicSandboxEnrollment(enrollment, tutorId));
     error = fallback.error;
   }
 
@@ -358,7 +371,9 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
       .select("id")
       .eq("assigned_tutor_id", tutorId)
       .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES]);
-    existingSandboxEnrollments = fallback.data;
+    existingSandboxEnrollments = (fallback.data || []).filter((enrollment: any) =>
+      isHeuristicSandboxEnrollment(enrollment, tutorId)
+    );
     existingSandboxError = fallback.error;
   }
 
@@ -386,7 +401,9 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
       .eq("assigned_tutor_id", tutorId)
       .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES])
       .order("updated_at", { ascending: false });
-    sourceEnrollments = fallback.data;
+    sourceEnrollments = (fallback.data || []).filter(
+      (enrollment: any) => !isHeuristicSandboxEnrollment(enrollment, tutorId)
+    );
     sourceEnrollmentsError = fallback.error;
   }
 
