@@ -18,6 +18,19 @@ function buildReassignmentResumeStep(status: string | null | undefined): string 
   return `${REASSIGNMENT_RESUME_PREFIX}${normalized}`;
 }
 
+function isHeuristicSandboxEnrollment(enrollment: any, tutorId?: string) {
+  const parentEmail = String(enrollment?.parent_email || "").trim().toLowerCase();
+  const parentName = String(enrollment?.parent_full_name || "").trim().toLowerCase();
+  const studentName = String(enrollment?.student_full_name || "").trim().toLowerCase();
+  const expectedEmailPrefix = tutorId ? `sandbox-parent-${String(tutorId).trim().toLowerCase()}-` : "sandbox-parent-";
+
+  return (
+    (parentEmail.startsWith(expectedEmailPrefix) && parentEmail.endsWith("@territorialtutoring.com")) ||
+    parentName.startsWith("sandbox ") ||
+    studentName.startsWith("sandbox ")
+  );
+}
+
 export async function safelyUnassignEnrollmentFromTutor(enrollment: any, previousTutorId: string) {
   const studentName = String(enrollment?.student_full_name || "Student").trim() || "Student";
   const parentName = String(enrollment?.parent_full_name || "Parent").trim() || "Parent";
@@ -206,7 +219,8 @@ export async function cleanupLegacyLiveEnrollmentsForNonLiveTutor(
         .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES]);
 
       liveEnrollments = (fallback.data || []).filter(
-        (enrollment: any) => !Boolean(enrollment?.is_sandbox_account)
+        (enrollment: any) =>
+          !Boolean(enrollment?.is_sandbox_account) && !isHeuristicSandboxEnrollment(enrollment, tutorId)
       );
       liveEnrollmentsError = fallback.error as any;
     }
