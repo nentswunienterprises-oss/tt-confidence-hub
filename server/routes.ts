@@ -290,18 +290,77 @@ async function getStudentOperationalMode(studentId: string): Promise<"training" 
   return getTutorOperationalMode(student.tutorId);
 }
 
+function isMissingSandboxAccountColumnError(error: any) {
+  const message = String(error?.message || "").toLowerCase();
+  return message.includes("is_sandbox_account");
+}
+
+async function loadTutorAssignedEnrollments(
+  tutorId: string,
+  options?: {
+    sandboxOnly?: boolean;
+    ordered?: boolean;
+  }
+) {
+  const sandboxOnly = !!options?.sandboxOnly;
+  const ordered = !!options?.ordered;
+
+  let query = supabase
+    .from("parent_enrollments")
+    .select("*")
+    .eq("assigned_tutor_id", tutorId)
+    .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES]);
+
+  if (sandboxOnly) {
+    query = query.eq("is_sandbox_account", true);
+  }
+
+  if (ordered) {
+    query = query.order("updated_at", { ascending: false });
+  }
+
+  let { data, error } = await query;
+  if (error && sandboxOnly && isMissingSandboxAccountColumnError(error)) {
+    let fallbackQuery = supabase
+      .from("parent_enrollments")
+      .select("*")
+      .eq("assigned_tutor_id", tutorId)
+      .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES]);
+
+    if (ordered) {
+      fallbackQuery = fallbackQuery.order("updated_at", { ascending: false });
+    }
+
+    const fallback = await fallbackQuery;
+    data = fallback.data;
+    error = fallback.error;
+  }
+
+  return { data: data || [], error };
+}
+
 async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCount = 3) {
   const certificationMode = await getTutorCertificationMode(tutorId);
   if (certificationMode !== "sandbox") {
     return { certificationMode, createdAccounts: [] as any[] };
   }
 
-  const { data: existingSandboxEnrollments, error: existingSandboxError } = await supabase
+  let { data: existingSandboxEnrollments, error: existingSandboxError } = await supabase
     .from("parent_enrollments")
     .select("id")
     .eq("assigned_tutor_id", tutorId)
     .eq("is_sandbox_account", true)
     .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES]);
+
+  if (existingSandboxError && isMissingSandboxAccountColumnError(existingSandboxError)) {
+    const fallback = await supabase
+      .from("parent_enrollments")
+      .select("id")
+      .eq("assigned_tutor_id", tutorId)
+      .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES]);
+    existingSandboxEnrollments = fallback.data;
+    existingSandboxError = fallback.error;
+  }
 
   if (existingSandboxError) {
     throw new Error(`Failed to load sandbox enrollments: ${existingSandboxError.message}`);
@@ -312,13 +371,24 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
     return { certificationMode, createdAccounts: [] as any[] };
   }
 
-  const { data: sourceEnrollments, error: sourceEnrollmentsError } = await supabase
+  let { data: sourceEnrollments, error: sourceEnrollmentsError } = await supabase
     .from("parent_enrollments")
     .select("id, parent_full_name, parent_email, student_full_name, student_grade, school_name, math_struggle_areas, previous_tutoring, internet_access, parent_motivation")
     .eq("assigned_tutor_id", tutorId)
     .eq("is_sandbox_account", false)
     .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES])
     .order("updated_at", { ascending: false });
+
+  if (sourceEnrollmentsError && isMissingSandboxAccountColumnError(sourceEnrollmentsError)) {
+    const fallback = await supabase
+      .from("parent_enrollments")
+      .select("id, parent_full_name, parent_email, student_full_name, student_grade, school_name, math_struggle_areas, previous_tutoring, internet_access, parent_motivation")
+      .eq("assigned_tutor_id", tutorId)
+      .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES])
+      .order("updated_at", { ascending: false });
+    sourceEnrollments = fallback.data;
+    sourceEnrollmentsError = fallback.error;
+  }
 
   if (sourceEnrollmentsError) {
     throw new Error(`Failed to load sandbox seed enrollments: ${sourceEnrollmentsError.message}`);
@@ -360,7 +430,7 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
       throw new Error(`Failed to create sandbox parent user: ${parentError?.message || "missing user id"}`);
     }
 
-    const { data: sandboxEnrollment, error: sandboxEnrollmentError } = await supabase
+    let { data: sandboxEnrollment, error: sandboxEnrollmentError } = await supabase
       .from("parent_enrollments")
       .insert({
         user_id: parentUser.user.id,
@@ -381,6 +451,31 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
       })
       .select("*")
       .single();
+
+    if (sandboxEnrollmentError && isMissingSandboxAccountColumnError(sandboxEnrollmentError)) {
+      const fallback = await supabase
+        .from("parent_enrollments")
+        .insert({
+          user_id: parentUser.user.id,
+          parent_full_name: fakeParentName,
+          parent_email: fakeParentEmail,
+          student_full_name: fakeStudentName,
+          student_grade: source?.student_grade || ["8", "9", "10", "11", "12"][offset % 5],
+          school_name: source?.school_name || "Sandbox School",
+          math_struggle_areas: source?.math_struggle_areas || "algebra, fractions, word problems",
+          previous_tutoring: source?.previous_tutoring || "Some tutoring before",
+          internet_access: source?.internet_access || "Yes",
+          parent_motivation: source?.parent_motivation || "Sandbox training account for tutor certification",
+          status: "awaiting_tutor_acceptance",
+          assigned_tutor_id: tutorId,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .select("*")
+        .single();
+      sandboxEnrollment = fallback.data;
+      sandboxEnrollmentError = fallback.error;
+    }
 
     if (sandboxEnrollmentError || !sandboxEnrollment) {
       throw new Error(`Failed to create sandbox enrollment: ${sandboxEnrollmentError?.message || "no enrollment returned"}`);
@@ -407,13 +502,10 @@ async function ensureVisibleSandboxStudentsForTutor(tutorId: string, minimumCoun
   }
 
   const provisionResult = await autoProvisionSandboxAccountsForTutor(tutorId, minimumCount);
-  const { data: sandboxEnrollments, error: sandboxEnrollmentsError } = await supabase
-    .from("parent_enrollments")
-    .select("*")
-    .eq("assigned_tutor_id", tutorId)
-    .eq("is_sandbox_account", true)
-    .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES])
-    .order("updated_at", { ascending: false });
+  const { data: sandboxEnrollments, error: sandboxEnrollmentsError } = await loadTutorAssignedEnrollments(tutorId, {
+    sandboxOnly: true,
+    ordered: true,
+  });
 
   if (sandboxEnrollmentsError) {
     throw new Error(`Failed to load sandbox enrollments for student backfill: ${sandboxEnrollmentsError.message}`);
@@ -5802,24 +5894,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const certificationMode = await getTutorCertificationMode(tutorId);
         const cleanupResult = await cleanupLegacyLiveEnrollmentsForNonLiveTutor(tutorId, certificationMode);
         if (certificationMode === "sandbox") {
-          await ensureVisibleSandboxStudentsForTutor(
-            tutorId,
-            Math.max(3, cleanupResult.detachedCount || 0)
-          );
+          try {
+            await ensureVisibleSandboxStudentsForTutor(
+              tutorId,
+              Math.max(3, cleanupResult.detachedCount || 0)
+            );
+          } catch (error) {
+            console.error("Sandbox provisioning/backfill failed while loading tutor pod:", error);
+          }
         }
 
         // First, check for parent enrollments assigned to this tutor that don't have students yet
-        let assignedEnrollmentsQuery = supabase
-          .from("parent_enrollments")
-          .select("*")
-          .eq("assigned_tutor_id", tutorId)
-          .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES]);
-
-        if (certificationMode === "sandbox") {
-          assignedEnrollmentsQuery = assignedEnrollmentsQuery.eq("is_sandbox_account", true);
-        }
-
-        const { data: assignedEnrollments } = await assignedEnrollmentsQuery;
+        const { data: assignedEnrollments } = await loadTutorAssignedEnrollments(tutorId, {
+          sandboxOnly: certificationMode === "sandbox",
+          ordered: false,
+        });
 
         // For each enrollment, check if a student exists, if not create one
         if (assignedEnrollments && assignedEnrollments.length > 0) {
@@ -5836,19 +5925,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Re-read after backfill so assigned_student_id links are current.
-        let refreshedAssignedEnrollmentsQuery = supabase
-          .from("parent_enrollments")
-          .select("*")
-          .eq("assigned_tutor_id", tutorId)
-          .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES])
-          .order("updated_at", { ascending: false });
-
-        if (certificationMode === "sandbox") {
-          refreshedAssignedEnrollmentsQuery = refreshedAssignedEnrollmentsQuery.eq("is_sandbox_account", true);
-        }
-
         const { data: refreshedAssignedEnrollments, error: refreshedAssignedEnrollmentsError } =
-          await refreshedAssignedEnrollmentsQuery;
+          await loadTutorAssignedEnrollments(tutorId, {
+            sandboxOnly: certificationMode === "sandbox",
+            ordered: true,
+          });
 
         if (refreshedAssignedEnrollmentsError) {
           console.error("Error refreshing assigned enrollments for pod:", refreshedAssignedEnrollmentsError);
@@ -5857,7 +5938,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         let students = await hydrateStudentsWithSessionProgress(tutorId, await storage.getStudentsByTutor(tutorId));
         if (certificationMode === "sandbox" && students.length === 0) {
-          await ensureVisibleSandboxStudentsForTutor(tutorId, Math.max(3, cleanupResult.detachedCount || 0));
+          try {
+            await ensureVisibleSandboxStudentsForTutor(tutorId, Math.max(3, cleanupResult.detachedCount || 0));
+          } catch (error) {
+            console.error("Sandbox recovery pass failed while loading tutor pod:", error);
+          }
           students = await hydrateStudentsWithSessionProgress(tutorId, await storage.getStudentsByTutor(tutorId));
         }
         const studentsById = new Map(
@@ -10287,7 +10372,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           null;
 
         if ((alignmentSummary?.mode || assignment.operationalMode) === "sandbox") {
-          await ensureVisibleSandboxStudentsForTutor(tutorId, 3);
+          try {
+            await ensureVisibleSandboxStudentsForTutor(tutorId, 3);
+          } catch (error) {
+            console.error("Sandbox provisioning/backfill failed while loading tutor alignment summary:", error);
+          }
         }
 
         res.json({
