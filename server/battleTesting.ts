@@ -984,12 +984,20 @@ export async function buildPodBattleTestingSummary(
           .reduce((latest, current) => Math.max(latest, current), 0)
       : null;
     const derivedSummary = deriveTutorSummaryFromPhaseScores(phaseScores, derivedHasCriticalFail);
-    const derivedMode = deriveTutorTrainingMode(moduleProgress, deepDiveProgress, derivedSummary.state || latestRun?.state || null);
-    const persistedModuleProgress = statusByAssignmentId.get(meta.assignmentId)?.module_progress;
+    const persistedStatus = statusByAssignmentId.get(meta.assignmentId);
+    const persistedModuleProgress = persistedStatus?.module_progress;
     const effectiveModuleProgress =
       Array.isArray(persistedModuleProgress) && persistedModuleProgress.length > 0
         ? chooseMoreCompleteModuleProgress(moduleProgress, persistedModuleProgress)
         : moduleProgress;
+    const derivedMode =
+      persistedStatus?.mode ||
+      deriveTutorTrainingMode(
+        effectiveModuleProgress,
+        deepDiveProgressByAssignmentId.get(meta.assignmentId) || deepDiveProgress,
+        derivedSummary.state || latestRun?.state || null,
+        true
+      );
     const tutorSummary: BattleTestingTutorSummary = {
       assignmentId: meta.assignmentId,
       tutorId: meta.tutorId,
@@ -1009,9 +1017,9 @@ export async function buildPodBattleTestingSummary(
       mode: derivedMode,
       moduleProgress: effectiveModuleProgress,
       deepDiveProgress: deepDiveProgressByAssignmentId.get(meta.assignmentId) || deepDiveProgress,
-      nextBattleTests: statusByAssignmentId.get(meta.assignmentId)?.next_battle_tests || buildTutorNextBattleTests(deepDiveProgress),
-      certificationRecoveryNote: statusByAssignmentId.get(meta.assignmentId)?.certification_recovery_note || null,
-      recoveryRequiredUntil: statusByAssignmentId.get(meta.assignmentId)?.recovery_required_until || null,
+      nextBattleTests: persistedStatus?.next_battle_tests || buildTutorNextBattleTests(deepDiveProgress),
+      certificationRecoveryNote: persistedStatus?.certification_recovery_note || null,
+      recoveryRequiredUntil: persistedStatus?.recovery_required_until || null,
     };
     if (tutorSummary.state === "locked") summary.lockedTutors += 1;
     if (tutorSummary.state === "watchlist") summary.watchlistTutors += 1;

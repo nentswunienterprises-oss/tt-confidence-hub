@@ -307,6 +307,10 @@ export default function ParentGateway() {
     return parentCode || proposal?.parentCode || null;
   }, [parentCode, proposal?.parentCode]);
 
+  const isReassignmentAwaitingAssignment =
+    enrollmentStatus?.status === "awaiting_assignment" &&
+    String(enrollmentStatus?.step || "").startsWith("reassignment_resume:");
+
   const studentCodeDismissKey = useMemo(() => {
     if (!user?.id) return null;
     return `parent-gateway-hide-student-code:${user.id}`;
@@ -1387,7 +1391,8 @@ export default function ParentGateway() {
             <CardHeader className="p-3 sm:p-6">
               <CardTitle className="flex items-center justify-center gap-2 text-sm sm:text-lg" style={{ color: "#1A1A1A" }}>
                 <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: "#E63946" }} />
-                {enrollmentStatus.status === "awaiting_assignment" && "Application Being Assessed"}
+                {enrollmentStatus.status === "awaiting_assignment" &&
+                  (isReassignmentAwaitingAssignment ? "Tutor Reassignment In Progress" : "Application Being Assessed")}
                 {enrollmentStatus.status === "assigned" && (isHandoverFlow ? "Tutor Reassignment In Progress" : "Your tutor has been assigned")}
                 {enrollmentStatus.status === "proposal_sent" && "Training Proposal Ready"}
                 {enrollmentStatus.status === "session_booked" && (isHandoverFlow ? "Continuity Check Scheduled" : "Proposal Accepted")}
@@ -1406,21 +1411,43 @@ export default function ParentGateway() {
               )}
               {enrollmentStatus.status === "awaiting_assignment" && (
                 <>
-                  <p className="text-muted-foreground">
-                    Application received. We're assessing fit.
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    We match each student with the right tutor. Due to high demand and our commitment to fit, acceptance is not guaranteed.
-                  </p>
-                  <div className="bg-muted/30 rounded-lg p-4 text-left">
-                    <p className="text-sm font-medium mb-2">What happens next:</p>
-                    <ul className="text-sm text-muted-foreground space-y-1 ml-4 list-disc">
-                      <li>We assess your application</li>
-                      <li>If accepted, we assign a tutor</li>
-                      <li>You receive a training proposal</li>
-                      <li>Review it. Accept or decline.</li>
-                    </ul>
-                  </div>
+                  {isReassignmentAwaitingAssignment ? (
+                    <>
+                      <p className="text-muted-foreground">
+                        Your previous tutor is no longer eligible for live parent assignments, so TT is moving your child to a live-qualified tutor.
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Your existing training history is being preserved. This is a tutor reassignment, not a fresh application review.
+                      </p>
+                      <div className="bg-muted/30 rounded-lg p-4 text-left">
+                        <p className="text-sm font-medium mb-2">What happens next:</p>
+                        <ul className="text-sm text-muted-foreground space-y-1 ml-4 list-disc">
+                          <li>TT assigns a new live-qualified tutor</li>
+                          <li>Your new tutor accepts the reassignment</li>
+                          <li>A continuity check is run to confirm the restart point</li>
+                          <li>Training resumes from the strongest verified position</li>
+                        </ul>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-muted-foreground">
+                        Application received. We're assessing fit.
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        We match each student with the right tutor. Due to high demand and our commitment to fit, acceptance is not guaranteed.
+                      </p>
+                      <div className="bg-muted/30 rounded-lg p-4 text-left">
+                        <p className="text-sm font-medium mb-2">What happens next:</p>
+                        <ul className="text-sm text-muted-foreground space-y-1 ml-4 list-disc">
+                          <li>We assess your application</li>
+                          <li>If accepted, we assign a tutor</li>
+                          <li>You receive a training proposal</li>
+                          <li>Review it. Accept or decline.</li>
+                        </ul>
+                      </div>
+                    </>
+                  )}
                 </>
               )}
               {(enrollmentStatus.status === "assigned" || isHandoverFlow) && (
