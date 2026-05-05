@@ -583,6 +583,69 @@ function deriveTutorTrainingMode(
   return "training";
 }
 
+export function deriveTutorAuditStateFromProgress(
+  deepDiveProgress: TutorBattleTestDeepDiveProgress[],
+  fallback: BattleTestState | null
+): BattleTestState | null {
+  const testedDeepDiveProgress = deepDiveProgress.filter((entry) => entry.attemptsCount > 0);
+  if (!testedDeepDiveProgress.length) {
+    return fallback;
+  }
+
+  if (
+    testedDeepDiveProgress.some(
+      (entry) => entry.criticalFlag || entry.currentHealthState === "drift" || (entry.latestScore != null && entry.latestScore < 90)
+    )
+  ) {
+    return "fail";
+  }
+
+  if (
+    testedDeepDiveProgress.some(
+      (entry) =>
+        entry.currentHealthState === "watchlist" ||
+        (entry.latestScore != null && entry.latestScore >= 90 && entry.latestScore < 96)
+    )
+  ) {
+    return "watchlist";
+  }
+
+  return "locked";
+}
+
+export function reconcileTutorTrainingMode({
+  persistedMode,
+  moduleProgress,
+  deepDiveProgress,
+  currentState,
+  docsComplete,
+}: {
+  persistedMode?: TutorTrainingMode | "suspended" | null;
+  moduleProgress: TutorBattleTestModuleProgress[];
+  deepDiveProgress: TutorBattleTestDeepDiveProgress[];
+  currentState: BattleTestState | null;
+  docsComplete: boolean;
+}): TutorTrainingMode {
+  const computedMode = deriveTutorTrainingMode(moduleProgress, deepDiveProgress, currentState, docsComplete);
+
+  if (!persistedMode) {
+    return computedMode;
+  }
+
+  if (persistedMode === "applicant" && docsComplete) {
+    return computedMode;
+  }
+
+  if (
+    (persistedMode === "watchlist" || persistedMode === "training") &&
+    (computedMode === "sandbox" || computedMode === "certified_live")
+  ) {
+    return computedMode;
+  }
+
+  return persistedMode === "suspended" ? "suspended" : persistedMode;
+}
+
 function buildTutorNextBattleTests(
   deepDiveProgress: TutorBattleTestDeepDiveProgress[],
   limit = 3
@@ -991,14 +1054,18 @@ export async function buildPodBattleTestingSummary(
       Array.isArray(persistedModuleProgress) && persistedModuleProgress.length > 0
         ? chooseMoreCompleteModuleProgress(moduleProgress, persistedModuleProgress)
         : moduleProgress;
-    const derivedMode =
-      persistedStatus?.mode ||
-      deriveTutorTrainingMode(
-        effectiveModuleProgress,
-        deepDiveProgressByAssignmentId.get(meta.assignmentId) || deepDiveProgress,
-        derivedSummary.state || latestRun?.state || null,
-        true
-      );
+    const effectiveDeepDiveProgress = deepDiveProgressByAssignmentId.get(meta.assignmentId) || deepDiveProgress;
+    const effectiveState = deriveTutorAuditStateFromProgress(
+      effectiveDeepDiveProgress,
+      derivedSummary.state || latestRun?.state || null
+    );
+    const derivedMode = reconcileTutorTrainingMode({
+      persistedMode: persistedStatus?.mode,
+      moduleProgress: effectiveModuleProgress,
+      deepDiveProgress: effectiveDeepDiveProgress,
+      currentState: effectiveState,
+      docsComplete: persistedStatus?.mode !== "applicant",
+    });
     const tutorSummary: BattleTestingTutorSummary = {
       assignmentId: meta.assignmentId,
       tutorId: meta.tutorId,
@@ -1006,18 +1073,18 @@ export async function buildPodBattleTestingSummary(
       tutorEmail: meta.tutorEmail,
       studentCount: meta.studentCount,
       alignmentPercent: derivedSummary.alignmentPercent ?? (latestRun ? roundValue(latestRun.alignment_percent) : null),
-      state: derivedSummary.state || latestRun?.state || null,
+      state: effectiveState,
       hasCriticalFail: derivedSummary.hasCriticalFail,
       actionRequired: getTutorCertificationActionRequired(
         derivedMode,
-        deepDiveProgressByAssignmentId.get(meta.assignmentId) || deepDiveProgress,
+        effectiveDeepDiveProgress,
         derivedSummary.actionRequired || latestRun?.action_required || null
       ),
       lastAuditAt: derivedLastAuditAt ? new Date(derivedLastAuditAt).toISOString() : latestRun?.completed_at || null,
       phaseScores,
       mode: derivedMode,
       moduleProgress: effectiveModuleProgress,
-      deepDiveProgress: deepDiveProgressByAssignmentId.get(meta.assignmentId) || deepDiveProgress,
+      deepDiveProgress: effectiveDeepDiveProgress,
       nextBattleTests: persistedStatus?.next_battle_tests || buildTutorNextBattleTests(deepDiveProgress),
       certificationRecoveryNote: persistedStatus?.certification_recovery_note || null,
       recoveryRequiredUntil: persistedStatus?.recovery_required_until || null,
