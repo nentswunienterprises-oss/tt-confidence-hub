@@ -555,13 +555,14 @@ function deriveTutorTrainingMode(
     return "applicant";
   }
 
+  const testedDeepDiveProgress = deepDiveProgress.filter((entry) => entry.attemptsCount > 0);
   const transformationComplete = moduleProgress.find((entry) => entry.moduleKey === "transformation_phases")?.completed || false;
   const sessionComplete = moduleProgress.find((entry) => entry.moduleKey === "session_infrastructure")?.completed || false;
   const fullyCertified = transformationComplete && sessionComplete;
-  const hasSuspensionTrigger = deepDiveProgress.some(
+  const hasSuspensionTrigger = testedDeepDiveProgress.some(
     (entry) => entry.consecutiveDriftCount >= SUSPENSION_DRIFT_THRESHOLD
   );
-  const hasRetrainingTrigger = deepDiveProgress.some(
+  const hasRetrainingTrigger = testedDeepDiveProgress.some(
     (entry) => entry.consecutiveDriftCount >= LIVE_RESTRICTION_DRIFT_THRESHOLD
   );
 
@@ -573,7 +574,7 @@ function deriveTutorTrainingMode(
     return "training";
   }
 
-  if (deepDiveProgress.some((entry) => entry.currentHealthState === "drift" || entry.criticalFlag) || currentState === "fail") {
+  if (testedDeepDiveProgress.some((entry) => entry.currentHealthState === "drift" || entry.criticalFlag) || currentState === "fail") {
     return "watchlist";
   }
 
@@ -691,7 +692,7 @@ function deriveTutorSummaryFromPhaseScores(
   let state: BattleTestState;
   if (hasCriticalFail || anyPhaseFailed || alignmentPercent < 90) {
     state = "fail";
-  } else if (isIncomplete || anyPhaseWatchlist || alignmentPercent < 95) {
+  } else if (anyPhaseWatchlist || alignmentPercent < 95) {
     state = "watchlist";
   } else {
     state = "locked";
