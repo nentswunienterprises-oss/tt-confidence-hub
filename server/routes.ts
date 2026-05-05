@@ -474,51 +474,58 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
       });
     }
 
-    let { data: sandboxEnrollment, error: sandboxEnrollmentError } = await supabase
-      .from("parent_enrollments")
-      .insert({
-        user_id: fakeParentId,
-        parent_full_name: fakeParentName,
-        parent_email: fakeParentEmail,
-        student_full_name: fakeStudentName,
-        student_grade: source?.student_grade || ["8", "9", "10", "11", "12"][offset % 5],
-        school_name: source?.school_name || "Sandbox School",
-        math_struggle_areas: source?.math_struggle_areas || "algebra, fractions, word problems",
-        previous_tutoring: source?.previous_tutoring || "Some tutoring before",
-        internet_access: source?.internet_access || "Yes",
-        parent_motivation: source?.parent_motivation || "Sandbox training account for tutor certification",
-        status: "awaiting_tutor_acceptance",
-        assigned_tutor_id: tutorId,
-        is_sandbox_account: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .select("*")
-      .single();
+    const sandboxEnrollmentBase = {
+      user_id: fakeParentId,
+      parent_full_name: fakeParentName,
+      parent_phone: "Sandbox Parent",
+      parent_email: fakeParentEmail,
+      parent_city: "Sandbox City",
+      student_full_name: fakeStudentName,
+      student_grade: source?.student_grade || ["8", "9", "10", "11", "12"][offset % 5],
+      school_name: source?.school_name || "Sandbox School",
+      math_struggle_areas: source?.math_struggle_areas || "algebra, fractions, word problems",
+      previous_tutoring: source?.previous_tutoring || "Some tutoring before",
+      internet_access: source?.internet_access || "Yes",
+      parent_motivation: source?.parent_motivation || "Sandbox training account for tutor certification",
+      assigned_tutor_id: tutorId,
+      status: "assigned",
+      current_step: "sandbox-assigned",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
 
-    if (sandboxEnrollmentError && isMissingSandboxAccountColumnError(sandboxEnrollmentError)) {
-      const fallback = await supabase
+    const sandboxEnrollmentPayloads = [
+      { ...sandboxEnrollmentBase, is_sandbox_account: true },
+      { ...sandboxEnrollmentBase, is_sandbox_account: true, confidence_level: "medium" },
+      { ...sandboxEnrollmentBase },
+      { ...sandboxEnrollmentBase, confidence_level: "medium" },
+    ];
+
+    let sandboxEnrollment: any = null;
+    let sandboxEnrollmentError: any = null;
+    for (const payload of sandboxEnrollmentPayloads) {
+      const attempt = await supabase
         .from("parent_enrollments")
-        .insert({
-          user_id: fakeParentId,
-          parent_full_name: fakeParentName,
-          parent_email: fakeParentEmail,
-          student_full_name: fakeStudentName,
-          student_grade: source?.student_grade || ["8", "9", "10", "11", "12"][offset % 5],
-          school_name: source?.school_name || "Sandbox School",
-          math_struggle_areas: source?.math_struggle_areas || "algebra, fractions, word problems",
-          previous_tutoring: source?.previous_tutoring || "Some tutoring before",
-          internet_access: source?.internet_access || "Yes",
-          parent_motivation: source?.parent_motivation || "Sandbox training account for tutor certification",
-          status: "awaiting_tutor_acceptance",
-          assigned_tutor_id: tutorId,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
+        .insert(payload)
         .select("*")
         .single();
-      sandboxEnrollment = fallback.data;
-      sandboxEnrollmentError = fallback.error;
+
+      if (!attempt.error && attempt.data) {
+        sandboxEnrollment = attempt.data;
+        sandboxEnrollmentError = null;
+        break;
+      }
+
+      sandboxEnrollmentError = attempt.error;
+      const message = String(attempt.error?.message || "").toLowerCase();
+      const expectedCompatibilityError =
+        message.includes("is_sandbox_account") ||
+        message.includes("confidence_level") ||
+        message.includes("current_step");
+
+      if (!expectedCompatibilityError) {
+        break;
+      }
     }
 
     if (sandboxEnrollmentError || !sandboxEnrollment) {
