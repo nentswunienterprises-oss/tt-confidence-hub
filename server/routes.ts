@@ -400,6 +400,7 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
     parentEmail: string;
     studentName: string;
     sourceEnrollmentId: string | null;
+    authProvisioned?: boolean;
   }> = [];
 
   for (let offset = 0; offset < minimumCount - existingSandboxCount; offset++) {
@@ -426,14 +427,40 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
       },
     });
 
-    if (parentError || !parentUser?.user?.id) {
-      throw new Error(`Failed to create sandbox parent user: ${parentError?.message || "missing user id"}`);
+    let fakeParentId = String(parentUser?.user?.id || "").trim();
+    let authProvisioned = !!fakeParentId;
+
+    if (!fakeParentId) {
+      fakeParentId = uuidv4();
+      try {
+        await storage.upsertUser({
+          id: fakeParentId,
+          email: fakeParentEmail,
+          firstName: fakeParentName,
+          lastName: "",
+          role: "parent",
+        });
+      } catch (fallbackError) {
+        throw new Error(
+          `Failed to create sandbox parent user: ${parentError?.message || "missing user id"}; fallback failed: ${
+            fallbackError instanceof Error ? fallbackError.message : String(fallbackError)
+          }`
+        );
+      }
+    } else {
+      await storage.upsertUser({
+        id: fakeParentId,
+        email: fakeParentEmail,
+        firstName: fakeParentName,
+        lastName: "",
+        role: "parent",
+      });
     }
 
     let { data: sandboxEnrollment, error: sandboxEnrollmentError } = await supabase
       .from("parent_enrollments")
       .insert({
-        user_id: parentUser.user.id,
+        user_id: fakeParentId,
         parent_full_name: fakeParentName,
         parent_email: fakeParentEmail,
         student_full_name: fakeStudentName,
@@ -456,7 +483,7 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
       const fallback = await supabase
         .from("parent_enrollments")
         .insert({
-          user_id: parentUser.user.id,
+          user_id: fakeParentId,
           parent_full_name: fakeParentName,
           parent_email: fakeParentEmail,
           student_full_name: fakeStudentName,
@@ -484,11 +511,12 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
     await ensureStudentForEnrollment(sandboxEnrollment, tutorId);
 
     createdAccounts.push({
-      parentId: parentUser.user.id,
+      parentId: fakeParentId,
       enrollmentId: sandboxEnrollment.id,
       parentEmail: fakeParentEmail,
       studentName: sandboxEnrollment.student_full_name,
       sourceEnrollmentId: source?.id ? String(source.id) : null,
+      authProvisioned,
     });
   }
 
