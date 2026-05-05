@@ -5990,6 +5990,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           students = await hydrateStudentsWithSessionProgress(tutorId, await storage.getStudentsByTutor(tutorId));
         }
+        if (certificationMode === "sandbox") {
+          const sandboxEnrollmentIds = new Set(
+            (refreshedAssignedEnrollments || []).map((enrollment: any) => String(enrollment?.id || "").trim()).filter(Boolean)
+          );
+          students = students.filter((student: any) => {
+            const parentEnrollmentId = String(
+              (student as any)?.parentEnrollmentId || (student as any)?.parent_enrollment_id || ""
+            ).trim();
+            const parentContact = String((student as any)?.parentContact || (student as any)?.parent_contact || "").trim().toLowerCase();
+            const studentName = String(student?.name || "").trim().toLowerCase();
+
+            if (parentEnrollmentId && sandboxEnrollmentIds.has(parentEnrollmentId)) {
+              return true;
+            }
+
+            return (
+              parentContact.startsWith(`sandbox-parent-${String(tutorId).trim().toLowerCase()}-`) ||
+              studentName.startsWith("sandbox ")
+            );
+          });
+        }
         const studentsById = new Map(
           students
             .filter((student: any) => !!student?.id)
@@ -6027,7 +6048,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return arr.findIndex((candidate) => String(candidate.student.id || "") === studentId) === index;
           });
 
-        if (canonicalStudents.length === 0 && students.length > 0) {
+        if (certificationMode !== "sandbox" && canonicalStudents.length === 0 && students.length > 0) {
           const unmatchedEnrollments = [...(refreshedAssignedEnrollments || [])];
           canonicalStudents = students.map((student: any) => {
             const explicitEnrollmentId = String(
