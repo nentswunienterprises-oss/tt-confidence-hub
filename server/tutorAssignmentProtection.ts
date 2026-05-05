@@ -183,12 +183,34 @@ export async function cleanupLegacyLiveEnrollmentsForNonLiveTutor(
     return { detachedCount: 0, detachedEnrollments: [] as any[] };
   }
 
-  const { data: liveEnrollments, error: liveEnrollmentsError } = await supabase
+  let { data: liveEnrollments, error: liveEnrollmentsError } = await supabase
     .from("parent_enrollments")
     .select("id, user_id, student_full_name, assigned_tutor_id, assigned_student_id, status, proposal_id, current_step, is_sandbox_account, parent_full_name, parent_email, student_grade, school_name, math_struggle_areas, previous_tutoring, internet_access, parent_motivation")
     .eq("assigned_tutor_id", tutorId)
     .eq("is_sandbox_account", false)
     .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES]);
+
+  if (liveEnrollmentsError) {
+    const message = String((liveEnrollmentsError as any)?.message || "").toLowerCase();
+    const missingOptionalColumn =
+      message.includes("assigned_student_id") ||
+      message.includes("current_step") ||
+      message.includes("proposal_id") ||
+      message.includes("is_sandbox_account");
+
+    if (missingOptionalColumn) {
+      const fallback = await supabase
+        .from("parent_enrollments")
+        .select("id, user_id, student_full_name, assigned_tutor_id, status, parent_full_name, parent_email, student_grade, school_name, math_struggle_areas, previous_tutoring, internet_access, parent_motivation")
+        .eq("assigned_tutor_id", tutorId)
+        .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES]);
+
+      liveEnrollments = (fallback.data || []).filter(
+        (enrollment: any) => !Boolean(enrollment?.is_sandbox_account)
+      );
+      liveEnrollmentsError = fallback.error as any;
+    }
+  }
 
   if (liveEnrollmentsError) {
     throw new Error(`Failed to load live enrollments for tutor cleanup: ${liveEnrollmentsError.message}`);
