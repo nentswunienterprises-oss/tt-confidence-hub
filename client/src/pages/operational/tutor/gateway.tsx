@@ -184,7 +184,9 @@ export default function TutorGateway() {
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 relative flex items-center justify-between">
           <div className="w-10 md:hidden" aria-hidden="true" />
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 sm:static sm:transform-none w-full sm:w-auto flex justify-center">
-            <TTLogo size="md" variant="integrity" />
+            <span style={{ transform: "scale(1.08)", transformOrigin: "center" }}>
+              <TTLogo size="md" variant="integrity" />
+            </span>
           </div>
 
           <div className="hidden md:block">
