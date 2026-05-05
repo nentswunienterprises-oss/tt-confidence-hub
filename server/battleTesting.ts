@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { supabase } from "./storage";
 import { TUTOR_BATTLE_TEST_PHASES_EXACT } from "./battleTestingBanks";
+import { cleanupLegacyLiveEnrollmentsForNonLiveTutor } from "./tutorAssignmentProtection";
 import {
   BATTLE_TEST_SCORE_POINTS,
   TUTOR_BATTLE_TEST_PHASE_ORDER,
@@ -391,15 +392,6 @@ async function syncTutorCertificationState(
     }
   }
 
-  const { error: deleteStatusError } = await supabase
-    .from("tutor_battle_test_statuses")
-    .delete()
-    .eq("tutor_assignment_id", tutorAssignmentId);
-  if (deleteStatusError) {
-    throw new Error(`Failed to reset tutor certification status: ${deleteStatusError.message}`);
-  }
-
-  // Check if this is a recovery scenario (moving back to training from certified_live)
   let recoveryNote: string | null = null;
   let recoveryRequiredUntil: string | null = null;
 
@@ -415,6 +407,14 @@ async function syncTutorCertificationState(
     const driftTriggers = deepDiveProgress.filter(entry => entry.consecutiveDriftCount >= LIVE_RESTRICTION_DRIFT_THRESHOLD);
     recoveryNote = `Moved back to training due to drift in: ${driftTriggers.map(d => d.title).join(", ")}. Must pass all deep dives 3x consecutively to recertify.`;
     recoveryRequiredUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(); // 30 days
+  }
+
+  const { error: deleteStatusError } = await supabase
+    .from("tutor_battle_test_statuses")
+    .delete()
+    .eq("tutor_assignment_id", tutorAssignmentId);
+  if (deleteStatusError) {
+    throw new Error(`Failed to reset tutor certification status: ${deleteStatusError.message}`);
   }
 
   const { error: insertStatusError } = await supabase.from("tutor_battle_test_statuses").insert({
@@ -440,6 +440,8 @@ async function syncTutorCertificationState(
   if (assignmentModeError) {
     throw new Error(`Failed to sync tutor assignment operational mode: ${assignmentModeError.message}`);
   }
+
+  await cleanupLegacyLiveEnrollmentsForNonLiveTutor(tutorId, mode);
 }
 
 async function loadTutorCertificationSnapshots(assignmentIds: string[]) {
@@ -528,6 +530,18 @@ function buildTutorModuleProgress(deepDiveProgress: TutorBattleTestDeepDiveProgr
       completed: completedCount === module.phaseKeys.length,
     };
   });
+}
+
+function chooseMoreCompleteModuleProgress(
+  computedModuleProgress: TutorBattleTestModuleProgress[],
+  persistedModuleProgress: TutorBattleTestModuleProgress[]
+): TutorBattleTestModuleProgress[] {
+  const persistedByKey = new Map(persistedModuleProgress.map((entry) => [entry.moduleKey, entry] as const));
+  const computedWins = computedModuleProgress.some((computed) => {
+    const persisted = persistedByKey.get(computed.moduleKey);
+    return persisted == null || computed.completedCount > persisted.completedCount;
+  });
+  return computedWins ? computedModuleProgress : persistedModuleProgress;
 }
 
 function deriveTutorTrainingMode(
@@ -970,9 +984,12 @@ export async function buildPodBattleTestingSummary(
           .reduce((latest, current) => Math.max(latest, current), 0)
       : null;
     const derivedSummary = deriveTutorSummaryFromPhaseScores(phaseScores, derivedHasCriticalFail);
-    const derivedMode =
-      (statusByAssignmentId.get(meta.assignmentId)?.mode as TutorTrainingMode | undefined) ||
-      deriveTutorTrainingMode(moduleProgress, deepDiveProgress, derivedSummary.state || latestRun?.state || null);
+    const derivedMode = deriveTutorTrainingMode(moduleProgress, deepDiveProgress, derivedSummary.state || latestRun?.state || null);
+    const persistedModuleProgress = statusByAssignmentId.get(meta.assignmentId)?.module_progress;
+    const effectiveModuleProgress =
+      Array.isArray(persistedModuleProgress) && persistedModuleProgress.length > 0
+        ? chooseMoreCompleteModuleProgress(moduleProgress, persistedModuleProgress)
+        : moduleProgress;
     const tutorSummary: BattleTestingTutorSummary = {
       assignmentId: meta.assignmentId,
       tutorId: meta.tutorId,
@@ -990,7 +1007,7 @@ export async function buildPodBattleTestingSummary(
       lastAuditAt: derivedLastAuditAt ? new Date(derivedLastAuditAt).toISOString() : latestRun?.completed_at || null,
       phaseScores,
       mode: derivedMode,
-      moduleProgress: statusByAssignmentId.get(meta.assignmentId)?.module_progress || moduleProgress,
+      moduleProgress: effectiveModuleProgress,
       deepDiveProgress: deepDiveProgressByAssignmentId.get(meta.assignmentId) || deepDiveProgress,
       nextBattleTests: statusByAssignmentId.get(meta.assignmentId)?.next_battle_tests || buildTutorNextBattleTests(deepDiveProgress),
       certificationRecoveryNote: statusByAssignmentId.get(meta.assignmentId)?.certification_recovery_note || null,

@@ -57,6 +57,7 @@ interface ActiveTutorRunContext {
   assignmentId: string;
   tutorId: string;
   tutorName: string;
+  autoSelectedPhases: string[];
 }
 
 interface ActiveTutorHistoryContext {
@@ -225,10 +226,13 @@ export default function TDOverview() {
     }
   }, [error, toast]);
 
-  const activePhaseOptions = useMemo<BattleTestPhaseDefinition[]>(
-    () => (tutorBattleTestPhases.length ? tutorBattleTestPhases : TUTOR_BATTLE_TEST_PHASES),
-    [tutorBattleTestPhases]
-  );
+  const activePhaseOptions = useMemo<BattleTestPhaseDefinition[]>(() => {
+    if (!tutorBattleTestPhases.length) return TUTOR_BATTLE_TEST_PHASES;
+    if (tutorBattleTestPhases.some((phase) => !phase.questions?.length)) {
+      return TUTOR_BATTLE_TEST_PHASES;
+    }
+    return tutorBattleTestPhases;
+  }, [tutorBattleTestPhases]);
   const groupedTutorPhaseOptions = useMemo(() => {
     const groups: Record<TutorAuditGroupKey, BattleTestPhaseDefinition[]> = {
       transformation_phases: [],
@@ -864,15 +868,21 @@ export default function TDOverview() {
                                                 </Button>
                                                 <Button
                                                   size="sm"
-                                                  onClick={() =>
+                                                  onClick={() => {
+                                                    const tutorAudit = battleTestingSummary?.tutorSummaries.find(
+                                                      (audit) =>
+                                                        audit.assignmentId === tutor.assignment.id ||
+                                                        audit.tutorId === tutor.id
+                                                    );
                                                     setActiveTutorRun({
                                                       podId: pod.id,
                                                       podName: pod.podName,
                                                       assignmentId: tutor.assignment.id,
                                                       tutorId: tutor.id,
                                                       tutorName,
-                                                    })
-                                                  }
+                                                      autoSelectedPhases: tutorAudit?.nextBattleTests?.map((test) => test.phaseKey) || [],
+                                                    });
+                                                  }}
                                                 >
                                                   Run Tutor Audit
                                                 </Button>
@@ -956,10 +966,12 @@ export default function TDOverview() {
         }
         description={
           activeTutorRun
-            ? `Run the TT Tutor Alignment Engine for ${activeTutorRun.tutorName} inside ${activeTutorRun.podName}.`
+            ? `Run the TT Tutor Alignment Engine for ${activeTutorRun.tutorName} inside ${activeTutorRun.podName}. The system has auto-selected the highest priority deep dives for this session.`
             : "Run the TT Tutor Alignment Engine."
         }
         phaseOptions={activePhaseOptions}
+        preSelectedPhaseKeys={activeTutorRun?.autoSelectedPhases?.length === 1 ? activeTutorRun.autoSelectedPhases : []}
+        selectionMode={activeTutorRun?.autoSelectedPhases?.length === 1 ? "fixed" : "multiple"}
         submitLabel="Save Tutor Battle Test"
         onSubmit={async ({ selectedPhases, responses }) => {
           if (!activeTutorRun) return;

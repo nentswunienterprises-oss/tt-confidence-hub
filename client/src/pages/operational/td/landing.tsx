@@ -225,7 +225,7 @@ export default function TdLanding() {
 
       <footer className="border-t border-black/5 py-8">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:px-6 md:flex-row md:px-12">
-          <TTLogo size="md" />
+          <TTLogo size="md" variant="integrity" />
           <p className="text-center text-xs text-[#5A5A5A] md:text-right">
             © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
             <br />

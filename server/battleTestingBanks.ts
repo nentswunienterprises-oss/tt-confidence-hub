@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "fs";
 import { resolve } from "path";
-import type { BattleTestPhaseDefinition, BattleTestQuestionDefinition } from "@shared/battleTesting";
+import { TUTOR_BATTLE_TEST_PHASES, type BattleTestPhaseDefinition, type BattleTestQuestionDefinition } from "@shared/battleTesting";
 
 type ParsedQuestion = BattleTestQuestionDefinition & { sourceLabel: string };
 
@@ -342,6 +342,10 @@ export const TUTOR_BATTLE_TEST_PHASES_EXACT: BattleTestPhaseDefinition[] = TUTOR
   ];
 });
 
+export const TUTOR_BATTLE_TEST_PHASES_SAFE: BattleTestPhaseDefinition[] = TUTOR_BATTLE_TEST_PHASES_EXACT.map((exactPhase) =>
+  exactPhase.questions.length ? exactPhase : TUTOR_BATTLE_TEST_PHASES.find((fallbackPhase) => fallbackPhase.key === exactPhase.key) || exactPhase
+);
+
 export const TD_BATTLE_TEST_PHASE_EXACT: BattleTestPhaseDefinition = TD_SOURCE_FILE.path
   ? parseBattleTestDocument(
       TD_SOURCE_FILE.key,
@@ -358,6 +362,12 @@ export const TD_BATTLE_TEST_PHASE_EXACT: BattleTestPhaseDefinition = TD_SOURCE_F
 
 export function getTutorBattleTestPhaseDefinitionsExact(phaseKeys: string[]) {
   return phaseKeys
-    .map((phaseKey) => TUTOR_BATTLE_TEST_PHASES_EXACT.find((phase) => phase.key === phaseKey) || null)
+    .map((phaseKey) => {
+      const exactPhase = TUTOR_BATTLE_TEST_PHASES_EXACT.find((phase) => phase.key === phaseKey) || null;
+      if (exactPhase && exactPhase.questions.length) {
+        return exactPhase;
+      }
+      return TUTOR_BATTLE_TEST_PHASES.find((phase) => phase.key === phaseKey) || null;
+    })
     .filter((phase): phase is BattleTestPhaseDefinition => Boolean(phase));
 }

@@ -148,7 +148,7 @@ Eligible for assignments
 6. WEEKLY BATTLE TEST ENGINE
 Purpose
 
-System selects 2–3 deep dives per live audit session.
+System auto-generates 2–3 deep dives per live audit session.
 
 TD runs session. No manual topic choosing.
 
@@ -171,6 +171,18 @@ Tutor A:
 2. Logging System
 3. Controlled Discomfort
 
+TD Audit Session Flow
+
+When TD presses "Run Tutor Audit":
+
+System auto-loads the pre-selected deep dives for that tutor.
+
+TD runs through each deep dive in sequence.
+
+No navigation or selection required - just execution.
+
+Like tutor drill sessions: prepare what the audit requires, then run.
+
 After Each Deep Dive
 
 System updates:
@@ -182,7 +194,9 @@ completion if earned
 
 Battle Test Selection Engine (the brain)
 
-Each live check should auto-select 2–3 deep dives using priority scoring.
+Each live check MUST auto-select 2–3 deep dives using priority scoring.
+
+NO MANUAL SELECTION BY TD.
 
 Priority Order
 1. Uncertified + Highest Need

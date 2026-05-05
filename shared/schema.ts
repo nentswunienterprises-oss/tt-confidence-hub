@@ -78,6 +78,7 @@ export const battleTestSubjectEnum = pgEnum("battle_test_subject", ["tutor", "td
 export const battleTestScoreEnum = pgEnum("battle_test_score", ["clear", "partial", "fail"]);
 export const battleTestStateEnum = pgEnum("battle_test_state", ["locked", "watchlist", "fail"]);
 export const tutorCertificationModeEnum = pgEnum("tutor_certification_mode", [
+  "applicant",
   "training",
   "sandbox",
   "certified_live",

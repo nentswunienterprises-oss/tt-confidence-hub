@@ -10,7 +10,7 @@ export type BattleTestSubjectType = "tutor" | "td";
 export type TutorBattleTestModuleKey = "transformation_phases" | "session_infrastructure";
 export type TutorBattleTestHistoricalState = "in_progress" | "completed";
 export type TutorBattleTestHealthState = "locked" | "watchlist" | "drift";
-export type TutorTrainingMode = "training" | "sandbox" | "certified_live" | "watchlist" | "suspended";
+export type TutorTrainingMode = "applicant" | "training" | "sandbox" | "certified_live" | "watchlist" | "suspended";
 export type TutorBattleTestPhaseKey =
   | "clarity"
   | "structured_execution"
@@ -820,6 +820,176 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
         expectedAnswer: "To identify where the student's response breaks in an arena and condition it until it becomes stable.",
         failIndicators: ["help students understand math", "improve marks", "teach topics"],
         autoCriticalOnFail: true,
+      },
+    ],
+  },
+  {
+    key: "intro_session_structure",
+    title: "Intro Session Structure",
+    description: "Can the tutor structure intro sessions to establish baseline clarity and prevent false starts?",
+    questions: [
+      {
+        key: "intro_session_q1",
+        section: "Core Understanding",
+        prompt: "What is the purpose of the intro session structure in TT?",
+        expectedAnswer: "To establish baseline clarity before any training begins, preventing false starts and wasted time on unstable foundation.",
+        failIndicators: ["to build confidence", "to warm up the student", "to get them comfortable"],
+      },
+      {
+        key: "intro_session_q2",
+        section: "Core Understanding",
+        prompt: "Why must clarity be verified before moving to structured execution in intro?",
+        expectedAnswer: "Because incomplete clarity at baseline means all subsequent training will be built on instability.",
+        failIndicators: ["to save time", "students improve quickly anyway"],
+      },
+      {
+        key: "intro_session_q3",
+        section: "Application",
+        prompt: "In an intro session, the student recognizes problems but hesitates to execute independently. What is happening?",
+        expectedAnswer: "Clarity is established but structured execution is not yet ready. Hold on execution drills.",
+        failIndicators: ["they need confidence", "they're ready for harder problems"],
+      },
+    ],
+  },
+  {
+    key: "logging_system",
+    title: "Logging System",
+    description: "Can the tutor maintain accurate session logs and use them to drive training decisions?",
+    questions: [
+      {
+        key: "logging_q1",
+        section: "Core Understanding",
+        prompt: "What is the purpose of logging in TT?",
+        expectedAnswer: "To create an objective record of student performance that drives training decisions and prevents tutor drift.",
+        failIndicators: ["to track attendance", "to show progress to parents"],
+      },
+      {
+        key: "logging_q2",
+        section: "Core Understanding",
+        prompt: "What must a log entry capture to be useful?",
+        expectedAnswer: "The phase, the arena, the student's response clarity, and whether execution held under pressure.",
+        failIndicators: ["just that they did it", "how they felt"],
+      },
+      {
+        key: "logging_q3",
+        section: "Application",
+        prompt: "A tutor logs 'student improved' without phase or arena detail. What is wrong?",
+        expectedAnswer: "The log is useless. It cannot drive decisions because it has no specificity.",
+        failIndicators: ["that's fine", "they'll remember"],
+      },
+    ],
+  },
+  {
+    key: "session_flow_control",
+    title: "Session Flow Control",
+    description: "Can the tutor execute a session plan without deviation and adapt only when data demands it?",
+    questions: [
+      {
+        key: "session_flow_q1",
+        section: "Core Understanding",
+        prompt: "What is session flow control in TT?",
+        expectedAnswer: "The discipline of following a planned phase sequence without deviation unless performance data forces a change.",
+        failIndicators: ["keeping the student happy", "following their pace", "being flexible"],
+      },
+      {
+        key: "session_flow_q2",
+        section: "Core Understanding",
+        prompt: "Why is deviation from the flow plan dangerous?",
+        expectedAnswer: "Because it hides whether phases are actually mastered, replacing signal with tutor intuition.",
+        failIndicators: ["it slows down progress", "it's boring for the student"],
+      },
+      {
+        key: "session_flow_q3",
+        section: "Application",
+        prompt: "Mid-session, a student shows struggle. Can you skip to an easier phase?",
+        expectedAnswer: "No. Log the struggle and complete the plan. Use the data to adjust next session.",
+        failIndicators: ["yes, adapt to them", "yes, build confidence first"],
+        autoCriticalOnFail: true,
+      },
+    ],
+  },
+  {
+    key: "drill_library",
+    title: "Drill Library",
+    description: "Can the tutor select and execute drills that target the exact arena and phase?",
+    questions: [
+      {
+        key: "drill_library_q1",
+        section: "Core Understanding",
+        prompt: "What is the purpose of the drill library in TT?",
+        expectedAnswer: "To provide targeted, repeatable practice that isolates the exact skill or arena needed at each phase.",
+        failIndicators: ["to give students lots of problems", "to keep them busy"],
+      },
+      {
+        key: "drill_library_q2",
+        section: "Core Understanding",
+        prompt: "What makes a drill valid for a phase?",
+        expectedAnswer: "It targets the exact arena and skill that phase is training, with minimal confounds.",
+        failIndicators: ["any problem from that topic", "problems students find easy"],
+      },
+      {
+        key: "drill_library_q3",
+        section: "Application",
+        prompt: "You need a clarity drill for exponent rules. What must it isolate?",
+        expectedAnswer: "Only recognition of exponent rules, not their application or mixed topics.",
+        failIndicators: ["any exponent problem", "multiple rule types together"],
+      },
+    ],
+  },
+  {
+    key: "handover_verification",
+    title: "Handover Verification",
+    description: "Can the tutor verify that independent mastery has transferred before session end?",
+    questions: [
+      {
+        key: "handover_q1",
+        section: "Core Understanding",
+        prompt: "What is handover verification in TT?",
+        expectedAnswer: "The discipline of verifying that the student can execute independently before ending the session.",
+        failIndicators: ["saying goodbye nicely", "telling them to practice at home"],
+      },
+      {
+        key: "handover_q2",
+        section: "Core Understanding",
+        prompt: "Why must handover happen before session end?",
+        expectedAnswer: "Because once the session ends, you cannot see if they can actually execute alone.",
+        failIndicators: ["so you have proof to show", "so they leave confident"],
+      },
+      {
+        key: "handover_q3",
+        section: "Application",
+        prompt: "At session end, a student can solve with your hints. Are they ready to go?",
+        expectedAnswer: "No. They must prove independent execution in the final drills with no support.",
+        failIndicators: ["yes, they're getting it", "they can ask for help at home"],
+        autoCriticalOnFail: true,
+      },
+    ],
+  },
+  {
+    key: "tools_required",
+    title: "Tools Required",
+    description: "Can the tutor use the TT system tools correctly to log, track, and communicate?",
+    questions: [
+      {
+        key: "tools_q1",
+        section: "Core Understanding",
+        prompt: "Why are TT tools required, not optional?",
+        expectedAnswer: "Because they enforce consistency, prevent data loss, and create the record needed for training decisions.",
+        failIndicators: ["they're just convenient", "for administration"],
+      },
+      {
+        key: "tools_q2",
+        section: "Core Understanding",
+        prompt: "What happens if a tutor skips logging a rep to save time?",
+        expectedAnswer: "The training system goes blind. Decisions will be made without that data.",
+        failIndicators: ["nothing, they remember anyway", "they can log it later"],
+      },
+      {
+        key: "tools_q3",
+        section: "Application",
+        prompt: "You forget to log session end before closing. What is the risk?",
+        expectedAnswer: "The session record is incomplete and cannot be used to compute training status.",
+        failIndicators: ["you can add it later", "it's not important"],
       },
     ],
   },

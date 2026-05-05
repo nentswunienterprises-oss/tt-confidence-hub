@@ -194,7 +194,7 @@ export default function OnlineTutorsWantedPlain() {
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
-              <TTLogo size="md" />
+              <TTLogo size="md" variant="integrity" />
             </div>
             <p className="text-center md:text-right" style={{ color: "#5A5A5A" }}>
               © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd

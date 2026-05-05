@@ -8,6 +8,8 @@ export default function TutorUpdates() {
         description="Action-required items and informational notifications for tutors."
         emptyMessage="No notifications yet. You'll see action-required and informational updates here."
         showHeader={false}
+        autoMarkRead={false}
+        hideReadNotifications={true}
       />
     </div>
   );

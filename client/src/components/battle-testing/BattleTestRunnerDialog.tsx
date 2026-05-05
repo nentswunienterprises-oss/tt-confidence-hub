@@ -35,6 +35,7 @@ interface BattleTestRunnerDialogProps {
   description: string;
   phaseOptions: BattleTestPhaseDefinition[];
   selectionMode?: "multiple" | "fixed";
+  preSelectedPhaseKeys?: string[];
   submitLabel: string;
   onSubmit: (payload: {
     selectedPhases: BattleTestPhaseDefinition[];
@@ -155,22 +156,27 @@ export default function BattleTestRunnerDialog({
   description,
   phaseOptions,
   selectionMode = "multiple",
+  preSelectedPhaseKeys,
   submitLabel,
   onSubmit,
 }: BattleTestRunnerDialogProps) {
-  const initialPhaseKeys = useMemo(
-    () =>
-      selectionMode === "fixed"
-        ? phaseOptions.map((phase) => phase.key)
-        : [],
-    [phaseOptions, selectionMode]
-  );
+  const hasPreSelectedPhaseKeys = (preSelectedPhaseKeys?.length ?? 0) > 0;
+  const fixedMode = selectionMode === "fixed";
+  const initialPhaseKeys = useMemo(() => {
+    if (fixedMode && hasPreSelectedPhaseKeys) {
+      return preSelectedPhaseKeys!;
+    }
+    if (!fixedMode && preSelectedPhaseKeys?.length === 1) {
+      return preSelectedPhaseKeys;
+    }
+    return fixedMode ? phaseOptions.map((phase) => phase.key) : [];
+  }, [phaseOptions, fixedMode, hasPreSelectedPhaseKeys, preSelectedPhaseKeys]);
   const [selectedPhaseKeys, setSelectedPhaseKeys] = useState<string[]>(initialPhaseKeys);
-  const [hasStarted, setHasStarted] = useState(selectionMode === "fixed");
+  const [hasStarted, setHasStarted] = useState(fixedMode);
   const [responses, setResponses] = useState<Record<string, ResponseDraft>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [runSummaryExpanded, setRunSummaryExpanded] = useState(true);
-  const [selectionStage, setSelectionStage] = useState<SelectionStage>(selectionMode === "fixed" ? "questions" : "group");
+  const [selectionStage, setSelectionStage] = useState<SelectionStage>(fixedMode ? "questions" : "group");
   const [activeGroupKey, setActiveGroupKey] = useState<BattleTestModuleGroup["key"] | null>(null);
   const groupedPhaseOptions = useMemo(() => groupPhaseOptions(phaseOptions), [phaseOptions]);
   const activeGroup = useMemo(
@@ -181,12 +187,12 @@ export default function BattleTestRunnerDialog({
   useEffect(() => {
     if (!open) return;
     setSelectedPhaseKeys(initialPhaseKeys);
-    setHasStarted(selectionMode === "fixed");
+    setHasStarted(fixedMode);
     setResponses({});
     setIsSubmitting(false);
-    setSelectionStage(selectionMode === "fixed" ? "questions" : "group");
+    setSelectionStage(fixedMode ? "questions" : "group");
     setActiveGroupKey(null);
-  }, [open, initialPhaseKeys, selectionMode]);
+  }, [open, initialPhaseKeys, fixedMode]);
 
   const selectedPhases = useMemo(
     () =>
@@ -387,7 +393,12 @@ export default function BattleTestRunnerDialog({
             ) : (
               <ScrollArea className="h-screen lg:h-full lg:max-h-full">
                 <div className="space-y-5 p-4 pb-20 sm:p-6 sm:pb-24 lg:mx-auto lg:max-w-4xl lg:space-y-6 lg:p-8 lg:pb-8">
-                  {selectionMode !== "fixed" ? (
+                  {questions.length === 0 ? (
+                    <div className="rounded-[24px] border border-[#E7D5C8] bg-white p-12 text-center text-sm text-muted-foreground shadow-sm">
+                      <p className="font-semibold text-foreground">No questions are available for the selected deep dive phases.</p>
+                      <p className="mt-2">The system selected a phase set but could not load the rep bank. Refresh the page or open the audit again.</p>
+                    </div>
+                  ) : selectionMode !== "fixed" ? (
                     <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#E7D5C8] bg-white px-4 py-3">
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">

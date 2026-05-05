@@ -150,7 +150,7 @@ export default function StudentLanding() {
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-4xl font-bold mb-1 sm:mb-2 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Response Hub
+            Response Integrity
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
             Your training starts here

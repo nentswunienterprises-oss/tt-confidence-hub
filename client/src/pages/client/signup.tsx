@@ -68,7 +68,7 @@ export default function ClientSignup() {
               </span>
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: "#1A1A1A" }}>
-              Join The Response Hub
+              Join Response Integrity
             </h2>
             <p className="text-base sm:text-lg" style={{ color: "#5A5A5A" }}>
               Give your child the response of calm execution under pressure.

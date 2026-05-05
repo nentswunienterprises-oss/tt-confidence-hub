@@ -481,11 +481,6 @@ export default function TutorPod() {
                 <p className="mt-2 text-sm font-medium text-orange-900 dark:text-orange-100">
                   {tutorAlignmentSummary.alignmentSummary.certificationRecoveryNote}
                 </p>
-                {tutorAlignmentSummary.alignmentSummary.recoveryRequiredUntil && (
-                  <p className="mt-1 text-xs text-orange-700 dark:text-orange-300">
-                    Required by: {new Date(tutorAlignmentSummary.alignmentSummary.recoveryRequiredUntil).toLocaleDateString()}
-                  </p>
-                )}
               </div>
             )}
 

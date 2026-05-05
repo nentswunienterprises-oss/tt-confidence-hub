@@ -26,7 +26,7 @@ export default function TDNoPod() {
             <Users className="w-8 h-8 text-primary" />
             <div>
               <h1 className="font-bold text-lg text-foreground">
-                TT Response Hub
+                Response Integrity
               </h1>
               <p className="text-xs text-muted-foreground">Territory Director</p>
             </div>

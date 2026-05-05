@@ -93,7 +93,7 @@ export default function TdGateway() {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-3 sm:h-20 sm:px-6 md:px-12">
           <div className="w-10 md:hidden" aria-hidden="true" />
           <div className="absolute left-1/2 top-1/2 flex w-full -translate-x-1/2 -translate-y-1/2 justify-center sm:static sm:w-auto sm:translate-x-0 sm:translate-y-0">
-            <TTLogo size="md" />
+            <TTLogo size="md" variant="integrity" />
           </div>
           <div className="hidden md:block">
             <span className="text-xl font-bold tracking-tight text-[#1A1A1A] lg:text-3xl">TD Gateway</span>

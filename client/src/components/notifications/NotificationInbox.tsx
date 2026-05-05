@@ -34,12 +34,16 @@ export function NotificationInbox({
   emptyMessage,
   excludeEntityTypes = [],
   showHeader = true,
+  autoMarkRead = true,
+  hideReadNotifications = false,
 }: {
   title: string;
   description: string;
   emptyMessage: string;
   excludeEntityTypes?: string[];
   showHeader?: boolean;
+  autoMarkRead?: boolean;
+  hideReadNotifications?: boolean;
 }) {
   const qc = useQueryClient();
   const initialized = useRef(false);
@@ -59,17 +63,21 @@ export function NotificationInbox({
   });
   const visibleNotifications = useMemo(
     () =>
-      notificationList.filter(
-        (n) => !excludeEntityTypes.includes(n.entityType || "") && !isLegacyRecordingNotification(n)
-      ),
-    [excludeEntityTypes, notificationList]
+      notificationList.filter((n) => {
+        if (excludeEntityTypes.includes(n.entityType || "")) return false;
+        if (isLegacyRecordingNotification(n)) return false;
+        if (hideReadNotifications && n.isRead) return false;
+        return true;
+      }),
+    [excludeEntityTypes, hideReadNotifications, notificationList]
   );
   const unread = useMemo(() => visibleNotifications.filter((n) => !n.isRead), [visibleNotifications]);
   useEffect(() => {
+    if (!autoMarkRead) return;
     if (initialized.current) return;
     initialized.current = true;
     unread.forEach((n) => markRead.mutate(n.id));
-  }, [unread, markRead]);
+  }, [autoMarkRead, unread, markRead]);
   if (isLoading) return <div className="flex items-center justify-center h-48 sm:h-64"><div className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>;
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -104,7 +112,7 @@ export function NotificationInbox({
               </CardHeader>
               <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
                 <p className="text-xs sm:text-sm text-muted-foreground whitespace-pre-wrap">{n.message}</p>
-                {!n.isRead && <Button size="sm" variant="outline" className="mt-4" onClick={() => markRead.mutate(n.id)}>Mark as Read</Button>}
+                {!n.isRead && <Button size="sm" variant="outline" className="mt-4" onClick={() => markRead.mutate(n.id)}>Dismiss</Button>}
               </CardContent>
             </Card>
           ))}

@@ -68,6 +68,7 @@ import {
 } from "./payfast";
 import {
   type BattleTestResponseInput,
+  type TutorTrainingMode,
 } from "@shared/battleTesting";
 import {
   buildBattleTestSuccessPayload,
@@ -79,8 +80,14 @@ import {
 import {
   TD_BATTLE_TEST_PHASE_EXACT,
   TUTOR_BATTLE_TEST_PHASES_EXACT,
+  TUTOR_BATTLE_TEST_PHASES_SAFE,
   getTutorBattleTestPhaseDefinitionsExact,
 } from "./battleTestingBanks";
+import {
+  ACTIVE_PARENT_ENROLLMENT_STATUSES,
+  cleanupLegacyLiveEnrollmentsForNonLiveTutor,
+  safelyUnassignEnrollmentFromTutor,
+} from "./tutorAssignmentProtection";
 
 const PREMIUM_PLAN_NAME = "Premium";
 const PREMIUM_PLAN_AMOUNT = "1000.00";
@@ -164,6 +171,11 @@ const requireRole = (roles: string[]) => {
 };
 
 async function getTutorOperationalMode(tutorId: string): Promise<"training" | "certified_live"> {
+  const mode = await getTutorCertificationMode(tutorId);
+  return mode === "certified_live" ? "certified_live" : "training";
+}
+
+async function getTutorCertificationMode(tutorId: string): Promise<TutorTrainingMode> {
   const assignment = await storage.getTutorAssignment(tutorId);
   if (!assignment?.id) {
     return "training";
@@ -176,10 +188,12 @@ async function getTutorOperationalMode(tutorId: string): Promise<"training" | "c
     .maybeSingle();
 
   if (certificationStatus?.mode) {
-    return certificationStatus.mode === "certified_live" ? "certified_live" : "training";
+    return certificationStatus.mode as TutorTrainingMode;
   }
 
-  return (assignment?.operationalMode as "training" | "certified_live" | undefined) || "training";
+  return (assignment?.operationalMode as "training" | "certified_live" | undefined) === "certified_live"
+    ? "certified_live"
+    : "training";
 }
 
 async function getParentAssignedTutorOperationalMode(parentId: string): Promise<"training" | "certified_live"> {
@@ -246,6 +260,117 @@ async function getStudentOperationalMode(studentId: string): Promise<"training" 
   if (!student?.tutorId) return "training";
   return getTutorOperationalMode(student.tutorId);
 }
+
+async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCount = 3) {
+  const certificationMode = await getTutorCertificationMode(tutorId);
+  if (certificationMode !== "sandbox") {
+    return { certificationMode, createdAccounts: [] as any[] };
+  }
+
+  const { data: existingSandboxEnrollments, error: existingSandboxError } = await supabase
+    .from("parent_enrollments")
+    .select("id")
+    .eq("assigned_tutor_id", tutorId)
+    .eq("is_sandbox_account", true)
+    .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES]);
+
+  if (existingSandboxError) {
+    throw new Error(`Failed to load sandbox enrollments: ${existingSandboxError.message}`);
+  }
+
+  const existingSandboxCount = existingSandboxEnrollments?.length || 0;
+  if (existingSandboxCount >= minimumCount) {
+    return { certificationMode, createdAccounts: [] as any[] };
+  }
+
+  const { data: sourceEnrollments, error: sourceEnrollmentsError } = await supabase
+    .from("parent_enrollments")
+    .select("id, parent_full_name, parent_email, student_full_name, student_grade, school_name, math_struggle_areas, previous_tutoring, internet_access, parent_motivation")
+    .eq("assigned_tutor_id", tutorId)
+    .eq("is_sandbox_account", false)
+    .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES])
+    .order("updated_at", { ascending: false });
+
+  if (sourceEnrollmentsError) {
+    throw new Error(`Failed to load sandbox seed enrollments: ${sourceEnrollmentsError.message}`);
+  }
+
+  const createdAccounts: Array<{
+    parentId: string;
+    enrollmentId: string;
+    parentEmail: string;
+    studentName: string;
+    sourceEnrollmentId: string | null;
+  }> = [];
+
+  for (let offset = 0; offset < minimumCount - existingSandboxCount; offset++) {
+    const source = (sourceEnrollments || []).length
+      ? sourceEnrollments![offset % sourceEnrollments!.length]
+      : null;
+    const suffix = `${Date.now()}-${offset}`;
+    const fakeParentEmail = `sandbox-parent-${tutorId}-${suffix}@territorialtutoring.com`;
+    const fakeParentName = source?.parent_full_name
+      ? `Sandbox ${String(source.parent_full_name).trim()}`
+      : `Sandbox Parent ${existingSandboxCount + offset + 1}`;
+    const fakeStudentName = source?.student_full_name
+      ? `Sandbox ${String(source.student_full_name).trim()}`
+      : `Sandbox Student ${existingSandboxCount + offset + 1}`;
+
+    const { data: parentUser, error: parentError } = await supabase.auth.admin.createUser({
+      email: fakeParentEmail,
+      password: "SandboxPass123!",
+      email_confirm: true,
+      user_metadata: {
+        name: fakeParentName,
+        role: "parent",
+        is_sandbox: true,
+      },
+    });
+
+    if (parentError || !parentUser?.user?.id) {
+      throw new Error(`Failed to create sandbox parent user: ${parentError?.message || "missing user id"}`);
+    }
+
+    const { data: sandboxEnrollment, error: sandboxEnrollmentError } = await supabase
+      .from("parent_enrollments")
+      .insert({
+        user_id: parentUser.user.id,
+        parent_full_name: fakeParentName,
+        parent_email: fakeParentEmail,
+        student_full_name: fakeStudentName,
+        student_grade: source?.student_grade || ["8", "9", "10", "11", "12"][offset % 5],
+        school_name: source?.school_name || "Sandbox School",
+        math_struggle_areas: source?.math_struggle_areas || "algebra, fractions, word problems",
+        previous_tutoring: source?.previous_tutoring || "Some tutoring before",
+        internet_access: source?.internet_access || "Yes",
+        parent_motivation: source?.parent_motivation || "Sandbox training account for tutor certification",
+        status: "awaiting_tutor_acceptance",
+        assigned_tutor_id: tutorId,
+        is_sandbox_account: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select("*")
+      .single();
+
+    if (sandboxEnrollmentError || !sandboxEnrollment) {
+      throw new Error(`Failed to create sandbox enrollment: ${sandboxEnrollmentError?.message || "no enrollment returned"}`);
+    }
+
+    await ensureStudentForEnrollment(sandboxEnrollment, tutorId);
+
+    createdAccounts.push({
+      parentId: parentUser.user.id,
+      enrollmentId: sandboxEnrollment.id,
+      parentEmail: fakeParentEmail,
+      studentName: sandboxEnrollment.student_full_name,
+      sourceEnrollmentId: source?.id ? String(source.id) : null,
+    });
+  }
+
+  return { certificationMode, createdAccounts };
+}
+
 
 async function safeSendPush(
   userId: string | null | undefined,
@@ -5606,14 +5731,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json({ assignment: null, students: [] });
         }
 
-        const activeEnrollmentStatuses = ["awaiting_tutor_acceptance", "assigned", "proposal_sent", "session_booked", "report_received", "confirmed"];
+        const certificationMode = await getTutorCertificationMode(tutorId);
+        const cleanupResult = await cleanupLegacyLiveEnrollmentsForNonLiveTutor(tutorId, certificationMode);
+        if (certificationMode === "sandbox") {
+          await autoProvisionSandboxAccountsForTutor(
+            tutorId,
+            Math.max(3, cleanupResult.detachedCount || 0)
+          );
+        }
 
         // First, check for parent enrollments assigned to this tutor that don't have students yet
-        const { data: assignedEnrollments } = await supabase
+        let assignedEnrollmentsQuery = supabase
           .from("parent_enrollments")
           .select("*")
           .eq("assigned_tutor_id", tutorId)
-          .in("status", activeEnrollmentStatuses);
+          .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES]);
+
+        if (certificationMode === "sandbox") {
+          assignedEnrollmentsQuery = assignedEnrollmentsQuery.eq("is_sandbox_account", true);
+        }
+
+        const { data: assignedEnrollments } = await assignedEnrollmentsQuery;
 
         // For each enrollment, check if a student exists, if not create one
         if (assignedEnrollments && assignedEnrollments.length > 0) {
@@ -5630,12 +5768,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Re-read after backfill so assigned_student_id links are current.
-        const { data: refreshedAssignedEnrollments, error: refreshedAssignedEnrollmentsError } = await supabase
+        let refreshedAssignedEnrollmentsQuery = supabase
           .from("parent_enrollments")
           .select("*")
           .eq("assigned_tutor_id", tutorId)
-          .in("status", activeEnrollmentStatuses)
+          .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES])
           .order("updated_at", { ascending: false });
+
+        if (certificationMode === "sandbox") {
+          refreshedAssignedEnrollmentsQuery = refreshedAssignedEnrollmentsQuery.eq("is_sandbox_account", true);
+        }
+
+        const { data: refreshedAssignedEnrollments, error: refreshedAssignedEnrollmentsError } =
+          await refreshedAssignedEnrollmentsQuery;
 
         if (refreshedAssignedEnrollmentsError) {
           console.error("Error refreshing assigned enrollments for pod:", refreshedAssignedEnrollmentsError);
@@ -5812,93 +5957,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const { tutorId } = req.params;
         const { count = 3 } = req.body;
-
-        // Verify tutor is in sandbox mode
-        const { data: tutorStatus, error: statusError } = await supabase
-          .from("tutor_battle_test_statuses")
-          .select("mode")
-          .eq("tutor_id", tutorId)
-          .single();
-
-        if (statusError || !tutorStatus) {
-          return res.status(400).json({ message: "Tutor certification status not found" });
-        }
-
-        if (tutorStatus.mode !== "sandbox") {
+        const result = await autoProvisionSandboxAccountsForTutor(tutorId, Number(count) || 3);
+        if (result.certificationMode !== "sandbox") {
           return res.status(400).json({
-            message: `Tutor must be in sandbox mode to provision fake accounts. Current status: ${tutorStatus.mode}`
-          });
-        }
-
-        const createdAccounts = [];
-
-        for (let i = 0; i < count; i++) {
-          // Create fake parent user
-          const fakeParentEmail = `sandbox-parent-${tutorId}-${Date.now()}-${i}@territorialtutoring.com`;
-          const fakeParentName = `Sandbox Parent ${i + 1}`;
-
-          const { data: parentUser, error: parentError } = await supabase.auth.admin.createUser({
-            email: fakeParentEmail,
-            password: "SandboxPass123!", // Fixed password for sandbox
-            email_confirm: true,
-            user_metadata: {
-              name: fakeParentName,
-              role: "parent",
-              is_sandbox: true,
-            },
-          });
-
-          if (parentError) {
-            console.error("Error creating sandbox parent:", parentError);
-            continue;
-          }
-
-          // Create fake enrollment
-          const { data: enrollment, error: enrollError } = await supabase
-            .from("parent_enrollments")
-            .insert({
-              user_id: parentUser.user.id,
-              parent_full_name: fakeParentName,
-              parent_email: fakeParentEmail,
-              student_full_name: `Sandbox Student ${i + 1}`,
-              student_grade: ["8", "9", "10", "11", "12"][Math.floor(Math.random() * 5)],
-              school_name: "Sandbox School",
-              math_struggle_areas: "algebra, fractions, word problems",
-              previous_tutoring: "Some tutoring before",
-              internet_access: "Yes",
-              parent_motivation: "Want to help child succeed",
-              status: "awaiting_tutor_acceptance",
-              assigned_tutor_id: tutorId,
-              is_sandbox_account: true,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            })
-            .select()
-            .single();
-
-          if (enrollError) {
-            console.error("Error creating sandbox enrollment:", enrollError);
-            continue;
-          }
-
-          // Create fake student record
-          try {
-            await ensureStudentForEnrollment(enrollment, tutorId);
-          } catch (studentErr) {
-            console.error("Error creating sandbox student:", studentErr);
-          }
-
-          createdAccounts.push({
-            parentId: parentUser.user.id,
-            enrollmentId: enrollment.id,
-            parentEmail: fakeParentEmail,
-            studentName: enrollment.student_full_name,
+            message: `Tutor must be in sandbox mode to provision fake accounts. Current status: ${result.certificationMode}`,
           });
         }
 
         res.json({
-          message: `Created ${createdAccounts.length} sandbox accounts for tutor training`,
-          accounts: createdAccounts,
+          message: `Created ${result.createdAccounts.length} sandbox accounts for tutor training`,
+          accounts: result.createdAccounts,
         });
       } catch (error) {
         console.error("Error provisioning sandbox accounts:", error);
@@ -10567,32 +10635,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Unauthorized tutor access" });
         }
 
-        let { data: assignedEnrollments } = await supabase
+        const certificationMode = await getTutorCertificationMode(tutorId);
+        await cleanupLegacyLiveEnrollmentsForNonLiveTutor(tutorId, certificationMode);
+        let assignedEnrollmentsQuery = supabase
           .from("parent_enrollments")
           .select("id, user_id, student_full_name, assigned_student_id, status")
           .eq("assigned_tutor_id", tutorId)
-          .in("status", [
-            "awaiting_tutor_acceptance",
-            "assigned",
-            "proposal_sent",
-            "session_booked",
-            "report_received",
-            "confirmed",
-          ]);
+          .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES]);
+
+        if (certificationMode === "sandbox") {
+          assignedEnrollmentsQuery = assignedEnrollmentsQuery.eq("is_sandbox_account", true);
+        }
+
+        let { data: assignedEnrollments } = await assignedEnrollmentsQuery;
 
         if (!assignedEnrollments) {
-          const fallback = await supabase
+          let fallbackQuery = supabase
             .from("parent_enrollments")
             .select("id, user_id, student_full_name, status")
             .eq("assigned_tutor_id", tutorId)
-            .in("status", [
-              "awaiting_tutor_acceptance",
-              "assigned",
-              "proposal_sent",
-              "session_booked",
-              "report_received",
-              "confirmed",
-            ]);
+            .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES]);
+          if (certificationMode === "sandbox") {
+            fallbackQuery = fallbackQuery.eq("is_sandbox_account", true);
+          }
+          const fallback = await fallbackQuery;
           assignedEnrollments = fallback.data as any;
         }
 
@@ -11345,7 +11411,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     isAuthenticated,
     requireRole(["td", "coo"]),
     async (_req: Request, res: Response) => {
-      res.json(TUTOR_BATTLE_TEST_PHASES_EXACT);
+      res.json(TUTOR_BATTLE_TEST_PHASES_SAFE);
     }
   );
 
@@ -12489,19 +12555,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { tutorId } = req.params;
         console.log("📚 COO requesting students for tutor:", tutorId);
 
-        let { data: assignedEnrollments } = await supabase
+        const certificationMode = await getTutorCertificationMode(tutorId);
+        await cleanupLegacyLiveEnrollmentsForNonLiveTutor(tutorId, certificationMode);
+        let assignedEnrollmentsQuery = supabase
           .from("parent_enrollments")
           .select("id, user_id, student_full_name, assigned_student_id, status")
           .eq("assigned_tutor_id", tutorId)
-          .in("status", ["awaiting_tutor_acceptance", "assigned", "proposal_sent", "session_booked", "report_received", "confirmed"]);
+          .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES]);
+
+        if (certificationMode === "sandbox") {
+          assignedEnrollmentsQuery = assignedEnrollmentsQuery.eq("is_sandbox_account", true);
+        }
+
+        let { data: assignedEnrollments } = await assignedEnrollmentsQuery;
 
         // Backward-compatible fallback if assigned_student_id is missing in older DB variants
         if (!assignedEnrollments) {
-          const fallback = await supabase
+          let fallbackQuery = supabase
             .from("parent_enrollments")
             .select("id, user_id, student_full_name, status")
             .eq("assigned_tutor_id", tutorId)
-            .in("status", ["awaiting_tutor_acceptance", "assigned", "proposal_sent", "session_booked", "report_received", "confirmed"]);
+            .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES]);
+          if (certificationMode === "sandbox") {
+            fallbackQuery = fallbackQuery.eq("is_sandbox_account", true);
+          }
+          const fallback = await fallbackQuery;
           assignedEnrollments = fallback.data as any;
         }
 
@@ -15916,153 +15994,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const previousTutorId = enrollment.assigned_tutor_id;
-        const nowIso = new Date().toISOString();
-        const preserveTrainingProgress = !!enrollment.proposal_id;
-        const preservedCurrentStep = preserveTrainingProgress
-          ? buildReassignmentResumeStep(enrollment.status || enrollment.current_step || "assigned")
-          : "awaiting_assignment";
-
-        let { error: unassignError } = await supabase
-          .from("parent_enrollments")
-          .update({
-            assigned_tutor_id: null,
-            status: "awaiting_assignment",
-            current_step: preservedCurrentStep,
-            proposal_id: preserveTrainingProgress ? enrollment.proposal_id : null,
-            updated_at: nowIso,
-          })
-          .eq("id", enrollment.id);
-
-        if (unassignError) {
-          const message = String((unassignError as any)?.message || "").toLowerCase();
-          const missingOptionalColumn =
-            message.includes("current_step") ||
-            message.includes("proposal_id");
-
-          if (missingOptionalColumn) {
-            const fallback = await supabase
-              .from("parent_enrollments")
-              .update({
-                assigned_tutor_id: null,
-                status: "awaiting_assignment",
-                proposal_id: preserveTrainingProgress ? enrollment.proposal_id : null,
-                updated_at: nowIso,
-              })
-              .eq("id", enrollment.id);
-
-            unassignError = fallback.error as any;
-          }
-        }
-
-        if (unassignError) {
-          return res.status(500).json({ message: "Failed to unassign tutor" });
-        }
-
-        const detachPayload = { tutor_id: null, updated_at: nowIso };
-
-        // Clear workflow state when unassigning to ensure fresh assignment process
-        const clearWorkflow = async (studentId: string) => {
-          const student = await storage.getStudent(studentId);
-          if (student) {
-            const existingProfile = (student.personalProfile as any) || {};
-            const updatedProfile = {
-              ...existingProfile,
-              workflow: {
-                ...(existingProfile.workflow || {}),
-                assignmentAcceptedAt: null,
-                assignmentDeclinedAt: null,
-              },
-            };
-
-            const parentId = (student as any).parentId || null;
-
-            const staleSessionIds = new Set<string>();
-
-            const { data: tutorStudentSessions } = await supabase
-              .from("scheduled_sessions")
-              .select("id, status")
-              .eq("tutor_id", previousTutorId)
-              .eq("student_id", studentId)
-              .in("type", ["intro", "training"]);
-
-            for (const row of tutorStudentSessions || []) {
-              if (String(row.status || "").toLowerCase() !== "completed") {
-                staleSessionIds.add(String(row.id));
-              }
-            }
-
-            if (parentId) {
-              const { data: parentOnlyIntroSessions } = await supabase
-                .from("scheduled_sessions")
-                .select("id, status")
-                .eq("tutor_id", previousTutorId)
-                .eq("parent_id", parentId)
-                .is("student_id", null)
-                .eq("type", "intro");
-
-              for (const row of parentOnlyIntroSessions || []) {
-                if (String(row.status || "").toLowerCase() !== "completed") {
-                  staleSessionIds.add(String(row.id));
-                }
-              }
-            }
-
-            if (staleSessionIds.size > 0) {
-              await supabase
-                .from("scheduled_sessions")
-                .delete()
-                .in("id", Array.from(staleSessionIds));
-            }
-
-            // Preserve TT training state while clearing tutor ownership.
-            await storage.updateStudent(studentId, {
-              personalProfile: updatedProfile,
-              tutorId: null,
-              updatedAt: nowIso,
-            } as any);
-          }
-        };
-
-        if (enrollment.assigned_student_id) {
-          try {
-            await clearWorkflow(enrollment.assigned_student_id);
-          } catch (error) {
-            console.error("Failed to clear workflow for assigned student:", error);
-          }
-        }
-
-        // Also clear workflow for any other students that might be linked to this enrollment
-        const { data: linkedStudents } = await supabase
-          .from("students")
-          .select("id")
-          .eq("tutor_id", previousTutorId)
-          .eq("parent_enrollment_id", enrollment.id);
-
-        for (const linkedStudent of linkedStudents || []) {
-          try {
-            await clearWorkflow(linkedStudent.id);
-          } catch (error) {
-            console.error("Failed to clear workflow for linked student:", linkedStudent.id, error);
-          }
-        }
-
-        // Clear workflow for fallback student matches
-        const { data: fallbackStudents } = await supabase
-          .from("students")
-          .select("id")
-          .eq("tutor_id", previousTutorId)
-          .eq("parent_id", enrollment.user_id)
-          .eq("name", enrollment.student_full_name);
-
-        for (const fallbackStudent of fallbackStudents || []) {
-          if (!linkedStudents?.some(ls => ls.id === fallbackStudent.id)) {
-            try {
-              await clearWorkflow(fallbackStudent.id);
-            } catch (error) {
-              console.error("Failed to clear workflow for fallback student:", fallbackStudent.id, error);
-            }
-          }
-        }
+        await safelyUnassignEnrollmentFromTutor(enrollment, previousTutorId);
 
         res.json({
           message: "Tutor unassigned safely. Student data has been preserved for reassignment.",
