@@ -5980,11 +5980,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
         const studentsByEnrollmentId = new Map(
           students
-            .filter((student: any) => !!(student as any)?.parentEnrollmentId)
-            .map((student: any) => [String((student as any).parentEnrollmentId), student])
+            .filter((student: any) => !!((student as any)?.parentEnrollmentId || (student as any)?.parent_enrollment_id))
+            .map((student: any) => [
+              String((student as any).parentEnrollmentId || (student as any).parent_enrollment_id),
+              student,
+            ])
         );
 
-        const canonicalStudents = (refreshedAssignedEnrollments || [])
+        let canonicalStudents = (refreshedAssignedEnrollments || [])
           .map((enrollment: any) => {
             const assignedStudentId = String(enrollment?.assigned_student_id || "").trim();
             const enrollmentId = String(enrollment?.id || "").trim();
@@ -6006,6 +6009,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const studentId = String(entry.student.id || "");
             return arr.findIndex((candidate) => String(candidate.student.id || "") === studentId) === index;
           });
+
+        if (canonicalStudents.length === 0 && students.length > 0) {
+          const unmatchedEnrollments = [...(refreshedAssignedEnrollments || [])];
+          canonicalStudents = students.map((student: any) => {
+            const explicitEnrollmentId = String(
+              (student as any)?.parentEnrollmentId || (student as any)?.parent_enrollment_id || ""
+            ).trim();
+            const studentParentId = String((student as any)?.parentId || (student as any)?.parent_id || "").trim();
+            const studentParentContact = String((student as any)?.parentContact || (student as any)?.parent_contact || "").trim().toLowerCase();
+            const studentName = String(student?.name || "").trim().toLowerCase();
+
+            let matchedEnrollment =
+              (explicitEnrollmentId
+                ? unmatchedEnrollments.find((enrollment: any) => String(enrollment?.id || "").trim() === explicitEnrollmentId)
+                : null) ||
+              unmatchedEnrollments.find((enrollment: any) => {
+                const enrollmentUserId = String(enrollment?.user_id || "").trim();
+                const enrollmentParentEmail = String(enrollment?.parent_email || "").trim().toLowerCase();
+                const enrollmentStudentName = String(enrollment?.student_full_name || "").trim().toLowerCase();
+
+                if (studentParentId && enrollmentUserId && studentParentId === enrollmentUserId) {
+                  return !studentName || !enrollmentStudentName || studentName === enrollmentStudentName;
+                }
+
+                if (studentParentContact && enrollmentParentEmail && studentParentContact === enrollmentParentEmail) {
+                  return !studentName || !enrollmentStudentName || studentName === enrollmentStudentName;
+                }
+
+                return false;
+              }) ||
+              unmatchedEnrollments[0] ||
+              null;
+
+            if (matchedEnrollment) {
+              unmatchedEnrollments.splice(unmatchedEnrollments.indexOf(matchedEnrollment), 1);
+            }
+
+            return {
+              student,
+              enrollment: matchedEnrollment,
+            };
+          });
+        }
 
         // Fetch parent enrollment info for each canonical student
         const studentsWithParentInfo = await Promise.all(
