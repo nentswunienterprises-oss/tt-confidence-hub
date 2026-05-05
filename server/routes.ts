@@ -400,6 +400,45 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
   return { certificationMode, createdAccounts };
 }
 
+async function ensureVisibleSandboxStudentsForTutor(tutorId: string, minimumCount = 3) {
+  const certificationMode = await getTutorCertificationMode(tutorId);
+  if (certificationMode !== "sandbox") {
+    return { certificationMode, createdAccounts: [] as any[], studentCount: 0 };
+  }
+
+  const provisionResult = await autoProvisionSandboxAccountsForTutor(tutorId, minimumCount);
+  const { data: sandboxEnrollments, error: sandboxEnrollmentsError } = await supabase
+    .from("parent_enrollments")
+    .select("*")
+    .eq("assigned_tutor_id", tutorId)
+    .eq("is_sandbox_account", true)
+    .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES])
+    .order("updated_at", { ascending: false });
+
+  if (sandboxEnrollmentsError) {
+    throw new Error(`Failed to load sandbox enrollments for student backfill: ${sandboxEnrollmentsError.message}`);
+  }
+
+  for (const enrollment of sandboxEnrollments || []) {
+    try {
+      await ensureStudentForEnrollment(enrollment, tutorId);
+    } catch (error) {
+      console.error("Failed to backfill sandbox student for enrollment:", enrollment?.id, error);
+    }
+  }
+
+  const students = await storage.getStudentsByTutor(tutorId);
+  const sandboxStudentCount = students.filter(
+    (student: any) => sandboxEnrollments?.some((enrollment: any) => String(enrollment.id) === String(student.parentEnrollmentId))
+  ).length;
+
+  return {
+    certificationMode,
+    createdAccounts: provisionResult.createdAccounts,
+    studentCount: sandboxStudentCount,
+  };
+}
+
 
 async function safeSendPush(
   userId: string | null | undefined,
@@ -5763,7 +5802,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const certificationMode = await getTutorCertificationMode(tutorId);
         const cleanupResult = await cleanupLegacyLiveEnrollmentsForNonLiveTutor(tutorId, certificationMode);
         if (certificationMode === "sandbox") {
-          await autoProvisionSandboxAccountsForTutor(
+          await ensureVisibleSandboxStudentsForTutor(
             tutorId,
             Math.max(3, cleanupResult.detachedCount || 0)
           );
@@ -5816,7 +5855,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ message: "Failed to refresh assigned enrollments" });
         }
 
-        const students = await hydrateStudentsWithSessionProgress(tutorId, await storage.getStudentsByTutor(tutorId));
+        let students = await hydrateStudentsWithSessionProgress(tutorId, await storage.getStudentsByTutor(tutorId));
+        if (certificationMode === "sandbox" && students.length === 0) {
+          await ensureVisibleSandboxStudentsForTutor(tutorId, Math.max(3, cleanupResult.detachedCount || 0));
+          students = await hydrateStudentsWithSessionProgress(tutorId, await storage.getStudentsByTutor(tutorId));
+        }
         const studentsById = new Map(
           students
             .filter((student: any) => !!student?.id)
@@ -10242,6 +10285,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           summary.tutorSummaries.find((entry) => entry.assignmentId === assignment.id) ||
           summary.tutorSummaries.find((entry) => entry.tutorId === tutorId) ||
           null;
+
+        if ((alignmentSummary?.mode || assignment.operationalMode) === "sandbox") {
+          await ensureVisibleSandboxStudentsForTutor(tutorId, 3);
+        }
 
         res.json({
           podId: assignment.podId,
