@@ -17551,9 +17551,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const billingModel = await getParentBillingModel(userId);
       enrollmentDebug.billingModelError = billingModel.error ? String(billingModel.error.message || billingModel.error) : null;
       enrollmentDebug.onboardingType = billingModel.data.onboardingType;
-      const sessionProgress = enrollmentData.assigned_student_id
-        ? await getCompletedSessionCountForStudent(String(enrollmentData.assigned_student_id))
-        : { count: 0, error: null as any };
+      let canonicalEnrollmentStudent: any = null;
+      if (enrollmentData.assigned_tutor_id) {
+        try {
+          canonicalEnrollmentStudent = await resolveCanonicalStudentForEnrollment(enrollmentData);
+        } catch (canonicalStudentError) {
+          console.error("Failed to resolve canonical enrollment student for parent status:", canonicalStudentError);
+        }
+      }
+
+      const sessionProgress = canonicalEnrollmentStudent?.id
+        ? await getCompletedSessionCountForStudent(String(canonicalEnrollmentStudent.id))
+        : enrollmentData.assigned_student_id
+          ? await getCompletedSessionCountForStudent(String(enrollmentData.assigned_student_id))
+          : { count: 0, error: null as any };
       enrollmentDebug.sessionProgressError = sessionProgress.error ? String(sessionProgress.error.message || sessionProgress.error) : null;
       enrollmentDebug.sessionProgressCount = sessionProgress.count || 0;
 
@@ -17566,11 +17577,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           (Boolean((enrollmentData as any).is_sandbox_account) && status === "assigned"))
       ) {
         // Try to find the assigned student and check workflow
-        if (enrollmentData.assigned_student_id) {
-          const assignedStudent = await storage.getStudent(enrollmentData.assigned_student_id);
-          const assignedWorkflow = ((assignedStudent?.personalProfile as any) || {}).workflow || {};
-          assignmentAccepted = !!assignedWorkflow.assignmentAcceptedAt;
-        }
+        const assignedWorkflow = ((canonicalEnrollmentStudent?.personalProfile as any) || {}).workflow || {};
+        assignmentAccepted = !!assignedWorkflow.assignmentAcceptedAt;
 
         // Legacy sandbox rows were provisioned as assigned before acceptance. Normalize them back
         // to the live-equivalent acceptance state until the tutor actually accepts.
