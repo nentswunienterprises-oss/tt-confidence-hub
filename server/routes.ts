@@ -10354,13 +10354,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const workflow = existingProfile.workflow || {};
 
         if (decision === "accept") {
-          // Update parent_enrollments status to 'not_scheduled' using available fields
-          // Prefer the student's explicit parent enrollment link, then assigned_student_id,
-          // then fall back to parent/name matching for older legacy rows.
+          // Resolve the exact parent enrollment for this student assignment before accepting.
           let parentEnrollment: any = null;
           const explicitEnrollmentId = String(
             (student as any)?.parentEnrollmentId || (student as any)?.parent_enrollment_id || ""
           ).trim();
+          const normalizedStudentName = String(student?.name || req.body.studentName || "").trim();
+          const normalizedParentId = String((student as any)?.parentId || (student as any)?.parent_id || "").trim();
+          const normalizedParentEmail = String((student as any)?.parentContact || (student as any)?.parent_contact || "").trim().toLowerCase();
 
           if (explicitEnrollmentId) {
             const { data } = await supabase
@@ -10383,17 +10384,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
 
           if (!parentEnrollment) {
-            let studentName = student?.name;
-            if (!studentName && req.body.studentName) studentName = req.body.studentName;
-            if (studentName) {
-              const { data } = await supabase
+            let compositeLookup = supabase
+              .from("parent_enrollments")
+              .select("id, user_id, status, current_step, proposal_id, assigned_student_id, parent_email, student_full_name")
+              .eq("assigned_tutor_id", dbUser.id)
+              .order("updated_at", { ascending: false })
+              .limit(10);
+
+            if (normalizedParentId) {
+              compositeLookup = compositeLookup.eq("user_id", normalizedParentId);
+            }
+
+            const { data } = await compositeLookup;
+            const candidateEnrollments = data || [];
+
+            parentEnrollment =
+              candidateEnrollments.find((entry: any) => {
+                const entryStudentName = String(entry?.student_full_name || "").trim().toLowerCase();
+                const entryParentEmail = String(entry?.parent_email || "").trim().toLowerCase();
+                const sameStudent = normalizedStudentName
+                  ? entryStudentName === normalizedStudentName.toLowerCase()
+                  : true;
+                const sameEmail = normalizedParentEmail
+                  ? entryParentEmail === normalizedParentEmail
+                  : true;
+                return sameStudent && sameEmail;
+              }) ||
+              candidateEnrollments.find((entry: any) => {
+                const entryStudentName = String(entry?.student_full_name || "").trim().toLowerCase();
+                return normalizedStudentName
+                  ? entryStudentName === normalizedStudentName.toLowerCase()
+                  : false;
+              }) ||
+              null;
+          }
+
+          if (!parentEnrollment && normalizedParentEmail) {
+            const { data } = await supabase
                 .from("parent_enrollments")
                 .select("id, user_id, status, current_step, proposal_id, assigned_student_id")
                 .eq("assigned_tutor_id", dbUser.id)
-                .eq("student_full_name", studentName)
-                .maybeSingle();
-              parentEnrollment = data;
-            }
+                .eq("parent_email", normalizedParentEmail)
+                .order("updated_at", { ascending: false })
+                .limit(10);
+            parentEnrollment =
+              (data || []).find((entry: any) => {
+                const entryStudentName = String(entry?.student_full_name || "").trim().toLowerCase();
+                return normalizedStudentName
+                  ? entryStudentName === normalizedStudentName.toLowerCase()
+                  : true;
+              }) || null;
+          }
+
+          if (!parentEnrollment && normalizedStudentName) {
+            const { data } = await supabase
+              .from("parent_enrollments")
+              .select("id, user_id, status, current_step, proposal_id, assigned_student_id")
+              .eq("assigned_tutor_id", dbUser.id)
+              .eq("student_full_name", normalizedStudentName)
+              .order("updated_at", { ascending: false })
+              .limit(10);
+            parentEnrollment = (data || [])[0] || null;
+          }
+
+          if (!parentEnrollment) {
+            return res.status(409).json({
+              message: "Could not resolve the parent enrollment for this assignment. Refresh the pod and try again.",
+            });
+          }
+
+          if (parentEnrollment && String(parentEnrollment.status || "").trim() === "awaiting_assignment") {
+            return res.status(409).json({
+              message: "This assignment is no longer pending tutor acceptance.",
+            });
           }
 
           const resumedStatus =
