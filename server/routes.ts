@@ -8574,6 +8574,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return null;
   };
 
+  const resolveAcceptedStudentForEnrollment = async (enrollment: any) => {
+    if (!enrollment) return null;
+
+    const candidateMap = new Map<string, any>();
+    const addCandidate = (student: any) => {
+      const normalized = normalizeStudentRecord(student);
+      const studentId = String(normalized?.id || "").trim();
+      if (!studentId || candidateMap.has(studentId)) return;
+      candidateMap.set(studentId, normalized);
+    };
+
+    if (enrollment.assigned_student_id) {
+      const assignedStudent = await storage.getStudent(enrollment.assigned_student_id);
+      if (assignedStudent) addCandidate(assignedStudent);
+    }
+
+    if (enrollment.id) {
+      const { data: byEnrollmentId } = await supabase
+        .from("students")
+        .select("*")
+        .eq("parent_enrollment_id", enrollment.id)
+        .order("updated_at", { ascending: false })
+        .limit(10);
+
+      (byEnrollmentId || []).forEach(addCandidate);
+    }
+
+    if (enrollment.assigned_tutor_id && enrollment.user_id && enrollment.student_full_name) {
+      const { data: byParentAndName } = await supabase
+        .from("students")
+        .select("*")
+        .eq("parent_id", enrollment.user_id)
+        .eq("tutor_id", enrollment.assigned_tutor_id)
+        .eq("name", enrollment.student_full_name)
+        .order("updated_at", { ascending: false })
+        .limit(10);
+
+      (byParentAndName || []).forEach(addCandidate);
+    }
+
+    if (enrollment.assigned_tutor_id && enrollment.parent_email && enrollment.student_full_name) {
+      const { data: byParentContact } = await supabase
+        .from("students")
+        .select("*")
+        .eq("parent_contact", enrollment.parent_email)
+        .eq("tutor_id", enrollment.assigned_tutor_id)
+        .eq("name", enrollment.student_full_name)
+        .order("updated_at", { ascending: false })
+        .limit(10);
+
+      (byParentContact || []).forEach(addCandidate);
+    }
+
+    return (
+      Array.from(candidateMap.values()).find((student: any) => {
+        const workflow = ((student?.personalProfile as any) || {}).workflow || {};
+        return !!workflow.assignmentAcceptedAt;
+      }) || null
+    );
+  };
+
   type CommunicationAudience = "parent" | "student";
 
   const COMMUNICATION_AUDIENCES: CommunicationAudience[] = ["parent", "student"];
@@ -17591,8 +17652,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         (status === "awaiting_tutor_acceptance" ||
           (Boolean((enrollmentData as any).is_sandbox_account) && status === "assigned"))
       ) {
-        // Try to find the assigned student and check workflow
-        const assignedWorkflow = ((canonicalEnrollmentStudent?.personalProfile as any) || {}).workflow || {};
+        let acceptedEnrollmentStudent = canonicalEnrollmentStudent;
+        let assignedWorkflow = ((acceptedEnrollmentStudent?.personalProfile as any) || {}).workflow || {};
+
+        if (!assignedWorkflow.assignmentAcceptedAt) {
+          try {
+            const reconciledAcceptedStudent = await resolveAcceptedStudentForEnrollment(enrollmentData);
+            if (reconciledAcceptedStudent) {
+              acceptedEnrollmentStudent = reconciledAcceptedStudent;
+              canonicalEnrollmentStudent = reconciledAcceptedStudent;
+              assignedWorkflow = ((reconciledAcceptedStudent?.personalProfile as any) || {}).workflow || {};
+
+              if (
+                enrollmentData.id &&
+                (String(enrollmentData.assigned_student_id || "").trim() !== String(reconciledAcceptedStudent.id || "").trim() ||
+                  status !== "assigned" ||
+                  effectiveStep !== "assigned")
+              ) {
+                await supabase
+                  .from("parent_enrollments")
+                  .update({
+                    assigned_student_id: reconciledAcceptedStudent.id,
+                    status: "assigned",
+                    current_step: "assigned",
+                    updated_at: new Date().toISOString(),
+                  })
+                  .eq("id", enrollmentData.id);
+              }
+            }
+          } catch (acceptedStudentResolutionError) {
+            console.error("Failed to resolve accepted student for enrollment:", acceptedStudentResolutionError);
+          }
+        }
+
         assignmentAccepted = !!assignedWorkflow.assignmentAcceptedAt;
 
         // Legacy sandbox rows were provisioned as assigned before acceptance. Normalize them back
