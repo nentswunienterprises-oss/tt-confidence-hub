@@ -4752,6 +4752,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       parent_enrollment_id: enrollment.id,
     };
 
+    const existingEnrollmentLink = String(existingStudent?.parent_enrollment_id || "").trim();
+    const targetEnrollmentLink = String(enrollment?.id || "").trim();
+    const hasConflictingEnrollmentLink =
+      !!existingStudent?.id &&
+      !!existingEnrollmentLink &&
+      !!targetEnrollmentLink &&
+      existingEnrollmentLink !== targetEnrollmentLink;
+
+    if (hasConflictingEnrollmentLink) {
+      existingStudent = null;
+    }
+
     if (existingStudent) {
       const needsUpdate =
         existingStudent.name !== studentPayload.name ||
@@ -6187,13 +6199,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .map((enrollment: any) => {
             const assignedStudentId = String(enrollment?.assigned_student_id || "").trim();
             const enrollmentId = String(enrollment?.id || "").trim();
+            const studentFromAssignedId = assignedStudentId ? studentsById.get(assignedStudentId) : null;
+            const assignedStudentEnrollmentId = String(
+              (studentFromAssignedId as any)?.parentEnrollmentId ||
+              (studentFromAssignedId as any)?.parent_enrollment_id ||
+              ""
+            ).trim();
+
+            const canonicalStudentFromAssignedId =
+              studentFromAssignedId &&
+              (!enrollmentId || !assignedStudentEnrollmentId || assignedStudentEnrollmentId === enrollmentId)
+                ? studentFromAssignedId
+                : null;
 
             const canonicalStudent =
-              (assignedStudentId ? studentsById.get(assignedStudentId) : null) ||
+              canonicalStudentFromAssignedId ||
               (enrollmentId ? studentsByEnrollmentId.get(enrollmentId) : null) ||
               null;
 
             if (!canonicalStudent) return null;
+
+            if (
+              enrollmentId &&
+              canonicalStudent?.id &&
+              String(enrollment?.assigned_student_id || "").trim() !== String(canonicalStudent.id || "").trim()
+            ) {
+              void supabase
+                .from("parent_enrollments")
+                .update({ assigned_student_id: canonicalStudent.id, updated_at: new Date().toISOString() })
+                .eq("id", enrollment.id);
+            }
 
             return {
               student: canonicalStudent,
