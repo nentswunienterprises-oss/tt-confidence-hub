@@ -10334,7 +10334,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: Request, res: Response) => {
       try {
         const { studentId } = req.params;
-        const { decision } = req.body as { decision?: "accept" | "decline" };
+        const { decision, enrollmentId } = req.body as { decision?: "accept" | "decline"; enrollmentId?: string | null };
         const dbUser = (req as any).dbUser;
 
         if (decision !== "accept" && decision !== "decline") {
@@ -10356,6 +10356,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (decision === "accept") {
           // Resolve the exact parent enrollment for this student assignment before accepting.
           let parentEnrollment: any = null;
+          const requestedEnrollmentId = String(enrollmentId || "").trim();
           const explicitEnrollmentId = String(
             (student as any)?.parentEnrollmentId || (student as any)?.parent_enrollment_id || ""
           ).trim();
@@ -10363,7 +10364,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const normalizedParentId = String((student as any)?.parentId || (student as any)?.parent_id || "").trim();
           const normalizedParentEmail = String((student as any)?.parentContact || (student as any)?.parent_contact || "").trim().toLowerCase();
 
-          if (explicitEnrollmentId) {
+          if (requestedEnrollmentId) {
+            const { data } = await supabase
+              .from("parent_enrollments")
+              .select("id, user_id, status, current_step, proposal_id, assigned_student_id")
+              .eq("id", requestedEnrollmentId)
+              .eq("assigned_tutor_id", dbUser.id)
+              .maybeSingle();
+            parentEnrollment = data;
+          }
+
+          if (!parentEnrollment && explicitEnrollmentId) {
             const { data } = await supabase
               .from("parent_enrollments")
               .select("id, user_id, status, current_step, proposal_id, assigned_student_id")

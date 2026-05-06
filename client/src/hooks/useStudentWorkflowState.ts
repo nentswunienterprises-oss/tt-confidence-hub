@@ -73,12 +73,15 @@ export function useMarkHandoverCompleted(studentId: string) {
   });
 }
 
-export function useRespondToAssignment(studentId: string) {
+export function useRespondToAssignment(studentId: string, enrollmentId?: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (decision: "accept" | "decline") => {
-      const res = await apiRequest("POST", `/api/tutor/students/${studentId}/workflow/assignment-decision`, { decision });
+      const res = await apiRequest("POST", `/api/tutor/students/${studentId}/workflow/assignment-decision`, {
+        decision,
+        enrollmentId: enrollmentId || null,
+      });
       return await res.json();
     },
     onSuccess: () => {
