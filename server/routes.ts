@@ -541,14 +541,15 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
       ? sourceEnrollments![offset % sourceEnrollments!.length]
       : null;
     const caseSeed = buildSandboxEnrollmentCase(existingSandboxCount + offset, source);
+    const sandboxOrdinal = existingSandboxCount + offset + 1;
     const suffix = `${Date.now()}-${offset}`;
     const fakeParentEmail = `sandbox-parent-${tutorId}-${suffix}@territorialtutoring.com`;
     const fakeParentName = source?.parent_full_name
-      ? `Sandbox ${String(source.parent_full_name).trim()}`
-      : `Sandbox Parent ${existingSandboxCount + offset + 1}`;
+      ? `Sandbox ${String(source.parent_full_name).trim()} ${sandboxOrdinal}`
+      : `Sandbox Parent ${sandboxOrdinal}`;
     const fakeStudentName = source?.student_full_name
-      ? `Sandbox ${String(source.student_full_name).trim()}`
-      : `Sandbox Student ${existingSandboxCount + offset + 1}`;
+      ? `Sandbox ${String(source.student_full_name).trim()} ${sandboxOrdinal}`
+      : `Sandbox Student ${sandboxOrdinal}`;
 
     const { data: parentUser, error: parentError } = await supabase.auth.admin.createUser({
       email: fakeParentEmail,
@@ -6286,9 +6287,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Fetch parent enrollment info for each canonical student
         const studentsWithParentInfo = await Promise.all(
-          canonicalStudents.map(async ({ student, enrollment }: { student: any; enrollment: any }) => {
+          canonicalStudents.map(async ({ student, enrollment }: { student: any; enrollment: any }, index) => {
             try {
               const parentEnrollment = enrollment;
+              const sandboxDisplayOrdinal = certificationMode === "sandbox" ? index + 1 : null;
+              const sandboxDisplayStudentName = sandboxDisplayOrdinal
+                ? `Sandbox Student ${sandboxDisplayOrdinal}`
+                : student.name;
+              const sandboxDisplayParentName = sandboxDisplayOrdinal
+                ? `Sandbox Parent ${sandboxDisplayOrdinal}`
+                : parentEnrollment?.parent_full_name || null;
 
               // Check if proposal was accepted by querying the proposal table
               let proposalAcceptedAt = null;
@@ -6310,9 +6318,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
               return {
                 ...student,
+                name: sandboxDisplayStudentName,
                 parentInfo: parentEnrollment
                   ? {
                       ...parentEnrollment,
+                      parent_full_name: sandboxDisplayParentName,
+                      student_full_name: sandboxDisplayStudentName,
                       ...buildIntakeSignals(parentEnrollment),
                     }
                   : null,
