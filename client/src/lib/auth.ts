@@ -9,7 +9,7 @@ function getLogoutRedirect(user) {
   }
 
   if (user?.role === "td") {
-    return "/operational/signup?role=tutor";
+    return "/operational/td/signup";
   }
 
   if (user?.role === "coo" || user?.role === "hr" || user?.role === "ceo" || user?.role === "executive") {
@@ -29,15 +29,23 @@ function getLogoutRedirect(user) {
   }
 
   // If role is missing/stale, infer the portal from the current route.
+  if (pathname.startsWith("/operational/tutor") || pathname.startsWith("/tutor")) {
+    return "/operational/signup?role=tutor";
+  }
+
+  if (pathname.startsWith("/operational/td") || pathname.startsWith("/td")) {
+    return "/operational/td/signup";
+  }
+
   if (pathname.startsWith("/executive")) {
     return "/executive";
   }
 
   if (pathname.startsWith("/operational")) {
-    return "/operational/signup?role=tutor";
+    return "/operational/landing";
   }
 
-  return "/portal-landing";
+  return "/";
 }
 
 export async function logout(user) {

@@ -12,6 +12,7 @@ import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { DashboardLayoutSimple } from "@/components/layout/dashboard-layout-simple";
 import { ProtectedParentRoute } from "@/lib/parentGuard";
 import { TdGatewayGuard } from "@/lib/tdGatewayGuard";
+import { TutorGatewayGuard } from "@/lib/tutorGatewayGuard";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 
 // Clean up old localStorage cache on startup (we now use sessionStorage which is tab-specific)
@@ -161,8 +162,9 @@ function Router() {
     <Routes>
       {/* General Routes */}
       {/* Intro Session Drill Runner */}
-      <Route path="/tutor/intro-session/:studentId" element={<IntroSessionDrillRunner />} />
+      <Route path="/tutor/intro-session/:studentId" element={<TutorGatewayGuard><IntroSessionDrillRunner /></TutorGatewayGuard>} />
       <Route path="/" element={<PortalLanding />} />
+      <Route path="/portal-landing" element={<PortalLanding />} />
       <Route path="/landing" element={<Landing />} />
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
@@ -373,16 +375,16 @@ function Router() {
       <Route path="/operational/signup" element={<OperationalSignup />} />
 
       {/* Tutor Routes */}
-      <Route path="/operational/tutor/gateway" element={<TutorGateway />} />
-      <Route path="/operational/tutor/dashboard" element={<Navigate to="/tutor/pod" replace />} />
-      <Route path="/operational/tutor/my-pod" element={<Navigate to="/tutor/pod" replace />} />
-      <Route path="/tutor/blueprint" element={<DashboardLayout><TutorBlueprint /></DashboardLayout>} />
-      <Route path="/operational/tutor/tt-os" element={<TTOS />} />
-      <Route path="/operational/tutor/growth" element={<Navigate to="/tutor/growth" replace />} />
-      <Route path="/operational/tutor/academic-tracker" element={<Navigate to="/tutor/academics" replace />} />
-      <Route path="/operational/tutor/sessions" element={<Navigate to="/tutor/sessions" replace />} />
-      <Route path="/operational/tutor/profile" element={<Navigate to="/tutor/profile" replace />} />
-      <Route path="/operational/tutor/updates" element={<Navigate to="/tutor/updates" replace />} />
+      <Route path="/operational/tutor/gateway" element={<TutorGatewayGuard><TutorGateway /></TutorGatewayGuard>} />
+      <Route path="/operational/tutor/dashboard" element={<TutorGatewayGuard><Navigate to="/tutor/pod" replace /></TutorGatewayGuard>} />
+      <Route path="/operational/tutor/my-pod" element={<TutorGatewayGuard><Navigate to="/tutor/pod" replace /></TutorGatewayGuard>} />
+      <Route path="/tutor/blueprint" element={<TutorGatewayGuard><DashboardLayout><TutorBlueprint /></DashboardLayout></TutorGatewayGuard>} />
+      <Route path="/operational/tutor/tt-os" element={<TutorGatewayGuard><TTOS /></TutorGatewayGuard>} />
+      <Route path="/operational/tutor/growth" element={<TutorGatewayGuard><Navigate to="/tutor/growth" replace /></TutorGatewayGuard>} />
+      <Route path="/operational/tutor/academic-tracker" element={<TutorGatewayGuard><Navigate to="/tutor/academics" replace /></TutorGatewayGuard>} />
+      <Route path="/operational/tutor/sessions" element={<TutorGatewayGuard><Navigate to="/tutor/sessions" replace /></TutorGatewayGuard>} />
+      <Route path="/operational/tutor/profile" element={<TutorGatewayGuard><Navigate to="/tutor/profile" replace /></TutorGatewayGuard>} />
+      <Route path="/operational/tutor/updates" element={<TutorGatewayGuard><Navigate to="/tutor/updates" replace /></TutorGatewayGuard>} />
 
       {/* TD Routes */}
       <Route path="/operational/td/landing" element={<TdLanding />} />
@@ -453,12 +455,12 @@ function Router() {
 
       {/* ==================== LEGACY ROUTES (Backwards Compatibility) ==================== */}
       {/* Legacy Tutor Routes */}
-      <Route path="/tutor/pod" element={<TutorPod />} />
-      <Route path="/tutor/growth" element={<TutorGrowth />} />
-      <Route path="/tutor/academics" element={<TutorAcademics />} />
-      <Route path="/tutor/sessions" element={<TutorSessions />} />
-      <Route path="/tutor/profile" element={<TutorProfile />} />
-      <Route path="/tutor/updates" element={<DashboardLayout><TutorUpdates /></DashboardLayout>} />
+      <Route path="/tutor/pod" element={<TutorGatewayGuard><TutorPod /></TutorGatewayGuard>} />
+      <Route path="/tutor/growth" element={<TutorGatewayGuard><TutorGrowth /></TutorGatewayGuard>} />
+      <Route path="/tutor/academics" element={<TutorGatewayGuard><TutorAcademics /></TutorGatewayGuard>} />
+      <Route path="/tutor/sessions" element={<TutorGatewayGuard><TutorSessions /></TutorGatewayGuard>} />
+      <Route path="/tutor/profile" element={<TutorGatewayGuard><TutorProfile /></TutorGatewayGuard>} />
+      <Route path="/tutor/updates" element={<TutorGatewayGuard><DashboardLayout><TutorUpdates /></DashboardLayout></TutorGatewayGuard>} />
 
       {/* Legacy TD Routes */}
       <Route path="/td/landing" element={<TdLanding />} />
