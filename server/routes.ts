@@ -95,6 +95,120 @@ const PREMIUM_TUTOR_SHARE = "750.00";
 const PREMIUM_TT_SHARE = "250.00";
 const PAYMENT_PROVIDER_PAYFAST = "payfast";
 
+type SandboxCaseTemplate = {
+  id: string;
+  topics: string[];
+  responseSymptoms: string[];
+  topicSymptoms?: Record<string, string[]>;
+  previousTutoring: string;
+  parentMotivation: string;
+};
+
+const SANDBOX_CASE_TEMPLATES: SandboxCaseTemplate[] = [
+  {
+    id: "single-topic-clarity",
+    topics: ["Fractions"],
+    responseSymptoms: ["question_confusion", "term_formula_forgetting", "confused_before_start"],
+    topicSymptoms: {
+      Fractions: ["question_confusion", "term_formula_forgetting", "confused_before_start"],
+    },
+    previousTutoring: "No formal tutoring before. Parent reports repeated confusion at the start of tasks.",
+    parentMotivation: "Sandbox training case focused on a single-topic clarity breakdown.",
+  },
+  {
+    id: "double-topic-structure",
+    topics: ["Algebra", "Linear equations"],
+    responseSymptoms: ["guided_but_not_alone", "skips_steps", "needs_prompting"],
+    topicSymptoms: {
+      Algebra: ["guided_but_not_alone", "skips_steps"],
+      "Linear equations": ["starts_wrong_after_examples", "needs_prompting"],
+    },
+    previousTutoring: "Some tutoring before, but the student still loses structure when working alone.",
+    parentMotivation: "Sandbox training case focused on a two-topic execution breakdown.",
+  },
+  {
+    id: "triple-topic-pressure",
+    topics: ["Word problems", "Percentages", "Ratios"],
+    responseSymptoms: ["freezes_unfamiliar", "overwhelmed_by_uncertainty", "panics_in_tests"],
+    topicSymptoms: {
+      "Word problems": ["freezes_unfamiliar", "asks_help_immediately"],
+      Percentages: ["overwhelmed_by_uncertainty", "gives_up_quickly"],
+      Ratios: ["panics_in_tests", "rushes_under_time"],
+    },
+    previousTutoring: "Previous support helped with homework, but unfamiliar questions still trigger collapse.",
+    parentMotivation: "Sandbox training case focused on discomfort and time-pressure breakdowns across multiple topics.",
+  },
+  {
+    id: "double-topic-mixed",
+    topics: ["Exponents", "Factorisation"],
+    responseSymptoms: ["cannot_explain_reason", "guesses_without_method", "loses_structure_when_fast"],
+    topicSymptoms: {
+      Exponents: ["cannot_explain_reason", "guesses_without_method"],
+      Factorisation: ["skips_steps", "loses_structure_when_fast"],
+    },
+    previousTutoring: "Student can sometimes copy steps, but reasoning and structure collapse under pressure.",
+    parentMotivation: "Sandbox training case focused on mixed clarity and execution drift.",
+  },
+];
+
+function buildSandboxEnrollmentCase(seedIndex: number, source?: any | null) {
+  const template = SANDBOX_CASE_TEMPLATES[seedIndex % SANDBOX_CASE_TEMPLATES.length];
+  const topics = template.topics;
+  const mathStruggleAreas = topics.join(", ");
+  const normalizedResponseSymptoms = normalizeResponseSymptoms(template.responseSymptoms);
+  const responseRecommendation = recommendStartingPhaseFromSymptoms(normalizedResponseSymptoms);
+
+  const topicResponseSymptoms = Object.fromEntries(
+    topics.map((topic) => {
+      const symptoms = normalizeResponseSymptoms(template.topicSymptoms?.[topic] || normalizedResponseSymptoms);
+      return [topic, symptoms];
+    })
+  );
+
+  const topicResponseRecommendations = Object.fromEntries(
+    Object.entries(topicResponseSymptoms).map(([topic, symptoms]) => {
+      const recommendation = recommendStartingPhaseFromSymptoms(symptoms as string[]);
+      return [
+        topic,
+        {
+          phase: recommendation.phase,
+          scores: recommendation.scores,
+          supportingSymptoms: recommendation.supportingSymptoms,
+          rationale: buildStartingPhaseRationale(recommendation.phase, recommendation.supportingSymptoms),
+        },
+      ];
+    })
+  );
+
+  return {
+    caseId: template.id,
+    topicCount: topics.length,
+    mathStruggleAreas,
+    responseSymptoms: normalizedResponseSymptoms,
+    topicResponseSymptoms,
+    responseSignalScores: responseRecommendation.scores,
+    topicResponseSignalScores: Object.fromEntries(
+      Object.entries(topicResponseRecommendations).map(([topic, value]) => [topic, (value as any).scores])
+    ),
+    recommendedStartingPhase: responseRecommendation.phase,
+    topicRecommendedStartingPhases: Object.fromEntries(
+      Object.entries(topicResponseRecommendations).map(([topic, value]) => [
+        topic,
+        {
+          phase: (value as any).phase,
+          supportingSymptoms: (value as any).supportingSymptoms,
+          rationale: (value as any).rationale,
+        },
+      ])
+    ),
+    schoolName:
+      source?.school_name ||
+      (topics.length >= 3 ? "Sandbox Comprehensive" : topics.length === 2 ? "Sandbox Prep" : "Sandbox Academy"),
+    previousTutoring: source?.previous_tutoring || template.previousTutoring,
+    parentMotivation: source?.parent_motivation || template.parentMotivation,
+  };
+}
+
 function getAppBaseUrl() {
   return (
     String(process.env.APP_BASE_URL || "").trim() ||
@@ -418,12 +532,15 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
     studentName: string;
     sourceEnrollmentId: string | null;
     authProvisioned?: boolean;
+    caseProfile?: string;
+    topicCount?: number;
   }> = [];
 
   for (let offset = 0; offset < minimumCount - existingSandboxCount; offset++) {
     const source = (sourceEnrollments || []).length
       ? sourceEnrollments![offset % sourceEnrollments!.length]
       : null;
+    const caseSeed = buildSandboxEnrollmentCase(existingSandboxCount + offset, source);
     const suffix = `${Date.now()}-${offset}`;
     const fakeParentEmail = `sandbox-parent-${tutorId}-${suffix}@territorialtutoring.com`;
     const fakeParentName = source?.parent_full_name
@@ -482,14 +599,20 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
       parent_city: "Sandbox City",
       student_full_name: fakeStudentName,
       student_grade: source?.student_grade || ["8", "9", "10", "11", "12"][offset % 5],
-      school_name: source?.school_name || "Sandbox School",
-      math_struggle_areas: source?.math_struggle_areas || "algebra, fractions, word problems",
-      previous_tutoring: source?.previous_tutoring || "Some tutoring before",
+      school_name: caseSeed.schoolName,
+      math_struggle_areas: caseSeed.mathStruggleAreas,
+      response_symptoms: caseSeed.responseSymptoms,
+      topic_response_symptoms: caseSeed.topicResponseSymptoms,
+      response_signal_scores: caseSeed.responseSignalScores,
+      topic_response_signal_scores: caseSeed.topicResponseSignalScores,
+      recommended_starting_phase: caseSeed.recommendedStartingPhase,
+      topic_recommended_starting_phases: caseSeed.topicRecommendedStartingPhases,
+      previous_tutoring: caseSeed.previousTutoring,
       internet_access: source?.internet_access || "Yes",
-      parent_motivation: source?.parent_motivation || "Sandbox training account for tutor certification",
+      parent_motivation: caseSeed.parentMotivation,
       assigned_tutor_id: tutorId,
-      status: "assigned",
-      current_step: "sandbox-assigned",
+      status: "awaiting_tutor_acceptance",
+      current_step: "awaiting_tutor_acceptance",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -497,6 +620,26 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
     const sandboxEnrollmentPayloads = [
       { ...sandboxEnrollmentBase, is_sandbox_account: true },
       { ...sandboxEnrollmentBase, is_sandbox_account: true, confidence_level: "medium" },
+      {
+        user_id: sandboxEnrollmentBase.user_id,
+        parent_full_name: sandboxEnrollmentBase.parent_full_name,
+        parent_phone: sandboxEnrollmentBase.parent_phone,
+        parent_email: sandboxEnrollmentBase.parent_email,
+        parent_city: sandboxEnrollmentBase.parent_city,
+        student_full_name: sandboxEnrollmentBase.student_full_name,
+        student_grade: sandboxEnrollmentBase.student_grade,
+        school_name: sandboxEnrollmentBase.school_name,
+        math_struggle_areas: sandboxEnrollmentBase.math_struggle_areas,
+        previous_tutoring: sandboxEnrollmentBase.previous_tutoring,
+        internet_access: sandboxEnrollmentBase.internet_access,
+        parent_motivation: sandboxEnrollmentBase.parent_motivation,
+        assigned_tutor_id: sandboxEnrollmentBase.assigned_tutor_id,
+        status: sandboxEnrollmentBase.status,
+        current_step: sandboxEnrollmentBase.current_step,
+        created_at: sandboxEnrollmentBase.created_at,
+        updated_at: sandboxEnrollmentBase.updated_at,
+        is_sandbox_account: true,
+      },
       { ...sandboxEnrollmentBase },
       { ...sandboxEnrollmentBase, confidence_level: "medium" },
     ];
@@ -521,7 +664,13 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
       const expectedCompatibilityError =
         message.includes("is_sandbox_account") ||
         message.includes("confidence_level") ||
-        message.includes("current_step");
+        message.includes("current_step") ||
+        message.includes("response_symptoms") ||
+        message.includes("topic_response_symptoms") ||
+        message.includes("response_signal_scores") ||
+        message.includes("topic_response_signal_scores") ||
+        message.includes("recommended_starting_phase") ||
+        message.includes("topic_recommended_starting_phases");
 
       if (!expectedCompatibilityError) {
         break;
@@ -541,6 +690,8 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
       studentName: sandboxEnrollment.student_full_name,
       sourceEnrollmentId: source?.id ? String(source.id) : null,
       authProvisioned,
+      caseProfile: caseSeed.caseId,
+      topicCount: caseSeed.topicCount,
     });
   }
 
@@ -17392,6 +17543,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       let status = enrollmentData.status || "not_enrolled";
+      let effectiveStep = enrollmentData.current_step;
       const operationalMode = await getParentAssignedTutorOperationalMode(userId);
       enrollmentDebug.operationalMode = operationalMode;
       const sessionType = getEnrollmentSessionType(enrollmentData);
@@ -17405,18 +17557,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       enrollmentDebug.sessionProgressError = sessionProgress.error ? String(sessionProgress.error.message || sessionProgress.error) : null;
       enrollmentDebug.sessionProgressCount = sessionProgress.count || 0;
 
+      let assignmentAccepted = false;
+
       // Auto-correct: if status is 'awaiting_tutor_acceptance', check if tutor has accepted
-      if (status === "awaiting_tutor_acceptance" && enrollmentData.assigned_tutor_id) {
+      if (
+        enrollmentData.assigned_tutor_id &&
+        (status === "awaiting_tutor_acceptance" ||
+          (Boolean((enrollmentData as any).is_sandbox_account) && status === "assigned"))
+      ) {
         // Try to find the assigned student and check workflow
-        let assignmentAccepted = false;
         if (enrollmentData.assigned_student_id) {
           const assignedStudent = await storage.getStudent(enrollmentData.assigned_student_id);
           const assignedWorkflow = ((assignedStudent?.personalProfile as any) || {}).workflow || {};
           assignmentAccepted = !!assignedWorkflow.assignmentAcceptedAt;
         }
-        // If accepted, override status
-        if (assignmentAccepted) {
+
+        // Legacy sandbox rows were provisioned as assigned before acceptance. Normalize them back
+        // to the live-equivalent acceptance state until the tutor actually accepts.
+        if (Boolean((enrollmentData as any).is_sandbox_account) && status === "assigned" && !assignmentAccepted) {
+          status = "awaiting_tutor_acceptance";
+          effectiveStep = "awaiting_tutor_acceptance";
+        } else if (assignmentAccepted) {
           status = "assigned";
+          effectiveStep = "assigned";
         }
       }
 
@@ -17468,7 +17631,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({
         status,
-        step: enrollmentData.current_step,
+        step: effectiveStep,
         onboardingType: billingModel.data.onboardingType,
         freeSessionsRemaining:
           billingModel.data.onboardingType === "pilot"
