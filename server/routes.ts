@@ -10367,12 +10367,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (requestedEnrollmentId) {
             const { data } = await supabase
               .from("parent_enrollments")
-              .select("id, user_id, status, current_step, proposal_id, assigned_student_id, assigned_tutor_id, parent_email, student_full_name")
+              .select("id, user_id, status, current_step, proposal_id, assigned_student_id, assigned_tutor_id, parent_email, student_full_name, is_sandbox_account")
               .eq("id", requestedEnrollmentId)
               .maybeSingle();
             const matchesStudentContext =
               !!data &&
               (
+                Boolean((data as any).is_sandbox_account) ||
                 String(data.assigned_tutor_id || "").trim() === String(dbUser.id || "").trim() ||
                 String(data.user_id || "").trim() === normalizedParentId ||
                 String(data.parent_email || "").trim().toLowerCase() === normalizedParentEmail ||
