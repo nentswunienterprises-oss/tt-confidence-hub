@@ -10367,21 +10367,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (requestedEnrollmentId) {
             const { data } = await supabase
               .from("parent_enrollments")
-              .select("id, user_id, status, current_step, proposal_id, assigned_student_id")
+              .select("id, user_id, status, current_step, proposal_id, assigned_student_id, assigned_tutor_id, parent_email, student_full_name")
               .eq("id", requestedEnrollmentId)
-              .eq("assigned_tutor_id", dbUser.id)
               .maybeSingle();
-            parentEnrollment = data;
+            const matchesStudentContext =
+              !!data &&
+              (
+                String(data.assigned_tutor_id || "").trim() === String(dbUser.id || "").trim() ||
+                String(data.user_id || "").trim() === normalizedParentId ||
+                String(data.parent_email || "").trim().toLowerCase() === normalizedParentEmail ||
+                String(data.student_full_name || "").trim().toLowerCase() === normalizedStudentName.toLowerCase()
+              );
+            parentEnrollment = matchesStudentContext ? data : null;
           }
 
           if (!parentEnrollment && explicitEnrollmentId) {
             const { data } = await supabase
               .from("parent_enrollments")
-              .select("id, user_id, status, current_step, proposal_id, assigned_student_id")
+              .select("id, user_id, status, current_step, proposal_id, assigned_student_id, assigned_tutor_id")
               .eq("id", explicitEnrollmentId)
-              .eq("assigned_tutor_id", dbUser.id)
               .maybeSingle();
-            parentEnrollment = data;
+            parentEnrollment =
+              data && (
+                String(data.assigned_tutor_id || "").trim() === String(dbUser.id || "").trim() ||
+                !String(data.assigned_tutor_id || "").trim()
+              )
+                ? data
+                : null;
           }
 
           if (!parentEnrollment && studentId) {
@@ -10505,6 +10517,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             await supabase
               .from("parent_enrollments")
               .update({
+                assigned_tutor_id: dbUser.id,
                 status: nextEnrollmentStatus,
                 current_step: nextCurrentStep,
                 assigned_student_id: studentId,
