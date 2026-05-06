@@ -10252,26 +10252,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (decision === "accept") {
           // Update parent_enrollments status to 'not_scheduled' using available fields
-          // Try assigned_student_id first, then fallback to student_full_name
+          // Prefer the student's explicit parent enrollment link, then assigned_student_id,
+          // then fall back to parent/name matching for older legacy rows.
           let parentEnrollment: any = null;
-          let query = supabase
-            .from("parent_enrollments")
-            .select("id")
-            .eq("assigned_tutor_id", dbUser.id);
-          if (studentId) {
-            // Try assigned_student_id
-            query = query.eq("assigned_student_id", studentId);
-            const { data } = await query.select("id, user_id, status, current_step, proposal_id").maybeSingle();
+          const explicitEnrollmentId = String(
+            (student as any)?.parentEnrollmentId || (student as any)?.parent_enrollment_id || ""
+          ).trim();
+
+          if (explicitEnrollmentId) {
+            const { data } = await supabase
+              .from("parent_enrollments")
+              .select("id, user_id, status, current_step, proposal_id, assigned_student_id")
+              .eq("id", explicitEnrollmentId)
+              .eq("assigned_tutor_id", dbUser.id)
+              .maybeSingle();
             parentEnrollment = data;
           }
+
+          if (!parentEnrollment && studentId) {
+            const { data } = await supabase
+              .from("parent_enrollments")
+              .select("id, user_id, status, current_step, proposal_id, assigned_student_id")
+              .eq("assigned_tutor_id", dbUser.id)
+              .eq("assigned_student_id", studentId)
+              .maybeSingle();
+            parentEnrollment = data;
+          }
+
           if (!parentEnrollment) {
-            // Fallback: match by student_full_name (from student or request)
             let studentName = student?.name;
             if (!studentName && req.body.studentName) studentName = req.body.studentName;
             if (studentName) {
               const { data } = await supabase
                 .from("parent_enrollments")
-                .select("id, user_id, status, current_step, proposal_id")
+                .select("id, user_id, status, current_step, proposal_id, assigned_student_id")
                 .eq("assigned_tutor_id", dbUser.id)
                 .eq("student_full_name", studentName)
                 .maybeSingle();
@@ -10316,6 +10330,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .update({
                 status: nextEnrollmentStatus,
                 current_step: nextCurrentStep,
+                assigned_student_id: studentId,
                 updated_at: new Date().toISOString(),
               })
               .eq("id", parentEnrollment.id);
