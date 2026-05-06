@@ -6319,6 +6319,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               return {
                 ...student,
                 name: sandboxDisplayStudentName,
+                enrollmentId: parentEnrollment?.id || null,
                 parentInfo: parentEnrollment
                   ? {
                       ...parentEnrollment,

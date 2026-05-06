@@ -176,7 +176,10 @@ export function StudentCard({
 
   const { data: workflow, isLoading: workflowLoading } = useStudentWorkflowState(student.id);
   const markHandoverCompleted = useMarkHandoverCompleted(student.id);
-  const respondToAssignment = useRespondToAssignment(student.id, student.parentInfo?.id || null);
+  const respondToAssignment = useRespondToAssignment(
+    student.id,
+    student.enrollmentId || student.parentEnrollmentId || student.parent_enrollment_id || student.parentInfo?.id || null
+  );
   const { data: introSessionDetails } = useScheduledSession(student.id);
 
   const effectiveWorkflow = useMemo(() => {
