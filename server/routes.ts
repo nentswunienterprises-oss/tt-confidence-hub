@@ -10259,11 +10259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ? false
           : !!(
               workflow.assignmentAcceptedAt ||
-              introSession ||
-              inferredIntroCompleted ||
-              student.identitySheetCompletedAt ||
-              latestProposal?.sent_at ||
-              latestProposal?.accepted_at
+              (enrollmentForStudent && enrollmentForStudent.status !== "awaiting_tutor_acceptance")
             );
 
         res.json({
