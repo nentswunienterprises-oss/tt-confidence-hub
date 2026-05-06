@@ -344,7 +344,7 @@ export default function Landing() {
             <Card 
               className="p-5 sm:p-6 md:p-8 border-2 hover:border-[#E63946] cursor-pointer transition-all hover:shadow-xl group"
               style={{ borderColor: "#E5E5E5" }}
-              onClick={() => window.location.href = "/portal-landing"}
+              onClick={() => window.location.href = "/"}
             >
               <div 
                 className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform"

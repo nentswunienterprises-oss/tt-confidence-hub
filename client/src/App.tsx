@@ -164,7 +164,7 @@ function Router() {
       {/* Intro Session Drill Runner */}
       <Route path="/tutor/intro-session/:studentId" element={<TutorGatewayGuard><IntroSessionDrillRunner /></TutorGatewayGuard>} />
       <Route path="/" element={<PortalLanding />} />
-      <Route path="/portal-landing" element={<PortalLanding />} />
+      <Route path="/portal-landing" element={<Navigate to="/" replace />} />
       <Route path="/landing" element={<Landing />} />
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
