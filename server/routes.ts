@@ -18620,6 +18620,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Confirm the intro session before sending a proposal." });
       }
 
+      const tutorCertificationMode = await getTutorCertificationMode(tutorId);
+      const allowTrainingContextDiagnosisForProposal = tutorCertificationMode === "sandbox";
+
       // Tie proposal generation to latest intro drill result for this tutor+student.
       const { data: latestIntroDrills, error: introDrillError } = await supabase
         .from("intro_session_drills")
@@ -18652,11 +18655,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const isDiagnosis = (parsed?.drillType || "diagnosis") === "diagnosis";
         const scheduledSessionMatch =
           String(row.scheduled_session_id || parsed?.scheduledSessionId || "").trim() === String(confirmedIntroSession.id);
-        const isIntroContext =
-          String(parsed?.sessionContextKind || "intro").trim().toLowerCase() === "intro";
+        const sessionContextKind = String(parsed?.sessionContextKind || "intro").trim().toLowerCase();
+        const isAcceptedProposalContext =
+          sessionContextKind === "intro" ||
+          (allowTrainingContextDiagnosisForProposal && sessionContextKind === "training");
         const explicitDrillMatch = introDrillId && String(row.id) === String(introDrillId);
 
-        if (isDiagnosis && isIntroContext && explicitDrillMatch) {
+        if (isDiagnosis && isAcceptedProposalContext && explicitDrillMatch) {
           latestIntroDrill = row;
           parsedIntro = parsed;
           break;
@@ -18664,14 +18669,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (
           isDiagnosis &&
-          scheduledSessionMatch
+          scheduledSessionMatch &&
+          isAcceptedProposalContext
         ) {
           latestIntroDrill = row;
           parsedIntro = parsed;
           break;
         }
 
-        if (!fallbackIntroDiagnosis && isDiagnosis && isIntroContext) {
+        if (!fallbackIntroDiagnosis && isDiagnosis && isAcceptedProposalContext) {
           fallbackIntroDiagnosis = row;
           fallbackParsedIntro = parsed;
         }
