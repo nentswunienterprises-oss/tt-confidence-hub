@@ -18556,6 +18556,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const {
         studentId,
         enrollmentId,
+        introDrillId,
         primaryIdentity,
         mathRelationship,
         confidenceTriggers,
@@ -18601,7 +18602,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { data: confirmedIntroSession, error: confirmedIntroSessionError } = await supabase
         .from("scheduled_sessions")
-        .select("id, status, type, tutor_id, student_id")
+        .select("id, status, type, tutor_id, student_id, created_at")
         .eq("student_id", studentId)
         .eq("tutor_id", tutorId)
         .eq("type", "intro")
@@ -18639,6 +18640,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let latestIntroDrill: any = null;
       let parsedIntro: any = null;
+      let fallbackIntroDiagnosis: any = null;
+      let fallbackParsedIntro: any = null;
       for (const row of latestIntroDrills) {
         let parsed: any = null;
         try {
@@ -18646,14 +18649,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch {
           parsed = null;
         }
+        const isDiagnosis = (parsed?.drillType || "diagnosis") === "diagnosis";
+        const scheduledSessionMatch =
+          String(row.scheduled_session_id || parsed?.scheduledSessionId || "").trim() === String(confirmedIntroSession.id);
+        const isIntroContext =
+          String(parsed?.sessionContextKind || "intro").trim().toLowerCase() === "intro";
+        const explicitDrillMatch = introDrillId && String(row.id) === String(introDrillId);
+
+        if (isDiagnosis && isIntroContext && explicitDrillMatch) {
+          latestIntroDrill = row;
+          parsedIntro = parsed;
+          break;
+        }
+
         if (
-          (parsed?.drillType || "diagnosis") === "diagnosis" &&
-          String(row.scheduled_session_id || parsed?.scheduledSessionId || "").trim() === String(confirmedIntroSession.id)
+          isDiagnosis &&
+          scheduledSessionMatch
         ) {
           latestIntroDrill = row;
           parsedIntro = parsed;
           break;
         }
+
+        if (!fallbackIntroDiagnosis && isDiagnosis && isIntroContext) {
+          fallbackIntroDiagnosis = row;
+          fallbackParsedIntro = parsed;
+        }
+      }
+
+      if ((!latestIntroDrill || !parsedIntro) && fallbackIntroDiagnosis && fallbackParsedIntro) {
+        latestIntroDrill = fallbackIntroDiagnosis;
+        parsedIntro = fallbackParsedIntro;
       }
 
       if (!latestIntroDrill || !parsedIntro) {
