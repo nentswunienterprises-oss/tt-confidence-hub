@@ -78,6 +78,17 @@ function getTopicMapValue(source, topic) {
   return matchedEntry ? matchedEntry[1] : null;
 }
 
+function getRawTopicSymptomLabels(rawValue) {
+  if (!Array.isArray(rawValue)) return [];
+  return Array.from(
+    new Set(
+      rawValue
+        .map((value) => String(value || "").trim())
+        .filter(Boolean)
+    )
+  );
+}
+
 function trimRationaleSignals(rawValue) {
   return String(rawValue || "")
     .replace(/\s*Most relevant signals:\s*[\s\S]*$/i, "")
@@ -287,12 +298,16 @@ export function StudentCard({
   const topicIntelligence = reportedTopics.map((topic) => {
     const topicSymptomsSource = getTopicMapValue(topicResponseSymptomsRaw, topic);
     const topicSymptomIdsSource = getTopicMapValue(student.parentInfo?.topic_response_symptom_ids, topic);
-    const topicSymptomIds = normalizeResponseSymptoms(topicSymptomIdsSource);
-    const topicSymptoms = Array.isArray(topicSymptomsSource)
-      ? (topicSymptomsSource as unknown[]).map((symptom) => String(symptom).trim()).filter(Boolean)
-      : topicSymptomIds.length > 0
+    const topicSymptomIds = normalizeResponseSymptoms(
+      topicSymptomIdsSource && Array.isArray(topicSymptomIdsSource) && topicSymptomIdsSource.length > 0
+        ? topicSymptomIdsSource
+        : topicSymptomsSource
+    );
+    const rawTopicSymptomLabels = getRawTopicSymptomLabels(topicSymptomsSource);
+    const topicSymptoms =
+      topicSymptomIds.length > 0
         ? getResponseSymptomLabels(topicSymptomIds)
-        : [];
+        : rawTopicSymptomLabels;
     const recommendedTopicData = getTopicMapValue(topicRecommendedStartingPhasesRaw, topic);
     const topicScoresRaw = getTopicMapValue(topicResponseSignalScoresRaw, topic) || {};
     const computedRecommendation = recommendStartingPhaseFromSymptoms(topicSymptomIds);

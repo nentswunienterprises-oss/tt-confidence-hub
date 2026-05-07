@@ -153,14 +153,37 @@ const SANDBOX_CASE_TEMPLATES: SandboxCaseTemplate[] = [
 
 function buildSandboxEnrollmentCase(seedIndex: number, source?: any | null) {
   const template = SANDBOX_CASE_TEMPLATES[seedIndex % SANDBOX_CASE_TEMPLATES.length];
-  const topics = template.topics;
+  const sourceTopics =
+    typeof source?.math_struggle_areas === "string"
+      ? String(source.math_struggle_areas)
+          .split(/[,\n;|]+/)
+          .map((value) => String(value || "").trim())
+          .filter(Boolean)
+      : [];
+  const sourceTopicResponseSymptoms =
+    source?.topic_response_symptoms && typeof source.topic_response_symptoms === "object"
+      ? Object.fromEntries(
+          Object.entries(source.topic_response_symptoms as Record<string, unknown>)
+            .map(([topic, symptoms]) => [String(topic || "").trim(), normalizeResponseSymptoms(symptoms)])
+            .filter(([topic, symptoms]) => topic.length > 0 && (symptoms as string[]).length > 0)
+        )
+      : {};
+  const sourceResponseSymptoms = normalizeResponseSymptoms(source?.response_symptoms);
+  const topics = sourceTopics.length > 0 ? sourceTopics : template.topics;
   const mathStruggleAreas = topics.join(", ");
-  const normalizedResponseSymptoms = normalizeResponseSymptoms(template.responseSymptoms);
+  const normalizedResponseSymptoms =
+    sourceResponseSymptoms.length > 0
+      ? sourceResponseSymptoms
+      : normalizeResponseSymptoms(template.responseSymptoms);
   const responseRecommendation = recommendStartingPhaseFromSymptoms(normalizedResponseSymptoms);
 
   const topicResponseSymptoms = Object.fromEntries(
     topics.map((topic) => {
-      const symptoms = normalizeResponseSymptoms(template.topicSymptoms?.[topic] || normalizedResponseSymptoms);
+      const symptoms = normalizeResponseSymptoms(
+        sourceTopicResponseSymptoms[topic] ||
+        template.topicSymptoms?.[topic] ||
+        normalizedResponseSymptoms
+      );
       return [topic, symptoms];
     })
   );

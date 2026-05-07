@@ -189,6 +189,18 @@ const OPTION_LOOKUP = new Map(
   RESPONSE_SYMPTOM_GROUPS.flatMap((group) => group.options.map((option) => [option.id, option] as const))
 );
 
+const normalizeSymptomLookupKey = (value: unknown) =>
+  String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+
+const OPTION_LABEL_LOOKUP = new Map(
+  RESPONSE_SYMPTOM_GROUPS.flatMap((group) =>
+    group.options.map((option) => [normalizeSymptomLookupKey(option.label), option.id] as const)
+  )
+);
+
 export function normalizeResponseSymptoms(raw: unknown): string[] {
   const values = Array.isArray(raw)
     ? raw
@@ -200,6 +212,10 @@ export function normalizeResponseSymptoms(raw: unknown): string[] {
     new Set(
       values
         .map((value) => String(value || "").trim())
+        .map((value) => {
+          if (OPTION_LOOKUP.has(value)) return value;
+          return OPTION_LABEL_LOOKUP.get(normalizeSymptomLookupKey(value)) || "";
+        })
         .filter((value) => OPTION_LOOKUP.has(value))
     )
   );
