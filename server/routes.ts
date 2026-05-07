@@ -8682,6 +8682,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     );
   };
 
+  const hasPostProvisionAssignmentUpdate = (enrollment: any) => {
+    const createdAt = new Date(String(enrollment?.created_at || ""));
+    const updatedAt = new Date(String(enrollment?.updated_at || ""));
+
+    if (Number.isNaN(createdAt.getTime()) || Number.isNaN(updatedAt.getTime())) {
+      return false;
+    }
+
+    return updatedAt.getTime() - createdAt.getTime() > 1000;
+  };
+
   type CommunicationAudience = "parent" | "student";
 
   const COMMUNICATION_AUDIENCES: CommunicationAudience[] = ["parent", "student"];
@@ -17846,13 +17857,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         assignmentAccepted = !!assignedWorkflow.assignmentAcceptedAt;
+        const sandboxAssignedAcceptanceLikely =
+          Boolean((enrollmentData as any).is_sandbox_account) &&
+          status === "assigned" &&
+          hasPostProvisionAssignmentUpdate(enrollmentData);
 
         // Legacy sandbox rows were provisioned as assigned before acceptance. Normalize them back
         // to the live-equivalent acceptance state until the tutor actually accepts.
-        if (Boolean((enrollmentData as any).is_sandbox_account) && status === "assigned" && !assignmentAccepted) {
+        if (
+          Boolean((enrollmentData as any).is_sandbox_account) &&
+          status === "assigned" &&
+          !assignmentAccepted &&
+          !sandboxAssignedAcceptanceLikely
+        ) {
           status = "awaiting_tutor_acceptance";
           effectiveStep = "awaiting_tutor_acceptance";
-        } else if (assignmentAccepted) {
+        } else if (assignmentAccepted || sandboxAssignedAcceptanceLikely) {
           status = "assigned";
           effectiveStep = "assigned";
         }

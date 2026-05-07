@@ -115,7 +115,6 @@ export default function ParentGateway() {
   const [proposedTime, setProposedTime] = useState<string>("");
   const [isSubmittingSession, setIsSubmittingSession] = useState(false);
   const [bookedIntroSessionOverride, setBookedIntroSessionOverride] = useState<any>(null);
-  const justSubmittedRef = useRef(false);
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [loadingDebug, setLoadingDebug] = useState(false);
   const [debugError, setDebugError] = useState<string | null>(null);
@@ -363,7 +362,6 @@ export default function ParentGateway() {
 
   // Auto-set step based on enrollment status and intro session confirmation
   useEffect(() => {
-    if (justSubmittedRef.current) return;
     if (!enrollmentStatus) {
       setStep("loading");
     } else if (enrollmentStatus.status === "not_enrolled") {
@@ -598,9 +596,6 @@ export default function ParentGateway() {
       if (!refreshedEnrollmentStatus || refreshedEnrollmentStatus.status === "not_enrolled") {
         throw new Error("Enrollment did not persist. Please try again.");
       }
-
-      // Set flag only after the saved enrollment is visible via the status endpoint.
-      justSubmittedRef.current = true;
 
       await queryClient.invalidateQueries({ queryKey: ["/api/parent/enrollment-status"] });
 
