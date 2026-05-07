@@ -5069,12 +5069,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = (req as any).dbUser.id;
       const operationalMode = await getParentAssignedTutorOperationalMode(userId);
-      if (operationalMode === "training") {
-        return res.status(400).json({
-          message: "Intro session booking is disabled while your assigned tutor is in training mode.",
-          operationalMode,
-        });
-      }
       const { proposedDate, proposedTime } = req.body;
       if (!proposedDate || !proposedTime) {
         return res.status(400).json({ message: "Missing date or time" });
@@ -5182,6 +5176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: existingSession.id,
           student_id: assignedStudent?.id || null,
           status: "pending_tutor_confirmation",
+          operationalMode,
           type: sessionType,
           scheduled_time: `${proposedDate}T${proposedTime}`,
           parent_confirmed: true,
@@ -5237,6 +5232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: insertedSession?.id || null,
         student_id: assignedStudent?.id || null,
         status: "pending_tutor_confirmation",
+        operationalMode,
         type: sessionType,
         scheduled_time: `${proposedDate}T${proposedTime}`,
         parent_confirmed: true,
@@ -5261,10 +5257,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userId = (req as any).dbUser.id;
         const operationalMode = await getParentAssignedTutorOperationalMode(userId);
 
-        if (operationalMode === "training") {
-          return res.json({ status: "training_mode", operationalMode });
-        }
-
         const { data: enrollmentData, error: enrollmentError } = await selectLatestParentEnrollment({
           parentId: userId,
           primarySelect: "id, user_id, assigned_tutor_id, assigned_student_id, status, current_step, student_full_name, parent_email, student_grade",
@@ -5280,7 +5272,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               details: enrollmentError.details,
             });
           }
-          return res.json({ status: "not_scheduled" });
+          return res.json({ status: "not_scheduled", operationalMode });
         }
 
         let assignedStudent = null;
@@ -5344,12 +5336,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (enrollmentData.status === "assigned") {
             return res.json({
               status: "not_scheduled",
+              operationalMode,
               introCompleted: false,
               type: sessionType,
               sessionLabel,
             });
           }
-          return res.json({ status: "not_scheduled", type: sessionType, sessionLabel });
+          return res.json({ status: "not_scheduled", operationalMode, type: sessionType, sessionLabel });
         }
 
         const assignedStudentWorkflow = assignedStudent
@@ -5362,6 +5355,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const responseObj = {
           id: session.id,
           status: effectiveStatus,
+          operationalMode,
           type: session.type,
           sessionLabel,
           scheduled_time: session.scheduled_time,
@@ -5382,6 +5376,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Error in intro-session-confirmation:", error);
         return res.json({
           status: "not_scheduled",
+          operationalMode: "training",
           degraded: true,
         });
       }
@@ -5390,13 +5385,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/parent/intro-session-confirm", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const userId = (req as any).dbUser.id;
-      const operationalMode = await getParentAssignedTutorOperationalMode(userId);
-      if (operationalMode === "training") {
-        return res.status(400).json({
-          message: "Intro session confirmation is disabled while your assigned tutor is in training mode.",
-          operationalMode,
-        });
-      }
       const { sessionId } = req.body;
       if (!sessionId) {
         return res.status(400).json({ message: "Missing sessionId" });

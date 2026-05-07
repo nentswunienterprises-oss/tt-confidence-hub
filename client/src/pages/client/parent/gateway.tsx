@@ -358,7 +358,7 @@ export default function ParentGateway() {
   const sessionLabel = isHandoverFlow ? "continuity check" : "intro session";
   const sessionTitle = isHandoverFlow ? "Continuity Check" : "Introductory Session";
   const sessionCompletedLabel = isHandoverFlow ? "continuity check" : "introductory session";
-  const isTrainingMode = effectiveIntroSessionConfirmation?.status === "training_mode";
+  const isTrainingMode = effectiveIntroSessionConfirmation?.operationalMode === "training";
 
   // Auto-set step based on enrollment status and intro session confirmation
   useEffect(() => {
@@ -1489,13 +1489,13 @@ export default function ParentGateway() {
                     </div>
                   )}
 
-                  {effectiveIntroSessionConfirmation?.status === "training_mode" && (
+                  {isTrainingMode && (
                     <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                       <p className="font-medium text-red-900">Tutor training mode is active</p>
                       <p className="text-sm text-red-700 mt-2">
                         {isHandoverFlow
-                          ? "Google Meet continuity-check booking is temporarily disabled while your tutor is being trained inside the TT system. TT will run the verification flow directly instead of using a booked lesson window."
-                          : "Google Meet intro-session booking is temporarily disabled while your tutor is being trained inside the TT system. TT will run the training flow directly instead of using a booked lesson window."}
+                          ? "You can still schedule the continuity check. TT will run it through the training flow instead of requiring the standard Google Meet live window."
+                          : "You can still schedule the intro session. TT will run it through the training flow instead of requiring the standard Google Meet live window."}
                       </p>
                     </div>
                   )}
@@ -1602,7 +1602,7 @@ export default function ParentGateway() {
                   )}
 
                   {/* Show booking dialog for not_scheduled and pending_parent_confirmation */}
-                  {!isTrainingMode && (effectiveIntroSessionConfirmation?.status === "not_scheduled" || effectiveIntroSessionConfirmation?.status === "pending_parent_confirmation") && (
+                  {(effectiveIntroSessionConfirmation?.status === "not_scheduled" || effectiveIntroSessionConfirmation?.status === "pending_parent_confirmation") && (
                     <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                       <p className="font-medium mb-4 text-red-900">
                         {effectiveIntroSessionConfirmation?.status === "not_scheduled"
@@ -1610,7 +1610,7 @@ export default function ParentGateway() {
                           : `Adjust your ${sessionLabel} schedule`}
                       </p>
                       <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
-                        {!isTrainingMode && (effectiveIntroSessionConfirmation?.status === "not_scheduled" || effectiveIntroSessionConfirmation?.status === "pending_parent_confirmation") && (
+                        {(effectiveIntroSessionConfirmation?.status === "not_scheduled" || effectiveIntroSessionConfirmation?.status === "pending_parent_confirmation") && (
                           <DialogTrigger asChild>
                             <Button
                               style={{ backgroundColor: '#E63946', color: 'white' }}
