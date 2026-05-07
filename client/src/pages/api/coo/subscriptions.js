@@ -56,7 +56,7 @@ export default function handler(req, res) {
                             id: closes.id,
                             parentName: users.name,
                             userEmail: users.email,
-                            paymentStatus: futureExpansionFields.stripePaymentStatus,
+                            paymentStatus: futureExpansionFields.PayfastPaymentStatus,
                         })
                             .from(closes)
                             .innerJoin(users, users.id.eq(closes.parentId))

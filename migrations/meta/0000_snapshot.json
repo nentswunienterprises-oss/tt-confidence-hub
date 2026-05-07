@@ -141,8 +141,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "stripe_payment_status": {
-          "name": "stripe_payment_status",
+        "Payfast_payment_status": {
+          "name": "Payfast_payment_status",
           "type": "varchar",
           "primaryKey": false,
           "notNull": false

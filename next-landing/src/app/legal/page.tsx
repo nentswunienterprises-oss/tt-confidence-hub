@@ -68,7 +68,7 @@ export default function LegalPage() {
                     <h4 className="text-lg font-semibold mt-4 mb-2">Parents / Guardians</h4>
                     <ul className="list-disc pl-6">
                       <li>Full name, email address, phone number</li>
-                      <li>Billing and payment details (processed via Stripe)</li>
+                      <li>Billing and payment details (processed via Payfast)</li>
                       <li>Communication history and consent records</li>
                     </ul>
 
@@ -106,7 +106,7 @@ export default function LegalPage() {
                       <li>Secure cloud infrastructure and encrypted databases</li>
                       <li>Role‑based access control (only authorised staff may access data)</li>
                       <li>Secure authentication and logging systems</li>
-                      <li>Stripe for PCI‑compliant payment processing</li>
+                      <li>Payfast for PCI‑compliant payment processing</li>
                       <li>Google Meet for secure tutoring sessions and recordings</li>
                     </ul>
                   </section>
@@ -116,7 +116,7 @@ export default function LegalPage() {
                     <p>We only share personal information with:</p>
                     <ul className="list-disc pl-6">
                       <li>Tutors assigned to the student (limited to what is necessary)</li>
-                      <li>Stripe (payment processing)</li>
+                      <li>Payfast (payment processing)</li>
                       <li>Technology service providers supporting our platform</li>
                       <li>Regulators or authorities when legally required</li>
                     </ul>
@@ -215,7 +215,7 @@ export default function LegalPage() {
                   <section className="mb-8">
                     <h3 className="text-xl font-semibold mb-3">2.4 Payments and Subscriptions</h3>
                     <ul className="list-disc pl-6">
-                      <li>Payments are processed securely via Stripe</li>
+                      <li>Payments are processed securely via Payfast</li>
                       <li>Subscriptions are billed monthly unless otherwise agreed</li>
                       <li>Failure to pay may result in suspension of services</li>
                     </ul>

@@ -49,7 +49,7 @@ MPLEM 2.0 is the next-generation Multi Pod-Launching Expansion Model for Territo
 ---
 
 ## 5. Operational Flow (Automation-Driven)
-- Parent subscribes and pays (Stripe)
+- Parent subscribes and pays (Payfast)
 - Backend assigns tutor, schedules sessions, generates Meet links
 - Sessions are recorded, logged, and reported automatically
 - Quality control via session recordings and automated parent reports

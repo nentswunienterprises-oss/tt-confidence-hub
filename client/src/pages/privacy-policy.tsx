@@ -62,7 +62,7 @@ export default function PrivacyPolicy() {
               <h3 className="text-xl font-semibold mt-6 mb-3">Parents / Guardians</h3>
               <ul className="list-disc pl-6">
                 <li>Full name, email address, phone number</li>
-                <li>Billing and payment details (processed via Stripe)</li>
+                <li>Billing and payment details (processed via Payfast)</li>
                 <li>Communication history and consent records</li>
               </ul>
 
@@ -100,7 +100,7 @@ export default function PrivacyPolicy() {
                 <li>Secure cloud infrastructure and encrypted databases</li>
                 <li>Role‑based access control (only authorised staff may access data)</li>
                 <li>Secure authentication and logging systems</li>
-                <li>Stripe for PCI‑compliant payment processing</li>
+                <li>Payfast for PCI‑compliant payment processing</li>
                 <li>Google Meet for secure tutoring sessions and recordings</li>
               </ul>
             </section>
@@ -110,7 +110,7 @@ export default function PrivacyPolicy() {
               <p>We only share personal information with:</p>
               <ul className="list-disc pl-6">
                 <li>Tutors assigned to the student (limited to what is necessary)</li>
-                <li>Stripe (payment processing)</li>
+                <li>Payfast (payment processing)</li>
                 <li>Technology service providers supporting our platform</li>
                 <li>Regulators or authorities when legally required</li>
               </ul>

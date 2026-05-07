@@ -35,7 +35,7 @@ Guaranteed student allocation
 
 Automated scheduling
 
-Automated payment processing via Stripe
+Automated payment processing via Payfast
 
 No admin burden
 
@@ -51,7 +51,7 @@ Tutor: R750
 
 Platform: R250
 
-Stripe fees (~3% + R2) deducted from tutor portion.
+Payfast fees (~3% + R2) deducted from tutor portion.
 
 Platform keeps full R250.
 
@@ -74,7 +74,7 @@ Platform revenue per pod:
 
 5️⃣ CORE INFRASTRUCTURE STACK
 Payment Processing
-Stripe
+Payfast
 
 Card payments (Visa, Mastercard)
 
@@ -142,7 +142,7 @@ Healthy margin.
 8️⃣ OPERATIONAL FLOW (FULLY AUTOMATED)
 Parent subscribes and pays.
 
-Stripe webhook triggers backend.
+Payfast webhook triggers backend.
 
 Backend:
 
@@ -202,7 +202,7 @@ Domain
 
 Variable Costs:
 
-Stripe transaction fees (deducted from tutor)
+Payfast transaction fees (deducted from tutor)
 
 No payroll required for operations if automated.
 
@@ -286,4 +286,4 @@ Student acquisition efficiency.
 
 Not infrastructure.
 
-TERRITORIAL TUTORING 2-LAYER ONBOARDING SYSTEM 1️⃣ OVERVIEW We have two onboarding flows: Commercial Onboarding – Standard, paying parents immediately after proposal acceptance. Pilot Onboarding – Pilot program giving parents 9 free sessions before payment begins, structured for trials, demos, and conversion. Both flows share the same platform infrastructure (Stripe, app, Google Workspace, backend, pods), but differ in timing of payment and initial session assignment. 2️⃣ COMMERCIAL ONBOARDING FLOW Objective: Parent subscribes, pays, and enters full program immediately. Step-by-step: Parent Signup: Creates account in app (Parent enters gateway) Completes enrolment form Form Review: Admin/automation reviews form Parent accepted → proceed Tutor Assignment: Backend assigns tutor automatically based on availability, pod, student load Introductory Session Booking: Parent schedules first session with assigned tutor Google Meet link auto-generated via workspace account Recording enabled Intro Session: Tutor completes diagnostic report in app Triggers monthly proposal for 8 sessions via app Proposal Acceptance & Payment: Parent reviews proposal Accepts → Stripe payment triggered Payment confirms subscription Student Portal Access: Unique student access code generated Student account created Sessions scheduled automatically in backend (Parent leaves gateway) Operational Flow: Scheduling, session logging, and recording proceeds as usual Key Points: Payment begins after proposal acceptance Standard workflow for all commercial parents 3️⃣ PILOT ONBOARDING FLOW Objective: Encourage parent adoption via trial program, with 9 free sessions before payment starts. Step-by-step: Parent Signup: Creates account in app (Enters parent gateway) Completes enrolment form Form Review: Admin/automation reviews form Parent accepted → proceed Tutor Assignment: Backend assigns tutor automatically Parent notified Introductory Session Booking: Parent schedules intro session with tutor Google Meet link auto-generated Introductory Session: Tutor completes diagnostic report Triggers proposal for 8-session/month package Proposal visible to parent, but no payment required yet Parent accepts proposal Pilot Sessions Allocation: Backend schedules first 9 sessions free Student portal access code created (Parent leaves gateway) Sessions tracked independently Pilot Completion: After 9 sessions, backend triggers payment request Stripe subscription automatically starts Parent notified via app/email Standard operations resume for monthly subscription Key Points: 9 sessions are free → counted by backend Payment begins automatically after trial All automation and logging identical to commercial onboarding
+TERRITORIAL TUTORING 2-LAYER ONBOARDING SYSTEM 1️⃣ OVERVIEW We have two onboarding flows: Commercial Onboarding – Standard, paying parents immediately after proposal acceptance. Pilot Onboarding – Pilot program giving parents 9 free sessions before payment begins, structured for trials, demos, and conversion. Both flows share the same platform infrastructure (Payfast, app, Google Workspace, backend, pods), but differ in timing of payment and initial session assignment. 2️⃣ COMMERCIAL ONBOARDING FLOW Objective: Parent subscribes, pays, and enters full program immediately. Step-by-step: Parent Signup: Creates account in app (Parent enters gateway) Completes enrolment form Form Review: Admin/automation reviews form Parent accepted → proceed Tutor Assignment: Backend assigns tutor automatically based on availability, pod, student load Introductory Session Booking: Parent schedules first session with assigned tutor Google Meet link auto-generated via workspace account Recording enabled Intro Session: Tutor completes diagnostic report in app Triggers monthly proposal for 8 sessions via app Proposal Acceptance & Payment: Parent reviews proposal Accepts → Payfast payment triggered Payment confirms subscription Student Portal Access: Unique student access code generated Student account created Sessions scheduled automatically in backend (Parent leaves gateway) Operational Flow: Scheduling, session logging, and recording proceeds as usual Key Points: Payment begins after proposal acceptance Standard workflow for all commercial parents 3️⃣ PILOT ONBOARDING FLOW Objective: Encourage parent adoption via trial program, with 9 free sessions before payment starts. Step-by-step: Parent Signup: Creates account in app (Enters parent gateway) Completes enrolment form Form Review: Admin/automation reviews form Parent accepted → proceed Tutor Assignment: Backend assigns tutor automatically Parent notified Introductory Session Booking: Parent schedules intro session with tutor Google Meet link auto-generated Introductory Session: Tutor completes diagnostic report Triggers proposal for 8-session/month package Proposal visible to parent, but no payment required yet Parent accepts proposal Pilot Sessions Allocation: Backend schedules first 9 sessions free Student portal access code created (Parent leaves gateway) Sessions tracked independently Pilot Completion: After 9 sessions, backend triggers payment request Payfast subscription automatically starts Parent notified via app/email Standard operations resume for monthly subscription Key Points: 9 sessions are free → counted by backend Payment begins automatically after trial All automation and logging identical to commercial onboarding

@@ -28,7 +28,7 @@ CREATE TABLE "broadcasts" (
 --> statement-breakpoint
 CREATE TABLE "future_expansion" (
 	"id" varchar PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"stripe_payment_status" varchar,
+	"Payfast_payment_status" varchar,
 	"affiliate_id" varchar,
 	"revenue_split" jsonb,
 	"mpl_em_wave_id" varchar,

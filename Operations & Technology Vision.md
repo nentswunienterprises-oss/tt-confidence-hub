@@ -36,7 +36,7 @@ Guaranteed student allocation
 
 Automated scheduling
 
-Automated payment processing via Stripe
+Automated payment processing via Payfast
 
 No admin burden
 
@@ -52,7 +52,7 @@ Tutor: R750
 
 Platform: R250
 
-Stripe fees (~3% + R2) deducted from tutor portion.
+Payfast fees (~3% + R2) deducted from tutor portion.
 
 Platform keeps full R250.
 
@@ -75,7 +75,7 @@ Platform revenue per pod:
 
 5️⃣ CORE INFRASTRUCTURE STACK
 Payment Processing
-Stripe
+Payfast
 
 Card payments (Visa, Mastercard)
 
@@ -143,7 +143,7 @@ Healthy margin.
 8️⃣ OPERATIONAL FLOW (FULLY AUTOMATED)
 Parent subscribes and pays.
 
-Stripe webhook triggers backend.
+Payfast webhook triggers backend.
 
 Backend:
 
@@ -203,7 +203,7 @@ Domain
 
 Variable Costs:
 
-Stripe transaction fees (deducted from tutor)
+Payfast transaction fees (deducted from tutor)
 
 No payroll required for operations if automated.
 
@@ -328,7 +328,7 @@ Intelligence Layer (Future AI)
 
 3️⃣ PAYMENT LAYER
 Provider:
-Stripe
+Payfast
 
 Responsibilities:
 Process monthly subscriptions
@@ -343,13 +343,13 @@ Store payment status
 
 Logic Flow:
 Parent pays →
-Stripe webhook →
+Payfast webhook →
 Backend verifies →
 Student activated →
 Tutor assigned →
 Sessions generated
 
-Stripe is the financial gatekeeper of the system.
+Payfast is the financial gatekeeper of the system.
 
 No payment → No session creation.
 
@@ -434,7 +434,7 @@ This is the single source of truth.
 
 7️⃣ AUTOMATION FLOW (END-TO-END)
 Parent subscribes →
-Stripe confirms →
+Payfast confirms →
 Backend assigns tutor →
 Recurring calendar event created →
 Meet link generated →
@@ -542,7 +542,7 @@ Supabase PostgreSQL
 
 Payments:
 
-Stripe
+Payfast
 
 Sessions:
 
@@ -619,7 +619,7 @@ Commercial Onboarding – Standard, paying parents immediately after proposal ac
 
 Pilot Onboarding – Pilot program giving parents 9 free sessions before payment begins, structured for trials, demos, and conversion.
 
-Both flows share the same platform infrastructure (Stripe, app, Google Workspace, backend, pods), but differ in timing of payment and initial session assignment.
+Both flows share the same platform infrastructure (Payfast, app, Google Workspace, backend, pods), but differ in timing of payment and initial session assignment.
 
 2️⃣ COMMERCIAL ONBOARDING FLOW
 Objective: Parent subscribes, pays, and enters full program immediately.
@@ -661,7 +661,7 @@ Proposal Acceptance & Payment:
 
 Parent reviews proposal
 
-Accepts → Stripe payment triggered
+Accepts → Payfast payment triggered
 
 Payment confirms subscription
 
@@ -739,7 +739,7 @@ Pilot Completion:
 
 After 9 sessions, backend triggers payment request
 
-Stripe subscription automatically starts
+Payfast subscription automatically starts
 
 Parent notified via app/email
 
@@ -760,11 +760,11 @@ Intro Session	Same	Same
 Diagnostic Report	Tutor creates → proposal triggers	Tutor creates → proposal triggers
 Student Portal Access	After proposal acceptance	Immediately after intro session
 Session Scheduling	Immediately	9 free sessions tracked in backend
-Automation Needed	Scheduler, link creation, email, Stripe	Scheduler, link creation, email, Stripe + trial counter
+Automation Needed	Scheduler, link creation, email, Payfast	Scheduler, link creation, email, Payfast + trial counter
 Risk Mitigation	Payment confirmed before student starts	Backend ensures trial limit is enforced; no early charges
 5️⃣ BACKEND LOGIC / TECH REQUIREMENTS
 Common Requirements:
-Stripe webhook integration
+Payfast webhook integration
 
 Google Workspace API for link generation
 
@@ -775,7 +775,7 @@ Pod management system
 Additional Logic for Pilot:
 Trial Session Counter: Tracks 9 sessions per student
 
-Payment Trigger: Stripe subscription auto-start after trial sessions
+Payment Trigger: Payfast subscription auto-start after trial sessions
 
 Notification System: Sends automated reminders when trial nearing completion
 

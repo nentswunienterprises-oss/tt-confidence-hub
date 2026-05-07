@@ -584,7 +584,7 @@ export var insertAffiliateReflectionSchema = createInsertSchema(affiliateReflect
 // but stay dormant in Phase 1
 export var futureExpansionFields = pgTable("future_expansion", {
     id: varchar("id").primaryKey().default(sql(templateObject_18 || (templateObject_18 = __makeTemplateObject(["gen_random_uuid()"], ["gen_random_uuid()"])))),
-    stripePaymentStatus: varchar("stripe_payment_status"),
+    PayfastPaymentStatus: varchar("Payfast_payment_status"),
     affiliateId: varchar("affiliate_id"),
     revenueSplit: jsonb("revenue_split"),
     mplEmWaveId: varchar("mpl_em_wave_id"),

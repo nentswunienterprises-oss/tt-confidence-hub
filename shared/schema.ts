@@ -1169,7 +1169,7 @@ export const insertAffiliateReflectionSchema = createInsertSchema(
 
 export const futureExpansionFields = pgTable("future_expansion", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  stripePaymentStatus: varchar("stripe_payment_status"),
+  PayfastPaymentStatus: varchar("Payfast_payment_status"),
   affiliateId: varchar("affiliate_id"),
   revenueSplit: jsonb("revenue_split"),
   mplEmWaveId: varchar("mpl_em_wave_id"),
