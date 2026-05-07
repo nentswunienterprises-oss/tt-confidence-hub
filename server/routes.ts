@@ -19300,7 +19300,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           notify_url: `${getApiPublicUrl()}/api/payments/payfast/notify`,
           name_first: String((req as any).dbUser?.firstName || "").trim(),
           name_last: String((req as any).dbUser?.lastName || "").trim(),
-          email_address: String((req as any).dbUser?.email || "").trim(),
+          email_address: String(
+            (req as any).dbUser?.email ||
+            paymentEnrollment.parent_email ||
+            ""
+          ).trim(),
           m_payment_id: merchantReference,
           amount: PREMIUM_PLAN_AMOUNT,
           item_name: `${PREMIUM_PLAN_NAME} Plan`,
