@@ -299,6 +299,29 @@ function buildPremiumPaymentDescription(studentName: string | null | undefined) 
   return `TT Premium monthly plan for ${label}`;
 }
 
+function isValidPayfastEmail(value: string | null | undefined) {
+  const normalized = String(value || "").trim();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized);
+}
+
+function resolvePayfastEmailAddress(options: {
+  dbUserEmail?: string | null;
+  enrollmentEmail?: string | null;
+  parentId?: string | null;
+  useSandbox: boolean;
+}) {
+  const candidates = [options.dbUserEmail, options.enrollmentEmail].map((value) => String(value || "").trim());
+  const validCandidate = candidates.find((value) => isValidPayfastEmail(value));
+  if (validCandidate) return validCandidate;
+
+  if (options.useSandbox) {
+    const suffix = String(options.parentId || "sandbox-parent").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    return `sandbox-payfast-${suffix || "parent"}@territorialtutoring.com`;
+  }
+
+  return "";
+}
+
 // Extend Express session type to include affiliateCode
 declare module 'express-session' {
   interface SessionData {
@@ -19300,11 +19323,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           notify_url: `${getApiPublicUrl()}/api/payments/payfast/notify`,
           name_first: String((req as any).dbUser?.firstName || "").trim(),
           name_last: String((req as any).dbUser?.lastName || "").trim(),
-          email_address: String(
-            (req as any).dbUser?.email ||
-            paymentEnrollment.parent_email ||
-            ""
-          ).trim(),
+          email_address: resolvePayfastEmailAddress({
+            dbUserEmail: (req as any).dbUser?.email,
+            enrollmentEmail: paymentEnrollment.parent_email,
+            parentId,
+            useSandbox: payfastSandboxForEnrollment,
+          }),
           m_payment_id: merchantReference,
           amount: PREMIUM_PLAN_AMOUNT,
           item_name: `${PREMIUM_PLAN_NAME} Plan`,
