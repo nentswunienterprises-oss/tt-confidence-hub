@@ -250,11 +250,48 @@ function usePayfastSandbox() {
   return String(process.env.PAYFAST_SANDBOX || "").trim().toLowerCase() === "true";
 }
 
-function isPremiumPlanPaymentReady() {
-  return !!(
-    process.env.PAYFAST_MERCHANT_ID &&
-    process.env.PAYFAST_MERCHANT_KEY
+function isSandboxPaymentEnrollment(enrollment: any) {
+  return (
+    Boolean(enrollment?.is_sandbox_account) ||
+    isHeuristicSandboxEnrollment(enrollment, enrollment?.assigned_tutor_id) ||
+    String(enrollment?.current_step || "").trim().toLowerCase().startsWith("sandbox-")
   );
+}
+
+function getPayfastConfig(useSandbox: boolean) {
+  const merchantId = useSandbox
+    ? String(
+        process.env.PAYFAST_SANDBOX_MERCHANT_ID ||
+        (usePayfastSandbox() ? process.env.PAYFAST_MERCHANT_ID : "") ||
+        ""
+      ).trim()
+    : String(process.env.PAYFAST_MERCHANT_ID || "").trim();
+  const merchantKey = useSandbox
+    ? String(
+        process.env.PAYFAST_SANDBOX_MERCHANT_KEY ||
+        (usePayfastSandbox() ? process.env.PAYFAST_MERCHANT_KEY : "") ||
+        ""
+      ).trim()
+    : String(process.env.PAYFAST_MERCHANT_KEY || "").trim();
+  const passphrase = useSandbox
+    ? String(
+        process.env.PAYFAST_SANDBOX_PASSPHRASE ||
+        (usePayfastSandbox() ? process.env.PAYFAST_PASSPHRASE : "") ||
+        ""
+      ).trim()
+    : String(process.env.PAYFAST_PASSPHRASE || "").trim();
+
+  return {
+    merchantId,
+    merchantKey,
+    passphrase,
+    processUrl: getPayfastProcessUrl(useSandbox),
+  };
+}
+
+function isPremiumPlanPaymentReady(useSandbox = usePayfastSandbox()) {
+  const config = getPayfastConfig(useSandbox);
+  return !!(config.merchantId && config.merchantKey);
 }
 
 function buildPremiumPaymentDescription(studentName: string | null | undefined) {
@@ -834,6 +871,165 @@ function getSessionDisplayLabel(sessionType: string | null | undefined): string 
   return String(sessionType || "").trim().toLowerCase() === "handover"
     ? "continuity check"
     : "intro session";
+}
+
+function isSandboxEnrollmentForTutor(enrollment: any, tutorId?: string) {
+  return (
+    Boolean(enrollment?.is_sandbox_account) ||
+    isHeuristicSandboxEnrollment(enrollment, tutorId) ||
+    String(enrollment?.current_step || "").trim().toLowerCase().startsWith("sandbox-")
+  );
+}
+
+async function loadTutorAssignmentLoadStats(tutorId: string) {
+  let { data, error } = await supabase
+    .from("parent_enrollments")
+    .select("id, status, current_step, is_sandbox_account, parent_full_name, parent_email, student_full_name")
+    .eq("assigned_tutor_id", tutorId)
+    .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES, "awaiting_tutor_acceptance"]);
+
+  if (error && isMissingSandboxAccountColumnError(error)) {
+    const fallback = await supabase
+      .from("parent_enrollments")
+      .select("id, status, current_step, parent_full_name, parent_email, student_full_name")
+      .eq("assigned_tutor_id", tutorId)
+      .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES, "awaiting_tutor_acceptance"]);
+    data = fallback.data || [];
+    error = fallback.error;
+  }
+
+  if (error) {
+    throw new Error(`Failed to load tutor assignment stats: ${error.message}`);
+  }
+
+  const enrollments = data || [];
+  const sandboxEnrollments = enrollments.filter((enrollment: any) =>
+    isSandboxEnrollmentForTutor(enrollment, tutorId)
+  );
+  const liveEnrollments = enrollments.filter(
+    (enrollment: any) => !isSandboxEnrollmentForTutor(enrollment, tutorId)
+  );
+
+  return {
+    activeAssignmentCount: enrollments.length,
+    sandboxParentCount: sandboxEnrollments.length,
+    liveParentCount: liveEnrollments.length,
+    awaitingTutorAcceptanceCount: enrollments.filter(
+      (enrollment: any) => String(enrollment.status || "").trim().toLowerCase() === "awaiting_tutor_acceptance"
+    ).length,
+  };
+}
+
+function derivePodOperatingState(modeCounts: Record<string, number>, totalTutors: number) {
+  const applicant = modeCounts.applicant || 0;
+  const training = modeCounts.training || 0;
+  const sandbox = modeCounts.sandbox || 0;
+  const certifiedLive = modeCounts.certified_live || 0;
+  const watchlist = modeCounts.watchlist || 0;
+  const suspended = modeCounts.suspended || 0;
+  const restrictedCount = applicant + training + watchlist + suspended;
+
+  if (totalTutors === 0) {
+    return {
+      key: "empty",
+      label: "No Tutors Assigned",
+      description: "This pod has capacity but no tutor system running inside it yet.",
+    };
+  }
+
+  if (certifiedLive === totalTutors && restrictedCount === 0 && sandbox === 0) {
+    return {
+      key: "live_delivery",
+      label: "Live Delivery Pod",
+      description: "Every tutor in this pod is certified for live parent responsibility.",
+    };
+  }
+
+  if (certifiedLive > 0) {
+    return {
+      key: "mixed_transition",
+      label: "Mixed Transition Pod",
+      description: "This pod contains both live-certified tutors and tutors still in restricted training states.",
+    };
+  }
+
+  if (sandbox > 0) {
+    return {
+      key: "sandbox_training",
+      label: "Sandbox Training Pod",
+      description: "Tutors have cleared transformation work and are training on sandbox parents before live operations.",
+    };
+  }
+
+  return {
+    key: "training_plant",
+    label: "Training Plant Pod",
+    description: "Tutors are still being conditioned before sandbox or live responsibility opens.",
+  };
+}
+
+async function buildPodOperatingOverview(pod: any) {
+  const assignments = await storage.getTutorAssignmentsByPod(pod.id);
+  const tutorMeta = await Promise.all(
+    assignments.map(async (assignment: any) => {
+      const tutor = await storage.getUser(assignment.tutorId);
+      const students = await storage.getStudentsByTutor(assignment.tutorId);
+      return {
+        assignmentId: assignment.id,
+        tutorId: assignment.tutorId,
+        tutorName: tutor?.name || tutor?.firstName || "Unknown Tutor",
+        tutorEmail: tutor?.email || "",
+        studentCount: students.length,
+      };
+    })
+  );
+
+  const tdUser = pod.tdId ? await storage.getUser(pod.tdId) : null;
+  const summary = await buildPodBattleTestingSummary(
+    pod.id,
+    tutorMeta,
+    tdUser
+      ? {
+          tdId: tdUser.id,
+          tdName: tdUser.name || tdUser.firstName || "Assigned TD",
+        }
+      : null
+  );
+
+  const modeCounts = summary.tutorSummaries.reduce<Record<string, number>>((acc, tutorSummary) => {
+    const key = String(tutorSummary.mode || "training");
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+
+  const tutorLoadStats = await Promise.all(
+    assignments.map(async (assignment: any) => loadTutorAssignmentLoadStats(assignment.tutorId))
+  );
+
+  const operatingState = derivePodOperatingState(modeCounts, assignments.length);
+
+  return {
+    podId: pod.id,
+    totalTutors: assignments.length,
+    tutorModeCounts: {
+      applicant: modeCounts.applicant || 0,
+      training: modeCounts.training || 0,
+      sandbox: modeCounts.sandbox || 0,
+      certified_live: modeCounts.certified_live || 0,
+      watchlist: modeCounts.watchlist || 0,
+      suspended: modeCounts.suspended || 0,
+    },
+    assignmentCounts: tutorLoadStats.reduce(
+      (acc, stats) => {
+        acc.liveParents += stats.liveParentCount;
+        acc.sandboxParents += stats.sandboxParentCount;
+        acc.awaitingTutorAcceptance += stats.awaitingTutorAcceptanceCount;
+        return acc;
+      },
+      { liveParents: 0, sandboxParents: 0, awaitingTutorAcceptance: 0 }
+    ),
+    operatingState,
+  };
 }
 
 const SCHEDULED_SESSION_SELECT = [
@@ -18845,13 +19041,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "Failed to resolve onboarding type for billing." });
       }
 
-      if (billingModel.data.onboardingType === "commercial" && !isPremiumPlanPaymentReady()) {
-        return res.status(500).json({ message: "PayFast is not configured on this deployment." });
-      }
-
       const { data: paymentEnrollment, error: paymentEnrollmentError } = await supabase
         .from("parent_enrollments")
-        .select("id, status, proposal_id, student_full_name")
+        .select("id, status, proposal_id, student_full_name, current_step, assigned_tutor_id, parent_email, is_sandbox_account")
         .eq("user_id", parentId)
         .eq("status", "proposal_sent")
         .not("proposal_id", "is", null)
@@ -18866,6 +19058,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!paymentEnrollment?.proposal_id) {
         return res.status(404).json({ message: "No pending proposal found" });
+      }
+
+      const payfastSandboxForEnrollment = isSandboxPaymentEnrollment(paymentEnrollment);
+      if (billingModel.data.onboardingType === "commercial" && !isPremiumPlanPaymentReady(payfastSandboxForEnrollment)) {
+        return res.status(500).json({ message: "PayFast is not configured on this deployment." });
       }
 
       const { data: existingPayment, error: latestPaymentError } = await getLatestPaymentForEnrollment(paymentEnrollment.id);
@@ -18914,7 +19111,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const merchantReference = String(existingPayment?.merchant_reference || `tt-premium-${uuidv4()}`);
+      const payfastConfig = getPayfastConfig(payfastSandboxForEnrollment);
       const nowIso = new Date().toISOString();
+      const paymentRawPayload = {
+        ...(existingPayment?.raw_payload && typeof existingPayment.raw_payload === "object" ? existingPayment.raw_payload : {}),
+        payfast_mode: payfastSandboxForEnrollment ? "sandbox" : "live",
+        sandbox_checkout: payfastSandboxForEnrollment,
+      };
       const paymentRecord = existingPayment
         ? {
             id: existingPayment.id,
@@ -18933,6 +19136,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             merchant_reference: merchantReference,
             item_name: `${PREMIUM_PLAN_NAME} Plan`,
             item_description: buildPremiumPaymentDescription(paymentEnrollment.student_full_name),
+            raw_payload: paymentRawPayload,
             updated_at: nowIso,
           }
         : {
@@ -18951,6 +19155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             merchant_reference: merchantReference,
             item_name: `${PREMIUM_PLAN_NAME} Plan`,
             item_description: buildPremiumPaymentDescription(paymentEnrollment.student_full_name),
+            raw_payload: paymentRawPayload,
             created_at: nowIso,
             updated_at: nowIso,
           };
@@ -18968,8 +19173,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const payfastFields = withPayfastSignature(
         {
-          merchant_id: String(process.env.PAYFAST_MERCHANT_ID || "").trim(),
-          merchant_key: String(process.env.PAYFAST_MERCHANT_KEY || "").trim(),
+          merchant_id: payfastConfig.merchantId,
+          merchant_key: payfastConfig.merchantKey,
           return_url: `${getAppBaseUrl()}/client/parent/gateway?payfast=return`,
           cancel_url: `${getAppBaseUrl()}/client/parent/gateway?payfast=cancelled`,
           notify_url: `${getApiPublicUrl()}/api/payments/payfast/notify`,
@@ -18986,7 +19191,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           custom_str4: String(paymentProposal.tutor_id),
           custom_str5: PREMIUM_PLAN_NAME,
         },
-        process.env.PAYFAST_PASSPHRASE,
+        payfastConfig.passphrase,
       );
 
       return res.json({
@@ -18999,7 +19204,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         tutorShare: Number(PREMIUM_TUTOR_SHARE),
         ttShare: Number(PREMIUM_TT_SHARE),
         merchantReference,
-        checkoutUrl: getPayfastProcessUrl(usePayfastSandbox()),
+        checkoutUrl: payfastConfig.processUrl,
+        sandbox: payfastSandboxForEnrollment,
         formFields: payfastFields,
       });
 
@@ -19268,9 +19474,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).send("Unknown transaction");
       }
 
-      const signatureValid = verifyPayfastSignature(payload, process.env.PAYFAST_PASSPHRASE);
+      const transactionMode =
+        String(
+          (transaction.raw_payload && typeof transaction.raw_payload === "object"
+            ? (transaction.raw_payload as Record<string, unknown>).payfast_mode
+            : "") || ""
+        ).trim().toLowerCase() === "sandbox";
+      const payfastConfig = getPayfastConfig(transactionMode);
+      const signatureValid = verifyPayfastSignature(payload, payfastConfig.passphrase);
       const merchantIdMatches =
-        String(payload.merchant_id || "").trim() === String(process.env.PAYFAST_MERCHANT_ID || "").trim();
+        String(payload.merchant_id || "").trim() === payfastConfig.merchantId;
       const amountMatches =
         formatAmountForPayfast(payload.amount_gross || payload.amount_fee || payload.amount) ===
         formatAmountForPayfast(transaction.amount);
@@ -19332,10 +19545,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/parent/payments/payfast/sandbox-confirm", isAuthenticated, requireRole(["parent"]), async (req: Request, res: Response) => {
     try {
-      if (!usePayfastSandbox()) {
-        return res.status(403).json({ message: "Sandbox confirmation is only available in PayFast sandbox mode." });
-      }
-
       const parentId = String((req as any).dbUser?.id || "").trim();
       if (!parentId) {
         return res.status(401).json({ message: "Unauthorized" });
@@ -19366,6 +19575,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!transaction) {
         return res.status(404).json({ message: "No pending sandbox PayFast payment found" });
+      }
+
+      const transactionSandboxMode =
+        String(
+          (transaction.raw_payload && typeof transaction.raw_payload === "object"
+            ? (transaction.raw_payload as Record<string, unknown>).payfast_mode
+            : "") || ""
+        ).trim().toLowerCase() === "sandbox";
+
+      if (!transactionSandboxMode) {
+        return res.status(403).json({ message: "Sandbox confirmation is only available for sandbox payment transactions." });
       }
 
       if (transaction.payment_status === "paid") {
