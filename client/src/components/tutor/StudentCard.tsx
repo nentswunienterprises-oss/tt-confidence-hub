@@ -639,7 +639,7 @@ export function StudentCard({
           </div>
         )}
 
-        {effectiveWorkflow?.assignmentAccepted && operationalMode !== "training" && !effectiveWorkflow.introConfirmed && (
+        {effectiveWorkflow?.assignmentAccepted && !handoverVerificationActive && !effectiveWorkflow.introConfirmed && (
           <TutorIntroSessionActions
             studentId={student.id}
             parentId={student.parentInfo?.parent_id}
@@ -656,7 +656,7 @@ export function StudentCard({
           />
         )}
 
-        {!handoverVerificationActive && effectiveWorkflow?.assignmentAccepted && (operationalMode === "training" || effectiveWorkflow?.introConfirmed) && !effectiveWorkflow.introCompleted && (
+        {!handoverVerificationActive && effectiveWorkflow?.assignmentAccepted && effectiveWorkflow?.introConfirmed && !effectiveWorkflow.introCompleted && (
           <IntroDiagnosticTopicSection
             student={student}
             introSession={introSessionDetails}
