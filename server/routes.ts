@@ -11528,9 +11528,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await cleanupLegacyLiveEnrollmentsForNonLiveTutor(tutorId, certificationMode);
         let assignedEnrollmentsQuery = supabase
           .from("parent_enrollments")
-          .select("id, user_id, student_full_name, assigned_student_id, status")
+          .select("id, user_id, student_full_name, assigned_student_id, status, current_step, parent_full_name, parent_email, is_sandbox_account")
           .eq("assigned_tutor_id", tutorId)
-          .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES]);
+          .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES, "awaiting_tutor_acceptance"]);
 
         if (certificationMode === "sandbox") {
           assignedEnrollmentsQuery = assignedEnrollmentsQuery.eq("is_sandbox_account", true);
@@ -11541,9 +11541,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!assignedEnrollments) {
           let fallbackQuery = supabase
             .from("parent_enrollments")
-            .select("id, user_id, student_full_name, status")
+            .select("id, user_id, student_full_name, status, current_step, parent_full_name, parent_email")
             .eq("assigned_tutor_id", tutorId)
-            .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES]);
+            .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES, "awaiting_tutor_acceptance"]);
           if (certificationMode === "sandbox") {
             fallbackQuery = fallbackQuery.eq("is_sandbox_account", true);
           }
@@ -11570,6 +11570,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.getStudentsByTutor(tutorId)
         );
 
+        const assignedEnrollmentById = new Set(
+          (assignedEnrollments || [])
+            .map((e: any) => e.id)
+            .filter((v: any) => !!v)
+            .map((v: any) => String(v))
+        );
         const assignedEnrollmentByStudentId = new Set(
           (assignedEnrollments || [])
             .map((e: any) => e.assigned_student_id)
@@ -11592,7 +11598,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const activeStudents = students.filter((student: any) => {
           const studentId = String(student.id || "");
           const parentId = String((student as any).parentId || "");
+          const parentEnrollmentId = String((student as any).parentEnrollmentId || (student as any).parent_enrollment_id || "");
           const studentName = String(student.name || "").trim().toLowerCase();
+
+          if (parentEnrollmentId && assignedEnrollmentById.has(parentEnrollmentId)) {
+            return true;
+          }
+
+          if (certificationMode === "sandbox") {
+            return assignedEnrollmentByStudentId.has(studentId);
+          }
 
           return (
             assignedEnrollmentByStudentId.has(studentId) ||
@@ -13039,6 +13054,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   app.get(
+    "/api/coo/pods/operating-overview",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const pods = await storage.getPods();
+        const overview = await Promise.all(pods.map((pod) => buildPodOperatingOverview(pod)));
+        res.json(overview);
+      } catch (error) {
+        console.error("Error fetching pod operating overview:", error);
+        res.status(500).json({ message: "Failed to fetch pod operating overview" });
+      }
+    }
+  );
+
+  app.get(
     "/api/tutor/students/:studentId/communications",
     isAuthenticated,
     requireRole(["tutor"]),
@@ -13326,25 +13357,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const { podId } = req.params;
         const assignments = await storage.getTutorAssignmentsByPod(podId);
-        const activeEnrollmentStatuses = ["assigned", "proposal_sent", "session_booked", "report_received", "confirmed"];
+        const pod = await storage.getPod(podId);
+        const tutorMeta = await Promise.all(
+          assignments.map(async (assignment: any) => {
+            const tutor = await storage.getUser(assignment.tutorId);
+            const students = await storage.getStudentsByTutor(assignment.tutorId);
+            return {
+              assignmentId: assignment.id,
+              tutorId: assignment.tutorId,
+              tutorName: tutor?.name || tutor?.firstName || "Unknown Tutor",
+              tutorEmail: tutor?.email || "",
+              studentCount: students.length,
+            };
+          })
+        );
+        const tdUser = pod?.tdId ? await storage.getUser(pod.tdId) : null;
+        const podSummary = await buildPodBattleTestingSummary(
+          podId,
+          tutorMeta,
+          tdUser
+            ? {
+                tdId: tdUser.id,
+                tdName: tdUser.name || tdUser.firstName || "Assigned TD",
+              }
+            : null
+        );
         
         // Fetch tutor details for each assignment
         const tutorsData = await Promise.all(
           assignments.map(async (assignment: any) => {
             const tutor = await storage.getUser(assignment.tutorId);
-            const { count: activeStudentCount } = await supabase
-              .from("parent_enrollments")
-              .select("id", { count: "exact", head: true })
-              .eq("assigned_tutor_id", assignment.tutorId)
-              .in("status", activeEnrollmentStatuses);
+            const tutorSummary =
+              podSummary.tutorSummaries.find((entry) => entry.assignmentId === assignment.id) ||
+              podSummary.tutorSummaries.find((entry) => entry.tutorId === assignment.tutorId) ||
+              null;
+            const loadStats = await loadTutorAssignmentLoadStats(assignment.tutorId);
 
             return {
               ...assignment,
               tutorName: tutor?.name || "Unknown",
               tutorEmail: tutor?.email || "",
-              student_count: activeStudentCount || 0,
-              studentCount: activeStudentCount || 0,
-              operational_mode: assignment.operationalMode || "training",
+              student_count: loadStats.activeAssignmentCount,
+              studentCount: loadStats.activeAssignmentCount,
+              operational_mode: tutorSummary?.mode || assignment.operationalMode || "training",
+              sandbox_parent_count: loadStats.sandboxParentCount,
+              live_parent_count: loadStats.liveParentCount,
+              awaiting_tutor_acceptance_count: loadStats.awaitingTutorAcceptanceCount,
+              module_progress: tutorSummary?.moduleProgress || [],
+              next_battle_tests: tutorSummary?.nextBattleTests || [],
+              certification_recovery_note: tutorSummary?.certificationRecoveryNote || null,
+              recovery_required_until: tutorSummary?.recoveryRequiredUntil || null,
             };
           })
         );
@@ -13448,9 +13510,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await cleanupLegacyLiveEnrollmentsForNonLiveTutor(tutorId, certificationMode);
         let assignedEnrollmentsQuery = supabase
           .from("parent_enrollments")
-          .select("id, user_id, student_full_name, assigned_student_id, status")
+          .select("id, user_id, student_full_name, assigned_student_id, status, current_step, parent_full_name, parent_email, is_sandbox_account")
           .eq("assigned_tutor_id", tutorId)
-          .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES]);
+          .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES, "awaiting_tutor_acceptance"]);
 
         if (certificationMode === "sandbox") {
           assignedEnrollmentsQuery = assignedEnrollmentsQuery.eq("is_sandbox_account", true);
@@ -13462,9 +13524,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!assignedEnrollments) {
           let fallbackQuery = supabase
             .from("parent_enrollments")
-            .select("id, user_id, student_full_name, status")
+            .select("id, user_id, student_full_name, status, current_step, parent_full_name, parent_email")
             .eq("assigned_tutor_id", tutorId)
-            .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES]);
+            .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES, "awaiting_tutor_acceptance"]);
           if (certificationMode === "sandbox") {
             fallbackQuery = fallbackQuery.eq("is_sandbox_account", true);
           }
@@ -13511,9 +13573,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const studentsWithEnrollment = activeStudents.map((student: any) => {
           const studentId = String(student.id || "");
           const parentId = String((student as any).parentId || "");
+          const parentEnrollmentId = String((student as any).parentEnrollmentId || (student as any).parent_enrollment_id || "");
           const studentName = String(student.name || "").trim().toLowerCase();
 
-          const linkedEnrollment = (assignedEnrollments || []).find((e: any) => {
+          const linkedEnrollment =
+            (parentEnrollmentId
+              ? (assignedEnrollments || []).find((e: any) => String(e.id || "") === parentEnrollmentId)
+              : null) ||
+            (assignedEnrollments || []).find((e: any) => {
             const enrollmentStudentId = String(e.assigned_student_id || "");
             const enrollmentParentId = String(e.user_id || "");
             const enrollmentStudentName = String(e.student_full_name || "").trim().toLowerCase();
@@ -13528,6 +13595,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return {
             ...student,
             assignedEnrollmentId: linkedEnrollment?.id || null,
+            parentName: linkedEnrollment?.parent_full_name || null,
+            parentEmail: linkedEnrollment?.parent_email || null,
+            enrollmentStatus: linkedEnrollment?.status || null,
+            enrollmentCurrentStep: linkedEnrollment?.current_step || null,
+            isSandboxAssignment: linkedEnrollment ? isSandboxEnrollmentForTutor(linkedEnrollment, tutorId) : false,
+            isReassignmentPreserved: Boolean(
+              linkedEnrollment?.current_step &&
+                String(linkedEnrollment.current_step).trim().toLowerCase().startsWith(REASSIGNMENT_RESUME_PREFIX)
+            ),
           };
         });
 
@@ -13538,9 +13614,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
             name: s.name,
             sessionProgress: s.sessionProgress,
             assignedEnrollmentId: s.assignedEnrollmentId,
+            isSandboxAssignment: s.isSandboxAssignment,
           }))
         );
-        res.json(studentsWithEnrollment);
+        const dedupedStudentsWithEnrollment = Array.from(
+          new Map(
+            studentsWithEnrollment.map((student: any) => {
+              const key =
+                String(student.assignedEnrollmentId || "").trim() ||
+                String(student.parentEnrollmentId || student.parent_enrollment_id || "").trim() ||
+                String(student.id || "").trim();
+              return [key, student];
+            })
+          ).values()
+        );
+        res.json(dedupedStudentsWithEnrollment);
       } catch (error) {
         console.error("Error fetching tutor students:", error);
         res.status(500).json({ message: "Failed to fetch tutor students" });

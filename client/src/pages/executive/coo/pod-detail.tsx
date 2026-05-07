@@ -113,7 +113,92 @@ function formatOperationalModeLabel(mode?: string | null) {
   if (normalized === "sandbox") return "Sandbox";
   if (normalized === "watchlist") return "Watchlist";
   if (normalized === "suspended") return "Suspended";
+  if (normalized === "applicant") return "Applicant";
   return "Training";
+}
+
+function getOperatingStateBadgeClass(stateKey?: string | null) {
+  if (stateKey === "live_delivery") return "bg-emerald-100 text-emerald-800 border-emerald-200";
+  if (stateKey === "mixed_transition") return "bg-amber-100 text-amber-900 border-amber-200";
+  if (stateKey === "sandbox_training") return "bg-sky-100 text-sky-800 border-sky-200";
+  if (stateKey === "training_plant") return "bg-slate-100 text-slate-800 border-slate-200";
+  return "bg-muted text-muted-foreground border-border";
+}
+
+function formatModeCapability(mode?: string | null) {
+  const normalized = String(mode || "").toLowerCase();
+  if (normalized === "certified_live") return "Live parents allowed";
+  if (normalized === "sandbox") return "Sandbox-only parents";
+  if (normalized === "watchlist") return "Restricted and under review";
+  if (normalized === "suspended") return "Removed from active responsibility";
+  if (normalized === "applicant") return "Onboarding not complete";
+  return "Training only";
+}
+
+function getTutorResponsibilityView(
+  mode: string | null | undefined,
+  counts: {
+    sandboxParentCount?: number | null;
+    liveParentCount?: number | null;
+    awaitingTutorAcceptanceCount?: number | null;
+  }
+) {
+  const normalized = String(mode || "").toLowerCase();
+  const sandboxCount = counts.sandboxParentCount || 0;
+  const liveCount = counts.liveParentCount || 0;
+  const awaitingCount = counts.awaitingTutorAcceptanceCount || 0;
+
+  if (normalized === "certified_live") {
+    return {
+      title: "Current Responsibility",
+      primary: `${liveCount} live parent${liveCount === 1 ? "" : "s"}`,
+      secondary: sandboxCount > 0 ? `${sandboxCount} sandbox assignment${sandboxCount === 1 ? "" : "s"} should be reviewed` : "Sandbox lane inactive",
+      toneClass: "border-emerald-200/70 bg-emerald-50/40",
+    };
+  }
+
+  if (normalized === "sandbox") {
+    return {
+      title: "Current Responsibility",
+      primary: `${sandboxCount} sandbox parent${sandboxCount === 1 ? "" : "s"}`,
+      secondary: liveCount > 0 ? `${liveCount} live assignment${liveCount === 1 ? "" : "s"} should not be here` : "Live parent assignments blocked",
+      toneClass: "border-sky-200/70 bg-sky-50/40",
+    };
+  }
+
+  if (normalized === "watchlist") {
+    return {
+      title: "Current Responsibility",
+      primary: "Restricted under review",
+      secondary: awaitingCount > 0 ? `${awaitingCount} acceptance item${awaitingCount === 1 ? "" : "s"} pending` : "Live responsibility should stay restricted until recovery",
+      toneClass: "border-amber-200/70 bg-amber-50/40",
+    };
+  }
+
+  if (normalized === "suspended") {
+    return {
+      title: "Current Responsibility",
+      primary: "No active responsibility",
+      secondary: "Tutor is suspended from assignment-bearing work",
+      toneClass: "border-rose-200/70 bg-rose-50/40",
+    };
+  }
+
+  if (normalized === "applicant") {
+    return {
+      title: "Current Responsibility",
+      primary: "No parent responsibility yet",
+      secondary: "Onboarding must complete before training assignments open",
+      toneClass: "border-slate-200/70 bg-slate-50/50",
+    };
+  }
+
+  return {
+    title: "Current Responsibility",
+    primary: "No parent responsibility yet",
+    secondary: awaitingCount > 0 ? `${awaitingCount} acceptance item${awaitingCount === 1 ? "" : "s"} pending` : "Tutor is still in pre-sandbox training",
+    toneClass: "border-slate-200/70 bg-slate-50/50",
+  };
 }
 
 function getTutorAuditGroupMeta(groupKey: TutorAuditGroupKey) {
@@ -319,6 +404,13 @@ export default function PodDetail() {
     queryKey: [`/api/coo/pods/${podId}/stats`],
     enabled: isAuthenticated && !authLoading && !!podId,
     refetchInterval: 5000,
+    refetchOnWindowFocus: true,
+  });
+
+  const { data: podOperatingOverview = [] } = useQuery<any[]>({
+    queryKey: ["/api/coo/pods/operating-overview"],
+    enabled: isAuthenticated && !authLoading,
+    refetchInterval: 10000,
     refetchOnWindowFocus: true,
   });
 
@@ -657,6 +749,7 @@ export default function PodDetail() {
   const maxTutors = MAX_TUTORS_PER_POD;
   const availableSlots = maxTutors - tutorCount;
   const maxStudentsPerTutor = getMaxStudentsPerTutorForVehicle((currentPod as Pod).vehicle);
+  const operatingOverview = podOperatingOverview.find((entry: any) => entry.podId === podId);
 
   // Debug logging
   console.log("🔍 Approved tutors:", approvedTutors?.map((t: any) => ({ id: t.id, name: t.name })));
@@ -769,6 +862,49 @@ export default function PodDetail() {
                 <Badge className={`${getStatusColor((currentPod as Pod).status)} border font-semibold text-xs`}>
                   {(currentPod as Pod).status}
                 </Badge>
+              </div>
+            </Card>
+
+            <Card className="p-4 sm:p-6 border">
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground uppercase">Pod Operating Model</p>
+              <div className="mt-3 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm text-muted-foreground">Commercial Type</span>
+                  <Badge variant="outline">
+                    {(currentPod as Pod).podType === "paid" ? "Paid" : "Training"}
+                  </Badge>
+                </div>
+                <div className="flex items-start justify-between gap-3">
+                  <span className="text-sm text-muted-foreground">Operating State</span>
+                  <Badge className={getOperatingStateBadgeClass(operatingOverview?.operatingState?.key)}>
+                    {operatingOverview?.operatingState?.label || "Loading"}
+                  </Badge>
+                </div>
+                {operatingOverview?.operatingState?.description ? (
+                  <p className="text-sm text-muted-foreground">{operatingOverview.operatingState.description}</p>
+                ) : null}
+                {operatingOverview ? (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-lg border bg-muted/20 p-3">
+                      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Tutor Mix</p>
+                      <p className="mt-1 text-sm font-medium">
+                        Live {operatingOverview.tutorModeCounts?.certified_live || 0} • Sandbox {operatingOverview.tutorModeCounts?.sandbox || 0}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Training {((operatingOverview.tutorModeCounts?.training || 0) + (operatingOverview.tutorModeCounts?.applicant || 0) + (operatingOverview.tutorModeCounts?.watchlist || 0) + (operatingOverview.tutorModeCounts?.suspended || 0))}
+                      </p>
+                    </div>
+                    <div className="rounded-lg border bg-muted/20 p-3">
+                      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Assignment Split</p>
+                      <p className="mt-1 text-sm font-medium">
+                        Live {operatingOverview.assignmentCounts?.liveParents || 0} • Sandbox {operatingOverview.assignmentCounts?.sandboxParents || 0}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Awaiting acceptance {operatingOverview.assignmentCounts?.awaitingTutorAcceptance || 0}
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </Card>
 
@@ -929,6 +1065,17 @@ export default function PodDetail() {
                             assignment.operational_mode ||
                             assignment.operationalMode ||
                             "training";
+                          const transformationProgress = (assignment.module_progress || []).find(
+                            (entry: any) => entry.moduleKey === "transformation_phases"
+                          );
+                          const sessionInfrastructureProgress = (assignment.module_progress || []).find(
+                            (entry: any) => entry.moduleKey === "session_infrastructure"
+                          );
+                          const responsibilityView = getTutorResponsibilityView(operationalMode, {
+                            sandboxParentCount: assignment.sandbox_parent_count,
+                            liveParentCount: assignment.live_parent_count,
+                            awaitingTutorAcceptanceCount: assignment.awaiting_tutor_acceptance_count,
+                          });
                           const latestPhaseScores =
                             Array.from(
                               latestTutorPhaseScoresByAssignment.get(assignment.id)?.values() || []
@@ -1110,8 +1257,56 @@ export default function PodDetail() {
                                     </div>
                                     <div className="rounded-xl border border-border/60 bg-muted/20 p-3 sm:p-4">
                                       <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                                        Tutor Controls
+                                        Tutor Journey
                                       </p>
+                                      <div className="mt-3 grid gap-3">
+                                        <div className="rounded-lg border border-border/60 bg-background/80 p-3">
+                                          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Mode Capability</p>
+                                          <p className="mt-1 text-sm font-medium text-foreground">
+                                            {formatModeCapability(operationalMode)}
+                                          </p>
+                                        </div>
+                                        <div className="grid gap-3 sm:grid-cols-2">
+                                          <div className="rounded-lg border border-border/60 bg-background/80 p-3">
+                                            <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Transformation</p>
+                                            <p className="mt-1 text-sm font-medium text-foreground">
+                                              {transformationProgress
+                                                ? `${transformationProgress.completedCount}/${transformationProgress.totalCount} complete`
+                                                : "Not started"}
+                                            </p>
+                                          </div>
+                                          <div className="rounded-lg border border-border/60 bg-background/80 p-3">
+                                            <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Session Infrastructure</p>
+                                            <p className="mt-1 text-sm font-medium text-foreground">
+                                              {sessionInfrastructureProgress
+                                                ? `${sessionInfrastructureProgress.completedCount}/${sessionInfrastructureProgress.totalCount} complete`
+                                                : "Not started"}
+                                            </p>
+                                          </div>
+                                        </div>
+                                        <div className={`rounded-lg border p-3 ${responsibilityView.toneClass}`}>
+                                          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+                                            {responsibilityView.title}
+                                          </p>
+                                          <p className="mt-1 text-sm font-medium text-foreground">
+                                            {responsibilityView.primary}
+                                          </p>
+                                          <p className="mt-1 text-xs text-muted-foreground">
+                                            {responsibilityView.secondary}
+                                          </p>
+                                        </div>
+                                        <div className="rounded-lg border border-border/60 bg-background/80 p-3">
+                                          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Reassignment / Acceptance Pressure</p>
+                                          <p className="mt-1 text-sm font-medium text-foreground">
+                                            Awaiting tutor acceptance: {assignment.awaiting_tutor_acceptance_count || 0}
+                                          </p>
+                                          {assignment.certification_recovery_note ? (
+                                            <p className="mt-2 text-xs text-amber-900">
+                                              {assignment.certification_recovery_note}
+                                            </p>
+                                          ) : null}
+                                        </div>
+                                      </div>
                                       <div className="mt-3 flex flex-wrap gap-2">
                                         <Button
                                           size="sm"
@@ -1132,13 +1327,24 @@ export default function PodDetail() {
                                         {assignment.student_count || 0}/{maxStudentsPerTutor} students assigned.
                                       </p>
                                       <p className="mt-2 text-xs text-muted-foreground">
-                                        Certification owns mode progression. COO switching is disabled here.
+                                        Certification owns mode progression. COO sees the journey here, but mode switching stays system-driven.
                                       </p>
+                                      {Array.isArray(assignment.next_battle_tests) && assignment.next_battle_tests.length > 0 ? (
+                                        <div className="mt-3 rounded-lg border border-border/60 bg-background/80 p-3">
+                                          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Next Certification Reps</p>
+                                          <p className="mt-1 text-sm text-foreground">
+                                            {assignment.next_battle_tests
+                                              .slice(0, 3)
+                                              .map((entry: any) => entry.title)
+                                              .join(" • ")}
+                                          </p>
+                                        </div>
+                                      ) : null}
                                     </div>
                                   </div>
                                 ) : (
                                   <p className="text-sm text-muted-foreground">
-                                     
+                                    {formatOperationalModeLabel(operationalMode)}. {responsibilityView.primary}. {responsibilityView.secondary}.
                                   </p>
                                 )}
 
@@ -1492,12 +1698,35 @@ function TutorStudentsSection({
                         <Badge variant="secondary" className="text-xs">
                           {student.grade || "No grade"}
                         </Badge>
+                        <Badge
+                          className={
+                            student.isSandboxAssignment
+                              ? "bg-sky-100 text-sky-800 border-sky-200"
+                              : "bg-emerald-100 text-emerald-800 border-emerald-200"
+                          }
+                        >
+                          {student.isSandboxAssignment ? "Sandbox Parent" : "Live Parent"}
+                        </Badge>
+                        {student.isReassignmentPreserved ? (
+                          <Badge className="bg-amber-100 text-amber-900 border-amber-200">
+                            Reassignment State
+                          </Badge>
+                        ) : null}
                       </div>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Parent: {student.parentName || "Unknown"}
+                        {student.parentEmail ? ` • ${student.parentEmail}` : ""}
+                      </p>
                       {student.sessionProgress !== undefined && (
                         <p className="text-xs text-muted-foreground mt-1">
                           Sessions this cycle: {((student.sessionProgress || 0) % 8) || (student.sessionProgress % 8 === 0 && student.sessionProgress > 0 ? 8 : 0)}/8
                         </p>
                       )}
+                      {student.enrollmentStatus ? (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Enrollment state: {student.enrollmentStatus}
+                        </p>
+                      ) : null}
                     </div>
                   </div>
 

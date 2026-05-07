@@ -40,6 +40,21 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Link } from "react-router-dom";
 
+function getOperatingStateBadgeClass(stateKey?: string) {
+  switch (stateKey) {
+    case "live_delivery":
+      return "bg-emerald-100 text-emerald-800 border-emerald-200";
+    case "mixed_transition":
+      return "bg-amber-100 text-amber-900 border-amber-200";
+    case "sandbox_training":
+      return "bg-sky-100 text-sky-800 border-sky-200";
+    case "training_plant":
+      return "bg-slate-100 text-slate-800 border-slate-200";
+    default:
+      return "bg-muted text-muted-foreground border-border";
+  }
+}
+
 export default function COODashboard() {
         // Helper functions for Select type compatibility
         const handleAffiliateTypeChange = (value: string) => setAffiliateType(value as 'person' | 'entity');
@@ -122,6 +137,11 @@ export default function COODashboard() {
   const { data: deletedPods = [] } = useQuery<any[]>({
     queryKey: ["/api/coo/deleted-pods"],
     enabled: showDeletedPods && isAuthenticated && !authLoading,
+  });
+
+  const { data: podOperatingOverview = [] } = useQuery<any[]>({
+    queryKey: ["/api/coo/pods/operating-overview"],
+    enabled: isAuthenticated && !authLoading,
   });
 
   // Fetch all TDs
@@ -583,6 +603,7 @@ export default function COODashboard() {
                 const podType = (pod as any).pod_type || pod.podType || 'training';
                 const vehicle = (pod as any).vehicle || '4_seater';
                 const tdId = (pod as any).td_id || pod.tdId;
+                const operatingOverview = podOperatingOverview.find((entry: any) => entry.podId === pod.id);
                 // Format display values
                 const typeDisplay = podType === 'training' ? 'Training' : 'Paid';
                 const vehicleDisplay = vehicle.replace('_', '-').replace('seater', 'Seater');
@@ -612,8 +633,16 @@ export default function COODashboard() {
                             </Badge>
                           </div>
                           <div className="flex justify-between">
-                            <span className="font-medium">Type:</span>
+                            <span className="font-medium">Commercial Type:</span>
                             <span className="text-muted-foreground">{typeDisplay}</span>
+                          </div>
+                          <div className="flex justify-between items-start gap-3">
+                            <span className="font-medium">Operating State:</span>
+                            <div className="text-right">
+                              <Badge className={getOperatingStateBadgeClass(operatingOverview?.operatingState?.key)}>
+                                {operatingOverview?.operatingState?.label || "Loading"}
+                              </Badge>
+                            </div>
                           </div>
                           <div className="flex justify-between">
                             <span className="font-medium">Vehicle:</span>
@@ -625,6 +654,22 @@ export default function COODashboard() {
                               {assignedTD ? (assignedTD.name || assignedTD.email) : 'Not assigned'}
                             </span>
                           </div>
+                          {operatingOverview && (
+                            <>
+                              <div className="flex justify-between">
+                                <span className="font-medium">Tutor Mix:</span>
+                                <span className="text-right text-muted-foreground">
+                                  Live {operatingOverview.tutorModeCounts?.certified_live || 0} • Sandbox {operatingOverview.tutorModeCounts?.sandbox || 0} • Training {((operatingOverview.tutorModeCounts?.training || 0) + (operatingOverview.tutorModeCounts?.applicant || 0) + (operatingOverview.tutorModeCounts?.watchlist || 0) + (operatingOverview.tutorModeCounts?.suspended || 0))}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="font-medium">Assignments:</span>
+                                <span className="text-right text-muted-foreground">
+                                  Live {operatingOverview.assignmentCounts?.liveParents || 0} • Sandbox {operatingOverview.assignmentCounts?.sandboxParents || 0}
+                                </span>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
