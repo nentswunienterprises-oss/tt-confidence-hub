@@ -914,7 +914,7 @@ export default function StudentTopicConditioningDialog({
   const [manualRecordingUrl, setManualRecordingUrl] = useState("");
   const [manualRecordingFile, setManualRecordingFile] = useState<File | null>(null);
 
-  const { data: trainingSessionsData } = useTrainingSessions(studentId);
+  const { data: trainingSessionsData } = useTrainingSessions(studentId, !!workflow?.proposalAccepted);
   const confirmTrainingSession = useConfirmTrainingSession(studentId);
   const respondTrainingSession = useRespondTrainingSession(studentId);
   const retryMeetSync = useRetryScheduledSessionMeetSync(studentId);

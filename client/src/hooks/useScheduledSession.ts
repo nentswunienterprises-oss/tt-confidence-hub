@@ -31,7 +31,7 @@ export function useTutorRespondToSession(studentId) {
   });
 }
 
-export function useTrainingSessions(studentId) {
+export function useTrainingSessions(studentId, enabled = true) {
   return useQuery({
     queryKey: ["/api/tutor/students/training-sessions", studentId],
     queryFn: async () => {
@@ -39,7 +39,7 @@ export function useTrainingSessions(studentId) {
       const res = await apiRequest("GET", `/api/tutor/students/${studentId}/training-sessions`);
       return await res.json();
     },
-    enabled: !!studentId,
+    enabled: !!studentId && enabled,
     refetchInterval: 15000,
   });
 }
