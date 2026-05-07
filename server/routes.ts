@@ -17816,12 +17816,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       enrollmentDebug.sessionProgressCount = sessionProgress.count || 0;
 
       let assignmentAccepted = false;
+      const sandboxEnrollmentLikely =
+        Boolean((enrollmentData as any).is_sandbox_account) ||
+        isHeuristicSandboxEnrollment(enrollmentData, enrollmentData?.assigned_tutor_id) ||
+        String(effectiveStep || "").startsWith("sandbox-");
 
       // Auto-correct: if status is 'awaiting_tutor_acceptance', check if tutor has accepted
       if (
         enrollmentData.assigned_tutor_id &&
         (status === "awaiting_tutor_acceptance" ||
-          (Boolean((enrollmentData as any).is_sandbox_account) && status === "assigned"))
+          (sandboxEnrollmentLikely && status === "assigned"))
       ) {
         let acceptedEnrollmentStudent = canonicalEnrollmentStudent;
         let assignedWorkflow = ((acceptedEnrollmentStudent?.personalProfile as any) || {}).workflow || {};
@@ -17858,14 +17862,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         assignmentAccepted = !!assignedWorkflow.assignmentAcceptedAt;
         const sandboxAssignedAcceptanceLikely =
-          Boolean((enrollmentData as any).is_sandbox_account) &&
+          sandboxEnrollmentLikely &&
           status === "assigned" &&
-          hasPostProvisionAssignmentUpdate(enrollmentData);
+          (
+            hasPostProvisionAssignmentUpdate(enrollmentData) ||
+            String(effectiveStep || "").trim().toLowerCase() === "sandbox-assigned"
+          );
 
         // Legacy sandbox rows were provisioned as assigned before acceptance. Normalize them back
         // to the live-equivalent acceptance state until the tutor actually accepts.
         if (
-          Boolean((enrollmentData as any).is_sandbox_account) &&
+          sandboxEnrollmentLikely &&
           status === "assigned" &&
           !assignmentAccepted &&
           !sandboxAssignedAcceptanceLikely
