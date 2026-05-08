@@ -12,7 +12,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ProposalView from "@/components/parent/ProposalView";
 import { PushOptInCard } from "@/components/push/PushOptInCard";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 
 interface StudentStats {
   bossBattlesCompleted: number;
@@ -516,7 +516,7 @@ function getCurrentStepCopy(introSession: IntroSessionInfo | null, hasProposal: 
 
 export default function ParentDashboard() {
   const { user, logout } = useAuth();
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [proposalDialogOpen, setProposalDialogOpen] = useState(false);
 
   const { data: proposal, isLoading: proposalLoading, error: proposalError } = useQuery<any>({
@@ -1021,7 +1021,7 @@ export default function ParentDashboard() {
             <Button variant="outline" className="w-full justify-start text-sm" onClick={() => setProposalDialogOpen(true)}>
               Review Training Plan
             </Button>
-            <Button variant="outline" className="w-full justify-start text-sm" onClick={() => setLocation("/client/parent/updates?tab=messages")}>
+            <Button variant="outline" className="w-full justify-start text-sm" onClick={() => navigate("/client/parent/updates?tab=messages")}>
               Message Tutor
             </Button>
             {proposal?.parentCode && (
