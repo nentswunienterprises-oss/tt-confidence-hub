@@ -19733,12 +19733,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "No pending sandbox PayFast payment found" });
       }
 
-      const transactionSandboxMode =
+      let transactionSandboxMode =
         String(
           (transaction.raw_payload && typeof transaction.raw_payload === "object"
             ? (transaction.raw_payload as Record<string, unknown>).payfast_mode
             : "") || ""
         ).trim().toLowerCase() === "sandbox";
+
+      if (!transactionSandboxMode) {
+        const enrollmentId = String(transaction.enrollment_id || "").trim();
+        if (enrollmentId) {
+          const { data: linkedEnrollment } = await supabase
+            .from("parent_enrollments")
+            .select("id, current_step, assigned_tutor_id, parent_email, is_sandbox_account, student_full_name")
+            .eq("id", enrollmentId)
+            .maybeSingle();
+
+          transactionSandboxMode = isSandboxPaymentEnrollment(linkedEnrollment);
+        }
+      }
 
       if (!transactionSandboxMode) {
         return res.status(403).json({ message: "Sandbox confirmation is only available for sandbox payment transactions." });
@@ -19769,6 +19782,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const mergedPayload = {
         ...rawPayload,
+        payfast_mode: "sandbox",
+        sandbox_checkout: true,
         sandbox_manual_confirmation: true,
         sandbox_manual_confirmation_at: nowIso,
       };
