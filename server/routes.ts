@@ -958,7 +958,12 @@ function derivePodOperatingState(modeCounts: Record<string, number>, totalTutors
   const certifiedLive = modeCounts.certified_live || 0;
   const watchlist = modeCounts.watchlist || 0;
   const suspended = modeCounts.suspended || 0;
-  const restrictedCount = applicant + training + watchlist + suspended;
+  const trainingSideCount = applicant + training + watchlist + suspended;
+  const activeStateBuckets = [
+    certifiedLive > 0 ? "certified_live" : null,
+    sandbox > 0 ? "sandbox" : null,
+    trainingSideCount > 0 ? "training_side" : null,
+  ].filter(Boolean);
 
   if (totalTutors === 0) {
     return {
@@ -968,34 +973,36 @@ function derivePodOperatingState(modeCounts: Record<string, number>, totalTutors
     };
   }
 
-  if (certifiedLive === totalTutors && restrictedCount === 0 && sandbox === 0) {
+  if (certifiedLive === totalTutors) {
     return {
-      key: "live_delivery",
-      label: "Live Delivery Pod",
+      key: "certified_live",
+      label: "Certified Live Pod",
       description: "Every tutor in this pod is certified for live parent responsibility.",
     };
   }
 
-  if (certifiedLive > 0) {
-    return {
-      key: "mixed_transition",
-      label: "Mixed Transition Pod",
-      description: "This pod contains both live-certified tutors and tutors still in restricted training states.",
-    };
-  }
-
-  if (sandbox > 0) {
+  if (sandbox === totalTutors) {
     return {
       key: "sandbox_training",
       label: "Sandbox Training Pod",
-      description: "Tutors have cleared transformation work and are training on sandbox parents before live operations.",
+      description: "Every tutor in this pod is in sandbox conditioning before live operations.",
+    };
+  }
+
+  if (trainingSideCount === totalTutors) {
+    return {
+      key: "training_plant",
+      label: "Training Plant Pod",
+      description: "Every tutor in this pod is still in the conditioning pipeline before sandbox or live responsibility opens.",
     };
   }
 
   return {
-    key: "training_plant",
-    label: "Training Plant Pod",
-    description: "Tutors are still being conditioned before sandbox or live responsibility opens.",
+    key: "misaligned",
+    label: "Misaligned Pod",
+    description: activeStateBuckets.length > 1
+      ? "This pod mixes tutor operating states and should be reorganized into state-pure pods."
+      : "This pod is not aligned to a single operating state.",
   };
 }
 

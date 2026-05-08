@@ -118,10 +118,10 @@ function formatOperationalModeLabel(mode?: string | null) {
 }
 
 function getOperatingStateBadgeClass(stateKey?: string | null) {
-  if (stateKey === "live_delivery") return "bg-emerald-100 text-emerald-800 border-emerald-200";
-  if (stateKey === "mixed_transition") return "bg-amber-100 text-amber-900 border-amber-200";
+  if (stateKey === "certified_live") return "bg-emerald-100 text-emerald-800 border-emerald-200";
   if (stateKey === "sandbox_training") return "bg-sky-100 text-sky-800 border-sky-200";
   if (stateKey === "training_plant") return "bg-slate-100 text-slate-800 border-slate-200";
+  if (stateKey === "misaligned") return "bg-rose-100 text-rose-800 border-rose-200";
   return "bg-muted text-muted-foreground border-border";
 }
 

@@ -42,18 +42,41 @@ import { Link } from "react-router-dom";
 
 function getOperatingStateBadgeClass(stateKey?: string) {
   switch (stateKey) {
-    case "live_delivery":
+    case "certified_live":
       return "bg-emerald-100 text-emerald-800 border-emerald-200";
-    case "mixed_transition":
-      return "bg-amber-100 text-amber-900 border-amber-200";
     case "sandbox_training":
       return "bg-sky-100 text-sky-800 border-sky-200";
     case "training_plant":
       return "bg-slate-100 text-slate-800 border-slate-200";
+    case "misaligned":
+      return "bg-rose-100 text-rose-800 border-rose-200";
     default:
       return "bg-muted text-muted-foreground border-border";
   }
 }
+
+const OPERATING_POD_SECTIONS = [
+  {
+    key: "training_plant",
+    title: "Training Plant Pods",
+    description: "Pods containing only tutors still in pre-sandbox conditioning states.",
+  },
+  {
+    key: "sandbox_training",
+    title: "Sandbox Training Pods",
+    description: "Pods containing only sandbox tutors training on sandbox parents.",
+  },
+  {
+    key: "certified_live",
+    title: "Certified Live Pods",
+    description: "Pods containing only certified live tutors carrying real operating responsibility.",
+  },
+  {
+    key: "misaligned",
+    title: "Misaligned Pods",
+    description: "Pods mixing operating states. These should be reorganized, not treated as a normal pod class.",
+  },
+] as const;
 
 export default function COODashboard() {
         // Helper functions for Select type compatibility
@@ -238,6 +261,25 @@ export default function COODashboard() {
   });
 
   // Add TD email mutation - no longer used after UI removal
+
+  const podCards = pods.map((pod: any) => {
+    const podType = (pod as any).pod_type || pod.podType || 'training';
+    const vehicle = (pod as any).vehicle || '4_seater';
+    const tdId = (pod as any).td_id || pod.tdId;
+    const operatingOverview = podOperatingOverview.find((entry: any) => entry.podId === pod.id);
+    const typeDisplay = podType === 'training' ? 'Training' : 'Paid';
+    const vehicleDisplay = vehicle.replace('_', '-').replace('seater', 'Seater');
+    const assignedTD = tdId ? tds.find((td: any) => td.id === tdId) : null;
+
+    return {
+      pod,
+      operatingOverview,
+      podType,
+      typeDisplay,
+      vehicleDisplay,
+      assignedTD,
+    };
+  });
 
   // Assign TD to pod mutation
   const assignTDMutation = useMutation({
@@ -598,7 +640,105 @@ export default function COODashboard() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-6">
+              {OPERATING_POD_SECTIONS.map((section) => {
+                const sectionPods = podCards.filter(
+                  ({ operatingOverview }) => (operatingOverview?.operatingState?.key || "empty") === section.key
+                );
+
+                if (sectionPods.length === 0) return null;
+
+                return (
+                  <div key={section.key} className="space-y-3">
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-lg font-semibold">{section.title}</h3>
+                        <Badge className={getOperatingStateBadgeClass(section.key)}>{sectionPods.length}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{section.description}</p>
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {sectionPods.map(({ pod, operatingOverview, typeDisplay, vehicleDisplay, assignedTD }) => (
+                        <Link key={pod.id} to={`/coo/pods/${pod.id}`} className="block">
+                          <Card
+                            data-testid={`card-pod-${pod.id}`}
+                            className={`transition-all hover:border-primary/50 hover:shadow-md ${
+                              section.key === "misaligned" ? "border-rose-200 bg-rose-50/30" : ""
+                            }`}
+                          >
+                            <CardHeader>
+                              <CardTitle className="flex items-center justify-between gap-2">
+                                <span className="flex items-center gap-2 min-w-0">
+                                  <Users className="w-5 h-5 text-primary shrink-0" />
+                                  <span className="truncate">{pod.pod_name || pod.podName}</span>
+                                </span>
+                                <span className="text-xs font-medium text-primary shrink-0">Open pod</span>
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-2 text-sm">
+                                <div className="flex justify-between">
+                                  <span className="font-medium">Status:</span>
+                                  <Badge variant={pod.status === 'active' ? 'default' : 'secondary'}>
+                                    {pod.status}
+                                  </Badge>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="font-medium">Commercial Type:</span>
+                                  <span className="text-muted-foreground">{typeDisplay}</span>
+                                </div>
+                                <div className="flex justify-between items-start gap-3">
+                                  <span className="font-medium">Operating State:</span>
+                                  <div className="text-right">
+                                    <Badge className={getOperatingStateBadgeClass(operatingOverview?.operatingState?.key)}>
+                                      {operatingOverview?.operatingState?.label || "Loading"}
+                                    </Badge>
+                                  </div>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="font-medium">Vehicle:</span>
+                                  <span className="text-muted-foreground">{vehicleDisplay}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="font-medium">TD Assigned:</span>
+                                  <span className="text-muted-foreground">
+                                    {assignedTD ? (assignedTD.name || assignedTD.email) : 'Not assigned'}
+                                  </span>
+                                </div>
+                                {operatingOverview && (
+                                  <>
+                                    <div className="flex justify-between">
+                                      <span className="font-medium">Tutor Mix:</span>
+                                      <span className="text-right text-muted-foreground">
+                                        Live {operatingOverview.tutorModeCounts?.certified_live || 0} • Sandbox {operatingOverview.tutorModeCounts?.sandbox || 0} • Training {((operatingOverview.tutorModeCounts?.training || 0) + (operatingOverview.tutorModeCounts?.applicant || 0) + (operatingOverview.tutorModeCounts?.watchlist || 0) + (operatingOverview.tutorModeCounts?.suspended || 0))}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="font-medium">Assignments:</span>
+                                      <span className="text-right text-muted-foreground">
+                                        Live {operatingOverview.assignmentCounts?.liveParents || 0} • Sandbox {operatingOverview.assignmentCounts?.sandboxParents || 0}
+                                      </span>
+                                    </div>
+                                    {section.key === "misaligned" ? (
+                                      <p className="rounded-lg border border-rose-200 bg-white/70 px-3 py-2 text-xs text-rose-800">
+                                        This pod is mixing operating states. Split tutors into state-pure pods.
+                                      </p>
+                                    ) : null}
+                                  </>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 hidden">
               {pods.map((pod: any) => {
                 const podType = (pod as any).pod_type || pod.podType || 'training';
                 const vehicle = (pod as any).vehicle || '4_seater';
