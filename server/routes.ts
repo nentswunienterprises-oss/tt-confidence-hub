@@ -262,21 +262,21 @@ function getPayfastConfig(useSandbox: boolean) {
   const merchantId = useSandbox
     ? String(
         process.env.PAYFAST_SANDBOX_MERCHANT_ID ||
-        (usePayfastSandbox() ? process.env.PAYFAST_MERCHANT_ID : "") ||
+        process.env.PAYFAST_MERCHANT_ID ||
         ""
       ).trim()
     : String(process.env.PAYFAST_MERCHANT_ID || "").trim();
   const merchantKey = useSandbox
     ? String(
         process.env.PAYFAST_SANDBOX_MERCHANT_KEY ||
-        (usePayfastSandbox() ? process.env.PAYFAST_MERCHANT_KEY : "") ||
+        process.env.PAYFAST_MERCHANT_KEY ||
         ""
       ).trim()
     : String(process.env.PAYFAST_MERCHANT_KEY || "").trim();
   const passphrase = useSandbox
     ? String(
         process.env.PAYFAST_SANDBOX_PASSPHRASE ||
-        (usePayfastSandbox() ? process.env.PAYFAST_PASSPHRASE : "") ||
+        process.env.PAYFAST_PASSPHRASE ||
         ""
       ).trim()
     : String(process.env.PAYFAST_PASSPHRASE || "").trim();
