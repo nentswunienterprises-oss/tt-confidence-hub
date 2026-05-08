@@ -304,6 +304,16 @@ function isValidPayfastEmail(value: string | null | undefined) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized);
 }
 
+function buildCompactSandboxEmail(prefix: string, seed: string | null | undefined) {
+  const normalizedSeed = String(seed || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+  const compactSeed = normalizedSeed.slice(0, 10) || "parent";
+  const compactTime = Date.now().toString(36).slice(-8);
+  return `${prefix}-${compactSeed}-${compactTime}@territorialtutoring.com`;
+}
+
 function resolvePayfastEmailAddress(options: {
   dbUserEmail?: string | null;
   enrollmentEmail?: string | null;
@@ -315,8 +325,7 @@ function resolvePayfastEmailAddress(options: {
   if (validCandidate) return validCandidate;
 
   if (options.useSandbox) {
-    const suffix = String(options.parentId || "sandbox-parent").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    return `sandbox-payfast-${suffix || "parent"}@territorialtutoring.com`;
+    return buildCompactSandboxEmail("sandbox-payfast", options.parentId);
   }
 
   return "";
@@ -625,8 +634,7 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
       : null;
     const caseSeed = buildSandboxEnrollmentCase(existingSandboxCount + offset, source);
     const sandboxOrdinal = existingSandboxCount + offset + 1;
-    const suffix = `${Date.now()}-${offset}`;
-    const fakeParentEmail = `sandbox-parent-${tutorId}-${suffix}@territorialtutoring.com`;
+    const fakeParentEmail = buildCompactSandboxEmail("sandbox-parent", `${tutorId}-${offset}`);
     const fakeParentName = source?.parent_full_name
       ? `Sandbox ${String(source.parent_full_name).trim()} ${sandboxOrdinal}`
       : `Sandbox Parent ${sandboxOrdinal}`;
