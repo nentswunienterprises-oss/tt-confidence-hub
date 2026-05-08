@@ -262,21 +262,21 @@ export default function ProposalView({
     if (stability === "High Maintenance") {
       switch (phase) {
         case "Clarity":
-          return "she is recognising what the question is asking consistently, and we are now confirming that the next layer can be introduced cleanly.";
+          return "they are recognising what the question is asking consistently, and we are now confirming that the next layer can be introduced cleanly.";
         case "Structured Execution":
-          return "she is consistently applying the correct method, and we are now confirming that it holds under repetition.";
+          return "they are consistently applying the correct method, and we are now confirming that it holds under repetition.";
         case "Controlled Discomfort":
-          return "she is handling harder work with stability, and we are now confirming that timed pressure can be introduced safely.";
+          return "they are handling harder work with stability, and we are now confirming that timed pressure can be introduced safely.";
         case "Time Pressure Stability":
-          return "she is keeping structure intact under pace pressure, and we are now preserving that standard across repeated sessions.";
+          return "they are keeping structure intact under pace pressure, and we are now preserving that standard across repeated sessions.";
       }
     }
 
     switch (phase) {
       case "Clarity":
-        return "she is still learning to recognise what the question is asking and to choose the right structure early.";
+        return "they are still learning to recognise what the question is asking and to choose the right structure early.";
       case "Structured Execution":
-        return "she can see the correct method, but it still needs to hold independently and consistently.";
+        return "they can see the correct method, but it still needs to hold independently and consistently.";
       case "Controlled Discomfort":
         return "the method now needs to hold when the work becomes harder or less familiar.";
       case "Time Pressure Stability":
@@ -398,8 +398,8 @@ export default function ProposalView({
     return [...phaseSignals[phase], stabilitySignal];
   };
 
-  const pronounForStudent = "she";
-  const pronounCapitalized = "She";
+  const pronounForStudent = "they";
+  const pronounCapitalized = "They";
 
   const stateCopy = {
     status: personalizeCopy(getParentDashboardCopyByState(trainingStartPhase as TopicPhase, normalizedStability as TopicStability).status),
@@ -740,7 +740,7 @@ export default function ProposalView({
               ) : (
                 <>
                   <li>- This plan reflects {studentFirstName}'s current training position, not a fixed program.</li>
-                  <li>- As her execution stabilizes, the training phase will advance.</li>
+                  <li>- As their execution stabilizes, the training phase will advance.</li>
                 </>
               )}
             </ul>
