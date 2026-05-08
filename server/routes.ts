@@ -320,13 +320,13 @@ function resolvePayfastEmailAddress(options: {
   parentId?: string | null;
   useSandbox: boolean;
 }) {
-  const candidates = [options.dbUserEmail, options.enrollmentEmail].map((value) => String(value || "").trim());
-  const validCandidate = candidates.find((value) => isValidPayfastEmail(value));
-  if (validCandidate) return validCandidate;
-
   if (options.useSandbox) {
     return buildCompactSandboxEmail("sandbox-payfast", options.parentId);
   }
+
+  const candidates = [options.dbUserEmail, options.enrollmentEmail].map((value) => String(value || "").trim());
+  const validCandidate = candidates.find((value) => isValidPayfastEmail(value));
+  if (validCandidate) return validCandidate;
 
   return "";
 }
