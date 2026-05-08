@@ -7900,14 +7900,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req as any).dbUser.id;
       const operationalMode = await getParentAssignedTutorOperationalMode(userId);
 
-      if (operationalMode === "training") {
-        return res.json({
-          sessions: [],
-          operationalMode,
-          sessionSchedulingEnabled: false,
-        });
-      }
-
       const { data: enrollment, error: enrollmentError } = await selectLatestParentEnrollment({
         parentId: userId,
         primarySelect: "id, user_id, assigned_tutor_id, assigned_student_id, student_full_name, student_grade, parent_email",
@@ -7988,12 +7980,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = (req as any).dbUser.id;
       const operationalMode = await getParentAssignedTutorOperationalMode(userId);
-      if (operationalMode === "training") {
-        return res.status(400).json({
-          message: "Weekly training-session booking is disabled while your tutor is in training mode.",
-          operationalMode,
-        });
-      }
       const rawSlots = Array.isArray(req.body?.slots) ? req.body.slots : [];
       const timezone = String(req.body?.timezone || "Africa/Johannesburg");
       const weekdayLookup: Record<string, number> = {
@@ -8191,12 +8177,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = (req as any).dbUser.id;
       const operationalMode = await getParentAssignedTutorOperationalMode(userId);
-      if (operationalMode === "training") {
-        return res.status(400).json({
-          message: "Training-session confirmation is disabled while your tutor is in training mode.",
-          operationalMode,
-        });
-      }
       const { sessionId, action, scheduledStart } = req.body as {
         sessionId?: string;
         action?: "confirm" | "reschedule";

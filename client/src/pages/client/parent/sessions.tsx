@@ -310,6 +310,7 @@ export default function ParentSessions() {
 
   const sessions = data?.sessions || [];
   const schedulingEnabled = data?.sessionSchedulingEnabled ?? true;
+  const trainingModeScheduling = data?.operationalMode === "training";
   const actionableSessions = sessions.filter(
     (session) => !["completed", "cancelled", "flagged"].includes(String(session.status || "")),
   );
@@ -320,11 +321,11 @@ export default function ParentSessions() {
         <h1 className="text-xl sm:text-3xl font-bold">Sessions</h1>
       </div>
 
-      {!schedulingEnabled ? (
+      {trainingModeScheduling ? (
         <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
-          <p className="text-base font-semibold text-foreground">Live session booking is disabled</p>
+          <p className="text-base font-semibold text-foreground">Training mode scheduling is active</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Your assigned tutor is currently in TT training mode, so Google Meet scheduling is off for now. Training is being run directly inside TT instead of through booked lesson windows.
+            Your assigned tutor is currently in TT training mode. You should still schedule and confirm sessions here, but TT will run them inside the training flow instead of depending on Google Meet or the normal live-session window.
           </p>
         </div>
       ) : null}
