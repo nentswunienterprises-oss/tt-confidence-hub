@@ -171,6 +171,7 @@ export function CommunicationInbox({
   postPath,
   unreadCountPath,
   updatesContent,
+  defaultTab,
 }: {
   audience: "parent" | "student";
   title: string;
@@ -180,10 +181,11 @@ export function CommunicationInbox({
   postPath: string;
   unreadCountPath?: string;
   updatesContent?: ReactNode;
+  defaultTab?: "messages" | "updates";
 }) {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"messages" | "updates">(
-    updatesContent ? "updates" : "messages"
+    defaultTab || (updatesContent ? "updates" : "messages")
   );
   const [draft, setDraft] = useState("");
   const [replyTarget, setReplyTarget] = useState<CommunicationMessage | null>(null);
