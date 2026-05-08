@@ -102,7 +102,7 @@ export default function OperationalLanding() {
             <Card 
               className="p-8 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group"
               style={{ backgroundColor: "white" }}
-              onClick={() => navigate("/operational/signup?role=tutor")}
+              onClick={() => navigate("/operational/tutor/landing")}
             >
               <div 
                 className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"

@@ -48,13 +48,13 @@ export default function TdSignup() {
               className="inline-flex rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] sm:text-sm"
               style={{ backgroundColor: "#FFF0F0", color: "#E63946" }}
             >
-              System enforcement role
+              Leadership pathway
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-[#1A1A1A] sm:text-3xl">
-              Enter the TD gateway
+              Enter TD access
             </h1>
             <p className="text-sm leading-7 text-[#5A5A5A] sm:text-base">
-              Create your account or log in to begin the Territory Director application and onboarding flow.
+              Create your account or log in to begin the Territory Director pathway. This is where strong operators move from interest into real evaluation.
             </p>
           </div>
 

@@ -7,8 +7,7 @@ import { ArrowRight, Check } from "lucide-react";
 export default function OnlineTutorsWanted() {
   const navigate = useNavigate();
 
-  const applyPath = "/operational/signup";
-  const tutorApplyPath = `${applyPath}?role=tutor`; // deep-link directly to tutor signup
+  const tutorLandingPath = "/operational/tutor/landing";
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#FFF5ED" }}>
@@ -21,7 +20,7 @@ export default function OnlineTutorsWanted() {
             <Button
               className="text-sm sm:text-base font-semibold px-4 sm:px-6 py-2 sm:py-3 rounded-full border-0 shadow-md"
               style={{ backgroundColor: "#E63946", color: "white" }}
-              onClick={() => navigate(tutorApplyPath)}
+              onClick={() => navigate(tutorLandingPath)}
               aria-label="Start application"
             >
               Start <ArrowRight className="w-4 h-4 ml-1" />
@@ -145,7 +144,7 @@ export default function OnlineTutorsWanted() {
           <Card className="p-6" style={{ backgroundColor: "white" }}>
             <h4 className="font-semibold mb-2">HOW TO APPLY</h4>
             <p className="text-sm mb-4 break-words whitespace-normal" style={{ color: "#5A5A5A" }}>
-              Apply <button type="button" aria-label="Apply at Territorial Tutoring operational signup" className="text-blue-600 hover:underline inline p-0 m-0" onClick={() => navigate(tutorApplyPath)}>here</button> (create an account and apply to get started)
+              Apply <button type="button" aria-label="Apply at Territorial Tutoring tutor landing page" className="text-blue-600 hover:underline inline p-0 m-0" onClick={() => navigate(tutorLandingPath)}>here</button> to review the tutor path and continue into account access.
             </p>
             <p className="text-sm" style={{ color: "#5A5A5A" }}>
               Shortlisted applicants will be invited to a screening process and training cohort.

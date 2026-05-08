@@ -1,39 +1,39 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, Shield, Target, Users, X } from "lucide-react";
+import { ArrowRight, Check, Shield, Target, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { TTLogo } from "@/components/TTLogo";
 
 const fitSignals = [
-  "You can correct directly without emotional leakage.",
-  "You can hold a system line even when a tutor pushes back.",
-  "You think in patterns, drift, and enforcement loops rather than isolated sessions.",
+  "You can correct directly without getting emotional about it.",
+  "You can hold a clear line even when someone pushes back.",
+  "You naturally notice patterns, weak spots, and drift instead of only seeing one moment at a time.",
 ];
 
 const disqualifiers = [
-  "You want to coach around the system instead of enforcing it.",
-  "You avoid conflict when standards must be held.",
-  "You soften truth to protect relationships.",
-  "You prefer flexibility over system integrity.",
+  "You want to work around the system instead of enforcing it.",
+  "You avoid hard conversations when standards need to be held.",
+  "You soften truth to stay comfortable with people.",
+  "You prefer flexibility when the system needs firmness.",
 ];
 
 const roleBlocks = [
   {
     title: "What this role is",
-    body: "A Territory Director is the system enforcement layer between COO and tutors. You audit execution, identify drift, and force correction.",
+    body: "A Territory Director protects the tutoring standard. You audit execution, catch drift early, and make correction happen before weakness spreads.",
   },
   {
     title: "What this role is not",
-    body: "This is not tutoring, not mentoring, and not a soft leadership badge. It is quality control with authority.",
+    body: "This is not tutoring, not soft mentoring, and not a leadership badge for appearance. It is authority with responsibility.",
   },
   {
     title: "What TT needs from you",
-    body: "Structured judgment, direct correction, truthful audits, and the ability to protect TT-OS even when it is uncomfortable.",
+    body: "TT needs structured judgment, direct correction, truthful audits, and someone who can stay solid when the role gets uncomfortable.",
   },
   {
     title: "What breaks the fit",
-    body: "Hesitation, emotional bias, selective enforcement, and any tendency to let people bend the system.",
+    body: "Hesitation, emotional bias, selective enforcement, and any habit of letting people bend the standard will break the fit fast.",
   },
 ];
 
@@ -56,15 +56,7 @@ export default function TdLanding() {
 
       <header className="fixed inset-x-0 top-0 z-50 border-b border-[#E5D6C9] backdrop-blur-md" style={{ backgroundColor: "rgba(246, 239, 232, 0.9)" }}>
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-center px-3 sm:h-20 sm:justify-between sm:px-6 md:px-12">
-          <Button
-            variant="ghost"
-            className="hidden items-center gap-2 px-2 text-sm font-medium hover:bg-transparent sm:inline-flex sm:px-4 sm:text-base"
-            style={{ color: "#1A1A1A" }}
-            onClick={() => navigate("/operational/landing")}
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
+          <div className="hidden sm:block sm:w-[120px]" aria-hidden="true" />
 
           <div className="text-center">
             <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#8A4B35]">Operational Gateway</p>
@@ -89,25 +81,25 @@ export default function TdLanding() {
             <div className="overflow-hidden rounded-[34px] border border-[#E5D3C5] bg-[linear-gradient(135deg,#FFF9F3_0%,#F4E6D9_45%,#EEDBCE_100%)] shadow-[0_28px_90px_rgba(84,45,22,0.09)]">
               <div className="p-6 sm:p-7 lg:p-9 xl:p-10">
                 <div className="inline-flex rounded-full border border-[#E9CFC2] bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#8A3024] shadow-sm">
-                  System enforcement role
+                  Leadership pathway
                 </div>
                 <h1 className="mt-5 max-w-4xl text-4xl font-bold leading-[0.95] tracking-[-0.05em] text-[#171311] sm:text-5xl lg:text-[4.1rem] xl:text-[4.55rem]">
-                  This is not a tutoring role.
-                  <span className="mt-2 block max-w-3xl text-[#7C2D21]">It is a system authority role.</span>
+                  This is where strong operators
+                  <span className="mt-2 block max-w-3xl text-[#7C2D21]">grow into real authority.</span>
                 </h1>
                 <div className="mt-5 grid gap-6 lg:grid-cols-[1fr_240px] lg:items-start">
                   <div className="max-w-2xl space-y-3 text-base leading-7 text-[#534A43] sm:text-[17px]">
-                    <p>Territorial Tutoring does not need soft managers here. It needs operators who can hold TT-OS exactly, audit truthfully, and stop drift before it compounds.</p>
-                    <p>The value of a TD is not personality. It is system protection under pressure.</p>
+                    <p>TT is looking for young leaders who can think clearly, hold people to standard, and stay steady when pressure rises.</p>
+                    <p>The value of a TD is not personality or confidence theatre. It is clean judgment and real system protection.</p>
                   </div>
                   <div className="rounded-[24px] border border-[#E0CCBE] bg-white/58 p-4">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8A4B35]">Role core</p>
                     <p className="mt-3 text-base font-semibold leading-7 text-[#1A1A1A]">
-                      Audit clearly.
+                      See clearly.
                       <br />
                       Correct directly.
                       <br />
-                      Protect TT-OS.
+                      Protect the standard.
                     </p>
                   </div>
                 </div>
@@ -132,23 +124,23 @@ export default function TdLanding() {
             <div className="grid gap-4 xl:content-start">
               <Card className="rounded-[28px] border border-[#2A211D] bg-[#1F1814] p-5 text-white shadow-[0_18px_50px_rgba(25,19,16,0.18)]">
                 <div className="flex items-start justify-between gap-4">
-                  <span className="text-sm font-bold uppercase tracking-tight text-[#E63946]">ENFORCEMENT</span>
+                  <span className="text-sm font-bold uppercase tracking-tight text-[#E63946]">WHAT TT CARES ABOUT</span>
                   <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-white/75">
                     TT-OS layer
                   </span>
                 </div>
                 <div className="mt-7 space-y-3 text-sm text-white/82">
-                  <div className="flex items-center gap-3"><Shield className="h-4 w-4 text-[#FF917B]" />Strict adherence</div>
-                  <div className="flex items-center gap-3"><Target className="h-4 w-4 text-[#FF917B]" />Audit accuracy</div>
-                  <div className="flex items-center gap-3"><Users className="h-4 w-4 text-[#FF917B]" />Tutor correction loop</div>
+                  <div className="flex items-center gap-3"><Shield className="h-4 w-4 text-[#FF917B]" />Clear standards</div>
+                  <div className="flex items-center gap-3"><Target className="h-4 w-4 text-[#FF917B]" />Accurate judgment</div>
+                  <div className="flex items-center gap-3"><Users className="h-4 w-4 text-[#FF917B]" />Real correction</div>
                 </div>
               </Card>
 
               <Card className="rounded-[28px] border border-[#E5D3C5] bg-white/82 p-5 shadow-sm">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Filter logic</p>
-                <p className="mt-3 text-2xl font-bold tracking-tight text-[#1A1A1A]">No authority.</p>
+                <p className="mt-3 text-2xl font-bold tracking-tight text-[#1A1A1A]">No backbone.</p>
                 <p className="text-2xl font-bold tracking-tight text-[#1A1A1A]">No fit.</p>
-                <p className="mt-3 text-sm leading-6 text-[#5D5550]">This role is for system protectors, not comfort managers.</p>
+                <p className="mt-3 text-sm leading-6 text-[#5D5550]">This role is for system protectors, not people who fold under pressure.</p>
               </Card>
             </div>
           </div>
@@ -205,11 +197,11 @@ export default function TdLanding() {
           <div className="rounded-[32px] border border-[#E5D3C5] bg-white/82 px-6 py-10 text-center shadow-sm sm:px-10 sm:py-12">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Final filter</p>
             <h2 className="mt-4 text-3xl font-bold leading-tight text-[#1A1A1A] sm:text-4xl">
-              TT does not need softer leadership.
-              <span className="block text-[#7C2D21]">It needs cleaner enforcement.</span>
+              TT does not need louder leadership.
+              <span className="block text-[#7C2D21]">It needs cleaner judgment.</span>
             </h2>
             <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-[#57504B] sm:text-lg">
-              If the role feels harsh, it is likely the wrong fit. If it feels clean, structured, and necessary, enter the TD sign-in flow and let the application filter decide.
+              If this role feels too direct, it is probably the wrong fit. If it feels demanding in the right way, enter the TD flow and let the filter decide.
             </p>
             <Button
               size="lg"
@@ -217,7 +209,7 @@ export default function TdLanding() {
               style={{ backgroundColor: "#B9382F" }}
               onClick={() => navigate("/operational/td/signup")}
             >
-              Enter TD Sign In
+              Enter TD Access
             </Button>
           </div>
         </section>

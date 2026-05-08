@@ -105,6 +105,7 @@ import OperationalTDDashboard from "@/pages/operational/td/dashboard";
 import TdGateway from "@/pages/operational/td/gateway";
 import TdLanding from "@/pages/operational/td/landing";
 import TdSignup from "@/pages/operational/td/signup";
+import TutorLanding from "@/pages/operational/tutor/landing";
 
 // NEW: Affiliate Portal Pages
 import AffiliateDashboard from "@/pages/affiliate/affiliate/home";
@@ -371,6 +372,7 @@ function Router() {
       {/* ==================== OPERATIONAL PORTAL ==================== */}
       {/* Operational Landing */}
       <Route path="/operational/landing" element={<OperationalLanding />} />
+      <Route path="/operational/tutor/landing" element={<TutorLanding />} />
       {/* Operational Signup */}
       <Route path="/operational/signup" element={<OperationalSignup />} />
 
@@ -463,6 +465,7 @@ function Router() {
       <Route path="/tutor/updates" element={<TutorGatewayGuard><DashboardLayout><TutorUpdates /></DashboardLayout></TutorGatewayGuard>} />
 
       {/* Legacy TD Routes */}
+      <Route path="/tutor/landing" element={<TutorLanding />} />
       <Route path="/td/landing" element={<TdLanding />} />
       <Route path="/td/signup" element={<TdSignup />} />
       <Route path="/td/no-pod" element={<TdGatewayGuard><TDNoPod /></TdGatewayGuard>} />

@@ -10,8 +10,7 @@ export default function OnlineTutorsWantedPlain() {
   const navigate = useNavigate();
   useEffect(() => { window.scrollTo({ top: 0, behavior: 'instant' }); }, []);
 
-  const applyPath = "/operational/signup";
-  const tutorApplyPath = `${applyPath}?role=tutor`;
+  const tutorLandingPath = "/operational/tutor/landing";
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#FFF5ED" }}>
@@ -30,7 +29,7 @@ export default function OnlineTutorsWantedPlain() {
             <Button
               className="text-sm sm:text-base font-semibold px-4 sm:px-6 py-2 sm:py-5 rounded-full border-0 shadow-lg hover:shadow-xl transition-all"
               style={{ backgroundColor: "#E63946", color: "white" }}
-              onClick={() => navigate(tutorApplyPath)}
+              onClick={() => navigate(tutorLandingPath)}
             >
               Start <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
@@ -61,7 +60,7 @@ export default function OnlineTutorsWantedPlain() {
           </p>
 
           <div className="mt-6">
-            <Button size="lg" className="w-full sm:w-auto px-6 py-3 rounded-full font-semibold" style={{ backgroundColor: "#E63946", color: "white" }} onClick={() => navigate(tutorApplyPath)}>
+            <Button size="lg" className="w-full sm:w-auto px-6 py-3 rounded-full font-semibold" style={{ backgroundColor: "#E63946", color: "white" }} onClick={() => navigate(tutorLandingPath)}>
               Apply Now
             </Button>
           </div> 
@@ -170,7 +169,7 @@ export default function OnlineTutorsWantedPlain() {
           </p>
 
           <p className="mt-4 text-sm" style={{ color: "#5A5A5A" }}>
-            Apply <button type="button" aria-label="Apply at Territorial Tutoring operational signup" className="text-blue-600 hover:underline inline p-0 m-0" onClick={() => navigate(tutorApplyPath)}>Here</button>
+            Apply <button type="button" aria-label="Apply at Territorial Tutoring tutor landing page" className="text-blue-600 hover:underline inline p-0 m-0" onClick={() => navigate(tutorLandingPath)}>Here</button>
           </p>
 
           <p className="mt-4 font-semibold" style={{ color: "#5A5A5A" }}>Selection is limited.
@@ -183,7 +182,7 @@ export default function OnlineTutorsWantedPlain() {
       {/* Mobile CTA at page end (non-sticky) */}
       <div className="block md:hidden mt-6 mb-8 px-4 sm:px-0">
         <div className="max-w-md mx-auto">
-          <Button className="w-full py-4 font-semibold rounded-full shadow-lg" style={{ backgroundColor: "#E63946", color: "white" }} onClick={() => navigate(tutorApplyPath)}>
+          <Button className="w-full py-4 font-semibold rounded-full shadow-lg" style={{ backgroundColor: "#E63946", color: "white" }} onClick={() => navigate(tutorLandingPath)}>
             Apply Now - Start Training
           </Button>
         </div>
