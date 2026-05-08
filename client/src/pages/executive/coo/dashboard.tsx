@@ -640,6 +640,7 @@ export default function COODashboard() {
               </CardContent>
             </Card>
           ) : (
+            <>
             <div className="space-y-6">
               {OPERATING_POD_SECTIONS.map((section) => {
                 const sectionPods = podCards.filter(
@@ -817,6 +818,7 @@ export default function COODashboard() {
                 );
               })}
             </div>
+            </>
           )}
         </section>
 
