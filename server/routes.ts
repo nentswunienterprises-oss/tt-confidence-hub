@@ -1224,15 +1224,94 @@ async function getParentBillingModel(parentId: string) {
   };
 }
 
+function parseStoredDrillPayload(value: unknown) {
+  if (typeof value !== "string") return null;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+function isTrainingDrillRecord(row: any) {
+  const payload = parseStoredDrillPayload(row?.drill);
+  const drillType = String(
+    payload?.drillType ||
+      payload?.sessionContextKind ||
+      (row?.training_session_run_id ? "training" : ""),
+  )
+    .trim()
+    .toLowerCase();
+
+  return drillType === "training";
+}
+
 async function getCompletedSessionCountForStudent(studentId: string) {
-  const { count, error } = await supabase
-    .from("intro_session_drills")
-    .select("id", { count: "exact", head: true })
+  const { data: trainingRuns, error: trainingRunError } = await supabase
+    .from("training_session_runs")
+    .select("id, scheduled_session_id, status")
     .eq("student_id", studentId);
 
+  if (trainingRunError) {
+    return {
+      count: 0,
+      error: trainingRunError,
+    };
+  }
+
+  const completedTrainingRuns = (trainingRuns || []).filter((row: any) =>
+    ["submitted", "completed"].includes(String(row?.status || "").trim().toLowerCase()),
+  );
+
+  const completedSessionKeys = new Set<string>();
+  completedTrainingRuns.forEach((row: any) => {
+    const scheduledId = String(row?.scheduled_session_id || "").trim();
+    const runId = String(row?.id || "").trim();
+    if (scheduledId) {
+      completedSessionKeys.add(`training:${scheduledId}`);
+    } else if (runId) {
+      completedSessionKeys.add(`training-run:${runId}`);
+    }
+  });
+
+  if (completedSessionKeys.size > 0) {
+    return {
+      count: completedSessionKeys.size,
+      error: null,
+    };
+  }
+
+  const { data: drills, error } = await supabase
+    .from("intro_session_drills")
+    .select("id, scheduled_session_id, training_session_run_id, drill")
+    .eq("student_id", studentId);
+
+  if (error) {
+    return {
+      count: 0,
+      error,
+    };
+  }
+
+  (drills || []).forEach((row: any) => {
+    if (!isTrainingDrillRecord(row)) return;
+
+    const scheduledId = String(row?.scheduled_session_id || "").trim();
+    const runId = String(row?.training_session_run_id || "").trim();
+    const drillId = String(row?.id || "").trim();
+
+    if (scheduledId) {
+      completedSessionKeys.add(`training:${scheduledId}`);
+    } else if (runId) {
+      completedSessionKeys.add(`training-run:${runId}`);
+    } else if (drillId) {
+      completedSessionKeys.add(`training-drill:${drillId}`);
+    }
+  });
+
   return {
-    count: count || 0,
-    error,
+    count: completedSessionKeys.size,
+    error: null,
   };
 }
 
@@ -4524,7 +4603,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const operationalMode = await getTutorOperationalMode(tutorId);
               let scheduledSession: any = null;
 
-              if (operationalMode === "certified_live") {
+              if (operationalMode === "certified_live" || operationalMode === "training") {
                 const { session: resolvedScheduledSession, error: scheduledSessionError } = await resolveTutorScheduledSession(
                   tutorId,
                   studentId,
@@ -4538,9 +4617,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   return res.status(400).json({ message: "A TT training lesson must be attached before drill submission." });
                 }
 
-                const trainingLaunch = getSessionLaunchState(resolvedScheduledSession, "training");
-                if (!trainingLaunch.canLaunch) {
-                  return res.status(400).json({ message: "Training drills must submit from an active or imminently scheduled TT lesson." });
+                if (operationalMode === "training") {
+                  const status = String(resolvedScheduledSession.status || "").trim();
+                  const hasConfirmedSchedule =
+                    ["confirmed", "ready", "live"].includes(status) &&
+                    !!resolvedScheduledSession.parent_confirmed &&
+                    !!resolvedScheduledSession.tutor_confirmed;
+
+                  if (!hasConfirmedSchedule) {
+                    return res.status(400).json({
+                      message: "Training drills must submit from a tutor-confirmed weekly TT lesson.",
+                    });
+                  }
+                } else {
+                  const trainingLaunch = getSessionLaunchState(resolvedScheduledSession, "training");
+                  if (!trainingLaunch.canLaunch) {
+                    return res.status(400).json({ message: "Training drills must submit from an active or imminently scheduled TT lesson." });
+                  }
                 }
 
                 scheduledSession = resolvedScheduledSession;
@@ -7621,6 +7714,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
         }
 
+        if (operationalMode === "training" && kind === "training") {
+          const { session, error } = await resolveTutorScheduledSession(tutorId, studentId, kind, sessionId);
+          if (error) {
+            return res.status(500).json({ message: "Failed to resolve scheduled session" });
+          }
+
+          if (!session) {
+            return res.status(404).json({
+              canLaunch: false,
+              message: "Create and confirm a weekly TT lesson before opening the training runner.",
+            });
+          }
+
+          const hasConfirmedSchedule =
+            ["confirmed", "ready", "live"].includes(String(session?.status || "").trim()) &&
+            !!session?.parent_confirmed &&
+            !!session?.tutor_confirmed;
+
+          if (!hasConfirmedSchedule) {
+            return res.status(400).json({
+              canLaunch: false,
+              message: "Training mode still requires a tutor-confirmed weekly TT lesson before launch.",
+              session: {
+                ...session,
+                launch: {
+                  canLaunch: false,
+                  isLive: false,
+                  isImminent: false,
+                },
+              },
+            });
+          }
+
+          return res.json({
+            canLaunch: true,
+            operationalMode,
+            session: {
+              ...session,
+              launch: {
+                canLaunch: true,
+                isLive: false,
+                isImminent: false,
+              },
+            },
+            googleMeetConfigured: false,
+          });
+        }
+
         if (operationalMode === "training") {
           return res.json({
             canLaunch: true,
@@ -9533,18 +9674,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const hydrateStudentsWithSessionProgress = async (tutorId: string, students: any[]) => {
     const studentIds = students.map((student) => student.id).filter(Boolean);
     const drillCounts: Record<string, number> = {};
+    const countedSessionKeys = new Set<string>();
 
     if (studentIds.length > 0) {
+      const { data: trainingRuns } = await supabase
+        .from("training_session_runs")
+        .select("id, student_id, scheduled_session_id, status")
+        .eq("tutor_id", tutorId)
+        .in("student_id", studentIds);
+
+      const hasTrainingRunsByStudent = new Set<string>();
+      (trainingRuns || []).forEach((row: any) => {
+        const studentId = String(row?.student_id || "");
+        if (!studentId) return;
+
+        const normalizedStatus = String(row?.status || "").trim().toLowerCase();
+        if (!["submitted", "completed"].includes(normalizedStatus)) return;
+
+        const scheduledId = String(row?.scheduled_session_id || "").trim();
+        const runId = String(row?.id || "").trim();
+        if (!scheduledId && !runId) return;
+
+        if (!drillCounts[studentId]) {
+          drillCounts[studentId] = 0;
+        }
+        hasTrainingRunsByStudent.add(studentId);
+
+        const key = scheduledId || runId;
+        const seenKey = `${studentId}:${key}`;
+        if (countedSessionKeys.has(seenKey)) return;
+        countedSessionKeys.add(seenKey);
+        drillCounts[studentId] += 1;
+      });
+
       const { data: drills } = await supabase
         .from("intro_session_drills")
-        .select("student_id")
+        .select("id, student_id, scheduled_session_id, training_session_run_id, drill")
         .eq("tutor_id", tutorId)
         .in("student_id", studentIds);
 
       (drills || []).forEach((row: any) => {
         const id = String(row.student_id || "");
         if (!id) return;
-        drillCounts[id] = (drillCounts[id] || 0) + 1;
+        if (hasTrainingRunsByStudent.has(id)) return;
+        if (!isTrainingDrillRecord(row)) return;
+
+        const scheduledId = String(row?.scheduled_session_id || "").trim();
+        const runId = String(row?.training_session_run_id || "").trim();
+        const drillId = String(row?.id || "").trim();
+        const key = scheduledId || runId || drillId;
+        if (!key) return;
+
+        if (!drillCounts[id]) {
+          drillCounts[id] = 0;
+        }
+        const seenKey = `${id}:${key}`;
+        if (countedSessionKeys.has(seenKey)) return;
+        countedSessionKeys.add(seenKey);
+        drillCounts[id] += 1;
       });
     }
 

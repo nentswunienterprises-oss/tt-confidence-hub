@@ -54,6 +54,7 @@ type TopicConditioningMap = {
 };
 
 const MAX_MANUAL_RECORDING_FILE_BYTES = 30 * 1024 * 1024;
+type ObservationKind = "diagnosis" | "training" | "observation";
 
 type TopicRow = {
   topic: string;
@@ -65,7 +66,7 @@ type TopicRow = {
   trend: TopicTrend;
   entryDiagnosis: string;
   recentLogs: string[];
-  timeline: Array<{ date: string; phase: PhaseLabel; stability: StabilityLabel }>;
+  timeline: Array<{ date: string; phase: PhaseLabel; stability: StabilityLabel; kind: ObservationKind }>;
 };
 
 type TutorSessionRecord = {
@@ -703,7 +704,7 @@ function buildTopics(
   const byTopic = new Map<
     string,
     {
-      history: Array<{ date: string; phase: PhaseLabel; stability: StabilityLabel; note: string }>;
+      history: Array<{ date: string; phase: PhaseLabel; stability: StabilityLabel; note: string; kind: ObservationKind }>;
       seeded?: { phase: PhaseLabel; stability: StabilityLabel };
     }
   >();
@@ -728,6 +729,12 @@ function buildTopics(
         phase: normalizePhase(h.phase),
         stability: normalizeStability(h.stability),
         note: h?.observationNotes ? `Observation Notes: ${String(h.observationNotes)}` : "",
+        kind:
+          String(h?.structuredObservation?.drillType || h?.kind || "").trim().toLowerCase() === "training"
+            ? "training"
+            : String(h?.structuredObservation?.drillType || h?.kind || "").trim().toLowerCase() === "diagnosis"
+              ? "diagnosis"
+              : "observation",
       });
     });
 
@@ -761,6 +768,7 @@ function buildTopics(
       phase: obs.phase,
       stability: obs.stability,
       note: obs.rawNote,
+      kind: "observation",
     });
   });
 
@@ -776,16 +784,28 @@ function buildTopics(
     const stability = latest?.stability || entry.seeded?.stability || "Low";
     const lastSessionDate = latest?.date;
 
-    const stabilityLabels = [
-      "Last session",
-      "2nd last session",
-      "3rd last session"
-    ];
+    const formatRelativeObservationLabel = (index: number, kind: ObservationKind) => {
+      const unit =
+        kind === "training"
+          ? "training session"
+          : kind === "diagnosis"
+            ? "diagnosis"
+            : "observation";
+      const prefix =
+        index === 0
+          ? "Last"
+          : index === 1
+            ? "2nd last"
+            : index === 2
+              ? "3rd last"
+              : `${index + 1}th last`;
+      return `${prefix} ${unit}`;
+    };
     const recentLogs = history
       .slice(-3)
       .reverse()
       .map((h, index) => {
-        const label = stabilityLabels[index] || `Session ${index + 1}`;
+        const label = formatRelativeObservationLabel(index, h.kind);
         return `${label} (${formatSessionDateTimeLabel(h.date)}): ${h.stability} stability`;
       });
 
@@ -806,6 +826,7 @@ function buildTopics(
         date: new Date(h.date).toLocaleDateString("en-US", { day: "2-digit", month: "short" }),
         phase: h.phase,
         stability: h.stability,
+        kind: h.kind,
       })),
     });
   });
@@ -999,13 +1020,7 @@ export default function StudentTopicConditioningDialog({
   const handleStartTrainingSession = () => {
     if (!assignmentAccepted) return;
     if (selectedSessionTopics.size === 0) return;
-    if (isTrainingMode) {
-      // Dev note: when the full live session flow is re-enabled for this tutor,
-      // switch back to requiring a scheduled session window before launch.
-      launchTrainingSession(null);
-      return;
-    }
-    const activeSession = trainingSessionsData?.sessions?.find((session: any) => session.launch?.canLaunch);
+    const activeSession = activeTrainingSession;
     if (activeSession) {
       launchTrainingSession(activeSession.id);
       return;
@@ -1023,7 +1038,11 @@ export default function StudentTopicConditioningDialog({
       return;
     }
     if (!activeSession) {
-      setTrainingSessionMeetMessage("No launch-ready lesson is scheduled. The parent must book the week's two training sessions in the Sessions tab first.");
+      setTrainingSessionMeetMessage(
+        isTrainingMode
+          ? "No confirmed weekly training lesson is available yet. The parent must book the week's two training sessions in the Sessions tab first."
+          : "No launch-ready lesson is scheduled. The parent must book the week's two training sessions in the Sessions tab first."
+      );
       return;
     }
   };
@@ -1214,13 +1233,18 @@ export default function StudentTopicConditioningDialog({
     ...point,
     _renderKey: `${selectedRow?.topic || "topic"}-${point.date}-${point.phase}-${point.stability}-${index}`,
   }));
-  const toRelativeSessionLabel = (index: number) => index === 0
-    ? "Last session"
-    : index === 1
-    ? "2nd last session"
-    : index === 2
-    ? "3rd last session"
-    : `${index + 1}th last session`;
+  const toRelativeSessionLabel = (index: number, kind: ObservationKind = "observation") => {
+    const unit =
+      kind === "training"
+        ? "training session"
+        : kind === "diagnosis"
+          ? "diagnosis"
+          : "observation";
+    if (index === 0) return `Last ${unit}`;
+    if (index === 1) return `2nd last ${unit}`;
+    if (index === 2) return `3rd last ${unit}`;
+    return `${index + 1}th last ${unit}`;
+  };
   const hasOlderSelectedTimeline = selectedTimeline.length > 6;
   const selectedTimelineToRender = showFullSelectedTimeline ? selectedTimeline : selectedTimeline.slice(-6);
   const selectedTimelineBadges = selectedTimelineToRender.slice().reverse();
@@ -1339,10 +1363,14 @@ export default function StudentTopicConditioningDialog({
   const pendingTrainingConfirmationSession = actionableTrainingSessions.find((session: any) => session.status === "pending_parent_confirmation") || null;
   const activeTrainingSession = pendingTrainingConfirmationSession
     ? null
-    : actionableTrainingSessions.find((session: any) => session.launch?.canLaunch) || null;
+    : isTrainingMode
+      ? confirmedTrainingSessions[0] || null
+      : actionableTrainingSessions.find((session: any) => session.launch?.canLaunch) || null;
   const nextTrainingSession = actionableTrainingSessions.find(
     (session: any) =>
-      ["confirmed", "ready", "live"].includes(String(session.status || "")) && !session.launch?.canLaunch,
+      isTrainingMode
+        ? ["confirmed", "ready", "live"].includes(String(session.status || "")) && session.id !== activeTrainingSession?.id
+        : ["confirmed", "ready", "live"].includes(String(session.status || "")) && !session.launch?.canLaunch,
   ) || null;
 
   const showTopicManagement = !readOnly && !mapOnly;
@@ -1556,7 +1584,7 @@ export default function StudentTopicConditioningDialog({
                                   key={`${row.topic}-${point.date}-${point.phase}-${index}`}
                                   className="rounded-md border border-border/60 bg-muted/20 px-2 py-0.5 text-[11px] text-muted-foreground"
                                 >
-                                  {toRelativeSessionLabel(index)} · {point.phase} · {point.stability}
+                                  {toRelativeSessionLabel(index, point.kind)} · {point.phase} · {point.stability}
                                 </span>
                                 );
                               })}
@@ -1683,7 +1711,7 @@ export default function StudentTopicConditioningDialog({
                         </p>
                         <Progress value={stabilityPercent(selectedRow.stability)} />
                         <div className="space-y-1.5">
-                          <p className="text-sm font-medium">Recent Logs (Last 3 Sessions)</p>
+                          <p className="text-sm font-medium">Recent Logs (Last 3 Observations)</p>
                           {(selectedRow.recentLogs || []).length === 0 ? (
                             <p className="text-sm text-muted-foreground">No observations recorded yet for this topic.</p>
                           ) : (
@@ -1908,7 +1936,7 @@ export default function StudentTopicConditioningDialog({
                           key={point._renderKey}
                           className="inline-flex rounded-md border border-border/60 bg-muted/20 px-2 py-0.5 text-[11px] text-muted-foreground"
                         >
-                          {toRelativeSessionLabel(index)} · {point.phase} · {point.stability}
+                          {toRelativeSessionLabel(index, point.kind)} · {point.phase} · {point.stability}
                         </span>
                       ))}
                     </div>
@@ -1939,37 +1967,66 @@ export default function StudentTopicConditioningDialog({
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <h4 className="font-medium">Training Operations</h4>
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={() => setSessionTopicsModalOpen(true)}
-                      disabled={!assignmentAccepted}
-                      title={!assignmentAccepted ? "Accept the assignment before running training sessions." : undefined}
-                    >
-                      Start Session
-                    </Button>
+                    {activeTrainingSession ? (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => setSessionTopicsModalOpen(true)}
+                        disabled={!assignmentAccepted}
+                        title={!assignmentAccepted ? "Accept the assignment before running training sessions." : undefined}
+                      >
+                        Start Session
+                      </Button>
+                    ) : null}
                   </div>
                   <div className="rounded-md border border-primary/20 bg-primary/5 p-3 space-y-2">
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="text-sm font-medium">Training Mode</p>
                         <p className="text-xs text-muted-foreground">
-                          Google Meet windows and lesson-booking gates are disabled for this tutor.
+                          Weekly TT scheduling still applies. Google Meet links and live launch windows do not.
                         </p>
                       </div>
                       <div className="text-right text-xs text-muted-foreground">
-                        Start the TT drill session directly from here.
+                        Start Session unlocks after the week's lesson is confirmed by both parent and tutor.
                       </div>
                     </div>
                     <div className="rounded border border-primary/20 bg-background px-3 py-2 text-xs space-y-2">
-                      <p className="font-medium text-foreground">Direct drill launch active</p>
-                      <p className="text-muted-foreground">
-                        Use Start Session to choose topics and enter the runner immediately.
+                      <p className="font-medium text-foreground">
+                        {activeTrainingSession ? "Confirmed weekly lesson ready" : "Awaiting confirmed weekly lesson"}
                       </p>
                       <p className="text-muted-foreground">
-                        Dev note: restore the live lesson wrapper here when this tutor is switched back to <span className="font-medium text-foreground">certified_live</span>.
+                        {activeTrainingSession
+                          ? "Use Start Session to choose topics and enter the runner for the confirmed weekly lesson."
+                          : "Training launch stays locked until a weekly lesson is scheduled and fully confirmed."}
                       </p>
                     </div>
+                    {activeTrainingSession ? (
+                      <div className="rounded border border-primary/20 bg-background px-3 py-2 text-xs space-y-1">
+                        <p className="font-medium text-foreground">Confirmed lesson</p>
+                        <p className="text-muted-foreground">{formatLessonTime(activeTrainingSession.scheduled_time)}</p>
+                        <p className="text-muted-foreground">
+                          Training mode runs this lesson inside TT without depending on Meet generation or the live lesson window.
+                        </p>
+                      </div>
+                    ) : null}
+                    {pendingTutorConfirmationSessions.length > 0 ? (
+                      <div className="rounded border border-blue-200 bg-blue-50 px-3 py-2 text-xs space-y-2">
+                        <p className="font-medium text-blue-900">Awaiting tutor confirmation</p>
+                        <p className="text-blue-800">
+                          The parent has proposed this week's lesson times. Confirm both dates before training can launch.
+                        </p>
+                      </div>
+                    ) : null}
+                    {pendingTrainingConfirmationSession ? (
+                      <div className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs space-y-1">
+                        <p className="font-medium text-amber-900">Awaiting parent confirmation</p>
+                        <p className="text-amber-800">{formatLessonTime(pendingTrainingConfirmationSession.scheduled_time)}</p>
+                        <p className="text-amber-800">
+                          The parent must confirm this weekly lesson before training can launch.
+                        </p>
+                      </div>
+                    ) : null}
                   </div>
                   {!assignmentAccepted && (
                     <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
