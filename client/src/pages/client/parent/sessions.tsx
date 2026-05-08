@@ -311,6 +311,9 @@ export default function ParentSessions() {
   const sessions = data?.sessions || [];
   const schedulingEnabled = data?.sessionSchedulingEnabled ?? true;
   const trainingModeScheduling = data?.operationalMode === "training";
+  const scheduleWeekDescription = trainingModeScheduling
+    ? "Choose two Monday-to-Saturday training session times in the same week. Your tutor must confirm both dates before TT locks the sessions into the training flow."
+    : "Choose two Monday-to-Saturday training session times in the same week. Your tutor must confirm both dates before TT creates the Meet links.";
   const actionableSessions = sessions.filter(
     (session) => !["completed", "cancelled", "flagged"].includes(String(session.status || "")),
   );
@@ -336,7 +339,7 @@ export default function ParentSessions() {
             <div>
               <h2 className="text-base sm:text-xl font-semibold">Schedule This Week</h2>
               <p className="text-sm text-muted-foreground mt-1">
-                Choose two Monday-to-Saturday training session times in the same week. Your tutor must confirm both dates before TT creates the Meet links.
+                {scheduleWeekDescription}
               </p>
             </div>
 
