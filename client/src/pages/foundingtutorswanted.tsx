@@ -22,18 +22,20 @@ function FoundingTutorsWanted() {
           }
         `}</style>
         <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#F3D2C1] w-full backdrop-blur-md" style={{ background: 'linear-gradient(135deg, #FFF5ED 0%, #F9E3D8 100%)', boxShadow: '0 2px 8px 0 rgba(233, 57, 70, 0.04)', backgroundColor: 'rgba(255,245,237,0.95)' }}>
-          <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center">
-            <span className="flex-shrink-0 block md:hidden">
-              <TTLogo size="md" variant="integrity" />
-            </span>
-            <span className="flex-shrink-0 hidden md:block">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center gap-2 sm:gap-4">
+            <div className="flex min-w-0 items-center gap-2 md:hidden">
+              <span className="flex-shrink-0">
+                <TTLogo size="md" variant="integrity" />
+              </span>
+              <div className="min-w-0 leading-none">
+                <span className="block text-[13px] font-bold tracking-tight text-[#2D1A06] whitespace-nowrap">Founding</span>
+                <span className="block text-[13px] font-bold tracking-tight text-[#2D1A06] whitespace-nowrap">Tutor Cohort</span>
+              </div>
+            </div>
+            <span className="hidden md:block flex-shrink-0">
               <TTLogo size="lg" variant="integrity" />
             </span>
             <span className="hidden md:block text-2xl lg:text-4xl font-bold tracking-tight text-[#2D1A1A] ml-auto">Founding Tutor Cohort</span>
-            <div className="flex-shrink-0 md:hidden flex flex-col items-start justify-center -ml-3">
-              <span className="block text-sm sm:text-base font-bold tracking-tight text-[#2D1A06] leading-tight">Founding</span>
-              <span className="block text-sm sm:text-base font-bold tracking-tight text-[#2D1A06] leading-tight -ml-3">Tutor Cohort</span>
-            </div>
             <Button
               className="flex-shrink-0 ml-auto text-xs sm:text-sm md:text-base font-semibold px-3 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-full border-0 shadow-lg hover:shadow-xl transition-all"
               style={{ backgroundColor: "#E63946", color: "white" }}
