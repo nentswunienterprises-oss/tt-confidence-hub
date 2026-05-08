@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, Shield, Users, AlertTriangle } from "lucide-react";
+import { ArrowRight, Check, Shield, Users, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { TTLogo } from "@/components/TTLogo";
@@ -84,15 +84,7 @@ export default function TutorLanding() {
         style={{ backgroundColor: "rgba(245, 239, 231, 0.9)" }}
       >
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-center px-3 sm:h-20 sm:justify-between sm:px-6 md:px-12">
-          <Button
-            variant="ghost"
-            className="hidden items-center gap-2 px-2 text-sm font-medium hover:bg-transparent sm:inline-flex sm:px-4 sm:text-base"
-            style={{ color: "#171311" }}
-            onClick={() => navigate("/operational/landing")}
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
+          <div className="hidden sm:block sm:w-[120px]" aria-hidden="true" />
 
           <div className="text-center">
             <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#8A4B35]">Operational Gateway</p>
