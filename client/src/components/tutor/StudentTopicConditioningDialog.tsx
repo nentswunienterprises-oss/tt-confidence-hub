@@ -2016,6 +2016,95 @@ export default function StudentTopicConditioningDialog({
                         <p className="text-blue-800">
                           The parent has proposed this week's lesson times. Confirm both dates before training can launch.
                         </p>
+                        <div className="space-y-2">
+                          {pendingTutorConfirmationSessions.map((session: any) => (
+                            <div key={session.id} className="rounded border border-blue-200 bg-background px-3 py-2 space-y-2">
+                              <div className="flex items-center justify-between gap-3">
+                                <div>
+                                  <p className="font-medium text-foreground">{formatLessonTime(session.scheduled_time)}</p>
+                                  <p className="text-muted-foreground">Status: waiting for tutor confirmation</p>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={async () => {
+                                      try {
+                                        const result = await confirmTrainingSession.mutateAsync({ sessionId: session.id });
+                                        setTrainingSessionMeetMessage(
+                                          result?.googleMeetError ||
+                                          (result?.googleMeetSync === "google_calendar"
+                                            ? "Tutor confirmed. Google Meet attached to the lesson."
+                                            : "Tutor confirmed the lesson.")
+                                        );
+                                      } catch (error) {
+                                        setTrainingSessionMeetMessage(
+                                          error instanceof Error ? error.message : "Failed to confirm training session."
+                                        );
+                                      }
+                                    }}
+                                    disabled={confirmTrainingSession.isPending || respondTrainingSession.isPending}
+                                  >
+                                    {confirmTrainingSession.isPending ? "Confirming..." : "Confirm Date"}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      setEditingTrainingSessionId((current) => current === session.id ? null : session.id);
+                                      setAdjustedTrainingSessionTime(new Date(session.scheduled_time).toISOString().slice(0, 16));
+                                    }}
+                                    disabled={confirmTrainingSession.isPending || respondTrainingSession.isPending}
+                                  >
+                                    Adjust
+                                  </Button>
+                                </div>
+                              </div>
+                              {editingTrainingSessionId === session.id ? (
+                                <div className="rounded border border-blue-200 bg-blue-50 px-3 py-2 space-y-2">
+                                  <Input
+                                    type="datetime-local"
+                                    value={adjustedTrainingSessionTime}
+                                    onChange={(e) => setAdjustedTrainingSessionTime(e.target.value)}
+                                  />
+                                  <div className="flex justify-end">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={async () => {
+                                        try {
+                                          const result = await respondTrainingSession.mutateAsync({
+                                            sessionId: session.id,
+                                            action: "reschedule",
+                                            scheduledStart: new Date(adjustedTrainingSessionTime).toISOString(),
+                                            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Africa/Johannesburg",
+                                          });
+                                          setTrainingSessionMeetMessage(
+                                            result?.googleMeetError || "Tutor sent a new time to the parent for confirmation."
+                                          );
+                                          setEditingTrainingSessionId(null);
+                                          setAdjustedTrainingSessionTime("");
+                                        } catch (error) {
+                                          setTrainingSessionMeetMessage(
+                                            error instanceof Error ? error.message : "Failed to adjust training session."
+                                          );
+                                        }
+                                      }}
+                                      disabled={!adjustedTrainingSessionTime || respondTrainingSession.isPending}
+                                    >
+                                      {respondTrainingSession.isPending ? "Sending..." : "Send New Time"}
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : null}
+                            </div>
+                          ))}
+                        </div>
+                        {trainingSessionMeetMessage ? (
+                          <p className={trainingSessionMeetMessage.includes("attached") ? "text-green-700" : "text-red-600"}>
+                            {trainingSessionMeetMessage}
+                          </p>
+                        ) : null}
                       </div>
                     ) : null}
                     {pendingTrainingConfirmationSession ? (
