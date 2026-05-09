@@ -87,7 +87,7 @@ export default function TdSignup() {
 
           <p className="text-center text-xs text-[#5A5A5A]">
             By continuing, you agree to our{" "}
-            <a href="/terms-of-use" target="_blank" className="underline hover:text-[#E63946]" style={{ color: "#1A1A1A" }}>
+            <a href="/td-terms-of-use" target="_blank" className="underline hover:text-[#E63946]" style={{ color: "#1A1A1A" }}>
               Terms of Use
             </a>{" "}
             and{" "}

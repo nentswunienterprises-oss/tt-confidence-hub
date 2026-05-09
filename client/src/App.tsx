@@ -33,6 +33,9 @@ import NotFound from "@/pages/not-found";
 import FAQPage from "@/pages/faq";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import TermsOfUse from "@/pages/terms-of-use";
+import TutorTermsOfUse from "@/pages/tutor-terms-of-use";
+import TdTermsOfUse from "@/pages/td-terms-of-use";
+import EgpTermsOfUse from "@/pages/egp-terms-of-use";
 import EarlyInterventionReferralProgram from "@/pages/earlyinterventionreferralprogram";
 import AboutTT from "@/pages/aboutTT";
 import LeadershipDevelopmentPilot from "@/pages/leadershipdevelopmentpilot";
@@ -174,6 +177,9 @@ function Router() {
       <Route path="/home" element={<Home />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/terms-of-use" element={<TermsOfUse />} />
+      <Route path="/tutor-terms-of-use" element={<TutorTermsOfUse />} />
+      <Route path="/td-terms-of-use" element={<TdTermsOfUse />} />
+      <Route path="/egp-terms-of-use" element={<EgpTermsOfUse />} />
       <Route path="/faq" element={<FAQPage />} />
       <Route path="/onlinetutors-wanted" element={<OnlineTutorsWanted />} />
       <Route path="/onlinetutorswanted" element={<OnlineTutorsWantedPlain />} />

@@ -14,6 +14,7 @@ export default function OperationalSignup() {
   const [selectedRole, setSelectedRole] = useState<"tutor" | "td" | null>(initialRole);
   const [mode, setMode] = useState<"signup" | "login">("signup");
   const navigate = useNavigate();
+  const termsHref = selectedRole === "td" ? "/td-terms-of-use" : "/tutor-terms-of-use";
 
   if (!selectedRole) {
     return (
@@ -221,7 +222,7 @@ export default function OperationalSignup() {
           {/* Footer Info */}
           <p className="text-xs text-center" style={{ color: "#5A5A5A" }}>
             By signing up, you agree to our{" "}
-            <a href="/terms-of-use" target="_blank" className="underline hover:text-[#E63946]" style={{ color: "#1A1A1A" }}>
+            <a href={termsHref} target="_blank" className="underline hover:text-[#E63946]" style={{ color: "#1A1A1A" }}>
               Terms of Use
             </a>{" "}
             and{" "}
