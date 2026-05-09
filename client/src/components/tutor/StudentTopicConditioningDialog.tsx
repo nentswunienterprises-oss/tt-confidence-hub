@@ -1967,7 +1967,7 @@ export default function StudentTopicConditioningDialog({
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <h4 className="font-medium">Training Operations</h4>
-                    {activeTrainingSession ? (
+                    {confirmedTrainingSessions.length > 0 ? (
                       <Button
                         variant="default"
                         size="sm"
@@ -1993,21 +1993,49 @@ export default function StudentTopicConditioningDialog({
                     </div>
                     <div className="rounded border border-primary/20 bg-background px-3 py-2 text-xs space-y-2">
                       <p className="font-medium text-foreground">
-                        {activeTrainingSession ? "Confirmed weekly lesson ready" : "Awaiting confirmed weekly lesson"}
+                        {confirmedTrainingSessions.length > 0 ? "Confirmed weekly lesson ready" : "Awaiting confirmed weekly lesson"}
                       </p>
                       <p className="text-muted-foreground">
-                        {activeTrainingSession
-                          ? "Use Start Session to choose topics and enter the runner for the confirmed weekly lesson."
+                        {confirmedTrainingSessions.length > 0
+                          ? "Use Start Session to choose topics and enter the runner for a confirmed weekly lesson."
                           : "Training launch stays locked until a weekly lesson is scheduled and fully confirmed."}
                       </p>
                     </div>
-                    {activeTrainingSession ? (
-                      <div className="rounded border border-primary/20 bg-background px-3 py-2 text-xs space-y-1">
-                        <p className="font-medium text-foreground">Confirmed lesson</p>
-                        <p className="text-muted-foreground">{formatLessonTime(activeTrainingSession.scheduled_time)}</p>
-                        <p className="text-muted-foreground">
-                          Training mode runs this lesson inside TT without depending on Meet generation or the live lesson window.
-                        </p>
+                    {confirmedTrainingSessions.length > 0 ? (
+                      <div className="rounded border border-primary/20 bg-background px-3 py-2 text-xs space-y-2">
+                        <p className="font-medium text-foreground">Confirmed lessons</p>
+                        <div className="space-y-2">
+                          {confirmedTrainingSessions.map((session: any) => (
+                            <div key={session.id} className="rounded border border-primary/20 bg-muted/10 px-3 py-2 space-y-2">
+                              <div className="flex items-center justify-between gap-3">
+                                <div>
+                                  <p className="font-medium text-foreground">{formatLessonTime(session.scheduled_time)}</p>
+                                  <p className="text-muted-foreground">Status: {String(session.status || "").replaceAll("_", " ")}</p>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    if (activeTrainingSession?.id !== session.id) {
+                                      setTrainingSessionMeetMessage(
+                                        "Start Session will launch the earliest confirmed weekly lesson first. Complete it before opening the next confirmed slot."
+                                      );
+                                      return;
+                                    }
+                                    setSessionTopicsModalOpen(true);
+                                  }}
+                                  disabled={!assignmentAccepted}
+                                  title={!assignmentAccepted ? "Accept the assignment before running training sessions." : undefined}
+                                >
+                                  Start Session
+                                </Button>
+                              </div>
+                              <p className="text-muted-foreground">
+                                Training mode runs this lesson inside TT without depending on Meet generation or the live lesson window.
+                              </p>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     ) : null}
                     {pendingTutorConfirmationSessions.length > 0 ? (
@@ -2349,69 +2377,6 @@ export default function StudentTopicConditioningDialog({
                         <p className="text-muted-foreground">
                           This lesson is outside the live/imminent launch window.
                         </p>
-                        {trainingSessionMeetMessage ? (
-                          <p className={trainingSessionMeetMessage.includes("created") ? "text-green-700" : "text-red-600"}>
-                            {trainingSessionMeetMessage}
-                          </p>
-                        ) : null}
-                      </div>
-                    ) : null}
-                    {confirmedTrainingSessions.length > 0 ? (
-                      <div className="rounded border border-border/60 bg-background px-3 py-2 text-xs space-y-2">
-                        <p className="font-medium text-foreground">Confirmed lessons</p>
-                        <div className="space-y-2">
-                          {confirmedTrainingSessions.map((session: any) => (
-                            <div key={session.id} className="rounded border border-border/60 bg-muted/10 px-3 py-2 space-y-1">
-                              <div className="flex items-center justify-between gap-3">
-                                <div>
-                                  <p className="font-medium text-foreground">{formatLessonTime(session.scheduled_time)}</p>
-                                  <p className="text-muted-foreground">Status: {String(session.status || "").replaceAll("_", " ")}</p>
-                                </div>
-                                {session.launch?.canLaunch ? (
-                                  <Badge variant="outline" className="border-primary/20 bg-primary/5 text-foreground">
-                                    Launch Ready
-                                  </Badge>
-                                ) : null}
-                              </div>
-                              {session.google_meet_url ? (
-                                <a
-                                  href={session.google_meet_url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="inline-flex text-primary underline underline-offset-2"
-                                >
-                                  Join Meet
-                                </a>
-                              ) : (
-                                <div className="space-y-2">
-                                  <p className="text-muted-foreground">Meet link pending calendar sync.</p>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={async () => {
-                                      try {
-                                        const result = await retryMeetSync.mutateAsync({ sessionId: session.id });
-                                        setTrainingSessionMeetMessage(
-                                          result?.googleMeetError ||
-                                          (result?.googleMeetSync === "google_calendar"
-                                            ? "Google Meet synced to the lesson."
-                                            : "Meet sync retried.")
-                                        );
-                                      } catch (error) {
-                                        setTrainingSessionMeetMessage(
-                                          error instanceof Error ? error.message : "Failed to retry Meet sync."
-                                        );
-                                      }
-                                    }}
-                                    disabled={retryMeetSync.isPending}
-                                  >
-                                    {retryMeetSync.isPending ? "Syncing..." : "Retry Meet Sync"}
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
                         {trainingSessionMeetMessage ? (
                           <p className={trainingSessionMeetMessage.includes("created") ? "text-green-700" : "text-red-600"}>
                             {trainingSessionMeetMessage}
