@@ -829,12 +829,12 @@ export default function TDOverview() {
                                                   {tutorAudit.moduleProgress.map((module) => (
                                                     <div
                                                       key={`${tutor.assignment.id}-${module.moduleKey}`}
-                                                      className="flex flex-col gap-1 rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-xs text-foreground sm:flex-row sm:items-start sm:justify-between sm:gap-3"
+                                                      className="flex flex-col gap-1 rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-xs text-foreground"
                                                     >
                                                       <span className="min-w-0 font-medium leading-4">
                                                         {module.title}
                                                       </span>
-                                                      <span className="shrink-0 text-muted-foreground sm:text-right">
+                                                      <span className="shrink-0 text-muted-foreground">
                                                         {module.completedCount}/{module.totalCount}
                                                       </span>
                                                     </div>
