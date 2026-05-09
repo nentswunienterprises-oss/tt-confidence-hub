@@ -827,9 +827,14 @@ export default function TDOverview() {
                                               {tutorAudit?.moduleProgress?.length ? (
                                                 <div className="mt-3 grid gap-2 sm:grid-cols-2">
                                                   {tutorAudit.moduleProgress.map((module) => (
-                                                    <div key={`${tutor.assignment.id}-${module.moduleKey}`} className="rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-xs text-foreground">
-                                                      <span className="font-medium">{module.title}</span>
-                                                      <span className="ml-2 text-muted-foreground">
+                                                    <div
+                                                      key={`${tutor.assignment.id}-${module.moduleKey}`}
+                                                      className="flex items-start justify-between gap-3 rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-xs text-foreground"
+                                                    >
+                                                      <span className="min-w-0 font-medium leading-4">
+                                                        {module.title}
+                                                      </span>
+                                                      <span className="shrink-0 text-muted-foreground">
                                                         {module.completedCount}/{module.totalCount}
                                                       </span>
                                                     </div>
