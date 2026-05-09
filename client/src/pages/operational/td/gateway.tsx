@@ -193,7 +193,7 @@ export default function TdGateway() {
                 </div>
               ) : null}
 
-              {(applicationStatus.status === "approved" || applicationStatus.status === "confirmed") ? (
+              {applicationStatus.status === "approved" ? (
                 <TdSequentialAgreementAcceptance
                   applicationId={applicationStatus.applicationId}
                   applicationStatus={applicationStatus}
