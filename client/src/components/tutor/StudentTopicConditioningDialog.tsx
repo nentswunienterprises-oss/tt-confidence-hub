@@ -1967,17 +1967,6 @@ export default function StudentTopicConditioningDialog({
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <h4 className="font-medium">Training Operations</h4>
-                    {confirmedTrainingSessions.length > 0 ? (
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => setSessionTopicsModalOpen(true)}
-                        disabled={!assignmentAccepted}
-                        title={!assignmentAccepted ? "Accept the assignment before running training sessions." : undefined}
-                      >
-                        Start Session
-                      </Button>
-                    ) : null}
                   </div>
                   <div className="rounded-md border border-primary/20 bg-primary/5 p-3 space-y-2">
                     <div className="flex items-center justify-between gap-3">
