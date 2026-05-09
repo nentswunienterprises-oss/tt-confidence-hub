@@ -1172,7 +1172,7 @@ export default function PodDetail() {
                                           const groupMeta = getTutorAuditGroupMeta(groupKey);
                                           const groupPhases = groupedTutorPhaseOptions[groupKey];
                                           const expandKey = `${assignment.id}:${groupKey}`;
-                                          const isGroupExpanded = expandedTutorAuditGroups[expandKey] ?? true;
+                                          const isGroupExpanded = expandedTutorAuditGroups[expandKey] ?? false;
 
                                           return (
                                             <div key={expandKey} className="rounded-xl border border-border/60 bg-background/60">
