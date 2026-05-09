@@ -514,6 +514,31 @@ function isHeuristicSandboxEnrollment(enrollment: any, tutorId?: string) {
   );
 }
 
+function isHeuristicSandboxStudent(student: any, tutorId?: string) {
+  const parentContact = String(student?.parent_contact || student?.parentContact || "").trim().toLowerCase();
+  const studentName = String(student?.name || "").trim().toLowerCase();
+  const expectedEmailPrefix = tutorId ? `sandbox-parent-${String(tutorId).trim().toLowerCase()}-` : "sandbox-parent-";
+
+  return (
+    (parentContact.startsWith(expectedEmailPrefix) && parentContact.endsWith("@territorialtutoring.com")) ||
+    studentName.startsWith("sandbox ")
+  );
+}
+
+function isSandboxLikeEnrollment(enrollment: any, tutorId?: string) {
+  return (
+    Boolean(enrollment?.is_sandbox_account) ||
+    isHeuristicSandboxEnrollment(enrollment, tutorId || enrollment?.assigned_tutor_id) ||
+    String(enrollment?.current_step || "").trim().toLowerCase().startsWith("sandbox-")
+  );
+}
+
+function studentMatchesEnrollmentSandboxBoundary(enrollment: any, student: any, tutorId?: string) {
+  const sandboxEnrollment = isSandboxLikeEnrollment(enrollment, tutorId || enrollment?.assigned_tutor_id);
+  const sandboxStudent = isHeuristicSandboxStudent(student, tutorId || enrollment?.assigned_tutor_id);
+  return sandboxEnrollment ? sandboxStudent : !sandboxStudent;
+}
+
 async function loadTutorAssignedEnrollments(
   tutorId: string,
   options?: {
@@ -5054,7 +5079,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .eq("parent_enrollment_id", enrollment.id)
         .order("updated_at", { ascending: false })
         .limit(1);
-      existingStudent = data?.[0] || null;
+      existingStudent =
+        (data || []).find((student: any) =>
+          studentMatchesEnrollmentSandboxBoundary(enrollment, student, tutorId)
+        ) || null;
     }
 
     if (!existingStudent) {
@@ -5066,7 +5094,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .eq("name", enrollment.student_full_name)
         .order("updated_at", { ascending: false })
         .limit(1);
-      existingStudent = data?.[0] || null;
+      existingStudent =
+        (data || []).find((student: any) =>
+          studentMatchesEnrollmentSandboxBoundary(enrollment, student, tutorId)
+        ) || null;
     }
 
     if (!existingStudent && enrollment.parent_email) {
@@ -5078,7 +5109,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .eq("name", enrollment.student_full_name)
         .order("updated_at", { ascending: false })
         .limit(1);
-      existingStudent = data?.[0] || null;
+      existingStudent =
+        (data || []).find((student: any) =>
+          studentMatchesEnrollmentSandboxBoundary(enrollment, student, tutorId)
+        ) || null;
     }
 
     if (!existingStudent) {
@@ -5089,8 +5123,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .eq("tutor_id", tutorId)
         .limit(2);
 
-      if ((data || []).length === 1) {
-        existingStudent = data?.[0] || null;
+      const compatibleStudents = (data || []).filter((student: any) =>
+        studentMatchesEnrollmentSandboxBoundary(enrollment, student, tutorId)
+      );
+
+      if (compatibleStudents.length === 1) {
+        existingStudent = compatibleStudents[0] || null;
       }
     }
 
@@ -8164,46 +8202,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Exactly two weekly session slots are required." });
       }
 
-      const enrollmentWithAssignedStudent = await supabase
-        .from("parent_enrollments")
-        .select("assigned_tutor_id, assigned_student_id, student_full_name")
-        .eq("user_id", userId)
-        .maybeSingle();
-
-      let enrollment: any = enrollmentWithAssignedStudent.data || null;
-      let enrollmentError: any = enrollmentWithAssignedStudent.error || null;
-
-      if (enrollmentError && String(enrollmentError.message || "").includes("assigned_student_id")) {
-        const enrollmentFallback = await supabase
-          .from("parent_enrollments")
-          .select("assigned_tutor_id, student_full_name")
-          .eq("user_id", userId)
-          .maybeSingle();
-
-        enrollment = enrollmentFallback.data
-          ? { ...enrollmentFallback.data, assigned_student_id: null }
-          : null;
-        enrollmentError = enrollmentFallback.error || null;
-      }
+      const { data: enrollment, error: enrollmentError } = await selectLatestParentEnrollment({
+        parentId: userId,
+        primarySelect: "id, user_id, assigned_tutor_id, assigned_student_id, student_full_name, student_grade, parent_email",
+        fallbackSelect: "id, user_id, assigned_tutor_id, student_full_name, student_grade, parent_email",
+      });
 
       if (enrollmentError || !enrollment?.assigned_tutor_id) {
         return res.status(400).json({ message: "Assigned tutor is required before weekly scheduling." });
       }
 
-      const premiumAccess = await ensurePremiumAccessForParent(userId, enrollment.assigned_student_id || null);
+      const studentRecord = await resolveCanonicalStudentForEnrollment(enrollment);
+      const studentId = studentRecord?.id || enrollment.assigned_student_id || null;
+
+      const premiumAccess = await ensurePremiumAccessForParent(userId, studentId);
       if (!premiumAccess.allowed) {
         return res.status(premiumAccess.status).json({ message: premiumAccess.message });
-      }
-
-      let studentId = enrollment.assigned_student_id || null;
-      if (!studentId && enrollment.student_full_name) {
-        const { data: student } = await supabase
-          .from("students")
-          .select("id")
-          .eq("name", enrollment.student_full_name)
-          .eq("tutor_id", enrollment.assigned_tutor_id)
-          .maybeSingle();
-        studentId = student?.id || null;
       }
 
       if (!studentId) {
@@ -8939,6 +8953,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const resolveCanonicalStudentForEnrollment = async (enrollment: any) => {
     if (!enrollment) return null;
+    const tutorId = enrollment?.assigned_tutor_id;
 
     if (enrollment.assigned_student_id) {
       const assignedStudent = await storage.getStudent(enrollment.assigned_student_id);
@@ -8953,7 +8968,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .order("updated_at", { ascending: false })
         .limit(1);
 
-      if (byEnrollmentId?.[0]) return normalizeStudentRecord(byEnrollmentId[0]);
+      const matchedByEnrollmentId = (byEnrollmentId || []).find((student: any) =>
+        studentMatchesEnrollmentSandboxBoundary(enrollment, student, tutorId)
+      );
+      if (matchedByEnrollmentId) return normalizeStudentRecord(matchedByEnrollmentId);
     }
 
     if (
@@ -8981,7 +8999,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .order("updated_at", { ascending: false })
         .limit(1);
 
-      if (byParentAndName?.[0]) return normalizeStudentRecord(byParentAndName[0]);
+      const matchedByParentAndName = (byParentAndName || []).find((student: any) =>
+        studentMatchesEnrollmentSandboxBoundary(enrollment, student, tutorId)
+      );
+      if (matchedByParentAndName) return normalizeStudentRecord(matchedByParentAndName);
     }
 
     return null;
