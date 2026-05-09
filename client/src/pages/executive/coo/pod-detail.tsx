@@ -1279,7 +1279,7 @@ export default function PodDetail() {
                                             {formatModeCapability(operationalMode)}
                                           </p>
                                         </div>
-                                        <div className="grid gap-3 sm:grid-cols-2">
+                                        <div className="grid gap-3 lg:grid-cols-2">
                                           <div className="rounded-lg border border-border/60 bg-background/80 p-3">
                                             <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Transformation</p>
                                             <p className="mt-1 text-sm font-medium text-foreground">
