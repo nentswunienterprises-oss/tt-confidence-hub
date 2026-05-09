@@ -338,10 +338,23 @@ export default function TDOverview() {
   };
 
   const toggleTutorDetails = (assignmentId: string) => {
+    const willExpand = !expandedTutorDetails[assignmentId];
     setExpandedTutorDetails((current) => ({
       ...current,
-      [assignmentId]: !current[assignmentId],
+      [assignmentId]: willExpand,
     }));
+
+    if (!willExpand) {
+      setExpandedTutorAuditGroups((current) => {
+        const next = { ...current };
+        Object.keys(next).forEach((key) => {
+          if (key.startsWith(`${assignmentId}:`)) {
+            delete next[key];
+          }
+        });
+        return next;
+      });
+    }
   };
 
   const togglePhaseScores = (podId: string) => {

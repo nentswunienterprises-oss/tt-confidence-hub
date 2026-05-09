@@ -664,10 +664,23 @@ export default function PodDetail() {
   };
 
   const toggleTutorDetails = (assignmentId: string) => {
+    const willExpand = !expandedTutorDetails[assignmentId];
     setExpandedTutorDetails((current) => ({
       ...current,
-      [assignmentId]: !current[assignmentId],
+      [assignmentId]: willExpand,
     }));
+
+    if (!willExpand) {
+      setExpandedTutorAuditGroups((current) => {
+        const next = { ...current };
+        Object.keys(next).forEach((key) => {
+          if (key.startsWith(`${assignmentId}:`)) {
+            delete next[key];
+          }
+        });
+        return next;
+      });
+    }
   };
 
   const toggleTutorAuditGroup = (assignmentId: string, groupKey: TutorAuditGroupKey) => {
