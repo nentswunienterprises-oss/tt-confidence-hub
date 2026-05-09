@@ -15,6 +15,7 @@ import { PushOptInCard } from "@/components/push/PushOptInCard";
 import { useNavigate } from "react-router-dom";
 
 interface StudentStats {
+  introDiagnosisCompleted?: number;
   bossBattlesCompleted: number;
   solutionsUnlocked: number;
   confidenceGrowth: number;
@@ -705,28 +706,43 @@ export default function ParentDashboard() {
   const parentRoleNowLine = topicCards.length > 1
     ? `Read the topic cards individually because ${studentFirstName}'s current position is different across ${currentBreakpointSummary}.`
     : parentRoleLines[2] || parentRoleLines[0] || "Use the tutor and training plan as the operating reference.";
+  const diagnosisCompletedCount = stats?.introDiagnosisCompleted || 0;
+  const activeTopicCount = topicCards.filter((item) => item.bucket === "active").length;
 
-  const sessionMarkers = [
-    {
-      label: "Sessions Completed",
-      value: stats?.sessionsCompleted || 0,
-    },
-  ];
+  const sessionMarkers = isDiagnosisOnlyView
+    ? [
+        {
+          label: "Intro Diagnosis Completed",
+          value: diagnosisCompletedCount,
+        },
+        {
+          label: "Training Sessions Completed",
+          value: 0,
+        },
+      ]
+    : [
+        {
+          label: "Intro Diagnosis Completed",
+          value: diagnosisCompletedCount,
+        },
+        {
+          label: "Training Sessions Completed",
+          value: stats?.trainingSessionsCompleted || 0,
+        },
+      ];
 
-  const trainingMarkers = [
-    {
-      label: "Challenge Exposure",
-      value: stats?.bossBattlesCompleted || 0,
-    },
-    {
-      label: "Structured Solutions",
-      value: stats?.solutionsUnlocked || 0,
-    },
-    {
-      label: "Topics In Conditioning",
-      value: topicCards.length,
-    },
-  ];
+  const trainingMarkers = isDiagnosisOnlyView
+    ? []
+    : [
+        {
+          label: "Topics Trained",
+          value: stats?.bossBattlesCompleted || 0,
+        },
+        {
+          label: "Active Topics In Conditioning",
+          value: activeTopicCount > 0 ? activeTopicCount : topicCards.length,
+        },
+      ];
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -1064,20 +1080,30 @@ export default function ParentDashboard() {
         <Card className="border-primary/20 bg-background shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-semibold tracking-[-0.01em]">Training Markers</CardTitle>
-            <CardDescription>TT-specific secondary signals that show conditioning pressure and response structure.</CardDescription>
+            <CardDescription>
+              {isDiagnosisOnlyView
+                ? "Training markers will appear here once regular TT training sessions begin."
+                : "TT-specific secondary signals that show conditioning pressure and response structure."}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {trainingMarkers.map((item) => {
-                const displayValue = item.value ?? "Unknown";
-                return (
-                  <div key={item.label} className="rounded-xl border border-primary/20 bg-muted/20 px-4 py-3">
-                    <p className="text-[11px] uppercase tracking-[0.07em] text-muted-foreground">{item.label}</p>
-                    <p className="mt-2 text-2xl font-semibold tabular-nums text-foreground break-words">{displayValue}</p>
-                  </div>
-                );
-              })}
-            </div>
+            {trainingMarkers.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-primary/20 bg-muted/10 px-4 py-6 text-sm text-muted-foreground">
+                No training markers yet. This student has completed intro diagnosis, but live topic conditioning has not started.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {trainingMarkers.map((item) => {
+                  const displayValue = item.value ?? "Unknown";
+                  return (
+                    <div key={item.label} className="rounded-xl border border-primary/20 bg-muted/20 px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.07em] text-muted-foreground">{item.label}</p>
+                      <p className="mt-2 text-2xl font-semibold tabular-nums text-foreground break-words">{displayValue}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -9405,6 +9405,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const student = await storage.getStudent(studentId);
     if (!student) {
       return {
+        introDiagnosisCompleted: 0,
         bossBattlesCompleted: 0,
         solutionsUnlocked: 0,
         currentStreak: 0,
@@ -9481,16 +9482,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     const derivedBossBattles =
-      introDrills.length +
-      (normalizedTrainingRuns.length > 0
+      normalizedTrainingRuns.length > 0
         ? normalizedTrainingRuns.reduce((sum: number, row: any) => sum + Number(row?.topic_count || 0), 0)
-        : trainingDrills.length);
+        : trainingDrills.length;
 
     const derivedSolutionsUnlocked =
-      introDrills.length +
-      (normalizedTrainingRuns.length > 0 ? normalizedTrainingRuns.length : new Set(
+      normalizedTrainingRuns.length > 0 ? normalizedTrainingRuns.length : new Set(
         trainingDrills.map((row) => row.trainingSessionRunId || row.id).filter(Boolean)
-      ).size);
+      ).size;
 
     const { data: commitments } = await supabase
       .from("student_commitments")
@@ -9503,6 +9502,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const currentStreak = Number(commitments?.[0]?.streak_count || 0);
 
     return {
+      introDiagnosisCompleted: introDrills.length,
       bossBattlesCompleted: derivedBossBattles,
       solutionsUnlocked: derivedSolutionsUnlocked,
       currentStreak,
@@ -21552,6 +21552,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!enrollment?.assigned_tutor_id) {
         return res.json({
+          introDiagnosisCompleted: 0,
           bossBattlesCompleted: 0,
           solutionsUnlocked: 0,
           confidenceGrowth: 0,
@@ -21588,6 +21589,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       res.json({
+        introDiagnosisCompleted: stats.introDiagnosisCompleted,
         bossBattlesCompleted: stats.bossBattlesCompleted,
         solutionsUnlocked: stats.solutionsUnlocked,
         confidenceGrowth: 50,
