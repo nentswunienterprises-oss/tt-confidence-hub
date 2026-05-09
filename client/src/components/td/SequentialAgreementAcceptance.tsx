@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { renderToStaticMarkup } from "react-dom/server.browser";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, Download, Expand, FileCheck, Loader2, Upload } from "lucide-react";
+import { CheckCircle2, Expand, FileCheck, Loader2, Upload } from "lucide-react";
 import { API_URL } from "@/lib/config";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -86,22 +85,6 @@ function fileToBase64(file: File) {
 
 function statusLabel(status: string) {
   return status.replace(/_/g, " ");
-}
-
-function escapeHtml(value: string) {
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-function formatAcceptedAt(value: string | null | undefined) {
-  if (!value) return "Not available";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Not available";
-  return date.toLocaleString();
 }
 
 function normalizeDocumentText(content: string) {
@@ -202,101 +185,6 @@ function DocumentContent({ content, legalName, effectiveDate, documentCode }: { 
       <div className="agreement-reader" dangerouslySetInnerHTML={{ __html: agreementHtml }} />
     </div>
   );
-}
-
-function buildAcceptedCopyHtml(params: {
-  document: DocumentDefinition;
-  acceptance: any;
-  applicationStatus: any;
-}) {
-  const { document, acceptance, applicationStatus } = params;
-  const acceptedAt = acceptance?.acceptedAt || acceptance?.accepted_at || null;
-  const acceptedName = normalizeValue(
-    acceptance?.typedFullName ||
-    acceptance?.typed_full_name ||
-    applicationStatus?.fullName ||
-    applicationStatus?.full_name
-  ) || "Not available";
-  const acceptedClauses = acceptance?.acceptedClausesJson || acceptance?.accepted_clauses_json || [];
-  const acceptedClauseRows = (document.mandatoryClauses || [])
-    .filter((clause) => acceptedClauses.includes(clause.key))
-    .map((clause) => `<li>${escapeHtml(clause.label)}</li>`)
-    .join("");
-  const hydratedContent = hydrateTdDocumentContent(
-    acceptance?.documentSnapshot || acceptance?.document_snapshot || document.content,
-    buildTdFieldValues(applicationStatus, acceptedName)
-  );
-
-  const bodyHtml = renderToStaticMarkup(
-    <div className="accepted-copy-body">
-      <DocumentContent
-        content={hydratedContent}
-        legalName={acceptedName}
-        effectiveDate={buildTdFieldValues(applicationStatus, acceptedName).effectiveDate}
-        documentCode={document.code}
-      />
-    </div>
-  );
-
-  return `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>${escapeHtml(document.code)} Accepted Copy</title>
-  <style>
-    @page { size: A4; margin: 18mm 16mm; }
-    body { margin: 0; background: #efe7dc; color: #1f2933; font-family: Georgia, "Times New Roman", serif; }
-    .page { width: 210mm; min-height: 297mm; margin: 0 auto; background: #fffdf8; padding: 18mm 16mm; box-sizing: border-box; }
-    .eyebrow { font: 600 11px/1.4 Arial, sans-serif; letter-spacing: 0.18em; text-transform: uppercase; color: #8b2c1f; }
-    h1 { margin: 10px 0 6px; font-size: 28px; line-height: 1.15; }
-    .subhead { margin: 0; font: 500 13px/1.6 Arial, sans-serif; color: #52606d; }
-    .summary { margin-top: 18px; padding: 14px 16px; border: 1px solid #d8cfc2; background: #f8f2e8; }
-    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; margin-top: 10px; }
-    .summary-label { font: 600 11px/1.4 Arial, sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: #7b8794; }
-    .summary-value { margin-top: 3px; font: 400 14px/1.5 Arial, sans-serif; color: #102a43; }
-    .section { margin-top: 22px; }
-    .section-title { margin: 0 0 10px; padding-bottom: 6px; border-bottom: 1px solid #d8cfc2; font: 700 14px/1.4 Arial, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: #7b341e; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 9px 10px; border: 1px solid #ddd3c5; vertical-align: top; }
-    th { width: 34%; background: #f6efe4; text-align: left; font: 600 12px/1.5 Arial, sans-serif; color: #243b53; }
-    td { font: 400 13px/1.6 Arial, sans-serif; }
-    .clauses { margin: 0; padding-left: 18px; font: 400 13px/1.7 Arial, sans-serif; }
-    .accepted-copy-body h2 { margin: 18px 0 8px; font: 700 14px/1.4 Arial, sans-serif; color: #7b341e; }
-    .accepted-copy-body p { margin: 0 0 10px; font: 400 13px/1.7 Arial, sans-serif; color: #243b53; }
-    .accepted-copy-body ul { margin: 0 0 10px 18px; padding: 0; }
-    .accepted-copy-body li { margin-bottom: 5px; font: 400 13px/1.6 Arial, sans-serif; color: #243b53; }
-    .footer { margin-top: 30px; padding-top: 10px; border-top: 1px solid #ddd3c5; font: 400 11px/1.5 Arial, sans-serif; color: #7b8794; }
-  </style>
-</head>
-<body>
-  <main class="page">
-    <div class="eyebrow">Territorial Tutoring Accepted Agreement Copy</div>
-    <h1>${escapeHtml(document.title)}</h1>
-    <p class="subhead">${escapeHtml(document.code)} | Version ${escapeHtml(normalizeValue(document.version) || "1")} | Accepted in-app against the TD account</p>
-
-    <section class="summary">
-      <div class="summary-label">Acceptance record</div>
-      <div class="summary-grid">
-        <div><div class="summary-label">Accepted by</div><div class="summary-value">${escapeHtml(acceptedName)}</div></div>
-        <div><div class="summary-label">Accepted at</div><div class="summary-value">${escapeHtml(formatAcceptedAt(acceptedAt))}</div></div>
-        <div><div class="summary-label">Email</div><div class="summary-value">${escapeHtml(normalizeValue(applicationStatus?.email) || "Not available")}</div></div>
-        <div><div class="summary-label">Phone</div><div class="summary-value">${escapeHtml(normalizeValue(applicationStatus?.phone) || "Not available")}</div></div>
-      </div>
-    </section>
-
-    ${acceptedClauseRows ? `<section class="section"><h2 class="section-title">Acknowledged Clauses</h2><ul class="clauses">${acceptedClauseRows}</ul></section>` : ""}
-
-    <section class="section">
-      <h2 class="section-title">Accepted Agreement Text</h2>
-      ${bodyHtml}
-    </section>
-
-    <div class="footer">
-      This accepted copy was generated from TT's stored TD onboarding acceptance record. It reflects the versioned in-app agreement text and acceptance evidence held at the time of assent.
-    </div>
-  </main>
-</body>
-</html>`;
 }
 
 export function TdSequentialAgreementAcceptance({ applicationId, applicationStatus }: Props) {
@@ -542,18 +430,6 @@ export function TdSequentialAgreementAcceptance({ applicationId, applicationStat
     },
   });
 
-  const downloadAcceptedCopyFor = (document: DocumentDefinition, acceptance: any) => {
-    if (!document || !acceptance) return;
-    const html = buildAcceptedCopyHtml({ document, acceptance, applicationStatus });
-    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = window.document.createElement("a");
-    link.href = url;
-    link.download = `${document.code}-accepted-copy.html`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
   if (allApproved) {
     return (
       <Card className="border-0 shadow-lg">
@@ -566,37 +442,6 @@ export function TdSequentialAgreementAcceptance({ applicationId, applicationStat
             <p className="mt-2 text-sm text-muted-foreground">Every TD agreement and identification requirement has been completed and recorded.</p>
           </div>
 
-          {data?.documents?.length ? (
-            <div className="rounded-2xl border p-4">
-              <div className="mb-4">
-                <p className="font-medium">Accepted documents</p>
-                <p className="text-sm text-muted-foreground">Download a clean accepted copy for any agreement you have completed.</p>
-              </div>
-              <div className="space-y-3">
-                {data.documents
-                  .filter((document) => acceptanceMap[String(document.step)])
-                  .map((document) => {
-                    const acceptance = acceptanceMap[String(document.step)];
-                    const acceptedAt = acceptance?.acceptedAt || acceptance?.accepted_at;
-                    return (
-                      <div key={document.step} className="flex flex-col gap-3 rounded-xl border p-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="min-w-0">
-                          <p className="font-medium">{document.title}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {document.code} • Version {normalizeValue(acceptance?.documentVersion || acceptance?.document_version || document.version)}
-                          </p>
-                          {acceptedAt ? <p className="text-xs text-muted-foreground">Accepted {new Date(acceptedAt).toLocaleString()}</p> : null}
-                        </div>
-                        <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => downloadAcceptedCopyFor(document, acceptance)}>
-                          <Download className="mr-2 h-4 w-4 shrink-0" />
-                          Download accepted copy
-                        </Button>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-          ) : null}
         </CardContent>
       </Card>
     );
@@ -895,55 +740,12 @@ export function TdSequentialAgreementAcceptance({ applicationId, applicationStat
                         <Expand className="mr-2 h-4 w-4" />
                         Review again
                       </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full whitespace-normal text-left sm:w-auto sm:whitespace-nowrap sm:text-center"
-                        disabled={!acceptanceAlreadyRecorded}
-                        onClick={() => currentAcceptance && downloadAcceptedCopyFor(currentDocument, currentAcceptance)}
-                      >
-                        <Download className="mr-2 h-4 w-4 shrink-0" />
-                        Download accepted copy
-                      </Button>
                     </div>
                   </div>
                 </div>
               </div>
             )}
 
-            {data?.documents?.some((document) => acceptanceMap[String(document.step)]) ? (
-              <div className="rounded-2xl border p-4">
-                <div className="mb-4">
-                  <p className="font-medium">Accepted documents</p>
-                  <p className="text-sm text-muted-foreground">Download a clean accepted copy for any agreement you have already completed.</p>
-                </div>
-                <div className="space-y-3">
-                  {data.documents
-                    .filter((document) => acceptanceMap[String(document.step)])
-                    .map((document) => {
-                      const acceptance = acceptanceMap[String(document.step)];
-                      const acceptedAt = acceptance?.acceptedAt || acceptance?.accepted_at;
-                      return (
-                        <div key={document.step} className="flex flex-col gap-3 rounded-xl border p-3 sm:flex-row sm:items-center sm:justify-between">
-                          <div className="min-w-0">
-                            <p className="font-medium">{document.title}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {document.code} • Version {normalizeValue(acceptance?.documentVersion || acceptance?.document_version || document.version)}
-                            </p>
-                            {acceptedAt ? <p className="text-xs text-muted-foreground">Accepted {new Date(acceptedAt).toLocaleString()}</p> : null}
-                          </div>
-                          <div className="w-full sm:w-auto">
-                            <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => downloadAcceptedCopyFor(document, acceptance)}>
-                              <Download className="mr-2 h-4 w-4 shrink-0" />
-                              Download accepted copy
-                            </Button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-              </div>
-            ) : null}
           </CardContent>
         </Card>
       </div>
