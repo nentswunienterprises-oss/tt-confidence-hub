@@ -7594,12 +7594,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ message: "Failed to confirm training session" });
         }
 
-        const meetSync = await syncMeetForScheduledSession(updatedSession, { studentName: normalizedStudent.name });
+        const operationalMode = await getTutorOperationalMode(tutorId);
+        const meetSync =
+          operationalMode === "training"
+            ? null
+            : await syncMeetForScheduledSession(updatedSession, { studentName: normalizedStudent.name });
 
         res.json({
           success: true,
           session: updatedSession,
-          googleMeetConfigured: isGoogleMeetIntegrationAvailable(),
+          googleMeetConfigured: operationalMode === "training" ? false : isGoogleMeetIntegrationAvailable(),
           ...getMeetSyncResponsePayload(meetSync),
         });
       } catch (error) {
@@ -8523,15 +8527,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       const assignedStudent = updatedSession.student_id ? await storage.getStudent(updatedSession.student_id) : null;
-      const meetSync = await syncMeetForScheduledSession(updatedSession, {
-        studentName: assignedStudent?.name || null,
-      });
+      const meetSync =
+        operationalMode === "training"
+          ? null
+          : await syncMeetForScheduledSession(updatedSession, {
+              studentName: assignedStudent?.name || null,
+            });
 
       return res.json({
         success: true,
         status: "confirmed",
         session: updatedSession,
-        googleMeetConfigured: isGoogleMeetIntegrationAvailable(),
+        googleMeetConfigured: operationalMode === "training" ? false : isGoogleMeetIntegrationAvailable(),
         ...getMeetSyncResponsePayload(meetSync),
       });
     } catch (error) {

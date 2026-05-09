@@ -317,6 +317,7 @@ export default function ParentSessions() {
   const actionableSessions = sessions.filter(
     (session) => !["completed", "cancelled", "flagged"].includes(String(session.status || "")),
   );
+  const canScheduleNewWeek = schedulingEnabled && actionableSessions.length === 0;
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -334,7 +335,7 @@ export default function ParentSessions() {
       ) : null}
 
       <div className="grid gap-4 sm:gap-6">
-        {schedulingEnabled ? (
+        {canScheduleNewWeek ? (
           <div className="rounded-lg border border-border bg-card p-4 sm:p-6 space-y-4">
             <div>
               <h2 className="text-base sm:text-xl font-semibold">Schedule This Week</h2>
@@ -404,6 +405,15 @@ export default function ParentSessions() {
               {isSubmitting ? "Scheduling..." : "Schedule Week"}
             </Button>
           </div>
+        ) : schedulingEnabled ? (
+          <div className="rounded-lg border border-border bg-card p-4 sm:p-6 space-y-3">
+            <div>
+              <h2 className="text-base sm:text-xl font-semibold">Schedule This Week</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Weekly scheduling is already in progress for this student. Confirm or adjust the current lesson times below before proposing a new week.
+              </p>
+            </div>
+          </div>
         ) : null}
 
         <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
@@ -430,7 +440,9 @@ export default function ParentSessions() {
 
                   {session.status === "pending_tutor_confirmation" ? (
                     <p className="text-sm text-blue-700">
-                      Waiting for tutor confirmation. Meet link will only appear after both parties confirm this date.
+                      {trainingModeScheduling
+                        ? "Waiting for tutor confirmation. Training stays locked until both parties confirm this date."
+                        : "Waiting for tutor confirmation. Meet link will only appear after both parties confirm this date."}
                     </p>
                   ) : null}
 
@@ -484,7 +496,11 @@ export default function ParentSessions() {
                   {["confirmed", "ready", "live"].includes(String(session.status || "")) ? (
                     <div className="space-y-1">
                       <p className="text-sm text-green-700">Session confirmed.</p>
-                      {session.google_meet_url ? (
+                      {trainingModeScheduling ? (
+                        <p className="text-sm text-muted-foreground">
+                          Training mode runs this lesson inside TT without depending on Google Meet.
+                        </p>
+                      ) : session.google_meet_url ? (
                         <a
                           href={session.google_meet_url}
                           target="_blank"
