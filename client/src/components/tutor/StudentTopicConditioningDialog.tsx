@@ -929,6 +929,7 @@ export default function StudentTopicConditioningDialog({
   const [activateError, setActivateError] = useState("");
   const [sessionTopicsModalOpen, setSessionTopicsModalOpen] = useState(false);
   const [selectedSessionTopics, setSelectedSessionTopics] = useState<Set<string>>(new Set());
+  const [sessionPrepChecks, setSessionPrepChecks] = useState<Record<string, boolean>>({});
   const [trainingSessionMeetMessage, setTrainingSessionMeetMessage] = useState<string | null>(null);
   const [editingTrainingSessionId, setEditingTrainingSessionId] = useState<string | null>(null);
   const [adjustedTrainingSessionTime, setAdjustedTrainingSessionTime] = useState("");
@@ -1343,6 +1344,9 @@ export default function StudentTopicConditioningDialog({
     selectedSessionUnknownTopics.length === 1 && selectedSessionPrepPlans.length === 1
       ? "Start Diagnosis"
       : "Start Session";
+  const sessionPrepChecklistComplete =
+    selectedSessionPrepPlans.length > 0 &&
+    selectedSessionPrepPlans.every((entry) => !!sessionPrepChecks[`session-prep-${entry.topic}`]);
   const actionableTrainingSessions = (trainingSessionsData?.sessions || []).filter(
     (session: any) => !["completed", "cancelled", "flagged"].includes(String(session.status || "")),
   );
@@ -2011,6 +2015,7 @@ export default function StudentTopicConditioningDialog({
                                       );
                                       return;
                                     }
+                                    setSessionPrepChecks({});
                                     setSessionTopicsModalOpen(true);
                                   }}
                                   disabled={!assignmentAccepted}
@@ -2568,7 +2573,7 @@ export default function StudentTopicConditioningDialog({
                   <div className="rounded-md border border-primary/20 bg-primary/5 p-3 space-y-3">
                     <p className="text-sm font-medium">Prep Rules For Selected Topics</p>
                     <p className="text-xs text-muted-foreground">
-                      Review the exact drill load before you enter the lesson. Each selected topic still needs its own problem prep.
+                      Review the exact drill load before you enter the lesson. Each selected topic still needs its own problem prep and explicit tutor confirmation before launch.
                     </p>
                     <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
                       {selectedSessionPrepPlans.map(({ topic, phase, stability, hasObservedState, prepPlan }) => (
@@ -2598,6 +2603,22 @@ export default function StudentTopicConditioningDialog({
                               ))}
                             </ul>
                           </div>
+                          <label className="flex items-start gap-2 rounded-md border border-primary/15 bg-primary/5 px-3 py-2 text-xs text-foreground">
+                            <input
+                              type="checkbox"
+                              checked={!!sessionPrepChecks[`session-prep-${topic}`]}
+                              onChange={(e) =>
+                                setSessionPrepChecks((current) => ({
+                                  ...current,
+                                  [`session-prep-${topic}`]: e.target.checked,
+                                }))
+                              }
+                              className="mt-0.5 rounded border-gray-300"
+                            />
+                            <span>
+                              I prepared the full drill set for <span className="font-medium">{topic}</span> and I am ready to run this weekly training lesson without improvising.
+                            </span>
+                          </label>
                         </div>
                       ))}
                     </div>
@@ -2618,7 +2639,7 @@ export default function StudentTopicConditioningDialog({
                   <Button
                     className="w-full sm:w-auto"
                     onClick={handleStartTrainingSession}
-                    disabled={selectedSessionTopics.size === 0}
+                    disabled={selectedSessionTopics.size === 0 || !sessionPrepChecklistComplete}
                   >
                     {selectedSessionStartLabel} ({selectedSessionTopics.size} topics)
                   </Button>
