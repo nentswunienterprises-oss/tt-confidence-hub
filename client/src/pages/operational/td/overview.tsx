@@ -825,7 +825,7 @@ export default function TDOverview() {
                                                 </div>
                                               ) : null}
                                               {tutorAudit?.moduleProgress?.length ? (
-                                                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                                                <div className="mt-3 grid gap-2 lg:grid-cols-2">
                                                   {tutorAudit.moduleProgress.map((module) => (
                                                     <div
                                                       key={`${tutor.assignment.id}-${module.moduleKey}`}
