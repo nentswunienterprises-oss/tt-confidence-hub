@@ -7525,11 +7525,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { studentId, sessionId } = req.params;
         const tutorId = (req as any).dbUser.id;
         const student = await storage.getStudent(studentId);
-        if (!student || student.tutorId !== tutorId) {
+        const normalizedStudent = normalizeStudentRecord(student);
+        let tutorOwnsStudent = !!normalizedStudent && String(normalizedStudent.tutorId || "") === String(tutorId);
+
+        if (!tutorOwnsStudent) {
+          const parentEnrollmentId = String(
+            (normalizedStudent as any)?.parentEnrollmentId || (normalizedStudent as any)?.parent_enrollment_id || ""
+          ).trim();
+
+          if (parentEnrollmentId) {
+            const { data: linkedEnrollment } = await supabase
+              .from("parent_enrollments")
+              .select("id, assigned_tutor_id, user_id, student_full_name, student_grade, parent_email, is_sandbox_account, current_step")
+              .eq("id", parentEnrollmentId)
+              .maybeSingle();
+
+            tutorOwnsStudent = String(linkedEnrollment?.assigned_tutor_id || "") === String(tutorId);
+
+            if (tutorOwnsStudent && linkedEnrollment) {
+              try {
+                await ensureStudentForEnrollment(linkedEnrollment, tutorId);
+              } catch (error) {
+                console.error("Failed to backfill canonical tutor link for training session confirm:", error);
+              }
+            }
+          }
+        }
+
+        if (!normalizedStudent || !tutorOwnsStudent) {
           return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
         }
 
-        const premiumAccess = await ensurePremiumAccessForStudent(student);
+        const premiumAccess = await ensurePremiumAccessForStudent(normalizedStudent);
         if (!premiumAccess.allowed) {
           return res.status(premiumAccess.status).json({ message: premiumAccess.message });
         }
@@ -7567,7 +7594,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ message: "Failed to confirm training session" });
         }
 
-        const meetSync = await syncMeetForScheduledSession(updatedSession, { studentName: student.name });
+        const meetSync = await syncMeetForScheduledSession(updatedSession, { studentName: normalizedStudent.name });
 
         res.json({
           success: true,
@@ -7596,11 +7623,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
         const timezone = String(req.body?.timezone || "Africa/Johannesburg");
         const student = await storage.getStudent(studentId);
-        if (!student || student.tutorId !== tutorId) {
+        const normalizedStudent = normalizeStudentRecord(student);
+        let tutorOwnsStudent = !!normalizedStudent && String(normalizedStudent.tutorId || "") === String(tutorId);
+
+        if (!tutorOwnsStudent) {
+          const parentEnrollmentId = String(
+            (normalizedStudent as any)?.parentEnrollmentId || (normalizedStudent as any)?.parent_enrollment_id || ""
+          ).trim();
+
+          if (parentEnrollmentId) {
+            const { data: linkedEnrollment } = await supabase
+              .from("parent_enrollments")
+              .select("id, assigned_tutor_id, user_id, student_full_name, student_grade, parent_email, is_sandbox_account, current_step")
+              .eq("id", parentEnrollmentId)
+              .maybeSingle();
+
+            tutorOwnsStudent = String(linkedEnrollment?.assigned_tutor_id || "") === String(tutorId);
+
+            if (tutorOwnsStudent && linkedEnrollment) {
+              try {
+                await ensureStudentForEnrollment(linkedEnrollment, tutorId);
+              } catch (error) {
+                console.error("Failed to backfill canonical tutor link for training session response:", error);
+              }
+            }
+          }
+        }
+
+        if (!normalizedStudent || !tutorOwnsStudent) {
           return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
         }
 
-        const premiumAccess = await ensurePremiumAccessForStudent(student);
+        const premiumAccess = await ensurePremiumAccessForStudent(normalizedStudent);
         if (!premiumAccess.allowed) {
           return res.status(premiumAccess.status).json({ message: premiumAccess.message });
         }
