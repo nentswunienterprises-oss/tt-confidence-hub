@@ -1,182 +1,151 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { resolveTrackedBackTarget } from "@/lib/publicTracking";
-import { ArrowLeft } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { LegalDocumentPage } from "@/components/legal/LegalDocumentPage";
 
 export default function PrivacyPolicy() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const backTarget = resolveTrackedBackTarget(location.search);
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(backTarget)}
-          className="mb-6"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-3xl font-bold text-center">Privacy Policy</CardTitle>
-            <CardDescription className="text-center">
-              Territorial Tutoring SA (Pty) Ltd
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="prose prose-slate max-w-none">
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">1.1 Introduction</h2>
-              <p>
-                Territorial Tutoring SA (Pty) Ltd ("Territorial Tutoring", "TT", "we", "us", "our") is committed to protecting the privacy, dignity, and personal information of our students, parents, tutors, and partners. We operate in accordance with the Protection of Personal Information Act 4 of 2013 (POPIA) and all applicable South African data protection laws.
-              </p>
-              <p>
-                This Privacy Policy explains how we collect, use, store, share, and protect personal information when you use our website, web application, and services.
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">1.2 Who We Are</h2>
-              <ul className="list-disc pl-6">
-                <li><strong>Legal Entity:</strong> Territorial Tutoring SA (Pty) Ltd</li>
-                <li><strong>Jurisdiction:</strong> Republic of South Africa</li>
-                <li><strong>Contact:</strong> support@territorialtutoring.co.za</li>
-              </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">1.3 What Personal Information We Collect</h2>
-              
-              <h3 className="text-xl font-semibold mt-6 mb-3">Students</h3>
-              <ul className="list-disc pl-6">
-                <li>Full name, age, grade, school</li>
-                <li>Academic performance data and assessment results</li>
-                <li>Session notes, learning behaviour, progress tracking</li>
-                <li>Session recordings (audio/video)</li>
-              </ul>
-
-              <h3 className="text-xl font-semibold mt-6 mb-3">Parents / Guardians</h3>
-              <ul className="list-disc pl-6">
-                <li>Full name, email address, phone number</li>
-                <li>Billing and payment details (processed via Payfast)</li>
-                <li>Communication history and consent records</li>
-              </ul>
-
-              <h3 className="text-xl font-semibold mt-6 mb-3">Tutors & Staff</h3>
-              <ul className="list-disc pl-6">
-                <li>Identification and background information</li>
-                <li>CVs, training performance, certifications</li>
-                <li>Banking details and payment records</li>
-                <li>Employment and contract documentation</li>
-              </ul>
-
-              <h3 className="text-xl font-semibold mt-6 mb-3">Technical Information</h3>
-              <ul className="list-disc pl-6">
-                <li>IP address, device type, browser type</li>
-                <li>Usage data within our web application</li>
-              </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">1.4 Why We Collect Personal Information</h2>
-              <p>We collect personal information to:</p>
-              <ul className="list-disc pl-6">
-                <li>Deliver tutoring and mentorship services</li>
-                <li>Track and improve student learning outcomes</li>
-                <li>Process payments and manage subscriptions</li>
-                <li>Train, manage, and quality‑assure tutors</li>
-                <li>Communicate with parents and students</li>
-                <li>Comply with legal and regulatory obligations</li>
-              </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">1.5 How We Store and Protect Information</h2>
-              <ul className="list-disc pl-6">
-                <li>Secure cloud infrastructure and encrypted databases</li>
-                <li>Role‑based access control (only authorised staff may access data)</li>
-                <li>Secure authentication and logging systems</li>
-                <li>Payfast for PCI‑compliant payment processing</li>
-                <li>Google Meet for secure tutoring sessions and recordings</li>
-              </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">1.6 Sharing of Information</h2>
-              <p>We only share personal information with:</p>
-              <ul className="list-disc pl-6">
-                <li>Tutors assigned to the student (limited to what is necessary)</li>
-                <li>Payfast (payment processing)</li>
-                <li>Technology service providers supporting our platform</li>
-                <li>Regulators or authorities when legally required</li>
-              </ul>
-              <p className="mt-4">
-                <strong>We never sell personal information or use it for advertising.</strong>
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">1.7 Children's Information</h2>
-              <p>
-                We process children's personal information only with parental or guardian consent. We apply heightened protection measures and do not profile, sell, or commercially exploit children's data.
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">1.8 Your Rights Under POPIA</h2>
-              <p>You have the right to:</p>
-              <ul className="list-disc pl-6">
-                <li>Access your personal information</li>
-                <li>Correct or update your information</li>
-                <li>Request deletion</li>
-                <li>Withdraw consent</li>
-                <li>Lodge a complaint with the Information Regulator</li>
-              </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">1.9 Data Retention</h2>
-              <p>
-                We retain personal information only for as long as necessary to fulfil our services and legal obligations. Thereafter, information is securely deleted or anonymised.
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">1.10 Data Breaches</h2>
-              <p>In the event of a data breach, we will:</p>
-              <ul className="list-disc pl-6">
-                <li>Investigate immediately</li>
-                <li>Notify affected parties and the Information Regulator within 72 hours</li>
-                <li>Implement remediation measures</li>
-              </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">1.11 International Data Transfers</h2>
-              <p>
-                Some service providers may store data outside South Africa. We ensure equivalent data protection safeguards are in place.
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">1.12 Changes to This Policy</h2>
-              <p>
-                We may update this policy from time to time. The latest version will always be available on our website.
-              </p>
-            </section>
-
-            <div className="mt-12 p-6 bg-slate-100 rounded-lg">
-              <p className="text-sm text-slate-600 text-center">
-                Last updated: July 17, 2025
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    <LegalDocumentPage
+      title="Privacy Policy"
+      subtitle="Territorial Tutoring SA (Pty) Ltd | Version 1.1 | Effective May 9, 2026"
+      intro={
+        <>
+          <p>
+            Territorial Tutoring SA (Pty) Ltd ("Territorial Tutoring", "TT", "we", "us", "our")
+            processes personal information in accordance with the Protection of Personal Information
+            Act 4 of 2013 (POPIA) and other applicable South African law.
+          </p>
+          <p>
+            This policy explains how we collect, use, store, share, retain, and protect personal
+            information across our website, web application, onboarding flows, scheduling systems,
+            recording systems, notifications, and related operational services.
+          </p>
+        </>
+      }
+      sections={[
+        {
+          title: "1. Who This Policy Covers",
+          paragraphs: [
+            "This policy applies to parents, guardians, learners, students, tutors, Territory Directors, Education Growth Partners, outreach directors, executives, applicants, contractors, and other users of TT public or operational systems.",
+          ],
+          bullets: [
+            "Legal entity: Territorial Tutoring SA (Pty) Ltd",
+            "Jurisdiction: Republic of South Africa",
+            "Contact: support@territorialtutoring.co.za",
+          ],
+        },
+        {
+          title: "2. Information We Collect",
+          paragraphs: [
+            "The exact information we collect depends on your role and how you use TT.",
+          ],
+          bullets: [
+            "Identity and account data such as names, email addresses, phone numbers, role, login details, and account status.",
+            "Learner and family data such as learner name, age, grade, school, enrollment details, parent contact data, and consent records.",
+            "Session and academic data such as diagnoses, drill logs, reports, progression states, phase and stability records, observations, scheduling activity, and session outcomes.",
+            "Recording and compliance data such as session recordings, audio, video, submitted recording files, associated timestamps, and related compliance artifacts, which may include transcript-related records where available.",
+            "Payment and billing data such as payment status, transaction references, plan status, and subscription-related records. Card processing is handled through payment processors such as Payfast; TT does not store full card details.",
+            "Operational workforce data such as ID documents, contractor records, onboarding acceptances, certifications, audit history, banking details for payout administration, and performance-linked operational records.",
+            "Affiliate and acquisition data such as referral codes, tracked links, encounter records, lead and close tracking, payment attribution, and campaign or source information.",
+            "Technical and device data such as IP address, device and browser information, access logs, session identifiers, notification subscription data, and usage records inside the platform.",
+          ],
+        },
+        {
+          title: "3. How We Collect Information",
+          bullets: [
+            "Directly from you when you sign up, apply, enroll, upload documents, book sessions, make payments, or contact TT.",
+            "Automatically through platform use, authentication flows, scheduling systems, logs, notifications, and browser or device interactions.",
+            "From TT operational users such as tutors, TDs, EGPs, or executives when they record lawful platform observations or workflow actions.",
+            "From service providers and processors used to operate TT, including payment, storage, scheduling, authentication, and communication providers.",
+          ],
+        },
+        {
+          title: "4. Why We Use Information",
+          bullets: [
+            "To create and manage accounts, onboarding flows, and access permissions.",
+            "To deliver TT response-conditioning services, scheduling workflows, learner progression, and reporting.",
+            "To process payments, confirm account status, manage early-access eligibility, and administer contractor or affiliate-related payment records.",
+            "To safeguard learners, investigate incidents, review disputes, and maintain system integrity.",
+            "To monitor compliance, quality, audit accuracy, and role performance across TT operations.",
+            "To operate communications such as service emails, account notices, and browser push notifications where enabled.",
+            "To measure acquisition, referral, and attribution performance.",
+            "To comply with legal, regulatory, tax, safeguarding, fraud-prevention, and record-keeping duties.",
+          ],
+        },
+        {
+          title: "5. Recordings and Monitoring",
+          paragraphs: [
+            "TT is a recorded, data-driven operating system. Sessions and related operational workflows may generate recordings, logs, metadata, submitted files, and related compliance records.",
+            "We use these records for service delivery, safeguarding, quality control, audit review, operational continuity, dispute handling, performance verification, fraud prevention, and lawful system improvement.",
+          ],
+        },
+        {
+          title: "6. How We Share Information",
+          paragraphs: [
+            "We do not sell personal information and we do not use children's data for advertising.",
+          ],
+          bullets: [
+            "Assigned tutors, TDs, or relevant TT operators where access is necessary to deliver or supervise the service.",
+            "Payment processors such as Payfast for transaction handling.",
+            "Technology providers supporting authentication, storage, scheduling, recordings, notifications, and platform infrastructure.",
+            "Professional advisers, regulators, law enforcement, courts, or authorities where disclosure is required or lawfully permitted.",
+            "Operational decision-makers inside TT where needed for safeguarding, audits, compliance, disputes, or system protection.",
+          ],
+        },
+        {
+          title: "7. Children's Information",
+          paragraphs: [
+            "We process children's personal information only where lawful grounds exist, including parental or guardian involvement where required.",
+            "Learner data is handled with heightened care. TT does not knowingly sell, advertise with, or commercially exploit children's personal information.",
+          ],
+        },
+        {
+          title: "8. Storage and Security",
+          bullets: [
+            "We use role-based access controls and limit access according to operational need.",
+            "We use cloud infrastructure, authentication controls, logging systems, and provider-level security measures appropriate to the services we operate.",
+            "No internet-connected system is absolutely risk-free, but TT applies reasonable technical and organizational safeguards for the data it controls.",
+          ],
+        },
+        {
+          title: "9. International and Third-Party Processing",
+          paragraphs: [
+            "Some TT service providers may process or store information outside South Africa. Where this happens, TT uses providers and arrangements intended to provide appropriate protection for the information involved.",
+          ],
+        },
+        {
+          title: "10. Retention",
+          paragraphs: [
+            "We keep personal information only for as long as necessary for the purposes for which it was collected, unless longer retention is required or justified by law or legitimate operational need.",
+            "Some records cannot be deleted immediately on request because TT may need to retain them for safeguarding, child-protection duties, payment and tax compliance, fraud prevention, disputes, legal claims, audits, contractor administration, session integrity review, or other lawful record-keeping obligations.",
+          ],
+        },
+        {
+          title: "11. Your POPIA Rights",
+          bullets: [
+            "Request access to personal information held about you.",
+            "Request correction or updating of inaccurate information.",
+            "Request deletion where deletion is lawful and does not conflict with TT's retention duties.",
+            "Object to or limit certain processing where POPIA permits.",
+            "Withdraw consent where processing is consent-based, subject to legal and operational limits.",
+            "Lodge a complaint with the Information Regulator.",
+          ],
+        },
+        {
+          title: "12. Data Breaches",
+          paragraphs: [
+            "If TT becomes aware of a qualifying data breach, we will investigate, contain, and respond in line with our legal duties, including notification where required by law.",
+          ],
+        },
+        {
+          title: "13. Changes to This Policy",
+          paragraphs: [
+            "TT may update this Privacy Policy from time to time. The latest version will be posted in the platform or on the website, and continued use after an update means the updated policy applies.",
+          ],
+        },
+      ]}
+      footer={
+        <p className="text-sm text-slate-600 text-center">
+          Territorial Tutoring SA (Pty) Ltd | Privacy Policy | Version 1.1 | www.territorialtutoring.co.za
+        </p>
+      }
+    />
   );
 }
