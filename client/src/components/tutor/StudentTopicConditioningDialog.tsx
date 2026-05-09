@@ -1361,10 +1361,10 @@ export default function StudentTopicConditioningDialog({
     )[0] || null;
   const pendingTutorConfirmationSessions = actionableTrainingSessions.filter((session: any) => session.status === "pending_tutor_confirmation");
   const pendingTrainingConfirmationSession = actionableTrainingSessions.find((session: any) => session.status === "pending_parent_confirmation") || null;
-  const activeTrainingSession = pendingTrainingConfirmationSession
-    ? null
-    : isTrainingMode
-      ? confirmedTrainingSessions[0] || null
+  const activeTrainingSession = isTrainingMode
+    ? confirmedTrainingSessions[0] || null
+    : pendingTrainingConfirmationSession
+      ? null
       : actionableTrainingSessions.find((session: any) => session.launch?.canLaunch) || null;
   const nextTrainingSession = actionableTrainingSessions.find(
     (session: any) =>
