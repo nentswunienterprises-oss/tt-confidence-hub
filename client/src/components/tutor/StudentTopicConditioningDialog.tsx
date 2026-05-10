@@ -2124,21 +2124,11 @@ export default function StudentTopicConditioningDialog({
                   )}
                   {latestCompletedTrainingSession ? (
                     <div className="rounded-md border border-border/70 bg-background p-3 text-sm space-y-2">
-                      <div className="flex items-center justify-between gap-3">
+                      <div>
                         <div>
                           <p className="font-medium text-foreground">Latest Completed Lesson</p>
                           <p className="text-muted-foreground">{formatLessonTime(latestCompletedTrainingSession.scheduled_time)}</p>
                         </div>
-                        {latestCompletedTrainingSession.recording_file_id ? (
-                          <a
-                            href={latestCompletedTrainingSession.recording_file_id}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex text-primary underline underline-offset-2"
-                          >
-                            Open Recording
-                          </a>
-                        ) : null}
                       </div>
                     </div>
                   ) : null}
@@ -2369,21 +2359,11 @@ export default function StudentTopicConditioningDialog({
                   )}
                   {latestCompletedTrainingSession ? (
                     <div className="rounded-md border border-border/70 bg-background p-3 text-sm space-y-2">
-                      <div className="flex items-center justify-between gap-3">
+                      <div>
                         <div>
                           <p className="font-medium text-foreground">Latest Completed Lesson</p>
                           <p className="text-muted-foreground">{formatLessonTime(latestCompletedTrainingSession.scheduled_time)}</p>
                         </div>
-                        {latestCompletedTrainingSession.recording_file_id ? (
-                          <a
-                            href={latestCompletedTrainingSession.recording_file_id}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex text-primary underline underline-offset-2"
-                          >
-                            Open Recording
-                          </a>
-                        ) : null}
                       </div>
                     </div>
                   ) : null}
