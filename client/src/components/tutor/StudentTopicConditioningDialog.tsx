@@ -45,7 +45,7 @@ import {
 import { Progress } from "../ui/progress";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 import type { PhaseLabel, StabilityLabel, TopicTrend } from "./topicConditioningEngine";
-import { useConfirmTrainingSession, useRespondTrainingSession, useRetryScheduledSessionMeetSync, useSubmitScheduledSessionRecording, useTrainingSessions } from "@/hooks/useScheduledSession";
+import { useConfirmTrainingSession, useRespondTrainingSession, useRetryScheduledSessionMeetSync, useTrainingSessions } from "@/hooks/useScheduledSession";
 
 type TopicConditioningMap = {
   topic?: string | null;
@@ -53,7 +53,6 @@ type TopicConditioningMap = {
   stability?: string | null;
 };
 
-const MAX_MANUAL_RECORDING_FILE_BYTES = 30 * 1024 * 1024;
 type ObservationKind = "diagnosis" | "training" | "observation";
 
 type TopicRow = {
@@ -933,14 +932,10 @@ export default function StudentTopicConditioningDialog({
   const [trainingSessionMeetMessage, setTrainingSessionMeetMessage] = useState<string | null>(null);
   const [editingTrainingSessionId, setEditingTrainingSessionId] = useState<string | null>(null);
   const [adjustedTrainingSessionTime, setAdjustedTrainingSessionTime] = useState("");
-  const [manualRecordingUrl, setManualRecordingUrl] = useState("");
-  const [manualRecordingFile, setManualRecordingFile] = useState<File | null>(null);
-
   const { data: trainingSessionsData } = useTrainingSessions(studentId, !!workflow?.proposalAccepted);
   const confirmTrainingSession = useConfirmTrainingSession(studentId);
   const respondTrainingSession = useRespondTrainingSession(studentId);
   const retryMeetSync = useRetryScheduledSessionMeetSync(studentId);
-  const submitScheduledSessionRecording = useSubmitScheduledSessionRecording(studentId);
 
   // Add topic handler
   const handleActivateTopic = async () => {
@@ -1396,23 +1391,6 @@ export default function StudentTopicConditioningDialog({
           minute: "2-digit",
         }).format(new Date(value))
       : "-";
-  const formatArtifactStatus = (value?: string | null) => {
-    const normalized = String(value || "").trim();
-    if (!normalized) return "unknown";
-    if (normalized === "not_found_in_google") return "not found in Google";
-    if (normalized === "recording_required") return "upload pending";
-    if (normalized === "recording_uploaded") return "uploaded";
-    if (normalized === "manual_not_tracked") return "manual";
-    return normalized.replaceAll("_", " ");
-  };
-  const readFileAsDataUrl = (file: File) =>
-    new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result || ""));
-      reader.onerror = () => reject(new Error("Failed to read selected recording file."));
-      reader.readAsDataURL(file);
-    });
-
   const toggleTopicExpanded = (topic: string) => {
     setExpandedTopics((prev) => {
       const next = new Set(prev);
@@ -2162,13 +2140,6 @@ export default function StudentTopicConditioningDialog({
                           </a>
                         ) : null}
                       </div>
-                      <div className="grid gap-1 text-xs text-muted-foreground">
-                        <p>Recording: <span className="font-medium text-foreground">{latestCompletedTrainingSession.recording_file_id ? "uploaded" : formatArtifactStatus(latestCompletedTrainingSession.recording_status)}</span></p>
-                        <p>Transcript: <span className="font-medium text-foreground">manual not tracked</span></p>
-                        {latestCompletedTrainingSession.recording_detected_at ? (
-                          <p>Submitted: <span className="font-medium text-foreground">{formatLessonTime(latestCompletedTrainingSession.recording_detected_at)}</span></p>
-                        ) : null}
-                      </div>
                     </div>
                   ) : null}
                   <div className="rounded-md border border-dashed border-border/70 bg-muted/10 p-3 text-sm text-muted-foreground">
@@ -2414,82 +2385,6 @@ export default function StudentTopicConditioningDialog({
                           </a>
                         ) : null}
                       </div>
-                      <div className="grid gap-1 text-xs text-muted-foreground">
-                        <p>Recording: <span className="font-medium text-foreground">{latestCompletedTrainingSession.recording_file_id ? "uploaded" : formatArtifactStatus(latestCompletedTrainingSession.recording_status)}</span></p>
-                        <p>Transcript: <span className="font-medium text-foreground">manual not tracked</span></p>
-                        {latestCompletedTrainingSession.recording_detected_at ? (
-                          <p>Submitted: <span className="font-medium text-foreground">{formatLessonTime(latestCompletedTrainingSession.recording_detected_at)}</span></p>
-                        ) : null}
-                      </div>
-                      {!latestCompletedTrainingSession.recording_file_id ? (
-                        <div className="rounded-md border border-amber-200 bg-amber-50 p-3 space-y-2">
-                          <p className="text-xs text-amber-900">
-                            Manual recording required. Paste a share link or upload the recording file directly.
-                          </p>
-                          <Input
-                            placeholder="https://drive.google.com/... or other share link"
-                            value={manualRecordingUrl}
-                            onChange={(e) => setManualRecordingUrl(e.target.value)}
-                          />
-                          <div className="space-y-1">
-                            <Input
-                              type="file"
-                              accept="video/*,audio/*"
-                              onChange={(e) => setManualRecordingFile(e.target.files?.[0] || null)}
-                            />
-                            {manualRecordingFile ? (
-                              <p className="text-xs text-muted-foreground">
-                                Selected file: {manualRecordingFile.name}
-                              </p>
-                            ) : null}
-                          </div>
-                          <div className="flex justify-end">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={async () => {
-                                try {
-                                  const filePayload = manualRecordingFile
-                                    ? (() => {
-                                        if (!/^video\/|^audio\//.test(manualRecordingFile.type || "")) {
-                                          throw new Error("Recording upload must be an audio or video file.");
-                                        }
-                                        if (manualRecordingFile.size > MAX_MANUAL_RECORDING_FILE_BYTES) {
-                                          throw new Error("Recording upload must be 30 MB or smaller for now.");
-                                        }
-                                        return readFileAsDataUrl(manualRecordingFile);
-                                      })()
-                                    : null;
-                                  await submitScheduledSessionRecording.mutateAsync({
-                                    sessionId: latestCompletedTrainingSession.id,
-                                    recordingUrl: manualRecordingUrl.trim(),
-                                    fileData: filePayload,
-                                    fileName: manualRecordingFile?.name,
-                                    contentType: manualRecordingFile?.type,
-                                  });
-                                  setTrainingSessionMeetMessage(
-                                    manualRecordingFile
-                                      ? "Recording file uploaded to the lesson."
-                                      : "Recording link saved to the lesson."
-                                  );
-                                  setManualRecordingUrl("");
-                                  setManualRecordingFile(null);
-                                } catch (error) {
-                                  setTrainingSessionMeetMessage(
-                                    error instanceof Error ? error.message : "Failed to submit recording."
-                                  );
-                                }
-                              }}
-                              disabled={(!manualRecordingUrl.trim() && !manualRecordingFile) || submitScheduledSessionRecording.isPending}
-                            >
-                              {submitScheduledSessionRecording.isPending ? "Saving..." : "Submit Recording"}
-                            </Button>
-                          </div>
-                          <p className="text-[11px] text-muted-foreground">
-                            Uploads currently accept audio or video files up to 30 MB.
-                          </p>
-                        </div>
-                      ) : null}
                     </div>
                   ) : null}
                   <div className="rounded-md border border-dashed border-border/70 bg-muted/10 p-3 text-sm text-muted-foreground">
