@@ -112,9 +112,9 @@ function PortalLanding() {
             <p className="text-base sm:text-lg md:text-xl leading-relaxed" style={{ color: "#5A5A5A" }}>
               Most students don’t struggle because they're bad at math or not intelligent.
               <br />
-              They struggle because pressure disrupts their response.
+              They struggle because pressure disrupts the way they respond.
               <br /><br />
-              TT focuses on training how students respond when math gets hard... eliminating surprises through pattern and calm execution.
+              Our focus is on training how students respond when math gets hard... eliminating surprises through pattern and calm execution.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 sm:pt-4">
