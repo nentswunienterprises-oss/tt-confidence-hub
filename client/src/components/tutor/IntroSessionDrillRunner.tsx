@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { observationLevelFromOptionIndex } from "@shared/observationScoring";
+import { observationLevelFromOptionIndex, type ObservationLevel } from "@shared/observationScoring";
 import { tryParsePhase } from "@shared/topicConditioningEngine";
 import {
   computeAdaptiveDiagnosisPhaseSummary,
@@ -14,7 +14,12 @@ import { API_URL } from "@/lib/config";
 
 type PhaseLabel = "Clarity" | "Structured Execution" | "Controlled Discomfort" | "Time Pressure Stability";
 type DrillMode = "diagnosis" | "training" | "session" | "handover";
-type ObservationField = { key: string; label: string; options: string[] };
+type ObservationField = {
+  key: string;
+  label: string;
+  options: string[];
+  optionLevels?: Record<string, ObservationLevel>;
+};
 type DrillSetConfig = {
   setName: string;
   reps: number;
@@ -139,7 +144,7 @@ const DIAGNOSIS_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
           { key: "vocabulary", label: "Vocabulary in Context (Rep 2 - With Feedback)", options: ["incorrect", "partial", "correct"] },
           { key: "method", label: "Step Discipline (Rep 2)", options: ["random", "partial", "structured"] },
           { key: "reason", label: "Reason Application (Rep 2)", options: ["none", "weak", "present"] },
-          { key: "immediateApply", label: "Adjustment to Feedback (Rep 2)", options: ["cannot start", "delayed", "starts"] },
+          { key: "immediateApply", label: "Start After Feedback (Rep 2)", options: ["cannot start", "delayed", "starts"] },
         ],
         [
           { key: "vocabulary", label: "Vocabulary in Context (Rep 3 - Independence Check)", options: ["incorrect", "partial", "correct"] },
@@ -194,7 +199,17 @@ const DIAGNOSIS_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
         [
           { key: "repeatability", label: "Second Repeat - Pattern (Rep 2)", options: ["breaks each time", "inconsistent", "stable"] },
           { key: "stepExecution", label: "Step Retention (Rep 2)", options: ["forgets", "partial", "full"] },
-          { key: "independence", label: "Self-Correction (Rep 2)", options: ["guessing", "careless", "structured"] },
+          {
+            key: "independence",
+            label: "Self-Correction (Rep 2)",
+            options: ["guessing", "careless", "structured", "no correction needed"],
+            optionLevels: {
+              guessing: "weak",
+              careless: "partial",
+              structured: "clear",
+              "no correction needed": "clear",
+            },
+          },
           { key: "startBehavior", label: "Completion (Rep 2)", options: ["cannot finish", "partial", "complete"] },
         ],
         [
@@ -227,7 +242,7 @@ const DIAGNOSIS_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
           { key: "rescueDependence", label: "Rescue Pattern (Rep 2)", options: ["asks immediately", "asks later", "no rescue"] },
         ],
         [
-          { key: "initialResponse", label: "Recovery Behavior (Rep 3)", options: ["freeze", "hesitate", "attempt"] },
+          { key: "initialResponse", label: "Re-engagement After Struggle (Rep 3)", options: ["freeze", "hesitate", "attempt"] },
           { key: "firstStepControl", label: "Reentry After Struggle (Rep 3)", options: ["none", "prompted", "independent"] },
           { key: "discomfortTolerance", label: "Final Stability (Rep 3)", options: ["panic", "tension", "controlled"] },
           { key: "rescueDependence", label: "Final Rescue Check (Rep 3)", options: ["asks immediately", "asks later", "no rescue"] },
@@ -245,7 +260,17 @@ const DIAGNOSIS_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
           { key: "discomfortTolerance", label: "Sustained Engagement (Rep 1)", options: ["gives up", "short attempt", "stays engaged"] },
           { key: "rescueDependence", label: "Rescue Under Sustained Hold (Rep 1)", options: ["asks immediately", "asks later", "no rescue"] },
           { key: "firstStepControl", label: "Structure Retention (Rep 1)", options: ["breaks", "partial", "maintained"] },
-          { key: "initialResponse", label: "Recovery After Struggle (Rep 1)", options: ["collapses", "partial", "recovers"] },
+          {
+            key: "initialResponse",
+            label: "Recovery After Struggle (Rep 1)",
+            options: ["collapses", "partial", "recovers", "no recovery needed"],
+            optionLevels: {
+              collapses: "weak",
+              partial: "partial",
+              recovers: "clear",
+              "no recovery needed": "clear",
+            },
+          },
         ],
         [
           { key: "discomfortTolerance", label: "Tolerance Ceiling (Rep 2)", options: ["gives up", "short attempt", "stays engaged"] },
@@ -257,7 +282,17 @@ const DIAGNOSIS_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
           { key: "discomfortTolerance", label: "Final Hold - Stability (Rep 3)", options: ["gives up", "short attempt", "stays engaged"] },
           { key: "rescueDependence", label: "Final Rescue Check (Rep 3)", options: ["asks immediately", "asks later", "no rescue"] },
           { key: "firstStepControl", label: "Structure Under Max Pressure (Rep 3)", options: ["breaks", "partial", "maintained"] },
-          { key: "initialResponse", label: "Final Recovery (Rep 3)", options: ["collapses", "partial", "recovers"] },
+          {
+            key: "initialResponse",
+            label: "Final Recovery (Rep 3)",
+            options: ["collapses", "partial", "recovers", "no recovery needed"],
+            optionLevels: {
+              collapses: "weak",
+              partial: "partial",
+              recovers: "clear",
+              "no recovery needed": "clear",
+            },
+          },
         ],
       ],
     },
@@ -387,15 +422,25 @@ const TRAINING_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
   ],
   "Structured Execution": [
     {
-      setName: "Forced Structure",
+      setName: "Required Structure",
       reps: 3,
-      purpose: "Force structured execution. Student must state all steps first, then solve. Build discipline before independence.",
+      purpose: "Require structured execution. Student must state all steps first, then solve. Build discipline before independence.",
       repInstruction: "State steps first. Then solve.",
       activeRules: ["Steps must be stated before solving", "No skipping steps", "Correct step order required"],
       observationBlock: [
         { key: "startBehavior", label: "Start", options: ["delayed", "hesitant", "immediate"] },
         { key: "stepExecution", label: "Step Discipline", options: ["skips", "partial", "full"] },
-        { key: "repeatability", label: "Correction Response", options: ["resists", "accepts", "adjusts"] },
+        {
+          key: "repeatability",
+          label: "Correction Response",
+          options: ["resists", "accepts", "adjusts", "already structured correctly"],
+          optionLevels: {
+            resists: "weak",
+            accepts: "partial",
+            adjusts: "clear",
+            "already structured correctly": "clear",
+          },
+        },
         { key: "independence", label: "Independence", options: ["needs help", "light support", "independent"] },
       ],
     },
@@ -408,7 +453,17 @@ const TRAINING_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
       observationBlock: [
         { key: "independence", label: "Independence", options: ["needs help", "light support", "independent"] },
         { key: "repeatability", label: "Consistency", options: ["breaks", "inconsistent", "stable"] },
-        { key: "stepExecution", label: "Error Handling", options: ["guesses", "partial correction", "structured correction"] },
+        {
+          key: "stepExecution",
+          label: "Error Handling",
+          options: ["guesses", "partial correction", "structured correction", "no correction needed"],
+          optionLevels: {
+            guesses: "weak",
+            "partial correction": "partial",
+            "structured correction": "clear",
+            "no correction needed": "clear",
+          },
+        },
         { key: "startBehavior", label: "Start", options: ["delayed", "hesitant", "immediate"] },
       ],
     },
@@ -449,7 +504,17 @@ const TRAINING_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
       observationBlock: [
         { key: "rescueDependence", label: "Independence", options: ["dependent", "partial", "independent"] },
         { key: "discomfortTolerance", label: "Stability", options: ["breaks", "unstable", "stable"] },
-        { key: "initialResponse", label: "Recovery", options: ["collapses", "partial", "recovers"] },
+        {
+          key: "initialResponse",
+          label: "Recovery",
+          options: ["collapses", "partial", "recovers", "no recovery needed"],
+          optionLevels: {
+            collapses: "weak",
+            partial: "partial",
+            recovers: "clear",
+            "no recovery needed": "clear",
+          },
+        },
         { key: "firstStepControl", label: "First-Step Control", options: ["none", "prompted", "independent"] },
       ],
     },
@@ -461,7 +526,17 @@ const TRAINING_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
       activeRules: ["Same difficulty level", "Repeat exposure - build tolerance", "Observe consistency of response"],
       observationBlock: [
         { key: "discomfortTolerance", label: "Consistency", options: ["breaks", "inconsistent", "stable"] },
-        { key: "initialResponse", label: "Recovery", options: ["collapses", "partial", "recovers"] },
+        {
+          key: "initialResponse",
+          label: "Recovery",
+          options: ["collapses", "partial", "recovers", "no recovery needed"],
+          optionLevels: {
+            collapses: "weak",
+            partial: "partial",
+            recovers: "clear",
+            "no recovery needed": "clear",
+          },
+        },
         { key: "rescueDependence", label: "Rescue Behavior", options: ["frequent", "occasional", "none"] },
         { key: "firstStepControl", label: "First-Step Control", options: ["none", "prompted", "independent"] },
       ],
@@ -623,6 +698,12 @@ function getObservationBlockForRep(setConfig: DrillSetConfig, repIndex: number):
     return setConfig.repObservationBlocks[repIndex];
   }
   return setConfig.observationBlock || [];
+}
+
+function observationLevelForField(field: ObservationField, optionIndex: number, selectedLabel: string): ObservationLevel {
+  const explicitLevel = field.optionLevels?.[selectedLabel];
+  if (explicitLevel) return explicitLevel;
+  return observationLevelFromOptionIndex(optionIndex, field.options.length);
 }
 
 export default function IntroSessionDrillRunner() {
@@ -949,7 +1030,7 @@ export default function IntroSessionDrillRunner() {
         observationBlock.forEach((block) => {
           const selectedLabel = observations[`set${setIndex}_rep${repIdx}_${block.key}`] || "";
           const optionIndex = block.options.findIndex((option) => option === selectedLabel);
-          const selectedLevel = observationLevelFromOptionIndex(optionIndex, block.options.length);
+          const selectedLevel = observationLevelForField(block, optionIndex, selectedLabel);
           obs[block.key] = selectedLabel;
           obs[`${block.key}_level`] = selectedLevel;
         });
