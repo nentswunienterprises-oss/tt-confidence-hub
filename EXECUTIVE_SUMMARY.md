@@ -22,7 +22,7 @@ A **complete, production-ready tracking system** that:
 - **Multiple channels tracked:** Affiliates, blog, school partners, media
 - **Future analytics:** Know which sources work best
 - **Scalable:** Works for unlimited affiliates and campaigns
-- **Branded domain:** Links show territorialtutoring.co.za (not poddigitizer.com)
+- **Branded domain:** Links show responseintegrity.co.za (not poddigitizer.com)
 
 ---
 
@@ -31,7 +31,7 @@ A **complete, production-ready tracking system** that:
 **All of this happens silently:**
 
 ```
-Parent clicks: territorialtutoring.co.za?affiliate=AFIX001
+Parent clicks: responseintegrity.co.za?affiliate=AFIX001
               ↓
 Landing page loads (beautiful UX)
               ↓
@@ -71,13 +71,13 @@ Commission tracked automatically
 
 ```
 Affiliate John:
-territorialtutoring.co.za?affiliate=AFIX001
+responseintegrity.co.za?affiliate=AFIX001
 
 Blog post:
-territorialtutoring.co.za?utm_source=blog&utm_campaign=math_anxiety
+responseintegrity.co.za?utm_source=blog&utm_campaign=math_anxiety
 
 School partnership:
-territorialtutoring.co.za?utm_source=school&utm_campaign=pinewood_academy
+responseintegrity.co.za?utm_source=school&utm_campaign=pinewood_academy
 
 All automatically tracked with zero code changes needed
 ```
@@ -97,7 +97,7 @@ All automatically tracked with zero code changes needed
    - Push changes to production
 
 3. Test (10 mins)
-   - Visit territorialtutoring.co.za?affiliate=AFIX001
+   - Visit responseintegrity.co.za?affiliate=AFIX001
    - Sign up
    - Verify database has tracking data
 ```
@@ -128,7 +128,7 @@ All automatically tracked with zero code changes needed
 
 **For Affiliates:**
 - ❌ Old: Share code "AFIX001"
-- ✅ New: Share link "territorialtutoring.co.za?affiliate=AFIX001"
+- ✅ New: Share link "responseintegrity.co.za?affiliate=AFIX001"
 - **Impact:** Much higher conversion (easier to share, one click)
 
 **For Parents:**

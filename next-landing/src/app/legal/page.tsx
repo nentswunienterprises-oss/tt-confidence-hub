@@ -50,7 +50,7 @@ export default function LegalPage() {
                     <ul className="list-disc pl-6">
                       <li><strong>Legal Entity:</strong> Territorial Tutoring SA (Pty) Ltd</li>
                       <li><strong>Jurisdiction:</strong> Republic of South Africa</li>
-                      <li><strong>Contact:</strong> privacy@territorialtutoring.co.za (to be activated)</li>
+                      <li><strong>Contact:</strong> privacy@responseintegrity.co.za (to be activated)</li>
                     </ul>
                   </section>
 

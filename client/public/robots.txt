@@ -10,4 +10,4 @@ Disallow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://territorialtutoring.co.za/sitemap.xml
+Sitemap: https://responseintegrity.co.za/sitemap.xml

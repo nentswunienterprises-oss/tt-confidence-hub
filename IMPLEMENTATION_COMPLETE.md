@@ -39,7 +39,7 @@
 3. **client/src/pages/affiliate/affiliate/home.tsx**
    - Added handleCopyLink() function
    - Updated UI to show "Your Affiliate Link" section
-   - Shows territorialtutoring.co.za?affiliate=AFIX001
+   - Shows responseintegrity.co.za?affiliate=AFIX001
    - Added secondary code reference section
 
 ### Backend
@@ -71,7 +71,7 @@
 ```
 Affiliate logs into dashboard
 ↓
-Sees "Your Affiliate Link: territorialtutoring.co.za?affiliate=AFIX001"
+Sees "Your Affiliate Link: responseintegrity.co.za?affiliate=AFIX001"
 ↓
 Clicks [Copy Link]
 ↓
@@ -80,7 +80,7 @@ Shares with parent: "Check this out: [link]"
 
 ### 2. Parent Journey
 ```
-Parent clicks link: territorialtutoring.co.za?affiliate=AFIX001
+Parent clicks link: responseintegrity.co.za?affiliate=AFIX001
 ↓
 Landing page loads (portal-landing.tsx)
 - URL params read silently: affiliate=AFIX001
@@ -162,25 +162,25 @@ All these links now work with the same system:
 
 ### Affiliate Direct
 ```
-Link: territorialtutoring.co.za?affiliate=AFIX001
+Link: responseintegrity.co.za?affiliate=AFIX001
 Result: Lead with tracking_source=affiliate, affiliate_id=AFIX001
 ```
 
 ### Blog Traffic
 ```
-Link: territorialtutoring.co.za?utm_source=blog&utm_campaign=math_anxiety
+Link: responseintegrity.co.za?utm_source=blog&utm_campaign=math_anxiety
 Result: Lead with tracking_source=blog, tracking_campaign=math_anxiety, no affiliate
 ```
 
 ### School Partnership
 ```
-Link: territorialtutoring.co.za?utm_source=school&utm_campaign=pinewood_academy
+Link: responseintegrity.co.za?utm_source=school&utm_campaign=pinewood_academy
 Result: Lead with tracking_source=school, tracking_campaign=pinewood_academy, no affiliate
 ```
 
 ### Affiliate + Custom Campaign (Future)
 ```
-Link: territorialtutoring.co.za?affiliate=AFIX001&utm_campaign=summer_referrals
+Link: responseintegrity.co.za?affiliate=AFIX001&utm_campaign=summer_referrals
 Result: Lead with affiliate_id, tracking_source, tracking_campaign all populated
 ```
 
@@ -259,7 +259,7 @@ http://localhost:3000?affiliate=AFIX001
 
 ### Production Test
 ```
-1. Visit: https://territorialtutoring.co.za?affiliate=AFIX001
+1. Visit: https://responseintegrity.co.za?affiliate=AFIX001
 2. Click "Get Started"
 3. Should show /client/signup?affiliate=AFIX001
 4. Complete signup

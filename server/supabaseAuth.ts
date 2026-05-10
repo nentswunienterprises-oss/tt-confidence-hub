@@ -72,7 +72,7 @@ export function getSession() {
       secure: process.env.NODE_ENV === "production", // true in prod, false in dev
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' for cross-site in prod
       maxAge: sessionTtl,
-      domain: process.env.NODE_ENV === "production" ? ".territorialtutoring.co.za" : undefined,
+      domain: process.env.NODE_ENV === "production" ? ".responseintegrity.co.za" : undefined,
       path: "/",
     },
   });

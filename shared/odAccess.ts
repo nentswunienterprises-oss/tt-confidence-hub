@@ -1,6 +1,6 @@
 export const ALLOWED_OD_EMAILS = [
   "kring@gmail.com",
-  "admin@territorialtutoring.co.za",
+  "admin@responseintegrity.co.za",
 ] as const;
 
 export function normalizeEmail(email: string | null | undefined): string {

@@ -50,7 +50,7 @@ migrations/0011_add_lead_tracking.sql
 
 ### User Flow (Parent's Experience)
 ```
-1. Clicks affiliate link: territorialtutoring.co.za?affiliate=AFIX001
+1. Clicks affiliate link: responseintegrity.co.za?affiliate=AFIX001
 2. Lands on beautiful landing page (portal-landing)
 3. Sees benefits, features, testimonials
 4. Clicks "Get Started"
@@ -65,7 +65,7 @@ migrations/0011_add_lead_tracking.sql
 ```
 1. Logs into dashboard
 2. Sees new "Your Affiliate Link" section
-3. Shows: territorialtutoring.co.za?affiliate=AFIX001
+3. Shows: responseintegrity.co.za?affiliate=AFIX001
 4. Clicks [Copy Link] button
 5. Sends link to parent (much better than code)
 6. System automatically tracks when parent signs up
@@ -90,23 +90,23 @@ migrations/0011_add_lead_tracking.sql
 
 ```
 # Affiliate John
-territorialtutoring.co.za?affiliate=AFIX001
+responseintegrity.co.za?affiliate=AFIX001
 → tracking_source: affiliate, affiliate_id: AFIX001
 
 # Blog post
-territorialtutoring.co.za?utm_source=blog&utm_campaign=math_anxiety
+responseintegrity.co.za?utm_source=blog&utm_campaign=math_anxiety
 → tracking_source: blog, tracking_campaign: math_anxiety
 
 # School partnership
-territorialtutoring.co.za?utm_source=school&utm_campaign=pinewood_academy
+responseintegrity.co.za?utm_source=school&utm_campaign=pinewood_academy
 → tracking_source: school, tracking_campaign: pinewood_academy
 
 # Social media
-territorialtutoring.co.za?utm_source=social&utm_campaign=instagram
+responseintegrity.co.za?utm_source=social&utm_campaign=instagram
 → tracking_source: social, tracking_campaign: instagram
 
 # Affiliate + campaign (future)
-territorialtutoring.co.za?affiliate=AFIX001&utm_campaign=summer_2026
+responseintegrity.co.za?affiliate=AFIX001&utm_campaign=summer_2026
 → tracking_source: affiliate, affiliate_id: AFIX001, tracking_campaign: summer_2026
 ```
 
@@ -135,7 +135,7 @@ migrations/0011_add_lead_tracking.sql
 git push
 
 # 3. Test
-# Visit: territorialtutoring.co.za?affiliate=AFIX001
+# Visit: responseintegrity.co.za?affiliate=AFIX001
 # Sign up → Check database for tracking_source
 
 # 4. Announce to affiliates
@@ -196,7 +196,7 @@ For reference, I've created:
 
 3. **Test the flow** (10 mins)
    ```
-   Visit territorialtutoring.co.za?affiliate=AFIX001
+   Visit responseintegrity.co.za?affiliate=AFIX001
    Sign up
    Check database for tracking data
    ```

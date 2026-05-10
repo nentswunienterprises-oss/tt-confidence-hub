@@ -1,5 +1,5 @@
 // Runtime configuration for API URL
-var RENDER_URL = 'https://api.territorialtutoring.co.za';
+var RENDER_URL = 'https://api.responseintegrity.co.za';
 export function getApiUrl() {
     if (typeof window !== 'undefined') {
         var hostname = window.location.hostname;

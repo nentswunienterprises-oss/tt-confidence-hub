@@ -14,15 +14,15 @@ A complete silent tracking system that lets you:
 
 ### For Affiliates
 1. Go to affiliate dashboard
-2. See "Your Affiliate Link: territorialtutoring.co.za?affiliate=AFIX001"
+2. See "Your Affiliate Link: responseintegrity.co.za?affiliate=AFIX001"
 3. Click [Copy Link]
 4. Send to parents
 5. Done - earnings tracked automatically
 
 ### For Marketing
-1. Blog post: Use link `territorialtutoring.co.za?utm_source=blog&utm_campaign=anxiety`
-2. School partnership: Use `territorialtutoring.co.za?utm_source=school&utm_campaign=pinewood`
-3. Social media: Use `territorialtutoring.co.za?utm_source=social&utm_campaign=instagram`
+1. Blog post: Use link `responseintegrity.co.za?utm_source=blog&utm_campaign=anxiety`
+2. School partnership: Use `responseintegrity.co.za?utm_source=school&utm_campaign=pinewood`
+3. Social media: Use `responseintegrity.co.za?utm_source=social&utm_campaign=instagram`
 
 ### For Parents
 Same signup experience:
@@ -55,19 +55,19 @@ All these links work automatically:
 
 ```
 # Affiliate
-territorialtutoring.co.za?affiliate=AFIX001
+responseintegrity.co.za?affiliate=AFIX001
 
 # Blog
-territorialtutoring.co.za?utm_source=blog&utm_campaign=math_anxiety
+responseintegrity.co.za?utm_source=blog&utm_campaign=math_anxiety
 
 # School
-territorialtutoring.co.za?utm_source=school&utm_campaign=pinewood_academy
+responseintegrity.co.za?utm_source=school&utm_campaign=pinewood_academy
 
 # Social
-territorialtutoring.co.za?utm_source=social&utm_campaign=instagram
+responseintegrity.co.za?utm_source=social&utm_campaign=instagram
 
 # Mixed (Affiliate + Campaign)
-territorialtutoring.co.za?affiliate=AFIX001&utm_campaign=summer_referrals
+responseintegrity.co.za?affiliate=AFIX001&utm_campaign=summer_referrals
 ```
 
 ---
@@ -136,12 +136,12 @@ LIMIT 1;
 ### Check 3: Affiliate Dashboard
 1. Log in as affiliate
 2. Look for section "Your Affiliate Link"
-3. Should show: territorialtutoring.co.za?affiliate=AFIX001
+3. Should show: responseintegrity.co.za?affiliate=AFIX001
 4. Click [Copy Link]
 5. Should copy to clipboard
 
 ### Check 4: Browser Console
-1. Visit: territorialtutoring.co.za?affiliate=AFIX001
+1. Visit: responseintegrity.co.za?affiliate=AFIX001
 2. Click Get Started
 3. Open browser console (F12)
 4. Submit signup form
@@ -260,7 +260,7 @@ GROUP BY tracking_source;
 - Zero confusion, clean UX
 
 ### Branded Domain
-- All links use territorialtutoring.co.za
+- All links use responseintegrity.co.za
 - Not poddigitizer.com
 - Better credibility
 
@@ -282,8 +282,8 @@ GROUP BY tracking_source;
 If you want to add these later:
 
 1. **Custom landing pages per affiliate**
-   - John gets: territorialtutoring.co.za/john-referral
-   - Sarah gets: territorialtutoring.co.za/sarah-tutoring
+   - John gets: responseintegrity.co.za/john-referral
+   - Sarah gets: responseintegrity.co.za/sarah-tutoring
 
 2. **Advanced attribution**
    - Track which blog post drove signup

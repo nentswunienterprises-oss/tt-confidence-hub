@@ -11,8 +11,8 @@
 
 **How it works:**
 ```
-User visits: territorialtutoring.co.za?affiliate=AFIX001
-            or territorialtutoring.co.za?utm_source=blog
+User visits: responseintegrity.co.za?affiliate=AFIX001
+            or responseintegrity.co.za?utm_source=blog
 
 Portal landing page loads, silently reads URL params
 User clicks "Get Started"
@@ -50,7 +50,7 @@ When user submits, body includes:
 **Changes Made:**
 - ✅ Added `handleCopyLink()` function to build affiliate link
 - ✅ Updated UI to show primary "Affiliate Link" section
-- ✅ Link shows: `territorialtutoring.co.za?affiliate=AFIX001`
+- ✅ Link shows: `responseintegrity.co.za?affiliate=AFIX001`
 - ✅ Added secondary "Code for reference" section
 - ✅ Two copy buttons: one for link, one for code
 
@@ -58,7 +58,7 @@ When user submits, body includes:
 ```
 Affiliate logs into dashboard
 Sees new "Your Affiliate Link" section
-Shows: territorialtutoring.co.za?affiliate=AFIX001
+Shows: responseintegrity.co.za?affiliate=AFIX001
 Clicks [Copy Link]
 Pastes in text/email to parents
 Parents click → landing page → signup → lead tracked
@@ -144,12 +144,12 @@ CREATE TABLE lead_tracking (
 
 **Affiliate John:**
 1. Goes to affiliate dashboard
-2. Sees: `territorialtutoring.co.za?affiliate=AFIX001`
+2. Sees: `responseintegrity.co.za?affiliate=AFIX001`
 3. Clicks [Copy Link]
 4. Sends to parent
 
 **Parent:**
-1. Clicks link: `territorialtutoring.co.za?affiliate=AFIX001`
+1. Clicks link: `responseintegrity.co.za?affiliate=AFIX001`
 2. Lands on portal landing page (beautiful UX)
 3. Sees benefits, features, testimonials
 4. Clicks "Get Started"
@@ -181,7 +181,7 @@ CREATE TABLE lead_tracking (
    - Insert tracking data into database
 
 4. **Test the flow:**
-   - Visit: `territorialtutoring.co.za?affiliate=AFIX001&utm_source=blog`
+   - Visit: `responseintegrity.co.za?affiliate=AFIX001&utm_source=blog`
    - Sign up
    - Check database: lead created with all tracking info
 
@@ -200,7 +200,7 @@ You can test the frontend right now:
 
 2. **Production test:**
    ```
-   https://territorialtutoring.co.za?affiliate=AFIX001
+   https://responseintegrity.co.za?affiliate=AFIX001
    → Click Get Started
    → Should show /client/signup?affiliate=AFIX001 in URL
    ```
@@ -217,7 +217,7 @@ You can test the frontend right now:
 - ✅ All params preserved when navigating to signup
 - ✅ Auth form reads params and includes in request
 - ✅ Affiliate dashboard shows easy-to-share link
-- ✅ Link uses branded domain (territorialtutoring.co.za)
+- ✅ Link uses branded domain (responseintegrity.co.za)
 - ✅ No friction - code hidden from users
 
 ---
@@ -257,9 +257,9 @@ Dashboard analytics:
 ```
 
 All with the same tracking URL structure:
-- `territorialtutoring.co.za?affiliate=AFIX001` (affiliate)
-- `territorialtutoring.co.za?utm_source=blog` (organic)
-- `territorialtutoring.co.za?utm_source=school&utm_campaign=pinewood` (partner)
+- `responseintegrity.co.za?affiliate=AFIX001` (affiliate)
+- `responseintegrity.co.za?utm_source=blog` (organic)
+- `responseintegrity.co.za?utm_source=school&utm_campaign=pinewood` (partner)
 
 ---
 

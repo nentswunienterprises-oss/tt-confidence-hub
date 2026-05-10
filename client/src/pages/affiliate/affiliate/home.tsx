@@ -45,7 +45,7 @@ export default function AffiliateDashboard() {
   const handleCopyLink = () => {
     if (codeData?.code) {
       // Build the affiliate link with the actual domain
-      const affiliateLink = `https://territorialtutoring.co.za?affiliate=${codeData.code}`;
+      const affiliateLink = `https://responseintegrity.co.za?affiliate=${codeData.code}`;
       navigator.clipboard.writeText(affiliateLink);
       toast({
         title: "Link Copied.",
@@ -96,7 +96,7 @@ export default function AffiliateDashboard() {
             </div>
             <div className="flex gap-2 flex-col sm:flex-row">
               <div className="flex-1 bg-background border rounded-lg p-3 sm:p-4 text-left font-mono text-xs sm:text-sm break-all">
-                {codeData?.code ? `territorialtutoring.co.za?affiliate=${codeData.code}` : "Loading..."}
+                {codeData?.code ? `responseintegrity.co.za?affiliate=${codeData.code}` : "Loading..."}
               </div>
               <Button onClick={handleCopyLink} variant="default" size="default" className="gap-2 px-3 sm:px-4 whitespace-nowrap">
                 <Copy className="w-4 h-4" />

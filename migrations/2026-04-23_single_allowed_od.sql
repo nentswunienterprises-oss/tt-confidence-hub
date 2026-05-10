@@ -1,6 +1,6 @@
 -- Allow only one active OD account, and only from the approved OD email candidates.
 -- Dev OD: kring@gmail.com
--- Future production OD: admin@territorialtutoring.co.za
+-- Future production OD: admin@responseintegrity.co.za
 
 DO $$
 BEGIN
@@ -27,7 +27,7 @@ BEGIN
     SELECT 1
     FROM users
     WHERE role = 'od'
-      AND lower(email) NOT IN ('kring@gmail.com', 'admin@territorialtutoring.co.za')
+      AND lower(email) NOT IN ('kring@gmail.com', 'admin@responseintegrity.co.za')
   ) THEN
     RAISE EXCEPTION 'Unauthorized OD account exists. Demote it before applying this migration.';
   END IF;
@@ -41,7 +41,7 @@ CREATE OR REPLACE FUNCTION enforce_allowed_single_od()
 RETURNS trigger AS $$
 BEGIN
   IF NEW.role = 'od'
-     AND lower(NEW.email) NOT IN ('kring@gmail.com', 'admin@territorialtutoring.co.za') THEN
+     AND lower(NEW.email) NOT IN ('kring@gmail.com', 'admin@responseintegrity.co.za') THEN
     RAISE EXCEPTION 'Only approved OD emails can hold the OD role';
   END IF;
 

@@ -22,7 +22,7 @@
 ### affiliate/home.tsx
 - [x] Added handleCopyLink() function
 - [x] Changed affiliate code section header to "Your Affiliate Link"
-- [x] Shows formatted link: territorialtutoring.co.za?affiliate=CODE
+- [x] Shows formatted link: responseintegrity.co.za?affiliate=CODE
 - [x] Added [Copy Link] button
 - [x] Added secondary "Code for reference" section below
 - [x] Two separate copy buttons (link and code)
@@ -139,8 +139,8 @@
 
 ## Testing Readiness ✅
 
-- [x] Can test: territorialtutoring.co.za?affiliate=AFIX001
-- [x] Can test: territorialtutoring.co.za?utm_source=blog
+- [x] Can test: responseintegrity.co.za?affiliate=AFIX001
+- [x] Can test: responseintegrity.co.za?utm_source=blog
 - [x] Can test: Multiple param combinations
 - [x] Can verify: Database tracking columns exist
 - [x] Can verify: Affiliate dashboard shows link
@@ -188,7 +188,7 @@
 
 ### What Works
 ✅ Affiliate links with silent tracking  
-✅ Branded domain (territorialtutoring.co.za)  
+✅ Branded domain (responseintegrity.co.za)  
 ✅ Blog/marketing link support  
 ✅ Partner tracking support  
 ✅ Backward compatibility  

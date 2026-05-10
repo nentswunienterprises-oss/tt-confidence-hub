@@ -8,10 +8,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { API_URL } from "@/lib/config";
-import { supabase } from "@/lib/supabaseClient";
 import { CheckCircle2, Download, Expand, FileCheck, FileText, Loader2, Upload } from "lucide-react";
 
 type DocumentStatus = "not_started" | "pending_upload" | "pending_review" | "approved" | "rejected";
@@ -173,7 +171,7 @@ function deriveDateOfBirthFromSouthAfricanId(idNumber: string) {
 
 function deriveDateOfBirthConditional(idType: string, idNumber: string) {
   // Only derive date of birth from SA ID numbers
-  if (idType === "sa_id") {
+  if (idType === "sa_id" || idType === "" || !idType) {
     return deriveDateOfBirthFromSouthAfricanId(idNumber);
   }
   // For passports and other ID types, date of birth must be entered manually
@@ -215,40 +213,7 @@ function getStep6UploadDescription(idType: string): string {
   if (idType === "passport") {
     return "Upload a certified copy of your passport. This is the only remaining file upload step.";
   }
-  if (idType === "sa_id") {
-    return "Upload a certified copy of your South African ID. This is the only remaining file upload step.";
-  }
-  return "Upload a certified copy of the identification document you selected earlier. This is the only remaining file upload step.";
-}
-
-function getStep6UploadTitle(idType: string): string {
-  if (idType === "passport") {
-    return "Certified Passport Copy";
-  }
-  if (idType === "sa_id") {
-    return "Certified ID Copy";
-  }
-  return "Certified ID Copy";
-}
-
-function getStep6DocumentTitle(idType: string): string {
-  return getStep6UploadTitle(idType);
-}
-
-function getIdentificationNumberLabel(idType: string): string {
-  if (idType === "passport") return "Passport Number";
-  if (idType === "sa_id") return "SA ID Number";
-  return "Identification Number";
-}
-
-function getFieldLabelForExport(field: FieldDefinition, formData: Record<string, string>): string {
-  if (field.key === "idNumber") return getIdentificationNumberLabel(formData.idType);
-  return field.label;
-}
-
-function getRenderedFieldLabel(field: FieldDefinition, formData: Record<string, string>): string {
-  if (field.key === "idNumber") return getIdentificationNumberLabel(formData.idType);
-  return field.label;
+  return "Upload a certified copy of your South African ID. This is the only remaining file upload step.";
 }
 
 function tokenizeAgreementLines(content: string) {
@@ -420,26 +385,12 @@ function tokenizeAgreementLinesStrict(content: string) {
 }
 
 export function renderAgreementHtmlStrict(content: string, documentCode?: string) {
-  const protectedFieldLine =
-    /^(Full Name:|Contact Number:|Date of Birth:|Email Address:|ID Type:|Identification Type|Identification Number:|ID Number:|School Attended \(Matric\):|Current Status|Matric Year:|School Where Matric Was Completed:|Print Name:|Document Reference:)/i;
-  const isDocumentHeading = (value: string) => /^SECTION [A-Z]/.test(value) || /^\d+\.\s+[A-Z]/.test(value);
   const lines = tokenizeAgreementLinesStrict(content);
-  const normalizedLines = documentCode
-    ? (() => {
-        const next = [...lines];
-        while (next.length > 0) {
-          const line = next[0].trim();
-          const isAllCapsHeading = /^[A-Z][A-Z0-9\s/&(),.-]{8,}$/.test(line);
-          if (!line || !isAllCapsHeading || isDocumentHeading(line) || protectedFieldLine.test(line)) break;
-          next.shift();
-        }
-        return next;
-      })()
-    : lines;
   const blocks: string[] = [];
   let listItems: string[] = [];
   let listMode = false;
   const rules = DOCUMENT_RENDER_RULES[documentCode || ""] || {};
+  const isDocumentHeading = (value: string) => /^SECTION [A-Z]/.test(value) || /^\d+\.\s+[A-Z]/.test(value);
   const isNumberedClauseLine = (value: string) => /^\d+\.\d+\s+/.test(value);
   const matchesAny = (value: string, patterns: RegExp[] | undefined) => (patterns || []).some((pattern) => pattern.test(value));
   const isPotentialListItem = (value: string) => {
@@ -460,7 +411,10 @@ export function renderAgreementHtmlStrict(content: string, documentCode?: string
     listItems = [];
   };
 
-  for (const rawLine of normalizedLines) {
+  const protectedFieldLine =
+    /^(Full Name:|Contact Number:|Date of Birth:|Email Address:|ID Type:|Identification Type|Identification Number:|ID Number:|School Attended \(Matric\):|Current Status|Matric Year:|School Where Matric Was Completed:|Print Name:|Document Reference:)/i;
+
+  for (const rawLine of lines) {
     const line = rawLine.trim();
     const isProtectedFieldLine = protectedFieldLine.test(line);
 
@@ -538,19 +492,6 @@ function normalizeValue(value: unknown) {
   return String(value ?? "").trim();
 }
 
-function normalizeIdTypeChoice(value: unknown): "sa_id" | "passport" | "" {
-  const normalized = String(value ?? "").trim().toLowerCase();
-  if (normalized === "sa_id" || normalized === "passport") return normalized;
-  return "";
-}
-
-function resolveLockedIdType(value: unknown, idNumber: unknown): "sa_id" | "passport" | "" {
-  const normalized = normalizeIdTypeChoice(value);
-  if (normalized === "passport") return "passport";
-  if (normalized === "sa_id" && normalizeValue(idNumber)) return "sa_id";
-  return "";
-}
-
 function normalizeDisplayedVersion(value: unknown) {
   const normalized = String(value ?? "").trim();
   if (!normalized) return "1";
@@ -560,7 +501,7 @@ function normalizeDisplayedVersion(value: unknown) {
 
 function buildInitialFormData(fields: FieldDefinition[], application: any, acceptance: any) {
   const savedForm = acceptance?.formSnapshotJson || acceptance?.form_snapshot_json || {};
-  const applicationIdType = resolveLockedIdType(application?.idType || application?.id_type, application?.idNumber || application?.id_number);
+  const applicationIdType = normalizeValue(application?.idType || application?.id_type || "sa_id");
   const applicationIdNumber = normalizeValue(application?.idNumber || application?.id_number);
   const applicationCurrentSituation = normalizeValue(
     application?.currentSituationOther ||
@@ -604,7 +545,7 @@ function buildInitialFormData(fields: FieldDefinition[], application: any, accep
 
 function buildAcceptanceDerivedFormData(acceptance: any) {
   const savedForm = acceptance?.formSnapshotJson || acceptance?.form_snapshot_json || {};
-  const idType = normalizeIdTypeChoice(savedForm.idType);
+  const idType = normalizeValue(savedForm.idType || "sa_id");
   return {
     legalName: normalizeValue(acceptance?.typedFullName || acceptance?.typed_full_name || savedForm.legalName),
     emailAddress: normalizeValue(savedForm.emailAddress),
@@ -620,7 +561,7 @@ function buildAcceptanceDerivedFormData(acceptance: any) {
 }
 
 function buildApplicationLockedFormData(application: any) {
-  const applicationIdType = resolveLockedIdType(application?.idType || application?.id_type, application?.idNumber || application?.id_number);
+  const applicationIdType = normalizeValue(application?.idType || application?.id_type || "sa_id");
   const applicationIdNumber = normalizeValue(application?.idNumber || application?.id_number);
   return {
     legalName: normalizeValue(application?.fullName || application?.full_name),
@@ -647,13 +588,7 @@ function buildApplicationLockedFormData(application: any) {
 }
 
 export function hydrateDocumentContent(content: string, fieldValues: Record<string, string>) {
-  const idTypeLabel =
-    fieldValues.idType === "passport"
-      ? "Passport"
-      : fieldValues.idType === "sa_id"
-        ? "South African ID"
-        : "______________________________";
-  const idNumberLabel = getIdentificationNumberLabel(fieldValues.idType);
+  const idTypeLabel = fieldValues.idType === "passport" ? "Passport" : "South African ID";
   const replacements: Array<[RegExp, string]> = [
     [/Full Name:\s*_+/i, `Full Name: ${fieldValues.legalName || "______________________________"}`],
     [/Contact Number:\s*_+/i, `Contact Number: ${fieldValues.phoneNumber || "______________________________"}`],
@@ -661,8 +596,8 @@ export function hydrateDocumentContent(content: string, fieldValues: Record<stri
     [/Email Address:\s*_+/i, `Email Address: ${fieldValues.emailAddress || "______________________________"}`],
     [/Identification Type \(SA ID \/ Passport\):\s*_+/i, `Identification Type (SA ID / Passport): ${idTypeLabel || "______________________________"}`],
     [/ID Type:\s*_+/i, `ID Type: ${idTypeLabel || "______________________________"}`],
-    [/Identification Number:\s*_+/i, `${idNumberLabel}: ${fieldValues.idNumber || "______________________________"}`],
-    [/ID Number:\s*_+/i, `${idNumberLabel}: ${fieldValues.idNumber || "______________________________"}`],
+    [/Identification Number:\s*_+/i, `Identification Number: ${fieldValues.idNumber || "______________________________"}`],
+    [/ID Number:\s*_+/i, `ID Number: ${fieldValues.idNumber || "______________________________"}`],
     [/School Attended \(Matric\):\s*_+/i, `School Attended (Matric): ${fieldValues.schoolName || "______________________________"}`],
     [/Current Status \(e\.g\.\s*Gap Year,\s*University Student,\s*Graduate\):\s*_*\s*/i, `Current Status (e.g. Gap Year, University Student, Graduate): ${fieldValues.currentStatus || "______________________________"}\n`],
     [/Matric Year:\s*_+/i, `Matric Year: ${fieldValues.matricYear || "______________________________"}`],
@@ -717,7 +652,7 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
               <div><span>Contact Number</span><strong>{formData.phoneNumber || "Not captured"}</strong></div>
               <div><span>Date of Birth</span><strong>{formData.dateOfBirth || "Not captured"}</strong></div>
               <div><span>Email Address</span><strong>{formData.emailAddress || "Not captured"}</strong></div>
-              <div><span>{getIdentificationNumberLabel(formData.idType)}</span><strong>{formData.idNumber || "Not captured"}</strong></div>
+              <div><span>ID Number</span><strong>{formData.idNumber || "Not captured"}</strong></div>
               <div><span>School Attended (Matric)</span><strong>{formData.schoolName || "Not captured"}</strong></div>
               <div className="tt-inline-detail-span"><span>Current Status</span><strong>{formData.currentStatus || "Not captured"}</strong></div>
             </div>
@@ -843,8 +778,8 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
           <TutorAgreementSection title="Contractor Details">
             <div className="tt-inline-detail-grid">
               <div><span>Full Name</span><strong>{formData.legalName || "Not captured"}</strong></div>
-              <div><span>Identification Type</span><strong>{formData.idType === "passport" ? "Passport" : formData.idType === "sa_id" ? "SA ID" : "Not captured"}</strong></div>
-              <div><span>{getIdentificationNumberLabel(formData.idType)}</span><strong>{formData.idNumber || "Not captured"}</strong></div>
+              <div><span>Identification Type</span><strong>{formData.idType === "passport" ? "Passport" : "SA ID"}</strong></div>
+              <div><span>Identification Number</span><strong>{formData.idNumber || "Not captured"}</strong></div>
               {formData.dateOfBirth && <div><span>Date of Birth</span><strong>{formData.dateOfBirth}</strong></div>}
               <div><span>Contact Number</span><strong>{formData.phoneNumber || "Not captured"}</strong></div>
               <div><span>Email Address</span><strong>{formData.emailAddress || "Not captured"}</strong></div>
@@ -1130,7 +1065,7 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
           </TutorAgreementSection>
           <TutorAgreementSection title="User Rights (POPIA)">
             <p>Users have the right to request access to their personal data, request correction of inaccurate data, request deletion where legally permissible, and lodge a complaint with the Information Regulator of South Africa.</p>
-            <p>Requests may be submitted to legal@territorialtutoring.co.za.</p>
+            <p>Requests may be submitted to legal@responseintegrity.co.za.</p>
             <p>Deletion requests may be limited where data is required for compliance, safeguarding, or dispute resolution.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Data Use Limitations">
@@ -1169,7 +1104,7 @@ function buildAcceptedCopyHtml(params: {
     .map((field) => {
       const value = String(formData[field.key] || "").trim();
       if (!value) return "";
-      return `<tr><th>${escapeHtml(getFieldLabelForExport(field, formData))}</th><td>${escapeHtml(value)}</td></tr>`;
+      return `<tr><th>${escapeHtml(field.label)}</th><td>${escapeHtml(value)}</td></tr>`;
     })
     .filter(Boolean)
     .join("");
@@ -1304,7 +1239,7 @@ const DOCUMENT_FORM_FIELDS: Record<number, FieldDefinition[]> = {
     { key: "phoneNumber", label: "Phone number", placeholder: "Enter your contact number" },
     { key: "matricYear", label: "Matric year", placeholder: "Enter the year you completed Matric" },
     { key: "schoolName", label: "School name", placeholder: "Enter the school where you completed Matric" },
-    { key: "examNumber", label: "Exam number", placeholder: "Enter your exam or candidate number", required: false },
+    { key: "examNumber", label: "Exam number", placeholder: "Enter your exam or candidate number if shown", required: false },
   ],
 };
 
@@ -1331,21 +1266,6 @@ function readFileAsBase64(file: File): Promise<string> {
   });
 }
 
-async function getAuthenticatedRequestInit(init: RequestInit = {}): Promise<RequestInit> {
-  const { data: { session } } = await supabase.auth.getSession();
-  const headers = new Headers(init.headers || {});
-  if (session?.access_token) {
-    headers.set("Authorization", `Bearer ${session.access_token}`);
-  }
-
-  return {
-    ...init,
-    headers,
-    credentials: "include",
-    cache: "no-store",
-  };
-}
-
 function resolveFieldBehavior(params: {
   field: FieldDefinition;
   currentStep: number;
@@ -1365,26 +1285,11 @@ function resolveFieldBehavior(params: {
     } satisfies FieldResolution;
   }
 
-  if (lockedValue) {
-    return {
-      canEdit: false,
-      helperText: currentStep > captureStep ? `Locked from the earlier onboarding step where this detail was first captured.` : "Locked to the existing onboarding record.",
-      missingRequirement: null,
-    } satisfies FieldResolution;
-  }
-
   if (field.key === "dateOfBirth") {
-    const idType = normalizeIdTypeChoice(allFieldValues?.idType);
-
-    if (!idType) {
-      return {
-        canEdit: false,
-        helperText: "Choose identification type first.",
-        missingRequirement: "Choose identification type first.",
-      } satisfies FieldResolution;
-    }
-
-    if (idType === "sa_id") {
+    const idType = allFieldValues?.idType || "sa_id";
+    const isSaId = idType === "sa_id" || idType === "" || !idType;
+    
+    if (isSaId) {
       return {
         canEdit: false,
         helperText: fieldValue ? "Auto-derived from your SA ID number." : "Enter your SA ID number to auto-fill date of birth.",
@@ -1400,15 +1305,12 @@ function resolveFieldBehavior(params: {
     }
   }
 
-  if (field.key === "idNumber" && !lockedValue) {
-    const idType = normalizeIdTypeChoice(allFieldValues?.idType);
-    if (!idType) {
-      return {
-        canEdit: false,
-        helperText: "Choose identification type first.",
-        missingRequirement: "Choose identification type first.",
-      } satisfies FieldResolution;
-    }
+  if (lockedValue) {
+    return {
+      canEdit: false,
+      helperText: currentStep > captureStep ? `Locked from the earlier onboarding step where this detail was first captured.` : "Locked to the existing onboarding record.",
+      missingRequirement: null,
+    } satisfies FieldResolution;
   }
 
   if (field.readOnly && !lockedValue) {
@@ -1454,10 +1356,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
     queryKey: ["/api/tutor/onboarding-documents", applicationId],
     enabled: Boolean(applicationId),
     queryFn: async () => {
-      const response = await fetch(
-        `${API_URL}/api/tutor/onboarding-documents`,
-        await getAuthenticatedRequestInit()
-      );
+      const response = await fetch(`${API_URL}/api/tutor/onboarding-documents`, { credentials: "include" });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload?.message || "Failed to load onboarding documents");
       return payload;
@@ -1494,8 +1393,8 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
     [currentFormFields, liveApplication, currentAcceptance]
   );
   const previousAcceptanceDerivedFormData = useMemo(
-    () => buildAcceptanceDerivedFormData(doc1Acceptance),
-    [doc1Acceptance]
+    () => buildAcceptanceDerivedFormData(currentStep === 2 ? doc1Acceptance : null),
+    [currentStep, doc1Acceptance]
   );
   const applicationLockedFormData = useMemo(
     () => buildApplicationLockedFormData(liveApplication),
@@ -1504,7 +1403,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
   const canonicalLockedFormData = useMemo(
     () => ({
       ...applicationLockedFormData,
-      ...([2, 6].includes(currentStep)
+      ...(currentStep === 2
         ? Object.fromEntries(
             Object.entries(previousAcceptanceDerivedFormData).filter(([, value]) => Boolean(String(value || "").trim()))
           )
@@ -1515,7 +1414,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
   const effectiveInitialFormData = useMemo(
     () => ({
       ...initialFormData,
-      ...([2, 6].includes(currentStep)
+      ...(currentStep === 2
         ? Object.fromEntries(
             Object.entries(previousAcceptanceDerivedFormData).filter(([, value]) => Boolean(String(value || "").trim()))
           )
@@ -1527,21 +1426,6 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
     () => hydrateDocumentContent(currentDocument?.content || "", { ...effectiveInitialFormData, ...formData, legalName: typedFullName || effectiveInitialFormData.legalName || "" }),
     [currentDocument, effectiveInitialFormData, formData, typedFullName]
   );
-  const resolvedUploadIdType = useMemo(
-    () =>
-      normalizeIdTypeChoice(
-        formData.idType ||
-        canonicalLockedFormData.idType ||
-        effectiveInitialFormData.idType ||
-        previousAcceptanceDerivedFormData.idType ||
-        applicationLockedFormData.idType
-      ),
-    [applicationLockedFormData.idType, canonicalLockedFormData.idType, effectiveInitialFormData.idType, formData.idType, previousAcceptanceDerivedFormData.idType]
-  );
-  const displayedDocumentTitle =
-    currentStep === 6
-      ? getStep6DocumentTitle(resolvedUploadIdType)
-      : currentDocument?.title || "";
   const acceptanceResetKey = `${currentStep}:${currentAcceptance?.acceptedAt || currentAcceptance?.accepted_at || "pending"}`;
   const fieldResolutions = useMemo(() => {
     return Object.fromEntries(
@@ -1559,7 +1443,6 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
             acceptanceAlreadyRecorded,
             fieldValue,
             lockedValue,
-            allFieldValues: formData,
           }),
         ];
       })
@@ -1598,29 +1481,27 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
   const acceptMutation = useMutation({
     mutationFn: async () => {
       if (!currentDocument) throw new Error("No document loaded");
-      const response = await fetch(
-        `${API_URL}/api/tutor/onboarding-documents/${currentDocument.step}/accept`,
-        await getAuthenticatedRequestInit({
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            applicationId,
-            documentVersion: currentDocument.version,
-            documentHash: currentDocument.contentHash,
-            typedFullName,
-            acceptedTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            locale: navigator.language,
-            platform: "web",
-            sourceFlow: `tutor_onboarding_step_${currentDocument.step}`,
-            formData,
-            acceptedClauseKeys: Object.entries(clauseChecks).filter(([, value]) => value).map(([key]) => key),
-            scrollCompletionPercent: readerPercent,
-            viewStartedAt,
-            viewCompletedAt,
-            acceptClickedAt: new Date().toISOString(),
-          }),
-        })
-      );
+      const response = await fetch(`${API_URL}/api/tutor/onboarding-documents/${currentDocument.step}/accept`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          applicationId,
+          documentVersion: currentDocument.version,
+          documentHash: currentDocument.contentHash,
+          typedFullName,
+          acceptedTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          locale: navigator.language,
+          platform: "web",
+          sourceFlow: `tutor_onboarding_step_${currentDocument.step}`,
+          formData,
+          acceptedClauseKeys: Object.entries(clauseChecks).filter(([, value]) => value).map(([key]) => key),
+          scrollCompletionPercent: readerPercent,
+          viewStartedAt,
+          viewCompletedAt,
+          acceptClickedAt: new Date().toISOString(),
+        }),
+      });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload?.message || "Failed to accept document");
       return payload;
@@ -1647,20 +1528,18 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
     mutationFn: async () => {
       if (!selectedFile || !currentDocument) throw new Error("Choose a file first");
       const fileData = await readFileAsBase64(selectedFile);
-      const response = await fetch(
-        `${API_URL}/api/tutor/onboarding-documents/upload`,
-        await getAuthenticatedRequestInit({
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            applicationId,
-            docStep: currentDocument.step,
-            fileName: `${applicationId}/doc_${currentDocument.step}_${Date.now()}_${selectedFile.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`,
-            fileData,
-            fileType: selectedFile.type,
-          }),
-        })
-      );
+      const response = await fetch(`${API_URL}/api/tutor/onboarding-documents/upload`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          applicationId,
+          docStep: currentDocument.step,
+          fileName: `${applicationId}/doc_${currentDocument.step}_${Date.now()}_${selectedFile.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`,
+          fileData,
+          fileType: selectedFile.type,
+        }),
+      });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload?.message || "Upload failed");
       return payload;
@@ -1778,7 +1657,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <CardTitle className="text-xl">Step {currentStep} of 6</CardTitle>
-              <CardDescription>{displayedDocumentTitle}</CardDescription>
+              <CardDescription>{currentDocument.title}</CardDescription>
             </div>
             <div className="flex flex-wrap gap-2">
               <Badge variant="outline">{currentDocument.code}</Badge>
@@ -1892,8 +1771,8 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
 
           {isUploadStep && !isPendingCooReview ? (
             <div className="rounded-2xl border p-4">
-              <p className="font-medium">{currentStep === 6 ? getStep6UploadTitle(resolvedUploadIdType) : currentDocument.uploadTitle || "Required upload"}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{currentStep === 6 ? getStep6UploadDescription(resolvedUploadIdType) : currentDocument.uploadDescription}</p>
+              <p className="font-medium">{currentDocument.uploadTitle || "Required upload"}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{currentStep === 6 ? getStep6UploadDescription(formData.idType || "sa_id") : currentDocument.uploadDescription}</p>
               {currentStep === 2 && !uploadReady ? <p className="mt-3 text-sm text-amber-700">Accept TT-EQV-002 first. The certified Matric certificate upload unlocks immediately after acceptance.</p> : null}
               {currentStep === 2 && uploadReady && currentStatus !== "pending_review" ? (
                 <p className="mt-3 text-sm text-muted-foreground">Choose the certified Matric certificate, then upload it for COO review. Step 3 opens only after COO approves this certificate.</p>
@@ -1971,18 +1850,10 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
             }
 
             .agreement-reader h2 {
-              margin: 0 0 0.55rem;
-              padding-top: 1.35rem;
-              border-top: 1px solid #e7d5c8;
+              margin: 1rem 0 0.55rem;
               font-size: 0.9rem;
               line-height: 1.5;
               font-weight: 700;
-              color: #7c2d12;
-            }
-
-            .agreement-reader h2:first-of-type {
-              padding-top: 0;
-              border-top: 0;
             }
 
             .agreement-reader p {
@@ -2109,14 +1980,14 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
           `}</style>
           <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl bg-[#FFF5ED] text-[#1A1A1A]">
             <DialogHeader className="shrink-0 border-b border-[#E7D5C8] bg-white px-4 py-4 text-left sm:px-6 sm:py-5">
-              <DialogTitle className="pr-8 text-xl sm:text-2xl">{displayedDocumentTitle}</DialogTitle>
+              <DialogTitle className="pr-8 text-xl sm:text-2xl">{currentDocument.title}</DialogTitle>
               <DialogDescription className="text-[#6B5B52]">{currentDocument.code} • version {normalizeDisplayedVersion(currentDocument.version)}</DialogDescription>
             </DialogHeader>
             <div ref={readerRef} onScroll={handleReaderScroll} className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-[#FFF5ED] px-3 py-4 touch-pan-y sm:px-6 sm:py-6">
               <div className="mx-auto max-w-4xl rounded-2xl border border-[#E7D5C8] bg-white px-4 py-6 text-[#1A1A1A] shadow-[0_18px_50px_rgba(230,57,70,0.08)] sm:px-10 sm:py-10">
                 <div className="border-b border-[#E7D5C8] pb-5">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#E63946]">Territorial Tutoring Onboarding Document</p>
-                  <h1 className="mt-3 text-2xl font-semibold tracking-tight text-[#1A1A1A] sm:text-3xl">{displayedDocumentTitle}</h1>
+                  <h1 className="mt-3 text-2xl font-semibold tracking-tight text-[#1A1A1A] sm:text-3xl">{currentDocument.title}</h1>
                   <p className="mt-2 text-xs text-[#6B5B52] sm:text-sm">
                     {currentDocument.code} • Version {normalizeDisplayedVersion(currentDocument.version)}
                   </p>
@@ -2130,51 +2001,11 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                     <div className="grid gap-3 sm:grid-cols-2">
                       {currentFormFields.map((field) => (
                         <div key={field.key} className="space-y-2">
-                          <label className="text-sm font-medium text-[#1A1A1A]">{getRenderedFieldLabel(field, formData)}</label>
+                          <label className="text-sm font-medium text-[#1A1A1A]">{field.label}</label>
                           {(() => {
                             const fieldValue = field.key === "legalName" ? typedFullName : formData[field.key] || "";
                             const resolution = fieldResolutions[field.key];
                             const isDisabled = !resolution?.canEdit;
-                            const inputPlaceholder =
-                              field.key === "idNumber"
-                                ? formData.idType === "passport"
-                                  ? "Enter your passport number"
-                                  : formData.idType === "sa_id"
-                                    ? "Enter your SA ID number"
-                                    : "Choose identification type first"
-                                : field.key === "dateOfBirth"
-                                  ? formData.idType === "passport"
-                                    ? "Enter your date of birth"
-                                    : formData.idType === "sa_id"
-                                      ? "Auto-filled from SA ID"
-                                      : "Choose identification type first"
-                                  : field.placeholder;
-
-                            if (field.key === "idType") {
-                              return (
-                                <Select
-                                  value={fieldValue}
-                                  disabled={isDisabled}
-                                  onValueChange={(nextIdType) => {
-                                    setFormData((value) => ({
-                                      ...value,
-                                      idType: nextIdType,
-                                      dateOfBirth: nextIdType === "sa_id"
-                                        ? deriveDateOfBirthFromSouthAfricanId(value.idNumber || "")
-                                        : "",
-                                    }));
-                                  }}
-                                >
-                                  <SelectTrigger className={isDisabled ? "border-[#E7D5C8] bg-[#F7EFE7] text-[#8A7A70]" : "border-[#E7D5C8] bg-white"}>
-                                    <SelectValue placeholder="Select SA ID or Passport" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="sa_id">SA ID</SelectItem>
-                                    <SelectItem value="passport">Passport</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              );
-                            }
 
                             return (
                           <Input
@@ -2191,13 +2022,13 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                                 setFormData((value) => ({
                                   ...value,
                                   idNumber: nextId,
-                                  dateOfBirth: value.idType === "sa_id" ? deriveDateOfBirthFromSouthAfricanId(nextId) : value.dateOfBirth,
+                                  dateOfBirth: deriveDateOfBirthFromSouthAfricanId(nextId),
                                 }));
                                 return;
                               }
                               setFormData((value) => ({ ...value, [field.key]: event.target.value }));
                             }}
-                            placeholder={inputPlaceholder}
+                            placeholder={field.placeholder}
                             className={isDisabled ? "border-[#E7D5C8] bg-[#F7EFE7] text-[#8A7A70]" : "border-[#E7D5C8] bg-white"}
                           />
                             );
@@ -2211,7 +2042,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                   </div>
                 ) : null}
                 <div className="agreement-reader mt-8">
-                  <div dangerouslySetInnerHTML={{ __html: renderAgreementHtmlStrict(hydratedDocumentContent, currentDocument.code) }} />
+                  {buildTutorAgreementBody(currentDocument, { ...effectiveInitialFormData, ...formData, legalName: typedFullName || effectiveInitialFormData.legalName || "" })}
                 </div>
               </div>
             </div>

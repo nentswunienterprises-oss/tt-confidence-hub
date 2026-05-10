@@ -112,7 +112,7 @@ export default function RecruitmentPrivacy() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">9. Contact</h2>
               <p>
-                Privacy enquiries may be directed to: <strong>privacy@territorialtutoring.co.za</strong> (to be activated)
+                Privacy enquiries may be directed to: <strong>privacy@responseintegrity.co.za</strong> (to be activated)
               </p>
             </section>
 

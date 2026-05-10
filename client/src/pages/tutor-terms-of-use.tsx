@@ -92,7 +92,7 @@ export default function TutorTermsOfUse() {
       ]}
       footer={
         <p className="text-sm text-slate-600 text-center">
-          Territorial Tutoring SA (Pty) Ltd | Tutor Terms of Use | www.territorialtutoring.co.za
+          Territorial Tutoring SA (Pty) Ltd | Tutor Terms of Use | www.responseintegrity.co.za
         </p>
       }
     />

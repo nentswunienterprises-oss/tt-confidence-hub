@@ -88,7 +88,7 @@ export function getSession() {
             secure: false, // Always false for local dev
             sameSite: "lax", // Always lax for local dev
             maxAge: sessionTtl,
-            // domain: '.territorialtutoring.co.za', // REMOVE for local dev
+            // domain: '.responseintegrity.co.za', // REMOVE for local dev
             // Add path if needed
             path: "/",
         },

@@ -28,7 +28,7 @@ export default function PrivacyPolicy() {
           bullets: [
             "Legal entity: Territorial Tutoring SA (Pty) Ltd",
             "Jurisdiction: Republic of South Africa",
-            "Contact: support@territorialtutoring.co.za",
+            "Contact: support@responseintegrity.co.za",
           ],
         },
         {
@@ -143,7 +143,7 @@ export default function PrivacyPolicy() {
       ]}
       footer={
         <p className="text-sm text-slate-600 text-center">
-          Territorial Tutoring SA (Pty) Ltd | Privacy Policy | Version 1.1 | www.territorialtutoring.co.za
+          Territorial Tutoring SA (Pty) Ltd | Privacy Policy | Version 1.1 | www.responseintegrity.co.za
         </p>
       }
     />

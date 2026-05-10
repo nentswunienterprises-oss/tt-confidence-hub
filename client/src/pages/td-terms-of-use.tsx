@@ -82,7 +82,7 @@ export default function TdTermsOfUse() {
       ]}
       footer={
         <p className="text-sm text-slate-600 text-center">
-          Territorial Tutoring SA (Pty) Ltd | Territory Director Terms of Use | www.territorialtutoring.co.za
+          Territorial Tutoring SA (Pty) Ltd | Territory Director Terms of Use | www.responseintegrity.co.za
         </p>
       }
     />

@@ -108,7 +108,7 @@ The affiliate code field is now **conditionally hidden** when:
 ## Usage
 
 ### For Parents
-1. Click an affiliate's branded link: `territorialtutoring.co.za?affiliate=AFIX001`
+1. Click an affiliate's branded link: `responseintegrity.co.za?affiliate=AFIX001`
 2. Land on portal with code already in URL
 3. Signup form appears **without** code field (already captured silently)
 4. Enter only: email, password, name

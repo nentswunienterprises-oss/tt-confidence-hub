@@ -17,7 +17,7 @@
 [ ] client/src/pages/affiliate/affiliate/home.tsx - Modified
     - Has handleCopyLink() function
     - Shows "Your Affiliate Link" section
-    - Shows territorialtutoring.co.za?affiliate=AFIX001
+    - Shows responseintegrity.co.za?affiliate=AFIX001
 
 [ ] server/supabaseAuth.ts - Modified
     - Signup handler has tracking_source & tracking_campaign params
@@ -72,17 +72,17 @@
 
 ### Test 1: Portal Landing Page
 ```
-[ ] Visit: https://territorialtutoring.co.za
+[ ] Visit: https://responseintegrity.co.za
 [ ] Click "Get Started"
 [ ] URL should show: /client/signup (no params)
 [ ] Signup form should have NO code field
 
-[ ] Visit: https://territorialtutoring.co.za?affiliate=AFIX001
+[ ] Visit: https://responseintegrity.co.za?affiliate=AFIX001
 [ ] Click "Get Started"
 [ ] URL should show: /client/signup?affiliate=AFIX001
 [ ] Signup form should have NO code field (silently filled)
 
-[ ] Visit: https://territorialtutoring.co.za?utm_source=blog&utm_campaign=math_anxiety
+[ ] Visit: https://responseintegrity.co.za?utm_source=blog&utm_campaign=math_anxiety
 [ ] Click "Get Started"
 [ ] URL should show: /client/signup?utm_source=blog&utm_campaign=math_anxiety
 [ ] Signup form should have NO code field
@@ -90,7 +90,7 @@
 
 ### Test 2: Signup Form
 ```
-[ ] Complete signup from: territorialtutoring.co.za?affiliate=AFIX001
+[ ] Complete signup from: responseintegrity.co.za?affiliate=AFIX001
 [ ] Open browser console (F12)
 [ ] Look for: "📤 Sending signup body:"
 [ ] Verify it includes:
@@ -98,13 +98,13 @@
     - tracking_source: "organic"
     - tracking_campaign: null
 
-[ ] Complete signup from: territorialtutoring.co.za?utm_source=blog
+[ ] Complete signup from: responseintegrity.co.za?utm_source=blog
 [ ] Verify body includes:
     - affiliate_code: null or empty
     - tracking_source: "blog"
     - tracking_campaign: null
 
-[ ] Complete signup from: territorialtutoring.co.za?utm_source=school&utm_campaign=xyz
+[ ] Complete signup from: responseintegrity.co.za?utm_source=school&utm_campaign=xyz
 [ ] Verify body includes:
     - affiliate_code: null or empty
     - tracking_source: "school"
@@ -135,7 +135,7 @@
 [ ] Log in as affiliate
 [ ] Go to affiliate dashboard
 [ ] Look for "Your Affiliate Link" section
-[ ] Should show: territorialtutoring.co.za?affiliate=AFIX001
+[ ] Should show: responseintegrity.co.za?affiliate=AFIX001
 [ ] Click [Copy Link]
 [ ] Verify copied to clipboard
 [ ] Paste somewhere to verify exact text
@@ -143,7 +143,7 @@
 
 ### Test 5: Mobile Testing
 ```
-[ ] Visit on iPhone: territorialtutoring.co.za?affiliate=AFIX001
+[ ] Visit on iPhone: responseintegrity.co.za?affiliate=AFIX001
 [ ] Click "Get Started"
 [ ] Verify signup page loads
 [ ] Complete signup
@@ -156,7 +156,7 @@
 
 ### Test 6: OAuth (if using Google signup)
 ```
-[ ] Visit: territorialtutoring.co.za?affiliate=AFIX001
+[ ] Visit: responseintegrity.co.za?affiliate=AFIX001
 [ ] Click "Sign up with Google"
 [ ] Verify Google auth completes
 [ ] Verify session storage has:
@@ -203,7 +203,7 @@
      Visit your dashboard and copy your affiliate link.
      Much easier to share than a code!
      
-     territorialtutoring.co.za?affiliate=YOUR_CODE"
+     responseintegrity.co.za?affiliate=YOUR_CODE"
 
 [ ] Provide screenshot of new dashboard section
 [ ] Include usage examples
@@ -285,7 +285,7 @@ ALTER TABLE leads DROP COLUMN IF EXISTS tracking_campaign;
 You'll know it's working when:
 
 ✅ Affiliates see new link in dashboard  
-✅ Link shows: territorialtutoring.co.za?affiliate=AFIX001  
+✅ Link shows: responseintegrity.co.za?affiliate=AFIX001  
 ✅ Copy button works  
 ✅ Parents click link → land on landing page  
 ✅ No code field visible in signup  

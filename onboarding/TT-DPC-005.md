@@ -83,7 +83,7 @@ request correction of inaccurate data
 request deletion where legally permissible
 lodge a complaint with the Information Regulator of South Africa at www.inforegulator.org.za
 Requests may be submitted to:
-legal@territorialtutoring.co.za
+legal@responseintegrity.co.za
 Note:
 Deletion requests may be limited where data is required for:
 compliance

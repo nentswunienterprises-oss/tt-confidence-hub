@@ -21,7 +21,7 @@ function ensureWebPushConfigured() {
   }
 
   webpush.setVapidDetails(
-    process.env.WEB_PUSH_SUBJECT || "mailto:support@territorialtutoring.co.za",
+    process.env.WEB_PUSH_SUBJECT || "mailto:support@responseintegrity.co.za",
     publicKey,
     privateKey,
   );

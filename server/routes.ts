@@ -240,7 +240,7 @@ function buildSandboxEnrollmentCase(seedIndex: number, source?: any | null) {
 function getAppBaseUrl() {
   return (
     String(process.env.APP_BASE_URL || "").trim() ||
-    "https://app.territorialtutoring.co.za"
+    "https://app.responseintegrity.co.za"
   );
 }
 

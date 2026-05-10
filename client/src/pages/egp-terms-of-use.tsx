@@ -80,7 +80,7 @@ export default function EgpTermsOfUse() {
       ]}
       footer={
         <p className="text-sm text-slate-600 text-center">
-          Territorial Tutoring SA (Pty) Ltd | Education Growth Partner Terms of Use | www.territorialtutoring.co.za
+          Territorial Tutoring SA (Pty) Ltd | Education Growth Partner Terms of Use | www.responseintegrity.co.za
         </p>
       }
     />

@@ -15,9 +15,9 @@ const corsOptions = {
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
     const allowedOrigins = [
-      'https://app.territorialtutoring.co.za',
-      'https://api.territorialtutoring.co.za',
-      'https://www.territorialtutoring.co.za',
+      'https://app.responseintegrity.co.za',
+      'https://api.responseintegrity.co.za',
+      'https://www.responseintegrity.co.za',
       'http://localhost:5173',
     ];
     const isLocal = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);

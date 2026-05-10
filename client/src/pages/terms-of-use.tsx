@@ -114,13 +114,13 @@ export default function TermsOfUse() {
           title: "12. Governing Law and Contact",
           paragraphs: [
             "These terms are governed by the laws of the Republic of South Africa.",
-            "For support or legal questions, contact support@territorialtutoring.co.za or legal@territorialtutoring.co.za.",
+            "For support or legal questions, contact support@responseintegrity.co.za or legal@responseintegrity.co.za.",
           ],
         },
       ]}
       footer={
         <p className="text-sm text-slate-600 text-center">
-          Territorial Tutoring SA (Pty) Ltd | Platform Terms of Use | www.territorialtutoring.co.za
+          Territorial Tutoring SA (Pty) Ltd | Platform Terms of Use | www.responseintegrity.co.za
         </p>
       }
     />

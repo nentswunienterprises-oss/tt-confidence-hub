@@ -136,7 +136,7 @@ account management.
 • TT does not sell personal data to third parties. Data is not shared outside of TT except where required by law or
 as necessary to deliver the service.
 • You may request access to, correction of, or deletion of your personal data by contacting TT at
-legal@territorialtutoring.co.za.
+legal@responseintegrity.co.za.
 
 10. Intellectual Property
 All content on the platform, including but not limited to the TT OS methodology, conditioning phase structure, drill
@@ -160,7 +160,7 @@ outages, device failures, or force majeure events.
 TT reserves the right to suspend or permanently terminate the account of any user who violates these Terms of
 Use, engages in conduct harmful to the platform or to other users, or fails to meet payment obligations.
 A parent or guardian may terminate their enrollment at any time by providing written notice to TT at
-support@territorialtutoring.co.za. Termination does not entitle the user to a refund of fees already paid for sessions
+support@responseintegrity.co.za. Termination does not entitle the user to a refund of fees already paid for sessions
 not yet conducted, except where TT is at fault.
 
 13. Governing Law
@@ -169,13 +169,13 @@ terms or from the use of the platform will be subject to the jurisdiction of the
 
 14. Contact
 For questions about these Terms of Use, please contact TT at the following:
-• General enquiries: hello@territorialtutoring.co.za
-• Support: support@territorialtutoring.co.za
-• Legal: legal@territorialtutoring.co.za
-• Website: www.territorialtutoring.co.za
+• General enquiries: hello@responseintegrity.co.za
+• Support: support@responseintegrity.co.za
+• Legal: legal@responseintegrity.co.za
+• Website: www.responseintegrity.co.za
 
 By using the Territorial Tutoring platform you confirm that you understand this is a conditioning system, not a
 conventional tutoring service. The method is structured, the standards are non-negotiable, and the result is
 built through repetition. These terms exist to protect that process for every learner on the platform.
 
-Territorial Tutoring SA (Pty) Ltd | Terms of Use | Version 1.0 | www.territorialtutoring.co.za
+Territorial Tutoring SA (Pty) Ltd | Terms of Use | Version 1.0 | www.responseintegrity.co.za
