@@ -2916,24 +2916,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
           };
 
+          const resolveScheduledSessionIdFromDrillRow = (row: any) => {
+            const direct = String(row?.report_scheduled_session_id || row?.scheduled_session_id || "").trim();
+            if (direct) return direct;
+
+            const parsed = parseStoredDrillPayload(row?.drill);
+            const embedded = String(parsed?.scheduledSessionId || "").trim();
+            return embedded || null;
+          };
+
+          const resolveReportAnchorDate = (row: any, mappedSession?: any) =>
+            String(row?.report_anchor_time || mappedSession?.date || row?.submitted_at || "").trim();
+
+          const attachReportAnchorTimes = async (drillRows: any[]) => {
+            const rows = Array.isArray(drillRows) ? drillRows : [];
+            const scheduledSessionIds = Array.from(
+              new Set(
+                rows
+                  .map((row) => resolveScheduledSessionIdFromDrillRow(row))
+                  .filter((value): value is string => !!value),
+              ),
+            );
+
+            if (scheduledSessionIds.length === 0) {
+              return rows;
+            }
+
+            const { data: scheduledSessions, error: scheduledSessionsError } = await supabase
+              .from("scheduled_sessions")
+              .select("id, scheduled_time")
+              .in("id", scheduledSessionIds);
+
+            if (scheduledSessionsError || !scheduledSessions?.length) {
+              return rows;
+            }
+
+            const scheduledTimeById = new Map<string, string>();
+            for (const session of scheduledSessions || []) {
+              const sessionId = String(session?.id || "").trim();
+              const scheduledTime = String(session?.scheduled_time || "").trim();
+              if (sessionId && scheduledTime) {
+                scheduledTimeById.set(sessionId, scheduledTime);
+              }
+            }
+
+            return rows.map((row) => {
+              const scheduledSessionId = resolveScheduledSessionIdFromDrillRow(row);
+              const reportAnchorTime = scheduledSessionId ? scheduledTimeById.get(scheduledSessionId) : null;
+              return {
+                ...row,
+                report_scheduled_session_id: scheduledSessionId,
+                report_anchor_time: reportAnchorTime || row?.report_anchor_time || row?.submitted_at,
+              };
+            });
+          };
+
+          const mapDeterministicSessionsForReport = (drillRows: any[]) =>
+            (drillRows || [])
+              .map((row: any) => {
+                const mappedSession = mapDrillRowToDeterministicSession(row);
+                if (!mappedSession?.deterministicLog) return null;
+
+                const reportDate = resolveReportAnchorDate(row, mappedSession);
+                const scheduledSessionId = resolveScheduledSessionIdFromDrillRow(row);
+
+                return {
+                  ...mappedSession,
+                  date: reportDate || mappedSession.date,
+                  sessionGroupId: String(
+                    row?.report_scheduled_session_id ||
+                      scheduledSessionId ||
+                      mappedSession.sessionGroupId ||
+                      mappedSession.id,
+                  ),
+                };
+              })
+              .filter((session: any) => !!session?.deterministicLog);
+
           const buildSessionAwareWeeklyWindows = (drillRows: any[]) => {
             const groupedSessions = (drillRows || []).reduce((acc: Record<string, { date: string; rows: any[] }>, row: any) => {
               const mappedSession = mapDrillRowToDeterministicSession(row);
               if (!mappedSession?.deterministicLog) return acc;
               if (mappedSession.drillType !== "training") return acc;
 
-              const key = String(mappedSession.sessionGroupId || mappedSession.id || row.id);
+              const key = String(
+                row?.report_scheduled_session_id ||
+                  resolveScheduledSessionIdFromDrillRow(row) ||
+                  mappedSession.sessionGroupId ||
+                  mappedSession.id ||
+                  row.id,
+              );
+              const reportDate = resolveReportAnchorDate(row, mappedSession);
               if (!acc[key]) {
                 acc[key] = {
-                  date: mappedSession.date || row.submitted_at,
+                  date: reportDate || mappedSession.date || row.submitted_at,
                   rows: [],
                 };
               }
 
               acc[key].rows.push(row);
 
-              if (new Date(mappedSession.date).getTime() < new Date(acc[key].date).getTime()) {
-                acc[key].date = mappedSession.date;
+              if (new Date(reportDate || mappedSession.date).getTime() < new Date(acc[key].date).getTime()) {
+                acc[key].date = reportDate || mappedSession.date;
               }
 
               return acc;
@@ -2961,18 +3045,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
               if (!mappedSession?.deterministicLog) return acc;
               if (mappedSession.drillType !== "training") return acc;
 
-              const key = String(mappedSession.sessionGroupId || mappedSession.id || row.id);
+              const key = String(
+                row?.report_scheduled_session_id ||
+                  resolveScheduledSessionIdFromDrillRow(row) ||
+                  mappedSession.sessionGroupId ||
+                  mappedSession.id ||
+                  row.id,
+              );
+              const reportDate = resolveReportAnchorDate(row, mappedSession);
               if (!acc[key]) {
                 acc[key] = {
-                  date: mappedSession.date || row.submitted_at,
+                  date: reportDate || mappedSession.date || row.submitted_at,
                   rows: [],
                 };
               }
 
               acc[key].rows.push(row);
 
-              if (new Date(mappedSession.date).getTime() < new Date(acc[key].date).getTime()) {
-                acc[key].date = mappedSession.date;
+              if (new Date(reportDate || mappedSession.date).getTime() < new Date(acc[key].date).getTime()) {
+                acc[key].date = reportDate || mappedSession.date;
               }
 
               return acc;
@@ -3709,9 +3800,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
 
           const createWeeklyStructuredDataFromDrills = (drillRows: any[]) => {
-            const deterministicSessions = drillRows
-              .map(mapDrillRowToDeterministicSession)
-              .filter((session: any) => !!session?.deterministicLog);
+            const deterministicSessions = mapDeterministicSessionsForReport(drillRows);
             const groupedSessions = aggregateDeterministicSessions(drillRows || []);
 
             if (!deterministicSessions.length) return null;
@@ -3810,9 +3899,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
 
           const createMonthlyStructuredDataFromDrills = (drillRows: any[]) => {
-            const deterministicSessions = drillRows
-              .map(mapDrillRowToDeterministicSession)
-              .filter((session: any) => !!session?.deterministicLog);
+            const deterministicSessions = mapDeterministicSessionsForReport(drillRows);
             const groupedSessions = aggregateDeterministicSessions(drillRows || []);
 
             if (!deterministicSessions.length) return null;
@@ -4018,12 +4105,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             const { data: drillRows, error: drillRowsError } = await supabase
               .from("intro_session_drills")
-              .select("id, drill, submitted_at")
+              .select("id, drill, submitted_at, scheduled_session_id")
               .eq("student_id", studentId)
               .eq("tutor_id", tutorId)
               .order("submitted_at", { ascending: true });
 
             if (drillRowsError || !drillRows || drillRows.length === 0) return;
+            const anchoredDrillRows = await attachReportAnchorTimes(drillRows || []);
 
             const { data: latestWeekly } = await supabase
               .from("parent_reports")
@@ -4048,10 +4136,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const weeklyBaseline = latestWeekly?.sent_at ? new Date(latestWeekly.sent_at).getTime() : 0;
             const monthlyBaseline = latestMonthly?.sent_at ? new Date(latestMonthly.sent_at).getTime() : 0;
 
-            const weeklyPending = drillRows.filter(
+            const weeklyPending = anchoredDrillRows.filter(
               (row: any) => new Date(row.submitted_at).getTime() > weeklyBaseline
             );
-            const monthlyPending = drillRows.filter(
+            const monthlyPending = anchoredDrillRows.filter(
               (row: any) => new Date(row.submitted_at).getTime() > monthlyBaseline
             );
 
