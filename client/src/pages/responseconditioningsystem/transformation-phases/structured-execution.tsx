@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 
 const trainingSets = [
   {
-    name: "Forced Structure",
+    name: "Required Structure",
     reps: "3 reps",
     purpose: "Force step discipline before full independence.",
     instruction: "State the steps first. Then solve.",

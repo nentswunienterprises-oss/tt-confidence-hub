@@ -41,7 +41,7 @@ const drillLanes = [
     phase: "Structured Execution",
     purpose: "Make sure the student can start and carry out the method on their own.",
     diagnosis: ["Start + Structure", "Repeatability"],
-    training: ["Forced Structure", "Independent Execution", "Variation Control"],
+    training: ["Required Structure", "Independent Execution", "Variation Control"],
     verification: "A short cold-start check to see whether the student's structure still holds.",
     logging:
       "The tutor logs how the student starts, follows steps, repeats the method, and works independently.",

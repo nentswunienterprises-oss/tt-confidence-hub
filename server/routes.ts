@@ -7789,7 +7789,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { studentId, sessionId } = req.params;
         const tutorId = (req as any).dbUser.id;
         const { action, scheduledStart } = req.body as {
-          action?: "confirm" | "reschedule";
+          action?: "confirm" | "reschedule" | "cancel";
           scheduledStart?: string;
         };
         const timezone = String(req.body?.timezone || "Africa/Johannesburg");
@@ -7843,12 +7843,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Training session not found" });
         }
 
+        if (action === "cancel") {
+          if (["completed", "live", "cancelled", "flagged"].includes(String(session.status || ""))) {
+            return res.status(400).json({ message: "This training session can no longer be cancelled" });
+          }
+
+          const { data: cancelledSession, error: cancelError } = await supabase
+            .from("scheduled_sessions")
+            .update({
+              status: "cancelled",
+              parent_confirmed: false,
+              tutor_confirmed: false,
+              google_calendar_id: null,
+              google_event_id: null,
+              google_meet_url: null,
+              google_conference_id: null,
+              google_meet_space_name: null,
+              google_meet_code: null,
+              host_account_id: null,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", sessionId)
+            .select(SCHEDULED_SESSION_SELECT)
+            .single();
+
+          if (cancelError || !cancelledSession) {
+            return res.status(500).json({ message: "Failed to cancel training session" });
+          }
+
+          await safeSendPush(
+            session.parent_id,
+            {
+              title: "Session cancelled",
+              body: "Your tutor cancelled a training session. Open TT to review the updated week.",
+              url: "/client/parent/sessions",
+              tag: `parent-training-session-cancelled-${sessionId}`,
+            },
+            "parent training session cancelled by tutor",
+          );
+
+          return res.json({
+            success: true,
+            session: cancelledSession,
+            status: "cancelled",
+            googleMeetConfigured: false,
+            googleMeetSync: null,
+            googleMeetError: null,
+          });
+        }
+
         if (session.status !== "pending_tutor_confirmation") {
           return res.status(400).json({ message: "Training session is not waiting for tutor confirmation" });
         }
 
         if (action !== "confirm" && action !== "reschedule") {
-          return res.status(400).json({ message: "Action must be 'confirm' or 'reschedule'" });
+          return res.status(400).json({ message: "Action must be 'confirm', 'reschedule', or 'cancel'" });
         }
 
         if (action === "reschedule") {
@@ -8559,7 +8608,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const operationalMode = await getParentAssignedTutorOperationalMode(userId);
       const { sessionId, action, scheduledStart } = req.body as {
         sessionId?: string;
-        action?: "confirm" | "reschedule";
+        action?: "confirm" | "reschedule" | "cancel";
         scheduledStart?: string;
       };
       const timezone = String(req.body?.timezone || "Africa/Johannesburg");
@@ -8573,8 +8622,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing sessionId" });
       }
 
-      if (action !== "confirm" && action !== "reschedule") {
-        return res.status(400).json({ message: "Action must be 'confirm' or 'reschedule'" });
+      if (action !== "confirm" && action !== "reschedule" && action !== "cancel") {
+        return res.status(400).json({ message: "Action must be 'confirm', 'reschedule', or 'cancel'" });
       }
 
       const { data: session, error: sessionError } = await supabase
@@ -8590,6 +8639,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (session.parent_id !== userId) {
         return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      if (action === "cancel") {
+        if (["completed", "live", "cancelled", "flagged"].includes(String(session.status || ""))) {
+          return res.status(400).json({ message: "This training session can no longer be cancelled" });
+        }
+
+        const { data: cancelledSession, error: cancelError } = await supabase
+          .from("scheduled_sessions")
+          .update({
+            status: "cancelled",
+            parent_confirmed: false,
+            tutor_confirmed: false,
+            google_calendar_id: null,
+            google_event_id: null,
+            google_meet_url: null,
+            google_conference_id: null,
+            google_meet_space_name: null,
+            google_meet_code: null,
+            host_account_id: null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", sessionId)
+          .select(SCHEDULED_SESSION_SELECT)
+          .single();
+
+        if (cancelError || !cancelledSession) {
+          return res.status(500).json({ message: "Failed to cancel session" });
+        }
+
+        await safeSendPush(
+          cancelledSession.tutor_id,
+          {
+            title: "Session cancelled",
+            body: "A parent cancelled a training session. Open TT to review the updated week.",
+            url: "/operational/tutor/pod",
+            tag: `tutor-training-session-cancelled-${sessionId}`,
+          },
+          "tutor training session cancelled by parent",
+        );
+
+        return res.json({
+          success: true,
+          status: "cancelled",
+          session: cancelledSession,
+        });
       }
 
       if (session.status !== "pending_parent_confirmation") {

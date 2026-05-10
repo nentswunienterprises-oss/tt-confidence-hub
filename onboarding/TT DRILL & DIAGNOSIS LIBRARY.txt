@@ -357,7 +357,7 @@ Objective
 
 Force structured, repeatable execution.
 
-SET 1 -FORCED STRUCTURE (3 reps)
+SET 1 -Required Structure (3 reps)
 Rep Instruction
 
 “State steps first. Then solve.”

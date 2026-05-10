@@ -34,6 +34,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   getBattleTestStateLabel,
   type BattleTestPhaseDefinition,
+  type TutorBattleTestDeepDiveProgress,
   type BattleTestPhaseScore,
   type BattleTestRunHistoryItem,
   type BattleTestState,
@@ -150,6 +151,80 @@ function getTutorAuditGroupKey(phaseKey: string): TutorAuditGroupKey {
   ].includes(phaseKey)
     ? "transformation_phases"
     : "session_infrastructure";
+}
+
+function getDeepDiveProgressView(entry?: TutorBattleTestDeepDiveProgress | null) {
+  if (!entry || entry.attemptsCount === 0) {
+    return {
+      badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+      badgeLabel: "Not started",
+      detail: "0/3 clean passes",
+    };
+  }
+
+  if (entry.historicalState === "completed") {
+    return {
+      badgeClass: "bg-emerald-100 text-emerald-800 border-emerald-200",
+      badgeLabel: "Completed",
+      detail: "3/3 clean passes",
+    };
+  }
+
+  if (entry.currentHealthState === "drift" || entry.criticalFlag) {
+    return {
+      badgeClass: "bg-rose-100 text-rose-800 border-rose-200",
+      badgeLabel: "Drift",
+      detail: `${entry.currentStreak}/3 clean passes`,
+    };
+  }
+
+  if (entry.currentStreak === 2) {
+    return {
+      badgeClass: "bg-sky-100 text-sky-800 border-sky-200",
+      badgeLabel: "One pass away",
+      detail: "2/3 clean passes",
+    };
+  }
+
+  if (entry.currentStreak === 1) {
+    return {
+      badgeClass: "bg-amber-100 text-amber-900 border-amber-200",
+      badgeLabel: "Building streak",
+      detail: "1/3 clean passes",
+    };
+  }
+
+  return {
+    badgeClass: "bg-amber-100 text-amber-900 border-amber-200",
+    badgeLabel: "Retest needed",
+    detail: "0/3 clean passes",
+  };
+}
+
+function summarizeModuleDeepDiveProgress(
+  deepDiveProgress: TutorBattleTestDeepDiveProgress[] | null | undefined,
+  moduleKey: TutorAuditGroupKey
+) {
+  const moduleEntries = (deepDiveProgress || []).filter((entry) => entry.moduleKey === moduleKey);
+  const completedCount = moduleEntries.filter((entry) => entry.historicalState === "completed").length;
+  const onePassAwayCount = moduleEntries.filter((entry) => entry.historicalState !== "completed" && entry.currentStreak === 2).length;
+  const buildingCount = moduleEntries.filter(
+    (entry) => entry.historicalState !== "completed" && entry.currentStreak > 0 && entry.currentStreak < 2
+  ).length;
+  const retestCount = moduleEntries.filter(
+    (entry) =>
+      entry.historicalState !== "completed" &&
+      entry.attemptsCount > 0 &&
+      (entry.currentHealthState === "drift" || entry.criticalFlag || entry.currentStreak === 0)
+  ).length;
+
+  return {
+    totalCount: moduleEntries.length,
+    completedCount,
+    onePassAwayCount,
+    buildingCount,
+    retestCount,
+  };
 }
 
 export default function TDOverview() {
@@ -751,6 +826,7 @@ export default function TDOverview() {
                                                 {(["transformation_phases", "session_infrastructure"] as TutorAuditGroupKey[]).map((groupKey) => {
                                                   const groupMeta = getTutorAuditGroupMeta(groupKey);
                                                   const groupPhases = groupedTutorPhaseOptions[groupKey];
+                                                  const moduleSummary = summarizeModuleDeepDiveProgress(tutorAudit?.deepDiveProgress, groupKey);
                                                   const expandKey = `${tutor.assignment.id}:${groupKey}`;
                                                   const isGroupExpanded = expandedTutorAuditGroups[expandKey] ?? false;
 
@@ -764,6 +840,9 @@ export default function TDOverview() {
                                                         <div>
                                                           <p className="text-sm font-semibold text-foreground">{groupMeta.title}</p>
                                                           <p className="text-xs text-muted-foreground">{groupMeta.description}</p>
+                                                          <p className="mt-1 text-xs text-muted-foreground">
+                                                            {moduleSummary.completedCount}/{moduleSummary.totalCount} deep dives have reached 3/3 clean passes.
+                                                          </p>
                                                         </div>
                                                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background text-foreground shadow-sm">
                                                           {isGroupExpanded ? (
@@ -783,24 +862,29 @@ export default function TDOverview() {
                                                               tutorAudit?.phaseScores?.find(
                                                                 (entry) => entry.phaseKey === phaseDefinition.key
                                                               );
+                                                            const deepDiveEntry =
+                                                              tutorAudit?.deepDiveProgress?.find(
+                                                                (entry) => entry.phaseKey === phaseDefinition.key
+                                                              ) || null;
+                                                            const deepDiveView = getDeepDiveProgressView(deepDiveEntry);
 
                                                             return (
                                                               <div
                                                                 key={`${tutor.assignment.id}-${phaseDefinition.key}`}
-                                                                className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-background/80 px-3 py-2"
+                                                                className="flex items-start justify-between gap-3 rounded-lg border border-border/60 bg-background/80 px-3 py-2"
                                                               >
-                                                                <span className="text-sm font-medium text-foreground">
-                                                                  {phaseDefinition.title}
-                                                                </span>
-                                                                {phaseAudit ? (
-                                                                  <Badge variant="outline">
-                                                                    {Math.round(phaseAudit.percent)}%
-                                                                  </Badge>
-                                                                ) : (
-                                                                  <span className="text-xs text-muted-foreground">
-                                                                    Not yet audited
+                                                                <div className="min-w-0">
+                                                                  <span className="text-sm font-medium text-foreground">
+                                                                    {phaseDefinition.title}
                                                                   </span>
-                                                                )}
+                                                                  <p className="mt-1 text-xs text-muted-foreground">
+                                                                    {deepDiveView.detail}
+                                                                    {phaseAudit ? ` • Last score ${Math.round(phaseAudit.percent)}%` : ""}
+                                                                  </p>
+                                                                </div>
+                                                                <Badge className={deepDiveView.badgeClass}>
+                                                                  {deepDiveView.badgeLabel}
+                                                                </Badge>
                                                               </div>
                                                             );
                                                           })}
@@ -809,6 +893,9 @@ export default function TDOverview() {
                                                     </div>
                                                   );
                                                 })}
+                                              </div>
+                                              <div className="mt-3 rounded-lg border border-sky-200/70 bg-sky-50/50 px-3 py-2 text-xs text-sky-950">
+                                                Certification progress is earned deep dive by deep dive. A phase only counts as complete after 3 clean passes in a row.
                                               </div>
                                               {tutorAudit?.actionRequired ? (
                                                 <p className="mt-3 text-sm text-muted-foreground">{tutorAudit.actionRequired}</p>
@@ -826,19 +913,32 @@ export default function TDOverview() {
                                               ) : null}
                                               {tutorAudit?.moduleProgress?.length ? (
                                                 <div className="mt-3 grid gap-2 lg:grid-cols-2">
-                                                  {tutorAudit.moduleProgress.map((module) => (
-                                                    <div
-                                                      key={`${tutor.assignment.id}-${module.moduleKey}`}
-                                                      className="flex flex-col gap-1 rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-xs text-foreground"
-                                                    >
-                                                      <span className="min-w-0 font-medium leading-4">
-                                                        {module.title}
-                                                      </span>
-                                                      <span className="shrink-0 text-muted-foreground">
-                                                        {module.completedCount}/{module.totalCount}
-                                                      </span>
-                                                    </div>
-                                                  ))}
+                                                  {(["transformation_phases", "session_infrastructure"] as TutorAuditGroupKey[]).map((groupKey) => {
+                                                    const module = tutorAudit.moduleProgress?.find((entry) => entry.moduleKey === groupKey);
+                                                    const moduleSummary = summarizeModuleDeepDiveProgress(tutorAudit.deepDiveProgress, groupKey);
+                                                    const groupMeta = getTutorAuditGroupMeta(groupKey);
+
+                                                    return (
+                                                      <div
+                                                        key={`${tutor.assignment.id}-${groupKey}`}
+                                                        className="flex flex-col gap-1 rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-xs text-foreground"
+                                                      >
+                                                        <span className="min-w-0 font-medium leading-4">{groupMeta.title}</span>
+                                                        <span className="text-muted-foreground">
+                                                          Derived module status: {module?.completedCount || 0}/{module?.totalCount || 0} deep dives completed
+                                                        </span>
+                                                        <span className="text-muted-foreground">
+                                                          {moduleSummary.onePassAwayCount > 0
+                                                            ? `${moduleSummary.onePassAwayCount} one pass away`
+                                                            : moduleSummary.buildingCount > 0
+                                                              ? `${moduleSummary.buildingCount} building streak`
+                                                              : moduleSummary.retestCount > 0
+                                                                ? `${moduleSummary.retestCount} need streak rebuild`
+                                                                : "No active streaks yet"}
+                                                        </span>
+                                                      </div>
+                                                    );
+                                                  })}
                                                 </div>
                                               ) : null}
                                               {tutorAudit?.nextBattleTests?.length ? (

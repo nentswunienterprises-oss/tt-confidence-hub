@@ -238,7 +238,7 @@ AUDIT BLOCK
 [ ] Same time constraint was maintained
 [ ] Tutor did NOT adjust difficulty mid-set
 [ ] Tutor observed consistency across reps
-[ ] Tutor enforced structure each time
+[ ] Tutor enRequired Structure each time
 [ ] Each rep presented clearly 
 
 POTENTIAL VIOLATIONS

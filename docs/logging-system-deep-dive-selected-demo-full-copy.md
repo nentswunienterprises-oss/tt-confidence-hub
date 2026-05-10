@@ -451,7 +451,7 @@ Run the correct Structured Execution training drill for the current topic-state.
 
 Full Structured Execution training structure.
 
-#### Set 1 / 3: Forced Structure
+#### Set 1 / 3: Required Structure
 
 Student must state all steps first, then solve.
 

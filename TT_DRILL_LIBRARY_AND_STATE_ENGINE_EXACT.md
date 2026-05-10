@@ -337,10 +337,10 @@ Derived from:
 
 ### Structured Execution
 
-#### Set 1: `Forced Structure`
+#### Set 1: `Required Structure`
 
 - Reps: `3`
-- Purpose: `Force structured execution. Student must state all steps first, then solve. Build discipline before independence.`
+- Purpose: `Require structured execution. Student must state all steps first, then solve. Build discipline before independence.`
 - Rep instruction: `State steps first. Then solve.`
 - Active rules:
   - `Steps must be stated before solving`
