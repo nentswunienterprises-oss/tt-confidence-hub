@@ -125,44 +125,6 @@ function getSessionTimeLabel(value: string): string {
   });
 }
 
-function formatMovementSummary(value?: string | null): string {
-  const text = String(value || "").trim();
-  if (!text) return "";
-
-  const stripped = text
-    .replace(/^Across sessions, the system:\s*/i, "")
-    .replace(/^Across this week, the system:\s*/i, "")
-    .trim();
-
-  const normalized = stripped.replace(/- volatility:/i, "||VOL||");
-  const [movementPart, volatilityPart] = normalized.split("||VOL||");
-  const movementLines = (movementPart || "")
-    .split("|")
-    .map((line) =>
-      line
-        .replace(/^Topic\s+Movement\s+Summary:\s*/i, "")
-        .replace(/^Topic\s+Movement:\s*/i, "")
-        .trim()
-    )
-    .filter(Boolean);
-
-  const sections: string[] = [];
-  if (movementLines.length > 0) {
-    sections.push(`Topic Movement Summary:\n${movementLines.join("\n")}`);
-  }
-  if (volatilityPart && volatilityPart.trim()) {
-    sections.push(`Volatility:\n${volatilityPart.trim()}`);
-  }
-
-  return sections.length > 0 ? sections.join("\n\n") : stripped;
-}
-
-function formatWeeklyNextFocus(value?: string | null): string {
-  const text = String(value || "").trim();
-  if (!text) return "";
-  return text.replace(/\bRun\s+/g, "Running ");
-}
-
 function formatReportValue(value: any): string {
   if (Array.isArray(value)) {
     const formatted = value
@@ -353,12 +315,10 @@ export default function ViewTrackingSystemsDialog({
                               </AccordionTrigger>
                               <AccordionContent className="space-y-3">
                                 <FieldRow label="Topics Worked On" value={formatReportValue(structured.topicsWorkedOn || structured.mainTopicsCovered || report.topicsLearned)} />
-                                <FieldRow label="Conditioning Progress" value={formatReportValue(structured.conditioningProgress || structured.bossBattleSummaryThisWeek)} />
-                                <FieldRow label="What Improved" value={formatReportValue(structured.whatImproved || structured.whatImprovedThisWeek || report.strengths)} />
-                                <FieldRow label="Response Pattern" value={formatReportValue(structured.responsePattern || structured.studentResponsePatternThisWeek)} />
-                                <FieldRow label="Main Breakdown" value={formatReportValue(structured.mainBreakdown || structured.mainMisunderstandingThisWeek || report.areasForGrowth)} />
-                                <FieldRow label="Movement Summary" value={formatMovementSummary(formatReportValue(structured.systemMovement || structured.mainCorrectionHelpedThisWeek))} />
-                                <FieldRow label="Next Focus" value={formatWeeklyNextFocus(formatReportValue(structured.nextFocus || structured.reinforcementNextWeek || report.nextSteps))} />
+                                <FieldRow label="What Changed" value={formatReportValue(structured.whatChanged || structured.whatImproved || structured.whatImprovedThisWeek || report.strengths)} />
+                                <FieldRow label="Breakdown Pattern" value={formatReportValue(structured.breakdownPattern || structured.responsePattern || structured.studentResponsePatternThisWeek || structured.mainBreakdown || structured.mainMisunderstandingThisWeek || report.areasForGrowth)} />
+                                <FieldRow label="What This Means" value={formatReportValue(structured.whatThisMeans || structured.conditioningProgress || structured.bossBattleSummaryThisWeek || structured.systemMovement || structured.mainCorrectionHelpedThisWeek)} />
+                                <FieldRow label="Next Move" value={formatReportValue(structured.nextMove || structured.nextFocus || structured.reinforcementNextWeek || report.nextSteps)} />
                                 {report.parentFeedback ? (
                                   <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
                                     <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-amber-900">Parent Feedback</p>
