@@ -492,7 +492,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     <span className="text-[#1A1A1A]">Integrity</span>
                   </>
                 ) : (
-                  "THE RESPONSE HUB"
+                  "Response Integrity"
                 )}
               </div>
             </Link>
@@ -509,7 +509,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                       <span className="text-[#1A1A1A]">Integrity</span>
                     </>
                   ) : (
-                    "TT Response Hub"
+                    "Response Integrity"
                   )}
                 </div>
                 {effectiveUser && (
