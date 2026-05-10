@@ -4,7 +4,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import BattleTestHistoryDialog from "@/components/battle-testing/BattleTestHistoryDialog";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import BattleTestRunnerDialog from "@/components/battle-testing/BattleTestRunnerDialog";
 import { Card } from "@/components/ui/card";
@@ -338,9 +337,6 @@ export default function PodDetail() {
   const [selectedStudentName, setSelectedStudentName] = useState<string>("");
   const [selectedStudentRecord, setSelectedStudentRecord] = useState<any | null>(null);
   const [tdBattleTestOpen, setTdBattleTestOpen] = useState(false);
-  const [activeTutorHistory, setActiveTutorHistory] = useState<{ assignmentId: string; tutorName: string } | null>(null);
-  const [tdHistoryOpen, setTdHistoryOpen] = useState(false);
-
   if (!podId) {
     navigate("/coo/pods");
     return null;
@@ -997,9 +993,6 @@ export default function PodDetail() {
                         <Badge className={getBattleTestStateBadgeClass(battleTestingSummary.tdSummary.state)}>
                           {getBattleTestStateLabel(battleTestingSummary.tdSummary.state)}
                         </Badge>
-                        <Button size="sm" variant="outline" className="w-full sm:w-auto" onClick={() => setTdHistoryOpen(true)}>
-                          TD History
-                        </Button>
                         <Button size="sm" className="w-full sm:w-auto" onClick={() => setTdBattleTestOpen(true)}>
                           Run TD Audit
                         </Button>
@@ -1320,22 +1313,6 @@ export default function PodDetail() {
                                           ) : null}
                                         </div>
                                       </div>
-                                      <div className="mt-3 flex flex-wrap gap-2">
-                                        <Button
-                                          size="sm"
-                                          variant="outline"
-                                          onClick={() => {
-                                            if (!tutorAudit) return;
-                                            setActiveTutorHistory({
-                                              assignmentId: assignment.id,
-                                              tutorName: tutorAudit.tutorName,
-                                            });
-                                          }}
-                                          disabled={!tutorAudit}
-                                        >
-                                          Audit History
-                                        </Button>
-                                      </div>
                                       <p className="mt-3 text-sm text-muted-foreground">
                                         {assignment.student_count || 0}/{maxStudentsPerTutor} students assigned.
                                       </p>
@@ -1515,34 +1492,6 @@ export default function PodDetail() {
             responses,
           });
         }}
-      />
-
-      <BattleTestHistoryDialog
-        open={!!activeTutorHistory}
-        onOpenChange={(open) => {
-          if (!open) setActiveTutorHistory(null);
-        }}
-        title={
-          activeTutorHistory
-            ? `Tutor Audit History - ${activeTutorHistory.tutorName}`
-            : "Tutor Audit History"
-        }
-        description="Stored tutor battle-test runs and rep-level detail for this pod."
-        historyQueryKey={`battle-test-runs-${podId}`}
-        historyEndpoint={`/api/battle-tests/pods/${podId}/runs`}
-        filter={(run) =>
-          !!activeTutorHistory && run.subjectType === "tutor" && run.tutorAssignmentId === activeTutorHistory.assignmentId
-        }
-      />
-
-      <BattleTestHistoryDialog
-        open={tdHistoryOpen}
-        onOpenChange={setTdHistoryOpen}
-        title={`TD Audit History - ${tdName}`}
-        description="Stored TD system-integrity battle tests for this pod."
-        historyQueryKey={`battle-test-runs-${podId}`}
-        historyEndpoint={`/api/battle-tests/pods/${podId}/runs`}
-        filter={(run) => run.subjectType === "td"}
       />
 
       {/* Student Dialogs - COO read-only view */}
