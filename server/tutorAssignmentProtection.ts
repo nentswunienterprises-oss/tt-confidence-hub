@@ -31,7 +31,13 @@ function isHeuristicSandboxEnrollment(enrollment: any, tutorId?: string) {
   );
 }
 
-export async function safelyUnassignEnrollmentFromTutor(enrollment: any, previousTutorId: string) {
+export async function safelyUnassignEnrollmentFromTutor(
+  enrollment: any,
+  previousTutorId: string,
+  options?: {
+    notificationMessage?: string;
+  }
+) {
   const studentName = String(enrollment?.student_full_name || "Student").trim() || "Student";
   const parentName = String(enrollment?.parent_full_name || "Parent").trim() || "Parent";
   const nowIso = new Date().toISOString();
@@ -178,7 +184,9 @@ export async function safelyUnassignEnrollmentFromTutor(enrollment: any, previou
       recipientUserId: previousTutorId,
       channel: "informational",
       title: "Assignment Unassigned",
-      message: `${studentName} from ${parentName} has been unassigned from your active tutor view. This happened because your current certification mode does not allow live parent assignments. The enrollment has been preserved for reassignment.`,
+      message:
+        options?.notificationMessage ||
+        `${studentName} from ${parentName} has been unassigned from your active tutor view. This happened because your current certification mode does not allow live parent assignments. The enrollment has been preserved for reassignment.`,
       link: "/operational/tutor/updates",
       entityType: "assignment_unassigned",
       entityId: String(enrollment.id),

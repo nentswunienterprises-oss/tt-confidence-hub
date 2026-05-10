@@ -73,9 +73,12 @@ import {
 import {
   buildBattleTestSuccessPayload,
   buildPodBattleTestingSummary,
+  clearTutorAssignmentCertificationState,
   getBattleTestRunDetail,
   getBattleTestRunHistoryForPod,
+  hydrateTutorAssignmentFromPortableSnapshot,
   persistBattleTestRun,
+  upsertTutorPortableCertificationSnapshot,
 } from "./battleTesting";
 import {
   TD_BATTLE_TEST_PHASE_EXACT,
@@ -384,7 +387,15 @@ async function getTutorOperationalMode(tutorId: string): Promise<"training" | "c
 async function getTutorCertificationMode(tutorId: string): Promise<TutorTrainingMode> {
   const assignment = await storage.getTutorAssignment(tutorId);
   if (!assignment?.id) {
-    return "training";
+    const { data: portableSnapshot } = await supabase
+      .from("tutor_portable_certification_snapshots")
+      .select("mode")
+      .eq("tutor_id", tutorId)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    return (portableSnapshot?.mode as TutorTrainingMode | undefined) || "training";
   }
 
   const { data: certificationStatus } = await supabase
@@ -426,9 +437,32 @@ async function getTutorCertificationMode(tutorId: string): Promise<TutorTraining
     return persistedMode;
   }
 
+  const { data: portableSnapshot } = await supabase
+    .from("tutor_portable_certification_snapshots")
+    .select("mode")
+    .eq("tutor_id", tutorId)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (portableSnapshot?.mode) {
+    return portableSnapshot.mode as TutorTrainingMode;
+  }
+
   return (assignment?.operationalMode as "training" | "certified_live" | undefined) === "certified_live"
     ? "certified_live"
     : "training";
+}
+
+async function createPortableTutorAssignment(tutorId: string, podId: string) {
+  const assignment = await storage.createTutorAssignment({
+    tutorId,
+    podId,
+    certificationStatus: "pending",
+  });
+
+  await hydrateTutorAssignmentFromPortableSnapshot(assignment.id, tutorId);
+  return assignment;
 }
 
 async function getParentAssignedTutorOperationalMode(parentId: string): Promise<"training" | "certified_live"> {
@@ -13613,11 +13647,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (tutorIds && Array.isArray(tutorIds) && tutorIds.length > 0) {
           console.log(`📝 Assigning ${tutorIds.length} pod-eligible tutors to pod ${pod.id}`);
           for (const tutorId of tutorIds) {
-            await storage.createTutorAssignment({
-              tutorId,
-              podId: pod.id,
-              certificationStatus: "pending",
-            });
+            await createPortableTutorAssignment(tutorId, pod.id);
           }
           console.log("✅ Tutors assigned successfully");
         }
@@ -14154,7 +14184,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireRole(["coo"]),
     async (req: Request, res: Response) => {
       try {
-        const { assignmentId } = req.params;
+        const { podId, assignmentId } = req.params;
+
+        const { data: assignmentRow, error: assignmentError } = await supabase
+          .from("tutor_assignments")
+          .select("id, tutor_id, pod_id")
+          .eq("id", assignmentId)
+          .eq("pod_id", podId)
+          .maybeSingle();
+
+        if (assignmentError) {
+          throw new Error(`Failed to load tutor assignment: ${assignmentError.message}`);
+        }
+
+        if (!assignmentRow) {
+          return res.status(404).json({ message: "Tutor assignment not found" });
+        }
+
+        const tutorId = String(assignmentRow.tutor_id || "").trim();
+        if (!tutorId) {
+          return res.status(400).json({ message: "Tutor assignment is missing a tutor reference" });
+        }
+
+        await upsertTutorPortableCertificationSnapshot(assignmentId, tutorId);
+
+        const { data: assignedEnrollments, error: assignedEnrollmentsError } = await loadTutorAssignedEnrollments(
+          tutorId,
+          { ordered: true }
+        );
+
+        if (assignedEnrollmentsError) {
+          throw new Error(`Failed to load tutor enrollments for pod removal: ${assignedEnrollmentsError.message}`);
+        }
+
+        for (const enrollment of assignedEnrollments || []) {
+          await safelyUnassignEnrollmentFromTutor(enrollment, tutorId, {
+            notificationMessage: `${String(enrollment?.student_full_name || "Student").trim() || "Student"} from ${String(enrollment?.parent_full_name || "Parent").trim() || "Parent"} has been removed from your pod assignment. The enrollment has been preserved for reassignment.`,
+          });
+        }
+
+        await clearTutorAssignmentCertificationState(assignmentId);
         await storage.deleteTutorAssignment(assignmentId);
         res.json({ message: "Tutor removed from pod successfully" });
       } catch (error) {
@@ -14240,11 +14309,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create new assignments
         const newAssignments = await Promise.all(
           tutorIds.map((tutorId: string) =>
-            storage.createTutorAssignment({
-              tutorId,
-              podId,
-              certificationStatus: "pending",
-            })
+            createPortableTutorAssignment(tutorId, podId)
           )
         );
 

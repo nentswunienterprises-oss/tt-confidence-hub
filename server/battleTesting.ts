@@ -441,7 +441,181 @@ async function syncTutorCertificationState(
     throw new Error(`Failed to sync tutor assignment operational mode: ${assignmentModeError.message}`);
   }
 
+  await upsertTutorPortableCertificationSnapshot(tutorAssignmentId, tutorId);
   await cleanupLegacyLiveEnrollmentsForNonLiveTutor(tutorId, mode);
+}
+
+export async function clearTutorAssignmentCertificationState(tutorAssignmentId: string) {
+  const { error: deleteProgressError } = await supabase
+    .from("tutor_battle_test_deep_dive_progress")
+    .delete()
+    .eq("tutor_assignment_id", tutorAssignmentId);
+  if (deleteProgressError) {
+    throw new Error(`Failed to clear tutor deep dive progress: ${deleteProgressError.message}`);
+  }
+
+  const { error: deleteStatusError } = await supabase
+    .from("tutor_battle_test_statuses")
+    .delete()
+    .eq("tutor_assignment_id", tutorAssignmentId);
+  if (deleteStatusError) {
+    throw new Error(`Failed to clear tutor certification status: ${deleteStatusError.message}`);
+  }
+}
+
+export async function upsertTutorPortableCertificationSnapshot(tutorAssignmentId: string, tutorId: string) {
+  const { data: statusRow, error: statusError } = await supabase
+    .from("tutor_battle_test_statuses")
+    .select(
+      "mode, module_progress, next_battle_tests, last_synced_at, certification_recovery_note, recovery_required_until"
+    )
+    .eq("tutor_assignment_id", tutorAssignmentId)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (statusError) {
+    throw new Error(`Failed to load tutor certification status for portable snapshot: ${statusError.message}`);
+  }
+
+  if (!statusRow) {
+    return null;
+  }
+
+  const deepDiveSelectFields =
+    "phase_key, title, module_key, module_title, historical_state, current_health_state, current_streak, consecutive_drift_count, latest_score, completed_at, last_tested_at, attempts_count, critical_flag";
+  const legacyDeepDiveSelectFields =
+    "phase_key, title, module_key, module_title, historical_state, current_health_state, current_streak, latest_score, completed_at, last_tested_at, attempts_count, critical_flag";
+
+  let { data: deepDiveRows, error: deepDiveError } = await supabase
+    .from("tutor_battle_test_deep_dive_progress")
+    .select(deepDiveSelectFields)
+    .eq("tutor_assignment_id", tutorAssignmentId);
+
+  if (deepDiveError?.message?.includes("consecutive_drift_count")) {
+    const legacyQuery = await supabase
+      .from("tutor_battle_test_deep_dive_progress")
+      .select(legacyDeepDiveSelectFields)
+      .eq("tutor_assignment_id", tutorAssignmentId);
+
+    deepDiveRows = (legacyQuery.data || []).map((row) => ({
+      ...row,
+      consecutive_drift_count: 0,
+    }));
+    deepDiveError = legacyQuery.error;
+  }
+
+  if (deepDiveError) {
+    throw new Error(`Failed to load tutor deep dive progress for portable snapshot: ${deepDiveError.message}`);
+  }
+
+  const nowIso = new Date().toISOString();
+  const payload = {
+    tutor_id: tutorId,
+    source_assignment_id: tutorAssignmentId,
+    mode: statusRow.mode,
+    module_progress: statusRow.module_progress || [],
+    next_battle_tests: statusRow.next_battle_tests || [],
+    deep_dive_progress: deepDiveRows || [],
+    certification_recovery_note: (statusRow as any).certification_recovery_note || null,
+    recovery_required_until: (statusRow as any).recovery_required_until || null,
+    last_synced_at: statusRow.last_synced_at || nowIso,
+    updated_at: nowIso,
+  };
+
+  const { error: upsertError } = await supabase
+    .from("tutor_portable_certification_snapshots")
+    .upsert(payload, { onConflict: "tutor_id" });
+
+  if (upsertError) {
+    throw new Error(`Failed to save tutor portable certification snapshot: ${upsertError.message}`);
+  }
+
+  return payload;
+}
+
+export async function hydrateTutorAssignmentFromPortableSnapshot(tutorAssignmentId: string, tutorId: string) {
+  const { data: snapshotRow, error: snapshotError } = await supabase
+    .from("tutor_portable_certification_snapshots")
+    .select(
+      "mode, module_progress, next_battle_tests, deep_dive_progress, certification_recovery_note, recovery_required_until, last_synced_at"
+    )
+    .eq("tutor_id", tutorId)
+    .maybeSingle();
+
+  if (snapshotError) {
+    throw new Error(`Failed to load tutor portable certification snapshot: ${snapshotError.message}`);
+  }
+
+  if (!snapshotRow) {
+    return false;
+  }
+
+  await clearTutorAssignmentCertificationState(tutorAssignmentId);
+
+  const syncedAt = new Date().toISOString();
+  const deepDiveProgress = Array.isArray((snapshotRow as any).deep_dive_progress)
+    ? (snapshotRow as any).deep_dive_progress
+    : [];
+
+  if (deepDiveProgress.length) {
+    const progressRows = deepDiveProgress.map((entry: any) => ({
+      tutor_assignment_id: tutorAssignmentId,
+      tutor_id: tutorId,
+      phase_key: entry.phase_key || entry.phaseKey,
+      title: entry.title,
+      module_key: entry.module_key || entry.moduleKey,
+      module_title: entry.module_title || entry.moduleTitle,
+      historical_state: entry.historical_state || entry.historicalState || "in_progress",
+      current_health_state: entry.current_health_state || entry.currentHealthState || "drift",
+      current_streak: entry.current_streak ?? entry.currentStreak ?? 0,
+      consecutive_drift_count: entry.consecutive_drift_count ?? entry.consecutiveDriftCount ?? 0,
+      latest_score: entry.latest_score ?? entry.latestScore ?? null,
+      completed_at: entry.completed_at || entry.completedAt || null,
+      last_tested_at: entry.last_tested_at || entry.lastTestedAt || null,
+      attempts_count: entry.attempts_count ?? entry.attemptsCount ?? 0,
+      critical_flag: Boolean(entry.critical_flag ?? entry.criticalFlag),
+      updated_at: syncedAt,
+    }));
+
+    const { error: insertProgressError } = await supabase
+      .from("tutor_battle_test_deep_dive_progress")
+      .insert(progressRows);
+    if (insertProgressError) {
+      throw new Error(`Failed to restore tutor deep dive progress: ${insertProgressError.message}`);
+    }
+  }
+
+  const mode = (snapshotRow.mode || "training") as TutorTrainingMode;
+  const { error: insertStatusError } = await supabase
+    .from("tutor_battle_test_statuses")
+    .insert({
+      tutor_assignment_id: tutorAssignmentId,
+      tutor_id: tutorId,
+      mode,
+      module_progress: (snapshotRow as any).module_progress || [],
+      next_battle_tests: (snapshotRow as any).next_battle_tests || [],
+      last_synced_at: (snapshotRow as any).last_synced_at || syncedAt,
+      certification_recovery_note: (snapshotRow as any).certification_recovery_note || null,
+      recovery_required_until: (snapshotRow as any).recovery_required_until || null,
+      updated_at: syncedAt,
+    });
+
+  if (insertStatusError) {
+    throw new Error(`Failed to restore tutor certification status: ${insertStatusError.message}`);
+  }
+
+  const effectiveOperationalMode = mode === "certified_live" ? "certified_live" : "training";
+  const { error: assignmentModeError } = await supabase
+    .from("tutor_assignments")
+    .update({ operational_mode: effectiveOperationalMode })
+    .eq("id", tutorAssignmentId);
+
+  if (assignmentModeError) {
+    throw new Error(`Failed to restore tutor assignment operational mode: ${assignmentModeError.message}`);
+  }
+
+  return true;
 }
 
 async function loadTutorCertificationSnapshots(assignmentIds: string[]) {
