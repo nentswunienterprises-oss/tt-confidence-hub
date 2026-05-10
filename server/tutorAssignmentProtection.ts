@@ -12,6 +12,11 @@ export const ACTIVE_PARENT_ENROLLMENT_STATUSES = [
 
 const REASSIGNMENT_RESUME_PREFIX = "reassignment_resume:";
 
+type TutorEnrollmentUnassignOptions = {
+  notificationMessage?: string;
+  cleanupArtifacts?: boolean;
+};
+
 function buildReassignmentResumeStep(status: string | null | undefined): string {
   const normalized = String(status || "").trim().toLowerCase();
   if (!normalized) return `${REASSIGNMENT_RESUME_PREFIX}assigned`;
@@ -31,28 +36,27 @@ function isHeuristicSandboxEnrollment(enrollment: any, tutorId?: string) {
   );
 }
 
-export async function safelyUnassignEnrollmentFromTutor(
-  enrollment: any,
-  previousTutorId: string,
-  options?: {
-    notificationMessage?: string;
-  }
-) {
-  const studentName = String(enrollment?.student_full_name || "Student").trim() || "Student";
-  const parentName = String(enrollment?.parent_full_name || "Parent").trim() || "Parent";
-  const nowIso = new Date().toISOString();
+function buildDetachedEnrollmentState(enrollment: any) {
   const preserveTrainingProgress = !!enrollment?.proposal_id;
-  const preservedCurrentStep = preserveTrainingProgress
-    ? buildReassignmentResumeStep(enrollment?.status || enrollment?.current_step || "assigned")
-    : "awaiting_assignment";
+  return {
+    preserveTrainingProgress,
+    preservedCurrentStep: preserveTrainingProgress
+      ? buildReassignmentResumeStep(enrollment?.status || enrollment?.current_step || "assigned")
+      : "awaiting_assignment",
+  };
+}
+
+async function detachEnrollmentAssignment(enrollment: any) {
+  const nowIso = new Date().toISOString();
+  const detachedState = buildDetachedEnrollmentState(enrollment);
 
   let { error: unassignError } = await supabase
     .from("parent_enrollments")
     .update({
       assigned_tutor_id: null,
       status: "awaiting_assignment",
-      current_step: preservedCurrentStep,
-      proposal_id: preserveTrainingProgress ? enrollment?.proposal_id : null,
+      current_step: detachedState.preservedCurrentStep,
+      proposal_id: detachedState.preserveTrainingProgress ? enrollment?.proposal_id : null,
       updated_at: nowIso,
     })
     .eq("id", enrollment.id);
@@ -67,7 +71,7 @@ export async function safelyUnassignEnrollmentFromTutor(
         .update({
           assigned_tutor_id: null,
           status: "awaiting_assignment",
-          proposal_id: preserveTrainingProgress ? enrollment?.proposal_id : null,
+          proposal_id: detachedState.preserveTrainingProgress ? enrollment?.proposal_id : null,
           updated_at: nowIso,
         })
         .eq("id", enrollment.id);
@@ -79,6 +83,93 @@ export async function safelyUnassignEnrollmentFromTutor(
   if (unassignError) {
     throw new Error(`Failed to unassign tutor from enrollment ${enrollment.id}: ${unassignError.message}`);
   }
+}
+
+async function restoreEnrollmentAssignment(enrollment: any, tutorId: string) {
+  const nowIso = new Date().toISOString();
+
+  let { error: restoreError } = await supabase
+    .from("parent_enrollments")
+    .update({
+      assigned_tutor_id: tutorId,
+      status: enrollment?.status || "assigned",
+      current_step: enrollment?.current_step || null,
+      proposal_id: enrollment?.proposal_id || null,
+      updated_at: nowIso,
+    })
+    .eq("id", enrollment.id);
+
+  if (restoreError) {
+    const message = String((restoreError as any)?.message || "").toLowerCase();
+    const missingOptionalColumn = message.includes("current_step") || message.includes("proposal_id");
+
+    if (missingOptionalColumn) {
+      const fallback = await supabase
+        .from("parent_enrollments")
+        .update({
+          assigned_tutor_id: tutorId,
+          status: enrollment?.status || "assigned",
+          updated_at: nowIso,
+        })
+        .eq("id", enrollment.id);
+
+      restoreError = fallback.error as any;
+    }
+  }
+
+  if (restoreError) {
+    throw new Error(`Failed to restore tutor on enrollment ${enrollment.id}: ${restoreError.message}`);
+  }
+}
+
+async function restoreStudentTutorLink(studentId: string, tutorId: string) {
+  const student = await storage.getStudent(studentId);
+  if (!student) return;
+
+  await storage.updateStudent(studentId, {
+    tutorId,
+    updatedAt: new Date().toISOString(),
+  } as any);
+}
+
+export async function restoreDetachedEnrollmentToTutor(enrollment: any, tutorId: string) {
+  await restoreEnrollmentAssignment(enrollment, tutorId);
+
+  const restoredStudentIds = new Set<string>();
+
+  if (enrollment.assigned_student_id) {
+    restoredStudentIds.add(String(enrollment.assigned_student_id));
+    await restoreStudentTutorLink(String(enrollment.assigned_student_id), tutorId);
+  }
+
+  const { data: linkedStudents } = await supabase
+    .from("students")
+    .select("id")
+    .eq("parent_enrollment_id", enrollment.id);
+
+  for (const linkedStudent of linkedStudents || []) {
+    const studentId = String(linkedStudent.id || "");
+    if (!studentId || restoredStudentIds.has(studentId)) continue;
+    restoredStudentIds.add(studentId);
+    await restoreStudentTutorLink(studentId, tutorId);
+  }
+
+  const { data: fallbackStudents } = await supabase
+    .from("students")
+    .select("id")
+    .eq("parent_id", enrollment.user_id)
+    .eq("name", enrollment.student_full_name);
+
+  for (const fallbackStudent of fallbackStudents || []) {
+    const studentId = String(fallbackStudent.id || "");
+    if (!studentId || restoredStudentIds.has(studentId)) continue;
+    restoredStudentIds.add(studentId);
+    await restoreStudentTutorLink(studentId, tutorId);
+  }
+}
+
+export async function cleanupDetachedEnrollmentArtifacts(enrollment: any, previousTutorId: string) {
+  const nowIso = new Date().toISOString();
 
   const clearWorkflow = async (studentId: string) => {
     const student = await storage.getStudent(studentId);
@@ -178,6 +269,20 @@ export async function safelyUnassignEnrollmentFromTutor(
       }
     }
   }
+}
+
+export async function safelyUnassignEnrollmentFromTutor(
+  enrollment: any,
+  previousTutorId: string,
+  options?: TutorEnrollmentUnassignOptions
+) {
+  const studentName = String(enrollment?.student_full_name || "Student").trim() || "Student";
+  const parentName = String(enrollment?.parent_full_name || "Parent").trim() || "Parent";
+  await detachEnrollmentAssignment(enrollment);
+
+  if (options?.cleanupArtifacts !== false) {
+    await cleanupDetachedEnrollmentArtifacts(enrollment, previousTutorId);
+  }
 
   try {
     await storage.createNotification({
@@ -208,8 +313,7 @@ export async function cleanupLegacyLiveEnrollmentsForNonLiveTutor(
     .from("parent_enrollments")
     .select("id, user_id, student_full_name, assigned_tutor_id, assigned_student_id, status, proposal_id, current_step, is_sandbox_account, parent_full_name, parent_email, student_grade, school_name, math_struggle_areas, previous_tutoring, internet_access, parent_motivation")
     .eq("assigned_tutor_id", tutorId)
-    .eq("is_sandbox_account", false)
-    .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES]);
+    .eq("is_sandbox_account", false);
 
   if (liveEnrollmentsError) {
     const message = String((liveEnrollmentsError as any)?.message || "").toLowerCase();
@@ -223,8 +327,7 @@ export async function cleanupLegacyLiveEnrollmentsForNonLiveTutor(
       const fallback = await supabase
         .from("parent_enrollments")
         .select("id, user_id, student_full_name, assigned_tutor_id, status, parent_full_name, parent_email, student_grade, school_name, math_struggle_areas, previous_tutoring, internet_access, parent_motivation")
-        .eq("assigned_tutor_id", tutorId)
-        .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES]);
+        .eq("assigned_tutor_id", tutorId);
 
       liveEnrollments = (fallback.data || []).filter(
         (enrollment: any) =>

@@ -1365,6 +1365,9 @@ export async function buildPodBattleTestingSummary(
 export async function getBattleTestRunHistoryForPod(
   podId: string,
   nameByUserId: Record<string, string>,
+  options?: {
+    currentTutorIds?: string[];
+  }
 ) {
   const { data, error } = await supabase
     .from("battle_test_runs")
@@ -1376,8 +1379,35 @@ export async function getBattleTestRunHistoryForPod(
     throw new Error(`Failed to load battle-testing history: ${error.message}`);
   }
 
-  return (data || []).map((rawRow) => {
-    const run = mapRunRow(rawRow);
+  const currentTutorIds = Array.from(
+    new Set((options?.currentTutorIds || []).map((value) => String(value || "").trim()).filter(Boolean))
+  );
+  let portableTutorRows: any[] = [];
+  if (currentTutorIds.length > 0) {
+    const portableTutorQuery = await supabase
+      .from("battle_test_runs")
+      .select("*")
+      .eq("subject_type", "tutor")
+      .in("subject_user_id", currentTutorIds)
+      .order("completed_at", { ascending: false });
+
+    if (portableTutorQuery.error) {
+      throw new Error(`Failed to load portable tutor battle-testing history: ${portableTutorQuery.error.message}`);
+    }
+
+    portableTutorRows = portableTutorQuery.data || [];
+  }
+
+  const dedupedRuns = Array.from(
+    new Map(
+      [...(data || []), ...portableTutorRows]
+        .map((rawRow) => mapRunRow(rawRow))
+        .sort((left, right) => new Date(right.completed_at).getTime() - new Date(left.completed_at).getTime())
+        .map((run) => [run.id, run] as const)
+    ).values()
+  );
+
+  return dedupedRuns.map((run) => {
     return {
       runId: run.id,
       podId: run.pod_id,

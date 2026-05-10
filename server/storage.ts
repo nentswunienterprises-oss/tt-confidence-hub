@@ -694,10 +694,13 @@ export class SupabaseStorage implements IStorage {
 
   async deletePod(podId: string): Promise<void> {
     // Soft delete: set deleted_at timestamp and clear td_id
-    await supabase
+    const { error } = await supabase
       .from("pods")
       .update({ deleted_at: new Date().toISOString(), td_id: null })
       .eq("id", podId);
+    if (error) {
+      throw new Error(`Failed to soft-delete pod ${podId}: ${error.message}`);
+    }
   }
 
   async getPodByTD(tdId: string): Promise<Pod | undefined> {
@@ -838,7 +841,10 @@ export class SupabaseStorage implements IStorage {
   }
 
   async deleteTutorAssignment(id: string): Promise<void> {
-    await supabase.from("tutor_assignments").delete().eq("id", id);
+    const { error } = await supabase.from("tutor_assignments").delete().eq("id", id);
+    if (error) {
+      throw new Error(`Failed to delete tutor assignment ${id}: ${error.message}`);
+    }
   }
 
   // Students
