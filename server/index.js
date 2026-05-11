@@ -57,9 +57,10 @@ app.use(cors({
         if (!origin)
             return callback(null, true);
         var allowedOrigins = [
+            'https://responseintegrity.co.za',
+            'https://www.responseintegrity.co.za',
             'https://app.responseintegrity.co.za',
             'https://api.responseintegrity.co.za',
-            'https://www.responseintegrity.co.za',
         ];
         var isLocal = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
         var isHttps = /^https:\/\//.test(origin);

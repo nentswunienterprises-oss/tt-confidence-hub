@@ -94,12 +94,12 @@ export default function TDNoPod() {
                 className="gap-2"
                 onClick={() =>
                   (window.location.href =
-                    "mailto:territorialtutoring@gmail.com")
+                    "mailto:support@responseintegrity.co.za")
                 }
                 data-testid="button-contact-support"
               >
                 <Mail className="w-4 h-4" />
-                territorialtutoring@gmail.com
+                support@responseintegrity.co.za
               </Button>
             </div>
 
