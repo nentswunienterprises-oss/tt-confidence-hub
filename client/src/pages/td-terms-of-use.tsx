@@ -4,7 +4,7 @@ export default function TdTermsOfUse() {
   return (
     <LegalDocumentPage
       title="Territory Director Terms of Use"
-      subtitle="Territorial Tutoring SA (Pty) Ltd | Version 1.0 | Effective May 8, 2026"
+      subtitle="Response Integrity SA (Pty) Ltd | Version 1.0 | Effective May 8, 2026"
       intro={
         <>
           <p>
@@ -82,7 +82,7 @@ export default function TdTermsOfUse() {
       ]}
       footer={
         <p className="text-sm text-slate-600 text-center">
-          Territorial Tutoring SA (Pty) Ltd | Territory Director Terms of Use | www.responseintegrity.co.za
+          Response Integrity SA (Pty) Ltd | Territory Director Terms of Use | www.responseintegrity.co.za
         </p>
       }
     />

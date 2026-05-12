@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { buildTrackedPath, resolveTrackedBackTarget } from "@/lib/publicTracking";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Heart, Sparkles } from "lucide-react";
-import { TTLogo } from "@/components/TTLogo";
+import { TTLogo } from "@/components/ResponseIntegrityLogo";
 
 export default function ClientSignup() {
   const [mode, setMode] = useState<"signup" | "login">("signup");

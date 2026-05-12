@@ -65,10 +65,10 @@ export default function AffiliateLanding() {
   return (
     <>
       <Head>
-        <title>Education Growth Partner - Territorial Tutoring</title>
+        <title>Education Growth Partner - Response Integrity</title>
         <meta
           name="description"
-          content="Apply for access as an Education Growth Partner. This is a precision-first, performance-based operator role inside Territorial Tutoring."
+          content="Apply for access as an Education Growth Partner. This is a precision-first, performance-based operator role inside Response Integrity."
         />
       </Head>
 
@@ -104,7 +104,7 @@ export default function AffiliateLanding() {
                   </h1>
                   <div className="mt-5 grid gap-6 lg:grid-cols-[1fr_240px] lg:items-start">
                     <div className="max-w-2xl space-y-3 text-base leading-7 text-[#534A43] sm:text-[17px]">
-                      <p>Territorial Tutoring does not need hype operators. It needs disciplined people who can identify real academic breakdown and move the right families into the right system.</p>
+                      <p>Response Integrity does not need hype operators. It needs disciplined people who can identify real academic breakdown and move the right families into the right system.</p>
                       <p>The role is selective because bad placement damages the system. Precision matters more than volume.</p>
                     </div>
                     <div className="rounded-[24px] border border-[#E0CCBE] bg-white/58 p-4">
@@ -316,11 +316,11 @@ export default function AffiliateLanding() {
         <footer className="border-t border-black/5 py-8">
           <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:px-6 md:flex-row md:px-12">
             <div className="flex items-center gap-3">
-              <Image src="/logos/tt-monogram.png" alt="TT Logo" width={36} height={36} />
-              <span className="text-sm font-semibold tracking-tight text-[#1A1A1A]">Territorial Tutoring</span>
+              <Image src="/logos/tt-monogram.png" alt="Response Integrity Logo" width={36} height={36} />
+              <span className="text-sm font-semibold tracking-tight text-[#1A1A1A]">Response Integrity</span>
             </div>
             <p className="text-center text-xs text-[#5A5A5A] md:text-right">
-              © 2026 Territorial Tutoring SA (Pty) Ltd
+              © 2026 Response Integrity SA (Pty) Ltd
               <br />
               Education Growth Partner
             </p>

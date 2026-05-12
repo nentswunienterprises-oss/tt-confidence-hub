@@ -148,7 +148,7 @@ function stripTdTemplateScaffold(content: string) {
     .replace(/^This Agreement is entered into between:?\s*\n?/i, "")
     .replace(/^This Declaration is entered into between:?\s*\n?/i, "")
     .replace(/^This Addendum is entered into between:?\s*\n?/i, "")
-    .replace(/^Territorial Tutoring SA \(Pty\) Ltd.*\n?/im, "")
+    .replace(/^(?:Territorial Tutoring|Response Integrity) SA \(Pty\) Ltd.*\n?/im, "")
     .replace(/^and\s*\n?/im, "")
     .replace(/^.*Territory Director.*\n?/im, "")
     .replace(/^Effective Date:.*\n?/im, "")
@@ -170,7 +170,7 @@ function DocumentContent({ content, legalName, effectiveDate, documentCode }: { 
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8A7A70]">Party A</p>
-            <p className="text-[#1A1A1A]">Territorial Tutoring SA (Pty) Ltd ("TT")</p>
+            <p className="text-[#1A1A1A]">Response Integrity SA (Pty) Ltd ("TT")</p>
           </div>
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8A7A70]">Party B</p>

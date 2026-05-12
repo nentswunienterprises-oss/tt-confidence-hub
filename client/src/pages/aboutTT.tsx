@@ -23,12 +23,12 @@ export default function AboutTT() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-3xl font-bold text-center">About TT</CardTitle>
-            <CardDescription className="text-center">Learn more about how Territorial Tutoring teaches</CardDescription>
+            <CardTitle className="text-3xl font-bold text-center">About Response Integrity</CardTitle>
+            <CardDescription className="text-center">Learn more about how Response Integrity teaches</CardDescription>
           </CardHeader>
           <CardContent className="prose prose-slate max-w-none">
             <p>
-              Territorial Tutoring helps students stay calm, structured, and confident when math gets difficult - especially under exam pressure.
+              Response Integrity helps students stay calm, structured, and confident when math gets difficult - especially under exam pressure.
             </p>
 
             <p>
@@ -60,7 +60,7 @@ export default function AboutTT() {
               We focus on how students respond when things feel hard.
             </p>
 
-            <h2>At TT, students are trained to:</h2>
+            <h2>At Response Integrity, students are trained to:</h2>
 
             <ul>
               <li>Recognize what type of situation they’re facing</li>

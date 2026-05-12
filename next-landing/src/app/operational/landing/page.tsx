@@ -6,8 +6,8 @@ export default function OperationalLanding() {
   return (
     <>
       <Head>
-        <title>Operational Landing - Territorial Tutoring</title>
-        <meta name="description" content="Operational portal for tutors and directors at Territorial Tutoring." />
+        <title>Operational Landing - Response Integrity</title>
+        <meta name="description" content="Operational portal for tutors and directors at Response Integrity." />
         <meta name="robots" content="index, follow" />
       </Head>
       <div className="min-h-screen bg-[#F5F7FA] font-sans">
@@ -34,9 +34,9 @@ export default function OperationalLanding() {
         </main>
         <footer className="py-8 sm:py-12 bg-[#F5F7FA]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
-            <Image src="/logos/tt-monogram.png" alt="TT Logo" width={32} height={32} />
+            <Image src="/logos/tt-monogram.png" alt="Response Integrity Logo" width={32} height={32} />
             <p className="text-center md:text-right text-xs sm:text-sm text-[#5A5A5A]">
-              © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd<br />
+              © {new Date().getFullYear()} Response Integrity SA (Pty) Ltd<br />
               <span className="text-xs sm:text-sm">Confidence, made inevitable.</span>
             </p>
           </div>

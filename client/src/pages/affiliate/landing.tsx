@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRight, Check, Dot, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { TTLogo } from "@/components/TTLogo";
+import { TTLogo } from "@/components/ResponseIntegrityLogo";
 
 const fitSignals = [
   "You can identify students who break under pressure in math.",
@@ -105,7 +105,7 @@ export default function AffiliateLanding() {
                 </h1>
                 <div className="mt-5 grid gap-6 lg:grid-cols-[1fr_240px] lg:items-start">
                   <div className="max-w-2xl space-y-3 text-base leading-7 text-[#534A43] sm:text-[17px]">
-                    <p>Territorial Tutoring does not need hype operators. It needs disciplined people who can identify real academic breakdown and move the right families into the right system.</p>
+                    <p>Response Integrity does not need hype operators. It needs disciplined people who can identify real academic breakdown and move the right families into the right system.</p>
                     <p>The role is selective because bad placement damages the system. Precision matters more than volume.</p>
                   </div>
                   <div className="rounded-[24px] border border-[#E0CCBE] bg-white/58 p-4">
@@ -250,7 +250,7 @@ export default function AffiliateLanding() {
                 </div>
               </div>
               <div className="mt-6 rounded-[24px] border border-[#E6D1BF] bg-[#F7ECE1] px-5 py-4">
-                <p className="text-sm leading-7 text-[#483E38]">You operate at the front of the TT system. Your value is not noise. It is accurate placement.</p>
+<p className="text-sm leading-7 text-[#483E38]">You operate at the front of the Response Integrity system. Your value is not noise. It is accurate placement.</p>
               </div>
             </Card>
 
@@ -328,7 +328,7 @@ export default function AffiliateLanding() {
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:px-6 md:flex-row md:px-12">
           <TTLogo size="md" variant="integrity" />
           <p className="text-center text-xs text-[#5A5A5A] md:text-right">
-            © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
+            © {new Date().getFullYear()} Response Integrity SA (Pty) Ltd
             <br />
             Education Growth Partner
           </p>

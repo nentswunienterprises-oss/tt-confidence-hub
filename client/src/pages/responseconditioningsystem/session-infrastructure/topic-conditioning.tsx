@@ -38,10 +38,10 @@ export default function ResponseConditioningTopicConditioning() {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-8">
         <Card className="p-6 space-y-4 border-primary/30 bg-primary/5">
-          <h2 className="text-2xl font-bold">Topic Conditioning in TT</h2>
+          <h2 className="text-2xl font-bold">Topic Conditioning in Response Integrity</h2>
           <h3 className="text-xl font-semibold">What it is</h3>
           <p className="text-muted-foreground">
-            Topic Conditioning is how Territorial Tutoring uses the student's real school topics to train a stable
+            Topic Conditioning is how Response Integrity uses the student's real school topics to train a stable
             response under pressure.
           </p>
           <p className="text-muted-foreground">It is not random tutoring.</p>

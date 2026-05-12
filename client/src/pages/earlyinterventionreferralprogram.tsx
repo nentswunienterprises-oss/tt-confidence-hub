@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { TerritorialTutoringLogoSVG } from "@/components/TerritorialTutoringLogoSVG";
-import { TTLogo } from "@/components/TTLogo";
+import { TTLogo } from "@/components/ResponseIntegrityLogo";
 import { useEffect, useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -122,7 +121,7 @@ export default function EarlyInterventionReferralProgram() {
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 py-3 sm:py-4 flex items-center justify-between">
           <div className="flex-shrink-0 ml-3 md:ml-0">
-            <TerritorialTutoringLogoSVG width={logoWidth} />
+            <TTLogo size="lg" variant="integrity" />
           </div>
 
           <div className="hidden md:block">
@@ -158,7 +157,7 @@ export default function EarlyInterventionReferralProgram() {
         <div className="text-center mb-6 sm:mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
             <span className="text-sm font-medium" style={{ color: "#E63946" }}>
-              Territorial Tutoring SA (Pty) Ltd
+              Response Integrity SA (Pty) Ltd
             </span>
           </div>
 
@@ -282,9 +281,9 @@ export default function EarlyInterventionReferralProgram() {
         </Card>
 
         <Card className="p-4 sm:p-6 mb-6" style={{ backgroundColor: "white" }}>
-          <h2 className="text-lg font-bold mb-3">What Territorial Tutoring Actually Provides</h2>
+          <h2 className="text-lg font-bold mb-3">What Response Integrity Actually Provides</h2>
           <p>
-            Territorial Tutoring is not extra lessons.
+            Response Integrity is not extra lessons.
             It is not curriculum replacement.
             It is not remedial tutoring.
           </p>
@@ -444,11 +443,11 @@ export default function EarlyInterventionReferralProgram() {
             <Card className="p-4 sm:p-6" style={{ backgroundColor: "white" }}>
               <h3 className="text-lg font-bold mb-3">Submission Received</h3>
 
-              <p>Thank you for submitting your school’s interest in the TT Early Intervention Pilot.</p>
+              <p>Thank you for submitting your school’s interest in the Response Integrity Early Intervention Pilot.</p>
 
               <p className="mt-3">Your request has been logged for internal review.</p>
 
-              <p className="mt-3">A member of the Territorial Tutoring team will contact the designated staff representative to:</p>
+              <p className="mt-3">A member of the Response Integrity team will contact the designated staff representative to:</p>
               <ul className="list-disc pl-5 mt-2 space-y-2">
                 <li>Confirm suitability for the pilot</li>
                 <li>Clarify the referral framework</li>
@@ -463,7 +462,7 @@ export default function EarlyInterventionReferralProgram() {
 
               <div className="mt-6 border-t pt-4 text-sm">
                 <br />
-                Territorial Tutoring SA<br />
+                Response Integrity SA<br />
                 Early Response-Conditioning Infrastructure for Schools
               </div>
             </Card>
@@ -479,7 +478,7 @@ export default function EarlyInterventionReferralProgram() {
               <TTLogo size="md" variant="integrity" />
             </div>
             <p className="text-center md:text-right" style={{ color: "#5A5A5A" }}>
-              © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
+              © {new Date().getFullYear()} Response Integrity SA (Pty) Ltd
               <br />
               <span className="text-sm">Early Response-Conditioning Infrastructure for Schools.</span>
             </p>

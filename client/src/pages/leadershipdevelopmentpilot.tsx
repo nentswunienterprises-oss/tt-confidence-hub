@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { TerritorialTutoringLogoSVG } from "@/components/TerritorialTutoringLogoSVG";
+import { TTLogo } from "@/components/ResponseIntegrityLogo";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
@@ -104,7 +104,7 @@ export default function LeadershipDevelopmentPilot() {
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 py-3 sm:py-4 flex items-center justify-between">
           <div className="flex-shrink-0 ml-3 md:ml-0">
-            <TerritorialTutoringLogoSVG width={160} />
+            <TTLogo size="lg" variant="integrity" />
           </div>
 
           <div className="hidden md:block">
@@ -188,7 +188,7 @@ export default function LeadershipDevelopmentPilot() {
             <h2>THE INSTITUTIONAL SHIFT WE ARE BUILDING</h2>
 
             <p>
-              Territorial Tutoring is not a tutoring company.
+              Response Integrity is not a tutoring company.
               We are an external academic leadership institution that enables high schools to solve a primary-school problem - upstream.
             </p>
 
@@ -212,7 +212,7 @@ export default function LeadershipDevelopmentPilot() {
                 <p>High-performing, high-potential learners are selected - not recruited. Selection itself becomes a mark of distinction.</p>
               </li>
               <li>
-                <strong>TT Trains Them as Response-Conditioning Executives</strong>
+                <strong>Response Integrity trains them as Response-Conditioning Executives</strong>
                 <p>Selected students undergo structured training in execution under pressure, response-control during uncertainty, teaching clarity, and psychological leadership.</p>
               </li>
               <li>
@@ -266,7 +266,7 @@ export default function LeadershipDevelopmentPilot() {
             </ul>
 
             <h2>POSITIONING</h2>
-            <p className="font-semibold">Territorial Tutoring enables high schools to develop academic leaders who execute under pressure and apply those skills to real educational challenges.</p>
+            <p className="font-semibold">Response Integrity enables high schools to develop academic leaders who execute under pressure and apply those skills to real educational challenges.</p>
 
             <div className="text-center mt-6">
               <div className="flex flex-col items-center mt-8 mb-4 px-2">
@@ -331,11 +331,11 @@ export default function LeadershipDevelopmentPilot() {
                 <Card className="p-4 sm:p-6" style={{ backgroundColor: "white" }}>
                   <h3 className="text-lg font-bold mb-3">Submission Received</h3>
 
-                  <p>Thank you for submitting your school's interest in the TT Leadership Development Pilot.</p>
+                  <p>Thank you for submitting your school's interest in the Response Integrity Leadership Development Pilot.</p>
 
                   <p className="mt-3">Your request has been logged for internal review.</p>
 
-                  <p className="mt-3">A member of the Territorial Tutoring team will contact the designated staff representative to:</p>
+                  <p className="mt-3">A member of the Response Integrity team will contact the designated staff representative to:</p>
                   <ul className="list-disc pl-5 mt-2 space-y-2">
                     <li>Confirm suitability for the pilot</li>
                     <li>Clarify selection and training framework</li>
@@ -347,7 +347,7 @@ export default function LeadershipDevelopmentPilot() {
 
                   <div className="mt-6 border-t pt-4 text-sm">
                     <br />
-                    Territorial Tutoring SA<br />
+                      Response Integrity SA<br />
                     Academic Leadership &amp; Response-Conditioning for Schools
                   </div>
                 </Card>

@@ -4,7 +4,7 @@ self.addEventListener("push", (event) => {
   }
 
   const payload = event.data.json();
-  const title = payload.title || "Territorial Tutoring";
+  const title = payload.title || "Response Integrity";
   const options = {
     body: payload.body || "",
     icon: payload.icon || "/tt-logo.png",
@@ -14,7 +14,7 @@ self.addEventListener("push", (event) => {
       url: payload.url || "/operational/tutor/gateway",
       primaryActionUrl: payload.primaryActionUrl || payload.url || "/operational/tutor/gateway",
     },
-    tag: payload.tag || "tt-update",
+    tag: payload.tag || "ri-update",
     renotify: true,
     requireInteraction: true,
     actions: [

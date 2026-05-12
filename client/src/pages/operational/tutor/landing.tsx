@@ -3,16 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRight, Check, Shield, Users, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { TTLogo } from "@/components/TTLogo";
+import { TTLogo } from "@/components/ResponseIntegrityLogo";
 
 const conditioningModes = [
   {
     title: "Applicant",
-    body: "You are stepping into the system. TT checks your fit, your readiness, and whether you can take this seriously before tutor responsibility opens.",
+    body: "You are stepping into the system. Response Integrity checks your fit, your readiness, and whether you can take this seriously before tutor responsibility opens.",
   },
   {
     title: "Training",
-    body: "You learn the TT standard and prove that you can hold structure, not just explain math in a smart-sounding way.",
+    body: "You learn the Response Integrity standard and prove that you can hold structure, not just explain math in a smart-sounding way.",
   },
   {
     title: "Sandbox",
@@ -24,7 +24,7 @@ const conditioningModes = [
   },
   {
     title: "Watchlist or Reset",
-    body: "If your execution starts drifting, TT tightens the lane again. Trust stays open only while your standard stays clean.",
+    body: "If your execution starts drifting, Response Integrity tightens the lane again. Trust stays open only while your standard stays clean.",
   },
 ] as const;
 
@@ -45,11 +45,11 @@ const nonFitSignals = [
 const roleBlocks = [
   {
     title: "What this role is",
-    body: "A TT tutor helps students become clearer, steadier, and more reliable under pressure. You are not here to create a nice vibe. You are here to create real change.",
+    body: "A Response Integrity tutor helps students become clearer, steadier, and more reliable under pressure. You are not here to create a nice vibe. You are here to create real change.",
   },
   {
     title: "What this role is not",
-    body: "This is not casual homework help, emotional babysitting, or personality-led tutoring. TT does not reward loose sessions or random teaching style.",
+    body: "This is not casual homework help, emotional babysitting, or personality-led tutoring. Response Integrity does not reward loose sessions or random teaching style.",
   },
   {
     title: "What the system protects",
@@ -118,7 +118,7 @@ export default function TutorLanding() {
                 </h1>
                 <div className="mt-5 grid gap-6 lg:grid-cols-[1fr_240px] lg:items-start">
                   <div className="max-w-2xl space-y-3 text-base leading-7 text-[#534A43] sm:text-[17px]">
-                    <p>TT is looking for disciplined young people who are strong in math, coachable under pressure, and serious about building real skill.</p>
+                    <p>Response Integrity is looking for disciplined young people who are strong in math, coachable under pressure, and serious about building real skill.</p>
                     <p>This is where first-time applicants start. Returning tutors use the same entry point and switch to login on the next screen.</p>
                   </div>
                   <div className="rounded-[24px] border border-[#E0CCBE] bg-white/58 p-4">
@@ -158,9 +158,9 @@ export default function TutorLanding() {
             <div className="grid gap-4 xl:content-start">
               <Card className="rounded-[28px] border border-[#2A211D] bg-[#1F1814] p-5 text-white shadow-[0_18px_50px_rgba(25,19,16,0.18)]">
                 <div className="flex items-start justify-between gap-4">
-                  <span className="text-sm font-bold uppercase tracking-tight text-[#E97B67]">WHAT TT CARES ABOUT</span>
+                  <span className="text-sm font-bold uppercase tracking-tight text-[#E97B67]">WHAT RESPONSE INTEGRITY CARES ABOUT</span>
                   <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-white/75">
-                    TT lane
+                    Response Integrity lane
                   </span>
                 </div>
                 <div className="mt-7 space-y-3 text-sm text-white/82">
@@ -174,7 +174,7 @@ export default function TutorLanding() {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Simple truth</p>
                 <p className="mt-3 text-2xl font-bold tracking-tight text-[#171311]">Being smart</p>
                 <p className="text-2xl font-bold tracking-tight text-[#171311]">is not enough on its own.</p>
-                <p className="mt-3 text-sm leading-6 text-[#5D5550]">TT opens responsibility in stages because real tutoring trust should be earned, not assumed.</p>
+                <p className="mt-3 text-sm leading-6 text-[#5D5550]">Response Integrity opens responsibility in stages because real tutoring trust should be earned, not assumed.</p>
               </Card>
             </div>
           </div>
@@ -184,9 +184,9 @@ export default function TutorLanding() {
           <div className="rounded-[30px] border border-[#E5D3C5] bg-white/86 p-7 shadow-sm sm:p-8">
             <div className="max-w-3xl">
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Conditioning path</p>
-              <h2 className="mt-1 text-3xl font-bold tracking-tight text-[#171311]">How TT grows a tutor into trust</h2>
+              <h2 className="mt-1 text-3xl font-bold tracking-tight text-[#171311]">How Response Integrity grows a tutor into trust</h2>
               <p className="mt-3 text-sm leading-7 text-[#4F4742] sm:text-base">
-                You do not have to arrive fully formed. You do have to be coachable, disciplined, and able to keep improving. TT opens more trust as your standard gets stronger.
+                You do not have to arrive fully formed. You do have to be coachable, disciplined, and able to keep improving. Response Integrity opens more trust as your standard gets stronger.
               </p>
             </div>
 
@@ -253,7 +253,7 @@ export default function TutorLanding() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Entry point</p>
             <h2 className="mt-4 text-3xl font-bold leading-tight text-[#171311] sm:text-4xl">
               Want to build real tutoring skill?
-              <span className="block text-[#7C2D21]">Enter the TT pathway.</span>
+              <span className="block text-[#7C2D21]">Enter the Response Integrity pathway.</span>
             </h2>
             <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-[#57504B] sm:text-lg">
               New applicants start here. Existing tutors use the same button and switch to login on the next screen.
@@ -284,7 +284,7 @@ export default function TutorLanding() {
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:px-6 md:flex-row md:px-12">
           <TTLogo size="md" variant="integrity" />
           <p className="text-center text-xs text-[#5A5A5A] md:text-right">
-            © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
+            © {new Date().getFullYear()} Response Integrity (Pty) Ltd
             <br />
             Tutor Gateway
           </p>

@@ -3,10 +3,10 @@ import { ArrowLeft } from "lucide-react";
 
 const faqs = [
   {
-    question: "What exactly is Territorial Tutoring?",
+    question: "What exactly is Response Integrity?",
     answer: (
       <>
-        <p>Territorial Tutoring is not a tutoring company.</p>
+        <p>Response Integrity is not a tutoring company.</p>
         <p>It is a performance-conditioning system for students in Grades 6-9.<br />
         Math is the arena.<br />
         Response under pressure is the skill.</p>

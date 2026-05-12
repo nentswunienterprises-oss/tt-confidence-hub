@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRight, Check, Shield, Target, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { TTLogo } from "@/components/TTLogo";
+import { TTLogo } from "@/components/ResponseIntegrityLogo";
 
 const fitSignals = [
   "You can correct directly without getting emotional about it.",
@@ -89,7 +89,7 @@ export default function TdLanding() {
                 </h1>
                 <div className="mt-5 grid gap-6 lg:grid-cols-[1fr_240px] lg:items-start">
                   <div className="max-w-2xl space-y-3 text-base leading-7 text-[#534A43] sm:text-[17px]">
-                    <p>TT is looking for young leaders who can think clearly, hold people to standard, and stay steady when pressure rises.</p>
+                    <p>Response Integrity is looking for young leaders who can think clearly, hold people to standard, and stay steady when pressure rises.</p>
                     <p>The value of a TD is not personality or confidence theatre. It is clean judgment and real system protection.</p>
                   </div>
                   <div className="rounded-[24px] border border-[#E0CCBE] bg-white/58 p-4">
@@ -197,7 +197,7 @@ export default function TdLanding() {
           <div className="rounded-[32px] border border-[#E5D3C5] bg-white/82 px-6 py-10 text-center shadow-sm sm:px-10 sm:py-12">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Final filter</p>
             <h2 className="mt-4 text-3xl font-bold leading-tight text-[#1A1A1A] sm:text-4xl">
-              TT does not need louder leadership.
+              Response Integrity does not need louder leadership.
               <span className="block text-[#7C2D21]">It needs cleaner judgment.</span>
             </h2>
             <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-[#57504B] sm:text-lg">
@@ -219,7 +219,7 @@ export default function TdLanding() {
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:px-6 md:flex-row md:px-12">
           <TTLogo size="md" variant="integrity" />
           <p className="text-center text-xs text-[#5A5A5A] md:text-right">
-            © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
+            © {new Date().getFullYear()} Response Integrity (Pty) Ltd
             <br />
             Territory Director Gateway
           </p>

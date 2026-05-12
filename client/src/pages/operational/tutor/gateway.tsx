@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CheckCircle2, Circle, ArrowLeft, FileText, AlertCircle, Users } from "lucide-react";
-import { TTLogo } from "@/components/TTLogo";
+import { TTLogo } from "@/components/ResponseIntegrityLogo";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, getQueryFn } from "@/lib/queryClient";
@@ -140,8 +140,8 @@ export default function TutorGateway() {
       let podAssignment = null;
       while (tries < 5) {
         const podData = await queryClient.fetchQuery({ queryKey: ["/api/tutor/pod"] });
-        if (podData && podData.assignment) {
-          podAssignment = podData.assignment;
+        if (podData && (podData as any).assignment) {
+          podAssignment = (podData as any).assignment;
           break;
         }
         await new Promise((r) => setTimeout(r, 600));
@@ -251,14 +251,14 @@ export default function TutorGateway() {
             <CardHeader className="px-4 sm:px-6">
               <CardTitle className="text-lg sm:text-xl" style={{ color: "#1A1A1A" }}>Founding Team Application</CardTitle>
               <CardDescription className="text-sm" style={{ color: "#5A5A5A" }}>
-                Territorial Tutoring - Join Our Founding Cohort
+                Response Integrity - Join Our Founding Cohort
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 px-4 sm:px-6">
               {/* Introduction */}
               <div className="rounded-xl p-4 sm:p-5 space-y-2 sm:space-y-3" style={{ backgroundColor: "#FFF0F0" }}>
                 <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-                  This application is for the Territorial Tutoring Founding Tutor Cohort.
+                  This application is for the Response Integrity Founding Tutor Cohort.
                 </p>
                 <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
                   We are selecting a small group of individuals who will be trained to guide how students respond when math becomes difficult.

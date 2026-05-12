@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { Check, ArrowRight, ArrowLeft, Brain, Crown, Heart } from "lucide-react";
 import { useEffect } from "react";
-import { TTLogo } from "@/components/TTLogo";
+import { TTLogo } from "@/components/ResponseIntegrityLogo";
 
 export default function OperationalLanding() {
   const navigate = useNavigate();
@@ -297,7 +297,7 @@ export default function OperationalLanding() {
               <TTLogo size="md" variant="integrity" />
             </div>
             <p className="text-center md:text-right" style={{ color: "#5A5A5A" }}>
-              © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
+              © {new Date().getFullYear()} Response Integrity SA (Pty) Ltd
               <br />
               <span className="text-sm">
                 Manufacturing Confidence & Financial Independence in South African Youth.

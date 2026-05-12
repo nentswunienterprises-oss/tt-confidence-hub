@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { TerritorialTutoringLogoSVG } from "@/components/TerritorialTutoringLogoSVG";
+import { TTLogo } from "@/components/ResponseIntegrityLogo";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Check } from "lucide-react";
 
@@ -14,7 +14,7 @@ export default function OnlineTutorsWanted() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-center md:justify-between relative">
-          <TerritorialTutoringLogoSVG width={160} />
+          <TTLogo size="lg" variant="integrity" />
 
           <div className="absolute right-4 top-2 md:absolute md:right-12 md:top-4">
             <Button
@@ -36,7 +36,7 @@ export default function OnlineTutorsWanted() {
         <div className="text-center mb-6 sm:mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
             <span className="text-sm font-medium" style={{ color: "#E63946" }}>
-              Territorial Tutoring SA (Pty) Ltd
+              Response Integrity SA (Pty) Ltd
             </span>
           </div>
 
@@ -59,7 +59,7 @@ export default function OnlineTutorsWanted() {
           <Card className="p-6 max-w-xl mx-auto" style={{ backgroundColor: "white" }}>
             <h2 className="text-xl font-bold mb-4" style={{ color: "#1A1A1A" }}>WHO WE ARE</h2>
             <p className="text-sm sm:text-base" style={{ color: "#5A5A5A" }}>
-              Territorial Tutoring is a premium online math mentorship company. We don’t do chaotic tutoring. We don’t improvise. We don't babysit.
+              Response Integrity is a premium online math mentorship company. We don’t do chaotic tutoring. We don’t improvise. We don't babysit.
               We build calm, confident, high-performing math students through a structured, system-driven approach.
               If you believe great results come from clear processes, high standards, and consistency, you’ll fit in here.
             </p>
@@ -67,7 +67,7 @@ export default function OnlineTutorsWanted() {
             <div className="mt-6">
               <h3 className="font-semibold">THE ROLE</h3>
               <p className="text-sm mt-2" style={{ color: "#5A5A5A" }}>
-                As a TT Online Math Tutor, you are responsible for delivering structured, high-quality 1-on-1 math sessions to students in Grades 6–9.
+                As a Response Integrity Online Math Tutor, you are responsible for delivering structured, high-quality 1-on-1 math sessions to students in Grades 6–9.
                 This is not casual tutoring. You will be trained to follow a clear instructional system that prioritizes:
               </p>
 
@@ -144,7 +144,7 @@ export default function OnlineTutorsWanted() {
           <Card className="p-6" style={{ backgroundColor: "white" }}>
             <h4 className="font-semibold mb-2">HOW TO APPLY</h4>
             <p className="text-sm mb-4 break-words whitespace-normal" style={{ color: "#5A5A5A" }}>
-              Apply <button type="button" aria-label="Apply at Territorial Tutoring tutor landing page" className="text-blue-600 hover:underline inline p-0 m-0" onClick={() => navigate(tutorLandingPath)}>here</button> to review the tutor path and continue into account access.
+              Apply <button type="button" aria-label="Apply at Response Integrity tutor landing page" className="text-blue-600 hover:underline inline p-0 m-0" onClick={() => navigate(tutorLandingPath)}>here</button> to review the tutor path and continue into account access.
             </p>
             <p className="text-sm" style={{ color: "#5A5A5A" }}>
               Shortlisted applicants will be invited to a screening process and training cohort.
@@ -158,9 +158,9 @@ export default function OnlineTutorsWanted() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 pb-6 sm:pb-8 mb-6 sm:mb-8 border-b" style={{ borderColor: "#E5E5E5" }}>
             <div className="space-y-3 sm:space-y-4">
-              <h4 className="font-semibold text-sm sm:text-base" style={{ color: "#1A1A1A" }}>About TT</h4>
+              <h4 className="font-semibold text-sm sm:text-base" style={{ color: "#1A1A1A" }}>About Response Integrity</h4>
               <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-                Territorial Tutoring is a performance-first math mentorship system built on clarity, repetition, and standards.
+                Response Integrity is a performance-first math mentorship system built on clarity, repetition, and standards.
               </p>
             </div>
             <div className="space-y-3 sm:space-y-4">
@@ -184,10 +184,10 @@ export default function OnlineTutorsWanted() {
 
           <div className="flex flex-col md:flex-row md:justify-between items-center gap-4 sm:gap-6">
             <div className="ml-16 md:ml-0">
-              <TerritorialTutoringLogoSVG width={150} />
+              <TTLogo size="md" variant="integrity" />
             </div>
             <p className="text-center md:text-right text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-              © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
+              © {new Date().getFullYear()} Response Integrity SA (Pty) Ltd
               <br />
               <span className="text-xs sm:text-sm">Confidence, made inevitable.</span>
             </p>

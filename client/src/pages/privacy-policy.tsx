@@ -4,11 +4,11 @@ export default function PrivacyPolicy() {
   return (
     <LegalDocumentPage
       title="Privacy Policy"
-      subtitle="Territorial Tutoring SA (Pty) Ltd | Version 1.1 | Effective May 9, 2026"
+      subtitle="Response Integrity SA (Pty) Ltd | Version 1.1 | Effective May 9, 2026"
       intro={
         <>
           <p>
-            Territorial Tutoring SA (Pty) Ltd ("Territorial Tutoring", "TT", "we", "us", "our")
+            Response Integrity SA (Pty) Ltd ("Response Integrity", "RI", "we", "us", "our")
             processes personal information in accordance with the Protection of Personal Information
             Act 4 of 2013 (POPIA) and other applicable South African law.
           </p>
@@ -26,7 +26,7 @@ export default function PrivacyPolicy() {
             "This policy applies to parents, guardians, learners, students, tutors, Territory Directors, Education Growth Partners, outreach directors, executives, applicants, contractors, and other users of TT public or operational systems.",
           ],
           bullets: [
-            "Legal entity: Territorial Tutoring SA (Pty) Ltd",
+            "Legal entity: Response Integrity SA (Pty) Ltd",
             "Jurisdiction: Republic of South Africa",
             "Contact: support@responseintegrity.co.za",
           ],
@@ -143,7 +143,7 @@ export default function PrivacyPolicy() {
       ]}
       footer={
         <p className="text-sm text-slate-600 text-center">
-          Territorial Tutoring SA (Pty) Ltd | Privacy Policy | Version 1.1 | www.responseintegrity.co.za
+          Response Integrity SA (Pty) Ltd | Privacy Policy | Version 1.1 | www.responseintegrity.co.za
         </p>
       }
     />

@@ -347,7 +347,7 @@ export default function TutorPod() {
           <Dialog open={showApplicationForm} onOpenChange={setShowApplicationForm}>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Territorial Tutoring - Founding Team Application</DialogTitle>
+                <DialogTitle>Response Integrity - Founding Team Application</DialogTitle>
               </DialogHeader>
               <ApplicationForm
                 onSuccess={() => {

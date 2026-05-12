@@ -4,14 +4,14 @@ export default function TermsOfUse() {
   return (
     <LegalDocumentPage
       title="Platform Terms of Use"
-      subtitle="Territorial Tutoring SA (Pty) Ltd | Version 1.1 | Effective May 8, 2026"
+      subtitle="Response Integrity SA (Pty) Ltd | Version 1.1 | Effective May 8, 2026"
       intro={
         <>
           <p>
-            These terms govern public platform use and family enrollment use of Territorial Tutoring.
+            These terms govern public platform use and family enrollment use of Response Integrity.
           </p>
           <p>
-            Territorial Tutoring is not a conventional tutoring service. It is a response-conditioning system designed to build calm,
+            Response Integrity is not a conventional tutoring service. It is a response-conditioning system designed to build calm,
             correct, repeatable mathematical execution under pressure.
           </p>
         </>
@@ -120,7 +120,7 @@ export default function TermsOfUse() {
       ]}
       footer={
         <p className="text-sm text-slate-600 text-center">
-          Territorial Tutoring SA (Pty) Ltd | Platform Terms of Use | www.responseintegrity.co.za
+          Response Integrity SA (Pty) Ltd | Platform Terms of Use | www.responseintegrity.co.za
         </p>
       }
     />

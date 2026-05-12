@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { TerritorialTutoringLogoSVG } from "@/components/TerritorialTutoringLogoSVG";
-import { TTLogo } from "@/components/TTLogo";
+import { TTLogo } from "@/components/ResponseIntegrityLogo";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { useEffect } from "react";
@@ -17,8 +16,7 @@ export default function OnlineTutorsWantedPlain() {
       {/* Header (portal-landing style) */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
-          <TerritorialTutoringLogoSVG width={190} />
-
+          <TTLogo size="lg" variant="integrity" />
           <div className="hidden md:block">
             <span className="text-2xl lg:text-4xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
               RESPONSE-CONDITIONING
@@ -44,12 +42,12 @@ export default function OnlineTutorsWantedPlain() {
         <div className="text-center mb-6 sm:mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
             <span className="text-sm font-medium" style={{ color: "#E63946" }}>
-              Territorial Tutoring SA (Pty) Ltd
+              Response Integrity SA (Pty) Ltd
             </span>
           </div>
 
           <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold leading-tight mt-6" style={{ color: "#1A1A1A" }}>
-            Become a TT System Executor
+            Become a Response Integrity System Executor
             <div className="text-base sm:text-xl font-semibold mt-2" style={{ color: "#5A5A5A" }}>
               Not everyone qualifies. That’s the point.
             </div>
@@ -66,7 +64,7 @@ export default function OnlineTutorsWantedPlain() {
           </div> 
 
           <p className="max-w-2xl mx-auto text-sm sm:text-base mt-4" style={{ color: "#5A5A5A" }}>
-            Territorial Tutoring is selecting a small number of high-performing, disciplined students to train as System Executors inside our structured math mentorship operation.
+            Response Integrity is selecting a small number of high-performing, disciplined students to train as System Executors inside our structured math mentorship operation.
           </p>
 
           <div className="mt-6 space-y-2">
@@ -80,14 +78,10 @@ export default function OnlineTutorsWantedPlain() {
         <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h2 className="text-lg font-bold mb-3">What You’re Stepping Into</h2>
           <p style={{ color: "#5A5A5A" }}>
-            Territorial Tutoring runs a structured online math mentorship programme for Grades 6-9.
+            Response Integrity runs a structured online math mentorship programme for Grades 6-9.
           </p>
-
-          <div className="mt-3" style={{ color: "#5A5A5A" }}>
-            <p>We don’t rely on personality, motivation, or talent alone.</p>
-            <p>We rely on clear systems, repetition, and standards.</p>
-            <p className="mt-2">As a System Executor, your job is to run that system precisely - every session, every student.</p>
-          </div>
+          <p>We rely on clear systems, repetition, and standards.</p>
+          <p className="mt-2">As a System Executor, your job is to run that system precisely - every session, every student.</p>
         </Card>
 
         <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
@@ -169,7 +163,7 @@ export default function OnlineTutorsWantedPlain() {
           </p>
 
           <p className="mt-4 text-sm" style={{ color: "#5A5A5A" }}>
-            Apply <button type="button" aria-label="Apply at Territorial Tutoring tutor landing page" className="text-blue-600 hover:underline inline p-0 m-0" onClick={() => navigate(tutorLandingPath)}>Here</button>
+            Apply <button type="button" aria-label="Apply at Response Integrity tutor landing page" className="text-blue-600 hover:underline inline p-0 m-0" onClick={() => navigate(tutorLandingPath)}>Here</button>
           </p>
 
           <p className="mt-4 font-semibold" style={{ color: "#5A5A5A" }}>Selection is limited.
@@ -196,7 +190,7 @@ export default function OnlineTutorsWantedPlain() {
               <TTLogo size="md" variant="integrity" />
             </div>
             <p className="text-center md:text-right" style={{ color: "#5A5A5A" }}>
-              © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
+              © {new Date().getFullYear()} Response Integrity SA (Pty) Ltd
               <br />
               <span className="text-sm">Manufacturing Confidence & Financial Independence in South African Youth.</span>
             </p>

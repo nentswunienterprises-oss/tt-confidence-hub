@@ -47,7 +47,7 @@ const sections: Array<{
   { key: "studentBreakdownCase", label: "Think of a student you've seen or heard about who struggles with school. What exactly was happening with them?", multiline: true },
   { key: "marksSignal", label: 'A parent says: "My child studies, but their marks don’t reflect it." What does this tell you?', multiline: true },
   { key: "extraLessonsResponse", label: 'A parent says: "We just want extra lessons to improve marks." How do you respond? Do you move forward or pause? Why?', multiline: true },
-  { key: "notRecommendCases", label: "When would you NOT recommend a parent to Territorial Tutoring?", multiline: true },
+  { key: "notRecommendCases", label: "When would you NOT recommend a parent to Response Integrity?", multiline: true },
   { key: "unclearProblemResponse", label: "If a parent is interested, but you cannot clearly identify a real problem, what do you do?", multiline: true },
   { key: "tenParentsFilter", label: "You speak to 10 parents. Only 2 clearly need help. What do you do with the other 8?", multiline: true },
   { key: "firstAcademicQuestion", label: "If you were speaking to a parent about their child’s academics, what would you want to understand first?", multiline: true },

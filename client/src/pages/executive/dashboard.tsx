@@ -51,7 +51,7 @@ export default function ExecutiveDashboard() {
                 {getRoleTitle()} Dashboard
               </h1>
               <p className="text-gray-600 mt-1">
-                Territorial Tutoring Executive Command • {user?.name || user?.email}
+                Response Integrity Executive Command • {user?.name || user?.email}
               </p>
             </div>
             <button

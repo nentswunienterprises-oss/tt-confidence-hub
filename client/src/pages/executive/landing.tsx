@@ -16,7 +16,7 @@ export default function ExecutiveLanding() {
       id: "coo",
       title: "Chief Operating Officer",
       shortTitle: "COO",
-      description: "Lead Territorial Tutoring operations across pods, tutor deployment, and system execution quality",
+      description: "Lead Response Integrity operations across pods, tutor deployment, and system execution quality",
       icon: Building2,
       features: [
         "Pod Management & Assignments",
@@ -106,7 +106,7 @@ export default function ExecutiveLanding() {
         <div className="text-center max-w-3xl mx-auto space-y-5 sm:space-y-8">
           <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
             <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
-              Territorial Tutoring Leadership System
+              Response Integrity Leadership System
             </span>
           </div>
           
@@ -117,7 +117,7 @@ export default function ExecutiveLanding() {
           </h1>
           
           <p className="text-base sm:text-lg md:text-xl leading-relaxed" style={{ color: "#5A5A5A" }}>
-            Run the Territorial Tutoring operating system with role-based control over pods, tutor performance, parent experience, and growth execution.
+            Run the Response Integrity operating system with role-based control over pods, tutor performance, parent experience, and growth execution.
           </p>
 
           <Button
@@ -199,7 +199,7 @@ export default function ExecutiveLanding() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
             <div className="flex items-center gap-2">
               <span className="text-base sm:text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-                TERRITORIAL TUTORING
+                RESPONSE INTEGRITY
               </span>
               <span className="text-base sm:text-xl font-bold" style={{ color: "#E63946" }}>+</span>
             </div>

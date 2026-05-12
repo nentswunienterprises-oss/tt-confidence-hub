@@ -904,7 +904,7 @@ function AffiliateApplicationDetails({ application }: { application: any }) {
     ["Think of a student you've seen or heard about who struggles with school. What exactly was happening with them?", application.student_breakdown_case || application.studentBreakdownCase],
     ['A parent says: "My child studies, but their marks don’t reflect it." What does this tell you?', application.marks_signal || application.marksSignal],
     ['A parent says: "We just want extra lessons to improve marks." How do you respond? Do you move forward or pause? Why?', application.extra_lessons_response || application.extraLessonsResponse],
-    ["When would you NOT recommend a parent to Territorial Tutoring?", application.not_recommend_cases || application.notRecommendCases],
+    ["When would you NOT recommend a parent to Response Integrity?", application.not_recommend_cases || application.notRecommendCases],
     ["If a parent is interested, but you cannot clearly identify a real problem, what do you do?", application.unclear_problem_response || application.unclearProblemResponse],
     ["You speak to 10 parents. Only 2 clearly need help.", application.ten_parents_filter || application.tenParentsFilter],
     ["If you were speaking to a parent about their child’s academics, what would you want to understand first?", application.first_academic_question || application.firstAcademicQuestion],

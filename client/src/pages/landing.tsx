@@ -20,7 +20,7 @@ export default function Landing() {
           <div className="flex items-center gap-2">
             <img 
               src="/images/logo.png" 
-              alt="Territorial Tutoring" 
+              alt="Response Integrity" 
               className="h-8 sm:h-12 md:h-14 object-contain"
               onError={(e) => {
                 // Fallback if image doesn't exist yet
@@ -31,7 +31,7 @@ export default function Landing() {
             />
             <div className="hidden">
               <span className="text-base sm:text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-                TERRITORIAL TUTORING
+                RESPONSE INTEGRITY
               </span>
               <span className="text-base sm:text-xl font-bold" style={{ color: "#E63946" }}>+</span>
             </div>
@@ -96,7 +96,7 @@ export default function Landing() {
             </h1>
             
             <p className="text-base sm:text-lg md:text-xl leading-relaxed" style={{ color: "#5A5A5A" }}>
-              At Territorial Tutoring, we believe every child deserves to feel capable. 
+              At Response Integrity, we believe every child deserves to feel capable. 
               Our tutors work with <span className="font-semibold" style={{ color: "#1A1A1A" }}>Grade 6–9 students</span> to 
               ignite self-belief and transform how they see themselves.
             </p>
@@ -203,7 +203,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6" style={{ color: "white" }}>
-              The Territorial Tutoring Difference
+              The Response Integrity Difference
             </h2>
             <p className="text-base sm:text-lg" style={{ color: "#A0A0A0" }}>
               We're not another tutoring company. We're a confidence transformation movement.
@@ -478,13 +478,13 @@ export default function Landing() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
             <div className="flex items-center gap-2">
               <span className="text-base sm:text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-                TERRITORIAL TUTORING
+                RESPONSE INTEGRITY
               </span>
               <span className="text-base sm:text-xl font-bold" style={{ color: "#E63946" }}>+</span>
             </div>
             <div className="text-center md:text-right">
               <p className="text-sm sm:text-base" style={{ color: "#5A5A5A" }}>
-                © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
+                © {new Date().getFullYear()} Response Integrity SA (Pty) Ltd
                 <br />
                 <span className="text-xs sm:text-sm">
                   Manufacturing Confidence & Financial Independence in South African Youth.

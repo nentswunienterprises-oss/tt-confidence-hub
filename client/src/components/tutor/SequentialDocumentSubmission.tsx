@@ -661,7 +661,7 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
           <TutorAgreementSection title="Programme Definition And Role">
             <p>By accepting this form, the Contractor acknowledges and accepts the following:</p>
             <TutorAgreementList items={[
-              "Territorial Tutoring is not a tutoring service.",
+              "Response Integrity is not a tutoring service.",
               "It is a response-conditioning system delivered through mathematics.",
               "The purpose of every session is to train how a learner responds under difficulty, not to explain content or assist with homework.",
               "The Contractor operates as a response-conditioning operator, responsible for stabilizing learner execution under pressure.",
@@ -770,7 +770,7 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
       return (
         <>
           <TutorAgreementSection title="Purpose Of This Form">
-            <p>This in-app agreement is completed once at onboarding to verify that the Contractor meets Territorial Tutoring&apos;s minimum entry qualification requirement through submission of an official Matric certificate.</p>
+            <p>This in-app agreement is completed once at onboarding to verify that the Contractor meets Response Integrity&apos;s minimum entry qualification requirement through submission of an official Matric certificate.</p>
             <p>This verification is an entry threshold only. It confirms eligibility to enter the TT Leadership Programme and does not qualify the Contractor to operate independently of TT&apos;s training, operating system, and session standards.</p>
             <p>Once verified and accepted, continued participation is governed by conduct, session execution, TT Operating System (TT-OS) compliance, and operational performance within the platform.</p>
           </TutorAgreementSection>
@@ -792,7 +792,7 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
             <p>The Contractor must submit a certified copy of their official National Senior Certificate issued by the Department of Basic Education.</p>
             <p>The following are not accepted:</p>
             <TutorAgreementList items={["Uncertified copies", "Screenshots", "Altered or incomplete documents"]} />
-            <p>Territorial Tutoring reserves the right to verify submitted results directly with the relevant examining authority.</p>
+            <p>Response Integrity reserves the right to verify submitted results directly with the relevant examining authority.</p>
           </TutorAgreementSection>
 
           <TutorAgreementSection title="Entry Qualification And Onboarding Acknowledgements">
@@ -800,7 +800,7 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
             <TutorAgreementList items={[
               "The Matric certificate submitted is an official, complete, and accurate National Senior Certificate issued by the Department of Basic Education.",
               "This verification confirms entry eligibility only and does not by itself qualify the Contractor to operate as a TT tutor without compliance with TT's training system and session standards.",
-              "Territorial Tutoring is a response-conditioning system delivered through mathematics, and tutor performance is defined by execution within the TT Operating System (TT-OS), not by academic credentials alone.",
+              "Response Integrity is a response-conditioning system delivered through mathematics, and tutor performance is defined by execution within the TT Operating System (TT-OS), not by academic credentials alone.",
               "Once entry qualification is verified and accepted, continued participation in the TT Leadership Programme is governed by conduct, session execution, adherence to the TT-OS, and operational performance within the platform.",
               "No further academic submissions or qualification reviews will be required after this verification.",
               "Submission of a falsified, altered, or misrepresented Matric certificate constitutes a material breach of the Independent Contractor Agreement (TT-ICA-003) and will result in immediate termination without notice.",
@@ -823,7 +823,7 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
       return (
         <>
           <TutorAgreementSection title="Parties">
-            <p>This Agreement is entered into between Territorial Tutoring SA (Pty) Ltd ("TT" or "the Company") and the Contractor as identified in onboarding documentation.</p>
+            <p>This Agreement is entered into between Response Integrity (Pty) Ltd ("TT" or "the Company") and the Contractor as identified in onboarding documentation.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Nature Of Relationship">
             <TutorAgreementSubsection title="2.1 - 2.4">
@@ -923,8 +923,8 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
       return (
         <>
           <TutorAgreementSection title="Purpose">
-            <p>This policy defines the safeguarding standards, conduct rules, and interaction boundaries required of all tutors operating within the Territorial Tutoring platform.</p>
-            <p>Territorial Tutoring operates with minor learners in a controlled online environment. This policy is non-negotiable.</p>
+            <p>This policy defines the safeguarding standards, conduct rules, and interaction boundaries required of all tutors operating within the Response Integrity platform.</p>
+            <p>Response Integrity operates with minor learners in a controlled online environment. This policy is non-negotiable.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Core Principle">
             <p>All tutor conduct must remain professional, structured, and bounded to the session environment.</p>
@@ -1015,8 +1015,8 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
       return (
         <>
           <TutorAgreementSection title="Purpose">
-            <p>This agreement records consent for the collection, processing, storage, and use of personal and performance data within the Territorial Tutoring platform.</p>
-            <p>Territorial Tutoring operates a recorded, data-driven response-conditioning system. Data is required for the system to function.</p>
+            <p>This agreement records consent for the collection, processing, storage, and use of personal and performance data within the Response Integrity platform.</p>
+            <p>Response Integrity operates a recorded, data-driven response-conditioning system. Data is required for the system to function.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Types Of Data Collected">
             <TutorAgreementSubsection title="2.1 Personal Information">
@@ -1164,7 +1164,7 @@ function buildAcceptedCopyHtml(params: {
 </head>
 <body>
   <main class="page">
-    <div class="eyebrow">Territorial Tutoring Accepted Agreement Copy</div>
+    <div class="eyebrow">Response Integrity Accepted Agreement Copy</div>
     <h1>${escapeHtml(document.title)}</h1>
     <p class="subhead">${escapeHtml(document.code)} | Version ${escapeHtml(documentVersion)} | Accepted in-app against the tutor's authenticated TT account</p>
 
@@ -1181,7 +1181,7 @@ function buildAcceptedCopyHtml(params: {
     <section class="section">
       <h2 class="section-title">Parties</h2>
       <table>
-        <tr><th>Party A</th><td>Territorial Tutoring SA (Pty) Ltd ("TT")</td></tr>
+        <tr><th>Party A</th><td>Response Integrity (Pty) Ltd ("TT")</td></tr>
         <tr><th>Party B</th><td>${escapeHtml(acceptedName)} (Contractor)</td></tr>
       </table>
     </section>
@@ -1986,7 +1986,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
             <div ref={readerRef} onScroll={handleReaderScroll} className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-[#FFF5ED] px-3 py-4 touch-pan-y sm:px-6 sm:py-6">
               <div className="mx-auto max-w-4xl rounded-2xl border border-[#E7D5C8] bg-white px-4 py-6 text-[#1A1A1A] shadow-[0_18px_50px_rgba(230,57,70,0.08)] sm:px-10 sm:py-10">
                 <div className="border-b border-[#E7D5C8] pb-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#E63946]">Territorial Tutoring Onboarding Document</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#E63946]">Response Integrity Onboarding Document</p>
                   <h1 className="mt-3 text-2xl font-semibold tracking-tight text-[#1A1A1A] sm:text-3xl">{currentDocument.title}</h1>
                   <p className="mt-2 text-xs text-[#6B5B52] sm:text-sm">
                     {currentDocument.code} • Version {normalizeDisplayedVersion(currentDocument.version)}

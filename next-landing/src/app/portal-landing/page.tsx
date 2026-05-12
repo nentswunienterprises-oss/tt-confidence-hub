@@ -138,10 +138,10 @@ export default function PortalLanding() {
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
-              <Image src="/logos/tt-monogram.png" alt="TT Logo" width={40} height={40} />
+              <Image src="/logos/tt-monogram.png" alt="Response Integrity Logo" width={40} height={40} />
             </div>
             <p className="text-center md:text-right" style={{ color: "#5A5A5A" }}>
-              © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
+              © {new Date().getFullYear()} Response Integrity (Pty) Ltd
               <br />
               <span className="text-sm">
                 Confidence, made inevitable.

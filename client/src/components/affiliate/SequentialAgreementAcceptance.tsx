@@ -340,7 +340,7 @@ function buildAgreementBody(document: DocumentDefinition, formData: EgpFormData)
           <AgreementSection title="2. Confidential Information">
             <p>Confidential Information includes, but is not limited to:</p>
             <AgreementList items={[
-              "TT-OS (Territorial Tutoring Operating System)",
+              "TT-OS (Response Integrity Operating System)",
               "Training methods and drill structures",
               "Intake and diagnostic processes",
               "Pricing models and revenue structures",
@@ -538,7 +538,7 @@ export function buildAcceptedCopyHtml(params: {
 </head>
 <body>
   <main class="page">
-    <div class="eyebrow">Territorial Tutoring Accepted Agreement Copy</div>
+    <div class="eyebrow">Response Integrity Accepted Agreement Copy</div>
     <h1>${escapeHtml(document.title)}</h1>
     <p class="subhead">${escapeHtml(document.code)} | Version ${escapeHtml(documentVersion)} | Accepted in-app against the affiliate's authenticated TT account</p>
 
@@ -555,7 +555,7 @@ export function buildAcceptedCopyHtml(params: {
     <section class="section">
       <h2 class="section-title">Parties</h2>
       <table>
-        <tr><th>Party A</th><td>Territorial Tutoring SA (Pty) Ltd ("TT")</td></tr>
+        <tr><th>Party A</th><td>Response Integrity SA (Pty) Ltd ("TT")</td></tr>
         <tr><th>Party B</th><td>${escapeHtml(acceptedName)} (Education Growth Partner)</td></tr>
       </table>
     </section>
@@ -1239,7 +1239,7 @@ export function SequentialAgreementAcceptance({ applicationId, applicationStatus
             >
               <div className="mx-auto max-w-4xl rounded-2xl border border-[#E7D5C8] bg-white px-4 py-6 text-[#1A1A1A] shadow-[0_18px_50px_rgba(230,57,70,0.08)] sm:px-10 sm:py-10">
                 <div className="border-b border-[#E7D5C8] pb-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#E63946]">Territorial Tutoring Agreement</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#E63946]">Response Integrity Agreement</p>
                   <h1 className="mt-3 text-2xl font-semibold tracking-tight text-[#1A1A1A] sm:text-3xl">{currentDocument.title}</h1>
                   <p className="mt-2 text-xs text-[#6B5B52] sm:text-sm">
                     {currentDocument.code} • Version {currentDocument.version}
@@ -1289,8 +1289,8 @@ export function SequentialAgreementAcceptance({ applicationId, applicationStatus
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="rounded-xl border border-[#E7D5C8] bg-white p-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#9F1D2B]">Party A</p>
-                      <p className="mt-2 font-semibold text-[#1A1A1A]">Territorial Tutoring SA (Pty) Ltd</p>
-                      <p className="text-sm text-[#6B5B52]">Territorial Tutoring ("TT")</p>
+                      <p className="mt-2 font-semibold text-[#1A1A1A]">Response Integrity SA (Pty) Ltd</p>
+                      <p className="text-sm text-[#6B5B52]">Response Integrity ("TT")</p>
                     </div>
                     <div className="rounded-xl border border-[#E7D5C8] bg-white p-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#9F1D2B]">Party B</p>

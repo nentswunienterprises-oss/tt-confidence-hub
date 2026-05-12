@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { CheckCircle2, Circle, ArrowLeft, Check, Plus, X } from "lucide-react";
-import { TTLogo } from "@/components/TTLogo";
+import { TTLogo } from "@/components/ResponseIntegrityLogo";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -409,7 +409,7 @@ export default function ParentGateway() {
       setFormData((prev) => ({
         ...prev,
         parentEmail: user.email || prev.parentEmail,
-        parentFullName: user.name || (user.first_name && user.last_name ? `${user.first_name} ${user.last_name}`.trim() : prev.parentFullName),
+        parentFullName: user.name || (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}`.trim() : prev.parentFullName),
       }));
     }
   }, [user]);
@@ -945,7 +945,7 @@ export default function ParentGateway() {
             <CardHeader className="px-4 sm:px-6">
               <CardTitle className="text-lg sm:text-xl" style={{ color: "#1A1A1A" }}>Application Form</CardTitle>
               <CardDescription className="text-sm" style={{ color: "#5A5A5A" }}>
-                Territorial Tutoring - Founding Cohort Application
+                Response Integrity - Founding Cohort Application
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 sm:space-y-8 px-4 sm:px-6">

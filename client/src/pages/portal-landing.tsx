@@ -1,7 +1,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { TTLogo } from "@/components/TTLogo";
+import { TTLogo } from "@/components/ResponseIntegrityLogo";
 import { buildTrackedPath, buildTrackedReturnTo } from "@/lib/publicTracking";
 
 import { useLocation, useNavigate } from "react-router-dom";
@@ -285,7 +285,7 @@ function PortalLanding() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 pb-6 sm:pb-8 mb-6 sm:mb-8 border-b" style={{ borderColor: "#E5E5E5" }}>
             <div className="space-y-3 sm:space-y-4">
-              <h4 className="font-semibold text-sm sm:text-base" style={{ color: "#1A1A1A" }}>About TT</h4>
+              <h4 className="font-semibold text-sm sm:text-base" style={{ color: "#1A1A1A" }}>About Response Integrity</h4>
               <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
               Our system focuses on how students respond when work becomes difficult, unfamiliar, or timed. By training this response directly, students move from inconsistent performance to stable, controlled execution across topics.
               </p>
@@ -297,7 +297,7 @@ function PortalLanding() {
                   Terms of Use
                 </a>
                 <a href={aboutTtUrl} className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
-                  More About TT
+                  More About Us
                 </a>
               </div>
             </div>
@@ -321,7 +321,7 @@ function PortalLanding() {
                 href="https://www.instagram.com/territorialtutoring?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Territorial Tutoring on Instagram"
+                aria-label="Response Integrity on Instagram"
                 className="inline-flex items-center justify-center w-10 h-10 rounded-full transition-opacity hover:opacity-80 md:ml-[8.75rem]"
                 style={{ backgroundColor: "#FFF0F0", color: "#E63946" }}
               >
@@ -329,7 +329,7 @@ function PortalLanding() {
               </a>
             </div>
             <p className="text-center md:text-right text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-              © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd
+              © {new Date().getFullYear()} Response Integrity (Pty) Ltd
               <br />
               <span className="text-xs sm:text-sm">Math Pressure Response-Training.</span>
             </p>

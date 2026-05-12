@@ -319,11 +319,11 @@ export default function StudentCommunicationDialog({
       <DialogContent className="max-h-[92vh] w-[calc(100vw-1.5rem)] max-w-4xl overflow-hidden p-0">
         <DialogHeader className="border-b border-border/60 px-4 py-4 sm:px-6">
           <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
-            TT Communication
+            Response Integrity Communication
           </p>
           <DialogTitle>{studentName}</DialogTitle>
           <DialogDescription>
-            Parent and student messaging stays inside Territorial Tutoring.
+            Parent and student messaging stays inside Response Integrity.
           </DialogDescription>
         </DialogHeader>
 

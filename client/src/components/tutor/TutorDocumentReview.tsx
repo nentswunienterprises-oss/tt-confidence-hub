@@ -145,7 +145,7 @@ function buildTutorAgreementBody(code: string, formData: Record<string, string>)
             </div>
           </TutorAgreementSection>
           <TutorAgreementSection title="Programme Definition And Role">
-            <p>Territorial Tutoring is not a tutoring service. It is a response-conditioning system delivered through mathematics.</p>
+            <p>Response Integrity is not a tutoring service. It is a response-conditioning system delivered through mathematics.</p>
             <p>The purpose of every session is to train how a learner responds under difficulty, not to explain content or assist with homework.</p>
             <p>The Contractor operates as a response-conditioning operator, responsible for stabilizing learner execution under pressure.</p>
             <TutorAgreementList items={[
@@ -239,7 +239,7 @@ function buildTutorAgreementBody(code: string, formData: Record<string, string>)
       return (
         <>
           <TutorAgreementSection title="Purpose">
-            <p>This agreement records consent for the collection, processing, storage, and use of personal and performance data within the Territorial Tutoring platform.</p>
+            <p>This agreement records consent for the collection, processing, storage, and use of personal and performance data within the Response Integrity platform.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Types Of Data Collected">
             <TutorAgreementSubsection title="Personal Information">
@@ -356,7 +356,7 @@ function buildAcceptedAgreementHtml(item: { code: string; title: string }, accep
 </head>
 <body>
   <main class="page">
-    <div class="eyebrow">Territorial Tutoring Accepted Agreement Copy</div>
+    <div class="eyebrow">Response Integrity Accepted Agreement Copy</div>
     <h1>${escapeHtml(item.title)}</h1>
     <p class="subhead">${escapeHtml(item.code)} | Version ${escapeHtml(String(documentVersion))}</p>
     <section class="section">
@@ -368,7 +368,7 @@ function buildAcceptedAgreementHtml(item: { code: string; title: string }, accep
     <section class="section">
       <h2 class="section-title">Parties</h2>
       <table>
-        <tr><th>Party A</th><td>Territorial Tutoring SA (Pty) Ltd ("TT")</td></tr>
+        <tr><th>Party A</th><td>Response Integrity (Pty) Ltd ("TT")</td></tr>
         <tr><th>Party B</th><td>${escapeHtml(String(acceptedName))} (Contractor)</td></tr>
       </table>
     </section>

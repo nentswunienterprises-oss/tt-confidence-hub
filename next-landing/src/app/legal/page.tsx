@@ -21,7 +21,7 @@ export default function LegalPage() {
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold">Legal Pack</CardTitle>
             <CardDescription>
-              Territorial Tutoring SA (Pty) Ltd
+              Response Integrity SA (Pty) Ltd
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -38,7 +38,7 @@ export default function LegalPage() {
                   <section className="mb-8">
                     <h3 className="text-xl font-semibold mb-3">1.1 Introduction</h3>
                     <p>
-                      Territorial Tutoring SA (Pty) Ltd ("Territorial Tutoring", "TT", "we", "us", "our") is committed to protecting the privacy, dignity, and personal information of our students, parents, tutors, and partners. We operate in accordance with the Protection of Personal Information Act 4 of 2013 (POPIA) and all applicable South African data protection laws.
+                      Response Integrity SA (Pty) Ltd ("Response Integrity", "RI", "we", "us", "our") is committed to protecting the privacy, dignity, and personal information of our students, parents, tutors, and partners. We operate in accordance with the Protection of Personal Information Act 4 of 2013 (POPIA) and all applicable South African data protection laws.
                     </p>
                     <p>
                       This Privacy Policy explains how we collect, use, store, share, and protect personal information when you use our website, web application, and services.
@@ -48,7 +48,7 @@ export default function LegalPage() {
                   <section className="mb-8">
                     <h3 className="text-xl font-semibold mb-3">1.2 Who We Are</h3>
                     <ul className="list-disc pl-6">
-                      <li><strong>Legal Entity:</strong> Territorial Tutoring SA (Pty) Ltd</li>
+                      <li><strong>Legal Entity:</strong> Response Integrity SA (Pty) Ltd</li>
                       <li><strong>Jurisdiction:</strong> Republic of South Africa</li>
                       <li><strong>Contact:</strong> privacy@responseintegrity.co.za (to be activated)</li>
                     </ul>
@@ -190,14 +190,14 @@ export default function LegalPage() {
                   <section className="mb-8">
                     <h3 className="text-xl font-semibold mb-3">2.1 Acceptance of Terms</h3>
                     <p>
-                      By accessing or using Territorial Tutoring's services, you agree to these Terms of Use.
+                      By accessing or using Response Integrity's services, you agree to these Terms of Use.
                     </p>
                   </section>
 
                   <section className="mb-8">
                     <h3 className="text-xl font-semibold mb-3">2.2 Our Services</h3>
                     <p>
-                      Territorial Tutoring provides online tutoring and academic mentorship services via our web application and Google Meet.
+                      Response Integrity provides online mentorship and academic performance services via our web application and Google Meet.
                     </p>
                   </section>
 
@@ -224,7 +224,7 @@ export default function LegalPage() {
                   <section className="mb-8">
                     <h3 className="text-xl font-semibold mb-3">2.5 Intellectual Property</h3>
                     <p>
-                      All materials, content, and systems remain the property of Territorial Tutoring SA (Pty) Ltd.
+                      All materials, content, and systems remain the property of Response Integrity SA (Pty) Ltd.
                     </p>
                   </section>
 
@@ -238,7 +238,7 @@ export default function LegalPage() {
                   <section className="mb-8">
                     <h3 className="text-xl font-semibold mb-3">2.7 Limitation of Liability</h3>
                     <p>
-                      Territorial Tutoring is not liable for indirect or consequential losses arising from use of the service.
+                      Response Integrity is not liable for indirect or consequential losses arising from use of the service.
                     </p>
                   </section>
 

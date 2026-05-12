@@ -6,8 +6,8 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Territorial Tutoring - Calm Execution Under Pressure</title>
-        <meta name="description" content="Territorial Tutoring trains students to think clearly, execute accurately, and stay composed under pressure. Confidence becomes inevitable." />
+        <title>Response Integrity - Calm Execution Under Pressure</title>
+        <meta name="description" content="Response Integrity trains students to think clearly, execute accurately, and stay composed under pressure. Confidence becomes inevitable." />
         <meta name="robots" content="index, follow" />
       </Head>
       <div className="min-h-screen bg-[#FFF5ED] font-sans">
@@ -112,9 +112,9 @@ export default function Home() {
         <footer className="py-8 sm:py-12 bg-[#FFF5ED]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
-              <Image src="/logos/tt-monogram.png" alt="TT Logo" width={32} height={32} />
+              <Image src="/logos/tt-monogram.png" alt="Response Integrity Logo" width={32} height={32} />
               <p className="text-center md:text-right text-xs sm:text-sm text-[#5A5A5A]">
-                © {new Date().getFullYear()} Territorial Tutoring SA (Pty) Ltd<br />
+                © {new Date().getFullYear()} Response Integrity (Pty) Ltd<br />
                 <span className="text-xs sm:text-sm">Confidence, made inevitable.</span>
               </p>
             </div>
