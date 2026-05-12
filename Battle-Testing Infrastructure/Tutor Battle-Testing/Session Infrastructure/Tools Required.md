@@ -1,8 +1,8 @@
-TT-OS BATTLE TEST: TOOLS REQUIRED (SCORING VERSION)
+Response Integrity-OS BATTLE TEST: TOOLS REQUIRED (SCORING VERSION)
 ≡ƒö╣ SECTION A ΓÇö CORE UNDERSTANDING
 Q1
 
-Why are TT tools required, not optional?
+Why are Response Integrity tools required, not optional?
 
 Expected Answer:
 Because they enforce consistency, prevent data loss, and create the record needed for training decisions.

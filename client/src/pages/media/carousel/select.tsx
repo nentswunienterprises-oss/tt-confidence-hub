@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 
-// TT Content Pillars
+// Response Integrity Content Pillars
 const PILLARS = [
   { id: "response-training", label: "Response Training", description: "How we condition execution under pressure" },
   { id: "pressure-environment", label: "Pressure Environment", description: "The arena where response breaks down" },
@@ -13,12 +13,12 @@ const PILLARS = [
 
 // Situations (contexts for the message)
 const SITUATIONS = [
-  { id: "enrollment", label: "Enrollment", description: "Parent considering TT" },
+  { id: "enrollment", label: "Enrollment", description: "Parent considering Response Integrity" },
   { id: "onboarding", label: "Onboarding", description: "New family joining" },
   { id: "progress", label: "Progress Update", description: "Mid-term status" },
   { id: "exam-prep", label: "Exam Preparation", description: "High-pressure period" },
   { id: "retention", label: "Retention", description: "Renewal or continued engagement" },
-  { id: "referral", label: "Referral", description: "Existing family sharing TT" },
+  { id: "referral", label: "Referral", description: "Existing family sharing Response Integrity" },
 ] as const;
 
 // Audiences

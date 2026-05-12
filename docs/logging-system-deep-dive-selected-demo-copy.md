@@ -1,4 +1,4 @@
-# TT-OS Deep Dive
+# Response Integrity-OS Deep Dive
 
 ## Logging System
 
@@ -63,7 +63,7 @@ Constraints:
 
 - Only log what the student actually did.
 - Do not guess or fill gaps with your own interpretation.
-- Use the drill options exactly as they are written.
+- Use the drill options exactly as they are wriResponse Integrityen.
 - If you did not see it happen, do not log it.
 
 ## How Choices Turn Into a Result
@@ -76,7 +76,7 @@ Constraints:
 ## What Tutors Do in the Runner
 
 1. Open the verification block and review the tutor prep step first.
-2. Run each rep exactly as written.
+2. Run each rep exactly as wriResponse Integrityen.
 3. Choose the option that best matches what the student actually did.
 4. Finish the block without rewriting what happened.
 5. Submit to see the evidence summary and system output.
@@ -93,10 +93,10 @@ Constraints:
 
 ## Audit Relevance
 
-Because TT logging is tied directly to evidence and system output, dishonest logging means dishonest evidence capture. That is a compliance issue, not a note-taking issue.
+Because Response Integrity logging is tied directly to evidence and system output, dishonest logging means dishonest evidence capture. That is a compliance issue, not a note-taking issue.
 
 - Selecting stronger observation options than the rep justified
-- Logging a smoother response pattern than the drill score supports
+- Logging a smoother response paResponse Integrityern than the drill score supports
 - Altering or misreporting the automatic system result after scoring
 - Writing around a rescue, pressure break, or structure collapse
 

@@ -76,7 +76,7 @@ const hierarchy = [
 ];
 
 const introRules = [
-  "Intro happens when a student is entering TT in a topic for the first time.",
+  "Intro happens when a student is entering Response Integrity in a topic for the first time.",
   "The tutor does not yet know the student's correct starting phase in that topic.",
   "Intro does not run full training sets.",
   "Intro uses diagnosis blocks to find the right starting phase.",
@@ -85,7 +85,7 @@ const introRules = [
 
 const handoverRules = [
   "Handover happens when a tutor is being replaced.",
-  "The student has already been trained in TT before this session.",
+  "The student has already been trained in Response Integrity before this session.",
   "The student already has an inherited topic, phase, and stability from the previous tutor.",
   "Handover does not restart the student.",
   "Handover uses short verification blocks, not a full intro again.",
@@ -158,7 +158,7 @@ export default function ResponseConditioningDrillLibrary() {
             </div>
             <div>
               <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">
-                TT-OS Deep Dive
+                Response Integrity-OS Deep Dive
               </p>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-1">
                 Drill Library
@@ -240,7 +240,7 @@ export default function ResponseConditioningDrillLibrary() {
         <Card className="p-6 space-y-4">
           <h2 className="text-2xl font-bold">How Intro Uses The Library</h2>
           <p className="text-muted-foreground">
-            Start with the session context. Intro is used when a student is entering TT in a topic
+            Start with the session context. Intro is used when a student is entering Response Integrity in a topic
             and the tutor still needs to find the correct starting phase.
           </p>
           <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
@@ -258,7 +258,7 @@ export default function ResponseConditioningDrillLibrary() {
           <h2 className="text-2xl font-bold">How Handover Uses The Library</h2>
           <p className="text-muted-foreground">
             Start with the session context. Handover is used when one tutor is replacing another
-            and the student has already been actively trained in TT before.
+            and the student has already been actively trained in Response Integrity before.
           </p>
           <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
             {handoverRules.map((rule) => (

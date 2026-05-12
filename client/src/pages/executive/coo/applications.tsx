@@ -22,11 +22,11 @@ const defaultStatuses = {
 };
 
 const egpStepMeta: Record<number, { code: string; shortTitle: string }> = {
-  1: { code: "TT-EGP-001", shortTitle: "EGP Agreement" },
-  2: { code: "TT-EGP-002", shortTitle: "Non-Circumvention" },
-  3: { code: "TT-EGP-003", shortTitle: "Confidentiality" },
-  4: { code: "TT-EGP-004", shortTitle: "Representation" },
-  5: { code: "TT-EGP-005", shortTitle: "Certified ID Copy" },
+  1: { code: "Response Integrity-EGP-001", shortTitle: "EGP Agreement" },
+  2: { code: "Response Integrity-EGP-002", shortTitle: "Non-Circumvention" },
+  3: { code: "Response Integrity-EGP-003", shortTitle: "Confidentiality" },
+  4: { code: "Response Integrity-EGP-004", shortTitle: "Representation" },
+  5: { code: "Response Integrity-EGP-005", shortTitle: "Certified ID Copy" },
 };
 
 const egpDocumentTitles: Record<number, string> = {
@@ -359,7 +359,7 @@ export function COOAffiliateApplicationsPanel() {
             {(selectedApplication.documents_status?.["5"] || selectedApplication.documentsStatus?.["5"]) === "pending_review" ? (
               <div className="space-y-4 rounded-2xl border border-[#E7D5C8] bg-[#FFF8F4] p-4">
                 <div>
-                  <p className="font-semibold">TT-EGP-005 review</p>
+                  <p className="font-semibold">Response Integrity-EGP-005 review</p>
                   <p className="text-sm text-muted-foreground">Review the certified ID copy and approve or reject the upload.</p>
                 </div>
                 {selectedApplication.doc_5_submission_url ? (
@@ -453,7 +453,7 @@ const tdQuestionPrompts: Array<{ key: string; label: string }> = [
   { key: "unpopularEnforcementCase", label: "Q12. Describe a situation where you had to enforce something unpopular. What happened?" },
   { key: "noRescueExplanation", label: "Q13. Explain in a structured way: \"Why must a student not be rescued during difficulty?\"" },
   { key: "moreDangerousTutor", label: "Q14. What is more dangerous: a weak tutor, or a slightly wrong tutor who seems good?" },
-  { key: "systemDestructionFactors", label: "Q15. What would slowly destroy a system like TT over time?" },
+  { key: "systemDestructionFactors", label: "Q15. What would slowly destroy a system like Response Integrity over time?" },
   { key: "trustReason", label: "Q17. Why should you be trusted to protect a system like this?" },
 ];
 
@@ -468,13 +468,13 @@ const tdDefaultStatuses: Record<string, string> = {
 };
 
 const tdDocumentMeta: Array<{ step: number; code: string; title: string }> = [
-  { step: 1, code: "TT-TDA-001", title: "Territory Director Contractor Agreement" },
-  { step: 2, code: "TT-CEA-002", title: "TT-OS Compliance & Enforcement Agreement" },
-  { step: 3, code: "TT-AID-003", title: "Audit Integrity Declaration" },
-  { step: 4, code: "TT-HTQ-004", title: "HTQ Track Addendum" },
-  { step: 5, code: "TT-PSA-005", title: "Performance Scorecard Acknowledgement" },
-  { step: 6, code: "TT-CSP-006", title: "Confidentiality & System Protection Agreement" },
-  { step: 7, code: "TT-TDI-007", title: "Certified Identification" },
+  { step: 1, code: "Response Integrity-TDA-001", title: "Territory Director Contractor Agreement" },
+  { step: 2, code: "Response Integrity-CEA-002", title: "Response Integrity-OS Compliance & Enforcement Agreement" },
+  { step: 3, code: "Response Integrity-AID-003", title: "Audit Integrity Declaration" },
+  { step: 4, code: "Response Integrity-HTQ-004", title: "HTQ Track Addendum" },
+  { step: 5, code: "Response Integrity-PSA-005", title: "Performance Scorecard Acknowledgement" },
+  { step: 6, code: "Response Integrity-CSP-006", title: "Confidentiality & System Protection Agreement" },
+  { step: 7, code: "Response Integrity-TDI-007", title: "Certified Identification" },
 ];
 
 function formatTdBooleanAnswer(value: unknown) {
@@ -773,7 +773,7 @@ export function COOTdApplicationsPanel() {
             {(selectedApplication.documents_status?.["7"] || selectedApplication.documentsStatus?.["7"]) === "pending_review" ? (
               <div className="space-y-4 rounded-2xl border border-[#E7D5C8] bg-[#FFF8F4] p-4">
                 <div>
-                  <p className="font-semibold">TT-TDI-007 review</p>
+                  <p className="font-semibold">Response Integrity-TDI-007 review</p>
                   <p className="text-sm text-muted-foreground">Review the certified identification copy and approve or reject the upload.</p>
                 </div>
                 {selectedApplication.doc_7_submission_url ? (
@@ -911,7 +911,7 @@ function AffiliateApplicationDetails({ application }: { application: any }) {
     ["You haven’t earned anything in 2 weeks. What changes in your approach?", application.no_earnings_response || application.noEarningsResponse],
     ["In the next 5 days, how would you get 2–3 serious parent conversations?", application.next_five_days_plan || application.nextFiveDaysPlan],
     ["Do you still want to proceed? Why?", application.proceed_reason || application.proceedReason],
-    ["Why should TT trust you with access to parents?", application.trust_reason || application.trustReason],
+    ["Why should Response Integrity trust you with access to parents?", application.trust_reason || application.trustReason],
   ];
 
   return (
@@ -1208,7 +1208,7 @@ function CompletedEgpApplicationCard({
             <div className="rounded-lg border p-3">
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-sm font-medium">TT-EGP-005</p>
+                  <p className="text-sm font-medium">Response Integrity-EGP-005</p>
                   <Badge className="bg-green-100 text-green-800 border-green-200">Approved</Badge>
                 </div>
                 <p className="text-xs text-muted-foreground">Certified ID Copy</p>

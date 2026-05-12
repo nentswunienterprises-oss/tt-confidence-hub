@@ -75,7 +75,7 @@ export default function StudentLanding() {
 
       toast({
         title: "Account Created!",
-        description: "Welcome to TT Student Portal. Redirecting...",
+        description: "Welcome to Response Integrity Student Portal. Redirecting...",
       });
 
       // Clear any cached data from previous user before navigating

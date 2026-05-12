@@ -2070,7 +2070,7 @@ export class SupabaseStorage implements IStorage {
   ): Promise<TutorApplication | undefined> {
     const fields = getSequentialTutorDocumentFields(docStep);
     if (!fields.requiresCompletedTemplate) {
-      throw new Error(`Step ${docStep} does not require a TT-completed template upload.`);
+      throw new Error(`Step ${docStep} does not require a platform-completed template upload.`);
     }
     if (!fields.completedTemplateUrl || !fields.completedTemplateUploadedAt || !fields.completedTemplateUploadedBy) {
       throw new Error(`Completed template fields are not configured for step ${docStep}.`);
@@ -2096,7 +2096,7 @@ export class SupabaseStorage implements IStorage {
     }
     if (!existing?.[fields.url]) {
       throw new Error(
-        `Tutor-signed document is required before uploading the TT-completed version for step ${docStep}.`
+        `Tutor-signed document is required before uploading the platform-completed version for step ${docStep}.`
       );
     }
 

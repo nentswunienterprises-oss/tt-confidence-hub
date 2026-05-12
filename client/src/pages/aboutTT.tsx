@@ -148,7 +148,7 @@ export default function AboutTT() {
 
             <h2>Consistency Across Tutors</h2>
 
-            <p>All TT tutors follow the same structured approach.</p>
+            <p>All Response Integrity tutors follow the same structured approach.</p>
 
             <p>This means:</p>
             <ul>
@@ -201,7 +201,7 @@ export default function AboutTT() {
             <p></p>
 
             <h3>Level 2 - The Capability</h3>
-            <p>What TT actually enables:</p>
+            <p>What Response Integrity actually enables:</p>
             <ul>
               <li>Step-by-step problem solving</li>
               <li>Structured thinking</li>
@@ -211,8 +211,8 @@ export default function AboutTT() {
             <p></p>
 
             <h3>Level 3 - The Emotional State</h3>
-            <p>TT does not chase confidence.</p>
-            <p>TT produces:</p>
+            <p>Response Integrity does not chase confidence.</p>
+            <p>Response Integrity produces:</p>
             <ul>
               <li>Cognitive stability under uncertainty</li>
             </ul>
@@ -227,7 +227,7 @@ export default function AboutTT() {
 
             <h3>Level 4 - The Behavior Change</h3>
             <p></p>
-            <p>Students trained by TT do one thing differently:</p>
+            <p>Students trained by Response Integrity do one thing differently:</p>
             <p>They do not freeze when the question breaks expectation.</p>
             <p>They:</p>
             <ul>
@@ -254,7 +254,7 @@ export default function AboutTT() {
               <li>Students stop self-labeling as “bad at math”</li>
               <li>Academic pressure becomes manageable, not traumatic</li>
             </ul>
-            <p>The future TT represents is:</p>
+            <p>The future Response Integrity represents is:</p>
             <p>“My child can handle pressure without falling apart.”</p>
             <p>That is priceless to the right parent.</p>
 

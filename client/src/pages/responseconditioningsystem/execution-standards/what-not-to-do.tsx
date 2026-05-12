@@ -25,7 +25,7 @@ export default function ResponseConditioningWhatNotToDo() {
             </div>
             <div>
               <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">
-                TT-OS Deep Dive
+                Response Integrity-OS Deep Dive
               </p>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-1">
                 What Not To Do
@@ -43,9 +43,9 @@ export default function ResponseConditioningWhatNotToDo() {
           <h2 className="text-2xl font-bold">Purpose</h2>
           <p className="text-muted-foreground">This is not a suggestion list.</p>
           <p className="text-muted-foreground">This is:</p>
-          <p className="font-medium">what breaks the TT system</p>
+          <p className="font-medium">what breaks the Response Integrity system</p>
           <p className="text-muted-foreground">If these behaviors appear consistently:</p>
-          <p className="font-semibold">you are not running TT-OS</p>
+          <p className="font-semibold">you are not running Response Integrity-OS</p>
         </Card>
 
         {/* 1. Do Not Rescue */}
@@ -259,7 +259,7 @@ export default function ResponseConditioningWhatNotToDo() {
 
           <div className="bg-muted rounded p-3">
             <p className="font-semibold text-sm uppercase tracking-wide mb-1">Rule</p>
-            <p className="text-muted-foreground">TT sessions are execution environments, not lectures.</p>
+            <p className="text-muted-foreground">Response Integrity sessions are execution environments, not lectures.</p>
           </div>
         </Card>
 
@@ -363,7 +363,7 @@ export default function ResponseConditioningWhatNotToDo() {
         {/* The Standard */}
         <Card className="p-6 space-y-4 border-primary/30 bg-primary/5">
           <h2 className="text-2xl font-bold">The Standard</h2>
-          <p className="text-muted-foreground">TT prioritizes:</p>
+          <p className="text-muted-foreground">Response Integrity prioritizes:</p>
           <ul className="space-y-2 pl-4 font-medium">
             <li>structure over comfort</li>
             <li>process over speed</li>
@@ -375,7 +375,7 @@ export default function ResponseConditioningWhatNotToDo() {
         <Card className="p-6 space-y-4">
           <h2 className="text-2xl font-bold">Final Principle</h2>
           <p className="text-muted-foreground">Most tutors try to make sessions feel successful.</p>
-          <p className="text-muted-foreground">TT ensures:</p>
+          <p className="text-muted-foreground">Response Integrity ensures:</p>
           <p className="font-bold text-lg">students become capable</p>
         </Card>
 

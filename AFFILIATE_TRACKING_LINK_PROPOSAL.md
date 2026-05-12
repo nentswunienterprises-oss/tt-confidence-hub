@@ -22,7 +22,7 @@
 ### The Problem You Identified
 **The current system requires the parent to have an affiliate code**, which:
 - Limits signups to people who directly met the affiliate
-- Excludes organic/online leads who found TT through marketing
+- Excludes organic/online leads who found Response Integrity through marketing
 - Excludes media partnerships, school referrals, or other discovery channels
 - **Creates artificial friction** for potential customers
 
@@ -227,7 +227,7 @@ Parent signs up with code
 
 ### Scenario 2: Online Discovery (NEW)
 ```
-Parent searches "math tutoring" → Finds TT website
+Parent searches "math tutoring" → Finds Response Integrity website
 Sees affiliates page → "Refer a friend and earn!"
 Clicks affiliate's link: poddigitizer.com/signup?link=abc123xyz
 Affiliate auto-applied, signup seamless
@@ -236,7 +236,7 @@ Affiliate auto-applied, signup seamless
 
 ### Scenario 3: School Partnership (NEW)
 ```
-School recommends TT to parents
+School recommends Response Integrity to parents
 Parents get link: poddigitizer.com/signup?affiliate=SCHOOL_PARTNER
 OR unique link: poddigitizer.com/signup?link=school-abc
 Signup flow seamless

@@ -97,7 +97,7 @@ export function TutorIntroSessionActions({ studentId, parentId, tutorId, session
         <div className="space-y-1">
           <div className="text-[11px] text-green-700">Session confirmed!</div>
           <div className="text-[11px] text-muted-foreground">
-            {sessionLabel.charAt(0).toUpperCase() + sessionLabel.slice(1)} is confirmed. Open the next TT step when you are ready.
+            {sessionLabel.charAt(0).toUpperCase() + sessionLabel.slice(1)} is confirmed. Open the next Response Integrity step when you are ready.
           </div>
         </div>
       )}

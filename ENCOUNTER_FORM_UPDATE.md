@@ -9,7 +9,7 @@ Updated the affiliate encounter form to collect 9 key properties for each encoun
 1. **date_met** (TIMESTAMP) - When the encounter happened
 2. **contact_method** (VARCHAR) - Phone, DM, referral, school outreach, etc.
 3. **discovery_outcome** (TEXT) - The parent's pain points / what they admitted
-4. **delivery_notes** (TEXT) - How TT's solution was positioned in their world
+4. **delivery_notes** (TEXT) - How Response Integrity's solution was positioned in their world
 5. **final_outcome** (VARCHAR) - Enrolled / Objected / Follow Up Needed
 6. **result** (TEXT) - What's next / next steps
 7. **confidence_rating** (INTEGER) - Rating 1-5 of how confident you are
@@ -65,7 +65,7 @@ A comprehensive form component with:
 - **Example:** "Parent concerned about math skills, particularly with fractions"
 
 ### 5. Delivery Notes
-- **Purpose:** Records how TT's solution was positioned
+- **Purpose:** Records how Response Integrity's solution was positioned
 - **Field Type:** Text area (multi-line)
 - **Example:** "Explained how our structured approach builds foundation, emphasized peer learning"
 

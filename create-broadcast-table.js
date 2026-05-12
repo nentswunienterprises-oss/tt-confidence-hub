@@ -6,7 +6,7 @@
 
 const { createClient } = require("@supabase/supabase-js");
 
-const supabaseUrl = "https://yzcnavucvwgmulcxgxvw.supabase.co";
+const supabaseUrl = "hResponse Integrityps://yzcnavucvwgmulcxgxvw.supabase.co";
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6Y25hdnVjdndnbXVsY3hneHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2NDMwODQsImV4cCI6MjA3NzIxOTA4NH0.XN5-dNSuauD7UE0TVEVwbfeB77ehwYCDd1M4-6ovBr4";
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);

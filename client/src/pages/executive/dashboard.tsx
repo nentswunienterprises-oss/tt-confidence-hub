@@ -107,7 +107,7 @@ export default function ExecutiveDashboard() {
               Reports
             </h3>
             <p className="text-gray-600 mb-4">
-              Review deterministic TT reporting across sessions, weekly cycles, and monthly outcomes
+              Review deterministic Response Integrity reporting across sessions, weekly cycles, and monthly outcomes
             </p>
             <button className="text-[#E63946] hover:text-[#1A1A1A] font-semibold">
               Open Reports →

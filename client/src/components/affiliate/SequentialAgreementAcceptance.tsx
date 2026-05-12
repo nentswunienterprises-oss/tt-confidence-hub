@@ -70,11 +70,11 @@ const FORM_FIELDS: FieldDefinition[] = [
 ];
 
 const EGP_STEP_META: Record<number, { code: string; shortTitle: string }> = {
-  1: { code: "TT-EGP-001", shortTitle: "EGP Agreement" },
-  2: { code: "TT-EGP-002", shortTitle: "Non-Circumvention" },
-  3: { code: "TT-EGP-003", shortTitle: "Confidentiality" },
-  4: { code: "TT-EGP-004", shortTitle: "Representation" },
-  5: { code: "TT-EGP-005", shortTitle: "Certified ID Copy" },
+  1: { code: "Response Integrity-EGP-001", shortTitle: "EGP Agreement" },
+  2: { code: "Response Integrity-EGP-002", shortTitle: "Non-Circumvention" },
+  3: { code: "Response Integrity-EGP-003", shortTitle: "Confidentiality" },
+  4: { code: "Response Integrity-EGP-004", shortTitle: "Representation" },
+  5: { code: "Response Integrity-EGP-005", shortTitle: "Certified ID Copy" },
 };
 
 function normalizeValue(value: unknown) {
@@ -169,11 +169,11 @@ function AgreementSubsection({ title, children }: { title: string; children: Rea
 
 function buildAgreementBody(document: DocumentDefinition, formData: EgpFormData) {
   switch (document.code) {
-    case "TT-EGP-001":
+    case "Response Integrity-EGP-001":
       return (
         <>
           <AgreementSection title="1. Purpose">
-            <p>This Agreement governs the role of the Education Growth Partner as a distribution operator responsible for sourcing qualified students into the TT system.</p>
+            <p>This Agreement governs the role of the Education Growth Partner as a distribution operator responsible for sourcing qualified students into the Response Integrity system.</p>
             <p>The EGP is not an employee, advisor, or decision-maker. The EGP operates as a performance-based acquisition operator.</p>
           </AgreementSection>
 
@@ -181,15 +181,15 @@ function buildAgreementBody(document: DocumentDefinition, formData: EgpFormData)
             <p>The EGP is responsible for:</p>
             <AgreementList items={[
               "Identifying parents whose children demonstrate real academic performance breakdown",
-              "Introducing qualified parents to TT",
-              "Facilitating enrollment into the TT system",
+              "Introducing qualified parents to Response Integrity",
+              "Facilitating enrollment into the Response Integrity system",
             ]} />
             <p>The EGP shall not:</p>
             <AgreementList items={[
               "Teach or tutor students",
-              "Modify or interpret TT services",
+              "Modify or interpret Response Integrity services",
               "Make guarantees regarding results",
-              "Interfere with TT-OS or tutor operations",
+              "Interfere with Response Integrity-OS or tutor operations",
             ]} />
           </AgreementSection>
 
@@ -210,7 +210,7 @@ function buildAgreementBody(document: DocumentDefinition, formData: EgpFormData)
             <AgreementSubsection title="4.3 Payment Conditions">
               <p>Commission is earned only when:</p>
               <AgreementList items={[
-                "The student is accepted by TT",
+                "The student is accepted by Response Integrity",
                 "The parent completes payment",
                 "The student remains active (for retention payout)",
               ]} />
@@ -238,19 +238,19 @@ function buildAgreementBody(document: DocumentDefinition, formData: EgpFormData)
 
           <AgreementSection title="8. Representation Limitations">
             <p>The EGP shall not:</p>
-            <AgreementList items={["Misrepresent TT services", "Promise guaranteed results", "Provide academic advice beyond defined positioning"]} />
-            <p>All communication must align with TT positioning.</p>
+            <AgreementList items={["Misrepresent Response Integrity services", "Promise guaranteed results", "Provide academic advice beyond defined positioning"]} />
+            <p>All communication must align with Response Integrity positioning.</p>
           </AgreementSection>
 
           <AgreementSection title="9. Termination">
-            <p>TT may terminate this Agreement at any time:</p>
+            <p>Response Integrity may terminate this Agreement at any time:</p>
             <AgreementList items={["Without cause", "Without notice", "Without future obligation"]} />
             <p>Unmet conditions result in no payout.</p>
           </AgreementSection>
 
           <AgreementSection title="10. Confidentiality & System Protection">
             <p>The EGP agrees not to:</p>
-            <AgreementList items={["Share TT systems or processes", "Disclose internal structures", "Replicate TT model externally"]} />
+            <AgreementList items={["Share Response Integrity systems or processes", "Disclose internal structures", "Replicate Response Integrity model externally"]} />
           </AgreementSection>
 
           <AgreementSection title="11. Acknowledgement">
@@ -258,47 +258,47 @@ function buildAgreementBody(document: DocumentDefinition, formData: EgpFormData)
             <AgreementList tone="check" items={[
               "Understanding of performance-based nature",
               "Acceptance of zero-entitlement structure",
-              "Alignment with TT operational boundaries",
+              "Alignment with Response Integrity operational boundaries",
             ]} />
           </AgreementSection>
         </>
       );
 
-    case "TT-EGP-002":
+    case "Response Integrity-EGP-002":
       return (
         <>
           <AgreementSection title="1. Purpose">
-            <p>This Agreement protects TT's client relationships, tutor network, and operational structure.</p>
-            <p>The EGP acknowledges that all relationships introduced or accessed through TT remain the exclusive property of TT.</p>
+            <p>This Agreement protects Response Integrity's client relationships, tutor network, and operational structure.</p>
+            <p>The EGP acknowledges that all relationships introduced or accessed through the platform remain the exclusive property of Response Integrity.</p>
           </AgreementSection>
 
           <AgreementSection title="2. Non-Circumvention">
             <p>The EGP shall not, directly or indirectly:</p>
             <AgreementList items={[
-              "Engage TT clients outside the TT system",
-              "Offer tutoring or related services privately to TT clients",
-              "Redirect parents or students away from TT",
-              "Facilitate third-party services to TT clients",
+              "Engage Response Integrity clients outside the platform",
+              "Offer tutoring or related services privately to Response Integrity clients",
+              "Redirect parents or students away from Response Integrity",
+              "Facilitate third-party services to Response Integrity clients",
             ]} />
-            <p>All clients introduced remain within TT.</p>
+            <p>All clients introduced remain within the Response Integrity system.</p>
           </AgreementSection>
 
           <AgreementSection title="3. Non-Solicitation (Clients)">
             <p>The EGP shall not:</p>
             <AgreementList items={[
-              "Contact TT parents for personal or external services",
-              "Attempt to move TT clients to another platform",
-              "Re-engage former TT clients outside TT",
+              "Contact Response Integrity parents for personal or external services",
+              "Attempt to move Response Integrity clients to another platform",
+              "Re-engage former Response Integrity clients outside the platform",
             ]} />
-            <p>This applies during and after the relationship with TT.</p>
+            <p>This applies during and after the relationship with Response Integrity.</p>
           </AgreementSection>
 
           <AgreementSection title="4. Non-Solicitation (Tutors)">
             <p>The EGP shall not:</p>
             <AgreementList items={[
-              "Recruit or attempt to recruit TT tutors",
-              "Engage TT tutors for external or private services",
-              "Encourage tutors to leave TT",
+              "Recruit or attempt to recruit Response Integrity tutors",
+              "Engage Response Integrity tutors for external or private services",
+              "Encourage tutors to leave Response Integrity",
             ]} />
           </AgreementSection>
 
@@ -314,33 +314,33 @@ function buildAgreementBody(document: DocumentDefinition, formData: EgpFormData)
 
           <AgreementSection title="7. No Workarounds">
             <p>The EGP shall not:</p>
-            <AgreementList items={["Use intermediaries", "Act through third parties", "Indirectly bypass TT"]} />
+            <AgreementList items={["Use intermediaries", "Act through third parties", "Indirectly bypass Response Integrity"]} />
             <p>Circumvention through any means is treated as direct breach.</p>
           </AgreementSection>
 
           <AgreementSection title="8. Acknowledgement">
             <p>The EGP confirms:</p>
             <AgreementList tone="check" items={[
-              "Understanding of TT ownership of relationships",
-              "Agreement not to exploit access gained through TT",
+              "Understanding of Response Integrity ownership of relationships",
+              "Agreement not to exploit access gained through Response Integrity",
               "Acceptance of strict non-circumvention enforcement",
             ]} />
           </AgreementSection>
         </>
       );
 
-    case "TT-EGP-003":
+    case "Response Integrity-EGP-003":
       return (
         <>
           <AgreementSection title="1. Purpose">
-            <p>This Agreement protects TT's proprietary systems, methodologies, and internal structures.</p>
-            <p>The EGP acknowledges that TT operates using a defined system (TT-OS) and strategic framework that is confidential and commercially sensitive.</p>
+            <p>This Agreement protects Response Integrity's proprietary systems, methodologies, and internal structures.</p>
+            <p>The EGP acknowledges that Response Integrity operates using a defined system (Response Integrity-OS) and strategic framework that is confidential and commercially sensitive.</p>
           </AgreementSection>
 
           <AgreementSection title="2. Confidential Information">
             <p>Confidential Information includes, but is not limited to:</p>
             <AgreementList items={[
-              "TT-OS (Response Integrity Operating System)",
+              "Response Integrity-OS (Response Integrity Operating System)",
               "Training methods and drill structures",
               "Intake and diagnostic processes",
               "Pricing models and revenue structures",
@@ -354,18 +354,18 @@ function buildAgreementBody(document: DocumentDefinition, formData: EgpFormData)
             <p>The EGP shall not:</p>
             <AgreementList items={[
               "Share confidential information with any third party",
-              "Disclose TT systems or processes externally",
-              "Discuss internal operations outside TT",
+              "Disclose Response Integrity systems or processes externally",
+              "Discuss internal operations outside Response Integrity",
             ]} />
           </AgreementSection>
 
           <AgreementSection title="4. Non-Reproduction">
             <p>The EGP shall not:</p>
-            <AgreementList items={["Copy or replicate TT systems", "Recreate TT-OS in any form", "Train or assist others using TT methodologies"]} />
+            <AgreementList items={["Copy or replicate Response Integrity systems", "Recreate Response Integrity-OS in any form", "Train or assist others using Response Integrity methodologies"]} />
           </AgreementSection>
 
           <AgreementSection title="5. Limited Use">
-            <p>The EGP may only use information provided for the purpose of fulfilling their role within TT.</p>
+            <p>The EGP may use this information only for the purpose of fulfilling their role within Response Integrity.</p>
             <p>No other use is permitted.</p>
           </AgreementSection>
 
@@ -386,7 +386,7 @@ function buildAgreementBody(document: DocumentDefinition, formData: EgpFormData)
           <AgreementSection title="9. Acknowledgement">
             <p>The EGP confirms:</p>
             <AgreementList tone="check" items={[
-              "Understanding of TT's proprietary nature",
+              "Understanding of Response Integrity's proprietary nature",
               "Agreement to protect all confidential systems",
               "Acceptance of strict confidentiality enforcement",
             ]} />
@@ -394,31 +394,31 @@ function buildAgreementBody(document: DocumentDefinition, formData: EgpFormData)
         </>
       );
 
-    case "TT-EGP-004":
+    case "Response Integrity-EGP-004":
       return (
         <>
           <AgreementSection title="1. Purpose">
-            <p>This Agreement governs how the EGP represents TT in all external interactions.</p>
-            <p>The EGP is not authorized to interpret, modify, or expand TT's positioning.</p>
+            <p>This Agreement governs how the EGP represents Response Integrity in all external interactions.</p>
+            <p>The EGP is not authorized to interpret, modify, or expand Response Integrity's positioning.</p>
             <p>The EGP must communicate only within defined boundaries.</p>
           </AgreementSection>
 
           <AgreementSection title="2. Role In Communication">
             <p>The EGP is responsible for:</p>
-            <AgreementList items={["Identifying potential need", "Introducing parents to TT", "Positioning TT accurately"]} />
+            <AgreementList items={["Identifying potential need", "Introducing parents to Response Integrity", "Positioning Response Integrity accurately"]} />
             <p>The EGP is not responsible for:</p>
             <AgreementList items={["Explaining technical training methods", "Diagnosing academic issues in detail", "Closing complex decisions"]} />
           </AgreementSection>
 
           <AgreementSection title="3. Positioning Rule (Non-Negotiable)">
-            <p>The EGP must represent TT as a system that helps students who break under pressure in math, despite understanding the work.</p>
-            <p>The EGP shall not position TT as:</p>
+            <p>The EGP must represent Response Integrity as a system that helps students who break under pressure in math, despite understanding the work.</p>
+            <p>The EGP shall not position Response Integrity as:</p>
             <AgreementList items={['"Extra lessons"', '"Homework help"', '"Exam tips"', '"Guaranteed marks improvement"']} />
           </AgreementSection>
 
           <AgreementSection title="4. No False Promises">
             <p>The EGP shall not:</p>
-            <AgreementList items={["Guarantee results", "Promise specific marks or outcomes", "Overstate TT capabilities"]} />
+            <AgreementList items={["Guarantee results", "Promise specific marks or outcomes", "Overstate Response Integrity capabilities"]} />
             <p>All outcomes depend on system execution.</p>
           </AgreementSection>
 
@@ -437,17 +437,17 @@ function buildAgreementBody(document: DocumentDefinition, formData: EgpFormData)
           <AgreementSection title="7. Communication Standards">
             <p>The EGP shall:</p>
             <AgreementList items={["Speak clearly and accurately", "Avoid exaggeration", "Avoid informal or unprofessional messaging"]} />
-            <p>All communication must reflect TT's standards.</p>
+            <p>All communication must reflect Response Integrity's standards.</p>
           </AgreementSection>
 
           <AgreementSection title="8. Social Media & Public Representation">
             <p>The EGP shall not:</p>
-            <AgreementList items={["Post misleading content about TT", "Represent themselves as a tutor or expert", "Create independent TT-branded material"]} />
+            <AgreementList items={["Post misleading content about Response Integrity", "Represent themselves as a tutor or expert", "Create independent Response Integrity-branded material"]} />
           </AgreementSection>
 
           <AgreementSection title="9. Breach">
             <p>Any breach of this Agreement may result in:</p>
-            <AgreementList items={["Immediate termination", "Forfeiture of unpaid commissions", "Removal from TT network"]} />
+            <AgreementList items={["Immediate termination", "Forfeiture of unpaid commissions", "Removal from Response Integrity network"]} />
           </AgreementSection>
 
           <AgreementSection title="10. Acknowledgement">
@@ -455,7 +455,7 @@ function buildAgreementBody(document: DocumentDefinition, formData: EgpFormData)
             <AgreementList tone="check" items={[
               "Understanding of representation boundaries",
               "Agreement to communicate within defined positioning",
-              "Commitment to protecting TT's brand integrity",
+              "Commitment to protecting Response Integrity's brand integrity",
               "Commitment to engage only where need is clear and genuine",
             ]} />
           </AgreementSection>
@@ -540,7 +540,7 @@ export function buildAcceptedCopyHtml(params: {
   <main class="page">
     <div class="eyebrow">Response Integrity Accepted Agreement Copy</div>
     <h1>${escapeHtml(document.title)}</h1>
-    <p class="subhead">${escapeHtml(document.code)} | Version ${escapeHtml(documentVersion)} | Accepted in-app against the affiliate's authenticated TT account</p>
+    <p class="subhead">${escapeHtml(document.code)} | Version ${escapeHtml(documentVersion)} | Accepted in-app against the affiliate's authenticated Response Integrity account</p>
 
     <section class="summary">
       <div class="summary-label">Acceptance record</div>
@@ -555,7 +555,7 @@ export function buildAcceptedCopyHtml(params: {
     <section class="section">
       <h2 class="section-title">Parties</h2>
       <table>
-        <tr><th>Party A</th><td>Response Integrity SA (Pty) Ltd ("TT")</td></tr>
+        <tr><th>Party A</th><td>Response Integrity SA (Pty) Ltd ("Response Integrity")</td></tr>
         <tr><th>Party B</th><td>${escapeHtml(acceptedName)} (Education Growth Partner)</td></tr>
       </table>
     </section>
@@ -574,7 +574,7 @@ export function buildAcceptedCopyHtml(params: {
     </section>
 
     <div class="footer">
-      This accepted copy was generated from TT's stored affiliate onboarding acceptance record. It reflects the versioned in-app agreement text and acceptance evidence held at the time of assent.
+      This accepted copy was generated from Response Integrity's stored affiliate onboarding acceptance record. It reflects the versioned in-app agreement text and acceptance evidence held at the time of assent.
     </div>
   </main>
 </body>
@@ -1017,7 +1017,7 @@ export function SequentialAgreementAcceptance({ applicationId, applicationStatus
                         disabled={!hasCompletedReading || acceptanceAlreadyRecorded}
                         onCheckedChange={(value) => setGeneralBound(Boolean(value))}
                       />
-                      <span>I agree to be legally bound by these terms and understand TT will store an audit record of this acceptance.</span>
+                      <span>I agree to be legally bound by these terms and understand Response Integrity will store an audit record of this acceptance.</span>
                     </label>
                   </div>
 
@@ -1290,7 +1290,7 @@ export function SequentialAgreementAcceptance({ applicationId, applicationStatus
                     <div className="rounded-xl border border-[#E7D5C8] bg-white p-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#9F1D2B]">Party A</p>
                       <p className="mt-2 font-semibold text-[#1A1A1A]">Response Integrity SA (Pty) Ltd</p>
-                      <p className="text-sm text-[#6B5B52]">Response Integrity ("TT")</p>
+                      <p className="text-sm text-[#6B5B52]">The Company</p>
                     </div>
                     <div className="rounded-xl border border-[#E7D5C8] bg-white p-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#9F1D2B]">Party B</p>

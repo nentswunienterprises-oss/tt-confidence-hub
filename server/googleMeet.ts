@@ -358,7 +358,7 @@ export async function syncGoogleMeetEvent(
       extendedProperties: {
         private: {
           scheduledSessionId: input.scheduledSessionId,
-          meetingOwner: "TT",
+          meetingOwner: "Response Integrity",
           complianceMode: "recording-and-transcript",
         },
       },

@@ -25,7 +25,7 @@ const DOC_ROOT = resolve(process.cwd(), "TD-Related");
 export const TD_ONBOARDING_DOCUMENTS: TdOnboardingDocumentDefinition[] = [
   {
     step: 1,
-    code: "TT-TDA-001",
+    code: "Response Integrity-TDA-001",
     title: "Territory Director Contractor Agreement",
     fileName: "TT-TDA-001.txt",
     version: "1",
@@ -34,7 +34,7 @@ export const TD_ONBOARDING_DOCUMENTS: TdOnboardingDocumentDefinition[] = [
     mandatoryClauses: [
       {
         key: "independent_contractor",
-        label: "I acknowledge that I operate as an independent contractor and not as a TT employee.",
+        label: "I acknowledge that I operate as an independent contractor and not as a Response Integrity employee.",
       },
       {
         key: "performance_based_compensation",
@@ -44,8 +44,8 @@ export const TD_ONBOARDING_DOCUMENTS: TdOnboardingDocumentDefinition[] = [
   },
   {
     step: 2,
-    code: "TT-CEA-002",
-    title: "TT-OS Compliance & Enforcement Agreement",
+    code: "Response Integrity-CEA-002",
+    title: "Response Integrity-OS Compliance & Enforcement Agreement",
     fileName: "TT-CEA-002.md",
     version: "1",
     requiresAcceptance: true,
@@ -53,7 +53,7 @@ export const TD_ONBOARDING_DOCUMENTS: TdOnboardingDocumentDefinition[] = [
     mandatoryClauses: [
       {
         key: "fixed_system_adherence",
-        label: "I acknowledge that TT-OS is fixed and that I may not modify, reinterpret, or soften it.",
+        label: "I acknowledge that Response Integrity-OS is fixed and that I may not modify, reinterpret, or soften it.",
       },
       {
         key: "system_first_enforcement",
@@ -63,7 +63,7 @@ export const TD_ONBOARDING_DOCUMENTS: TdOnboardingDocumentDefinition[] = [
   },
   {
     step: 3,
-    code: "TT-AID-003",
+    code: "Response Integrity-AID-003",
     title: "Audit Integrity Declaration",
     fileName: "TT-AID-003.md",
     version: "1",
@@ -82,7 +82,7 @@ export const TD_ONBOARDING_DOCUMENTS: TdOnboardingDocumentDefinition[] = [
   },
   {
     step: 4,
-    code: "TT-HTQ-004",
+    code: "Response Integrity-HTQ-004",
     title: "HTQ Track Addendum",
     fileName: "TT-HTQ-004.md",
     version: "1",
@@ -95,13 +95,13 @@ export const TD_ONBOARDING_DOCUMENTS: TdOnboardingDocumentDefinition[] = [
       },
       {
         key: "objective_evaluation",
-        label: "I agree to be evaluated objectively against TT's defined system performance thresholds.",
+        label: "I agree to be evaluated objectively against Response Integrity's defined system performance thresholds.",
       },
     ],
   },
   {
     step: 5,
-    code: "TT-PSA-005",
+    code: "Response Integrity-PSA-005",
     title: "Performance Scorecard Acknowledgement",
     fileName: "TT-PSA-005.md",
     version: "1",
@@ -114,13 +114,13 @@ export const TD_ONBOARDING_DOCUMENTS: TdOnboardingDocumentDefinition[] = [
       },
       {
         key: "data_authority",
-        label: "I accept TT's recorded performance data as authoritative for evaluation purposes.",
+        label: "I accept Response Integrity's recorded performance data as authoritative for evaluation purposes.",
       },
     ],
   },
   {
     step: 6,
-    code: "TT-CSP-006",
+    code: "Response Integrity-CSP-006",
     title: "Confidentiality & System Protection Agreement",
     fileName: "TT-CSP-006.md",
     version: "1",
@@ -129,23 +129,23 @@ export const TD_ONBOARDING_DOCUMENTS: TdOnboardingDocumentDefinition[] = [
     mandatoryClauses: [
       {
         key: "protect_tt_systems",
-        label: "I will protect TT systems, methods, data, and operational frameworks as confidential property.",
+        label: "I will protect Response Integrity systems, methods, data, and operational frameworks as confidential property.",
       },
       {
         key: "no_replication_or_circumvention",
-        label: "I may not reproduce TT methodologies, bypass TT systems, or divert TT tutors or students.",
+        label: "I may not reproduce Response Integrity methodologies, bypass Response Integrity systems, or divert Response Integrity tutors or students.",
       },
     ],
   },
   {
     step: 7,
-    code: "TT-TDI-007",
+    code: "Response Integrity-TDI-007",
     title: "Certified Identification",
     version: "1",
     requiresAcceptance: false,
     requiresUpload: true,
     uploadTitle: "Certified Identification Copy",
-    uploadDescription: "Upload a certified copy of your South African ID or passport so TT can verify your TD identity record.",
+    uploadDescription: "Upload a certified copy of your South African ID or passport so Response Integrity can verify your TD identity record.",
     mandatoryClauses: [],
   },
 ];

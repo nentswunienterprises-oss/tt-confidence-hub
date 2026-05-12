@@ -113,7 +113,7 @@ export default function ResponseConditioningClarity() {
             </div>
             <div>
               <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">
-                TT-OS Deep Dive
+                Response Integrity-OS Deep Dive
               </p>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-1">
                 Clarity
@@ -130,7 +130,7 @@ export default function ResponseConditioningClarity() {
         <Card className="p-6 space-y-5">
           <h2 className="text-2xl font-bold">Phase Function in the Engine</h2>
           <p className="text-muted-foreground">
-            Clarity is the opening phase in the TT state engine. Its purpose is fixed:
+            Clarity is the opening phase in the Response Integrity state engine. Its purpose is fixed:
             can the student see the problem clearly before solving it?
           </p>
           <p className="font-medium">
@@ -284,7 +284,7 @@ export default function ResponseConditioningClarity() {
           </ul>
           <p className="font-medium">
             Flagged non-compliance can trigger audit failure, tutor suspension, and where violations
-            are severe or repeated, permanent removal or blacklisting from the TT platform.
+            are severe or repeated, permanent removal or blacklisting from the Response Integrity platform.
           </p>
         </Card>
       </div>

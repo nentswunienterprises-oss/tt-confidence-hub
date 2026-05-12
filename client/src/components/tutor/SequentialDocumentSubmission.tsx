@@ -73,31 +73,31 @@ interface DocumentRenderRules {
 }
 
 const DOCUMENT_RENDER_RULES: Record<string, DocumentRenderRules> = {
-  "TT-TCF-001": {
+  "Response Integrity-TCF-001": {
     nonListColonLines: [/^Document Reference:/i],
     numberedListIntroLines: [],
     plainListIntroLines: [/^[A-Z][A-Za-z0-9'().,\s/-]+:$/],
     listItemLines: [/^[A-Za-z0-9][A-Za-z0-9'()\-/,.\s]+$/],
   },
-  "TT-EQV-002": {
+  "Response Integrity-EQV-002": {
     nonListColonLines: [/^Document Reference:/i],
     numberedListIntroLines: [],
     plainListIntroLines: [
       /^Once verified and accepted, the Contractor's continued participation is governed by:$/i,
       /^The following are not accepted:$/i,
       /^By accepting this form, the Contractor confirms all of the following:$/i,
-      /^I understand that once my entry qualification is verified and accepted, my continued participation in the TT Leadership Programme is governed by:$/i,
-      /^By accepting this form in the TT platform, the Contractor confirms:$/i,
+      /^I understand that once my entry qualification is verified and accepted, my continued participation in the Response Integrity Leadership Programme is governed by:$/i,
+      /^By accepting this form in the Response Integrity platform, the Contractor confirms:$/i,
     ],
     listItemLines: [/^[A-Za-z0-9][A-Za-z0-9'()\-/,.\s]+$/],
   },
-  "TT-ICA-003": {
+  "Response Integrity-ICA-003": {
     nonListColonLines: [/^This Agreement is entered into between:$/i, /^Document Reference:/i],
     numberedListIntroLines: [/^\d+\.\d+\s+.+:$/],
-    plainListIntroLines: [/^By accepting this Agreement in the TT platform, the Contractor confirms:$/i],
+    plainListIntroLines: [/^By accepting this Agreement in the Response Integrity platform, the Contractor confirms:$/i],
     listItemLines: [/^[A-Za-z0-9][A-Za-z0-9'()\-/,.\s]+$/],
   },
-  "TT-SCP-004": {
+  "Response Integrity-SCP-004": {
     nonListColonLines: [/^Document Reference:/i],
     numberedListIntroLines: [/^\d+\.\d+\s+.+:$/],
     plainListIntroLines: [
@@ -110,24 +110,24 @@ const DOCUMENT_RENDER_RULES: Record<string, DocumentRenderRules> = {
       /^Tutors must:$/i,
       /^Tutors may not:$/i,
       /^The following result in immediate suspension or termination:$/i,
-      /^By accepting this policy in the TT platform, the Contractor confirms:$/i,
+      /^By accepting this policy in the Response Integrity platform, the Contractor confirms:$/i,
     ],
     listItemLines: [/^[A-Za-z0-9][A-Za-z0-9'()\-/,.\s]+$/],
   },
-  "TT-DPC-005": {
+  "Response Integrity-DPC-005": {
     nonListColonLines: [/^Document Reference:/i],
     numberedListIntroLines: [
       /^\d+\.\d+\s+(Personal Information|Learner Data|Session Data|Technical Data)$/i,
       /^\d+\.\d+\s+.+:$/i,
     ],
     plainListIntroLines: [
-      /^TT collects and processes the following:$/i,
+      /^(tt|Response Integrity) collects and processes the following:$/i,
       /^Data is collected and used strictly to:$/i,
       /^Users have the right to:$/i,
       /^Requests may be submitted to:$/i,
       /^Note:$/i,
       /^Users may not:$/i,
-      /^By accepting this agreement in the TT platform, the user confirms:$/i,
+      /^By accepting this agreement in the Response Integrity platform, the user confirms:$/i,
     ],
     listItemLines: [/^[A-Za-z0-9][A-Za-z0-9'()\-/,.\s:.]+$/],
   },
@@ -279,8 +279,8 @@ function renderAgreementHtml(content: string) {
     const isLikelyListItem =
       listMode ||
       /^[A-Z][a-z][^.!?]{0,95}$/.test(cleanedCheckboxLine) ||
-      /^(employment|partnership|joint venture|agency|conduct|session execution|platform discipline|non-compliance|platform violations|session integrity issues|copy|reproduce|distribute|teach outside TT|income|student allocation|session volume|withhold payment|reverse payment|adjust payment|audit sessions|review recordings|evaluate performance|compliance|quality control|system integrity|accurate|honest|complete|placement|earnings|references|long-term engagement)$/i.test(cleanedCheckboxLine) ||
-      /^(deliver|conduct|maintain|execute|record|model|apply|guide|top-down camera|clear, step-by-step visual execution|conditioning phases|stability states|tt drill system|no private communication|no acceptance of payment|consistent execution|tt-os compliance|platform discipline|session quality failure|structural violations|misreporting or dishonest observation|platform misuse|conduct issues|may occur without prior notice|immediately halts all payment eligibility|all tt decisions regarding compliance are final|contractor income stability|academic or career outcomes|personal financial obligations|all tax obligations \(including sars compliance\)|placement|earnings|references|long-term engagement)$/i.test(cleanedCheckboxLine);
+      /^(employment|partnership|joint venture|agency|conduct|session execution|platform discipline|non-compliance|platform violations|session integrity issues|copy|reproduce|distribute|teach outside Response Integrity|income|student allocation|session volume|withhold payment|reverse payment|adjust payment|audit sessions|review recordings|evaluate performance|compliance|quality control|system integrity|accurate|honest|complete|placement|earnings|references|long-term engagement)$/i.test(cleanedCheckboxLine) ||
+      /^(deliver|conduct|maintain|execute|record|model|apply|guide|top-down camera|clear, step-by-step visual execution|conditioning phases|stability states|Response Integrity drill system|no private communication|no acceptance of payment|consistent execution|Response Integrity-OS compliance|platform discipline|session quality failure|structural violations|misreporting or dishonest observation|platform misuse|conduct issues|may occur without prior notice|immediately halts all payment eligibility|all Response Integrity decisions regarding compliance are final|contractor income stability|academic or career outcomes|personal financial obligations|all tax obligations \(including sars compliance\)|placement|earnings|references|long-term engagement)$/i.test(cleanedCheckboxLine);
 
     if (/:$/.test(line)) {
       flushList();
@@ -495,7 +495,7 @@ function normalizeValue(value: unknown) {
 function normalizeDisplayedVersion(value: unknown) {
   const normalized = String(value ?? "").trim();
   if (!normalized) return "1";
-  if (/^TT-[A-Z]+-\d{3}$/i.test(normalized)) return "1";
+  if (/^tt-[A-Z]+-\d{3}$/i.test(normalized)) return "1";
   return normalized;
 }
 
@@ -642,7 +642,7 @@ function TutorAgreementSubsection({ title, children }: { title: string; children
 
 function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formData: Record<string, string>) {
   switch (document.code) {
-    case "TT-TCF-001":
+    case "Response Integrity-TCF-001":
       return (
         <>
           <TutorAgreementSection title="Contractor Details">
@@ -666,7 +666,7 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
               "The purpose of every session is to train how a learner responds under difficulty, not to explain content or assist with homework.",
               "The Contractor operates as a response-conditioning operator, responsible for stabilizing learner execution under pressure.",
             ]} />
-            <p>Every session is executed strictly under the TT Operating System (TT-OS):</p>
+            <p>Every session is executed strictly under the Response Integrity Operating System (Response Integrity-OS):</p>
             <TutorAgreementList items={[
               <><strong>Model:</strong> Demonstrate structured, calm execution</>,
               <><strong>Apply:</strong> Require independent learner attempt under friction</>,
@@ -679,8 +679,8 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
             <p>The Contractor agrees to the following operational requirements:</p>
             <TutorAgreementList items={[
               "Deliver 1-on-1 online sessions to assigned learners (Grades 6-9)",
-              "Deliver 8 sessions per learner per month unless otherwise instructed by TT",
-              "Conduct all sessions through the TT platform only",
+              "Deliver 8 sessions per learner per month unless otherwise instructed by Response Integrity",
+              "Conduct all sessions through the Response Integrity platform only",
             ]} />
             <p>Maintain required setup:</p>
             <TutorAgreementList items={[
@@ -688,13 +688,13 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
               "Clear, step-by-step visual execution",
             ]} />
             <p>Execute structured drill-based sessions aligned with:</p>
-            <TutorAgreementList items={["Conditioning phases", "Stability states", "TT drill system"]} />
+            <TutorAgreementList items={["Conditioning phases", "Stability states", "Response Integrity drill system"]} />
             <p>Record accurate session observations within the platform. Observation integrity is mandatory, not optional.</p>
           </TutorAgreementSection>
 
           <TutorAgreementSection title="Operating Standards (Non-Negotiable)">
             <p>The Contractor agrees to the following:</p>
-            <TutorAgreementList items={["All sessions must follow the TT-OS without deviation"]} />
+            <TutorAgreementList items={["All sessions must follow the Response Integrity-OS without deviation"]} />
             <p>The following are strictly prohibited:</p>
             <TutorAgreementList items={[
               "Explaining instead of training",
@@ -704,15 +704,15 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
               "Advancing learners without required stability",
             ]} />
             <p>Phase progression is controlled by demonstrated stability, not tutor judgment alone.</p>
-            <p>All session data, drill execution, and observations must be accurate, honest, and complete. Any deviation from the TT-OS is considered non-compliance.</p>
+            <p>All session data, drill execution, and observations must be accurate, honest, and complete. Any deviation from the Response Integrity-OS is considered non-compliance.</p>
           </TutorAgreementSection>
 
           <TutorAgreementSection title="Platform And Communication Control">
             <p>The Contractor agrees:</p>
             <TutorAgreementList items={[
-              "All sessions, communication, and operations must occur within the TT platform",
-              "No private communication with learners or parents outside TT is permitted",
-              "No acceptance of payment outside TT is permitted",
+              "All sessions, communication, and operations must occur within the Response Integrity platform",
+              "No private communication with learners or parents outside Response Integrity is permitted",
+              "No acceptance of payment outside Response Integrity is permitted",
             ]} />
             <p>All sessions are recorded and stored for compliance, quality control, and system integrity.</p>
           </TutorAgreementSection>
@@ -723,14 +723,14 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
               "They are engaged as an independent contractor, not an employee",
               "No employment relationship, benefits, or protections apply",
             ]} />
-            <p>Payment is per completed session package only and subject to TT&apos;s current rate structure.</p>
+            <p>Payment is per completed session package only and subject to Response Integrity&apos;s current rate structure.</p>
             <p>There is no guaranteed income, no minimum earnings, and no entitlement to payment for incomplete or non-compliant sessions.</p>
             <p>Payment may be withheld, adjusted, or suspended in cases of non-compliance, platform violations, or session integrity issues.</p>
           </TutorAgreementSection>
 
           <TutorAgreementSection title="Performance, Suspension, And Termination">
-            <p>Participation is conditional on consistent execution, TT-OS compliance, and platform discipline.</p>
-            <p>TT may suspend or terminate participation at its discretion, including but not limited to:</p>
+            <p>Participation is conditional on consistent execution, Response Integrity-OS compliance, and platform discipline.</p>
+            <p>Response Integrity may suspend or terminate participation at its discretion, including but not limited to:</p>
             <TutorAgreementList items={[
               "Session quality failure",
               "Structural violations",
@@ -738,13 +738,13 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
               "Platform misuse",
               "Conduct issues",
             ]} />
-            <p>Suspension or termination may occur without prior notice and immediately halts all payment eligibility. All TT decisions regarding compliance are final.</p>
+            <p>Suspension or termination may occur without prior notice and immediately halts all payment eligibility. All Response Integrity decisions regarding compliance are final.</p>
           </TutorAgreementSection>
 
           <TutorAgreementSection title="Risk And Liability">
             <p>The Contractor accepts:</p>
             <TutorAgreementList items={[
-              "TT is not responsible for contractor income stability, academic or career outcomes, or personal financial obligations",
+              "Response Integrity is not responsible for contractor income stability, academic or career outcomes, or personal financial obligations",
               "The Contractor is responsible for all tax obligations (including SARS compliance)",
             ]} />
             <p>Participation does not guarantee placement, earnings, references, or long-term engagement.</p>
@@ -756,23 +756,23 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
           </TutorAgreementSection>
 
           <TutorAgreementSection title="Acceptance">
-            <p>By accepting this form in the TT platform, the Contractor confirms:</p>
+            <p>By accepting this form in the Response Integrity platform, the Contractor confirms:</p>
             <TutorAgreementList tone="check" items={[
               "They have read and understood this document in full",
               "They accept all operational, structural, and performance requirements",
-              "They agree to operate strictly within the TT system",
+              "They agree to operate strictly within the Response Integrity system",
               "They understand that deviation results in removal from the system",
             ]} />
           </TutorAgreementSection>
         </>
       );
-    case "TT-EQV-002":
+    case "Response Integrity-EQV-002":
       return (
         <>
           <TutorAgreementSection title="Purpose Of This Form">
             <p>This in-app agreement is completed once at onboarding to verify that the Contractor meets Response Integrity&apos;s minimum entry qualification requirement through submission of an official Matric certificate.</p>
-            <p>This verification is an entry threshold only. It confirms eligibility to enter the TT Leadership Programme and does not qualify the Contractor to operate independently of TT&apos;s training, operating system, and session standards.</p>
-            <p>Once verified and accepted, continued participation is governed by conduct, session execution, TT Operating System (TT-OS) compliance, and operational performance within the platform.</p>
+            <p>This verification is an entry threshold only. It confirms eligibility to enter the Response Integrity Leadership Programme and does not qualify the Contractor to operate independently of Response Integrity&apos;s training, operating system, and session standards.</p>
+            <p>Once verified and accepted, continued participation is governed by conduct, session execution, Response Integrity Operating System (Response Integrity-OS) compliance, and operational performance within the platform.</p>
           </TutorAgreementSection>
 
           <TutorAgreementSection title="Contractor Details">
@@ -799,127 +799,127 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
             <p>By accepting this form, the Contractor confirms all of the following:</p>
             <TutorAgreementList items={[
               "The Matric certificate submitted is an official, complete, and accurate National Senior Certificate issued by the Department of Basic Education.",
-              "This verification confirms entry eligibility only and does not by itself qualify the Contractor to operate as a TT tutor without compliance with TT's training system and session standards.",
-              "Response Integrity is a response-conditioning system delivered through mathematics, and tutor performance is defined by execution within the TT Operating System (TT-OS), not by academic credentials alone.",
-              "Once entry qualification is verified and accepted, continued participation in the TT Leadership Programme is governed by conduct, session execution, adherence to the TT-OS, and operational performance within the platform.",
+              "This verification confirms entry eligibility only and does not by itself qualify the Contractor to operate as a Response Integrity tutor without compliance with Response Integrity's training system and session standards.",
+              "Response Integrity is a response-conditioning system delivered through mathematics, and tutor performance is defined by execution within the Response Integrity Operating System (Response Integrity-OS), not by academic credentials alone.",
+              "Once entry qualification is verified and accepted, continued participation in the Response Integrity Leadership Programme is governed by conduct, session execution, adherence to the Response Integrity-OS, and operational performance within the platform.",
               "No further academic submissions or qualification reviews will be required after this verification.",
-              "Submission of a falsified, altered, or misrepresented Matric certificate constitutes a material breach of the Independent Contractor Agreement (TT-ICA-003) and will result in immediate termination without notice.",
-              "All personal and contact details submitted to TT are accurate and correct.",
+              "Submission of a falsified, altered, or misrepresented Matric certificate constitutes a material breach of the Independent Contractor Agreement (Response Integrity-ICA-003) and will result in immediate termination without notice.",
+              "All personal and contact details submitted to Response Integrity are accurate and correct.",
             ]} />
           </TutorAgreementSection>
 
           <TutorAgreementSection title="Acceptance">
-            <p>By accepting this form in the TT platform, the Contractor confirms:</p>
+            <p>By accepting this form in the Response Integrity platform, the Contractor confirms:</p>
             <TutorAgreementList tone="check" items={[
               "All information provided in this form is true and correct",
               "They have submitted a certified copy of their official Matric certificate",
               "They understand the role of this verification as an entry requirement only",
-              "They understand that continued participation is governed by TT's operational standards, not academic re-evaluation",
+              "They understand that continued participation is governed by Response Integrity's operational standards, not academic re-evaluation",
             ]} />
           </TutorAgreementSection>
         </>
       );
-    case "TT-ICA-003":
+    case "Response Integrity-ICA-003":
       return (
         <>
           <TutorAgreementSection title="Parties">
-            <p>This Agreement is entered into between Response Integrity (Pty) Ltd ("TT" or "the Company") and the Contractor as identified in onboarding documentation.</p>
+            <p>This Agreement is entered into between Response Integrity (Pty) Ltd ("Response Integrity" or "the Company") and the Contractor as identified in onboarding documentation.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Nature Of Relationship">
             <TutorAgreementSubsection title="2.1 - 2.4">
               <p>The Contractor is engaged as an independent contractor.</p>
               <p>Nothing in this Agreement creates employment, partnership, joint venture, or agency.</p>
-              <p>The Contractor operates independently, controls their own tax obligations, is not entitled to employee benefits, and provides services only within the TT platform environment and under TT-defined systems.</p>
+              <p>The Contractor operates independently, controls their own tax obligations, is not entitled to employee benefits, and provides services only within the Response Integrity platform environment and under Response Integrity-defined systems.</p>
             </TutorAgreementSubsection>
           </TutorAgreementSection>
           <TutorAgreementSection title="Business Model Acknowledgement">
-            <p>The Contractor acknowledges that TT is not a tutoring company. TT is a response-conditioning system delivered through mathematics.</p>
-            <p>The Contractor&apos;s role is to execute structured response-conditioning sessions, train learner behavior under difficulty, and operate within TT&apos;s system rather than personal teaching style.</p>
-            <p>The TT Operating System (TT-OS) governs all sessions, TT defines how sessions are executed, and deviation from TT-OS is non-compliance.</p>
+            <p>The Contractor acknowledges that Response Integrity is not a tutoring company. Response Integrity is a response-conditioning system delivered through mathematics.</p>
+            <p>The Contractor&apos;s role is to execute structured response-conditioning sessions, train learner behavior under difficulty, and operate within Response Integrity&apos;s system rather than personal teaching style.</p>
+            <p>The Response Integrity Operating System (Response Integrity-OS) governs all sessions, Response Integrity defines how sessions are executed, and deviation from Response Integrity-OS is non-compliance.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Scope Of Services">
             <p>The Contractor agrees to:</p>
             <TutorAgreementList items={[
               "Deliver 1-on-1 online sessions to assigned learners",
-              "Execute all sessions in accordance with TT-OS",
+              "Execute all sessions in accordance with Response Integrity-OS",
               "Record accurate session observations",
               "Maintain required technical setup",
             ]} />
             <p>The Contractor may not:</p>
             <TutorAgreementList items={[
-              "Provide services outside TT using TT learners",
-              "Communicate with TT learners or parents outside platform",
+              "Provide off-platform services to assigned learners or through platform relationships",
+              "Communicate with assigned learners or parents outside the platform",
               "Modify session structure",
             ]} />
           </TutorAgreementSection>
           <TutorAgreementSection title="Platform Control">
-            <p>All services must occur within the TT platform.</p>
-            <p>The Contractor agrees that TT owns the platform environment and controls access, scheduling, and assignment.</p>
-            <p>TT may assign or remove learners, adjust schedules, and restrict platform access at its sole discretion.</p>
+            <p>All services must occur within the Response Integrity platform.</p>
+            <p>The Contractor agrees that Response Integrity owns the platform environment and controls access, scheduling, and assignment.</p>
+            <p>Response Integrity may assign or remove learners, adjust schedules, and restrict platform access at its sole discretion.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Payment Structure">
             <p>Payment is made per completed session package.</p>
-            <p>Payment structure is defined by TT and may be updated at any time with notice.</p>
-            <p>Payment is conditional on session package completion, TT-OS compliance, and accurate reporting.</p>
-            <p>TT may withhold, reverse, or adjust payment where sessions are non-compliant, reporting is inaccurate, or platform rules are violated.</p>
+            <p>Payment structure is defined by Response Integrity and may be updated at any time with notice.</p>
+            <p>Payment is conditional on session package completion, Response Integrity-OS compliance, and accurate reporting.</p>
+            <p>Response Integrity may withhold, reverse, or adjust payment where sessions are non-compliant, reporting is inaccurate, or platform rules are violated.</p>
             <p>No guarantees exist regarding income, student allocation, or session volume.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Performance And Compliance">
-            <p>The Contractor must follow TT-OS strictly, maintain session integrity, and comply with platform rules.</p>
+            <p>The Contractor must follow Response Integrity-OS strictly, maintain session integrity, and comply with platform rules.</p>
             <p>The following constitute breaches:</p>
             <TutorAgreementList items={[
               "Rescuing learners",
               "Skipping structure",
               "Misreporting observations",
               "Advancing learners incorrectly",
-              "Operating outside TT",
+              "Operating outside Response Integrity",
             ]} />
-            <p>TT may audit sessions, review recordings, and evaluate performance.</p>
+            <p>Response Integrity may audit sessions, review recordings, and evaluate performance.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Intellectual Property">
-            <p>All TT materials are proprietary, including:</p>
+            <p>All Response Integrity materials are proprietary, including:</p>
             <TutorAgreementList items={[
-              "TT Operating System (TT-OS)",
+              "Response Integrity Operating System (Response Integrity-OS)",
               "Drill structures",
               "Session frameworks",
               "Stability progression logic",
               "Reporting systems",
             ]} />
-            <p>The Contractor may not copy, reproduce, distribute, or teach TT systems or materials outside TT.</p>
-            <p>All session data, recordings, and learner information belong to TT.</p>
+            <p>The Contractor may not copy, reproduce, distribute, or teach Response Integrity systems or materials outside the platform.</p>
+            <p>All session data, recordings, and learner information remain the property of Response Integrity.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Confidentiality">
-            <p>The Contractor agrees to maintain confidentiality over TT systems, learner data, and operational processes. This obligation continues after termination.</p>
+            <p>The Contractor agrees to maintain confidentiality over Response Integrity systems, learner data, and operational processes. This obligation continues after termination.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Restriction On Circumvention">
-            <p>The Contractor may not engage TT learners privately, solicit TT parents, or redirect TT relationships outside the platform. Any attempt to bypass TT constitutes a material breach.</p>
+            <p>The Contractor may not engage assigned learners privately, solicit assigned parents, or redirect platform relationships into private arrangements. Any attempt to circumvent the platform constitutes a material breach.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Suspension And Termination">
-            <p>TT may suspend or terminate this Agreement at its discretion, with or without notice.</p>
+            <p>Response Integrity may suspend or terminate this Agreement at its discretion, with or without notice.</p>
             <p>Grounds include non-compliance, performance failure, platform violations, and conduct issues.</p>
             <p>Upon termination, platform access is revoked immediately and payment eligibility ceases.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Liability">
-            <p>TT does not guarantee income, results, or continued engagement.</p>
+            <p>Response Integrity does not guarantee income, results, or continued engagement.</p>
             <p>The Contractor assumes full responsibility for tax obligations and personal financial matters.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Governing Law">
             <p>This Agreement is governed by the laws of South Africa. Disputes must first go to mediation before legal action.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Entire Agreement">
-            <p>This Agreement forms part of the TT contractor framework alongside TT-TCF-001, TT-EQV-002, and TT Terms of Use. In case of conflict, TT&apos;s operational interpretation prevails.</p>
+            <p>This Agreement forms part of the contractor framework governing work on the platform, alongside Response Integrity-TCF-001, Response Integrity-EQV-002, and the Response Integrity Terms of Use. In case of conflict, Response Integrity&apos;s operational interpretation prevails.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Acceptance">
-            <p>By accepting this Agreement in the TT platform, the Contractor confirms:</p>
+            <p>By accepting this Agreement in the Response Integrity platform, the Contractor confirms:</p>
             <TutorAgreementList tone="check" items={[
               "Full understanding of this Agreement",
-              "Acceptance of TT's system and control",
-              "Agreement to operate strictly within TT",
+              "Acceptance of Response Integrity's system and control",
+              "Agreement to operate strictly within Response Integrity",
             ]} />
           </TutorAgreementSection>
         </>
       );
-    case "TT-SCP-004":
+    case "Response Integrity-SCP-004":
       return (
         <>
           <TutorAgreementSection title="Purpose">
@@ -931,18 +931,18 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
             <p>Tutors are operators within a controlled system, not friends, mentors outside scope, or personal contacts.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Platform-Only Interaction">
-            <p>All interaction must occur within the TT platform.</p>
+            <p>All interaction must occur within the Response Integrity platform.</p>
             <p>The following are strictly prohibited:</p>
             <TutorAgreementList items={[
               "Private messaging with learners",
               "Contact via WhatsApp, Instagram, SMS, or any external platform",
-              "Direct communication with parents outside TT channels",
+              "Direct communication with parents outside Response Integrity channels",
             ]} />
             <p>Tutors may not exchange personal contact details, accept contact requests, or initiate communication outside the platform.</p>
-            <p>Any attempt by a learner or parent to move communication outside the platform must be refused immediately and reported to TT.</p>
+            <p>Any attempt by a learner or parent to move communication outside the platform must be refused immediately and reported to Response Integrity.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Session Environment Requirements">
-            <p>All sessions must be conducted through TT-approved systems, be recorded in full where required, and follow TT-OS structure.</p>
+            <p>All sessions must be conducted through Response Integrity-approved systems, be recorded in full where required, and follow Response Integrity-OS structure.</p>
             <p>Tutors must maintain a clear visual setup, an appropriate environment, and a distraction-free session setting.</p>
             <p>The following are prohibited during sessions:</p>
             <TutorAgreementList items={[
@@ -974,7 +974,7 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
               "No off-platform assistance",
               "No extended communication beyond scheduled sessions",
             ]} />
-            <p>Tutors must not position themselves as a personal support system, provide advice outside academic scope, or engage in private tutoring outside TT.</p>
+            <p>Tutors must not position themselves as a personal support system, provide advice outside academic scope, or engage in private tutoring outside Response Integrity.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Session Recording And Monitoring">
             <p>All sessions are recorded and may be reviewed at any time for safeguarding, compliance, and quality control.</p>
@@ -990,7 +990,7 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
             <p>Failure to report is considered non-compliance.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Data And Confidentiality">
-            <p>Tutors must protect learner data, not store or share recordings externally, and not disclose learner information. All learner data remains property of TT.</p>
+            <p>Tutors must protect learner data, not store or share recordings externally, and not disclose learner information. All learner data remains property of Response Integrity.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Digital Conduct And Presence">
             <p>Tutors must present professionally on camera and use appropriate language at all times.</p>
@@ -998,11 +998,11 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
             <TutorAgreementList items={["Offensive language", "Inappropriate attire", "Disruptive or unprofessional behavior"]} />
           </TutorAgreementSection>
           <TutorAgreementSection title="Enforcement">
-            <p>TT enforces this policy strictly.</p>
-            <p>Violations may result in immediate suspension, termination, or payment withholding. TT decisions are final.</p>
+            <p>Response Integrity enforces this policy strictly.</p>
+            <p>Violations may result in immediate suspension, termination, or payment withholding. Response Integrity decisions are final.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Acceptance">
-            <p>By accepting this policy in the TT platform, the Contractor confirms:</p>
+            <p>By accepting this policy in the Response Integrity platform, the Contractor confirms:</p>
             <TutorAgreementList tone="check" items={[
               "Understanding of all safeguarding requirements",
               "Agreement to operate within strict boundaries",
@@ -1011,7 +1011,7 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
           </TutorAgreementSection>
         </>
       );
-    case "TT-DPC-005":
+    case "Response Integrity-DPC-005":
       return (
         <>
           <TutorAgreementSection title="Purpose">
@@ -1035,10 +1035,10 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
           <TutorAgreementSection title="Purpose Of Data Processing">
             <p>Data is collected and used strictly to:</p>
             <TutorAgreementList items={[
-              "Deliver TT's response-conditioning system",
+              "Deliver Response Integrity's response-conditioning system",
               "Track learner progression through phases and stability states",
               "Maintain session integrity and auditability",
-              "Monitor tutor compliance with TT-OS",
+              "Monitor tutor compliance with Response Integrity-OS",
               "Generate reports for parents or guardians",
               "Ensure safeguarding and platform security",
               "Comply with POPIA, tax legislation, and any mandatory reporting requirements",
@@ -1046,22 +1046,22 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
             <p>Data is not collected for unrelated purposes.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Session Recording Consent">
-            <p>All sessions are recorded in full and stored securely within TT systems.</p>
+            <p>All sessions are recorded in full and stored securely within Response Integrity systems.</p>
             <p>Recordings are used for quality control, safeguarding, compliance audits, and performance verification.</p>
             <p>By participating, the user consents to being recorded during all sessions, and to storage and review of those recordings. Participation is not possible without recording consent.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Data Storage And Security">
-            <p>TT implements reasonable technical and organisational measures to protect data against loss, prevent unauthorized access, and ensure data integrity.</p>
-            <p>Data is stored on secure systems and accessed only by authorized TT personnel.</p>
+            <p>Response Integrity implements reasonable technical and organisational measures to protect data against loss, prevent unauthorized access, and ensure data integrity.</p>
+            <p>Data is stored on secure systems and accessed only by authorized Response Integrity personnel.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Data Sharing">
-            <p>TT does not sell personal data.</p>
-            <p>Data may be shared only internally within TT for operational purposes, with service providers required to operate the platform, or where required by law.</p>
+            <p>Response Integrity does not sell personal data.</p>
+            <p>Data may be shared only internally within Response Integrity for operational purposes, with service providers required to operate the platform, or where required by law.</p>
             <p>No external sharing occurs for marketing or unrelated purposes.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Data Retention">
             <p>Data is retained for as long as necessary to operate the platform, maintain historical performance records, and meet legal and compliance obligations.</p>
-            <p>TT may retain anonymized data for system improvement and internal analysis.</p>
+            <p>Response Integrity may retain anonymized data for system improvement and internal analysis.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="User Rights (POPIA)">
             <p>Users have the right to request access to their personal data, request correction of inaccurate data, request deletion where legally permissible, and lodge a complaint with the Information Regulator of South Africa.</p>
@@ -1069,14 +1069,14 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
             <p>Deletion requests may be limited where data is required for compliance, safeguarding, or dispute resolution.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Data Use Limitations">
-            <p>Users may not record sessions independently without TT approval, distribute TT session recordings, or share learner data outside the platform. All data remains under TT control.</p>
+            <p>Users may not record sessions independently without Response Integrity approval, distribute Response Integrity session recordings, or share learner data outside the platform. All data remains under Response Integrity control.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Consent Acknowledgement">
-            <p>By accepting this agreement in the TT platform, the user confirms:</p>
+            <p>By accepting this agreement in the Response Integrity platform, the user confirms:</p>
             <TutorAgreementList tone="check" items={[
               "Understanding of the data collected and its purpose",
               "Consent to full session recording where required",
-              "Acceptance of data processing as required by the TT system",
+              "Acceptance of data processing as required by the Response Integrity system",
               "Understanding that participation requires data processing",
             ]} />
           </TutorAgreementSection>
@@ -1166,7 +1166,7 @@ function buildAcceptedCopyHtml(params: {
   <main class="page">
     <div class="eyebrow">Response Integrity Accepted Agreement Copy</div>
     <h1>${escapeHtml(document.title)}</h1>
-    <p class="subhead">${escapeHtml(document.code)} | Version ${escapeHtml(documentVersion)} | Accepted in-app against the tutor's authenticated TT account</p>
+    <p class="subhead">${escapeHtml(document.code)} | Version ${escapeHtml(documentVersion)} | Accepted in-app against the tutor's authenticated Response Integrity account</p>
 
     <section class="summary">
       <div class="summary-label">Acceptance record</div>
@@ -1181,7 +1181,7 @@ function buildAcceptedCopyHtml(params: {
     <section class="section">
       <h2 class="section-title">Parties</h2>
       <table>
-        <tr><th>Party A</th><td>Response Integrity (Pty) Ltd ("TT")</td></tr>
+        <tr><th>Party A</th><td>Response Integrity (Pty) Ltd ("Response Integrity")</td></tr>
         <tr><th>Party B</th><td>${escapeHtml(acceptedName)} (Contractor)</td></tr>
       </table>
     </section>
@@ -1203,7 +1203,7 @@ function buildAcceptedCopyHtml(params: {
     </section>
 
     <div class="footer">
-      This accepted copy was generated from TT's stored onboarding acceptance record. It reflects the versioned in-app agreement text and acceptance evidence held at the time of assent.
+      This accepted copy was generated from Response Integrity's stored onboarding acceptance record. It reflects the versioned in-app agreement text and acceptance evidence held at the time of assent.
     </div>
   </main>
 </body>
@@ -1225,7 +1225,7 @@ const DOCUMENT_FORM_FIELDS: Record<number, FieldDefinition[]> = {
     { key: "idType", label: "Identification type", placeholder: "SA ID or Passport" },
     { key: "idNumber", label: "Identification number", placeholder: "Enter your SA ID or passport number" },
     { key: "dateOfBirth", label: "Date of birth", placeholder: "Auto-filled for SA ID, or enter manually", readOnly: false },
-    { key: "emailAddress", label: "Email address", placeholder: "Loaded from your TT account", readOnly: true },
+    { key: "emailAddress", label: "Email address", placeholder: "Loaded from your Response Integrity account", readOnly: true },
     { key: "phoneNumber", label: "Phone number", placeholder: "Enter your contact number" },
     { key: "schoolName", label: "School attended (Matric)", placeholder: "Enter the school you attended for Matric" },
     { key: "currentStatus", label: "Current status", placeholder: "Gap year, waiting uni, studying, working, etc." },
@@ -1235,7 +1235,7 @@ const DOCUMENT_FORM_FIELDS: Record<number, FieldDefinition[]> = {
     { key: "idType", label: "Identification type", placeholder: "SA ID or Passport" },
     { key: "idNumber", label: "Identification number", placeholder: "Enter your SA ID or passport number" },
     { key: "dateOfBirth", label: "Date of birth", placeholder: "Auto-filled for SA ID, or enter manually", readOnly: false },
-    { key: "emailAddress", label: "Email address", placeholder: "Loaded from your TT account", readOnly: true },
+    { key: "emailAddress", label: "Email address", placeholder: "Loaded from your Response Integrity account", readOnly: true },
     { key: "phoneNumber", label: "Phone number", placeholder: "Enter your contact number" },
     { key: "matricYear", label: "Matric year", placeholder: "Enter the year you completed Matric" },
     { key: "schoolName", label: "School name", placeholder: "Enter the school where you completed Matric" },
@@ -1373,7 +1373,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
   const currentDocument = data?.documents?.find((entry) => entry.step === currentStep);
   const currentAcceptance = acceptanceMap[String(currentStep)];
   const currentFormFields = DOCUMENT_FORM_FIELDS[currentStep] || [];
-  const currentStatus = documentsStatus[String(currentStep)];
+  const currentStatus = documentsStatus[String(currentStep)] as DocumentStatus | undefined;
   const uploadReady = currentStep === 6 || Boolean(acceptanceMap["2"]);
   const isUploadStep = currentStep === 2 || currentStep === 6;
   const isAcceptanceStep = Boolean(currentDocument?.requiresAcceptance);
@@ -1647,7 +1647,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
   }
 
   if (allApproved) {
-    return <Card className="border-green-200 bg-green-50"><CardContent className="py-8 text-sm text-green-800">All onboarding steps are complete. TT is matching you to a pod.</CardContent></Card>;
+    return <Card className="border-green-200 bg-green-50"><CardContent className="py-8 text-sm text-green-800">All onboarding steps are complete. Response Integrity is matching you to a pod.</CardContent></Card>;
   }
 
   return (
@@ -1675,7 +1675,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                 <p className="text-sm font-medium">This step is with COO for review</p>
                 <p className="text-sm text-[#6B5B52]">
                   {currentStep === 2
-                    ? "Your accepted TT-EQV-002 record and certified Matric certificate are now with COO. Step 3 will open after the certificate is approved."
+                    ? "Your accepted Response Integrity-EQV-002 record and certified Matric certificate are now with COO. Step 3 will open after the certificate is approved."
                     : "Your certified ID copy is now with COO for review. You do not need to take any further action on this step right now."}
                 </p>
               </div>
@@ -1706,7 +1706,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
               <div className="space-y-4 rounded-2xl border p-4">
                 <div>
                   <p className="font-medium">Acceptance workspace</p>
-                  <p className="text-sm text-muted-foreground">Complete only the inputs that belong to this document. The TT text stays read-only inside the full-screen reader.</p>
+                  <p className="text-sm text-muted-foreground">Complete only the inputs that belong to this document. The agreement text stays read-only inside the full-screen reader.</p>
                 </div>
                 {acceptanceAlreadyRecorded ? (
                   <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800">
@@ -1722,7 +1722,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                 </p>
                 <div className="space-y-3 rounded-xl bg-slate-50 p-4">
                   <label className="flex items-start gap-3 text-sm"><Checkbox checked={generalRead} disabled={!hasCompletedReading || acceptanceAlreadyRecorded} onCheckedChange={(value) => setGeneralRead(Boolean(value))} /><span>I have read and understood this document.</span></label>
-                  <label className="flex items-start gap-3 text-sm"><Checkbox checked={generalBound} disabled={!hasCompletedReading || acceptanceAlreadyRecorded} onCheckedChange={(value) => setGeneralBound(Boolean(value))} /><span>I agree to be legally bound by these terms and understand TT will store an audit record of this acceptance.</span></label>
+                  <label className="flex items-start gap-3 text-sm"><Checkbox checked={generalBound} disabled={!hasCompletedReading || acceptanceAlreadyRecorded} onCheckedChange={(value) => setGeneralBound(Boolean(value))} /><span>I agree to be legally bound by these terms and understand Response Integrity will store an audit record of this acceptance.</span></label>
                   {currentDocument.mandatoryClauses.map((clause) => (
                     <label key={clause.key} className="flex items-start gap-3 text-sm">
                       <Checkbox checked={clauseChecks[clause.key] || false} disabled={!hasCompletedReading || acceptanceAlreadyRecorded} onCheckedChange={(value) => setClauseChecks((current) => ({ ...current, [clause.key]: Boolean(value) }))} />
@@ -1754,7 +1754,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
               <div className="space-y-4 rounded-2xl border p-4">
                 <div>
                   <p className="font-medium">Step summary</p>
-                  <p className="text-sm text-muted-foreground">Version-locked acceptance record tied to your TT account.</p>
+                  <p className="text-sm text-muted-foreground">Version-locked acceptance record tied to your Response Integrity account.</p>
                 </div>
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <p>Document: {currentDocument.code}</p>
@@ -1769,11 +1769,11 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
             </div>
           ) : null}
 
-          {isUploadStep && !isPendingCooReview ? (
+          {isUploadStep ? (
             <div className="rounded-2xl border p-4">
               <p className="font-medium">{currentDocument.uploadTitle || "Required upload"}</p>
               <p className="mt-1 text-sm text-muted-foreground">{currentStep === 6 ? getStep6UploadDescription(formData.idType || "sa_id") : currentDocument.uploadDescription}</p>
-              {currentStep === 2 && !uploadReady ? <p className="mt-3 text-sm text-amber-700">Accept TT-EQV-002 first. The certified Matric certificate upload unlocks immediately after acceptance.</p> : null}
+              {currentStep === 2 && !uploadReady ? <p className="mt-3 text-sm text-amber-700">Accept Response Integrity-EQV-002 first. The certified Matric certificate upload unlocks immediately after acceptance.</p> : null}
               {currentStep === 2 && uploadReady && currentStatus !== "pending_review" ? (
                 <p className="mt-3 text-sm text-muted-foreground">Choose the certified Matric certificate, then upload it for COO review. Step 3 opens only after COO approves this certificate.</p>
               ) : null}
@@ -1996,7 +1996,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
                   <div className="mt-6 rounded-2xl border border-[#E7D5C8] bg-[#FFF5ED] p-4 sm:p-5">
                     <div className="mb-4 space-y-1">
                       <p className="text-sm font-semibold text-[#1A1A1A]">Document fields</p>
-                      <p className="text-sm text-[#6B5B52]">Complete the tutor details that belong to this document here. TT account fields are prefilled automatically.</p>
+                      <p className="text-sm text-[#6B5B52]">Complete the tutor details that belong to this document here. Response Integrity account fields are prefilled automatically.</p>
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2">
                       {currentFormFields.map((field) => (

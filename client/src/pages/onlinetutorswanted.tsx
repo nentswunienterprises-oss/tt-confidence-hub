@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { TTLogo } from "@/components/ResponseIntegrityLogo";
+import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { useEffect } from "react";
@@ -16,7 +16,7 @@ export default function OnlineTutorsWantedPlain() {
       {/* Header (portal-landing style) */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
-          <TTLogo size="lg" variant="integrity" />
+          <ResponseIntegrityLogo size="lg" variant="integrity" />
           <div className="hidden md:block">
             <span className="text-2xl lg:text-4xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
               RESPONSE-CONDITIONING
@@ -49,7 +49,7 @@ export default function OnlineTutorsWantedPlain() {
           <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold leading-tight mt-6" style={{ color: "#1A1A1A" }}>
             Become a Response Integrity System Executor
             <div className="text-base sm:text-xl font-semibold mt-2" style={{ color: "#5A5A5A" }}>
-              Not everyone qualifies. That’s the point.
+              Not everyone qualifies. Thatâ€™s the point.
             </div>
           </h1>
 
@@ -69,14 +69,14 @@ export default function OnlineTutorsWantedPlain() {
 
           <div className="mt-6 space-y-2">
             <p className="font-semibold">This is not casual tutoring.</p>
-            <p className="font-semibold">This is not “teach your own way.”</p>
+            <p className="font-semibold">This is not â€œteach your own way.â€</p>
             <p className="font-semibold">This is a system.</p>
           </div>
         </div>
 
         {/* Content sections, exact copy preserved */}
         <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
-          <h2 className="text-lg font-bold mb-3">What You’re Stepping Into</h2>
+          <h2 className="text-lg font-bold mb-3">What Youâ€™re Stepping Into</h2>
           <p style={{ color: "#5A5A5A" }}>
             Response Integrity runs a structured online math mentorship programme for Grades 6-9.
           </p>
@@ -85,7 +85,7 @@ export default function OnlineTutorsWantedPlain() {
         </Card>
 
         <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
-          <h3 className="text-lg font-bold mb-3">What You’ll Actually Do</h3>
+          <h3 className="text-lg font-bold mb-3">What Youâ€™ll Actually Do</h3>
           <div className="space-y-2" style={{ color: "#5A5A5A" }}>
             <p>Tutor students online in 1-on-1 math sessions</p>
             <p>Follow a clear session structure and standards</p>
@@ -93,8 +93,8 @@ export default function OnlineTutorsWantedPlain() {
             <p>Correct mistakes using precise language and steps</p>
             <p>Apply feedback and improve consistently</p>
 
-            <p className="mt-3 font-semibold">You won’t be guessing.</p>
-            <p className="font-semibold">You’ll be trained.</p>
+            <p className="mt-3 font-semibold">You wonâ€™t be guessing.</p>
+            <p className="font-semibold">Youâ€™ll be trained.</p>
           </div>
         </Card>
 
@@ -116,7 +116,7 @@ export default function OnlineTutorsWantedPlain() {
         <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h3 className="text-lg font-bold mb-3">Training & Selection</h3>
           <p style={{ color: "#5A5A5A" }}>Everyone starts in training.</p>
-          <p className="mt-3" style={{ color: "#5A5A5A" }}>During this phase, you’ll be assessed on:</p>
+          <p className="mt-3" style={{ color: "#5A5A5A" }}>During this phase, youâ€™ll be assessed on:</p>
           <ul className="list-disc pl-5 mt-2 space-y-2 text-sm sm:text-base" style={{ color: "#5A5A5A" }}>
             <li>Clarity of explanation</li>
             <li>Discipline in following structure</li>
@@ -143,23 +143,23 @@ export default function OnlineTutorsWantedPlain() {
             <li>You learn to operate inside a professional system</li>
             <li>You earn while developing skills that transfer anywhere</li>
           </ul>
-          <p className="mt-3" style={{ color: "#5A5A5A" }}>This isn’t just income.
-            It’s training.
+          <p className="mt-3" style={{ color: "#5A5A5A" }}>This isnâ€™t just income.
+            Itâ€™s training.
           </p>
         </Card>
 
         <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h3 className="text-lg font-bold mb-3">The Standard</h3>
-          <p style={{ color: "#5A5A5A" }}>We don’t motivate.</p>
-          <p style={{ color: "#5A5A5A" }}>We don’t babysit.</p>
-          <p style={{ color: "#5A5A5A" }}>We don’t lower expectations.</p>
+          <p style={{ color: "#5A5A5A" }}>We donâ€™t motivate.</p>
+          <p style={{ color: "#5A5A5A" }}>We donâ€™t babysit.</p>
+          <p style={{ color: "#5A5A5A" }}>We donâ€™t lower expectations.</p>
           <p className="mt-3" style={{ color: "#5A5A5A" }}>If you execute the system, results follow - for you and your students.</p>
         </Card>
 
         <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h3 className="text-lg font-bold mb-3">Ready to Apply?</h3>
           <p style={{ color: "#5A5A5A" }}>If this sounds demanding, good.
-            That means you’re reading it correctly.
+            That means youâ€™re reading it correctly.
           </p>
 
           <p className="mt-4 text-sm" style={{ color: "#5A5A5A" }}>
@@ -187,10 +187,10 @@ export default function OnlineTutorsWantedPlain() {
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
-              <TTLogo size="md" variant="integrity" />
+              <ResponseIntegrityLogo size="md" variant="integrity" />
             </div>
             <p className="text-center md:text-right" style={{ color: "#5A5A5A" }}>
-              © {new Date().getFullYear()} Response Integrity SA (Pty) Ltd
+              Â© {new Date().getFullYear()} Response Integrity SA (Pty) Ltd
               <br />
               <span className="text-sm">Manufacturing Confidence & Financial Independence in South African Youth.</span>
             </p>
@@ -201,3 +201,4 @@ export default function OnlineTutorsWantedPlain() {
     </div>
   );
 }
+

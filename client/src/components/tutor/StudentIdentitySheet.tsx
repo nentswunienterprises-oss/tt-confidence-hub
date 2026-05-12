@@ -107,7 +107,7 @@ const IDENTITY_SHEET_QUESTIONS = [
       "Main difficulty topic to prioritize in early sessions",
       "Most unstable learning layer (Vocabulary, Method, or Reason)",
       "How the student responds when confused",
-      "TT working structure agreed for next sessions",
+      "Response Integrity working structure agreed for next sessions",
     ],
   },
 ];

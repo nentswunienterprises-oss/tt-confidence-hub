@@ -1,8 +1,8 @@
-# TT Confidence Hub - Replit Configuration
+# Response Integrity Confidence Hub - Replit Configuration
 
 ## Overview
 
-TT Confidence Hub is a mobile-first operational platform for Territorial Tutoring's 4-Seater Pod system - a training and certification engine for trial tutors. The application digitizes the complete pod lifecycle from tutor application through training to certification, with distinct role-based interfaces for Tutors, Territory Directors (TDs), and Chief Operations Officers (COOs).
+Response Integrity Confidence Hub is a mobile-first operational platform for Territorial Tutoring's 4-Seater Pod system - a training and certification engine for trial tutors. The application digitizes the complete pod lifecycle from tutor application through training to certification, with distinct role-based interfaces for Tutors, Territory Directors (TDs), and Chief Operations Officers (COOs).
 
 The platform emphasizes confidence-building through warm, personal design language using earth tones and encouraging interactions. It manages tutoring sessions, student progress tracking, academic metrics, and real-time communication between stakeholders.
 
@@ -48,7 +48,7 @@ Preferred communication style: Simple, everyday language.
 - Radix UI primitives for accessible, unstyled component foundation
 - shadcn/ui component library (New York style variant) for pre-built, customizable components
 - TailwindCSS for utility-first styling with custom design tokens
-- Custom color palette based on warm earth tones (#FAF7F2 background, #E67E22 confidence orange accent)
+- Custom color paleResponse Integritye based on warm earth tones (#FAF7F2 background, #E67E22 confidence orange accent)
 - CSS variables for theming with HSL color format
 - Inter font family from Google Fonts
 
@@ -66,10 +66,10 @@ Preferred communication style: Simple, everyday language.
 ### Backend Architecture
 
 **Server Framework**
-- Express.js as the HTTP server
+- Express.js as the HResponse IntegrityP server
 - TypeScript for type safety across the stack
 - Session-based authentication with express-session
-- RESTful API design pattern with `/api` prefix
+- RESTful API design paResponse Integrityern with `/api` prefix
 
 **Authentication System**
 - Supabase Auth integration via @supabase/supabase-js for email/password authentication
@@ -100,7 +100,7 @@ Preferred communication style: Simple, everyday language.
 - Route handlers organized by role (tutor, td, coo endpoints)
 - Middleware for authentication verification and role-based authorization
 - Request validation using Zod schemas derived from Drizzle tables
-- Consistent error handling with HTTP status codes
+- Consistent error handling with HResponse IntegrityP status codes
 - JSON response format throughout
 
 ### Data Storage Solutions
@@ -114,8 +114,8 @@ Preferred communication style: Simple, everyday language.
 **Session Storage**
 - **PostgreSQL persistent session storage** using connect-pg-simple (production-ready)
 - Automatic fallback to memorystore if DATABASE_URL unavailable
-- Session expiry management with 7-day TTL
-- HTTP-only cookies for session tokens (secure flag enabled in production only)
+- Session expiry management with 7-day Response IntegrityL
+- HResponse IntegrityP-only cookies for session tokens (secure flag enabled in production only)
 - Sessions persist across server restarts - no forced logout on code updates
 
 **File Storage**
@@ -131,15 +131,15 @@ Preferred communication style: Simple, everyday language.
 4. Session stores user ID, email, and role
 5. Subsequent requests validated via session cookie
 
-**Authorization Pattern**
+**Authorization PaResponse Integrityern**
 - `isAuthenticated` middleware checks for valid session
 - `requireRole(['role1', 'role2'])` middleware validates user roles
-- User role stored in database and attached to request object
+- User role stored in database and aResponse Integrityached to request object
 - Role-specific route protection at API level
 - Frontend role checks for conditional UI rendering
 
 **User Management**
-- Upsert pattern for user creation/update on login
+- Upsert paResponse Integrityern for user creation/update on login
 - User verification status for application approval workflow
 - Role assignment and modification by COO
 
@@ -157,7 +157,7 @@ To assign TD or COO roles during development, use the `/api/auth/assign-role` en
 
 ```bash
 # Assign TD role to an email
-curl -X POST https://your-replit-domain.repl.co/api/auth/assign-role \
+curl -X POST hResponse Integrityps://your-replit-domain.repl.co/api/auth/assign-role \
   -H "Content-Type: application/json" \
   -d '{
     "email": "td.test@example.com",
@@ -165,7 +165,7 @@ curl -X POST https://your-replit-domain.repl.co/api/auth/assign-role \
   }'
 
 # Assign TD role with pod assignment
-curl -X POST https://your-replit-domain.repl.co/api/auth/assign-role \
+curl -X POST hResponse Integrityps://your-replit-domain.repl.co/api/auth/assign-role \
   -H "Content-Type: application/json" \
   -d '{
     "email": "td.test@example.com",
@@ -190,7 +190,7 @@ curl -X POST https://your-replit-domain.repl.co/api/auth/assign-role \
 - Google Fonts API (Inter font family)
 
 **NPM Packages - Core Functionality**
-- `express` - HTTP server framework
+- `express` - HResponse IntegrityP server framework
 - `drizzle-orm` - Database ORM and query builder
 - `@neondatabase/serverless` - PostgreSQL driver for Neon
 - `react` - UI rendering library
@@ -209,7 +209,7 @@ curl -X POST https://your-replit-domain.repl.co/api/auth/assign-role \
 - `tailwindcss` - Utility-first CSS framework
 - `class-variance-authority` - Component variant management
 - `clsx` & `tailwind-merge` - Conditional className utilities
-- `cmdk` - Command palette component
+- `cmdk` - Command paleResponse Integritye component
 - `lucide-react` - Icon library
 - `date-fns` - Date manipulation utilities
 
@@ -221,7 +221,7 @@ curl -X POST https://your-replit-domain.repl.co/api/auth/assign-role \
 - `drizzle-kit` - Database migration tool
 - `@replit/vite-plugin-*` - Replit-specific development enhancements
 
-**API Integration Pattern**
+**API Integration PaResponse Integrityern**
 - Centralized `apiRequest` helper for fetch wrapper
 - Query client configuration with automatic JSON parsing
 - Error handling with 401 detection for unauthorized state

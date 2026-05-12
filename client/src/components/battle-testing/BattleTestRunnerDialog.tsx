@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2, ChevronDown, ChevronRight, ShieldAlert, type LucideIcon } from "lucide-react";
+import { stripWhatThisDoesSection } from "@/components/battle-testing/textUtils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -16,7 +17,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { stripWhatThisDoesSection } from "@/components/battle-testing/textUtils";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -131,7 +131,7 @@ function groupPhaseOptions(phaseOptions: BattleTestPhaseDefinition[]): BattleTes
             : "Other Modules",
         description:
           groupKey === "transformation_phases"
-            ? "Tutor discipline inside the TT transformation engine."
+            ? "Tutor discipline across the transformation phases."
             : groupKey === "session_infrastructure"
             ? "Tutor discipline inside session setup, control, logging, and continuity systems."
             : "Additional tutor battle-test modules.",
@@ -171,13 +171,16 @@ export default function BattleTestRunnerDialog({
     }
     return fixedMode ? phaseOptions.map((phase) => phase.key) : [];
   }, [phaseOptions, fixedMode, hasPreSelectedPhaseKeys, preSelectedPhaseKeys]);
+
   const [selectedPhaseKeys, setSelectedPhaseKeys] = useState<string[]>(initialPhaseKeys);
   const [hasStarted, setHasStarted] = useState(fixedMode);
   const [responses, setResponses] = useState<Record<string, ResponseDraft>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [saveCompleted, setSaveCompleted] = useState(false);
   const [runSummaryExpanded, setRunSummaryExpanded] = useState(true);
   const [selectionStage, setSelectionStage] = useState<SelectionStage>(fixedMode ? "questions" : "group");
   const [activeGroupKey, setActiveGroupKey] = useState<BattleTestModuleGroup["key"] | null>(null);
+
   const groupedPhaseOptions = useMemo(() => groupPhaseOptions(phaseOptions), [phaseOptions]);
   const activeGroup = useMemo(
     () => groupedPhaseOptions.find((group) => group.key === activeGroupKey) || null,
@@ -190,6 +193,7 @@ export default function BattleTestRunnerDialog({
     setHasStarted(fixedMode);
     setResponses({});
     setIsSubmitting(false);
+    setSaveCompleted(false);
     setSelectionStage(fixedMode ? "questions" : "group");
     setActiveGroupKey(null);
   }, [open, initialPhaseKeys, fixedMode]);
@@ -216,6 +220,11 @@ export default function BattleTestRunnerDialog({
 
   const answeredCount = questions.filter(({ questionId }) => responses[questionId]?.score).length;
   const allAnswered = questions.length > 0 && answeredCount === questions.length;
+  const hasDraftResponses = Object.values(responses).some(
+    (response) => Boolean(response.score) || Boolean(response.note.trim()) || response.isCriticalFail
+  );
+  const hasUnsavedProgress = hasStarted && hasDraftResponses && !saveCompleted;
+  const auditLocked = isSubmitting || saveCompleted;
   const hasMissingNotes = questions.some(({ questionId }) => {
     const response = responses[questionId];
     return !!response?.score &&
@@ -226,6 +235,42 @@ export default function BattleTestRunnerDialog({
     const score = responses[questionId]?.score;
     return sum + (score ? BATTLE_TEST_SCORE_POINTS[score] : 0);
   }, 0);
+
+  useEffect(() => {
+    if (!open || !hasUnsavedProgress || isSubmitting || typeof window === "undefined") return;
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [open, hasUnsavedProgress, isSubmitting]);
+
+  const confirmDiscardProgress = (message: string) => {
+    if (!hasUnsavedProgress || typeof window === "undefined") return true;
+    return window.confirm(message);
+  };
+
+  const handleDialogOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      onOpenChange(true);
+      return;
+    }
+
+    if (isSubmitting) return;
+
+    if (
+      !confirmDiscardProgress(
+        "Exit this audit? Any unsaved scoring, notes, and critical-fail markings from this run will be lost."
+      )
+    ) {
+      return;
+    }
+
+    onOpenChange(false);
+  };
 
   const handleModuleOpen = (phaseKey: string) => {
     if (selectionMode === "fixed") return;
@@ -243,6 +288,13 @@ export default function BattleTestRunnerDialog({
 
   const handleReturnToGroupList = () => {
     if (selectionMode === "fixed") return;
+    if (
+      !confirmDiscardProgress(
+        "Return to the audit families list? Any unsaved scoring, notes, and critical-fail markings from this run will be lost."
+      )
+    ) {
+      return;
+    }
     setSelectionStage("group");
     setActiveGroupKey(null);
     setSelectedPhaseKeys([]);
@@ -252,6 +304,13 @@ export default function BattleTestRunnerDialog({
 
   const handleReturnToModuleList = () => {
     if (selectionMode === "fixed") return;
+    if (
+      !confirmDiscardProgress(
+        "Return to the module list? Any unsaved scoring, notes, and critical-fail markings from this run will be lost."
+      )
+    ) {
+      return;
+    }
     setSelectionStage("module");
     setHasStarted(false);
     setSelectedPhaseKeys([]);
@@ -276,40 +335,90 @@ export default function BattleTestRunnerDialog({
   const handleSubmit = async () => {
     if (!allAnswered || hasMissingNotes || isSubmitting) return;
     setIsSubmitting(true);
+    setSaveCompleted(false);
+
+    const payloadResponses: BattleTestResponseInput[] = questions.map(({ phase, question, questionId }) => {
+      const response = responses[questionId];
+      return {
+        phaseKey: phase.key,
+        questionKey: question.key,
+        score: response.score!,
+        note: response.note.trim() || undefined,
+        isCriticalFail: question.autoCriticalOnFail
+          ? response.score === "fail"
+          : response.score === "fail"
+          ? response.isCriticalFail
+          : false,
+      };
+    });
+
     try {
-      const payloadResponses: BattleTestResponseInput[] = questions.map(({ phase, question, questionId }) => {
-        const response = responses[questionId];
-        return {
-          phaseKey: phase.key,
-          questionKey: question.key,
-          score: response.score!,
-          note: response.note.trim() || undefined,
-          isCriticalFail: question.autoCriticalOnFail
-            ? response.score === "fail"
-            : response.score === "fail"
-            ? response.isCriticalFail
-            : false,
-        };
-      });
       await onSubmit({
         selectedPhases,
         responses: payloadResponses,
       });
-      onOpenChange(false);
-    } finally {
+    } catch {
       setIsSubmitting(false);
+      return;
     }
+
+    setSaveCompleted(true);
+    setIsSubmitting(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[95dvh] w-[calc(100vw-1rem)] max-w-6xl flex-col overflow-hidden rounded-2xl border border-[#E7D5C8] bg-[#FCF7F0] p-0 shadow-2xl sm:h-auto sm:max-h-[92vh] sm:w-[min(96vw,88rem)] lg:max-h-[88vh] lg:max-w-[90rem]">
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
+      <DialogContent
+        onEscapeKeyDown={(event) => {
+          if (isSubmitting || hasUnsavedProgress) {
+            event.preventDefault();
+          }
+        }}
+        onInteractOutside={(event) => {
+          if (isSubmitting || hasUnsavedProgress) {
+            event.preventDefault();
+          }
+        }}
+        onPointerDownOutside={(event) => {
+          if (isSubmitting || hasUnsavedProgress) {
+            event.preventDefault();
+          }
+        }}
+        className="flex h-[95dvh] w-[calc(100vw-1rem)] max-w-6xl flex-col overflow-hidden rounded-2xl border border-[#E7D5C8] bg-[#FCF7F0] p-0 shadow-2xl sm:h-auto sm:max-h-[92vh] sm:w-[min(96vw,88rem)] lg:max-h-[88vh] lg:max-w-[90rem]"
+      >
         <div className="border-b border-[#E7D5C8] bg-white/95 px-4 py-4 sm:px-6 sm:py-5 lg:px-8 lg:py-6">
           <DialogHeader>
             <DialogTitle className="text-lg text-[#1A1A1A] sm:text-xl lg:text-2xl">{title}</DialogTitle>
             <DialogDescription className="text-[#6B5B52]">{description}</DialogDescription>
           </DialogHeader>
         </div>
+
+        {(hasUnsavedProgress || isSubmitting || saveCompleted) && (
+          <div
+            className={`border-b px-4 py-3 text-sm sm:px-6 lg:px-8 ${
+              saveCompleted
+                ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                : isSubmitting
+                ? "border-amber-200 bg-amber-50 text-amber-900"
+                : "border-rose-200 bg-rose-50 text-rose-900"
+            }`}
+          >
+            <p className="font-medium">
+              {saveCompleted
+                ? "Audit saved successfully."
+                : isSubmitting
+                ? "Saving audit. Keep this runner open until confirmation completes."
+                : "Audit in progress. Closing this runner now will discard unsaved scoring and notes."}
+            </p>
+            <p className="mt-1 text-xs opacity-80">
+              {saveCompleted
+                ? "This runner will stay open until you close it."
+                : isSubmitting
+                ? "The runner will stay visible while the save completes."
+                : "Use the top-right close button only if you want to abandon this draft audit."}
+            </p>
+          </div>
+        )}
 
         <div className="relative flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_23rem] lg:gap-0 lg:overflow-hidden lg:bg-[#F6EEE3]">
           <div className="min-h-0 min-w-0 lg:overflow-hidden lg:bg-[#FCF7F0]">
@@ -321,7 +430,7 @@ export default function BattleTestRunnerDialog({
                       <div className="rounded-2xl border border-[#E7D5C8] bg-[#FFF5ED] p-4 text-[#1A1A1A] sm:p-5">
                         <p className="text-sm font-medium text-foreground">Choose an audit module family</p>
                         <p className="mt-1 text-sm text-[#6B5B52]">
-                          TD first chooses the TT audit module family, then opens a specific deep-dive battle-test bank.
+                          TD first chooses the audit module family, then opens a specific deep-dive battle-test bank.
                         </p>
                       </div>
                       <div className="grid gap-4 md:grid-cols-2">
@@ -359,7 +468,7 @@ export default function BattleTestRunnerDialog({
                             Click a module to open its deep-dive battle-test question bank.
                           </p>
                         </div>
-                        <Button variant="outline" size="sm" onClick={handleReturnToGroupList}>
+                        <Button variant="outline" size="sm" onClick={handleReturnToGroupList} disabled={auditLocked}>
                           Back
                         </Button>
                       </div>
@@ -408,7 +517,7 @@ export default function BattleTestRunnerDialog({
                           {selectedPhases[0]?.title || "Battle Test"}
                         </p>
                       </div>
-                      <Button variant="outline" size="sm" onClick={handleReturnToModuleList}>
+                      <Button variant="outline" size="sm" onClick={handleReturnToModuleList} disabled={auditLocked}>
                         Back to modules
                       </Button>
                     </div>
@@ -459,6 +568,7 @@ export default function BattleTestRunnerDialog({
 
                           <RadioGroup
                             value={response.score}
+                            disabled={auditLocked}
                             onValueChange={(value) =>
                               handleScoreChange(phase.key, question.key, value as BattleTestScore)
                             }
@@ -495,6 +605,7 @@ export default function BattleTestRunnerDialog({
                                 <Textarea
                                   id={`${questionId}-note`}
                                   value={response.note}
+                                  disabled={auditLocked}
                                   onChange={(event) =>
                                     setResponses((current) => ({
                                       ...current,
@@ -513,6 +624,7 @@ export default function BattleTestRunnerDialog({
                                 <Label className="flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900">
                                   <Checkbox
                                     checked={response.isCriticalFail}
+                                    disabled={auditLocked}
                                     onCheckedChange={(checked) =>
                                       setResponses((current) => ({
                                         ...current,
@@ -560,7 +672,7 @@ export default function BattleTestRunnerDialog({
                     {answeredCount}/{questions.length}
                   </span>
                 </div>
-                <ChevronDown className={`h-3 w-3 transition-transform ${runSummaryExpanded ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`h-3 w-3 transition-transform ${runSummaryExpanded ? "rotate-180" : ""}`} />
               </Button>
               {runSummaryExpanded && (
                 <div className="max-h-[calc(100vh-120px)] sm:max-h-[calc(100vh-100px)] overflow-y-auto">
@@ -598,9 +710,25 @@ export default function BattleTestRunnerDialog({
                     </div>
 
                     <div className="space-y-3">
-                      <Button className="w-full" disabled={!allAnswered || hasMissingNotes || isSubmitting} onClick={handleSubmit}>
-                        {isSubmitting ? "Saving..." : submitLabel}
+                      <Button
+                        className="w-full"
+                        disabled={saveCompleted || !allAnswered || hasMissingNotes || isSubmitting}
+                        onClick={handleSubmit}
+                      >
+                        {saveCompleted ? "Saved" : isSubmitting ? "Saving..." : submitLabel}
                       </Button>
+                      {saveCompleted ? (
+                        <Button variant="outline" className="w-full" onClick={() => onOpenChange(false)}>
+                          Close Runner
+                        </Button>
+                      ) : null}
+                      {isSubmitting || saveCompleted ? (
+                        <p className={`text-xs ${saveCompleted ? "text-emerald-700" : "text-amber-700"}`}>
+                          {saveCompleted
+                            ? "Audit saved. Review it if needed, then close the runner manually."
+                            : "Saving audit. Keep this runner open until confirmation appears."}
+                        </p>
+                      ) : null}
                       {!allAnswered ? (
                         <p className="text-xs text-amber-700">Every rep must be scored before submission.</p>
                       ) : null}
@@ -630,7 +758,7 @@ export default function BattleTestRunnerDialog({
                       {answeredCount}/{questions.length} reps
                     </span>
                   </div>
-                  <ChevronDown className={`h-4 w-4 transition-transform ${runSummaryExpanded ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`h-4 w-4 transition-transform ${runSummaryExpanded ? "rotate-180" : ""}`} />
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent>
@@ -670,9 +798,25 @@ export default function BattleTestRunnerDialog({
 
                     {hasStarted && (
                       <div className="space-y-3">
-                        <Button className="w-full" disabled={!allAnswered || hasMissingNotes || isSubmitting} onClick={handleSubmit}>
-                          {isSubmitting ? "Saving..." : submitLabel}
+                        <Button
+                          className="w-full"
+                          disabled={saveCompleted || !allAnswered || hasMissingNotes || isSubmitting}
+                          onClick={handleSubmit}
+                        >
+                          {saveCompleted ? "Saved" : isSubmitting ? "Saving..." : submitLabel}
                         </Button>
+                        {saveCompleted ? (
+                          <Button variant="outline" className="w-full" onClick={() => onOpenChange(false)}>
+                            Close Runner
+                          </Button>
+                        ) : null}
+                        {isSubmitting || saveCompleted ? (
+                          <p className={`text-xs ${saveCompleted ? "text-emerald-700" : "text-amber-700"}`}>
+                            {saveCompleted
+                              ? "Audit saved. Review it if needed, then close the runner manually."
+                              : "Saving audit. Keep this runner open until confirmation appears."}
+                          </p>
+                        ) : null}
                         {!allAnswered ? (
                           <p className="text-xs text-amber-700">Every rep must be scored before submission.</p>
                         ) : null}

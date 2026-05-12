@@ -25,7 +25,7 @@ export default function ResponseConditioningWhatChangesInTheStudent() {
             </div>
             <div>
               <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">
-                TT-OS Deep Dive
+                Response Integrity-OS Deep Dive
               </p>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-1">
                 What Changes in the Student
@@ -55,7 +55,7 @@ export default function ResponseConditioningWhatChangesInTheStudent() {
         {/* The Core Shift */}
         <Card className="p-6 space-y-4">
           <h2 className="text-2xl font-bold">The Core Shift</h2>
-          <p className="font-medium">TT does not primarily change:</p>
+          <p className="font-medium">Response Integrity does not primarily change:</p>
           <ul className="space-y-1 pl-4 text-muted-foreground">
             <li>intelligence</li>
             <li>memory</li>
@@ -354,7 +354,7 @@ export default function ResponseConditioningWhatChangesInTheStudent() {
         {/* Final Principle */}
         <Card className="p-6 border-2 border-primary/20 space-y-3">
           <h2 className="text-2xl font-bold">Final Principle</h2>
-          <p className="font-medium">TT changes:</p>
+          <p className="font-medium">Response Integrity changes:</p>
           <p className="text-lg font-semibold">how the student behaves when they don't know what to do</p>
         </Card>
 

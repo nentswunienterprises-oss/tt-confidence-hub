@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { Check, ArrowRight, ArrowLeft, Brain, Crown, Heart } from "lucide-react";
 import { useEffect } from "react";
-import { TTLogo } from "@/components/ResponseIntegrityLogo";
+import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 
 export default function OperationalLanding() {
   const navigate = useNavigate();
@@ -59,7 +59,7 @@ export default function OperationalLanding() {
         <div className="text-center max-w-3xl mx-auto space-y-5 sm:space-y-8">
           <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
             <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
-              Founding Team • Response Auditors Only
+              Founding Team â€¢ Response Auditors Only
             </span>
           </div>
           
@@ -294,10 +294,10 @@ export default function OperationalLanding() {
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
-              <TTLogo size="md" variant="integrity" />
+              <ResponseIntegrityLogo size="md" variant="integrity" />
             </div>
             <p className="text-center md:text-right" style={{ color: "#5A5A5A" }}>
-              © {new Date().getFullYear()} Response Integrity SA (Pty) Ltd
+              Â© {new Date().getFullYear()} Response Integrity SA (Pty) Ltd
               <br />
               <span className="text-sm">
                 Manufacturing Confidence & Financial Independence in South African Youth.
@@ -309,3 +309,4 @@ export default function OperationalLanding() {
     </div>
   );
 }
+

@@ -216,7 +216,7 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "clarity_q1",
         section: "Core Understanding",
-        prompt: "What is the purpose of Clarity in TT, in one sentence?",
+        prompt: "What is the purpose of Clarity in Response Integrity, in one sentence?",
         expectedAnswer:
           "To ensure the student can clearly recognize what they are dealing with before solving begins.",
         failIndicators: ["help the student understand the topic", "explain the concept better", "build confidence"],
@@ -248,7 +248,7 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "clarity_q5",
         section: "Core Understanding",
-        prompt: "Why does TT not allow skipping from Clarity to harder phases even if the student seems smart?",
+        prompt: "Why does Response Integrity not allow skipping from Clarity to harder phases even if the student seems smart?",
         expectedAnswer:
           "Because incomplete clarity leads to unstable execution later. Full recognition must hold before pressure is introduced.",
         failIndicators: ["to be thorough", "make sure they don't struggle"],
@@ -339,7 +339,7 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "structured_execution_q1",
         section: "Core Understanding",
-        prompt: "What is the purpose of Structured Execution in TT, in one sentence?",
+        prompt: "What is the purpose of Structured Execution in Response Integrity, in one sentence?",
         expectedAnswer:
           "To ensure the student can execute a known method independently, in order, and repeatedly without assistance.",
         failIndicators: ["practice solving", "improve accuracy", "reinforce understanding"],
@@ -355,7 +355,7 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "structured_execution_q3",
         section: "Core Understanding",
-        prompt: "Why does TT enforce 'state steps before solving'?",
+        prompt: "Why does Response Integrity enforce 'state steps before solving'?",
         expectedAnswer:
           "To force structured thinking and prevent guessing or skipping, so the method is consciously followed.",
         failIndicators: ["help them remember", "slow them down"],
@@ -364,7 +364,7 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
         key: "structured_execution_q4",
         section: "Core Understanding",
         prompt: "Why is guessing not tolerated in this phase?",
-        expectedAnswer: "Because guessing hides lack of structure. TT trains reliable execution, not lucky outcomes.",
+        expectedAnswer: "Because guessing hides lack of structure. Response Integrity trains reliable execution, not lucky outcomes.",
         failIndicators: ["it causes mistakes", "it's bad practice"],
       },
       {
@@ -408,7 +408,7 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "structured_execution_q10",
         section: "Application",
-        prompt: "Why does TT include Variation Control in this phase?",
+        prompt: "Why does Response Integrity include Variation Control in this phase?",
         expectedAnswer:
           "To test whether the student can apply the same method when the form changes, preventing memorization.",
         failIndicators: ["challenge the student", "make it harder"],
@@ -464,7 +464,7 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "controlled_discomfort_q1",
         section: "Core Understanding",
-        prompt: "What is the purpose of Controlled Discomfort in TT, in one sentence?",
+        prompt: "What is the purpose of Controlled Discomfort in Response Integrity, in one sentence?",
         expectedAnswer:
           "To ensure the student maintains structured execution when difficulty and uncertainty appear without relying on rescue.",
         failIndicators: ["challenge the student", "make them stronger", "build confidence"],
@@ -472,7 +472,7 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "controlled_discomfort_q2",
         section: "Core Understanding",
-        prompt: "Why does TT not allow full rescue in this phase?",
+        prompt: "Why does Response Integrity not allow full rescue in this phase?",
         expectedAnswer:
           "Because rescue removes the condition being trained and hides the student's real response under difficulty.",
         failIndicators: ["struggle helps learning", "push the student harder"],
@@ -536,7 +536,7 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "controlled_discomfort_q10",
         section: "Application",
-        prompt: "Why does TT repeat the same level of difficulty multiple times in this phase?",
+        prompt: "Why does Response Integrity repeat the same level of difficulty multiple times in this phase?",
         expectedAnswer: "To build stable tolerance to difficulty, not just survival of a single rep.",
         failIndicators: ["give more practice", "improve accuracy"],
       },
@@ -590,7 +590,7 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "time_pressure_stability_q1",
         section: "Core Understanding",
-        prompt: "What is the purpose of Time Pressure Stability in TT, in one sentence?",
+        prompt: "What is the purpose of Time Pressure Stability in Response Integrity, in one sentence?",
         expectedAnswer:
           "To ensure the student can maintain structured method execution under time pressure without collapsing into panic or rushing.",
         failIndicators: ["make students faster", "improve speed in exams", "help them finish on time"],
@@ -598,7 +598,7 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "time_pressure_stability_q2",
         section: "Core Understanding",
-        prompt: "Why does TT say 'method over speed' in this phase?",
+        prompt: "Why does Response Integrity say 'method over speed' in this phase?",
         expectedAnswer:
           "Because speed without structure creates instability. Controlled execution under time matters more than finishing quickly.",
         failIndicators: ["accuracy matters more than speed", "so they don't rush"],
@@ -713,21 +713,21 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
         section: "Core Understanding",
         prompt: "Explain Topic Conditioning without using the words 'topic', 'phase', or 'stability'.",
         expectedAnswer:
-          "Describe training how a student behaves when difficulty appears in their current work, identifying the break point and repeatedly correcting that response until it becomes reliable.",
+          "Training how a student behaves when difficulty appears in their current work, identifying the break point and repeatedly correcting that response until it becomes reliable.",
         failIndicators: ["helping students understand their work better", "practicing what they learn in school", "improving performance through repetition"],
       },
       {
         key: "topic_conditioning_q2",
         section: "Core Understanding",
-        prompt: "A student understands fractions but freezes in tests. Under TT, what exactly is the problem?",
+        prompt: "A student understands fractions but freezes in tests. Under Response Integrity, what exactly is the problem?",
         expectedAnswer: "Understanding exists, but execution breaks under pressure in that arena.",
         failIndicators: ["they don't understand properly", "they lack confidence", "they need more practice"],
       },
       {
         key: "topic_conditioning_q3",
         section: "Core Understanding",
-        prompt: "Why is the statement 'The student is bad at algebra' wrong in TT?",
-        expectedAnswer: "TT does not label global ability. It identifies where response breaks inside a specific arena.",
+        prompt: "Why is the statement 'The student is bad at algebra' wrong in Response Integrity?",
+        expectedAnswer: "Response Integrity does not label global ability. It identifies where response breaks inside a specific arena.",
         failIndicators: ["it's too negative", "it lowers confidence", "it's not motivating"],
       },
       {
@@ -741,16 +741,16 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "topic_conditioning_q5",
         section: "Core Understanding",
-        prompt: "Why does TT refuse to move to a new topic just because the student seems better?",
+        prompt: "Why does Response Integrity refuse to move to a new topic just because the student seems better?",
         expectedAnswer:
-          "Apparent improvement is not enough. TT only moves when response is consistently reliable under difficulty and pressure.",
+          "Apparent improvement is not enough. Response Integrity only moves when response is consistently reliable under difficulty and pressure.",
         failIndicators: ["we want to be thorough", "repetition helps confidence"],
       },
       {
         key: "topic_conditioning_q6",
         section: "Application",
-        prompt: "Parent says 'My child struggles with math in general.' What is your first move inside TT?",
-        expectedAnswer: "Select a specific arena, test it using TT checks, and identify where the response breaks.",
+        prompt: "Parent says 'My child struggles with math in general.' What is your first move inside Response Integrity?",
+        expectedAnswer: "Select a specific arena, test it using Response Integrity checks, and identify where the response breaks.",
         failIndicators: ["ask what topics they don't understand", "start teaching basics"],
       },
       {
@@ -777,7 +777,7 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "topic_conditioning_q10",
         section: "Application",
-        prompt: "Why is it incorrect to say 'This student is inconsistent' using TT logic?",
+        prompt: "Why is it incorrect to say 'This student is inconsistent' using Response Integrity logic?",
         expectedAnswer: "Because inconsistency is not random. It reflects different conditioning levels across different arenas.",
         failIndicators: ["it sounds negative", "it hurts confidence"],
       },
@@ -792,7 +792,7 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "topic_conditioning_q12",
         section: "Pressure Scenarios",
-        prompt: "Parent says 'Can we move to the next topic? They've already done this one a lot.' How do you respond without breaking TT doctrine?",
+        prompt: "Parent says 'Can we move to the next topic? They've already done this one a lot.' How do you respond without breaking Response Integrity doctrine?",
         expectedAnswer:
           "Explain that repetition alone is not the goal. Progress happens only when execution is reliably stable under pressure.",
         failIndicators: ["okay we can move on", "let's just test the next topic"],
@@ -816,7 +816,7 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "topic_conditioning_final",
         section: "Final Test",
-        prompt: "In one sentence, what is your job as a tutor in TT?",
+        prompt: "In one sentence, what is your job as a tutor in Response Integrity?",
         expectedAnswer: "To identify where the student's response breaks in an arena and condition it until it becomes stable.",
         failIndicators: ["help students understand math", "improve marks", "teach topics"],
         autoCriticalOnFail: true,
@@ -831,7 +831,7 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "intro_session_q1",
         section: "Core Understanding",
-        prompt: "What is the purpose of the intro session structure in TT?",
+        prompt: "What is the purpose of the intro session structure in Response Integrity?",
         expectedAnswer: "To establish baseline clarity before any training begins, preventing false starts and wasted time on unstable foundation.",
         failIndicators: ["to build confidence", "to warm up the student", "to get them comfortable"],
       },
@@ -859,7 +859,7 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "logging_q1",
         section: "Core Understanding",
-        prompt: "What is the purpose of logging in TT?",
+        prompt: "What is the purpose of logging in Response Integrity?",
         expectedAnswer: "To create an objective record of student performance that drives training decisions and prevents tutor drift.",
         failIndicators: ["to track attendance", "to show progress to parents"],
       },
@@ -887,7 +887,7 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "session_flow_q1",
         section: "Core Understanding",
-        prompt: "What is session flow control in TT?",
+        prompt: "What is session flow control in Response Integrity?",
         expectedAnswer: "The discipline of following a planned phase sequence without deviation unless performance data forces a change.",
         failIndicators: ["keeping the student happy", "following their pace", "being flexible"],
       },
@@ -916,7 +916,7 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "drill_library_q1",
         section: "Core Understanding",
-        prompt: "What is the purpose of the drill library in TT?",
+        prompt: "What is the purpose of the drill library in Response Integrity?",
         expectedAnswer: "To provide targeted, repeatable practice that isolates the exact skill or arena needed at each phase.",
         failIndicators: ["to give students lots of problems", "to keep them busy"],
       },
@@ -944,7 +944,7 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "handover_q1",
         section: "Core Understanding",
-        prompt: "What is handover verification in TT?",
+        prompt: "What is handover verification in Response Integrity?",
         expectedAnswer: "The discipline of verifying that the student can execute independently before ending the session.",
         failIndicators: ["saying goodbye nicely", "telling them to practice at home"],
       },
@@ -968,12 +968,12 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
   {
     key: "tools_required",
     title: "Tools Required",
-    description: "Can the tutor use the TT system tools correctly to log, track, and communicate?",
+    description: "Can the tutor use the Response Integrity system tools correctly to log, track, and communicate?",
     questions: [
       {
         key: "tools_q1",
         section: "Core Understanding",
-        prompt: "Why are TT tools required, not optional?",
+        prompt: "Why are Response Integrity tools required, not optional?",
         expectedAnswer: "Because they enforce consistency, prevent data loss, and create the record needed for training decisions.",
         failIndicators: ["they're just convenient", "for administration"],
       },
@@ -1003,8 +1003,8 @@ const tdSystemIntegrityDefinition: BattleTestPhaseDefinition = {
     {
       key: "td_q1",
       section: "System Ownership",
-      prompt: "What is your job as a Territory Director in TT, in one sentence?",
-      expectedAnswer: "To ensure the TT system is executed exactly as defined and to detect and correct any deviation immediately.",
+      prompt: "What is your job as a Territory Director in Response Integrity, in one sentence?",
+      expectedAnswer: "To ensure the Response Integrity system is executed exactly as defined and to detect and correct any deviation immediately.",
       failIndicators: ["support tutors", "help improve sessions", "guide tutors"],
     },
     {
@@ -1018,7 +1018,7 @@ const tdSystemIntegrityDefinition: BattleTestPhaseDefinition = {
       key: "td_q3",
       section: "System Ownership",
       prompt: "What is system drift?",
-      expectedAnswer: "Any deviation from defined TT-OS protocols, regardless of outcome.",
+      expectedAnswer: "Any deviation from defined Response Integrity system protocols, regardless of outcome.",
       failIndicators: ["when results drop", "when tutors struggle"],
     },
     {
@@ -1125,7 +1125,7 @@ const tdSystemIntegrityDefinition: BattleTestPhaseDefinition = {
     {
       key: "td_final",
       section: "Final Filter",
-      prompt: "When should a tutor be removed from TT?",
+      prompt: "When should a tutor be removed from Response Integrity?",
       expectedAnswer:
         "When they consistently fail to execute the system, violate protocols, or compromise integrity.",
       failIndicators: ["when results drop", "when parents complain"],

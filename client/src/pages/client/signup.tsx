@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { buildTrackedPath, resolveTrackedBackTarget } from "@/lib/publicTracking";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Heart, Sparkles } from "lucide-react";
-import { TTLogo } from "@/components/ResponseIntegrityLogo";
+import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 
 export default function ClientSignup() {
   const [mode, setMode] = useState<"signup" | "login">("signup");
@@ -27,7 +27,7 @@ export default function ClientSignup() {
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 relative flex items-center justify-between">
           <div className="w-10 md:hidden" aria-hidden="true" />
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 sm:static sm:transform-none w-full sm:w-auto flex justify-center">
-            <TTLogo size="md" variant="integrity" />
+            <ResponseIntegrityLogo size="md" variant="integrity" />
           </div>
           
           <div className="hidden md:block">
@@ -64,7 +64,7 @@ export default function ClientSignup() {
             </div>
             <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full mx-auto" style={{ backgroundColor: "#FFF0F0" }}>
               <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
-                Founding Cohort • Limited Spots
+                Founding Cohort â€¢ Limited Spots
               </span>
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: "#1A1A1A" }}>
@@ -125,3 +125,4 @@ export default function ClientSignup() {
     </div>
   );
 }
+

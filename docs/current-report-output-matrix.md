@@ -22,7 +22,7 @@ Sections shown:
 - `Sessions Completed`
 - `Topics`
 - `What Changed`
-- `Breakdown Pattern`
+- `Breakdown PaResponse Integrityern`
 - `What This Means`
 - `Next Move`
 
@@ -54,13 +54,13 @@ Examples:
 - `continued early dependence`
 - `no consistent behavior shift recognized yet`
 
-### Weekly `Breakdown Pattern`
+### Weekly `Breakdown PaResponse Integrityern`
 
 Exact template:
 
 - `{topic}: {weak1} and {weak2}`
 - `{topic}: {weak1}`
-- `{topic}: no consistent breakdown pattern identified`
+- `{topic}: no consistent breakdown paResponse Integrityern identified`
 
 ### Weekly `What This Means`
 
@@ -140,7 +140,7 @@ Sections shown:
 - `Topics`
 - `System Movement`
 - `What Became Stronger`
-- `Breakdown Pattern`
+- `Breakdown PaResponse Integrityern`
 - `Current Position`
 - `What This Means`
 - `Next Month Move`
@@ -166,9 +166,9 @@ Exact template:
 
 - `{topic}: {strong1} and {strong2}`
 - `{topic}: {strong1}`
-- `No consistent strength pattern recognized yet`
+- `No consistent strength paResponse Integrityern recognized yet`
 
-### Monthly `Breakdown Pattern`
+### Monthly `Breakdown PaResponse Integrityern`
 
 Exact template:
 
@@ -290,7 +290,7 @@ Strong labels before absolute conversion:
 - `more reliable step execution`
 - `more independent execution`
 - `earlier independent starts`
-- `better control under difficulty`
+- `beResponse Integrityer control under difficulty`
 - `stronger structure retention`
 - `more controlled pace`
 
@@ -335,7 +335,7 @@ These scenarios assume the report contains one topic only.
   - `Linear Equations`
 - `What Changed`
   - `Linear Equations moved from Structured Execution (High Maintenance) to Controlled Discomfort (Low), with control under difficulty and structure retention.`
-- `Breakdown Pattern`
+- `Breakdown PaResponse Integrityern`
   - `Linear Equations: hesitation under pressure`
 - `What This Means`
   - `Entered the challenge phase, now learning to stay stable under difficulty.`
@@ -354,7 +354,7 @@ These scenarios assume the report contains one topic only.
   - `Linear Equations`
 - `What Changed`
   - `Linear Equations moved from Structured Execution (Medium) to Structured Execution (High), with less delayed starts and more reliable step execution.`
-- `Breakdown Pattern`
+- `Breakdown PaResponse Integrityern`
   - `Linear Equations: early dependence`
 - `What This Means`
   - `Execution is now holding independently.`
@@ -373,7 +373,7 @@ These scenarios assume the report contains one topic only.
   - `Linear Equations`
 - `What Changed`
   - `Linear Equations remained in Clarity (Medium), with clear concept recall and continued delayed starts.`
-- `Breakdown Pattern`
+- `Breakdown PaResponse Integrityern`
   - `Linear Equations: delayed starts`
 - `What This Means`
   - `Recognition is improving, but independent execution is not yet stable.`
@@ -392,7 +392,7 @@ These scenarios assume the report contains one topic only.
   - `Linear Equations`
 - `What Changed`
   - `Linear Equations moved from Controlled Discomfort (High) to Controlled Discomfort (Medium), with continued hesitation under pressure.`
-- `Breakdown Pattern`
+- `Breakdown PaResponse Integrityern`
   - `Linear Equations: hesitation under pressure and structure breakdown`
 - `What This Means`
   - `This topic needs reinforcement at the current level before moving forward again.`
@@ -411,8 +411,8 @@ These scenarios assume the report contains one topic only.
   - `Linear Equations`
 - `What Changed`
   - `Linear Equations remained in Time Pressure Stability (High Maintenance), with controlled pace and structure retention.`
-- `Breakdown Pattern`
-  - `No consistent breakdown pattern identified`
+- `Breakdown PaResponse Integrityern`
+  - `No consistent breakdown paResponse Integrityern identified`
 - `What This Means`
   - `Top-level stability is holding, now in maintenance and transfer.`
 - `Next Move`
@@ -436,7 +436,7 @@ These scenarios assume the report contains one topic only.
   - `Linear Equations advanced from Structured Execution to Controlled Discomfort.`
 - `What Became Stronger`
   - `Linear Equations: control under difficulty and structure retention`
-- `Breakdown Pattern`
+- `Breakdown PaResponse Integrityern`
   - `Linear Equations: hesitation under pressure`
 - `Current Position`
   - `Linear Equations: Controlled Discomfort (Low)`
@@ -460,7 +460,7 @@ These scenarios assume the report contains one topic only.
   - `Remained in Structured Execution, with stability improving across sessions.`
 - `What Became Stronger`
   - `Linear Equations: reliable step execution and independent starts`
-- `Breakdown Pattern`
+- `Breakdown PaResponse Integrityern`
   - `Linear Equations: early dependence`
 - `Current Position`
   - `Linear Equations: Structured Execution (High)`
@@ -484,7 +484,7 @@ These scenarios assume the report contains one topic only.
   - `Linear Equations remained in Clarity.`
 - `What Became Stronger`
   - `Linear Equations: clear concept recall`
-- `Breakdown Pattern`
+- `Breakdown PaResponse Integrityern`
   - `Linear Equations: delayed starts`
 - `Current Position`
   - `Linear Equations: Clarity (Medium)`
@@ -507,8 +507,8 @@ These scenarios assume the report contains one topic only.
 - `System Movement`
   - `Linear Equations remained in Controlled Discomfort with reduced stability.`
 - `What Became Stronger`
-  - `No consistent strength pattern recognized yet`
-- `Breakdown Pattern`
+  - `No consistent strength paResponse Integrityern recognized yet`
+- `Breakdown PaResponse Integrityern`
   - `Linear Equations: hesitation under pressure and structure breakdown`
 - `Current Position`
   - `Linear Equations: Controlled Discomfort (Medium)`
@@ -532,8 +532,8 @@ These scenarios assume the report contains one topic only.
   - `Linear Equations remained in Time Pressure Stability with sustained maintenance.`
 - `What Became Stronger`
   - `Linear Equations: controlled pace and structure retention`
-- `Breakdown Pattern`
-  - `No consistent breakdown pattern identified`
+- `Breakdown PaResponse Integrityern`
+  - `No consistent breakdown paResponse Integrityern identified`
 - `Current Position`
   - `Linear Equations: Time Pressure Stability (High Maintenance)`
   - `Structure holds under pace pressure.`
@@ -632,6 +632,6 @@ Example monthly:
 - `What Became Stronger`
   - `Linear Equations: control under difficulty and structure retention`
   - `Fractions: clear concept recall`
-- `Breakdown Pattern`
+- `Breakdown PaResponse Integrityern`
   - `Linear Equations: hesitation under pressure`
   - `Fractions: delayed starts and early dependence`

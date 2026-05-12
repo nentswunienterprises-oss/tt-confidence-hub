@@ -25,7 +25,7 @@ export default function ResponseConditioningTopicConditioning() {
             </div>
             <div>
               <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">
-                TT-OS Deep Dive
+                Response Integrity-OS Deep Dive
               </p>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-1">
                 Topic Conditioning
@@ -51,7 +51,7 @@ export default function ResponseConditioningTopicConditioning() {
           <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
             <li>Take the topic the student is currently struggling with.</li>
             <li>Find where their response breaks inside that topic.</li>
-            <li>Run the TT system until their response becomes stable.</li>
+            <li>Run the Response Integrity system until their response becomes stable.</li>
           </ul>
           <p className="text-muted-foreground">
             That first diagnosis happens in the intro session. Training starts after the entry
@@ -80,14 +80,14 @@ export default function ResponseConditioningTopicConditioning() {
             <li>Time Pressure Stability</li>
           </ul>
           <p className="font-semibold">
-            So Topic Conditioning means: A school topic becomes the arena where TT-OS trains the student's response.
+            So Topic Conditioning means: A school topic becomes the arena where Response Integrity-OS trains the student's response.
           </p>
         </Card>
 
         <Card className="p-6 space-y-4">
           <h2 className="text-2xl font-bold">Why this matters</h2>
           <p className="text-muted-foreground">Most tutoring asks: "Does the student understand this topic?"</p>
-          <p className="font-semibold">TT asks a harder and more useful question:</p>
+          <p className="font-semibold">Response Integrity asks a harder and more useful question:</p>
           <p className="font-semibold">"In this topic, where does the student break?"</p>
           <p className="text-muted-foreground">That changes everything.</p>
           <p className="text-muted-foreground">Because a student can:</p>
@@ -101,16 +101,16 @@ export default function ResponseConditioningTopicConditioning() {
           <p className="text-muted-foreground">So the real issue is not just topic knowledge.</p>
           <p className="font-semibold">The real issue is:</p>
           <p className="font-semibold">How the student behaves inside that topic when difficulty appears.</p>
-          <p className="text-muted-foreground">That is what TT conditions.</p>
-          <p className="text-muted-foreground">TT is not trying to:</p>
+          <p className="text-muted-foreground">That is what Response Integrity conditions.</p>
+          <p className="text-muted-foreground">Response Integrity is not trying to:</p>
           <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
             <li>teach as much content as possible in one session</li>
             <li>move through the syllabus as fast as possible</li>
             <li>finish topics for the sake of progress</li>
             <li>impress parents with volume</li>
           </ul>
-          <p className="text-muted-foreground">TT is doing something more precise.</p>
-          <p className="text-muted-foreground">TT is asking:</p>
+          <p className="text-muted-foreground">Response Integrity is doing something more precise.</p>
+          <p className="text-muted-foreground">Response Integrity is asking:</p>
           <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
             <li>Inside this topic, is the student clear?</li>
             <li>Can they execute?</li>
@@ -122,17 +122,17 @@ export default function ResponseConditioningTopicConditioning() {
 
         <Card className="p-6 space-y-4">
           <h2 className="text-2xl font-bold">The core structure</h2>
-          <p className="text-muted-foreground">Topic Conditioning in TT works like this:</p>
+          <p className="text-muted-foreground">Topic Conditioning in Response Integrity works like this:</p>
           <p className="text-muted-foreground">
             Topic: The exact school concept the student is facing now.
           </p>
           <p className="text-muted-foreground">
-            Phase: The point in the TT system where the student currently breaks in that topic.
+            Phase: The point in the Response Integrity system where the student currently breaks in that topic.
           </p>
           <p className="text-muted-foreground">
             Stability: How reliable the student's response is inside that topic.
           </p>
-          <p className="font-semibold">Put together: Topic + Phase + Stability = TT conditioning map</p>
+          <p className="font-semibold">Put together: Topic + Phase + Stability = Response Integrity conditioning map</p>
           <div className="overflow-x-auto border rounded-lg">
             <table className="w-full text-sm">
               <thead className="bg-muted/50">
@@ -170,7 +170,7 @@ export default function ResponseConditioningTopicConditioning() {
 
         <Card className="p-6 space-y-4">
           <h2 className="text-2xl font-bold">How the OS works inside a topic</h2>
-          <p className="text-muted-foreground">TT-OS does not float above schoolwork. It operates inside it.</p>
+          <p className="text-muted-foreground">Response Integrity-OS does not float above schoolwork. It operates inside it.</p>
           <p className="text-muted-foreground">
             That means every topic is pushed through the same conditioning sequence.
           </p>
@@ -248,7 +248,7 @@ export default function ResponseConditioningTopicConditioning() {
           </ul>
           <p className="text-muted-foreground">That does not mean the student is inconsistent in a random way.</p>
           <p className="font-semibold">It means: their response has not yet been conditioned across all arenas.</p>
-          <p className="text-muted-foreground">This is a major TT insight.</p>
+          <p className="text-muted-foreground">This is a major Response Integrity insight.</p>
           <p className="text-muted-foreground">The student is not "good at math" or "bad at math."</p>
           <p className="font-semibold">They are: conditioned in some arenas, unconditioned in others.</p>
           <p className="text-muted-foreground">That is a much more accurate way to see performance.</p>
@@ -263,7 +263,7 @@ export default function ResponseConditioningTopicConditioning() {
             <li>the school's current class topic</li>
             <li>the student's exam/test focus</li>
           </ul>
-          <p className="text-muted-foreground">So TT does not condition random content.</p>
+          <p className="text-muted-foreground">So Response Integrity does not condition random content.</p>
           <p className="font-semibold">It conditions: what the student is currently being tested on in school.</p>
           <p className="text-muted-foreground">This makes the system relevant, timely, aligned to school, and hard to replace.</p>
           <p className="text-muted-foreground">
@@ -333,7 +333,7 @@ export default function ResponseConditioningTopicConditioning() {
           <p className="font-semibold">But the long-term goal is not topic-specific dependence.</p>
           <p className="font-semibold">The long-term goal is: response transfer across topics.</p>
           <p className="text-muted-foreground">
-            This means the student stops needing familiarity to stay stable. They begin to carry the TT response
+            This means the student stops needing familiarity to stay stable. They begin to carry the Response Integrity response
             pattern into any topic.
           </p>
           <p className="text-muted-foreground">At that point, when they face something new, they do not go:</p>
@@ -342,7 +342,7 @@ export default function ResponseConditioningTopicConditioning() {
           <p className="font-medium">"Let me identify what I know and start."</p>
           <p className="font-semibold">That is the breakthrough.</p>
           <p className="text-muted-foreground">
-            That is when TT is no longer just helping with schoolwork. It is changing how the student behaves in
+            That is when Response Integrity is no longer just helping with schoolwork. It is changing how the student behaves in
             academic environments.
           </p>
         </Card>
@@ -355,7 +355,7 @@ export default function ResponseConditioningTopicConditioning() {
             <li>practice topic</li>
             <li>move on</li>
           </ul>
-          <p className="text-muted-foreground">TT works like this:</p>
+          <p className="text-muted-foreground">Response Integrity works like this:</p>
           <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
             <li>select topic</li>
             <li>diagnose where response breaks in that topic</li>
@@ -363,15 +363,15 @@ export default function ResponseConditioningTopicConditioning() {
             <li>repeat until response stabilizes</li>
             <li>move only when stable</li>
           </ul>
-          <p className="text-muted-foreground">That means TT is not competing on more hours, worksheets, or explanations.</p>
-          <p className="font-semibold">TT is competing on precision of response training.</p>
-          <p className="font-semibold">This is why TT feels different.</p>
+          <p className="text-muted-foreground">That means Response Integrity is not competing on more hours, worksheets, or explanations.</p>
+          <p className="font-semibold">Response Integrity is competing on precision of response training.</p>
+          <p className="font-semibold">This is why Response Integrity feels different.</p>
         </Card>
 
         <Card className="p-6 space-y-4 border-primary/30 bg-primary/5">
           <h2 className="text-2xl font-bold">What 8 sessions per month really means</h2>
           <p className="text-muted-foreground">In a normal tutoring company, 8 sessions a month means two classes per week and more teaching time.</p>
-          <p className="text-muted-foreground">In TT, 8 sessions a month means eight conditioning windows.</p>
+          <p className="text-muted-foreground">In Response Integrity, 8 sessions a month means eight conditioning windows.</p>
           <p className="text-muted-foreground">That cadence is how the system moves.</p>
           <p className="text-muted-foreground">Not because time itself is the product.</p>
           <p className="text-muted-foreground">But because stable response requires:</p>
@@ -392,7 +392,7 @@ export default function ResponseConditioningTopicConditioning() {
           <p className="text-muted-foreground">The tutor is:</p>
           <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
             <li>diagnosing the breakdown point in the topic</li>
-            <li>running the correct TT phase in that topic</li>
+            <li>running the correct Response Integrity phase in that topic</li>
             <li>logging the response patterns</li>
             <li>progressing the topic only when stability improves</li>
           </ul>
@@ -422,17 +422,17 @@ export default function ResponseConditioningTopicConditioning() {
           <h2 className="text-2xl font-bold">What the parent is really buying</h2>
           <p className="text-muted-foreground">Parents may think they are buying math tutoring, support with schoolwork, and help with difficult topics.</p>
           <p className="font-semibold">
-            But what TT is really delivering is conditioned response inside the topics that currently break the
+            But what Response Integrity is really delivering is conditioned response inside the topics that currently break the
             student.
           </p>
-          <p className="text-muted-foreground">That is why TT is stronger than ordinary tutoring.</p>
+          <p className="text-muted-foreground">That is why Response Integrity is stronger than ordinary tutoring.</p>
           <p className="text-muted-foreground">Because you are not just helping the child "understand fractions."</p>
           <p className="text-muted-foreground">You are training them to stay calm, start, execute, and remain stable under time and difficulty.</p>
           <p className="text-muted-foreground">Then you do the same in algebra, then word problems, then exponents.</p>
           <p className="text-muted-foreground">Over time, the child changes. Not just their knowledge. Their response.</p>
           <p className="font-semibold">
             Topic Conditioning is the process of using real school topics as arenas to train stable academic response
-            through the TT Operating System.
+            through the Response Integrity Operating System.
           </p>
           <p className="text-muted-foreground">It connects:</p>
           <ul className="space-y-1 pl-5 list-disc text-muted-foreground">

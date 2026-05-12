@@ -74,4 +74,4 @@ payment only when students are accepted and retained
 
 Do you still want to proceed? Why?
 
-Why should TT trust you with access to parents?
+Why should Response Integrity trust you with access to parents?

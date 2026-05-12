@@ -4,7 +4,7 @@ Not admin.
 Not manager.
 Not just “senior tutor.”
 
-TD = Quality Control Layer for TT-OS Execution
+TD = Quality Control Layer for Response Integrity-OS Execution
 
 They sit here:
 
@@ -57,7 +57,7 @@ You don’t show fluff.
 You show:
 
 System Integrity Score (Pod-Level)
-- % sessions compliant with TT-OS
+- % sessions compliant with Response Integrity-OS
 
 Drift Alerts
 - # of violations this week

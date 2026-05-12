@@ -229,7 +229,7 @@ function ThreadPanel({
             />
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs text-muted-foreground">
-                Communication stays inside TT.
+                Communication stays inside the platform.
               </p>
               <Button
                 onClick={onSend}
@@ -323,7 +323,7 @@ export default function StudentCommunicationDialog({
           </p>
           <DialogTitle>{studentName}</DialogTitle>
           <DialogDescription>
-            Parent and student messaging stays inside Response Integrity.
+            Parent and student messaging stays inside the platform.
           </DialogDescription>
         </DialogHeader>
 
@@ -386,7 +386,7 @@ export default function StudentCommunicationDialog({
             <TabsContent value="student" className="mt-4">
               <ThreadPanel
                 title="Student Chat"
-                description="Direct TT communication with the student."
+                description="Direct Response Integrity communication with the student."
                 messages={studentThread?.messages || []}
                 composerValue={drafts.student}
                 onComposerChange={(value) =>

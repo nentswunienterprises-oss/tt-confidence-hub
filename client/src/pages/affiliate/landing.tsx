@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRight, Check, Dot, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { TTLogo } from "@/components/ResponseIntegrityLogo";
+import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 
 const fitSignals = [
   "You can identify students who break under pressure in math.",
@@ -15,13 +15,13 @@ const disqualifiers = [
   "You want a salary instead of performance-linked earning.",
   "You rely on urgency, pressure, or persuasion tactics.",
   "You want easy money without system discipline.",
-  "You want to position TT where genuine need is not present.",
+  "You want to position Response Integrity where genuine need is not present.",
 ];
 
 const rolePoints = [
   "You identify real need.",
   "You qualify families accurately.",
-  "You move the right students into the TT system.",
+  "You move the right students into the Response Integrity system.",
 ];
 
 const nonRolePoints = [
@@ -142,7 +142,7 @@ export default function AffiliateLanding() {
                   </div>
                   <div className="rounded-[22px] border border-[#E6D4C7] bg-white/72 p-4">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8A4B35]">Positioning</p>
-                    <p className="mt-2 text-sm leading-6 text-[#4F4742]">You work inside a defined TT system, not an improvised pitch.</p>
+                    <p className="mt-2 text-sm leading-6 text-[#4F4742]">You work inside a defined Response Integrity system, not an improvised pitch.</p>
                   </div>
                   <div className="rounded-[22px] border border-[#E6D4C7] bg-white/72 p-4">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8A4B35]">Earnings</p>
@@ -286,7 +286,7 @@ export default function AffiliateLanding() {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#FFB5A6]">Operating principle</p>
                 <h2 className="mt-3 text-3xl font-bold leading-tight sm:text-4xl">If there is no need, you walk away.</h2>
                 <p className="mt-5 max-w-xl text-sm leading-8 text-white/72 sm:text-base">
-                  TT does not need more conversations. It needs the right conversations. The system works when operators listen properly, disqualify early, and stay locked in only where the fit is real.
+                  Response Integrity does not need more conversations. It needs the right conversations. The system works when operators listen properly, disqualify early, and stay locked in only where the fit is real.
                 </p>
               </div>
 
@@ -326,9 +326,9 @@ export default function AffiliateLanding() {
 
       <footer className="border-t border-black/5 py-8">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:px-6 md:flex-row md:px-12">
-          <TTLogo size="md" variant="integrity" />
+          <ResponseIntegrityLogo size="md" variant="integrity" />
           <p className="text-center text-xs text-[#5A5A5A] md:text-right">
-            © {new Date().getFullYear()} Response Integrity SA (Pty) Ltd
+            Â© {new Date().getFullYear()} Response Integrity SA (Pty) Ltd
             <br />
             Education Growth Partner
           </p>
@@ -337,3 +337,4 @@ export default function AffiliateLanding() {
     </div>
   );
 }
+

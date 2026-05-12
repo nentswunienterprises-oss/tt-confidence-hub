@@ -1,7 +1,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { TTLogo } from "@/components/ResponseIntegrityLogo";
+import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 import { buildTrackedPath, buildTrackedReturnTo } from "@/lib/publicTracking";
 
 import { useLocation, useNavigate } from "react-router-dom";
@@ -55,7 +55,7 @@ function PortalLanding() {
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-center sm:justify-between">
           <div className="flex-shrink-0 scale-90 origin-center sm:origin-left">
-            <TTLogo size="lg" variant="integrity" />
+            <ResponseIntegrityLogo size="lg" variant="integrity" />
           </div>
 
           <div className="hidden md:block">
@@ -110,7 +110,7 @@ function PortalLanding() {
             </h1>
 
             <p className="text-base sm:text-lg md:text-xl leading-relaxed" style={{ color: "#5A5A5A" }}>
-              Most students don’t struggle because they're bad at math or not intelligent.
+              Most students donâ€™t struggle because they're bad at math or not intelligent.
               <br />
               They struggle because pressure disrupts the way they respond.
               <br /><br />
@@ -124,7 +124,7 @@ function PortalLanding() {
                 style={{ backgroundColor: "#E63946", color: "white" }}
                 onClick={() => navigate(buildSignupUrl())}
               >
-                Start Your Child’s Journey
+                Start Your Childâ€™s Journey
                 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
               </Button>
             </div>
@@ -274,7 +274,7 @@ function PortalLanding() {
             style={{ backgroundColor: "#E63946", color: "white" }}
             onClick={() => navigate(buildSignupUrl())}
           >
-            Start Your Child’s Journey
+            Start Your Childâ€™s Journey
             <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
           </Button>
         </div>
@@ -315,7 +315,7 @@ function PortalLanding() {
           <div className="flex flex-col md:flex-row md:justify-between items-center gap-4 sm:gap-6">
             <div className="flex flex-col md:flex-row items-center gap-3 sm:gap-4">
                 <div>
-                  <TTLogo size="md" variant="integrity" />
+                  <ResponseIntegrityLogo size="md" variant="integrity" />
               </div>
               <a
                 href="https://www.instagram.com/territorialtutoring?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
@@ -329,7 +329,7 @@ function PortalLanding() {
               </a>
             </div>
             <p className="text-center md:text-right text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-              © {new Date().getFullYear()} Response Integrity (Pty) Ltd
+              Â© {new Date().getFullYear()} Response Integrity (Pty) Ltd
               <br />
               <span className="text-xs sm:text-sm">Math Pressure Response-Training.</span>
             </p>
@@ -341,3 +341,4 @@ function PortalLanding() {
 }
 
 export default PortalLanding;
+

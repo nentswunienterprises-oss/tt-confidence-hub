@@ -23,11 +23,11 @@ Students per tutor | **6**
 Tutors per pod | **10**
 Students per pod | **60**
 Tutor monthly earnings (per tutor) | **R4,500 (R750 × 6)**
-TT commission per tutor | **R1,500 (R250 × 6)**
-TT commission per pod (monthly) | **R15,000 (R250 × 60)**
+Response Integrity commission per tutor | **R1,500 (R250 × 6)**
+Response Integrity commission per pod (monthly) | **R15,000 (R250 × 60)**
 Pod lifespan (launch to full cycle) | **9 months**
 
-This standardised pod design allows TT to scale consistently and measurably -every pod runs the same operating system and produces the same predictable yield.
+This standardised pod design allows Response Integrity to scale consistently and measurably -every pod runs the same operating system and produces the same predictable yield.
 
 ---
 
@@ -48,7 +48,7 @@ This standardised pod design allows TT to scale consistently and measurably -eve
 Item | Value
 ---|---
 Monthly operations stack (HQ, platform, admin, automation) | **R5,000 / month**
-TT commission per pod (monthly) | **R15,000**
+Response Integrity commission per pod (monthly) | **R15,000**
 F‑Pod net contribution to company (monthly) = commission − ops | **R10,000**
 F‑Pod life‑time net (9 months) | **R10,000 × 9 = R90,000**
 
@@ -62,8 +62,8 @@ The F‑Pod keeps the engine running while financed pods expand the ecosystem.
 
 Item | Value
 ---|---
-Monthly TT commission per pod | **R15,000**
-9‑month TT commission per pod | **R15,000 × 9 = R135,000**
+Monthly Response Integrity commission per pod | **R15,000**
+9‑month Response Integrity commission per pod | **R15,000 × 9 = R135,000**
 Outreach cost (one‑time) | **R6,000**
 9‑month net per financed pod (after outreach) | **R135,000 − R6,000 = R129,000**
 
@@ -132,7 +132,7 @@ MPLEM is a self‑replicating 6‑Seater Pod Wave system where one Foundation Po
 Each 6‑Seater Pod does three things reliably:
 - 60 students receive disciplined execution training (measurable behaviour change),
 - 10 tutors receive paid leadership experience and skills, and
-- TT demonstrates repeatable institutional impact and a scalable revenue model.
+- Response Integrity demonstrates repeatable institutional impact and a scalable revenue model.
 
 Under MPLEM, this replicates across regions without increasing central operating cost.
 
@@ -140,4 +140,4 @@ We scale impact, not cost.
 
 ---
 
-*Document updated to match the economics and offer doctrine in `brain/vision/TT_Business_Model.md`. Language adjusted to TT tone and brand rules.*
+*Document updated to match the economics and offer doctrine in `brain/vision/TT_Business_Model.md`. Language adjusted to Response Integrity tone and brand rules.*

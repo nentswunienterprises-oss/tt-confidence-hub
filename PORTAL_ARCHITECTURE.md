@@ -1,4 +1,4 @@
-# TT Confidence Hub - 4 Portal Architecture
+# Response Integrity Confidence Hub - 4 Portal Architecture
 
 ## Overview
 The app now supports 4 strategic portals with 9 user roles, each portal having its own entry point, navigation, and access restrictions.

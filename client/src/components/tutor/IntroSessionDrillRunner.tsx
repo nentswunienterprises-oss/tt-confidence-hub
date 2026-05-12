@@ -1056,8 +1056,8 @@ export default function IntroSessionDrillRunner() {
     if (!canUseScheduledSession) {
       setSubmitError(
         drillMode === "diagnosis"
-          ? "A confirmed TT intro session is required before running this drill."
-          : "A launch-ready TT training lesson is required before running this drill."
+          ? "A confirmed Response Integrity intro session is required before running this drill."
+          : "A launch-ready Response Integrity training lesson is required before running this drill."
       );
       return;
     }
@@ -1334,7 +1334,7 @@ export default function IntroSessionDrillRunner() {
     <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-4">
       {drillSessionAccessLoading && (
         <div className="mb-4 p-3 rounded-md border border-primary/20 bg-primary/5">
-          <p className="text-sm">Validating TT lesson context...</p>
+          <p className="text-sm">Validating Response Integrity lesson context...</p>
         </div>
       )}
       {!drillSessionAccessLoading && !canUseScheduledSession && (
@@ -1343,8 +1343,8 @@ export default function IntroSessionDrillRunner() {
             <p className="font-semibold">Live lesson context required</p>
             <p className="mt-2 text-sm">
               {drillMode === "diagnosis"
-                ? "Return to the student card and launch this intro drill from the confirmed TT intro lesson."
-                : "Return to Topic Conditioning and launch this drill from a live or imminently scheduled TT training lesson."}
+                ? "Return to the student card and launch this intro drill from the confirmed Response Integrity intro lesson."
+                : "Return to Topic Conditioning and launch this drill from a live or imminently scheduled Response Integrity training lesson."}
             </p>
           </div>
           <div className="flex justify-end">
@@ -1360,7 +1360,7 @@ export default function IntroSessionDrillRunner() {
       )}
       {canUseScheduledSession && scheduledSession && (
         <div className="rounded-md border border-primary/20 bg-primary/5 p-3 space-y-2">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">TT Lesson</p>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Response Integrity Lesson</p>
           <p className="text-sm font-medium">
             {new Date(scheduledSession.scheduled_time).toLocaleString()}
           </p>

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CheckCircle2, Circle, ArrowLeft, FileText, AlertCircle, Users } from "lucide-react";
-import { TTLogo } from "@/components/ResponseIntegrityLogo";
+import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, getQueryFn } from "@/lib/queryClient";
@@ -55,7 +55,7 @@ export default function TutorGateway() {
   // Debug: log the gateway session response
   useEffect(() => {
     if (gatewaySession) {
-      console.log("=��� gatewaySession response:", gatewaySession);
+      console.log("=ï¿½ï¿½ï¿½ gatewaySession response:", gatewaySession);
     }
   }, [gatewaySession]);
 
@@ -84,37 +84,37 @@ export default function TutorGateway() {
     
     // While user auth is loading, show loading
     if (userLoading || !isAuthenticated) {
-      console.log("=��� gateway: waiting for auth", { userLoading, isAuthenticated });
+      console.log("=ï¿½ï¿½ï¿½ gateway: waiting for auth", { userLoading, isAuthenticated });
       setStep("loading");
       return;
     }
     
     // If application-status query is still loading, show loading
     if (appStatusLoading) {
-      console.log("=��� gateway: fetching application status...");
+      console.log("=ï¿½ï¿½ï¿½ gateway: fetching application status...");
       setStep("loading");
       return;
     }
     
     // If there was an error fetching application status, try to proceed or show error
     if (appStatusError) {
-      console.error("G�� gateway: error fetching application status:", appStatusError);
+      console.error("Gï¿½ï¿½ gateway: error fetching application status:", appStatusError);
       // Still show loading UI but don't get stuck forever
       setStep("loading");
       return;
     }
     
     // Now we have the application status data (or it's null/undefined)
-    console.log("G�� gateway: application status resolved:", applicationStatus);
+    console.log("Gï¿½ï¿½ gateway: application status resolved:", applicationStatus);
     if (!applicationStatus) {
       // Either the user has no application record (not_applied) or error occurred
       // Default to application form
-      console.log("=��� gateway: no application status, showing form");
+      console.log("=ï¿½ï¿½ï¿½ gateway: no application status, showing form");
       setStep("application");
     } else if (applicationStatus.status === "not_applied") {
       setStep("application");
     } else if (applicationStatus.status === "confirmed") {
-      // If confirmed, show submitted view G�� if assigned, show Assigned stage with Continue button
+      // If confirmed, show submitted view Gï¿½ï¿½ if assigned, show Assigned stage with Continue button
       setStep("submitted");
     } else {
       // pending, approved, verification states
@@ -185,7 +185,7 @@ export default function TutorGateway() {
           <div className="w-10 md:hidden" aria-hidden="true" />
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 sm:static sm:transform-none w-full sm:w-auto flex justify-center">
             <span style={{ transform: "scale(1.08)", transformOrigin: "center" }}>
-              <TTLogo size="md" variant="integrity" />
+              <ResponseIntegrityLogo size="md" variant="integrity" />
             </span>
           </div>
 
@@ -337,7 +337,7 @@ export default function TutorGateway() {
                   <PushOptInCard
                     enabled
                     title="Enable out-of-app alerts"
-                    description="Turn on browser notifications now so TT can alert you immediately when your tutor application is approved or rejected, even if this tab is closed."
+                    description="Turn on browser notifications now so Response Integrity can alert you immediately when your tutor application is approved or rejected, even if this tab is closed."
                   />
                   <p className="text-sm sm:text-base text-muted-foreground">
                     Application received. Under review.
@@ -349,7 +349,7 @@ export default function TutorGateway() {
                       <p className="text-xs sm:text-sm font-medium mb-2">What happens next:</p>
                       <ul className="text-xs sm:text-sm text-muted-foreground space-y-1 ml-4 list-disc">
                         <li>We assess fit</li>
-                        <li>If accepted, complete the TT agreements inside the app</li>
+                        <li>If accepted, complete the Response Integrity agreements inside the app</li>
                         <li>Doc 2 also requires a certified Matric certificate upload after in-app acceptance</li>
                         <li>Upload your certified ID copy as the final verification step</li>
                         <li>Once verified, you're assigned to a pod</li>
@@ -483,3 +483,4 @@ export default function TutorGateway() {
     </div>
   );
 }
+

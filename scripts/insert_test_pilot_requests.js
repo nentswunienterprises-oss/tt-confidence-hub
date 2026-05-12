@@ -21,8 +21,8 @@ const supabase = createClient(supabaseUrl, supabaseKey);
         school_name: 'TEST SCHOOL - Leadership (dev)',
         contact_person_role: 'Principal - Test',
         email: 'pilot-test+leadership@example.com',
-        submitter_name: 'Dev Tester',
-        submitter_role: 'dev',
+        submiResponse Integrityer_name: 'Dev Tester',
+        submiResponse Integrityer_role: 'dev',
       })
       .select()
       .single();
@@ -40,8 +40,8 @@ const supabase = createClient(supabaseUrl, supabaseKey);
         school_name: 'TEST SCHOOL - Early Intervention (dev)',
         contact_person_role: 'Deputy - Test',
         email: 'pilot-test+early@example.com',
-        submitter_name: 'Dev Tester',
-        submitter_role: 'dev',
+        submiResponse Integrityer_name: 'Dev Tester',
+        submiResponse Integrityer_role: 'dev',
       })
       .select()
       .single();

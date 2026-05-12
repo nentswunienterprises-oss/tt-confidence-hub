@@ -54,7 +54,7 @@ export default function ResponseConditioningIntroSessionStructure() {
             </div>
             <div>
               <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">
-                TT-OS Deep Dive
+                Response Integrity-OS Deep Dive
               </p>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-1">
                 Intro Session Structure
@@ -174,7 +174,7 @@ export default function ResponseConditioningIntroSessionStructure() {
               <p className="font-semibold">Concept Lens</p>
               <p className="text-sm text-muted-foreground">
                 Vocabulary, method, and reason. This is the 3-Layer Lens. It is the foundation of
-                structured thinking in TT. Clarity is where that structure is first built. The later
+                structured thinking in the system. Clarity is where that structure is first built. The later
                 phases then condition whether the student can keep that same structure under
                 repeatability, difficulty, uncertainty, and time pressure. So the 3-Layer Lens is not
                 separate from training. It is the core structure the tutor is building and protecting

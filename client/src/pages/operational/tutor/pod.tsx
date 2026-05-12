@@ -87,7 +87,7 @@ function formatTutorAuditTimestamp(value: string | null | undefined) {
 function formatTutorAlignmentStatus(value: string | null | undefined) {
   if (!value) return "You have not been fully reviewed yet.";
   if (value === "Complete the remaining tutor battle-test audits.") {
-    return "Your full alignment review is not complete yet. Remaining TT audit modules still need to be checked.";
+    return "Your full alignment review is not complete yet. Remaining Response Integrity audit modules still need to be checked.";
   }
   if (value === "Continue. Eligible for greater responsibility if other operating criteria hold.") {
     return "You are in good standing. Keep operating at this level.";
@@ -290,7 +290,7 @@ export default function TutorPod() {
           <PushOptInCard
             enabled
             title="Enable out-of-app alerts"
-            description="Turn on browser notifications so TT can alert you when parents respond to proposals or sessions, or when new assignments arrive."
+            description="Turn on browser notifications so Response Integrity can alert you when parents respond to proposals or sessions, or when new assignments arrive."
           />
 
           {expectingPodAssignment ? (
@@ -410,7 +410,7 @@ export default function TutorPod() {
         <PushOptInCard
           enabled
           title="Enable out-of-app alerts"
-          description="Turn on browser notifications so TT can alert you when parents respond to proposals or sessions, or when new assignments arrive."
+          description="Turn on browser notifications so Response Integrity can alert you when parents respond to proposals or sessions, or when new assignments arrive."
         />
 
         <div className="tutor-pod-stats grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
@@ -449,7 +449,7 @@ export default function TutorPod() {
                 <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Tutor Alignment</p>
                 <h2 className="mt-1 text-xl font-semibold tracking-[-0.01em]">Your standing in the system</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  This shows your latest audited alignment state and the TT battle-test modules already checked by TT.
+                  This shows your latest audited alignment state and the Response Integrity battle-test modules already checked by Response Integrity.
                 </p>
               </div>
             </div>
@@ -629,12 +629,12 @@ export default function TutorPod() {
                 <h2 className="mt-1 text-xl font-semibold tracking-[-0.01em]">Transformation Process</h2>
               </div>
               <div className="rounded-xl border border-primary/15 bg-muted/20 px-4 py-3">
-                <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">TT-OS Protocol</p>
+                <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Response Integrity-OS Protocol</p>
                 <p className="mt-2 text-sm text-foreground">3-Layer Lens + Boss Battles + Timed Execution = Conditioned Response.</p>
               </div>
               <Button className="w-full justify-start text-sm" variant="outline" asChild>
                 <Link to="/responseconditioningsystem">
-                  View TT-OS Protocol
+                  View Response Integrity-OS Protocol
                 </Link>
               </Button>
             </div>

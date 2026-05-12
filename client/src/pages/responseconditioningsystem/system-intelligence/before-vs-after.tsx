@@ -25,7 +25,7 @@ export default function ResponseConditioningBeforeVsAfter() {
             </div>
             <div>
               <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">
-                TT-OS Deep Dive
+                Response Integrity-OS Deep Dive
               </p>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-1">
                 Before vs After
@@ -40,7 +40,7 @@ export default function ResponseConditioningBeforeVsAfter() {
         <Card className="p-6 space-y-4">
           <h2 className="text-2xl font-bold">What This Is</h2>
           <p className="font-medium">This is:</p>
-          <p className="text-lg font-semibold">the observable difference created by TT</p>
+          <p className="text-lg font-semibold">the observable difference created by Response Integrity</p>
           <p className="text-muted-foreground">Not marks.</p>
           <p className="text-muted-foreground">Not effort.</p>
           <p className="font-semibold">behavior under difficulty</p>

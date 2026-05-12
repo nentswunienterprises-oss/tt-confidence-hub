@@ -44,7 +44,7 @@ const gooseneckBenefits = [
   "Prevents arm fatigue from holding the phone for the whole session.",
   "Creates a stable top-down camera angle.",
   "Makes the teaching setup more flexible and easier to repeat every session.",
-  "Supports the hands-on TT method without adding complicated software.",
+  "Supports the hands-on Response Integrity method without adding complicated software.",
 ];
 
 const methodAdvantages = [
@@ -55,7 +55,7 @@ const methodAdvantages = [
 ];
 
 const setupPrinciples = [
-  "TT does not rely on digital whiteboards as the main teaching environment.",
+  "Response Integrity does not rely on digital whiteboards as the main teaching environment.",
   "The tutor uses a phone camera to show real written work from above.",
   "The student watches the solving process as if sitting beside the tutor.",
   "The setup should reduce friction, not add technical overhead.",
@@ -83,7 +83,7 @@ export default function ResponseConditioningToolsRequired() {
             </div>
             <div>
               <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">
-                TT-OS Deep Dive
+                Response Integrity-OS Deep Dive
               </p>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-1">
                 Tools Required
@@ -105,7 +105,7 @@ export default function ResponseConditioningToolsRequired() {
           <div className="space-y-3">
             <h2 className="text-2xl font-bold">What the tutor must have</h2>
             <p className="text-muted-foreground">
-              TT uses a practical top-down teaching setup. The tools are simple, but they are not
+              Response Integrity uses a practical top-down teaching setup. The tools are simple, but they are not
               optional if the tutor wants a clean session environment.
             </p>
           </div>
@@ -159,7 +159,7 @@ export default function ResponseConditioningToolsRequired() {
         <Card className="p-6 space-y-4">
           <h2 className="text-2xl font-bold">Why this setup exists</h2>
           <p className="text-muted-foreground">
-            TT is designed around visible handwritten work, not around complex screen-sharing
+            Response Integrity is designed around visible handwritten work, not around complex screen-sharing
             workflows. The setup exists to make the page clear, the method visible, and the session
             easy to follow.
           </p>
@@ -223,10 +223,10 @@ export default function ResponseConditioningToolsRequired() {
         </Card>
 
         <Card className="p-6 border-l-4 border-l-primary space-y-4">
-          <h2 className="text-2xl font-bold">What TT is optimizing for</h2>
+          <h2 className="text-2xl font-bold">What Response Integrity is optimizing for</h2>
           <p className="text-muted-foreground">
             Unlike traditional online tutoring that depends on digital whiteboards and multiple
-            software layers, TT uses a simpler physical teaching stack.
+            software layers, Response Integrity uses a simpler physical teaching stack.
           </p>
           <p className="font-semibold">
             The purpose is not to look technical. The purpose is to make the student's view clear,

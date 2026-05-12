@@ -6,7 +6,7 @@ Build a fully systemized tutor development engine where tutor progression is det
 
 The system must condition tutors through doctrine + operations until certification standards are earned.
 
-This mirrors TT-OS student progression:
+This mirrors Response Integrity-OS student progression:
 
 👉 proof-based advancement
 👉 repeated performance
@@ -23,14 +23,14 @@ onboarding docs
 agreements
 profile setup
 
-No TT-OS access yet.
+No Response Integrity-OS access yet.
 
 B. Training Mode
 
 Access granted after documentation completion.
 
 Purpose:
-Tutor studies TT-OS modules and undergoes weekly battle tests.
+Tutor studies Response Integrity-OS modules and undergoes weekly battle tests.
 
 Substates:
 

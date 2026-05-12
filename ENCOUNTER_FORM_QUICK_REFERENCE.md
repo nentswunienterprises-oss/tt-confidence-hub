@@ -31,13 +31,13 @@ Text area for documenting parent pain points and needs:
 
 ### 5. **Delivery Notes**
 Text area for how you positioned the solution:
-- How did you explain TT's approach?
+- How did you explain Response Integrity's approach?
 - What examples did you use?
 - What resonated with them?
 
 ### 6. **Final Outcome**
 Dropdown - the conclusion of the meeting:
-- **Enrolled**: Parent ready to start with TT
+- **Enrolled**: Parent ready to start with Response Integrity
 - **Objected**: Parent declined/not interested
 - **Follow Up Needed**: Still undecided, needs more info
 
@@ -95,7 +95,7 @@ The form is **expandable** - click the section header to show/hide it, keeping y
 
 ❌ **Don't:**
 - Leave fields blank - they're all helpful for analysis
-- Use generic language ("went well", "talked about TT")
+- Use generic language ("went well", "talked about Response Integrity")
 - Forget about the encounter - log it within 24 hours
 - Be negative in reflections (this is a learning tool, not judgment)
 

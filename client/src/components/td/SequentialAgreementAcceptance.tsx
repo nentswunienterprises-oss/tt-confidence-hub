@@ -48,13 +48,13 @@ const DEFAULT_STATUSES: Record<string, string> = {
 };
 
 const TD_STEP_META: Record<number, { code: string; shortTitle: string }> = {
-  1: { code: "TT-TDA-001", shortTitle: "Contractor Agreement" },
-  2: { code: "TT-CEA-002", shortTitle: "Compliance Agreement" },
-  3: { code: "TT-AID-003", shortTitle: "Audit Declaration" },
-  4: { code: "TT-HTQ-004", shortTitle: "HTQ Addendum" },
-  5: { code: "TT-PSA-005", shortTitle: "Scorecard Acknowledgement" },
-  6: { code: "TT-CSP-006", shortTitle: "Confidentiality" },
-  7: { code: "TT-TDI-007", shortTitle: "Certified Identification" },
+  1: { code: "Response Integrity-TDA-001", shortTitle: "Contractor Agreement" },
+  2: { code: "Response Integrity-CEA-002", shortTitle: "Compliance Agreement" },
+  3: { code: "Response Integrity-AID-003", shortTitle: "Audit Declaration" },
+  4: { code: "Response Integrity-HTQ-004", shortTitle: "HTQ Addendum" },
+  5: { code: "Response Integrity-PSA-005", shortTitle: "Scorecard Acknowledgement" },
+  6: { code: "Response Integrity-CSP-006", shortTitle: "Confidentiality" },
+  7: { code: "Response Integrity-TDI-007", shortTitle: "Certified Identification" },
 };
 
 function normalizeValue(value: unknown) {
@@ -136,14 +136,14 @@ function hydrateTdDocumentContent(content: string, fieldValues: ReturnType<typeo
     `Signed at ${city} on this ${day} day of ${month} ${year}.`
   );
   next = next.replace(/_+\s*\n\s*Territory Director/i, `${legalName}\nTerritory Director`);
-  next = next.replace(/TT Representative Signature:\s*_+/i, `TT Representative Signature: ______________________`);
+  next = next.replace(/TT Representative Signature:\s*_+/i, `Response Integrity Representative Signature: ______________________`);
   next = next.replace(/Date:\s*_+/i, `Date: ${effectiveDate}`);
   return next;
 }
 
 function stripTdTemplateScaffold(content: string) {
   return normalizeDocumentText(content)
-    .replace(/^TT-[A-Z-0-9]+\s+-\s+.*\n?/i, "")
+    .replace(/^Response Integrity-[A-Z-0-9]+\s+-\s+.*\n?/i, "")
     .replace(/^AGREEMENT\s*\n?/i, "")
     .replace(/^This Agreement is entered into between:?\s*\n?/i, "")
     .replace(/^This Declaration is entered into between:?\s*\n?/i, "")
@@ -170,7 +170,7 @@ function DocumentContent({ content, legalName, effectiveDate, documentCode }: { 
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8A7A70]">Party A</p>
-            <p className="text-[#1A1A1A]">Response Integrity SA (Pty) Ltd ("TT")</p>
+            <p className="text-[#1A1A1A]">Response Integrity SA (Pty) Ltd ("Response Integrity")</p>
           </div>
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8A7A70]">Party B</p>
@@ -694,7 +694,7 @@ export function TdSequentialAgreementAcceptance({ applicationId, applicationStat
                           disabled={!hasCompletedReading || acceptanceAlreadyRecorded}
                           onCheckedChange={(value) => setGeneralBound(Boolean(value))}
                         />
-                        <span>I agree to be legally bound by these terms and understand TT will store an audit record of this acceptance.</span>
+                        <span>I agree to be legally bound by these terms and understand Response Integrity will store an audit record of this acceptance.</span>
                       </label>
                     </div>
 
@@ -839,7 +839,7 @@ export function TdSequentialAgreementAcceptance({ applicationId, applicationStat
                 <div className="mt-6 rounded-2xl border border-[#E7D5C8] bg-[#FFF5ED] p-4 sm:p-5">
                   <div className="mb-4 space-y-1">
                     <p className="text-sm font-semibold text-[#1A1A1A]">Agreement record</p>
-                    <p className="text-sm text-[#6B5B52]">This agreement acceptance is tied to your TD application identity and stored as an auditable TT record.</p>
+                    <p className="text-sm text-[#6B5B52]">This agreement acceptance is tied to your TD application identity and stored as an auditable Response Integrity record.</p>
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-2">

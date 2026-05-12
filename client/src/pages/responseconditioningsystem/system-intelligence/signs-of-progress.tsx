@@ -25,7 +25,7 @@ export default function ResponseConditioningSignsOfProgress() {
             </div>
             <div>
               <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">
-                TT-OS Deep Dive
+                Response Integrity-OS Deep Dive
               </p>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-1">
                 Signs of Progress
@@ -51,7 +51,7 @@ export default function ResponseConditioningSignsOfProgress() {
 
         <Card className="p-6 space-y-4">
           <h2 className="text-2xl font-bold">Core Principle</h2>
-          <p className="font-medium">Progress in TT is not:</p>
+          <p className="font-medium">Progress in Response Integrity is not:</p>
           <p className="text-muted-foreground">getting everything right</p>
           <p className="font-medium">Progress is:</p>
           <p className="text-lg font-semibold">

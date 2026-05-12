@@ -139,8 +139,8 @@ export default function StudentSessions() {
         <h1 className="text-2xl font-semibold tracking-[-0.01em]">Sessions</h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
           {schedulingEnabled
-            ? "Your full TT schedule for the current week."
-            : "Live lesson scheduling is currently disabled while your tutor is in TT training mode."}
+            ? "Your full Response Integrity schedule for the current week."
+            : "Live lesson scheduling is currently disabled while your tutor is in Response Integrity training mode."}
         </p>
       </div>
 
@@ -152,7 +152,7 @@ export default function StudentSessions() {
           </CardHeader>
           <CardContent>
             <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-              Your tutor is currently being trained inside TT, so sessions are being run directly in the TT system instead of through scheduled Meet links.
+              Your tutor is currently being trained inside Response Integrity, so sessions are being run directly in the Response Integrity system instead of through scheduled Meet links.
             </div>
           </CardContent>
         </Card>
@@ -237,7 +237,7 @@ export default function StudentSessions() {
       <Card className="border-primary/20 bg-background shadow-sm">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-medium tracking-[-0.01em]">Next Session</CardTitle>
-          <CardDescription>The next TT session currently on your calendar.</CardDescription>
+          <CardDescription>The next Response Integrity session currently on your calendar.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           {!nextSession ? (

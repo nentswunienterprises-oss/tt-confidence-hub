@@ -21,14 +21,14 @@ const applicationSchema = z.object({
   studentBreakdownCase: z.string().min(20, "Be specific"),
   marksSignal: z.string().min(20, "Please explain what it tells you"),
   extraLessonsResponse: z.string().min(20, "Please explain how you respond"),
-  notRecommendCases: z.string().min(20, "Please explain when you would not recommend TT"),
+  notRecommendCases: z.string().min(20, "Please explain when you would not recommend Response Integrity"),
   unclearProblemResponse: z.string().min(20, "Please explain what you do"),
   tenParentsFilter: z.string().min(20, "Please explain your filter"),
   firstAcademicQuestion: z.string().min(20, "Please explain what you want to understand first"),
   noEarningsResponse: z.string().min(20, "Please explain how your approach changes"),
   nextFiveDaysPlan: z.string().min(20, "Please be specific"),
   proceedReason: z.string().min(20, "Please explain why you still want to proceed"),
-  trustReason: z.string().min(20, "Please explain why TT should trust you"),
+  trustReason: z.string().min(20, "Please explain why Response Integrity should trust you"),
 });
 
 type ApplicationFormData = z.infer<typeof applicationSchema>;
@@ -54,7 +54,7 @@ const sections: Array<{
   { key: "noEarningsResponse", label: "You haven’t earned anything in 2 weeks. What changes in your approach?", multiline: true },
   { key: "nextFiveDaysPlan", label: "In the next 5 days, how would you get 2–3 serious parent conversations? Be specific.", multiline: true },
   { key: "proceedReason", label: "This role has no salary, no guaranteed income, and payment only when students are accepted and retained. Do you still want to proceed? Why?", multiline: true },
-  { key: "trustReason", label: "Why should TT trust you with access to parents?", multiline: true },
+  { key: "trustReason", label: "Why should Response Integrity trust you with access to parents?", multiline: true },
 ];
 
 type Props = {
@@ -167,7 +167,7 @@ export function AffiliateApplicationForm({ onSuccess, onCancel }: Props) {
     <div className="max-w-3xl mx-auto">
       <div className="mb-6 rounded-2xl border border-[#F1D2C7] bg-[#FFF6F1] p-5">
         <p className="text-sm text-[#5A5A5A]">
-          This is not a typical application. TT does not operate on volume. We operate on precision.
+          This is not a typical application. Response Integrity does not operate on volume. We operate on precision.
         </p>
         <p className="mt-3 text-sm text-[#5A5A5A]">
           We do not push services. We identify where students are already struggling and step in where there is real need.

@@ -294,12 +294,12 @@ export default function Landing() {
                 role: "Parent, Johannesburg"
               },
               {
-                quote: "TT didn't just help me with maths. They helped me believe I could actually do it.",
+                quote: "Response Integrity didn't just help me with maths. They helped me believe I could actually do it.",
                 name: "Thabo K.",
                 role: "Grade 9 Student"
               },
               {
-                quote: "Being a TT tutor changed how I see education. It's not about information transfer-it's about transformation.",
+                quote: "Being a Response Integrity tutor changed how I see education. It's not about information transfer-it's about transformation.",
                 name: "Lerato P.",
                 role: "Territorial Tutor"
               }

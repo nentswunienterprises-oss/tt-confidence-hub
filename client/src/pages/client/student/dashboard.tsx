@@ -309,7 +309,7 @@ export default function StudentDashboard() {
   const quickActions = [
     {
       title: "Sessions",
-      description: "See your weekly TT schedule",
+      description: "See your weekly Response Integrity schedule",
       path: "/client/student/sessions",
     },
     {
@@ -336,12 +336,12 @@ export default function StudentDashboard() {
       <Card className="border-primary/20 bg-background shadow-sm">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-medium tracking-[-0.01em]">Topic Focus</CardTitle>
-          <CardDescription>The current observed state of the topics TT is conditioning right now.</CardDescription>
+          <CardDescription>The current observed state of the topics Response Integrity is conditioning right now.</CardDescription>
         </CardHeader>
         <CardContent>
           {topicCards.length === 0 ? (
             <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-              Topic cards appear as soon as TT activates a topic in conditioning.
+              Topic cards appear as soon as Response Integrity activates a topic in conditioning.
             </div>
           ) : (
             <div className="grid sm:grid-cols-2 gap-4">

@@ -616,7 +616,7 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
         {currentStep === 7 && (
           <Card>
             <CardHeader>
-              <CardTitle>Section 7 - Alignment With TT</CardTitle>
+              <CardTitle>Section 7 - Alignment With Response Integrity</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <Label htmlFor="ttMeaning">Read this carefully:<br />“Most schools teach the work. Very few systems train how students respond when the work becomes difficult.”<br />What do you think this means?</Label>
@@ -690,8 +690,8 @@ export function ApplicationForm({ onSuccess, onCancel }: ApplicationFormProps) {
             <CardContent className="space-y-4">
               <Label>If selected, are you willing to:</Label>
               <ul className="pl-4 list-disc text-sm">
-                <li>Complete structured TT training before tutoring</li>
-                <li>Follow TT session protocols</li>
+                <li>Complete structured Response Integrity training before tutoring</li>
+                <li>Follow Response Integrity session protocols</li>
                 <li>Be evaluated before working with students</li>
               </ul>
               <RadioGroup

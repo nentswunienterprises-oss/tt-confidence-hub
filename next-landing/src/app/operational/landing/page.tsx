@@ -14,7 +14,7 @@ export default function OperationalLanding() {
         <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(245, 247, 250, 0.95)" }}>
           <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Image src="/logos/tt-monogram.png" alt="TT Logo" width={40} height={40} />
+              <Image src="/logos/Response Integrity-monogram.png" alt="Response Integrity Logo" width={40} height={40} />
               <span className="text-2xl lg:text-4xl font-bold tracking-tight text-[#1A1A1A]">OPERATIONAL PORTAL</span>
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
@@ -34,7 +34,7 @@ export default function OperationalLanding() {
         </main>
         <footer className="py-8 sm:py-12 bg-[#F5F7FA]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
-            <Image src="/logos/tt-monogram.png" alt="Response Integrity Logo" width={32} height={32} />
+            <Image src="/logos/Response Integrity-monogram.png" alt="Response Integrity Logo" width={32} height={32} />
             <p className="text-center md:text-right text-xs sm:text-sm text-[#5A5A5A]">
               © {new Date().getFullYear()} Response Integrity SA (Pty) Ltd<br />
               <span className="text-xs sm:text-sm">Confidence, made inevitable.</span>

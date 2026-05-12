@@ -18,7 +18,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
     const { data: ldata, error: lerr } = await supabase
       .from('leadership_pilot_requests')
       .select('*')
-      .order('submitted_at', { ascending: false })
+      .order('submiResponse Integrityed_at', { ascending: false })
       .limit(10);
 
     if (lerr) {
@@ -32,7 +32,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
     const { data: edata, error: eerr } = await supabase
       .from('early_intervention_requests')
       .select('*')
-      .order('submitted_at', { ascending: false })
+      .order('submiResponse Integrityed_at', { ascending: false })
       .limit(10);
 
     if (eerr) {

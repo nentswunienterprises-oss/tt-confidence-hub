@@ -159,7 +159,7 @@ _Generated: 2026-02-04T09:38:39.778Z_
 | `client/public/logos/tt-monogram.png` | 43.8 KB | 2026-01-05T19:35:21.599Z |
 | `client/public/pdfs/Module 1 - The 3-Layer Lens Teaching Model.pdf` | 200.6 KB | 2025-12-10T12:55:54.215Z |
 | `client/public/pdfs/Module 2 - TTs Tutoring Psychology.pdf` | 2.5 MB | 2025-12-10T12:55:54.264Z |
-| `client/public/pdfs/Module 3 - The Real TT Intro Session Blueprint.pdf` | 271.1 KB | 2025-12-10T12:55:54.297Z |
+| `client/public/pdfs/Module 3 - The Real Response Integrity Intro Session Blueprint.pdf` | 271.1 KB | 2025-12-10T12:55:54.297Z |
 | `client/public/pdfs/Module 4 - The First Session Blueprint The Launchpad.pdf` | 172.9 KB | 2025-12-10T12:55:54.304Z |
 | `client/public/pdfs/Module 5 - Standardized Tutoring Execution Process.pdf` | 273.6 KB | 2025-12-10T12:55:54.320Z |
 | `client/public/pdfs/Module 6 - Balancing Tutoring School. Easy Use Systems.pdf` | 159.7 KB | 2025-12-10T12:55:54.334Z |
@@ -364,7 +364,7 @@ _Generated: 2026-02-04T09:38:39.778Z_
 | `dist/logos/tt-monogram.png` | 43.8 KB | 2026-01-05T19:35:21.599Z |
 | `dist/pdfs/Module 1 - The 3-Layer Lens Teaching Model.pdf` | 200.6 KB | 2025-12-10T12:55:54.215Z |
 | `dist/pdfs/Module 2 - TTs Tutoring Psychology.pdf` | 2.5 MB | 2025-12-10T12:55:54.264Z |
-| `dist/pdfs/Module 3 - The Real TT Intro Session Blueprint.pdf` | 271.1 KB | 2025-12-10T12:55:54.297Z |
+| `dist/pdfs/Module 3 - The Real Response Integrity Intro Session Blueprint.pdf` | 271.1 KB | 2025-12-10T12:55:54.297Z |
 | `dist/pdfs/Module 4 - The First Session Blueprint The Launchpad.pdf` | 172.9 KB | 2025-12-10T12:55:54.304Z |
 | `dist/pdfs/Module 5 - Standardized Tutoring Execution Process.pdf` | 273.6 KB | 2025-12-10T12:55:54.320Z |
 | `dist/pdfs/Module 6 - Balancing Tutoring School. Easy Use Systems.pdf` | 159.7 KB | 2025-12-10T12:55:54.334Z |

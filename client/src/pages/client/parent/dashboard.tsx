@@ -452,7 +452,7 @@ function parentCopyForState(phase?: string | null, stability?: string | null, di
   if (!normalizedPhase || !normalizedStability) {
     return {
       status: "This topic has been activated, but the current observed stage has not been confirmed yet.",
-      meaning: "TT has the topic in conditioning, but a session-scored stage and stability label is not yet available here.",
+      meaning: "Response Integrity has the topic in conditioning, but a session-scored stage and stability label is not yet available here.",
       focus: "The next logged session will confirm where this topic currently sits and what needs reinforcing first.",
     };
   }
@@ -505,13 +505,13 @@ function getCurrentStepCopy(introSession: IntroSessionInfo | null, hasProposal: 
   if (introSession?.status === "confirmed" && introSession?.introCompleted && hasProposal) {
     return {
       title: "Training Plan Is Active",
-      description: "The intro session has been completed and TT is now training from the identified breakpoint.",
+      description: "The intro session has been completed and Response Integrity is now training from the identified breakpoint.",
     };
   }
 
   return {
     title: "System Is In Motion",
-    description: "Your dashboard reflects the current training state and the next thing TT is moving forward.",
+    description: "Your dashboard reflects the current training state and the next thing Response Integrity is moving forward.",
   };
 }
 
@@ -752,8 +752,8 @@ export default function ParentDashboard() {
             <p className="text-[11px] sm:text-xs font-medium uppercase tracking-[0.08em] text-foreground/65">Parent Dashboard</p>
             <p className="text-sm text-foreground/70 mt-1.5">
               {isDiagnosisOnlyView
-                ? `Hi ${firstParentName}, here is the current TT diagnosis view.`
-                : `Hi ${firstParentName}, here is the live TT operating view.`}
+                ? `Hi ${firstParentName}, here is the current Response Integrity diagnosis view.`
+                : `Hi ${firstParentName}, here is the live Response Integrity operating view.`}
             </p>
             <h1
               className="text-2xl sm:text-[2.1rem] font-semibold tracking-[-0.01em] leading-tight mt-2"
@@ -763,8 +763,8 @@ export default function ParentDashboard() {
             </h1>
             <p className="text-sm sm:text-base text-foreground/75 mt-2.5 max-w-2xl leading-relaxed">
               {isDiagnosisOnlyView
-                ? `Stay aligned with the starting position TT diagnosed before training sessions begin.`
-                : `Stay aligned with how TT is training ${studentFirstName} right now.`}
+                ? `Stay aligned with the starting position Response Integrity diagnosed before training sessions begin.`
+                : `Stay aligned with how Response Integrity is training ${studentFirstName} right now.`}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -777,7 +777,7 @@ export default function ParentDashboard() {
       <PushOptInCard
         enabled
         title="Enable out-of-app alerts"
-        description="Turn on browser notifications so TT can alert you when reports are sent or when a tutor action needs your response."
+        description="Turn on browser notifications so Response Integrity can alert you when reports are sent or when a tutor action needs your response."
       />
 
       <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
@@ -861,7 +861,7 @@ export default function ParentDashboard() {
             <CardContent className="space-y-3 text-sm">
               <div>
                 <p className="text-muted-foreground">Assigned tutor</p>
-                <p className="font-semibold text-foreground">{assignedTutor?.name || "Assigned inside TT"}</p>
+                <p className="font-semibold text-foreground">{assignedTutor?.name || "Assigned inside Response Integrity"}</p>
               </div>
               {assignedTutor?.bio && (
                 <p className="text-muted-foreground">{assignedTutor.bio}</p>
@@ -1006,8 +1006,8 @@ export default function ParentDashboard() {
               <p className="text-sm text-muted-foreground">
                 {proposal
                   ? isDiagnosisOnlyView
-                    ? `TT is starting from ${studentFirstName}'s diagnosed breakpoint inside ${currentBreakpointSummary}.`
-                    : `TT is operating from ${studentFirstName}'s current breakpoint inside ${currentBreakpointSummary}.`
+                    ? `Response Integrity is starting from ${studentFirstName}'s diagnosed breakpoint inside ${currentBreakpointSummary}.`
+                    : `Response Integrity is operating from ${studentFirstName}'s current breakpoint inside ${currentBreakpointSummary}.`
                   : `The training plan is still being loaded for ${studentFirstName}.`}
               </p>
             </div>
@@ -1061,7 +1061,7 @@ export default function ParentDashboard() {
         <Card className="border-primary/20 bg-background shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-semibold tracking-[-0.01em]">Session Markers</CardTitle>
-            <CardDescription>Operational secondary signals. Useful context, not the main TT outcome layer.</CardDescription>
+            <CardDescription>Operational secondary signals. Useful context, not the main Response Integrity outcome layer.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1082,8 +1082,8 @@ export default function ParentDashboard() {
             <CardTitle className="text-lg font-semibold tracking-[-0.01em]">Training Markers</CardTitle>
             <CardDescription>
               {isDiagnosisOnlyView
-                ? "Training markers will appear here once regular TT training sessions begin."
-                : "TT-specific secondary signals that show conditioning pressure and response structure."}
+                ? "Training markers will appear here once regular Response Integrity training sessions begin."
+                : "Secondary signals that show conditioning pressure and response structure."}
             </CardDescription>
           </CardHeader>
           <CardContent>

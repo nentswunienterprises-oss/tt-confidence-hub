@@ -241,7 +241,7 @@ function ModuleOne({ expandedSections, toggleSection, onComplete, isComplete }: 
             </div>
             
             <p className="mt-6 text-center font-semibold text-lg">
-              The 3-Layer Lens is how TT tutors teach, test, and diagnose mastery.
+              The 3-Layer Lens is how Response Integrity tutors teach, test, and diagnose mastery.
             </p>
           </div>
 
@@ -388,7 +388,7 @@ function ModuleTwo({ expandedSections, toggleSection, onComplete, isComplete }: 
           <div className="flex items-center gap-3">
             <Lightbulb className="w-8 h-8" />
             <div>
-              <CardTitle className="text-2xl">Module 2: TT's Tutoring Psychology</CardTitle>
+              <CardTitle className="text-2xl">Module 2: Response Integrity's Tutoring Psychology</CardTitle>
               <CardDescription className="text-white/95 text-lg mt-2">
                 "We're not homework helpers. We're healers, guides, and system-builders."
               </CardDescription>
@@ -413,7 +413,7 @@ function ModuleTwo({ expandedSections, toggleSection, onComplete, isComplete }: 
               </ul>
               
               <div className="bg-accent p-4 rounded-lg mt-4 border border-primary/10">
-                <p className="font-bold mb-2">The TT Tutor's job:</p>
+                <p className="font-bold mb-2">The Response Integrity Tutor's job:</p>
                 <ul className="space-y-1">
                   <li>✓ Diagnose the pain</li>
                   <li>✓ Prescribe the system</li>
@@ -525,7 +525,7 @@ function ModuleTwo({ expandedSections, toggleSection, onComplete, isComplete }: 
 
           <SectionCard
             id="module2-process"
-            title="🔁 5. The TT Teaching Process = Ready, Fire, Aim"
+            title="🔁 5. The Response Integrity Teaching Process = Ready, Fire, Aim"
             expanded={expandedSections["module2-process"] || false}
             onToggle={() => toggleSection("module2-process")}
             gradient="from-primary to-primary/80"
@@ -580,7 +580,7 @@ function ModuleTwo({ expandedSections, toggleSection, onComplete, isComplete }: 
                 <p className="font-bold text-center italic">
                   "If I can learn it through the system, I can teach it through the system."
                 </p>
-                <p className="text-center mt-2">That's how every TT tutor stays coachable, adaptable, and sharp.</p>
+                <p className="text-center mt-2">That's how every Response Integrity tutor stays coachable, adaptable, and sharp.</p>
               </div>
             </div>
           </SectionCard>
@@ -592,7 +592,7 @@ function ModuleTwo({ expandedSections, toggleSection, onComplete, isComplete }: 
             <p className="font-bold mt-2">They leave knowing how to find answers, fix mistakes, and trust their minds again.</p>
             
             <div className="mt-6 pt-6 border-t border-white/20">
-              <h4 className="font-bold mb-3">TT Tutor Code:</h4>
+              <h4 className="font-bold mb-3">Response Integrity Tutor Code:</h4>
               <ul className="space-y-2">
                 <li>"I don't give knowledge. I build understanding."</li>
                 <li>"I don't need to be perfect. I need to rely on systems."</li>
@@ -628,7 +628,7 @@ function ModuleThree({ expandedSections, toggleSection, onComplete, isComplete }
           <div className="flex items-center gap-3">
             <Users className="w-8 h-8" />
             <div>
-              <CardTitle className="text-2xl">Module 3: The Real TT Intro Session Blueprint</CardTitle>
+              <CardTitle className="text-2xl">Module 3: The Real Response Integrity Intro Session Blueprint</CardTitle>
               <CardDescription className="text-white/95 text-lg mt-2">
                 4-part flow to connect, surface pains, diagnose, and anchor
               </CardDescription>
@@ -769,7 +769,7 @@ function ModuleThree({ expandedSections, toggleSection, onComplete, isComplete }
                 <ul className="space-y-2">
                   <li>✓ Reflect their strengths: "You think visually. You explain well."</li>
                   <li>✓ Share your insight: "Your confidence breaks when the vocabulary isn't clear"</li>
-                  <li>✓ Introduce TT's tools: Solutions Unlocked, Boss Battle Log</li>
+                  <li>✓ Introduce Response Integrity's tools: Solutions Unlocked, Boss Battle Log</li>
                 </ul>
               </div>
 
@@ -835,7 +835,7 @@ function ModuleFour({ expandedSections, toggleSection, onComplete, isComplete }:
             <h3 className="text-xl font-bold mb-4">🧩 Session Goal</h3>
             <ul className="space-y-2 text-muted-foreground">
               <li>• Translate the intro session into a trackable action plan</li>
-              <li>• Set up the student's TT Identity</li>
+              <li>• Set up the student's Response Integrity Identity</li>
               <li>• Make the student feel seen, smart, and safe</li>
               <li>• Begin light practice that's strategic, not stressful</li>
             </ul>
@@ -891,7 +891,7 @@ function ModuleFour({ expandedSections, toggleSection, onComplete, isComplete }:
               <p className="font-semibold">Pick a light version of their weakest concept</p>
               
               <div className="bg-accent p-4 rounded-lg border border-primary/10">
-                <p className="font-bold mb-3">Follow the TT teaching model:</p>
+                <p className="font-bold mb-3">Follow the Response Integrity teaching model:</p>
                 <ol className="space-y-2 ml-4">
                   <li>1. <strong>Model</strong> the process</li>
                   <li>2. Let them <strong>Apply</strong> the method</li>
@@ -940,7 +940,7 @@ function ModuleFour({ expandedSections, toggleSection, onComplete, isComplete }:
               <p>Let them know what they'll focus on next session</p>
               
               <div className="bg-card p-4 rounded-lg border-l-4 border-primary">
-                <p className="italic">"Today we got your profile set up, explored your strengths, and started cracking the code on __. You're officially on the TT journey. You're gonna be a great problem-solver"</p>
+                <p className="italic">"Today we got your profile set up, explored your strengths, and started cracking the code on __. You're officially on the Response Integrity journey. You're gonna be a great problem-solver"</p>
               </div>
             </div>
           </SectionCard>
@@ -949,7 +949,7 @@ function ModuleFour({ expandedSections, toggleSection, onComplete, isComplete }:
             <h4 className="font-bold text-xl mb-4">📂 First Session Deliverables</h4>
             <ul className="space-y-2">
               <li>✅ Session Logged</li>
-              <li>✅ TT Learning ID chosen</li>
+              <li>✅ Response Integrity Learning ID chosen</li>
               <li>✅ First skill logged</li>
               <li>✅ First Boss Battle recorded (optional)</li>
               <li>✅ Student feels clear, supported, and hyped</li>
@@ -1209,7 +1209,7 @@ function ModuleSix({ expandedSections, toggleSection, onComplete, isComplete }: 
             gradient="from-primary/90 to-primary"
           >
             <div className="space-y-4">
-              <p className="font-semibold">What TT used to give you individually is now centralized:</p>
+              <p className="font-semibold">What Response Integrity used to give you individually is now centralized:</p>
               
               <div className="bg-accent p-4 rounded-lg border border-primary/10">
                 <ul className="space-y-2">
@@ -1259,7 +1259,7 @@ function ModuleSix({ expandedSections, toggleSection, onComplete, isComplete }: 
             
             <div className="mt-6 pt-6 border-t border-white/20">
               <p className="font-bold text-lg">The Final Truth:</p>
-              <p className="mt-2">If you win inside TT, you'll win in school.</p>
+              <p className="mt-2">If you win inside Response Integrity, you'll win in school.</p>
               <p className="mt-2 italic">Structure is structure. Discipline is discipline. Character is character.</p>
             </div>
           </div>
@@ -1316,7 +1316,7 @@ function ModuleSeven({ expandedSections, toggleSection, onComplete, isComplete }
               <p className="font-bold text-lg">Training tutors not just to manage time - but to hold space with rhythm, calm, and inner clarity.</p>
               
               <div className="bg-accent p-4 rounded-lg border border-primary/10">
-                <p className="font-bold mb-3">🎯 Outcome - TT Tutors will know how to:</p>
+                <p className="font-bold mb-3">🎯 Outcome - Response Integrity Tutors will know how to:</p>
                 <ul className="space-y-2 ml-4">
                   <li>• Work in flow blocks, not panic hours</li>
                   <li>• Maintain emotional peace before, during, and after sessions</li>
@@ -1393,7 +1393,7 @@ function ModuleSeven({ expandedSections, toggleSection, onComplete, isComplete }
                   </ul>
                 </div>
                 <div className="bg-accent p-4 rounded-lg border border-primary/10">
-                  <p className="font-bold mb-2 text-primary">TT's Way</p>
+                  <p className="font-bold mb-2 text-primary">Response Integrity's Way</p>
                   <ul className="space-y-1 text-sm">
                     <li>• Slow down + focus deeper</li>
                     <li>• Feel more, hold better energy</li>

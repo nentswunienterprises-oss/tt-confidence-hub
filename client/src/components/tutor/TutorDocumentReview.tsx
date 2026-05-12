@@ -31,11 +31,11 @@ type DocumentStatus =
   | "rejected";
 
 const AGREEMENT_STEPS = [
-  { step: 1, code: "TT-TCF-001", title: "Tutor Consent Form" },
-  { step: 2, code: "TT-EQV-002", title: "Entry Qualification Verification" },
-  { step: 3, code: "TT-ICA-003", title: "Independent Contractor Agreement" },
-  { step: 4, code: "TT-SCP-004", title: "Safeguarding and Conduct Policy" },
-  { step: 5, code: "TT-DPC-005", title: "Data Protection / POPIA Consent" },
+  { step: 1, code: "Response Integrity-TCF-001", title: "Tutor Consent Form" },
+  { step: 2, code: "Response Integrity-EQV-002", title: "Entry Qualification Verification" },
+  { step: 3, code: "Response Integrity-ICA-003", title: "Independent Contractor Agreement" },
+  { step: 4, code: "Response Integrity-SCP-004", title: "Safeguarding and Conduct Policy" },
+  { step: 5, code: "Response Integrity-DPC-005", title: "Data Protection / POPIA Consent" },
 ] as const;
 
 function escapeHtml(value: string) {
@@ -50,7 +50,7 @@ function escapeHtml(value: string) {
 function normalizeDisplayedVersion(value: unknown) {
   const normalized = String(value ?? "").trim();
   if (!normalized) return "1";
-  if (/^TT-[A-Z]+-\d{3}$/i.test(normalized)) return "1";
+  if (/^Response Integrity-[A-Z]+-\d{3}$/i.test(normalized)) return "1";
   return normalized;
 }
 
@@ -130,7 +130,7 @@ function TutorAgreementSubsection({ title, children }: { title: string; children
 
 function buildTutorAgreementBody(code: string, formData: Record<string, string>) {
   switch (code) {
-    case "TT-TCF-001":
+    case "Response Integrity-TCF-001":
       return (
         <>
           <TutorAgreementSection title="Contractor Details">
@@ -158,13 +158,13 @@ function buildTutorAgreementBody(code: string, formData: Record<string, string>)
             <TutorAgreementList tone="check" items={[
               "They have read and understood this document in full",
               "They accept all operational, structural, and performance requirements",
-              "They agree to operate strictly within the TT system",
+              "They agree to operate strictly within the Response Integrity system",
               "They understand that deviation results in removal from the system",
             ]} />
           </TutorAgreementSection>
         </>
       );
-    case "TT-EQV-002":
+    case "Response Integrity-EQV-002":
       return (
         <>
           <TutorAgreementSection title="Contractor Details">
@@ -185,34 +185,34 @@ function buildTutorAgreementBody(code: string, formData: Record<string, string>)
           <TutorAgreementSection title="Entry Qualification And Onboarding Acknowledgements">
             <TutorAgreementList items={[
               "This verification confirms entry eligibility only.",
-              "Continued participation is governed by conduct, session execution, adherence to the TT-OS, and operational performance within the platform.",
+              "Continued participation is governed by conduct, session execution, adherence to the Response Integrity-OS, and operational performance within the platform.",
               "No further academic submissions or qualification reviews are required after this verification.",
             ]} />
           </TutorAgreementSection>
         </>
       );
-    case "TT-ICA-003":
+    case "Response Integrity-ICA-003":
       return (
         <>
           <TutorAgreementSection title="Nature Of Relationship">
             <p>The Contractor is engaged as an independent contractor. Nothing in this Agreement creates employment, partnership, joint venture, or agency.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Business Model Acknowledgement">
-            <p>TT is a response-conditioning system delivered through mathematics. The Contractor operates within TT&apos;s system, not personal teaching style.</p>
+            <p>Response Integrity is a response-conditioning system delivered through mathematics. The Contractor operates within Response Integrity&apos;s system, not personal teaching style.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Payment Structure">
-            <p>Payment is made per completed session package and is conditional on TT-OS compliance and accurate reporting.</p>
+            <p>Payment is made per completed session package and is conditional on Response Integrity-OS compliance and accurate reporting.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Acceptance">
             <TutorAgreementList tone="check" items={[
               "Full understanding of this Agreement",
-              "Acceptance of TT's system and control",
-              "Agreement to operate strictly within TT",
+              "Acceptance of Response Integrity's system and control",
+              "Agreement to operate strictly within Response Integrity",
             ]} />
           </TutorAgreementSection>
         </>
       );
-    case "TT-SCP-004":
+    case "Response Integrity-SCP-004":
       return (
         <>
           <TutorAgreementSection title="Core Principle">
@@ -222,7 +222,7 @@ function buildTutorAgreementBody(code: string, formData: Record<string, string>)
             <TutorAgreementList items={[
               "Private messaging with learners is prohibited",
               "External-platform contact is prohibited",
-              "Direct communication with parents outside TT channels is prohibited",
+              "Direct communication with parents outside Response Integrity channels is prohibited",
             ]} />
           </TutorAgreementSection>
           <TutorAgreementSection title="Zero-Tolerance Conduct">
@@ -235,7 +235,7 @@ function buildTutorAgreementBody(code: string, formData: Record<string, string>)
           </TutorAgreementSection>
         </>
       );
-    case "TT-DPC-005":
+    case "Response Integrity-DPC-005":
       return (
         <>
           <TutorAgreementSection title="Purpose">
@@ -253,7 +253,7 @@ function buildTutorAgreementBody(code: string, formData: Record<string, string>)
             <TutorAgreementList tone="check" items={[
               "Understanding of the data collected and its purpose",
               "Consent to full session recording where required",
-              "Acceptance of data processing as required by the TT system",
+              "Acceptance of data processing as required by the Response Integrity system",
             ]} />
           </TutorAgreementSection>
         </>
@@ -368,7 +368,7 @@ function buildAcceptedAgreementHtml(item: { code: string; title: string }, accep
     <section class="section">
       <h2 class="section-title">Parties</h2>
       <table>
-        <tr><th>Party A</th><td>Response Integrity (Pty) Ltd ("TT")</td></tr>
+        <tr><th>Party A</th><td>Response Integrity (Pty) Ltd ("Response Integrity")</td></tr>
         <tr><th>Party B</th><td>${escapeHtml(String(acceptedName))} (Contractor)</td></tr>
       </table>
     </section>
@@ -472,7 +472,7 @@ function getCurrentActionSummary(documentsStatus: Record<string, DocumentStatus>
     return {
       queueLabel: "Waiting on tutor",
       stageTitle: "Waiting for certified Matric certificate",
-      stageDescription: "The tutor accepted TT-EQV-002 but has not uploaded the certified Matric certificate yet.",
+      stageDescription: "The tutor accepted Response Integrity-EQV-002 but has not uploaded the certified Matric certificate yet.",
     };
   }
 
@@ -965,9 +965,9 @@ export function TutorDocumentReview({ application, onReview }: TutorDocumentRevi
             </section>
 
             <section className="space-y-3">
-              <h4 className="border-b pb-2 text-sm font-semibold uppercase tracking-wide text-slate-700">Alignment With TT</h4>
+              <h4 className="border-b pb-2 text-sm font-semibold uppercase tracking-wide text-slate-700">Alignment With Response Integrity</h4>
               <div className="grid gap-3">
-                <ReviewInfoItem label="TT Meaning" value={tutorApplicationField(application, "ttMeaning", "tt_meaning")} multiline />
+                <ReviewInfoItem label="Response Integrity Meaning" value={tutorApplicationField(application, "ttMeaning", "tt_meaning")} multiline />
                 <ReviewInfoItem label="Structure Preference" value={tutorApplicationField(application, "structurePreference", "structure_preference")} multiline />
               </div>
             </section>

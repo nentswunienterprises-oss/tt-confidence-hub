@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "incremental": false
+  },
+  "files": [
+    "client/src/App.tsx",
+    "client/src/components/layout/dashboard-layout.tsx",
+    "client/src/components/tutor/SequentialDocumentSubmission.tsx",
+    "client/src/components/tutor/TutorDocumentReview.tsx",
+    "client/src/pages/client/parent/gateway.tsx",
+    "client/src/pages/media/carousel/create.tsx",
+    "client/src/pages/operational/td/landing.tsx",
+    "client/src/pages/operational/tutor/gateway.tsx",
+    "client/src/pages/operational/tutor/landing.tsx",
+    "client/src/pages/operational/tutor/tt-os.tsx",
+    "client/src/pages/portal-landing.tsx",
+    "server/battleTesting.ts",
+    "shared/battleTesting.ts"
+  ]
+}

@@ -15,7 +15,7 @@ export default function Home() {
         <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
           <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Image src="/logos/tt-monogram.png" alt="TT Logo" width={40} height={40} />
+              <Image src="/logos/tt-monogram.png" alt="Response Integrity Logo" width={40} height={40} />
               <span className="text-2xl lg:text-4xl font-bold tracking-tight text-[#1A1A1A]">RESPONSE-FIRST TRAINING</span>
             </div>
             <div className="flex items-center gap-2 sm:gap-4">

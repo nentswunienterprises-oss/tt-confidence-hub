@@ -2,7 +2,7 @@
 
 ## What changed
 
-The live-state branch in `client/src/components/parent/ProposalView.tsx` was rewritten to match the approved clean format.
+The live-state branch in `client/src/components/parent/ProposalView.tsx` was rewriResponse Integrityen to match the approved clean format.
 
 The older version still sounded like the system explaining itself. It repeated state labels, repeated topic names, and used section names that pushed the view back toward internal-system language.
 
@@ -41,7 +41,7 @@ The current version is stricter:
 - `Difficulty increases only after stability is proven`
 - `Commitment`
 - `Consistency is required`
-- `{student} must attempt before guidance`
+- `{student} must aResponse Integrityempt before guidance`
 - `Discomfort is part of strengthening execution`
 - `Parent Note`
 - `This plan reflects {student}'s current training position, not a fixed program.`
@@ -75,7 +75,7 @@ The current version is stricter:
 
 ## Exact current outputs
 
-The strings below reflect the current formatter in `client/src/components/parent/ProposalView.tsx`.
+The strings below reflect the current formaResponse Integrityer in `client/src/components/parent/ProposalView.tsx`.
 
 For all examples below:
 
@@ -94,7 +94,7 @@ For all examples below:
 `Commitment`
 
 - Consistency is required
-- Kwenadi must attempt before guidance
+- Kwenadi must aResponse Integrityempt before guidance
 - Discomfort is part of strengthening execution
 
 ### Single-topic examples

@@ -113,7 +113,7 @@ export default function ResponseConditioningControlledDiscomfort() {
             </div>
             <div>
               <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">
-                TT-OS Deep Dive
+                Response Integrity-OS Deep Dive
               </p>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-1">
                 Controlled Discomfort
@@ -144,7 +144,7 @@ export default function ResponseConditioningControlledDiscomfort() {
         <Card className="p-6 space-y-5 border-l-4 border-l-primary">
           <h2 className="text-2xl font-bold">Unified Protocol</h2>
           <p className="text-muted-foreground">
-            The phase purpose and the drill structure are one thing here. TT does not claim to
+            The phase purpose and the drill structure are one thing here. Response Integrity does not claim to
             train discomfort unless the discomfort protocol was actually run.
           </p>
           <ul className="space-y-2 text-sm text-muted-foreground">
@@ -276,7 +276,7 @@ export default function ResponseConditioningControlledDiscomfort() {
           </ul>
           <p className="font-medium">
             Audit failure in this phase can trigger suspension, and repeated or severe drill
-            violations can result in permanent TT platform ban or blacklisting.
+            violations can result in permanent Response Integrity platform ban or blacklisting.
           </p>
         </Card>
       </div>

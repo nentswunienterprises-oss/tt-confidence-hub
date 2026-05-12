@@ -1,8 +1,8 @@
-TT-OS BATTLE TEST: INTRO SESSION STRUCTURE (SCORING VERSION)
+Response Integrity-OS BATTLE TEST: INTRO SESSION STRUCTURE (SCORING VERSION)
 🔹 SECTION A — CORE UNDERSTANDING
 Q1
 
-What is the purpose of the intro session in TT, in one sentence?
+What is the purpose of the intro session in Response Integrity, in one sentence?
 
 Expected Answer (signal):
 To verify the student’s correct starting phase in a real topic using the placement block and score result.

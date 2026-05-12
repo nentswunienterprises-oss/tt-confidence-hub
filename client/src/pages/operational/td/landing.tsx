@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRight, Check, Shield, Target, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { TTLogo } from "@/components/ResponseIntegrityLogo";
+import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 
 const fitSignals = [
   "You can correct directly without getting emotional about it.",
@@ -28,8 +28,8 @@ const roleBlocks = [
     body: "This is not tutoring, not soft mentoring, and not a leadership badge for appearance. It is authority with responsibility.",
   },
   {
-    title: "What TT needs from you",
-    body: "TT needs structured judgment, direct correction, truthful audits, and someone who can stay solid when the role gets uncomfortable.",
+    title: "What Response Integrity needs from you",
+    body: "Response Integrity needs structured judgment, direct correction, truthful audits, and someone who can stay solid when the role gets uncomfortable.",
   },
   {
     title: "What breaks the fit",
@@ -124,9 +124,9 @@ export default function TdLanding() {
             <div className="grid gap-4 xl:content-start">
               <Card className="rounded-[28px] border border-[#2A211D] bg-[#1F1814] p-5 text-white shadow-[0_18px_50px_rgba(25,19,16,0.18)]">
                 <div className="flex items-start justify-between gap-4">
-                  <span className="text-sm font-bold uppercase tracking-tight text-[#E63946]">WHAT TT CARES ABOUT</span>
+                  <span className="text-sm font-bold uppercase tracking-tight text-[#E63946]">WHAT Response Integrity CARES ABOUT</span>
                   <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-white/75">
-                    TT-OS layer
+                    Response Integrity-OS layer
                   </span>
                 </div>
                 <div className="mt-7 space-y-3 text-sm text-white/82">
@@ -217,9 +217,9 @@ export default function TdLanding() {
 
       <footer className="border-t border-black/5 py-8">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:px-6 md:flex-row md:px-12">
-          <TTLogo size="md" variant="integrity" />
+          <ResponseIntegrityLogo size="md" variant="integrity" />
           <p className="text-center text-xs text-[#5A5A5A] md:text-right">
-            © {new Date().getFullYear()} Response Integrity (Pty) Ltd
+            Â© {new Date().getFullYear()} Response Integrity (Pty) Ltd
             <br />
             Territory Director Gateway
           </p>
@@ -228,3 +228,4 @@ export default function TdLanding() {
     </div>
   );
 }
+

@@ -1,10 +1,10 @@
-# TT Business Model -Territorial Tutoring (Current Evolution)
+# Response Integrity Business Model -Territorial Tutoring (Current Evolution)
 
 ## Who we are (evolution)
 
-Building Territorial Tutoring as an education institution that connects high schools and primary schools to solve a problem neither can fix alone. High schools nominate their top, most disciplined students to be selected into TT as an elite academic leadership programme -similar to debate or sport, but with strict standards and zero tolerance for academic decline. These students are trained to execute under pressure and to lead others, addressing a real concern schools face: learners leaving with degrees but no execution skills.
+Building Territorial Tutoring as an education institution that connects high schools and primary schools to solve a problem neither can fix alone. High schools nominate their top, most disciplined students to be selected into Response Integrity as an elite academic leadership programme -similar to debate or sport, but with strict standards and zero tolerance for academic decline. These students are trained to execute under pressure and to lead others, addressing a real concern schools face: learners leaving with degrees but no execution skills.
 
-Primary schools, on the other hand, struggle with capable learners who understand the work but panic, rush, or freeze in exams because they were never trained to perform under pressure. Classroom teachers can’t condition individual responses at scale. TT fills that gap by placing trained high school leaders as one-on-one response-conditioning tutors for Grade 6–7 learners, helping them stay calm, think clearly, and execute in exam conditions. TT doesn’t replace schools or teachers -it trains execution. It creates the conditions that prepare students for pressure before failure becomes identity.
+Primary schools, on the other hand, struggle with capable learners who understand the work but panic, rush, or freeze in exams because they were never trained to perform under pressure. Classroom teachers can’t condition individual responses at scale. Response Integrity fills that gap by placing trained high school leaders as one-on-one response-conditioning tutors for Grade 6–7 learners, helping them stay calm, think clearly, and execute in exam conditions. Response Integrity doesn’t replace schools or teachers -it trains execution. It creates the conditions that prepare students for pressure before failure becomes identity.
 
 ---
 
@@ -71,7 +71,7 @@ They are recognised as:
 
 Selection itself becomes a mark of distinction.
 
-2. TT Trains Them as Response‑Conditioning Executives
+2. Response Integrity Trains Them as Response‑Conditioning Executives
 
 Selected students undergo structured training as Academic Response Mentors:
 
@@ -85,7 +85,7 @@ They are academic response mentors, trained to condition reliable performance in
 
 3. These Students Serve Primary Learners
 
-Under TT’s operating system, high school leaders:
+Under Response Integrity’s operating system, high school leaders:
 
 - Work with referred Grade 6-7 learners
 - Train calm execution under pressure
@@ -94,7 +94,7 @@ Under TT’s operating system, high school leaders:
 
 Primary schools receive support.
 High schools supply leadership.
-TT governs the system.
+Response Integrity governs the system.
 
 ---
 
@@ -182,7 +182,7 @@ This collaboration is intended for:
 - Term-based pilot
 - Clear governance and scope
 - No curriculum interference
-- Full operational oversight by TT
+- Full operational oversight by Response Integrity
 
 This is not mass rollout.
 It is deliberate institution-building.
@@ -195,9 +195,9 @@ It is deliberate institution-building.
 
 ---
 
-## Become a TT System Executor (short recruitment pitch)
+## Become a Response Integrity System Executor (short recruitment pitch)
 
-## Become a TT Academic Response Mentor (short recruitment pitch)
+## Become a Response Integrity Academic Response Mentor (short recruitment pitch)
 
 Not everyone qualifies. That’s the point.
 Earn R2,200–R4,800 per month (tax-free) while building real teaching, leadership, and response-conditioning skills.
@@ -214,7 +214,7 @@ Territorial Tutoring runs a structured online math mentorship programme for Grad
 We don’t rely on personality, motivation, or talent alone.
 We rely on clear systems, repetition, and standards.
 
-As an Academic Response Mentor, your job is to operate the TT protocol precisely -every session, every student.
+As an Academic Response Mentor, your job is to operate the Response Integrity protocol precisely -every session, every student.
 
 ### What you’ll actually do
 
@@ -243,7 +243,7 @@ Our core intellectual territory.
 
 Most schools teach academic content.
 
-TT trains how students respond when academic difficulty appears.
+Response Integrity trains how students respond when academic difficulty appears.
 
 This includes:
 
@@ -252,7 +252,7 @@ This includes:
 • step-by-step execution instead of guessing
 • disciplined problem-solving behaviour
 
-This expertise is built through TT’s 1-on-1 online mentorship model, where response patterns can actually be observed and corrected.
+This expertise is built through Response Integrity’s 1-on-1 online mentorship model, where response patterns can actually be observed and corrected.
 
 This is the foundation of everything we do.
 
@@ -268,7 +268,7 @@ Understanding the work
 
 Executing the work under pressure
 
-TT deliberately trains both.
+Response Integrity deliberately trains both.
 
 Students learn the mathematics and develop the ability to perform when the work becomes difficult.
 
@@ -276,7 +276,7 @@ This dual focus creates students who are not just knowledgeable, but reliable un
 
 3. Structured Academic Leadership Development
 
-Because TT operates at the level of academic response training, we can extend this into leadership development.
+Because Response Integrity operates at the level of academic response training, we can extend this into leadership development.
 
 Selected high school students are trained in:
 
@@ -298,7 +298,7 @@ They practice leadership through real mentorship.
 
 4. Institutional Partnership Model
 
-TT operates as an external academic leadership institution, not a tutoring service embedded inside the school.
+Response Integrity operates as an external academic leadership institution, not a tutoring service embedded inside the school.
 
 The structure is designed to protect schools from administrative burden.
 
@@ -308,7 +308,7 @@ High schools provide:
 • institutional endorsement
 • parent consent credibility
 
-TT provides:
+Response Integrity provides:
 
 • training systems
 • operational governance
@@ -831,7 +831,7 @@ Instruction first.
 Pressure later.
 Conditioning missing.
 
-WHAT TT CHANGES
+WHAT Response Integrity CHANGES
 
 We do not increase content volume.
 
@@ -876,7 +876,7 @@ KEY DIFFERENCE
 
 Schools teach concepts.
 Tutors explain methods.
-TT trains execution under pressure.
+Response Integrity trains execution under pressure.
 
 Math is the arena.
 Pressure is the environment.
@@ -1090,7 +1090,7 @@ want freedom without structure
 
 If you are looking for a casual opportunity, this is the wrong place.
 
-What Makes TT Different
+What Makes Response Integrity Different
 1. This is not ordinary tutoring
 
 You will not just explain methods.
@@ -1149,7 +1149,7 @@ What You Will Be Trained In
 
 As part of the Founding Tutor Cohort, you will be trained in:
 
-TT Doctrine
+Response Integrity Doctrine
 
 The worldview and operating standards behind Territorial Tutoring.
 
@@ -1207,13 +1207,13 @@ strong communication potential
 
 We are not looking for performers.
 
-We are looking for people who can become calm operators inside the TT system.
+We are looking for people who can become calm operators inside the Response Integrity system.
 
 What Selected Tutors Receive
 
 Selected applicants will receive:
 
-structured training in TT methodology
+structured training in Response Integrity methodology
 
 mentorship and doctrine-based development
 
@@ -1221,7 +1221,7 @@ practical tutoring experience
 
 a pathway into paid tutoring opportunities as they qualify
 
-the chance to become part of the first generation of TT operators
+the chance to become part of the first generation of Response Integrity operators
 
 Tutors are not placed blindly.
 
@@ -1258,7 +1258,7 @@ A small number of applicants are chosen for the founding cohort.
 
 Step 4 -Training
 
-Selected applicants begin TT doctrine and tutor training.
+Selected applicants begin Response Integrity doctrine and tutor training.
 
 Step 5 -Qualification Pathway
 

@@ -1,7 +1,7 @@
-TT-HTQ-004 - HTQ TRACK ADDENDUM
+Response Integrity-HTQ-004 - HTQ TRACK ADDENDUM
 (PERFORMANCE EVALUATION FRAMEWORK)
 This Addendum is entered into between:
-Territorial Tutoring SA (Pty) Ltd (“TT”)
+Territorial Tutoring SA (Pty) Ltd (“Response Integrity”)
 and
 ________________________________________ (“Territory Director”)
 Effective Date: ______________________
@@ -27,7 +27,7 @@ No early promotion decisions will be made
 The Territory Director will be assessed on the following:
 
 4.1 TUTOR EXECUTION QUALITY (PRIMARY)
-Tutors consistently execute TT-OS correctly
+Tutors consistently execute Response Integrity-OS correctly
 Breakdown patterns reduce over time
 Students demonstrate increasing stability
 This is measured through actual tutor output, not reported activity.
@@ -61,7 +61,7 @@ Failure in any of the above disqualifies eligibility.
 All candidates are evaluated concurrently
 Performance is ranked comparatively
 Only one candidate will be selected
-TT reserves full discretion in final selection.
+Response Integrity reserves full discretion in final selection.
 7. POST-SELECTION OUTCOME
 Upon selection:
 The candidate will be formally appointed as Head of Training & Quality (HTQ)
@@ -84,8 +84,8 @@ Signed at __________________________ on this ______ day of ______________ 2026.
 _____________________________________
 Territory Director
 For and on behalf of Territorial Tutoring SA (Pty) Ltd
-TT Representative Signature: ______________________
+Response Integrity Representative Signature: ______________________
 
 Print Name: Thendo Nentswuni
 Date: ____________________
-Document Reference: TT-HTQ-004
+Document Reference: Response Integrity-HTQ-004

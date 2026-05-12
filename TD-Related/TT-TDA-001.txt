@@ -1,7 +1,7 @@
-TT-TDA-001 - TERRITORY DIRECTOR CONTRACTOR
+Response Integrity-TDA-001 - TERRITORY DIRECTOR CONTRACTOR
 AGREEMENT
 This Agreement is entered into between:
-Territorial Tutoring SA (Pty) Ltd (“TT”)
+Territorial Tutoring SA (Pty) Ltd (“Response Integrity”)
 and
 ______________________________________ (“Territory Director”)
 Effective Date: ______________________
@@ -14,7 +14,7 @@ employee benefits
 fixed working hours
 All compensation is performance-based.
 2. ROLE DEFINITION
-The Territory Director is responsible for enforcing the TT-OS system within assigned
+The Territory Director is responsible for enforcing the Response Integrity-OS system within assigned
 pods.
 This includes:
 Auditing tutor sessions where applicable
@@ -24,7 +24,7 @@ Enforcing corrective actions
 Maintaining system integrity across all assigned tutors
 The Territory Director does not:
 redesign systems
-modify TT-OS
+modify Response Integrity-OS
 operate outside defined structures
 3. COMPENSATION
 The Territory Director earns:
@@ -41,34 +41,34 @@ inactive pods
 removed assignments
 system breaches
 4. ASSIGNMENT & CONTROL
-Pods are assigned and may be reassigned at TT’s discretion
-TT may increase or decrease pod allocation at any time
+Pods are assigned and may be reassigned at Response Integrity’s discretion
+Response Integrity may increase or decrease pod allocation at any time
 No permanent claim exists over any pod
 5. PERFORMANCE STANDARD
 The Territory Director is expected to:
-Enforce TT-OS strictly and consistently
+Enforce Response Integrity-OS strictly and consistently
 Maintain high tutor execution quality
 Detect and act on system drift immediately
 Operate independently without reliance on escalation
 Failure to meet these standards may result in removal.
 6. TERMINATION
-TT may terminate this Agreement at any time, with or without notice, in cases
+Response Integrity may terminate this Agreement at any time, with or without notice, in cases
 including but not limited to:
 Failure to enforce system standards
 Poor performance
 Inconsistent auditing
-Breach of TT protocols
+Breach of Response Integrity protocols
 The Territory Director may also terminate this Agreement with written notice.
 
 7. NO EQUITY OR OWNERSHIP
 This Agreement does not grant:
-shares in TT
+shares in Response Integrity
 profit participation beyond defined compensation
 ownership rights
 Any future equity consideration is separate and not implied.
 8. CONFIDENTIALITY
 The Territory Director agrees to keep confidential:
-TT-OS system
+Response Integrity-OS system
 training frameworks
 internal processes
 student and tutor data
@@ -76,9 +76,9 @@ This obligation continues after termination.
 9. NON-COMPETE / NON-CIRCUMVENTION
 During the term of this Agreement and for a reasonable period thereafter, the
 Territory Director shall not:
-replicate TT systems
-directly solicit TT students or tutors
-create or participate in competing tutoring systems using TT methodologies
+replicate Response Integrity systems
+directly solicit Response Integrity students or tutors
+create or participate in competing tutoring systems using Response Integrity methodologies
 10. GENERAL
 This Agreement constitutes the full understanding between the parties and may only
 be amended in writing.
@@ -86,8 +86,8 @@ Signed at __________________________ on this ______ day of ______________ 2026.
 _____________________________________
 Territory Director
 For and on behalf of Territorial Tutoring SA (Pty) Ltd
-TT Representative Signature: ______________________
+Response Integrity Representative Signature: ______________________
 Print Name: Thendo Nentswuni
 Date: ____________________
 
-Document Reference: TT-TDA-001
+Document Reference: Response Integrity-TDA-001

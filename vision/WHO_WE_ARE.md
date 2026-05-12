@@ -5,7 +5,7 @@
 What we do
 
 - Train top high‑school students as disciplined System Executors who condition Grade 6–7 learners to execute calmly under pressure. 
-- Deliver a repeatable, testable operating system (TT‑OS) that trains response integrity, not just content knowledge.
+- Deliver a repeatable, testable operating system (Response Integrity‑OS) that trains response integrity, not just content knowledge.
 
 Our promise
 

@@ -1,4 +1,4 @@
-# TT Media Portal -Usage Guide
+# Response Integrity Media Portal -Usage Guide
 
 ## Access
 

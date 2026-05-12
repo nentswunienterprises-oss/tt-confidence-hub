@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { AuthForm } from "@/components/auth/auth-form";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Heart } from "lucide-react";
-import { TTLogo } from "@/components/ResponseIntegrityLogo";
+import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 
 export default function AuthPage() {
   const [mode, setMode] = useState<"signup" | "login">("signup");
@@ -22,7 +22,7 @@ export default function AuthPage() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
-          <TTLogo size="md" variant="integrity" />
+          <ResponseIntegrityLogo size="md" variant="integrity" />
           
           <div className="hidden md:block">
             <span className="text-xl lg:text-3xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
@@ -123,3 +123,4 @@ export default function AuthPage() {
     </div>
   );
 }
+

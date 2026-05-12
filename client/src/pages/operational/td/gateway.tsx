@@ -4,7 +4,7 @@ import { ArrowLeft, CheckCircle2, Circle, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { TTLogo } from "@/components/ResponseIntegrityLogo";
+import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest, getQueryFn } from "@/lib/queryClient";
@@ -93,7 +93,7 @@ export default function TdGateway() {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-3 sm:h-20 sm:px-6 md:px-12">
           <div className="w-10 md:hidden" aria-hidden="true" />
           <div className="absolute left-1/2 top-1/2 flex w-full -translate-x-1/2 -translate-y-1/2 justify-center sm:static sm:w-auto sm:translate-x-0 sm:translate-y-0">
-            <TTLogo size="md" variant="integrity" />
+            <ResponseIntegrityLogo size="md" variant="integrity" />
           </div>
           <div className="hidden md:block">
             <span className="text-xl font-bold tracking-tight text-[#1A1A1A] lg:text-3xl">TD Gateway</span>
@@ -189,7 +189,7 @@ export default function TdGateway() {
             <CardContent className="space-y-5">
               {applicationStatus.status === "pending" ? (
                 <div className="rounded-xl bg-muted/30 p-4 text-sm text-muted-foreground">
-                  Your application has been received. TT will review your leadership fit, enforcement mindset, and system-thinking quality before onboarding is unlocked.
+                  Your application has been received. Response Integrity will review your leadership fit, enforcement mindset, and system-thinking quality before onboarding is unlocked.
                 </div>
               ) : null}
 
@@ -219,7 +219,7 @@ export default function TdGateway() {
 
               {applicationStatus.status === "rejected" ? (
                 <div className="rounded-xl bg-muted/30 p-4 text-sm text-muted-foreground">
-                  This application was not accepted. You can contact TT if you need follow-up.
+                  This application was not accepted. You can contact Response Integrity if you need follow-up.
                 </div>
               ) : null}
             </CardContent>
@@ -241,3 +241,4 @@ export default function TdGateway() {
     </div>
   );
 }
+

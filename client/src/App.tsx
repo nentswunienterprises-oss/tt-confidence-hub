@@ -103,7 +103,7 @@ import StudentUpdates from "@/pages/client/student/updates";
 // NEW: Operational Portal Pages
 import OperationalTutorDashboard from "@/pages/operational/tutor/dashboard";
 import TutorBlueprint from "@/pages/operational/tutor/blueprint";
-import TTOS from "@/pages/operational/tutor/tt-os";
+import ResponseIntegrityOS from "@/pages/operational/tutor/response-integrity-os";
 import OperationalTDDashboard from "@/pages/operational/td/dashboard";
 import TdGateway from "@/pages/operational/td/gateway";
 import TdLanding from "@/pages/operational/td/landing";
@@ -387,7 +387,8 @@ function Router() {
       <Route path="/operational/tutor/dashboard" element={<TutorGatewayGuard><Navigate to="/tutor/pod" replace /></TutorGatewayGuard>} />
       <Route path="/operational/tutor/my-pod" element={<TutorGatewayGuard><Navigate to="/tutor/pod" replace /></TutorGatewayGuard>} />
       <Route path="/tutor/blueprint" element={<TutorGatewayGuard><DashboardLayout><TutorBlueprint /></DashboardLayout></TutorGatewayGuard>} />
-      <Route path="/operational/tutor/tt-os" element={<TutorGatewayGuard><TTOS /></TutorGatewayGuard>} />
+      <Route path="/operational/tutor/response-integrity-os" element={<TutorGatewayGuard><ResponseIntegrityOS /></TutorGatewayGuard>} />
+      <Route path="/operational/tutor/tt-os" element={<Navigate to="/operational/tutor/response-integrity-os" replace />} />
       <Route path="/operational/tutor/growth" element={<TutorGatewayGuard><Navigate to="/tutor/growth" replace /></TutorGatewayGuard>} />
       <Route path="/operational/tutor/academic-tracker" element={<TutorGatewayGuard><Navigate to="/tutor/academics" replace /></TutorGatewayGuard>} />
       <Route path="/operational/tutor/sessions" element={<TutorGatewayGuard><Navigate to="/tutor/sessions" replace /></TutorGatewayGuard>} />

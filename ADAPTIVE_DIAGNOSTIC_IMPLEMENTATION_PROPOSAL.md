@@ -72,9 +72,9 @@ If tutor judgment is treated like truth:
 - placement quality depends too much on human intuition
 - the product becomes less deterministic
 
-That is not the direction TT should take.
+That is not the direction Response Integrity should take.
 
-TT should be a system that:
+Response Integrity should be a system that:
 
 - listens to signals
 - makes a recommendation
@@ -297,7 +297,7 @@ That distinction matters.
 
 During diagnosis:
 
-- the system is not saying the student has earned progression through the TT model
+- the system is not saying the student has earned progression through the Response Integrity model
 - the system is only verifying the correct entry point
 
 So if the student moves from one diagnostic phase to another during intro, that is not phase advancement in the training sense. It is only placement verification.
@@ -507,7 +507,7 @@ This is the strongest direction because:
 - it reduces dependence on tutor intuition
 - it prevents under-placement and over-placement
 - it makes diagnosis evidence-based
-- it fits TT's deterministic system identity
+- it fits Response Integrity's deterministic system identity
 
 The implementation direction is not to use training-style full drills as the movement unit during diagnosis.
 

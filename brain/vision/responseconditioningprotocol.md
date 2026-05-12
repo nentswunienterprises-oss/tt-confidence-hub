@@ -1,7 +1,7 @@
 TERRITORIAL TUTORING
 Tutor Playbook -Core Protocols
 
-This document defines how every TT tutor operates.
+This document defines how every Response Integrity tutor operates.
 
 Territorial Tutoring is not personality-driven teaching.
 
@@ -9,7 +9,7 @@ It is a response-conditioning system.
 
 Tutors do not improvise teaching styles.
 
-They execute the TT protocol.
+They execute the Response Integrity protocol.
 
 PART 1 -THE INTRO SESSION
 Purpose
@@ -20,7 +20,7 @@ Understand how the student currently responds to difficulty
 
 Identify the broken learning layer
 
-Establish the TT working structure
+Establish the Response Integrity working structure
 
 The Intro Session is diagnostic, not intensive teaching.
 
@@ -115,7 +115,7 @@ This becomes the starting point for the Transformation Process.
 
 PART 2 -THE TRANSFORMATION PROCESS
 
-The Transformation Process is how TT conditions reliable responses to difficult math problems.
+The Transformation Process is how Response Integrity conditions reliable responses to difficult math problems.
 
 It consists of four components.
 
@@ -249,7 +249,7 @@ The goal is to train stable execution under pressure.
 
 PART 3 -THE SESSION OPERATING SYSTEM
 
-Every TT tutoring session follows the same structure.
+Every Response Integrity tutoring session follows the same structure.
 
 1. Prepare
 2. Model
@@ -333,7 +333,7 @@ Over time, the student stops freezing and begins executing automatically.
 
 The Standard
 
-TT tutors are not improvising teachers.
+Response Integrity tutors are not improvising teachers.
 
 They are operators of a system.
 
@@ -345,7 +345,7 @@ Every session must include independent execution.
 
 Consistency is what produces reliable outcomes.
 
-The TT Principle
+The Response Integrity Principle
 
 Schools teach concepts.
 
@@ -389,7 +389,7 @@ When pressure appears, their thinking becomes unstable.
 
 Territorial Tutoring exists to rebuild that response system.
 
-The TT Mission
+The Response Integrity Mission
 
 Train students to respond to difficult math problems with:
 
@@ -397,11 +397,11 @@ Train students to respond to difficult math problems with:
 • structure
 • calm execution
 
-A successful TT student does not panic when a question becomes hard.
+A successful Response Integrity student does not panic when a question becomes hard.
 
 They slow down, analyze the problem, and execute step by step.
 
-The TT Training Method
+The Response Integrity Training Method
 
 Territorial Tutoring conditions this response through four mechanisms.
 
@@ -441,26 +441,26 @@ This trains stable execution under pressure.
 
 Students learn to remain calm while solving unfamiliar questions.
 
-The Role of a TT Tutor
+The Role of a Response Integrity Tutor
 
-A TT tutor is not simply explaining math.
+A Response Integrity tutor is not simply explaining math.
 
-A TT tutor is conditioning response behavior.
+A Response Integrity tutor is conditioning response behavior.
 
 This means:
 
-• Teaching concepts through the TT system
+• Teaching concepts through the Response Integrity system
 • Observing how students react to difficulty
 • Correcting unstable response patterns
 • Reinforcing structured execution
 
 Tutors do not improvise teaching styles.
 
-They operate the TT protocol.
+They operate the Response Integrity protocol.
 
-The TT Standard
+The Response Integrity Standard
 
-Every session must follow the TT structure.
+Every session must follow the Response Integrity structure.
 
 Every concept must be taught through the 3-Layer Lens.
 
@@ -518,7 +518,7 @@ The following behaviors are considered protocol violations.
 
 Improvising Teaching Systems
 
-Tutors may not replace the TT system with their own teaching style.
+Tutors may not replace the Response Integrity system with their own teaching style.
 
 Examples include:
 
@@ -526,7 +526,7 @@ Examples include:
 • Teaching concepts only through explanation
 • Jumping straight to solutions without student attempt
 
-TT tutors operate the TT method, not personal teaching philosophies.
+Response Integrity tutors operate the Response Integrity method, not personal teaching philosophies.
 
 Solving Problems For the Student
 
@@ -596,9 +596,9 @@ Boss Battles exist to simulate real challenge.
 
 Avoiding challenge weakens response conditioning.
 
-The Standard of a TT Tutor
+The Standard of a Response Integrity Tutor
 
-A TT tutor protects the integrity of the system.
+A Response Integrity tutor protects the integrity of the system.
 
 This means:
 

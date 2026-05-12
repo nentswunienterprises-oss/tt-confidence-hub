@@ -155,7 +155,7 @@ export default function TutorSessions() {
             <p className="text-sm text-muted-foreground mt-1">
               {operationalMode === "training"
                 ? "Training mode is active. Live scheduling and Google Meet lesson windows are hidden for you."
-                : "Weekly tutor schedule from the live TT planning table."}
+                : "Weekly tutor schedule from the live Response Integrity planning table."}
             </p>
           </div>
           <div className="flex items-center gap-2">

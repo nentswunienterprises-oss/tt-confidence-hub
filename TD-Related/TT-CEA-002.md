@@ -1,18 +1,18 @@
-TT-CEA-002 - TT-OS COMPLIANCE & ENFORCEMENT
+Response Integrity-CEA-002 - Response Integrity-OS COMPLIANCE & ENFORCEMENT
 AGREEMENT
 This Agreement is entered into between:
-Territorial Tutoring SA (Pty) Ltd (“TT”)
+Territorial Tutoring SA (Pty) Ltd (“Response Integrity”)
 and
 _________________________________________ (“Territory Director”)
 Effective Date: ______________________
 1. PURPOSE
 This Agreement governs the strict enforcement of the Territorial Tutoring Operating
-System (TT-OS).
+System (Response Integrity-OS).
 The Territory Director is not a tutor, coach, or advisor.
 The Territory Director is an enforcer of system execution.
 2. NON-NEGOTIABLE SYSTEM ADHERENCE
 The Territory Director agrees that:
-TT-OS is fixed and authoritative
+Response Integrity-OS is fixed and authoritative
 No deviation, modification, or interpretation is permitted
 All drills, scoring, and observation protocols must be executed exactly as
 defined
@@ -23,7 +23,7 @@ introduce personal teaching styles
 override system logic
 3. ENFORCEMENT RESPONSIBILITY
 The Territory Director must:
-Identify deviations from TT-OS immediately
+Identify deviations from Response Integrity-OS immediately
 Enforce corrective actions without delay
 Ensure tutors return to system-compliant execution
 Maintain consistency across all assigned pods
@@ -37,11 +37,11 @@ Tutor comfort is not a priority over execution correctness
 Any tolerance of substandard execution is considered system compromise.
 5. ZERO INTERPRETATION CLAUSE
 The Territory Director shall not:
-reinterpret TT-OS principles
+reinterpret Response Integrity-OS principles
 create alternative frameworks
 make judgment calls outside defined system rules
 Where uncertainty exists, the default action is:
-adhere strictly to existing TT-OS definitions
+adhere strictly to existing Response Integrity-OS definitions
 6. VIOLATION REPORTING
 The Territory Director must:
 Report all system violations accurately
@@ -50,7 +50,7 @@ Avoid omission of known issues
 Failure to report violations is treated as intentional system concealment.
 7. SYSTEM PRIORITY
 The Territory Director acknowledges:
-The integrity of TT-OS overrides individual tutor performance
+The integrity of Response Integrity-OS overrides individual tutor performance
 The system is more important than any individual participant
 Enforcement decisions must prioritize long-term system stability
 8. BREACH & REMOVAL
@@ -62,21 +62,21 @@ Fails to enforce standards
 Prioritizes relationships over system integrity
 No warning period is required in cases of system compromise.
 9. CONFIDENTIALITY OF SYSTEM
-TT-OS is proprietary.
+Response Integrity-OS is proprietary.
 The Territory Director shall not:
 share system details externally
-reproduce TT-OS in any form
-train individuals outside TT using TT methodologies
+reproduce Response Integrity-OS in any form
+train individuals outside Response Integrity using Response Integrity methodologies
 10. ACKNOWLEDGEMENT
 The Territory Director confirms:
-Full understanding of TT-OS enforcement expectations
+Full understanding of Response Integrity-OS enforcement expectations
 Acceptance of strict, non-negotiable compliance requirements
 Commitment to system-first decision making
 Signed at __________________________ on this ______ day of ______________ 2026.
 _____________________________________
 Territory Director
 For and on behalf of Territorial Tutoring SA (Pty) Ltd
-TT Representative Signature: ______________________
+Response Integrity Representative Signature: ______________________
 Print Name: Thendo Nentswuni
 Date: ____________________
-Document Reference: TT-CEA-002
+Document Reference: Response Integrity-CEA-002

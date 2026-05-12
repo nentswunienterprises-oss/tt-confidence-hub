@@ -1,4 +1,4 @@
-TT is a Discipline
+Response Integrity is a Discipline
 
 All high performing athletes have one thing in common. And that is disciplined consistency by habit. They don't practice until
 they know the skill, then move on - once they know the skill, they focus on maintaining consistency in executing it, that's the actual reason that causes them to improve.

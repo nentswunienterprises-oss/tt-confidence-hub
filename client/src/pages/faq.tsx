@@ -21,15 +21,15 @@ const faqs = [
     ),
   },
   {
-    question: "How is TT different from other tutoring services?",
+    question: "How is Response Integrity different from other tutoring services?",
     answer: (
       <>
         <p>Most tutoring focuses on understanding content.</p>
-        <p>TT focuses on execution under pressure.</p>
+        <p>Response Integrity focuses on execution under pressure.</p>
         <p>Here’s the distinction:</p>
         <ul>
           <li>Other tutors ask: “Do you understand this?”</li>
-          <li>TT asks: “What do you do when you don’t?”</li>
+          <li>Response Integrity asks: “What do you do when you don’t?”</li>
         </ul>
         <p>Students don’t fail exams because they never saw the work before.<br />
         They fail because their response collapses when things stop feeling clear.</p>
@@ -42,8 +42,8 @@ const faqs = [
     answer: (
       <>
         <p>No.</p>
-        <p>TT does not motivate students.<br />
-        TT does not “build confidence” directly.</p>
+        <p>Response Integrity does not motivate students.<br />
+        Response Integrity does not “build confidence” directly.</p>
         <p>Confidence is a by-product of repeated, calm execution.</p>
         <p>We remove:</p>
         <ul>
@@ -58,7 +58,7 @@ const faqs = [
     ),
   },
   {
-    question: "What does a typical TT session look like?",
+    question: "What does a typical Response Integrity session look like?",
     answer: (
       <>
         <p>Sessions are structured, disciplined, and predictable.</p>
@@ -94,7 +94,7 @@ const faqs = [
     ),
   },
   {
-    question: "My child struggles with math anxiety. Is TT suitable?",
+    question: "My child struggles with math anxiety. Is Response Integrity suitable?",
     answer: (
       <>
         <p>Math anxiety is not treated as a condition.</p>
@@ -107,10 +107,10 @@ const faqs = [
     ),
   },
   {
-    question: "Is TT too strict or intense for younger students?",
+    question: "Is Response Integrity too strict or intense for younger students?",
     answer: (
       <>
-        <p>TT is disciplined, not harsh.</p>
+        <p>Response Integrity is disciplined, not harsh.</p>
         <p>There is:</p>
         <ul>
           <li>no shouting</li>
@@ -154,10 +154,10 @@ const faqs = [
     question: "Who are your tutors?",
     answer: (
       <>
-        <p>TT tutors are not random hires.</p>
+        <p>Response Integrity tutors are not random hires.</p>
         <p>They are:</p>
         <ul>
-          <li>trained through TT’s internal system</li>
+          <li>trained through Response Integrity’s internal system</li>
           <li>evaluated on response discipline, not personality</li>
           <li>supervised continuously</li>
         </ul>
@@ -198,18 +198,18 @@ const faqs = [
           <li>behavioural shifts appear within 2-4 weeks</li>
           <li>academic improvement follows after</li>
         </ul>
-        <p>TT is not a quick fix.<br />
+        <p>Response Integrity is not a quick fix.<br />
         It is a conditioning process.</p>
         <p>That’s why it works long-term.</p>
       </>
     ),
   },
   {
-    question: "Is TT only for struggling students?",
+    question: "Is Response Integrity only for struggling students?",
     answer: (
       <>
         <p>No.</p>
-        <p>TT is for:</p>
+        <p>Response Integrity is for:</p>
         <ul>
           <li>anxious students</li>
           <li>average students</li>
@@ -220,7 +220,7 @@ const faqs = [
     ),
   },
   {
-    question: "Is TT aligned with the school curriculum?",
+    question: "Is Response Integrity aligned with the school curriculum?",
     answer: (
       <>
         <p>Yes.</p>
@@ -231,10 +231,10 @@ const faqs = [
     ),
   },
   {
-    question: "What does TT not do?",
+    question: "What does Response Integrity not do?",
     answer: (
       <>
-        <p>TT does not:</p>
+        <p>Response Integrity does not:</p>
         <ul>
           <li>cram before exams</li>
           <li>inflate confidence artificially</li>
@@ -242,15 +242,15 @@ const faqs = [
           <li>entertain students</li>
           <li>lower standards to keep comfort</li>
         </ul>
-        <p>If that’s what you’re looking for, TT is not the right fit.</p>
+        <p>If that’s what you’re looking for, Response Integrity is not the right fit.</p>
       </>
     ),
   },
   {
-    question: "Who is TT for, really?",
+    question: "Who is Response Integrity for, really?",
     answer: (
       <>
-        <p>TT is for families who:</p>
+        <p>Response Integrity is for families who:</p>
         <ul>
           <li>respect discipline</li>
           <li>value structure</li>
@@ -291,7 +291,7 @@ export default function FAQPage() {
         <ArrowLeft className="h-4 w-4" />
         Back
       </button>
-      <h1 className="text-3xl font-bold mb-2 text-center">TT removes chaos until confidence has no choice but to appear.</h1>
+      <h1 className="text-3xl font-bold mb-2 text-center">Response Integrity removes chaos until confidence has no choice but to appear.</h1>
       <h2 className="text-2xl font-semibold mb-8 text-center">Frequently Asked Questions</h2>
       <div className="space-y-6">
         {faqs.map((faq, idx) => (

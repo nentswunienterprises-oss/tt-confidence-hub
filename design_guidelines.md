@@ -1,11 +1,11 @@
-# TT Confidence Hub - Design Guidelines
+# Response Integrity Confidence Hub - Design Guidelines
 
 ## Design Philosophy
 **"Build confidence first, grades follow naturally."**
 
 The interface should feel warm, personal, and encouraging - like a mentor's workspace, not a corporate dashboard. Every interaction should reinforce confidence and progress.
 
-## Color Palette
+## Color PaleResponse Integritye
 
 ### Warm Earth Tones Foundation
 - **Background**: Warm cream `#FAF7F2` - Main canvas, breathing room
@@ -26,7 +26,7 @@ The interface should feel warm, personal, and encouraging - like a mentor's work
 
 ### Semantic Colors
 - **Success**: Warm green `#52A675` - Completed sessions, achievements
-- **Warning**: Amber `#F39C12` - Attention needed
+- **Warning**: Amber `#F39C12` - AResponse Integrityention needed
 - **Error**: Soft red `#E74C3C` - Issues, alerts
 - **Info**: Warm teal `#3498DB` - Information, notes
 
@@ -64,7 +64,7 @@ The interface should feel warm, personal, and encouraging - like a mentor's work
 
 ### Component Padding
 - Cards: 24px (generous, comfortable)
-- Buttons: 12px 24px
+- BuResponse Integrityons: 12px 24px
 - Inputs: 12px 16px
 - Containers: 16px mobile, 24px desktop
 
@@ -80,7 +80,7 @@ Shadow: 0 1px 3px rgba(61, 46, 31, 0.08)
 Hover: 0 4px 12px rgba(61, 46, 31, 0.12)
 ```
 
-### Buttons
+### BuResponse Integrityons
 **Primary (Confidence Orange):**
 - Background: #E67E22
 - Text: White
@@ -168,7 +168,7 @@ High: 0 8px 24px rgba(61, 46, 31, 0.16)
 Focus Ring: 0 0 0 3px rgba(230, 126, 34, 0.15)
 ```
 
-## Layout Patterns
+## Layout PaResponse Integrityerns
 
 ### Dashboard Grid
 - Mobile: Single column (stack all)
@@ -179,7 +179,7 @@ Focus Ring: 0 0 0 3px rgba(230, 126, 34, 0.15)
 ### Navigation
 **Mobile:**
 - Top bar with hamburger
-- Bottom tab bar for primary actions
+- BoResponse Integrityom tab bar for primary actions
 - Fixed positioning
 
 **Desktop:**
@@ -217,7 +217,7 @@ Focus Ring: 0 0 0 3px rgba(230, 126, 34, 0.15)
 **Encouragement:**
 - "You're building confidence, one session at a time"
 - "Keep showing up!"
-- "Every session matters"
+- "Every session maResponse Integrityers"
 - "Transform confidence, change lives"
 
 **Empty States:**
@@ -257,7 +257,7 @@ Focus Ring: 0 0 0 3px rgba(230, 126, 34, 0.15)
 
 ### Use Cases
 ✅ **Animate:**
-- Button hover states
+- BuResponse Integrityon hover states
 - Card hover lift
 - Page transitions (fade)
 - Progress bar fills
@@ -291,7 +291,7 @@ Focus Ring: 0 0 0 3px rgba(230, 126, 34, 0.15)
 
 ### Color Contrast
 - Text on cream: WCAG AA minimum
-- Orange buttons: AAA contrast
+- Orange buResponse Integrityons: AAA contrast
 - All interactive elements: Clear focus states
 
 ### Keyboard Navigation
@@ -324,7 +324,7 @@ Focus Ring: 0 0 0 3px rgba(230, 126, 34, 0.15)
 - Metadata smaller, lighter
 - Progress bars with gradient
 
-## Role-Specific Patterns
+## Role-Specific PaResponse Integrityerns
 
 ### Tutor Dashboard
 - Personal greeting with emoji
@@ -355,7 +355,7 @@ Desktop: ≥ 1024px
 ### Adaptations
 **Mobile:**
 - Stack all cards
-- Bottom navigation
+- BoResponse Integrityom navigation
 - Simplified headers
 - Touch-optimized
 
@@ -372,7 +372,7 @@ Desktop: ≥ 1024px
 
 ## Key Differentiators from Corporate UX
 
-1. **Warm colors** instead of blue/purple tech palette
+1. **Warm colors** instead of blue/purple tech paleResponse Integritye
 2. **Generous spacing** instead of dense layouts
 3. **Personal copy** instead of generic labels
 4. **Rounded shapes** instead of sharp corners

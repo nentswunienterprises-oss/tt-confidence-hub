@@ -303,17 +303,17 @@ export function CommunicationInbox({
                   : error
                     ? error instanceof Error
                       ? error.message
-                      : "Unable to load the TT communication thread."
+                      : "Unable to load the Response Integrity communication thread."
                     : !data
-                      ? "Open this tab to view your TT communication thread."
-                      : `Your TT communication with ${data.tutor?.name || "the tutor"} stays inside the platform.`}
+                      ? "Open this tab to view your Response Integrity communication thread."
+                      : `Your Response Integrity communication with ${data.tutor?.name || "the tutor"} stays inside the platform.`}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="max-h-[420px] overflow-y-auto rounded-xl border border-border/60 bg-muted/10 p-4">
                 {activeTab !== "messages" ? (
                   <div className="flex min-h-[220px] items-center justify-center text-sm text-muted-foreground">
-                    Open Messages to view your TT thread.
+                    Open Messages to view your Response Integrity thread.
                   </div>
                 ) : isLoading ? (
                   <div className="flex min-h-[220px] items-center justify-center text-sm text-muted-foreground">
@@ -358,13 +358,13 @@ export function CommunicationInbox({
                 <Textarea
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
-                  placeholder={replyTarget ? `Reply to ${replyTarget.senderName}...` : "Send a message through TT..."}
+                  placeholder={replyTarget ? `Reply to ${replyTarget.senderName}...` : "Send a message through the platform..."}
                   className="min-h-[96px] resize-none"
                   disabled={sendMessage.isPending || activeTab !== "messages" || !!error}
                 />
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-xs text-muted-foreground">
-                    Tutor communication stays inside TT.
+                    Tutor communication stays inside the platform.
                   </p>
                   <Button
                     onClick={() => sendMessage.mutate(draft.trim())}

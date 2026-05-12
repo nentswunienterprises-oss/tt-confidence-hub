@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Lock, AlertTriangle } from "lucide-react";
 
-export default function TTOS() {
+export default function ResponseIntegrityOS() {
   const navigate = useNavigate();
 
   return (
@@ -27,7 +27,7 @@ export default function TTOS() {
             </div>
             <div>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
-                TT-OS
+                Response Integrity-OS
               </h1>
               <p className="text-lg text-muted-foreground">
                 The Response Training System
@@ -48,19 +48,19 @@ export default function TTOS() {
               <div className="space-y-2">
                 <h3 className="font-bold text-lg">This System Is Sacred</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  TT-OS is what separates us from every other tutoring company. What you're about to learn is not shared with parents, not discussed publicly, and not optional. This is the system. You execute it with precision. That's your job.
+                  Response Integrity-OS is what separates us from every other tutoring company. What you're about to learn is not shared with parents, not discussed publicly, and not optional. This is the system. You execute it with precision. That's your job.
                 </p>
               </div>
             </div>
           </div>
         </Card>
 
-        {/* What TT-OS Is */}
+        {/* What Response Integrity-OS Is */}
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold">What TT-OS Is</h2>
+          <h2 className="text-2xl font-bold">What Response Integrity-OS Is</h2>
           <Card className="p-6">
             <p className="text-base leading-relaxed mb-4">
-              TT-OS is a <span className="font-semibold text-foreground">response-conditioning system</span>. Not a curriculum. Not a teaching method. A system for training how students respond when certainty disappears.
+              Response Integrity-OS is a <span className="font-semibold text-foreground">response-conditioning system</span>. Not a curriculum. Not a teaching method. A system for training how students respond when certainty disappears.
             </p>
             <p className="text-base leading-relaxed mb-4">
               Most tutors teach content. You train response patterns. When a student sees a problem they don't immediately recognize, we want them to stay calm, identify what they know, and execute. That response doesn't happen naturally. It gets trained.
@@ -577,7 +577,7 @@ export default function TTOS() {
               </p>
               
               <p className="text-base leading-relaxed text-muted-foreground">
-                Your job is not to be creative, warm, motivational, or inspiring. Your job is to run TT-OS with precision and consistency.
+                Your job is not to be creative, warm, motivational, or inspiring. Your job is to run Response Integrity-OS with precision and consistency.
               </p>
 
               <div className="space-y-2 my-4">
@@ -603,7 +603,7 @@ export default function TTOS() {
               </div>
 
               <p className="text-base leading-relaxed text-foreground font-semibold pt-4">
-                Execute TT-OS. That's your job. Everything else is noise.
+                Execute Response Integrity-OS. That's your job. Everything else is noise.
               </p>
             </div>
           </Card>

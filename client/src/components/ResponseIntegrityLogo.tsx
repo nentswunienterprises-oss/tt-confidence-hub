@@ -1,4 +1,4 @@
-export function TTLogo({
+export function ResponseIntegrityLogo({
   size = "xl",
   variant = "hub",
 }: {
@@ -112,3 +112,4 @@ export function TTLogo({
     </div>
   );
 }
+

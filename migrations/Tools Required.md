@@ -24,7 +24,7 @@ The Gooseneck Phone Holder Approach
 
 ![alt text](<../../../Pictures/Territorial Tutoring/61fV80l97NL.webp>)
 
-Unlike traditional online tutoring that relies on digital whiteboards and complex tools, **TT focuses on a hands-on, practical approach.**
+Unlike traditional online tutoring that relies on digital whiteboards and complex tools, **Response Integrity focuses on a hands-on, practical approach.**
 
  **How It Works:**
 

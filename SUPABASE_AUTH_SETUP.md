@@ -2,7 +2,7 @@
 
 ## 🎯 Overview
 
-Your TT Confidence Hub now has a properly configured Supabase authentication system that:
+Your Response Integrity Confidence Hub now has a properly configured Supabase authentication system that:
 - ✅ Accepts role selection during signup (Tutor or Territory Director)
 - ✅ Automatically stores the correct role in the `public.users` table
 - ✅ Redirects users to the correct dashboard based on their role

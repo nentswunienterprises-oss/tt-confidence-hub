@@ -66,7 +66,7 @@ No system wording
 Just position
 5. Next Move
 
-  What TT is doing next (not vague action)
+  What Response Integrity is doing next (not vague action)
 
 Linear Equations: introduce Controlled Discomfort while protecting structure.
 

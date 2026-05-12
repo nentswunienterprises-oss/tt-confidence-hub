@@ -97,7 +97,7 @@ import {
 const PREMIUM_PLAN_NAME = "Premium";
 const PREMIUM_PLAN_AMOUNT = "1000.00";
 const PREMIUM_TUTOR_SHARE = "750.00";
-const PREMIUM_TT_SHARE = "250.00";
+const PREMIUM_PLATFORM_SHARE = "250.00";
 const PAYMENT_PROVIDER_PAYFAST = "payfast";
 
 type SandboxCaseTemplate = {
@@ -301,7 +301,7 @@ function isPremiumPlanPaymentReady(useSandbox = usePayfastSandbox()) {
 
 function buildPremiumPaymentDescription(studentName: string | null | undefined) {
   const label = String(studentName || "student").trim() || "student";
-  return `TT Premium monthly plan for ${label}`;
+  return `Response Integrity Premium monthly plan for ${label}`;
 }
 
 function isValidPayfastEmail(value: string | null | undefined) {
@@ -1769,10 +1769,10 @@ async function syncMeetForScheduledSession(session: any, options?: { studentName
   const parentInfo = await getUserEmailName(session?.parent_id);
   const studentName = String(options?.studentName || "Student").trim() || "Student";
   const summary = session?.type === "training"
-    ? `TT Training Session - ${studentName}`
-    : `TT Intro Session - ${studentName}`;
+    ? `Response Integrity Training Session - ${studentName}`
+    : `Response Integrity Intro Session - ${studentName}`;
   const description = [
-    `TT operational session`,
+    `Response Integrity operational session`,
     `Kind: ${session?.type || "session"}`,
     `Scheduled session ID: ${session?.id}`,
   ].join("\n");
@@ -2588,7 +2588,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ? Math.round(weighted.sum / weighted.weight)
               : 0;
 
-            // Use the locked transition engine from TT Drift Correction Spec
+            // Use the locked transition engine from Response Integrity Drift Correction Spec
             const transition = computeTransition(observedPhase, previousStability, sessionScore);
 
             const nextActionConfig = (NEXT_ACTION_ENGINE as any)?.[transition.next_phase]?.[transition.next_stability] || null;
@@ -4153,7 +4153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     parentId,
                     {
                       title: "Weekly report sent",
-                      body: "A new weekly report is available for your child. Open TT to review it.",
+                      body: "A new weekly report is available for your child. Open Response Integrity to review it.",
                       url: "/client/parent/progress",
                       tag: `parent-weekly-report-${weeklyReport.id}`,
                     },
@@ -4173,7 +4173,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     parentId,
                     {
                       title: "Monthly report sent",
-                      body: "A new monthly report is available for your child. Open TT to review it.",
+                      body: "A new monthly report is available for your child. Open Response Integrity to review it.",
                       url: "/client/parent/progress",
                       tag: `parent-monthly-report-${monthlyReport.id}`,
                     },
@@ -4269,7 +4269,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 normalizedScheduledSessionId !== String(pendingTrainingConfirmation.id)
               ) {
                 return res.status(400).json({
-                  message: "A proposed TT training lesson is still waiting for parent confirmation before drills can run.",
+                  message: "A proposed Response Integrity training lesson is still waiting for parent confirmation before drills can run.",
                 });
               }
 
@@ -4806,7 +4806,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   return res.status(500).json({ message: "Failed to validate training session context" });
                 }
                 if (!resolvedScheduledSession) {
-                  return res.status(400).json({ message: "A TT training lesson must be attached before drill submission." });
+                  return res.status(400).json({ message: "A Response Integrity training lesson must be attached before drill submission." });
                 }
 
                 if (operationalMode === "training") {
@@ -4818,13 +4818,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
                   if (!hasConfirmedSchedule) {
                     return res.status(400).json({
-                      message: "Training drills must submit from a tutor-confirmed weekly TT lesson.",
+                      message: "Training drills must submit from a tutor-confirmed weekly Response Integrity lesson.",
                     });
                   }
                 } else {
                   const trainingLaunch = getSessionLaunchState(resolvedScheduledSession, "training");
                   if (!trainingLaunch.canLaunch) {
-                    return res.status(400).json({ message: "Training drills must submit from an active or imminently scheduled TT lesson." });
+                    return res.status(400).json({ message: "Training drills must submit from an active or imminently scheduled Response Integrity lesson." });
                   }
                 }
 
@@ -5983,7 +5983,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedSession?.tutor_id,
         {
           title: "Session confirmed",
-          body: `A parent confirmed the ${getSessionDisplayLabel(updatedSession?.type)}. Open TT for the latest schedule.`,
+          body: `A parent confirmed the ${getSessionDisplayLabel(updatedSession?.type)}. Open Response Integrity for the latest schedule.`,
           url: "/operational/tutor/pod",
           tag: `tutor-intro-session-confirmed-${sessionId}`,
         },
@@ -7392,7 +7392,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           session.parent_id,
           {
             title: "Session needs confirmation",
-            body: `Your tutor proposed a new ${getSessionDisplayLabel(sessionType)} time. Open TT to confirm or respond.`,
+            body: `Your tutor proposed a new ${getSessionDisplayLabel(sessionType)} time. Open Response Integrity to confirm or respond.`,
             url: "/client/parent/gateway",
             tag: `parent-intro-session-confirmation-${session.id}`,
           },
@@ -7491,7 +7491,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           session.parent_id,
           {
             title: "Session needs confirmation",
-            body: `Your tutor proposed a new ${getSessionDisplayLabel(sessionType)} time. Open TT to confirm or respond.`,
+            body: `Your tutor proposed a new ${getSessionDisplayLabel(sessionType)} time. Open Response Integrity to confirm or respond.`,
             url: "/client/parent/gateway",
             tag: `parent-intro-session-confirmation-${session.id}`,
           },
@@ -7618,7 +7618,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         const parentId = (student as any).parentId || null;
         if (!parentId) {
-          return res.status(400).json({ message: "Student must be linked to a parent before a TT training lesson can be scheduled." });
+          return res.status(400).json({ message: "Student must be linked to a parent before a Response Integrity training lesson can be scheduled." });
         }
 
         const scheduledStart = String(req.body?.scheduledStart || new Date().toISOString());
@@ -7660,7 +7660,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           parentId,
           {
             title: "Session needs confirmation",
-            body: "Your tutor proposed a training session. Open TT to confirm or reschedule.",
+            body: "Your tutor proposed a training session. Open Response Integrity to confirm or reschedule.",
             url: "/client/parent/gateway",
             tag: `parent-training-session-confirmation-${inserted.id}`,
           },
@@ -7875,7 +7875,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             session.parent_id,
             {
               title: "Session cancelled",
-              body: "Your tutor cancelled a training session. Open TT to review the updated week.",
+              body: "Your tutor cancelled a training session. Open Response Integrity to review the updated week.",
               url: "/client/parent/sessions",
               tag: `parent-training-session-cancelled-${sessionId}`,
             },
@@ -7956,7 +7956,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             session.parent_id,
             {
               title: "Session needs confirmation",
-              body: "Your tutor proposed a new training-session time. Open TT to confirm or respond.",
+              body: "Your tutor proposed a new training-session time. Open Response Integrity to confirm or respond.",
               url: "/client/parent/gateway",
               tag: `parent-training-session-confirmation-${sessionId}`,
             },
@@ -8035,7 +8035,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (!session) {
             return res.status(404).json({
               canLaunch: false,
-              message: "Create and confirm a weekly TT lesson before opening the training runner.",
+              message: "Create and confirm a weekly Response Integrity lesson before opening the training runner.",
             });
           }
 
@@ -8047,7 +8047,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (!hasConfirmedSchedule) {
             return res.status(400).json({
               canLaunch: false,
-              message: "Training mode still requires a tutor-confirmed weekly TT lesson before launch.",
+              message: "Training mode still requires a tutor-confirmed weekly Response Integrity lesson before launch.",
               session: {
                 ...session,
                 launch: {
@@ -8093,7 +8093,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (pendingTrainingConfirmation && (!sessionId || sessionId !== String(pendingTrainingConfirmation.id))) {
             return res.status(400).json({
               canLaunch: false,
-              message: "A TT training lesson is waiting for parent confirmation before drills can launch.",
+              message: "A Response Integrity training lesson is waiting for parent confirmation before drills can launch.",
               session: {
                 ...pendingTrainingConfirmation,
                 launch: {
@@ -8133,7 +8133,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             canLaunch: false,
             message:
               kind === "training"
-                ? "Create or attach a TT training lesson before opening the drill runner."
+                ? "Create or attach a Response Integrity training lesson before opening the drill runner."
                 : kind === "handover"
                   ? "A confirmed continuity check session is required before opening handover verification."
                   : "A confirmed intro session is required before opening the intro drill.",
@@ -8146,10 +8146,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             canLaunch: false,
             message:
               kind === "training"
-                ? "Training drills must launch from an active or imminently scheduled TT lesson."
+                ? "Training drills must launch from an active or imminently scheduled Response Integrity lesson."
                 : kind === "handover"
                   ? "Handover verification must launch from a confirmed continuity check session."
-                  : "Intro drills must launch from a confirmed TT intro session.",
+                  : "Intro drills must launch from a confirmed Response Integrity intro session.",
             session: {
               ...session,
               launch,
@@ -8673,7 +8673,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           cancelledSession.tutor_id,
           {
             title: "Session cancelled",
-            body: "A parent cancelled a training session. Open TT to review the updated week.",
+            body: "A parent cancelled a training session. Open Response Integrity to review the updated week.",
             url: "/operational/tutor/pod",
             tag: `tutor-training-session-cancelled-${sessionId}`,
           },
@@ -8747,7 +8747,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           updatedSession.tutor_id,
           {
             title: "Session rescheduled by parent",
-            body: "A parent proposed a new training-session time. Open TT to review and confirm.",
+            body: "A parent proposed a new training-session time. Open Response Integrity to review and confirm.",
             url: "/operational/tutor/pod",
             tag: `tutor-training-session-rescheduled-${sessionId}`,
           },
@@ -8781,7 +8781,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedSession.tutor_id,
         {
           title: "Session confirmed",
-          body: "A parent confirmed the training session. Open TT for the latest schedule.",
+          body: "A parent confirmed the training session. Open Response Integrity for the latest schedule.",
           url: "/operational/tutor/pod",
           tag: `tutor-training-session-confirmed-${sessionId}`,
         },
@@ -9986,7 +9986,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         primaryDrill?.summary?.topic ||
         null;
 
-      const sessionLabel = session?.type === "training" ? "TT Training Session" : "TT Intro Session";
+      const sessionLabel = session?.type === "training" ? "Response Integrity Training Session" : "Response Integrity Intro Session";
       const status = String(session?.status || "").trim() || "completed";
 
       return {
@@ -9996,7 +9996,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         date: dateText,
         duration,
         notes: `${sessionLabel}${activeTopic ? ` | Active Topic: ${activeTopic}` : ""} | Status: ${status}`,
-        vocabularyNotes: session?.type === "training" ? "TT training execution recorded." : "TT intro diagnosis recorded.",
+        vocabularyNotes: session?.type === "training" ? "Response Integrity training execution recorded." : "Response Integrity intro diagnosis recorded.",
         methodNotes: activeTopic ? `Active Topic: ${activeTopic}` : null,
         reasonNotes: primaryDrill?.summary?.nextAction || null,
         studentResponse:
@@ -11329,8 +11329,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 title: "Tutor accepted",
                 body:
                   resumedStatus && resumedStatus !== "assigned"
-                    ? "Your new tutor accepted the reassignment. Book a continuity check so TT can resume from the student's existing training state."
-                    : "Your tutor accepted the assignment. TT onboarding can now move forward.",
+                    ? "Your new tutor accepted the reassignment. Book a continuity check so Response Integrity can resume from the student's existing training state."
+                    : "Your tutor accepted the assignment. Response Integrity onboarding can now move forward.",
                 url: "/client/parent/gateway",
                 tag: `parent-tutor-accepted-${parentEnrollment.id}`,
               },
@@ -15298,7 +15298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Application not found or access denied" });
         }
         if (parsedDocStep === 2 && !app?.onboardingAcceptanceMap?.["2"]) {
-          return res.status(400).json({ message: "You must accept TT-EQV-002 in app before uploading your certified Matric certificate." });
+          return res.status(400).json({ message: "You must accept Response Integrity-EQV-002 in app before uploading your certified Matric certificate." });
         }
 
         // Decode base64 file data
@@ -15361,31 +15361,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: Request, res: Response) => {
       try {
         const docStep = Number(req.params.docStep);
-        const templateFileNames: Record<number, string> = {
-          1: "TT-TCF-001.pdf",
-          2: "TT-EQV-002.pdf",
-          3: "TT-ICA-003.pdf",
-          4: "TT-SCP-004.pdf",
-          5: "TT-DPC-005.pdf",
+        const templateFiles: Record<number, { assetFileName: string; downloadFileName: string }> = {
+          1: { assetFileName: "TT-TCF-001.pdf", downloadFileName: "Response Integrity-TCF-001.pdf" },
+          2: { assetFileName: "TT-EQV-002.pdf", downloadFileName: "Response Integrity-EQV-002.pdf" },
+          3: { assetFileName: "TT-ICA-003.pdf", downloadFileName: "Response Integrity-ICA-003.pdf" },
+          4: { assetFileName: "TT-SCP-004.pdf", downloadFileName: "Response Integrity-SCP-004.pdf" },
+          5: { assetFileName: "TT-DPC-005.pdf", downloadFileName: "Response Integrity-DPC-005.pdf" },
         };
 
-        const templateFileName = templateFileNames[docStep];
-        if (!templateFileName) {
+        const templateFile = templateFiles[docStep];
+        if (!templateFile) {
           if (docStep === 6) {
             return res.status(400).json({ message: "Step 6 is a certified ID copy and has no downloadable template." });
           }
           return res.status(400).json({ message: "Invalid document step" });
         }
 
+        const { assetFileName, downloadFileName } = templateFile;
+
         const templatePathCandidates = [
           // Source execution (tsx server/index.ts)
-          fileURLToPath(new URL(`../assets/tutor-onboarding/${templateFileName}`, import.meta.url)),
+          fileURLToPath(new URL(`../assets/tutor-onboarding/${assetFileName}`, import.meta.url)),
           // Dist execution (node dist/index.js)
-          fileURLToPath(new URL(`../../assets/tutor-onboarding/${templateFileName}`, import.meta.url)),
+          fileURLToPath(new URL(`../../assets/tutor-onboarding/${assetFileName}`, import.meta.url)),
           // Runtime cwd fallback
-          resolve(process.cwd(), "assets", "tutor-onboarding", templateFileName),
+          resolve(process.cwd(), "assets", "tutor-onboarding", assetFileName),
           // Runtime cwd fallback when started from server folder
-          resolve(process.cwd(), "..", "assets", "tutor-onboarding", templateFileName),
+          resolve(process.cwd(), "..", "assets", "tutor-onboarding", assetFileName),
         ];
 
         const templatePath = templatePathCandidates.find((candidate) => existsSync(candidate));
@@ -15393,16 +15395,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!templatePath) {
           console.error("Onboarding template not found", {
             docStep,
-            templateFileName,
+            assetFileName,
+            downloadFileName,
             triedPaths: templatePathCandidates,
           });
           return res.status(404).json({
             message: "Template file not found on API server for this step",
-            templateFileName,
+            assetFileName,
+            downloadFileName,
           });
         }
 
-        res.download(templatePath, templateFileName);
+        res.download(templatePath, downloadFileName);
       } catch (error) {
         console.error("Error downloading onboarding template:", error);
         res.status(500).json({ message: "Failed to download document template" });
@@ -15460,7 +15464,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "Completed template upload is only valid for legacy steps 1 to 5." });
         }
 
-        return res.status(410).json({ message: "TT internal copy uploads are no longer used. Agreement steps now use in-app acceptance." });
+        return res.status(410).json({ message: "Response Integrity internal copy uploads are no longer used. Agreement steps now use in-app acceptance." });
         if (!fileName || !fileData) {
           return res.status(400).json({ message: "Missing required file payload for completed template upload." });
         }
@@ -15648,7 +15652,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           application.userId,
           {
             title: "Tutor application approved",
-            body: "Your application was approved. Open TT to continue onboarding and upload your documents.",
+            body: "Your application was approved. Open Response Integrity to continue onboarding and upload your documents.",
             url: "/operational/tutor/gateway",
             tag: `tutor-application-approved-${application.id}`,
           },
@@ -16344,7 +16348,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           data.user_id,
           {
             title: "TD application approved",
-            body: "Your Territory Director application was approved. Open TT to complete onboarding.",
+            body: "Your Territory Director application was approved. Open Response Integrity to complete onboarding.",
             url: "/operational/td/gateway",
             tag: `td-application-approved-${data.id}`,
           },
@@ -16389,7 +16393,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           data.user_id,
           {
             title: "TD application update",
-            body: "Your Territory Director application was not accepted. Open TT to review the update.",
+            body: "Your Territory Director application was not accepted. Open Response Integrity to review the update.",
             url: "/operational/td/gateway",
             tag: `td-application-rejected-${data.id}`,
           },
@@ -16872,7 +16876,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const parsedDocStep = typeof docStep === "number" ? docStep : Number(docStep);
 
         if (!applicationId || parsedDocStep !== 5 || !fileName || !fileData) {
-          return res.status(400).json({ message: "Only TT-EGP-005 accepts a certified ID upload." });
+          return res.status(400).json({ message: "Only Response Integrity-EGP-005 accepts a certified ID upload." });
         }
 
         const applications = await getAffiliateApplicationsByQuery({ userId });
@@ -17046,7 +17050,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           data.user_id,
           {
             title: "EGP application approved",
-            body: "Your application was approved. Open TT to complete the EGP agreements.",
+            body: "Your application was approved. Open Response Integrity to complete the EGP agreements.",
             url: "/affiliate/gateway",
             tag: `affiliate-application-approved-${data.id}`,
           },
@@ -17120,7 +17124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const rejectionReason = String(req.body?.rejectionReason || "").trim();
 
         if (docStep !== 5) {
-          return res.status(400).json({ message: "Only TT-EGP-005 requires COO upload review." });
+          return res.status(400).json({ message: "Only Response Integrity-EGP-005 requires COO upload review." });
         }
         if (typeof req.body?.approved !== "boolean") {
           return res.status(400).json({ message: "Missing approval decision" });
@@ -17134,7 +17138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const documentsStatus = buildEgpOnboardingStatuses(application.documentsStatus || application.documents_status);
         if (String(documentsStatus["5"] || "not_started") !== "pending_review") {
-          return res.status(400).json({ message: "TT-EGP-005 is not currently pending COO review." });
+          return res.status(400).json({ message: "Response Integrity-EGP-005 is not currently pending COO review." });
         }
 
         documentsStatus["5"] = approved ? "approved" : "rejected";
@@ -17554,7 +17558,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           enrollment.user_id,
           {
             title: "Tutor assigned",
-            body: "A tutor has been assigned to your child. TT will notify you when they accept and onboarding moves forward.",
+            body: "A tutor has been assigned to your child. Response Integrity will notify you when they accept and onboarding moves forward.",
             url: "/client/parent/gateway",
             tag: `parent-tutor-assigned-${enrollment.id}`,
           },
@@ -19513,7 +19517,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           updatedEnrollment?.user_id,
           {
             title: "Proposal ready",
-            body: "Your tutor has sent a proposal. Open TT to review and respond.",
+            body: "Your tutor has sent a proposal. Open Response Integrity to review and respond.",
             url: "/client/parent/gateway",
             tag: `parent-proposal-sent-${proposalData.id}`,
           },
@@ -19895,7 +19899,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const merchantReference = String(existingPayment?.merchant_reference || `tt-premium-${uuidv4()}`);
+      const merchantReference = String(existingPayment?.merchant_reference || `response-integrity-premium-${uuidv4()}`);
       const payfastConfig = getPayfastConfig(payfastSandboxForEnrollment);
       const nowIso = new Date().toISOString();
       const paymentRawPayload = {
@@ -19917,7 +19921,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             amount: PREMIUM_PLAN_AMOUNT,
             currency: "ZAR",
             tutor_share: PREMIUM_TUTOR_SHARE,
-            platform_share: PREMIUM_TT_SHARE,
+            platform_share: PREMIUM_PLATFORM_SHARE,
             merchant_reference: merchantReference,
             item_name: `${PREMIUM_PLAN_NAME} Plan`,
             item_description: buildPremiumPaymentDescription(paymentEnrollment.student_full_name),
@@ -19936,7 +19940,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             amount: PREMIUM_PLAN_AMOUNT,
             currency: "ZAR",
             tutor_share: PREMIUM_TUTOR_SHARE,
-            platform_share: PREMIUM_TT_SHARE,
+            platform_share: PREMIUM_PLATFORM_SHARE,
             merchant_reference: merchantReference,
             item_name: `${PREMIUM_PLAN_NAME} Plan`,
             item_description: buildPremiumPaymentDescription(paymentEnrollment.student_full_name),
@@ -19992,7 +19996,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         plan: PREMIUM_PLAN_NAME,
         amount: Number(PREMIUM_PLAN_AMOUNT),
         tutorShare: Number(PREMIUM_TUTOR_SHARE),
-        ttShare: Number(PREMIUM_TT_SHARE),
+        platformShare: Number(PREMIUM_PLATFORM_SHARE),
+        ttShare: Number(PREMIUM_PLATFORM_SHARE),
         merchantReference,
         checkoutUrl: payfastConfig.processUrl,
         sandbox: payfastSandboxForEnrollment,
@@ -20614,7 +20619,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         declinedProposal?.tutor_id,
         {
           title: "Proposal declined",
-          body: "A parent declined your onboarding proposal. Open TT to revise the next step.",
+          body: "A parent declined your onboarding proposal. Open Response Integrity to revise the next step.",
           url: "/operational/tutor/pod",
           tag: `tutor-proposal-declined-${enrollment.proposal_id}`,
         },
@@ -22210,7 +22215,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const daysSinceUpdate = Math.floor((now - new Date(latest.date).getTime()) / (1000 * 60 * 60 * 24));
           const bucket = daysSinceUpdate <= 14 ? "active" : daysSinceUpdate <= 45 ? "recent" : "older";
 
-          // Translate internal states to parent-friendly language per TT Drift Correction Spec
+          // Translate internal states to parent-friendly language per Response Integrity Drift Correction Spec
           const translatedState = getParentDashboardCopyByState(latest.phase, latest.stability);
 
           return {

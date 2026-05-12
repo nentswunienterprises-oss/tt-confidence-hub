@@ -613,7 +613,7 @@ export const tutorApplications = pgTable("tutor_applications", {
   disciplineReason: text("discipline_reason").notNull(),
   repeatMistakeResponse: text("repeat_mistake_response").notNull(),
 
-  // Section 7 - Alignment With TT
+  // Section 7 - Alignment With Response Integrity
   ttMeaning: text("tt_meaning").notNull(),
   structurePreference: varchar("structure_preference").notNull(), // 'structure' | 'flexibility'
 
@@ -639,7 +639,7 @@ export const tutorApplications = pgTable("tutor_applications", {
   documentSubmissionStep: integer("document_submission_step").default(0),
   documentsStatus: jsonb("documents_status").default('{"1": "not_started", "2": "not_started", "3": "not_started", "4": "not_started", "5": "not_started", "6": "not_started"}'),
 
-  // Step 1: TT-TCF-001
+  // Step 1: Response Integrity-TCF-001
   doc1SubmissionUrl: varchar("doc_1_submission_url"),
   doc1SubmissionUploadedAt: timestamp("doc_1_submission_uploaded_at"),
   doc1SubmissionVerified: boolean("doc_1_submission_verified").default(false),
@@ -650,7 +650,7 @@ export const tutorApplications = pgTable("tutor_applications", {
   doc1CompletedTemplateUploadedAt: timestamp("doc_1_completed_template_uploaded_at"),
   doc1CompletedTemplateUploadedBy: varchar("doc_1_completed_template_uploaded_by").references(() => users.id),
 
-  // Step 2: TT-EQV-002
+  // Step 2: Response Integrity-EQV-002
   doc2SubmissionUrl: varchar("doc_2_submission_url"),
   doc2SubmissionUploadedAt: timestamp("doc_2_submission_uploaded_at"),
   doc2SubmissionVerified: boolean("doc_2_submission_verified").default(false),
@@ -661,7 +661,7 @@ export const tutorApplications = pgTable("tutor_applications", {
   doc2CompletedTemplateUploadedAt: timestamp("doc_2_completed_template_uploaded_at"),
   doc2CompletedTemplateUploadedBy: varchar("doc_2_completed_template_uploaded_by").references(() => users.id),
 
-  // Step 3: TT-ICA-003
+  // Step 3: Response Integrity-ICA-003
   doc3SubmissionUrl: varchar("doc_3_submission_url"),
   doc3SubmissionUploadedAt: timestamp("doc_3_submission_uploaded_at"),
   doc3SubmissionVerified: boolean("doc_3_submission_verified").default(false),
@@ -672,7 +672,7 @@ export const tutorApplications = pgTable("tutor_applications", {
   doc3CompletedTemplateUploadedAt: timestamp("doc_3_completed_template_uploaded_at"),
   doc3CompletedTemplateUploadedBy: varchar("doc_3_completed_template_uploaded_by").references(() => users.id),
 
-  // Step 4: TT-SCP-004
+  // Step 4: Response Integrity-SCP-004
   doc4SubmissionUrl: varchar("doc_4_submission_url"),
   doc4SubmissionUploadedAt: timestamp("doc_4_submission_uploaded_at"),
   doc4SubmissionVerified: boolean("doc_4_submission_verified").default(false),
@@ -683,7 +683,7 @@ export const tutorApplications = pgTable("tutor_applications", {
   doc4CompletedTemplateUploadedAt: timestamp("doc_4_completed_template_uploaded_at"),
   doc4CompletedTemplateUploadedBy: varchar("doc_4_completed_template_uploaded_by").references(() => users.id),
 
-  // Step 5: TT-DPC-005
+  // Step 5: Response Integrity-DPC-005
   doc5SubmissionUrl: varchar("doc_5_submission_url"),
   doc5SubmissionUploadedAt: timestamp("doc_5_submission_uploaded_at"),
   doc5SubmissionVerified: boolean("doc_5_submission_verified").default(false),
@@ -1049,7 +1049,7 @@ export const encounters = pgTable("encounters", {
   dateMet: timestamp("date_met"),
   contactMethod: varchar("contact_method"), // "phone", "dm", "referral", "school_outreach", etc.
   discoveryOutcome: text("discovery_outcome"), // Parent's pain points
-  deliveryNotes: text("delivery_notes"), // How TT's solution was positioned
+  deliveryNotes: text("delivery_notes"), // How Response Integrity's solution was positioned
   finalOutcome: varchar("final_outcome"), // "enrolled", "objected", "follow_up_needed"
   result: text("result"), // What's next
   confidenceRating: integer("confidence_rating"), // 1-5

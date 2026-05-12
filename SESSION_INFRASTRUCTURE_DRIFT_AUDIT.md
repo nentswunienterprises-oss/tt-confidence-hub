@@ -75,7 +75,7 @@ In the deep dive for session flow control, the content currently presents a univ
 - Guide
 - Boss Battle
 
-It also frames this as the structure for `every TT tutoring session`.
+It also frames this as the structure for `every Response Integrity tutoring session`.
 
 ### Why that is now wrong
 

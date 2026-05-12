@@ -381,7 +381,6 @@ export default function TDOverview() {
         title: "Battle test saved",
         description: "Tutor alignment results were logged successfully.",
       });
-      setActiveTutorRun(null);
     },
     onError: (mutationError: any) => {
       toast({
@@ -1084,8 +1083,8 @@ export default function TDOverview() {
         }
         description={
           activeTutorRun
-            ? `Run the TT Tutor Alignment Engine for ${activeTutorRun.tutorName} inside ${activeTutorRun.podName}. The system has auto-selected the highest priority deep dives for this session.`
-            : "Run the TT Tutor Alignment Engine."
+            ? `Run the Response Integrity Tutor Alignment Engine for ${activeTutorRun.tutorName} inside ${activeTutorRun.podName}. The system has auto-selected the highest priority deep dives for this session.`
+            : "Run the Response Integrity Tutor Alignment Engine."
         }
         phaseOptions={activePhaseOptions}
         preSelectedPhaseKeys={activeTutorRun?.autoSelectedPhases?.length === 1 ? activeTutorRun.autoSelectedPhases : []}

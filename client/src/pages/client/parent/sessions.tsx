@@ -312,8 +312,8 @@ export default function ParentSessions() {
   const schedulingEnabled = data?.sessionSchedulingEnabled ?? true;
   const trainingModeScheduling = data?.operationalMode === "training";
   const scheduleWeekDescription = trainingModeScheduling
-    ? "Choose two Monday-to-Saturday training session times in the same week. Your tutor must confirm both dates before TT locks the sessions into the training flow."
-    : "Choose two Monday-to-Saturday training session times in the same week. Your tutor must confirm both dates before TT creates the Meet links.";
+    ? "Choose two Monday-to-Saturday training session times in the same week. Your tutor must confirm both dates before Response Integrity locks the sessions into the training flow."
+    : "Choose two Monday-to-Saturday training session times in the same week. Your tutor must confirm both dates before Response Integrity creates the Meet links.";
   const actionableSessions = sessions.filter(
     (session) => !["completed", "cancelled", "flagged"].includes(String(session.status || "")),
   );
@@ -329,7 +329,7 @@ export default function ParentSessions() {
         <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
           <p className="text-base font-semibold text-foreground">Training mode scheduling is active</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Your assigned tutor is currently in TT training mode. You should still schedule and confirm sessions here, but TT will run them inside the training flow instead of depending on Google Meet or the normal live-session window.
+            Your assigned tutor is currently in Response Integrity training mode. You should still schedule and confirm sessions here, but Response Integrity will run them inside the training flow instead of depending on Google Meet or the normal live-session window.
           </p>
         </div>
       ) : null}
@@ -428,7 +428,7 @@ export default function ParentSessions() {
                 <div key={session.id} className="rounded-lg border border-border p-4 space-y-2">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="font-medium text-foreground">TT Training Session</p>
+                      <p className="font-medium text-foreground">Response Integrity Training Session</p>
                       <p className="text-sm text-muted-foreground">
                         {formatSessionDateTime(session.scheduled_time)}
                       </p>
@@ -498,7 +498,7 @@ export default function ParentSessions() {
                       <p className="text-sm text-green-700">Session confirmed.</p>
                       {trainingModeScheduling ? (
                         <p className="text-sm text-muted-foreground">
-                          Training mode runs this lesson inside TT without depending on Google Meet.
+                          Training mode runs this lesson inside Response Integrity without depending on Google Meet.
                         </p>
                       ) : session.google_meet_url ? (
                         <a

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { CheckCircle2, Circle, ArrowLeft, Check, Plus, X } from "lucide-react";
-import { TTLogo } from "@/components/ResponseIntegrityLogo";
+import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -277,7 +277,7 @@ export default function ParentGateway() {
         headers,
       });
       if (response.status === 404) {
-        console.log("📋 No proposal found (404)");
+        console.log("ðŸ“‹ No proposal found (404)");
         return null;
       }
       if (!response.ok) {
@@ -286,7 +286,7 @@ export default function ParentGateway() {
         throw new Error(errorData.message || "Failed to fetch proposal");
       }
       const data = await response.json();
-      console.log("📋 Proposal received:", data);
+      console.log("ðŸ“‹ Proposal received:", data);
       if (data.parentCode) {
         setParentCode(data.parentCode);
       }
@@ -844,7 +844,7 @@ export default function ParentGateway() {
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 relative flex items-center justify-between">
           <div className="w-10 md:hidden" aria-hidden="true" />
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 sm:static sm:transform-none w-full sm:w-auto flex justify-center">
-            <TTLogo size="md" variant="integrity" />
+            <ResponseIntegrityLogo size="md" variant="integrity" />
           </div>
           
           <div className="hidden md:block">
@@ -914,7 +914,7 @@ export default function ParentGateway() {
             <PushOptInCard
               enabled
               title="Enable out-of-app alerts"
-              description="Turn on browser notifications so TT can alert you when a tutor is assigned, a proposal is ready, a session needs your confirmation, or a report is sent."
+              description="Turn on browser notifications so Response Integrity can alert you when a tutor is assigned, a proposal is ready, a session needs your confirmation, or a report is sent."
             />
           </div>
         )}
@@ -956,7 +956,7 @@ export default function ParentGateway() {
                   This is the Founding Cohort. Limited families. Serious about response training.
                 </p>
                 <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-                  TT is not tutoring. It's a performance-conditioning system. Every application is reviewed to ensure fit. This application helps us determine whether our training is appropriate for your child.
+                  Response Integrity is not tutoring. It's a performance-conditioning system. Every application is reviewed to ensure fit. This application helps us determine whether our training is appropriate for your child.
                 </p>
               </div>
 
@@ -1333,9 +1333,9 @@ export default function ParentGateway() {
                 <div className="space-y-2 text-xs sm:text-sm">
                   {[
                     "I understand placement in the Founding Cohort is limited and not guaranteed.",
-                    "I consent for my child to participate in TT's response-conditioning system.",
+                    "I consent for my child to participate in Response Integrity's response-conditioning system.",
                     "I'll support my child's attendance, communication, and progress.",
-                    "I understand TT may use anonymized results or testimonials for success case studies.",
+                    "I understand Response Integrity may use anonymized results or testimonials for success case studies.",
                     "I understand the program structure and commitment expectations.",
                   ].map((agreement, idx) => (
                     <div key={idx} className="flex gap-2">
@@ -1409,7 +1409,7 @@ export default function ParentGateway() {
                   {isReassignmentAwaitingAssignment ? (
                     <>
                       <p className="text-muted-foreground">
-                        Your previous tutor is no longer eligible for live parent assignments, so TT is moving your child to a live-qualified tutor.
+                        Your previous tutor is no longer eligible for live parent assignments, so Response Integrity is moving your child to a live-qualified tutor.
                       </p>
                       <p className="text-sm text-muted-foreground">
                         Your existing training history is being preserved. This is a tutor reassignment, not a fresh application review.
@@ -1417,7 +1417,7 @@ export default function ParentGateway() {
                       <div className="bg-muted/30 rounded-lg p-4 text-left">
                         <p className="text-sm font-medium mb-2">What happens next:</p>
                         <ul className="text-sm text-muted-foreground space-y-1 ml-4 list-disc">
-                          <li>TT assigns a new live-qualified tutor</li>
+                          <li>Response Integrity assigns a new live-qualified tutor</li>
                           <li>Your new tutor accepts the reassignment</li>
                           <li>A continuity check is run to confirm the restart point</li>
                           <li>Training resumes from the strongest verified position</li>
@@ -1494,8 +1494,8 @@ export default function ParentGateway() {
                       <p className="font-medium text-red-900">Tutor training mode is active</p>
                       <p className="text-sm text-red-700 mt-2">
                         {isHandoverFlow
-                          ? "You can still schedule the continuity check. TT will run it through the training flow instead of requiring the standard Google Meet live window."
-                          : "You can still schedule the intro session. TT will run it through the training flow instead of requiring the standard Google Meet live window."}
+                          ? "You can still schedule the continuity check. Response Integrity will run it through the training flow instead of requiring the standard Google Meet live window."
+                          : "You can still schedule the intro session. Response Integrity will run it through the training flow instead of requiring the standard Google Meet live window."}
                       </p>
                     </div>
                   )}
@@ -1680,7 +1680,7 @@ export default function ParentGateway() {
                   </p>
                   
                   {(() => {
-                    console.log("📋 Proposal status - Loading:", proposalLoading, "Error:", proposalError, "Data:", proposal);
+                    console.log("ðŸ“‹ Proposal status - Loading:", proposalLoading, "Error:", proposalError, "Data:", proposal);
                     
                     if (proposalLoading) {
                       return (
@@ -1701,7 +1701,7 @@ export default function ParentGateway() {
                     }
                     
                     if (proposal) {
-                      console.log("📋 Rendering ProposalView with:", proposal);
+                      console.log("ðŸ“‹ Rendering ProposalView with:", proposal);
                       return (
                         <ProposalView 
                           proposal={proposal} 
@@ -1819,3 +1819,4 @@ export default function ParentGateway() {
     </div>
   );
 }
+

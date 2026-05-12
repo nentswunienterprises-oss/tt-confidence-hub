@@ -1,6 +1,6 @@
-TT-AID-003 - AUDIT INTEGRITY DECLARATION
+Response Integrity-AID-003 - AUDIT INTEGRITY DECLARATION
 This Declaration is entered into between:
-Territorial Tutoring SA (Pty) Ltd (“TT”)
+Territorial Tutoring SA (Pty) Ltd (“Response Integrity”)
 and
 ________________________________________ (“Territory Director”)
 Effective Date: ______________________
@@ -17,7 +17,7 @@ No tutor is to be protected from accurate evaluation
 All audits must reflect actual execution reality, not perceived effort or intention.
 3. ACCURATE REPORTING OBLIGATION
 The Territory Director must:
-Report all observed deviations from TT-OS
+Report all observed deviations from Response Integrity-OS
 Record breakdown patterns exactly as they occur
 Avoid exaggeration, minimization, or distortion
 Audits must reflect:
@@ -49,7 +49,7 @@ Repeated inaccuracies indicate unfitness for the role
 8. SYSTEM FIRST PRINCIPLE
 The Territory Director confirms:
 The system must be protected, even if individuals are affected
-Enforcement decisions must prioritize TT integrity over personal dynamics
+Enforcement decisions must prioritize Response Integrity integrity over personal dynamics
 9. BREACH CONSEQUENCES
 Any of the following may result in immediate removal:
 Intentional omission of violations
@@ -67,7 +67,7 @@ Signed at __________________________ on this ______ day of ______________ 2026.
 _____________________________________
 Territory Director
 For and on behalf of Territorial Tutoring SA (Pty) Ltd
-TT Representative Signature: ______________________
+Response Integrity Representative Signature: ______________________
 Print Name: Thendo Nentswuni
 Date: ____________________
-Document Reference: TT-AID-003
+Document Reference: Response Integrity-AID-003

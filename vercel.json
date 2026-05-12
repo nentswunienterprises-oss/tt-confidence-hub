@@ -24,12 +24,12 @@
     }
   ],
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://tt-confidence-hub-api.onrender.com/api/:path*" },
+    { "source": "/api/:path*", "destination": "hResponse Integrityps://Response Integrity-confidence-hub-api.onrender.com/api/:path*" },
     { "source": "/", "destination": "/google-homepage.html" },
     { "source": "/privacy-policy", "destination": "/privacy-policy.html" },
     { "source": "/terms-of-use", "destination": "/terms-of-use.html" },
-    { "source": "/more-about-tt", "destination": "/aboutTT.html" },
-    { "source": "/aboutTT", "destination": "/aboutTT.html" },
+    { "source": "/more-about-Response Integrity", "destination": "/abouResponse IntegrityT.html" },
+    { "source": "/abouResponse IntegrityT", "destination": "/abouResponse IntegrityT.html" },
     { "source": "/faq", "destination": "/faq.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]

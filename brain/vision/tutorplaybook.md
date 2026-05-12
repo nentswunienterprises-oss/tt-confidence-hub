@@ -1,7 +1,7 @@
 TERRITORIAL TUTORING
 Tutor Playbook -Core Protocols
 
-This document defines how every TT tutor operates.
+This document defines how every Response Integrity tutor operates.
 
 Territorial Tutoring is not personality-driven teaching.
 
@@ -9,7 +9,7 @@ It is a response-conditioning system.
 
 Tutors do not improvise teaching styles.
 
-They execute the TT protocol.
+They execute the Response Integrity protocol.
 
 PART 1 -THE INTRO SESSION
 Purpose
@@ -20,7 +20,7 @@ Understand how the student currently responds to difficulty
 
 Identify the broken learning layer
 
-Establish the TT working structure
+Establish the Response Integrity working structure
 
 The Intro Session is diagnostic, not intensive teaching.
 
@@ -115,7 +115,7 @@ This becomes the starting point for the Transformation Process.
 
 PART 2 -THE TRANSFORMATION PROCESS
 
-The Transformation Process is how TT conditions reliable responses to difficult math problems.
+The Transformation Process is how Response Integrity conditions reliable responses to difficult math problems.
 
 It consists of four components.
 
@@ -249,7 +249,7 @@ The goal is to train stable execution under pressure.
 
 PART 3 - THE SESSION OPERATING SYSTEM
 
-Every TT tutoring session follows the same structure.
+Every Response Integrity tutoring session follows the same structure.
 
 1. Prepare
 2. Model
@@ -333,7 +333,7 @@ Over time, the student stops freezing and begins executing automatically.
 
 The Standard
 
-TT tutors are not improvising teachers.
+Response Integrity tutors are not improvising teachers.
 
 They are operators of a system.
 
@@ -345,7 +345,7 @@ Every session must include independent execution.
 
 Consistency is what produces reliable outcomes.
 
-The TT Principle
+The Response Integrity Principle
 
 Schools teach concepts.
 

@@ -1399,8 +1399,8 @@ function ApplicationDetails({ application }: { application: TutorApplication }) 
         <InfoItem label="Repeat Mistake Response" value={getField("repeatMistakeResponse", "repeat_mistake_response")} />
       </Section>
 
-      <Section title="Section 7 - Alignment With TT">
-        <InfoItem label="TT Meaning" value={getField("ttMeaning", "tt_meaning")} />
+      <Section title="Section 7 - Alignment With Response Integrity">
+        <InfoItem label="Response Integrity Meaning" value={getField("ttMeaning", "tt_meaning")} />
         <InfoItem label="Structure Preference" value={getField("structurePreference", "structure_preference")} />
       </Section>
 

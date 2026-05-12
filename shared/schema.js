@@ -488,7 +488,7 @@ export var encounters = pgTable("encounters", {
     dateMet: timestamp("date_met"),
     contactMethod: varchar("contact_method"), // "phone", "dm", "referral", "school_outreach", etc.
     discoveryOutcome: text("discovery_outcome"), // Parent's pain points
-    deliveryNotes: text("delivery_notes"), // How TT's solution was positioned
+    deliveryNotes: text("delivery_notes"), // How Response Integrity's solution was positioned
     finalOutcome: varchar("final_outcome"), // "enrolled", "objected", "follow_up_needed"
     result: text("result"), // What's next
     confidenceRating: integer("confidence_rating"), // 1-5

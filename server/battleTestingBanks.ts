@@ -17,82 +17,82 @@ const TUTOR_SOURCE_FILES = [
   {
     key: "clarity",
     title: "Clarity",
-    description: "TT-OS BATTLE TEST: CLARITY (SCORING VERSION)",
+    description: "Response Integrity-OS BATTLE TEST: CLARITY (SCORING VERSION)",
     path: optionalExistingPath(
-      resolve(TUTOR_TRANSFORMATION_PHASE_ROOT, "TT-OS Trasnformation Phases Battle-Testing = Clarity.md"),
-      resolve(TUTOR_BATTLE_TESTING_ROOT, "TT-OS Trasnformation Phases Battle-Testing = Clarity.md")
+      resolve(TUTOR_TRANSFORMATION_PHASE_ROOT, "Response Integrity-OS Trasnformation Phases Battle-Testing = Clarity.md"),
+      resolve(TUTOR_BATTLE_TESTING_ROOT, "Response Integrity-OS Trasnformation Phases Battle-Testing = Clarity.md")
     ),
   },
   {
     key: "structured_execution",
     title: "Structured Execution",
-    description: "TT-OS BATTLE TEST: STRUCTURED EXECUTION (SCORING VERSION)",
+    description: "Response Integrity-OS BATTLE TEST: STRUCTURED EXECUTION (SCORING VERSION)",
     path: optionalExistingPath(
-      resolve(TUTOR_TRANSFORMATION_PHASE_ROOT, "TT-OS Trasnformation Phases Battle-Testing = Structured Execution.md"),
-      resolve(TUTOR_BATTLE_TESTING_ROOT, "TT-OS Trasnformation Phases Battle-Testing = Structured Execution.md")
+      resolve(TUTOR_TRANSFORMATION_PHASE_ROOT, "Response Integrity-OS Trasnformation Phases Battle-Testing = Structured Execution.md"),
+      resolve(TUTOR_BATTLE_TESTING_ROOT, "Response Integrity-OS Trasnformation Phases Battle-Testing = Structured Execution.md")
     ),
   },
   {
     key: "controlled_discomfort",
     title: "Controlled Discomfort",
-    description: "TT-OS BATTLE TEST: CONTROLLED DISCOMFORT (SCORING VERSION)",
+    description: "Response Integrity-OS BATTLE TEST: CONTROLLED DISCOMFORT (SCORING VERSION)",
     path: optionalExistingPath(
-      resolve(TUTOR_TRANSFORMATION_PHASE_ROOT, "TT-OS Trasnformation Phases Battle-Testing = Controlled Discomfort.md"),
-      resolve(TUTOR_BATTLE_TESTING_ROOT, "TT-OS Trasnformation Phases Battle-Testing = Controlled Discomfort.md")
+      resolve(TUTOR_TRANSFORMATION_PHASE_ROOT, "Response Integrity-OS Trasnformation Phases Battle-Testing = Controlled Discomfort.md"),
+      resolve(TUTOR_BATTLE_TESTING_ROOT, "Response Integrity-OS Trasnformation Phases Battle-Testing = Controlled Discomfort.md")
     ),
   },
   {
     key: "time_pressure_stability",
     title: "Time Pressure Stability",
-    description: "TT-OS BATTLE TEST: TIME PRESSURE STABILITY (SCORING VERSION)",
+    description: "Response Integrity-OS BATTLE TEST: TIME PRESSURE STABILITY (SCORING VERSION)",
     path: optionalExistingPath(
-      resolve(TUTOR_TRANSFORMATION_PHASE_ROOT, "TT-OS Trasnformation Phases Battle-Testing = Time Pressure Stability.md"),
-      resolve(TUTOR_BATTLE_TESTING_ROOT, "TT-OS Trasnformation Phases Battle-Testing = Time Pressure Stability.md")
+      resolve(TUTOR_TRANSFORMATION_PHASE_ROOT, "Response Integrity-OS Trasnformation Phases Battle-Testing = Time Pressure Stability.md"),
+      resolve(TUTOR_BATTLE_TESTING_ROOT, "Response Integrity-OS Trasnformation Phases Battle-Testing = Time Pressure Stability.md")
     ),
   },
   {
     key: "topic_conditioning",
     title: "Topic Conditioning",
-    description: "TT-OS BATTLE TEST: TOPIC CONDITIONING (SCORING VERSION)",
+    description: "Response Integrity-OS BATTLE TEST: TOPIC CONDITIONING (SCORING VERSION)",
     path: optionalExistingPath(
-      resolve(TUTOR_TRANSFORMATION_PHASE_ROOT, "TT-OS Trasnformation Phases Battle-Testing = Topic Conditioning.md"),
-      resolve(TUTOR_BATTLE_TESTING_ROOT, "TT-OS Trasnformation Phases Battle-Testing = Topic Conditioning.md")
+      resolve(TUTOR_TRANSFORMATION_PHASE_ROOT, "Response Integrity-OS Trasnformation Phases Battle-Testing = Topic Conditioning.md"),
+      resolve(TUTOR_BATTLE_TESTING_ROOT, "Response Integrity-OS Trasnformation Phases Battle-Testing = Topic Conditioning.md")
     ),
   },
   {
     key: "intro_session_structure",
     title: "Intro Session Structure",
-    description: "TT-OS BATTLE TEST: INTRO SESSION STRUCTURE (SCORING VERSION)",
+    description: "Response Integrity-OS BATTLE TEST: INTRO SESSION STRUCTURE (SCORING VERSION)",
     path: optionalExistingPath(resolve(TUTOR_SESSION_INFRASTRUCTURE_ROOT, "Intro Session Structure.md")),
   },
   {
     key: "logging_system",
     title: "Logging System",
-    description: "TT-OS BATTLE TEST: LOGGING SYSTEM (SCORING VERSION)",
+    description: "Response Integrity-OS BATTLE TEST: LOGGING SYSTEM (SCORING VERSION)",
     path: optionalExistingPath(resolve(TUTOR_SESSION_INFRASTRUCTURE_ROOT, "Logging System.md")),
   },
   {
     key: "session_flow_control",
     title: "Session Flow Control",
-    description: "TT-OS BATTLE TEST: SESSION CONTEXT & DRILL FLOW (SCORING VERSION)",
+    description: "Response Integrity-OS BATTLE TEST: SESSION CONTEXT & DRILL FLOW (SCORING VERSION)",
     path: optionalExistingPath(resolve(TUTOR_SESSION_INFRASTRUCTURE_ROOT, "Session Flow Control.md")),
   },
   {
     key: "drill_library",
     title: "Drill Library",
-    description: "TT-OS BATTLE TEST: DRILL LIBRARY (SCORING VERSION)",
+    description: "Response Integrity-OS BATTLE TEST: DRILL LIBRARY (SCORING VERSION)",
     path: optionalExistingPath(resolve(TUTOR_SESSION_INFRASTRUCTURE_ROOT, "Drill Library.md")),
   },
   {
     key: "handover_verification",
     title: "Handover Verification",
-    description: "TT-OS BATTLE TEST: HANDOVER VERIFICATION (SCORING VERSION)",
+    description: "Response Integrity-OS BATTLE TEST: HANDOVER VERIFICATION (SCORING VERSION)",
     path: optionalExistingPath(resolve(TUTOR_SESSION_INFRASTRUCTURE_ROOT, "Handover verification.md")),
   },
   {
     key: "tools_required",
     title: "Tools Required",
-    description: "TT-OS BATTLE TEST: TOOLS REQUIRED (SCORING VERSION)",
+    description: "Response Integrity-OS BATTLE TEST: TOOLS REQUIRED (SCORING VERSION)",
     path: optionalExistingPath(resolve(TUTOR_SESSION_INFRASTRUCTURE_ROOT, "Tools Required.md")),
   },
 ] as const;

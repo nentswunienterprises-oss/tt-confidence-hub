@@ -3,13 +3,13 @@
 
 **(Internal. Non‑negotiable.)**
 
-This constitution governs how TT is built, scaled, automated, staffed, and delivered -regardless of tools, vendors, or future leadership.
+This constitution governs how Response Integrity is built, scaled, automated, staffed, and delivered -regardless of tools, vendors, or future leadership.
 
 ---
 
 ### ARTICLE I: FOUNDATIONAL TRUTH (WHY TECH EXISTS)
 
-TT technology exists to condition execution under pressure -not to deliver content, convenience, or dopamine.
+Response Integrity technology exists to condition execution under pressure -not to deliver content, convenience, or dopamine.
 
 Therefore:
 
@@ -17,7 +17,7 @@ Therefore:
 - Any feature that prioritises engagement over execution is rejected.
 - Any automation that hides accountability is prohibited.
 
-Tech at TT is not a product layer.
+Tech at Response Integrity is not a product layer.
 It is a discipline enforcement layer.
 
 ---
@@ -40,7 +40,7 @@ If the system makes students feel better without performing better, it is remove
 
 ### ARTICLE III: ONE‑TO‑ONE SUPREMACY RULE
 
-TT exists because classrooms cannot condition individual responses.
+Response Integrity exists because classrooms cannot condition individual responses.
 
 Therefore:
 
@@ -53,9 +53,9 @@ Therefore:
 
 ### ARTICLE IV: DISCIPLINE OVER DELIGHT
 
-TT does not optimise for: fun, ease, addiction, or “user happiness”.
+Response Integrity does not optimise for: fun, ease, addiction, or “user happiness”.
 
-TT optimises for:
+Response Integrity optimises for:
 
 - Calm execution
 - Deliberate pacing
@@ -102,7 +102,7 @@ If it can’t be measured, it can’t be defended.
 
 ### ARTICLE VI: SCHOOLS ARE PARTNERS, NOT USERS
 
-Technology must reflect TT’s non‑competitive posture toward schools.
+Technology must reflect Response Integrity’s non‑competitive posture toward schools.
 
 Therefore:
 
@@ -110,7 +110,7 @@ Therefore:
 - No features that mimic school grading authority
 - No curriculum claims beyond execution training
 
-TT systems must be:
+Response Integrity systems must be:
 
 - Referable
 - Explainable
@@ -123,7 +123,7 @@ Schools should feel relief, not exposure.
 
 ### ARTICLE VII: HIGH SCHOOL LEADERSHIP INTEGRITY CLAUSE
 
-Because TT trains top‑performing high school students:
+Because Response Integrity trains top‑performing high school students:
 
 - Any system must protect their own academic performance first.
 - No workload that risks academic decline.
@@ -133,13 +133,13 @@ If a student’s grades drop: they pause. They are not “pushed through.”
 
 Leadership is revoked, not negotiated.
 
-Leadership at TT is conditional, not honorary.
+Leadership at Response Integrity is conditional, not honorary.
 
 ---
 
 ### ARTICLE VIII: PREMIUM WITHOUT APOLOGY
 
-TT charges premium because:
+Response Integrity charges premium because:
 
 - One‑on‑one attention is scarce
 - Emotional labour is real
@@ -160,7 +160,7 @@ This is serious work, not supplementary help.
 
 ### ARTICLE IX: PRIVATE INSTITUTION SOVEREIGNTY
 
-TT does not wait for government legitimacy to operate.
+Response Integrity does not wait for government legitimacy to operate.
 
 Therefore:
 
@@ -190,7 +190,7 @@ Therefore:
 - No tool is permanent
 - No system survives if it violates Articles I–IX
 
-TT is system‑led, not tool‑led.
+Response Integrity is system‑led, not tool‑led.
 
 ---
 
@@ -210,7 +210,7 @@ If the answer to any is no -you don’t build it.
 
 ## FINAL TRUTH (BRUTAL, BUT NECESSARY)
 
-TT is not bold because it’s innovative.
+Response Integrity is not bold because it’s innovative.
 
 It’s bold because it refuses to soften standards to scale faster.
 

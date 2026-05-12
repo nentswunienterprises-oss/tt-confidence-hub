@@ -1,8 +1,8 @@
-TT-OS BATTLE TEST: LOGGING SYSTEM (SCORING VERSION)
+Response Integrity-OS BATTLE TEST: LOGGING SYSTEM (SCORING VERSION)
 ≡ƒö╣ SECTION A ΓÇö CORE UNDERSTANDING
 Q1
 
-What is the purpose of logging in TT?
+What is the purpose of logging in Response Integrity?
 
 Expected Answer:
 To create an objective record of student performance that drives training decisions and prevents tutor drift.

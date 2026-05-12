@@ -555,7 +555,7 @@ export default function PodDetail() {
   }, [authLoading, isAuthenticated, navigate, toast]);
 
   useEffect(() => {
-    console.log("📊 Pod detail data loaded:");
+    console.log("Pod detail data loaded:");
     console.log("  - assignedTutorIds:", assignedTutorIds);
     console.log("  - assignedTutorsLoading:", assignedTutorsLoading);
     console.log("  - approvedTutors:", approvedTutors?.length);
@@ -658,7 +658,7 @@ export default function PodDetail() {
     },
   });
 
-  // Delete Pod mutation (soft delete) ✅
+  // Delete Pod mutation (soft delete)
   const deletePodMutation = useMutation({
     mutationFn: async () => {
       await apiRequest("DELETE", `/api/coo/pods/${podId}`);
@@ -691,7 +691,6 @@ export default function PodDetail() {
         title: "TD battle test saved",
         description: "TD system-integrity results were logged successfully.",
       });
-      setTdBattleTestOpen(false);
     },
     onError: (error: any) => {
       toast({
@@ -836,10 +835,10 @@ export default function PodDetail() {
   const operatingOverview = podOperatingOverview.find((entry: any) => entry.podId === podId);
 
   // Debug logging
-  console.log("🔍 Approved tutors:", approvedTutors?.map((t: any) => ({ id: t.id, name: t.name })));
-  console.log("🔍 Assigned tutor IDs (raw):", assignedTutorIds);
-  console.log("🔍 Is assignedTutorIds an array?", Array.isArray(assignedTutorIds));
-  console.log("🔍 Assigned tutor IDs type:", typeof assignedTutorIds);
+  console.log("Approved tutors:", approvedTutors?.map((t: any) => ({ id: t.id, name: t.name })));
+  console.log("Assigned tutor IDs (raw):", assignedTutorIds);
+  console.log("Is assignedTutorIds an array?", Array.isArray(assignedTutorIds));
+  console.log("Assigned tutor IDs type:", typeof assignedTutorIds);
   
   const availableTutors = approvedTutors?.filter((tutor) => {
     // Ensure we're comparing strings to strings
@@ -849,9 +848,9 @@ export default function PodDetail() {
       : false;
     
     if (!isInList) {
-      console.log(`✅ ${tutor.name} (${tutor.id}): NOT assigned - will show in dialog`);
+      console.log(`[available] ${tutor.name} (${tutor.id}): NOT assigned - will show in dialog`);
     } else {
-      console.log(`❌ ${tutor.name} (${tutor.id}): ASSIGNED - will NOT show in dialog`);
+      console.log(`[assigned] ${tutor.name} (${tutor.id}): ASSIGNED - will NOT show in dialog`);
     }
     return !isInList;
   }) || [];

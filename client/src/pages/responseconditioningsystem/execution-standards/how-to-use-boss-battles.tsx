@@ -25,7 +25,7 @@ export default function ResponseConditioningHowToUseBossBattles() {
             </div>
             <div>
               <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">
-                TT-OS Deep Dive
+                Response Integrity-OS Deep Dive
               </p>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-1">
                 How to Use Boss Battles
@@ -353,7 +353,7 @@ export default function ResponseConditioningHowToUseBossBattles() {
           <p className="text-muted-foreground">Then:</p>
           <p className="font-semibold">you are not training response</p>
           <p className="text-muted-foreground">You are protecting comfort.</p>
-          <p className="text-muted-foreground">And TT does not protect comfort.</p>
+          <p className="text-muted-foreground">And Response Integrity does not protect comfort.</p>
           <p className="text-muted-foreground">It builds:</p>
           <p className="font-bold text-lg">capability under pressure</p>
         </Card>

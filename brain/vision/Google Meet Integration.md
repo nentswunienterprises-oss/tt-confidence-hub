@@ -38,7 +38,7 @@ Your current app already does this. Intro diagnosis requires confirmed intro boo
 
 3. Deterministic engine layer
 
-This is your locked TT-OS runtime.
+This is your locked Response Integrity-OS runtime.
 
 It answers:
 
@@ -64,7 +64,7 @@ enter drill runner
 
 Now that needs one extra operational condition:
 
-A valid scheduled TT session must exist right now, or be explicitly attached, before the runner opens in live mode.
+A valid scheduled Response Integrity session must exist right now, or be explicitly attached, before the runner opens in live mode.
 
 That’s it.
 
@@ -118,7 +118,7 @@ So the new truth becomes:
 
 assignment accepted
 intro booking confirmed
-backend creates TT Meet event
+backend creates Response Integrity Meet event
 system stores scheduled_session(session_kind='intro')
 tutor adds diagnostic topic
 at session time, tutor clicks Join Intro Session
@@ -146,7 +146,7 @@ So add a lightweight weekly scheduling layer before those buttons are truly usab
 
 New training flow
 parent confirms two weekly slots
-backend creates two scheduled_session rows with TT Meet links
+backend creates two scheduled_session rows with Response Integrity Meet links
 student card / tutor dashboard shows upcoming sessions
 at scheduled time, tutor opens that session
 inside that live session screen, tutor chooses:
@@ -200,7 +200,7 @@ rules
 observations
 submit
 
-Nothing else. That is your TT-OS execution chamber.
+Nothing else. That is your Response Integrity-OS execution chamber.
 
 Add a new wrapper screen
 
@@ -302,7 +302,7 @@ If you force booking into that engine:
 you pollute drill runner state
 you mix compliance state with pedagogy state
 you make deterministic reporting dirty
-you create drift in TT-OS
+you create drift in Response Integrity-OS
 
 Bad move.
 
@@ -365,14 +365,14 @@ per-topic scoring and state movement on submit
 So the implementation is:
 
 Lesson scheduling + Meet + recording = outer shell
-TT drill runner + scoring + state engine = inner core
+Response Integrity drill runner + scoring + state engine = inner core
 
 REPO IMPLEMENTATION SPEC
 1. Architectural rule
 
 Add a new domain layer:
 
-Scheduled Lesson = real-world TT lesson on Meet
+Scheduled Lesson = real-world Response Integrity lesson on Meet
 Training Session Run = multi-topic drill container inside lesson
 Drill Run = per-topic execution unit already aligned to your engine
 

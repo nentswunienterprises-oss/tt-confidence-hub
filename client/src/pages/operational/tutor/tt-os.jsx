@@ -1,3 +1,3 @@
-import * as moduleExports from './tt-os.tsx';
-export * from './tt-os.tsx';
+import * as moduleExports from './Response Integrity-os.tsx';
+export * from './Response Integrity-os.tsx';
 export default moduleExports.default;

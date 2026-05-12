@@ -11,7 +11,7 @@ export default function MediaLanding() {
             className="text-6xl md:text-7xl tracking-tight text-[#1A1A1A]"
             style={{ fontFamily: 'Anton, sans-serif' }}
           >
-            TT MEDIA
+            Response Integrity MEDIA
           </h1>
           <div className="h-1 w-24 bg-[#E63946]"></div>
         </div>

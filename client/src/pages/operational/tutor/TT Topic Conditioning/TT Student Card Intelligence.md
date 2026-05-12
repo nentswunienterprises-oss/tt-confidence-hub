@@ -1,4 +1,4 @@
-TT Student Card Intelligence
+Response Integrity Student Card Intelligence
 Active Training State
 
 This is the tutor’s control panel for one student after:
@@ -61,7 +61,7 @@ No clutter.
 1. Topic Conditioning
 The operating core
 
-This is where TT lives.
+This is where Response Integrity lives.
 
 Tab A -Map
 
@@ -140,7 +140,7 @@ Medium
 High
 4. Compressed State Summary
 
-This is the TT Next Action Engine in visible form.
+This is the Response Integrity Next Action Engine in visible form.
 
 Example:
 

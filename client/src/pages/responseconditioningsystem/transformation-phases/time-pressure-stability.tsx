@@ -113,7 +113,7 @@ export default function ResponseConditioningTimePressureStability() {
             </div>
             <div>
               <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">
-                TT-OS Deep Dive
+                Response Integrity-OS Deep Dive
               </p>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-1">
                 Time Pressure Stability
@@ -278,7 +278,7 @@ export default function ResponseConditioningTimePressureStability() {
           </ul>
           <p className="font-medium">
             Audit failure can lead to session invalidation and suspension, and repeated or severe
-            violations can justify permanent TT platform ban or blacklisting.
+            violations can justify permanent Response Integrity platform ban or blacklisting.
           </p>
         </Card>
       </div>

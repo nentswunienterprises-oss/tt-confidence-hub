@@ -1,8 +1,8 @@
-TT-OS BATTLE TEST: SESSION CONTEXT & DRILL FLOW (SCORING VERSION)
+Response Integrity-OS BATTLE TEST: SESSION CONTEXT & DRILL FLOW (SCORING VERSION)
 ≡ƒö╣ SECTION A ΓÇö CORE UNDERSTANDING
 Q1
 
-What is session flow control in TT?
+What is session flow control in Response Integrity?
 
 Expected Answer:
 The discipline of following a planned phase sequence without deviation unless performance data forces a change.

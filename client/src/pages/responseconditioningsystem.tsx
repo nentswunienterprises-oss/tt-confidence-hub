@@ -165,7 +165,7 @@ export default function ResponseConditioningSystem() {
               <div className="space-y-2">
                 <h2 className="font-bold text-lg">Gate Access</h2>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  TT-OS is the internal operating system tutors are expected to follow. This page is
+                  Response Integrity-OS is the internal operating system tutors are expected to follow. This page is
                   the entry point. Each section below links to a deeper operating page. Use this as
                   the map, not as a shortcut summary.
                 </p>

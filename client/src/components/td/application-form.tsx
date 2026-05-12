@@ -59,7 +59,7 @@ const questionFields: Array<{ key: keyof ApplicationFormData; label: string }> =
   { key: "unpopularEnforcementCase", label: "Q12. Describe a situation where you had to enforce something unpopular. What happened?" },
   { key: "noRescueExplanation", label: 'Q13. Explain in a structured way: "Why must a student not be rescued during difficulty?"' },
   { key: "moreDangerousTutor", label: 'Q14. What is more dangerous: a weak tutor, or a slightly wrong tutor who seems "good"?' },
-  { key: "systemDestructionFactors", label: "Q15. What would slowly destroy a system like TT over time?" },
+  { key: "systemDestructionFactors", label: "Q15. What would slowly destroy a system like Response Integrity over time?" },
   { key: "trustReason", label: "Q17. Why should you be trusted to protect a system like this?" },
 ];
 
@@ -217,7 +217,7 @@ export function TdApplicationForm({ onSuccess, onCancel }: Props) {
     <div className="mx-auto max-w-4xl">
       <div className="mb-6 rounded-2xl border border-[#F1D2C7] bg-[#FFF6F1] p-5 text-sm text-[#5A5A5A]">
         <p>This is not a tutoring role. This is a system leadership role.</p>
-        <p className="mt-3">TT is looking for calm, structured operators who can enforce standards directly and think in systems, not sessions.</p>
+        <p className="mt-3">Response Integrity is looking for calm, structured operators who can enforce standards directly and think in systems, not sessions.</p>
         <p className="mt-3 font-semibold text-[#1A1A1A]">If you avoid conflict or soften standards, this role is not for you.</p>
       </div>
 

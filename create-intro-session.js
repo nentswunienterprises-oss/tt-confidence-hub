@@ -43,7 +43,7 @@ export async function createIntroSessionEvent({
       dateTime: endDateTime,
       timeZone: 'Africa/Johannesburg',
     },
-    attendees: [
+    aResponse Integrityendees: [
       { email: parentEmail },
       { email: tutorEmail },
     ],

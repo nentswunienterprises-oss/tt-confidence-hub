@@ -350,9 +350,9 @@ FINAL DEV LINE
 
 Reports must be generated from drill-level state transitions per topic, not from session summaries. Sessions are containers; drills are the source of truth. Weekly and monthly reports must aggregate topic progression using drill scores, stability transitions, and observation patterns
 
-TT Drift Correction Spec
+Response Integrity Drift Correction Spec
 
-Implement TT as a drill-driven topic-state system where each drill updates phase/stability deterministically, High Maintenance acts as the required gate before phase progression, phase progression always enters the next phase at Low, reports remain topic-centered, and parent UI translates internal state into fixed meaning without leaking engine language.
+Implement Response Integrity as a drill-driven topic-state system where each drill updates phase/stability deterministically, High Maintenance acts as the required gate before phase progression, phase progression always enters the next phase at Low, reports remain topic-centered, and parent UI translates internal state into fixed meaning without leaking engine language.
 
 1. Locked Transition Engine Update
 Inputs
@@ -1153,7 +1153,7 @@ Monthly reports must be topic-centered.
 
 Final implementation sentence
 
-Implement TT as a drill-driven topic-state system where each drill updates phase/stability deterministically, High Maintenance acts as the required gate before phase progression, phase progression always enters the next phase at Low, reports remain topic-centered, and parent UI translates internal state into fixed meaning without leaking engine language.
+Implement Response Integrity as a drill-driven topic-state system where each drill updates phase/stability deterministically, High Maintenance acts as the required gate before phase progression, phase progression always enters the next phase at Low, reports remain topic-centered, and parent UI translates internal state into fixed meaning without leaking engine language.
 
 
 

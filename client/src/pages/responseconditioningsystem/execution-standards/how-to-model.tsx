@@ -25,7 +25,7 @@ export default function ResponseConditioningHowToModel() {
             </div>
             <div>
               <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">
-                TT-OS Deep Dive
+                Response Integrity-OS Deep Dive
               </p>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-1">
                 How to Model
@@ -263,7 +263,7 @@ export default function ResponseConditioningHowToModel() {
           </ul>
           <p className="text-muted-foreground">Then:</p>
           <p className="font-semibold">you did not model. You explained.</p>
-          <p className="text-muted-foreground">And TT does not rely on explanation.</p>
+          <p className="text-muted-foreground">And Response Integrity does not rely on explanation.</p>
           <p className="text-muted-foreground">It relies on:</p>
           <p className="font-bold text-lg">clear, repeatable structure</p>
         </Card>

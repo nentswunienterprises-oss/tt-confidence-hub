@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { TTLogo } from "@/components/ResponseIntegrityLogo";
+import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
@@ -104,7 +104,7 @@ export default function LeadershipDevelopmentPilot() {
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 py-3 sm:py-4 flex items-center justify-between">
           <div className="flex-shrink-0 ml-3 md:ml-0">
-            <TTLogo size="lg" variant="integrity" />
+            <ResponseIntegrityLogo size="lg" variant="integrity" />
           </div>
 
           <div className="hidden md:block">
@@ -159,7 +159,7 @@ export default function LeadershipDevelopmentPilot() {
             <ul>
               <li>Panic habits under assessment</li>
               <li>Fragile execution under pressure</li>
-              <li>Avoidance patterns disguised as “discipline issues”</li>
+              <li>Avoidance patterns disguised as â€œdiscipline issuesâ€</li>
               <li>A quiet belief that school is something to survive, not master</li>
             </ul>
 
@@ -234,7 +234,7 @@ export default function LeadershipDevelopmentPilot() {
               </li>
               <li>
                 <strong>Institutional Reputation (Earned, Not Marketed)</strong>
-                <p>High schools can truthfully say: “Our students are selected and trained to serve as academic leaders in early intervention.”</p>
+                <p>High schools can truthfully say: â€œOur students are selected and trained to serve as academic leaders in early intervention.â€</p>
               </li>
               <li>
                 <strong>Reducing Warehousing</strong>
@@ -261,7 +261,7 @@ export default function LeadershipDevelopmentPilot() {
               <li>Term-based pilot</li>
               <li>Clear governance and scope</li>
               <li>No curriculum interference</li>
-              <li>Full operational oversight by TT</li>
+              <li>Full operational oversight by Response Integrity</li>
               <li>Zero admin for highschools</li>
             </ul>
 
@@ -340,7 +340,7 @@ export default function LeadershipDevelopmentPilot() {
                     <li>Confirm suitability for the pilot</li>
                     <li>Clarify selection and training framework</li>
                     <li>Align on term-based timing and scope</li>
-                    <li>Discuss how this could align with your school’s leadership and academic objectives</li>
+                    <li>Discuss how this could align with your schoolâ€™s leadership and academic objectives</li>
                   </ul>
 
                   <p className="mt-3">This submission does not commit your school to participation. It initiates a consideration process.</p>
@@ -361,3 +361,4 @@ export default function LeadershipDevelopmentPilot() {
     </div>
   );
 }
+

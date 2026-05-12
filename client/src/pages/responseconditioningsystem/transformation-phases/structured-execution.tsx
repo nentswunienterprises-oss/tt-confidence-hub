@@ -113,7 +113,7 @@ export default function ResponseConditioningStructuredExecution() {
             </div>
             <div>
               <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">
-                TT-OS Deep Dive
+                Response Integrity-OS Deep Dive
               </p>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-1">
                 Structured Execution
@@ -277,7 +277,7 @@ export default function ResponseConditioningStructuredExecution() {
           </ul>
           <p className="font-medium">
             Flagged non-compliance can lead to failed audits, suspension from active training,
-            and for repeated or severe breaches, permanent ban or blacklisting from the TT platform.
+            and for repeated or severe breaches, permanent ban or blacklisting from the Response Integrity platform.
           </p>
         </Card>
       </div>

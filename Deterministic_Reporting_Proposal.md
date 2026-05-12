@@ -4,9 +4,9 @@ This document proposes a cleaner, clearer deterministic reporting model for the 
 
 ## The Deterministic Engine Explained Simply
 
-TT's system is a response-conditioning engine. It doesn't just teach topics-it trains how students behave when difficulty appears in those topics. The engine tracks two things per topic: **Phase** (where the student breaks) and **Stability** (how reliably they hold it together).
+Response Integrity's system is a response-conditioning engine. It doesn't just teach topics-it trains how students behave when difficulty appears in those topics. The engine tracks two things per topic: **Phase** (where the student breaks) and **Stability** (how reliably they hold it together).
 
-### Phases (From TT-OS Deep Dives)
+### Phases (From Response Integrity-OS Deep Dives)
 - **Clarity**: Student sees the problem clearly (vocabulary, method, reason). Breaks when they can't name terms or state steps. Prevents collapse under pressure.
 - **Structured Execution**: Student executes independently. Breaks when they hesitate or forget steps. Forces action with Model → Apply → Guide.
 - **Controlled Discomfort**: Student handles difficulty without rescue. Breaks when they panic or guess. Uses Boss Battles to train stability.
@@ -112,8 +112,8 @@ Use these parent-friendly sections:
 - `Probability is still at Time Pressure Stability (Low); we are continuing time-pressure practice there.`
 - `Next month we will prioritize drills in Geometry and Time Pressure Stability while maintaining Algebra.`
 
-### Revised parent-facing templates with TT identity
-To maintain TT's unique identity (response conditioning under uncertainty) without jargon, the templates emphasize behavioral stability and response patterns in a natural way. This keeps them clear and reassuring while distinguishing from generic tutoring.
+### Revised parent-facing templates with Response Integrity identity
+To maintain Response Integrity's unique identity (response conditioning under uncertainty) without jargon, the templates emphasize behavioral stability and response patterns in a natural way. This keeps them clear and reassuring while distinguishing from generic tutoring.
 
 #### Revised Weekly Template
 - `This week we focused on building stronger responses in 2 topics through 2 targeted drills.`

@@ -12,7 +12,7 @@ You will be responsible for:
 enforcing how tutors operate
 maintaining system integrity
 identifying breakdowns in both students and tutors
-refining the TT training engine
+refining the Response Integrity training engine
 
 You will:
 
@@ -180,7 +180,7 @@ Explain why.
 
 Q15
 
-What would slowly destroy a system like TT over time?
+What would slowly destroy a system like Response Integrity over time?
 
 Looking for:
 
@@ -215,7 +215,7 @@ PASS
 FAIL
 CATEGORY 1 -System Alignment
 
-Do they understand TT deeply?
+Do they understand Response Integrity deeply?
 
 CATEGORY 2 -Enforcement Mindset
 

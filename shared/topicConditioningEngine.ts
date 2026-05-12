@@ -39,7 +39,7 @@ export type TransitionReason =
 export const FINAL_PHASE: TopicPhase = "Time Pressure Stability";
 
 /**
- * Locked Transition Engine - TT Drift Correction Spec
+ * Locked Transition Engine - Response Integrity Drift Correction Spec
  * Inputs: previous_phase, previous_stability, drill_total_out_of_100
  * Outputs: next_phase, next_stability, transition_reason
  */
@@ -129,7 +129,7 @@ const getNextPhase = (currentPhase: TopicPhase): TopicPhase => {
 };
 
 /**
- * Observation to Language Mapping - TT Drift Correction Spec
+ * Observation to Language Mapping - Response Integrity Drift Correction Spec
  * Maps raw observation signals to deterministic behavior language
  */
 export type ObservationSignal = {

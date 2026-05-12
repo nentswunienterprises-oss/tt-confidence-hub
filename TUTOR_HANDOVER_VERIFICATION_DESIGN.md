@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines how TT should handle student reassignment from one tutor to another after intro diagnosis and active training have already begun.
+This document defines how Response Integrity should handle student reassignment from one tutor to another after intro diagnosis and active training have already begun.
 
 The core principle is:
 
@@ -130,7 +130,7 @@ But:
 
 Handover verification should trigger when:
 
-- a student with existing TT topic-state is assigned to a new tutor
+- a student with existing Response Integrity topic-state is assigned to a new tutor
 
 The requirement should apply when at least one of these is true:
 
@@ -176,7 +176,7 @@ Then:
 
 Suggested wording:
 
-`A new tutor is being assigned to continue your child’s TT program. Your child’s progress and training history remain in place.`
+`A new tutor is being assigned to continue your child’s Response Integrity program. Your child’s progress and training history remain in place.`
 
 #### State: Continuity Check
 
@@ -188,7 +188,7 @@ Suggested wording:
 
 Suggested wording:
 
-`Training has resumed with the new tutor using your child’s existing TT progress history.`
+`Training has resumed with the new tutor using your child’s existing Response Integrity progress history.`
 
 This keeps the parent oriented correctly.
 
@@ -468,7 +468,7 @@ Do not:
 
 ## System Rule Summary
 
-When tutor changes for an already active TT student:
+When tutor changes for an already active Response Integrity student:
 
 1. preserve all diagnosis and training history
 2. mark student as reassigned

@@ -27,7 +27,7 @@ const DOC_ROOT = resolve(process.cwd(), "onboarding");
 export const TUTOR_ONBOARDING_DOCUMENTS: TutorOnboardingDocumentDefinition[] = [
   {
     step: 1,
-    code: "TT-TCF-001",
+    code: "Response Integrity-TCF-001",
     title: "Tutor Consent Form",
     fileName: "TT-TCF-001.txt",
     version: "1",
@@ -36,13 +36,13 @@ export const TUTOR_ONBOARDING_DOCUMENTS: TutorOnboardingDocumentDefinition[] = [
     mandatoryClauses: [
       {
         key: "platform_rules",
-        label: "I acknowledge that I must operate inside TT's platform rules and system requirements.",
+        label: "I acknowledge that I must operate inside Response Integrity's platform rules and system requirements.",
       },
     ],
   },
   {
     step: 2,
-    code: "TT-EQV-002",
+    code: "Response Integrity-EQV-002",
     title: "Entry Qualification Verification",
     fileName: "TT-EQV-002.md",
     version: "1",
@@ -54,17 +54,17 @@ export const TUTOR_ONBOARDING_DOCUMENTS: TutorOnboardingDocumentDefinition[] = [
     mandatoryClauses: [
       {
         key: "qualification_truthfulness",
-        label: "I confirm that the qualification information and supporting claims I provide to TT must be truthful.",
+        label: "I confirm that the qualification information and supporting claims I provide to Response Integrity must be truthful.",
       },
       {
         key: "matric_certificate_submission",
-        label: "I confirm that I am submitting a certified copy of my official Matric certificate for TT verification.",
+        label: "I confirm that I am submitting a certified copy of my official Matric certificate for Response Integrity verification.",
       },
     ],
   },
   {
     step: 3,
-    code: "TT-ICA-003",
+    code: "Response Integrity-ICA-003",
     title: "Independent Contractor Agreement",
     fileName: "TT-ICA-003.md",
     version: "1",
@@ -73,21 +73,21 @@ export const TUTOR_ONBOARDING_DOCUMENTS: TutorOnboardingDocumentDefinition[] = [
     mandatoryClauses: [
       {
         key: "independent_contractor_status",
-        label: "I acknowledge that I am engaged as an independent contractor, not an employee of TT.",
+        label: "I acknowledge that I am engaged as an independent contractor, not an employee of Response Integrity.",
       },
       {
         key: "tt_platform_control",
-        label: "I agree that TT controls the platform environment, session structure, and assignment flow.",
+        label: "I agree that Response Integrity controls the platform environment, session structure, and assignment flow.",
       },
       {
         key: "no_circumvention",
-        label: "I may not take TT learners or parents off-platform or use TT relationships outside TT.",
+        label: "I may not take assigned learners or parents off-platform or use platform relationships for off-platform activity.",
       },
     ],
   },
   {
     step: 4,
-    code: "TT-SCP-004",
+    code: "Response Integrity-SCP-004",
     title: "Safeguarding and Conduct Policy",
     fileName: "TT-SCP-004.md",
     version: "1",
@@ -96,7 +96,7 @@ export const TUTOR_ONBOARDING_DOCUMENTS: TutorOnboardingDocumentDefinition[] = [
     mandatoryClauses: [
       {
         key: "platform_only_contact",
-        label: "I will keep all learner and parent communication inside TT-approved channels only.",
+        label: "I will keep all learner and parent communication inside approved Response Integrity channels only.",
       },
       {
         key: "zero_tolerance",
@@ -106,7 +106,7 @@ export const TUTOR_ONBOARDING_DOCUMENTS: TutorOnboardingDocumentDefinition[] = [
   },
   {
     step: 5,
-    code: "TT-DPC-005",
+    code: "Response Integrity-DPC-005",
     title: "Data Protection / POPIA Consent",
     fileName: "TT-DPC-005.md",
     version: "1",
@@ -115,17 +115,17 @@ export const TUTOR_ONBOARDING_DOCUMENTS: TutorOnboardingDocumentDefinition[] = [
     mandatoryClauses: [
       {
         key: "data_handling",
-        label: "I acknowledge that learner data, recordings, and operational data must be handled only for TT's lawful purposes.",
+        label: "I acknowledge that learner data, recordings, and operational data must be handled only for Response Integrity's lawful purposes.",
       },
       {
         key: "no_external_storage",
-        label: "I may not store, share, or process TT learner data outside TT-approved systems.",
+        label: "I may not store, share, or process learner data outside approved Response Integrity systems.",
       },
     ],
   },
   {
     step: 6,
-    code: "TT-CID-006",
+    code: "Response Integrity-CID-006",
     title: "Certified ID Copy",
     fileName: "",
     version: "1",

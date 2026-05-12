@@ -12,7 +12,7 @@ export default function ParentUpdates() {
       <CommunicationInbox
         audience="parent"
         title="Parent Inbox"
-        description="Messaging with your tutor and TT platform updates live in one place."
+        description="Messaging with your tutor and Response Integrity platform updates live in one place."
         queryKey={["/api/parent/communications"]}
         getPath="/api/parent/communications"
         postPath="/api/parent/communications"

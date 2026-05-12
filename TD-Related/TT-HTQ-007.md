@@ -1,18 +1,18 @@
-TT-HTQ-007 - HEAD OF TRAINING & QUALITY
+Response Integrity-HTQ-007 - HEAD OF TRAINING & QUALITY
 AGREEMENT
 This Agreement is entered into between:
-Territorial Tutoring SA (Pty) Ltd (“TT”)
+Territorial Tutoring SA (Pty) Ltd (“Response Integrity”)
 and
 _______________________________________ (“Head of Training & Quality” / “HTQ”)
 Effective Date: ______________________
 1. APPOINTMENT
 The Individual is hereby appointed as:
 Head of Training & Quality (HTQ)
-This role holds system-wide responsibility for TT-OS integrity across all pods and
+This role holds system-wide responsibility for Response Integrity-OS integrity across all pods and
 Territory Directors.
 2. ROLE & AUTHORITY
 The HTQ is responsible for:
-Enforcing TT-OS across all pods
+Enforcing Response Integrity-OS across all pods
 Auditing Territory Directors
 Maintaining tutor execution quality at scale
 Detecting and eliminating system drift
@@ -75,7 +75,7 @@ Operational override of CEO
 Strategic decision authority
 All governance remains subject to company structure.
 7. TERMINATION
-TT may remove the HTQ at any time in cases including:
+Response Integrity may remove the HTQ at any time in cases including:
 System quality degradation
 Failure to enforce standards
 Loss of operational independence
@@ -85,7 +85,7 @@ All prior confidentiality and system protection obligations remain fully enforce
 9. FINAL AUTHORITY
 The HTQ acknowledges:
 
-The system belongs to TT
+The system belongs to Response Integrity
 Authority is granted based on performance
 Continuation in role is conditional on maintaining system integrity
 10. ACKNOWLEDGEMENT
@@ -97,7 +97,7 @@ Signed at __________________________ on this ______ day of ______________ 2026.
 _____________________________________
 Territory Director
 For and on behalf of Territorial Tutoring SA (Pty) Ltd
-TT Representative Signature: ______________________
+Response Integrity Representative Signature: ______________________
 Print Name: Thendo Nentswuni
 Date: ____________________
-Document Reference: TT-HTQ-007
+Document Reference: Response Integrity-HTQ-007

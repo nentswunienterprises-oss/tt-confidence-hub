@@ -23,6 +23,8 @@ import {
   MessageSquare,
   GraduationCap,
   Shield,
+  BookOpen,
+  Lightbulb,
 } from "lucide-react";
 import { MobileBottomNav } from "./mobile-bottom-nav";
 import { useAuth } from "@/hooks/useAuth";
@@ -219,7 +221,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   useEffect(() => {
     if (!usesNotificationInbox || !visibleNotifications.length) return;
 
-    const currentIds = new Set(visibleNotifications.map((notification) => notification.id));
+    const currentIds = new Set<string>(visibleNotifications.map((notification) => notification.id));
 
     if (!notificationsInitialized.current) {
       notificationsInitialized.current = true;

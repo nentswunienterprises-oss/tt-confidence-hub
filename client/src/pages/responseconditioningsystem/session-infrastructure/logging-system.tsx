@@ -1813,7 +1813,7 @@ export default function ResponseConditioningLoggingSystem() {
             </div>
             <div>
               <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
-                TT-OS Deep Dive
+                Response Integrity-OS Deep Dive
               </p>
               <h1 className="mt-1 text-3xl font-bold tracking-tight md:text-4xl">Logging System</h1>
               <p className="mt-1 text-muted-foreground">
@@ -2034,7 +2034,7 @@ export default function ResponseConditioningLoggingSystem() {
         <Card className="space-y-4 border-2 border-primary/20 p-6">
           <h2 className="text-2xl font-bold">Audit Relevance</h2>
           <p className="text-muted-foreground">
-            Because TT logging is tied directly to evidence and system output, dishonest logging
+            Because Response Integrity logging is tied directly to evidence and system output, dishonest logging
             means dishonest evidence capture. That is a compliance issue, not a note-taking issue.
           </p>
           <ul className="space-y-1 pl-4 text-muted-foreground">

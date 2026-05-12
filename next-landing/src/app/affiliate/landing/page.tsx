@@ -13,13 +13,13 @@ const disqualifiers = [
   "You want a salary instead of performance-linked earning.",
   "You need persuasion tactics to force conversations forward.",
   "You want easy money without system discipline.",
-  "You want to position TT where genuine need is not present.",
+  "You want to position Response Integrity where genuine need is not present.",
 ];
 
 const rolePoints = [
   "You identify real need.",
   "You qualify families accurately.",
-  "You move the right students into the TT system.",
+  "You move the right students into the Response Integrity system.",
 ];
 
 const nonRolePoints = [
@@ -136,7 +136,7 @@ export default function AffiliateLanding() {
                     </div>
                     <div className="rounded-[22px] border border-[#E6D4C7] bg-white/72 p-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8A4B35]">Positioning</p>
-                      <p className="mt-2 text-sm leading-6 text-[#4F4742]">You work inside a defined TT system, not an improvised pitch.</p>
+                      <p className="mt-2 text-sm leading-6 text-[#4F4742]">You work inside a defined Response Integrity system, not an improvised pitch.</p>
                     </div>
                     <div className="rounded-[22px] border border-[#E6D4C7] bg-white/72 p-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8A4B35]">Earnings</p>
@@ -244,7 +244,7 @@ export default function AffiliateLanding() {
                   </div>
                 </div>
                 <div className="mt-6 rounded-[24px] border border-[#E6D1BF] bg-[#F7ECE1] px-5 py-4">
-                  <p className="text-sm leading-7 text-[#483E38]">You operate at the front of the TT system. Your value is not noise. It is accurate placement.</p>
+                  <p className="text-sm leading-7 text-[#483E38]">You operate at the front of the Response Integrity system. Your value is not noise. It is accurate placement.</p>
                 </div>
               </div>
 
@@ -280,7 +280,7 @@ export default function AffiliateLanding() {
                   <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#FFB5A6]">Operating principle</p>
                   <h2 className="mt-3 text-3xl font-bold leading-tight sm:text-4xl">If there is no need, you walk away.</h2>
                   <p className="mt-5 max-w-xl text-sm leading-8 text-white/72 sm:text-base">
-                    TT does not need more conversations. It needs the right conversations. The system works when operators listen properly, disqualify early, and stay locked in only where the fit is real.
+                    Response Integrity does not need more conversations. It needs the right conversations. The system works when operators listen properly, disqualify early, and stay locked in only where the fit is real.
                   </p>
                 </div>
 

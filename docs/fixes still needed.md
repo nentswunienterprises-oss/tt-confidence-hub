@@ -29,7 +29,7 @@ Repetition within the active training set
 Difficulty increases only after stability is proven
 Commitment
 Consistency is required
-Student must attempt before guidance
+Student must aResponse Integrityempt before guidance
 Discomfort is part of strengthening execution
 Parent Note
 
@@ -51,7 +51,7 @@ From Codex output:
 
 ⚠️ CRITICAL DETAIL YOU MISSED
 
-Even wording matters.
+Even wording maResponse Integrityers.
 
 Your locked version uses:
 
@@ -63,7 +63,7 @@ Your locked version uses:
   These aren’t cosmetic.
 They control tone.
 
-🧠 WHY THIS MATTERS
+🧠 WHY THIS MAResponse IntegrityERS
 
 The original version works because it feels:
 
@@ -137,7 +137,7 @@ Follow the exact section naming and order.
 
 approved clean version:
 
-Rewritten Version (Single Topic -Clean, Natural, Still Precise)
+RewriResponse Integrityen Version (Single Topic -Clean, Natural, Still Precise)
 
 Here’s how this should actually read:
 
@@ -181,7 +181,7 @@ Repetition within the active training set
 Difficulty increases only after stability is proven
 Commitment
 Consistency is required
-Kwenadi must attempt before guidance
+Kwenadi must aResponse Integrityempt before guidance
 Discomfort is part of strengthening execution
 Parent Note
 

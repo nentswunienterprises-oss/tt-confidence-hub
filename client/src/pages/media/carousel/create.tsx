@@ -59,7 +59,7 @@ interface CarouselSlide {
   elements: SlideElement[];
 }
 
-const TT_COLORS = [
+const RESPONSE_INTEGRITY_COLORS = [
   { id: "pink", value: "#FFF0F0", label: "Light Pink" },
   { id: "white", value: "#FFFFFF", label: "White" },
   { id: "red", value: "#E63946", label: "Red" },
@@ -1295,7 +1295,7 @@ export default function CarouselCreate() {
                                 <div>
                                   <h3 className="text-white text-sm font-medium mb-3">Apply Color to Selected Text</h3>
                                   <div className="grid grid-cols-4 gap-2">
-                                    {TT_COLORS.map((color) => (
+                                    {RESPONSE_INTEGRITY_COLORS.map((color) => (
                                       <button
                                         key={color.id}
                                         onClick={() => applyColorToSelection(color.value)}
@@ -1392,7 +1392,7 @@ export default function CarouselCreate() {
                           <div>
                             <h3 className="text-white text-sm font-medium mb-3">Circle Color</h3>
                             <div className="grid grid-cols-4 gap-2">
-                              {TT_COLORS.map((color) => (
+                              {RESPONSE_INTEGRITY_COLORS.map((color) => (
                                 <button
                                   key={color.id}
                                   onClick={() => updateElement(element.id, { color: color.value })}
@@ -1408,7 +1408,7 @@ export default function CarouselCreate() {
                           <div>
                             <h3 className="text-white text-sm font-medium mb-3">Arrow Color</h3>
                             <div className="grid grid-cols-4 gap-2">
-                              {[...TT_COLORS, { id: "dark", value: "#1A1A1A", label: "Dark" }].map((color) => (
+                              {[...RESPONSE_INTEGRITY_COLORS, { id: "dark", value: "#1A1A1A", label: "Dark" }].map((color) => (
                                 <button
                                   key={color.id}
                                   onClick={() => updateElement(element.id, { arrowColor: color.value })}

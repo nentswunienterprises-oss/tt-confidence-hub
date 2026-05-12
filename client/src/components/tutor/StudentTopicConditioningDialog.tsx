@@ -1955,7 +1955,7 @@ export default function StudentTopicConditioningDialog({
                       <div>
                         <p className="text-sm font-medium">Training Mode</p>
                         <p className="text-xs text-muted-foreground">
-                          Weekly TT scheduling still applies. Google Meet links and live launch windows do not.
+                          Weekly Response Integrity scheduling still applies. Google Meet links and live launch windows do not.
                         </p>
                       </div>
                       <div className="text-right text-xs text-muted-foreground">
@@ -2003,7 +2003,7 @@ export default function StudentTopicConditioningDialog({
                                 </Button>
                               </div>
                               <p className="text-muted-foreground">
-                                Training mode runs this lesson inside TT without depending on Meet generation or the live lesson window.
+                                Training mode runs this lesson inside Response Integrity without depending on Meet generation or the live lesson window.
                               </p>
                             </div>
                           ))}
@@ -2155,9 +2155,9 @@ export default function StudentTopicConditioningDialog({
                   <div className="rounded-md border border-primary/20 bg-primary/5 p-3 space-y-2">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="text-sm font-medium">TT Lesson Wrapper</p>
+                        <p className="text-sm font-medium">Response Integrity Lesson Wrapper</p>
                         <p className="text-xs text-muted-foreground">
-                          Training drills must launch inside a scheduled TT lesson.
+                          Training drills must launch inside a scheduled Response Integrity lesson.
                         </p>
                       </div>
                       <div className="text-right text-xs text-muted-foreground">
@@ -2342,7 +2342,7 @@ export default function StudentTopicConditioningDialog({
                     {!activeTrainingSession && pendingTutorConfirmationSessions.length === 0 && !pendingTrainingConfirmationSession && !nextTrainingSession && confirmedTrainingSessions.length === 0 ? (
                       <div className="space-y-1">
                         <p className="text-xs text-muted-foreground">
-                          No TT training lesson is attached yet. The parent must schedule this week's two lesson times in the Sessions tab.
+                          No Response Integrity training lesson is attached yet. The parent must schedule this week's two lesson times in the Sessions tab.
                         </p>
                         {trainingSessionMeetMessage ? (
                           <p className={trainingSessionMeetMessage.includes("created") ? "text-xs text-green-700" : "text-xs text-red-600"}>

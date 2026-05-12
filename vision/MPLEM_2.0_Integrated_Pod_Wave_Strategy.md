@@ -2,12 +2,12 @@
 
 ## Executive Summary
 
-MPLEM 2.0 is the next-generation Multi Pod-Launching Expansion Model for Territorial Tutoring (TT), fully aligned with the Operational Blueprint and the evolved TT Business Model. It is a modular, automation-driven, and institutionally integrated system that enables scalable, self-funding expansion-while maintaining operational discipline, financial health, and measurable impact.
+MPLEM 2.0 is the next-generation Multi Pod-Launching Expansion Model for Territorial Tutoring (Response Integrity), fully aligned with the Operational Blueprint and the evolved Response Integrity Business Model. It is a modular, automation-driven, and institutionally integrated system that enables scalable, self-funding expansion-while maintaining operational discipline, financial health, and measurable impact.
 
 ---
 
 ## 1. Core Principles
-- **System, not agency:** TT is a performance-conditioning platform, not a tutoring company.
+- **System, not agency:** Response Integrity is a performance-conditioning platform, not a tutoring company.
 - **Pods as modular units:** Each pod is a self-contained, replicable revenue and impact engine.
 - **Automation-first ops:** Scheduling, payments, session logging, and reporting are fully automated.
 - **Institutional integration:** High schools supply and develop academic leaders; primary schools receive early intervention.
@@ -68,7 +68,7 @@ MPLEM 2.0 is the next-generation Multi Pod-Launching Expansion Model for Territo
 ## 7. Institutional Partnership Model
 - High schools nominate and train System Executors (tutors)
 - Primary schools refer students for early intervention
-- TT governs, trains, and quality-controls the system
+- Response Integrity governs, trains, and quality-controls the system
 - Pilot cohorts enable low-risk, high-signal adoption
 
 ---
@@ -82,7 +82,7 @@ MPLEM 2.0 is the next-generation Multi Pod-Launching Expansion Model for Territo
 ---
 
 ## 9. Strategic Positioning
-- TT is infrastructure, not personality
+- Response Integrity is infrastructure, not personality
 - System-driven, process-standardised, automation-led
 - Defensible by discipline, not by hype
 - Measurable impact: response reliability, not just marks
@@ -91,4 +91,4 @@ MPLEM 2.0 is the next-generation Multi Pod-Launching Expansion Model for Territo
 
 ## 10. In One Line
 
-MPLEM 2.0 is a modular, automation-powered pod wave system where one Foundation Pod covers ops and every financed pod funds its own growth-delivering scalable, measurable impact and sustainable profit, fully aligned with TT’s operational and institutional model.
+MPLEM 2.0 is a modular, automation-powered pod wave system where one Foundation Pod covers ops and every financed pod funds its own growth-delivering scalable, measurable impact and sustainable profit, fully aligned with Response Integrity’s operational and institutional model.

@@ -45,7 +45,7 @@ You:
 
 identify real need
 qualify families
-connect them to TT
+connect them to Response Integrity
 
 You do NOT:
 

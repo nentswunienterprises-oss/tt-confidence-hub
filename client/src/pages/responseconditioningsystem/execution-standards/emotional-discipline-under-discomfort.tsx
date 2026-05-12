@@ -25,7 +25,7 @@ export default function ResponseConditioningEmotionalDisciplineUnderDiscomfort()
             </div>
             <div>
               <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">
-                TT-OS Deep Dive
+                Response Integrity-OS Deep Dive
               </p>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-1">
                 Emotional Discipline Under Discomfort
@@ -288,7 +288,7 @@ export default function ResponseConditioningEmotionalDisciplineUnderDiscomfort()
           <p className="text-muted-foreground">This is not kindness vs harshness.</p>
           <p className="text-muted-foreground">This is:</p>
           <p className="font-medium">short-term relief vs long-term capability</p>
-          <p className="text-muted-foreground">And TT chooses:</p>
+          <p className="text-muted-foreground">And Response Integrity chooses:</p>
           <p className="font-bold text-lg">capability</p>
         </Card>
       </div>

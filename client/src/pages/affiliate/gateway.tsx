@@ -5,7 +5,7 @@ import { ArrowLeft, CheckCircle2, Circle, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { TTLogo } from "@/components/ResponseIntegrityLogo";
+import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { getQueryFn } from "@/lib/queryClient";
@@ -106,7 +106,7 @@ export default function AffiliateGateway() {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-3 sm:h-20 sm:px-6 md:px-12">
           <div className="w-10 md:hidden" aria-hidden="true" />
           <div className="absolute left-1/2 top-1/2 flex w-full -translate-x-1/2 -translate-y-1/2 justify-center sm:static sm:w-auto sm:translate-x-0 sm:translate-y-0">
-            <TTLogo size="md" variant="integrity" />
+            <ResponseIntegrityLogo size="md" variant="integrity" />
           </div>
           <div className="hidden md:block">
             <span className="text-xl font-bold tracking-tight text-[#1A1A1A] lg:text-3xl">EGP Gateway</span>
@@ -153,7 +153,7 @@ export default function AffiliateGateway() {
             <CardContent className="space-y-6">
               <div className="rounded-2xl bg-[#FFF0F0] p-5 text-sm text-[#5A5A5A]">
                 <p>This is not a casual referral role.</p>
-                <p className="mt-2">TT works with a small number of operators who can identify real need, speak to parents clearly, and walk away when the fit is wrong.</p>
+                <p className="mt-2">Response Integrity works with a small number of operators who can identify real need, speak to parents clearly, and walk away when the fit is wrong.</p>
                 <p className="mt-2 font-semibold text-[#1A1A1A]">Low-precision operators remove themselves here.</p>
               </div>
               <Button className="w-full rounded-full" size="lg" style={{ backgroundColor: "#E63946" }} onClick={() => setShowApplicationForm(true)}>
@@ -202,7 +202,7 @@ export default function AffiliateGateway() {
             <CardContent className="space-y-5">
               {applicationStatus.status === "pending" ? (
                 <div className="rounded-xl bg-muted/30 p-4 text-sm text-muted-foreground">
-                  Your application has been received. COO will review fit, parent access quality, and alignment with TT's need-first positioning.
+                  Your application has been received. COO will review fit, parent access quality, and alignment with Response Integrity's need-first positioning.
                 </div>
               ) : null}
 
@@ -230,7 +230,7 @@ export default function AffiliateGateway() {
 
               {applicationStatus.status === "rejected" ? (
                 <div className="rounded-xl bg-muted/30 p-4 text-sm text-muted-foreground">
-                  This application was not accepted. You can reach out to TT if you need follow-up.
+                  This application was not accepted. You can reach out to Response Integrity if you need follow-up.
                 </div>
               ) : null}
             </CardContent>
@@ -252,3 +252,4 @@ export default function AffiliateGateway() {
     </div>
   );
 }
+
