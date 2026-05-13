@@ -6836,6 +6836,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 (proposalAcceptedAt ||
                  ["session_booked", "report_received", "confirmed"].includes(parentEnrollment.status));
 
+              // Check if assignment is pending: enrollment status is awaiting_tutor_acceptance AND workflow hasn't accepted yet
+              const workflowState = (student as any)?.personalProfile?.workflow || {};
+              const enrollmentPending = parentEnrollment?.status === "awaiting_tutor_acceptance";
+              const workflowAccepted = !!workflowState.assignmentAcceptedAt;
+              const isPending = enrollmentPending && !workflowAccepted;
+
               return {
                 ...student,
                 name: sandboxDisplayStudentName,
@@ -6851,16 +6857,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 topicConditioning: buildTopicConditioningMap(proposalSnapshot),
                 proposalSentAt: parentEnrollment?.proposal_sent_at || null,
                 parentApprovedAt: isApproved ? (proposalAcceptedAt || parentEnrollment?.updated_at) : null,
-                pendingTutorAcceptance: parentEnrollment?.status === "awaiting_tutor_acceptance",
+                pendingTutorAcceptance: isPending,
               };
             } catch (err) {
+              const workflowState = (student as any)?.personalProfile?.workflow || {};
               return {
                 ...student,
                 parentInfo: null,
                 topicConditioning: null,
                 proposalSentAt: null,
                 parentApprovedAt: null,
-                pendingTutorAcceptance: false,
+                pendingTutorAcceptance: !workflowState.assignmentAcceptedAt,
               };
             }
           })
