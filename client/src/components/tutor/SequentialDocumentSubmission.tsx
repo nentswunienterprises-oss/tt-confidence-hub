@@ -198,7 +198,7 @@ function normalizeAgreementContent(content: string) {
   return content
     .replace(/\r\n/g, "\n")
     .replace(/[â€œâ€]/g, '"')
-    .replace(/[â€˜â€™]/g, "'")
+    .replace(/[â€˜']/g, "'")
     .replace(/[â€“â€”]/g, "-")
     .replace(/â†’/g, " -> ")
     .replace(/\uFFFD/g, "")

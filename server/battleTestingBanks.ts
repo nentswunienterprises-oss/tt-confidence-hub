@@ -141,7 +141,7 @@ function normalizeLines(raw: string) {
 function normalizeBattleTestCopy(raw: string) {
   return raw
     .replace(/â€œ|â€/g, '"')
-    .replace(/â€™/g, "'")
+    .replace(/'/g, "'")
     .replace(/â€“|â€”/g, "-")
     .replace(/â†’/g, "->")
     .replace(/ðŸ‘‰\s*/g, "")

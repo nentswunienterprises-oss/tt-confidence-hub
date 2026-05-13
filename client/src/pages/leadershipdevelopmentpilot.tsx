@@ -340,7 +340,7 @@ export default function LeadershipDevelopmentPilot() {
                     <li>Confirm suitability for the pilot</li>
                     <li>Clarify selection and training framework</li>
                     <li>Align on term-based timing and scope</li>
-                    <li>Discuss how this could align with your schoolâ€™s leadership and academic objectives</li>
+                    <li>Discuss how this could align with your school's leadership and academic objectives</li>
                   </ul>
 
                   <p className="mt-3">This submission does not commit your school to participation. It initiates a consideration process.</p>

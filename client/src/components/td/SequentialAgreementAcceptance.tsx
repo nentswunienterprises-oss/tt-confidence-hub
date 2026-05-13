@@ -91,7 +91,7 @@ function normalizeDocumentText(content: string) {
   return content
     .replace(/\r\n/g, "\n")
     .replace(/â€œ|â€/g, '"')
-    .replace(/â€˜|â€™/g, "'")
+    .replace(/â€˜|'/g, "'")
     .replace(/â€“|â€”/g, "-")
     .replace(/â†’/g, " -> ")
     .replace(/\u0000/g, "")

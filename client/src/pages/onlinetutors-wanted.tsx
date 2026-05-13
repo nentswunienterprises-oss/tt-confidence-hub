@@ -48,7 +48,7 @@ export default function OnlineTutorsWanted() {
           </h1>
 
           <p className="max-w-2xl mx-auto text-base sm:text-lg mt-6" style={{ color: "#5A5A5A" }}>
-            We run a structured online math mentorship operation and weâ€™re selecting a small number of disciplined Grade 10 students to train as <strong>System Executors</strong>  not casual tutors - with real accountability and earning potential.
+            We run a structured online math mentorship operation and we're selecting a small number of disciplined Grade 10 students to train as <strong>System Executors</strong>  not casual tutors - with real accountability and earning potential.
           </p>
 
 
@@ -61,7 +61,7 @@ export default function OnlineTutorsWanted() {
             <p className="text-sm sm:text-base" style={{ color: "#5A5A5A" }}>
               Response Integrity is a premium online math mentorship company. We don' do chaotic tutoring. We don' improvise. We don't babysit.
               We build calm, confident, high-performing math students through a structured, system-driven approach.
-              If you believe great results come from clear processes, high standards, and consistency, youâ€™ll fit in here.
+              If you believe great results come from clear processes, high standards, and consistency, you'll fit in here.
             </p>
 
             <div className="mt-6">
@@ -84,7 +84,7 @@ export default function OnlineTutorsWanted() {
           </Card>
 
           <Card className="p-6 max-w-xl mx-auto" style={{ backgroundColor: "white" }}>
-            <h3 className="text-lg font-bold mb-3">WHAT YOUâ€™LL DO</h3>
+            <h3 className="text-lg font-bold mb-3">WHAT YOU'LL DO</h3>
 
             <ul className="space-y-3 text-sm" style={{ color: "#5A5A5A" }}>
               <li> Deliver live online math sessions (1-on-1)</li>
@@ -177,7 +177,7 @@ export default function OnlineTutorsWanted() {
             <div className="space-y-3 sm:space-y-4 sm:col-span-2 md:col-span-1">
               <h4 className="font-semibold text-sm sm:text-base" style={{ color: "#1A1A1A" }}>Contact</h4>
               <a href="/faq" className="text-xs sm:text-sm block text-blue-600 hover:underline" style={{ color: "#2563eb" }}>
-                Questions? Weâ€™re here to help.
+                Questions? We're here to help.
               </a>
             </div>
           </div>

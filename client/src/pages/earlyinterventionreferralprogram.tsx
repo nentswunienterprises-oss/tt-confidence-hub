@@ -213,7 +213,7 @@ export default function EarlyInterventionReferralProgram() {
         <Card className="p-4 sm:p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h2 className="text-lg font-bold mb-3">The Actual Failure Mode</h2>
           <p>
-            The studentâ€™s response system is untrained.
+            The student's response system is untrained.
           </p>
           <p className="mt-3">
             When:
@@ -270,7 +270,7 @@ export default function EarlyInterventionReferralProgram() {
           <ul className="list-disc pl-5 mt-2 space-y-2">
             <li>Avoidance patterns harden</li>
             <li>Confidence erosion becomes identity</li>
-            <li>â€œIâ€™m not a math personâ€ replaces curiosity</li>
+            <li>â€œI'm not a math personâ€ replaces curiosity</li>
           </ul>
 
           <p className="mt-3">At that point, intervention is reactive - and expensive.</p>
@@ -443,7 +443,7 @@ export default function EarlyInterventionReferralProgram() {
             <Card className="p-4 sm:p-6" style={{ backgroundColor: "white" }}>
               <h3 className="text-lg font-bold mb-3">Submission Received</h3>
 
-              <p>Thank you for submitting your schoolâ€™s interest in the Response Integrity Early Intervention Pilot.</p>
+              <p>Thank you for submitting your school's interest in the Response Integrity Early Intervention Pilot.</p>
 
               <p className="mt-3">Your request has been logged for internal review.</p>
 

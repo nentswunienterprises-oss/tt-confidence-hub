@@ -124,7 +124,7 @@ function PortalLanding() {
                 style={{ backgroundColor: "#E63946", color: "white" }}
                 onClick={() => navigate(buildSignupUrl())}
               >
-                Start Your Childâ€™s Journey
+                Start Your Child's Journey
                 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
               </Button>
             </div>
@@ -274,7 +274,7 @@ function PortalLanding() {
             style={{ backgroundColor: "#E63946", color: "white" }}
             onClick={() => navigate(buildSignupUrl())}
           >
-            Start Your Childâ€™s Journey
+            Start Your Child's Journey
             <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
           </Button>
         </div>
@@ -329,7 +329,7 @@ function PortalLanding() {
               </a>
             </div>
             <p className="text-center md:text-right text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-              Â© {new Date().getFullYear()} Response Integrity (Pty) Ltd
+              © {new Date().getFullYear()} Response Integrity (Pty) Ltd
               <br />
               <span className="text-xs sm:text-sm">Math Pressure Response-Training.</span>
             </p>

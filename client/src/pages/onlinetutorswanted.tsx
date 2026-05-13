@@ -49,7 +49,7 @@ export default function OnlineTutorsWantedPlain() {
           <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold leading-tight mt-6" style={{ color: "#1A1A1A" }}>
             Become a Response Integrity System Executor
             <div className="text-base sm:text-xl font-semibold mt-2" style={{ color: "#5A5A5A" }}>
-              Not everyone qualifies. Thatâ€™s the point.
+              Not everyone qualifies. That's the point.
             </div>
           </h1>
 
@@ -76,7 +76,7 @@ export default function OnlineTutorsWantedPlain() {
 
         {/* Content sections, exact copy preserved */}
         <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
-          <h2 className="text-lg font-bold mb-3">What Youâ€™re Stepping Into</h2>
+          <h2 className="text-lg font-bold mb-3">What You're Stepping Into</h2>
           <p style={{ color: "#5A5A5A" }}>
             Response Integrity runs a structured online math mentorship programme for Grades 6-9.
           </p>
@@ -85,7 +85,7 @@ export default function OnlineTutorsWantedPlain() {
         </Card>
 
         <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
-          <h3 className="text-lg font-bold mb-3">What Youâ€™ll Actually Do</h3>
+          <h3 className="text-lg font-bold mb-3">What You'll Actually Do</h3>
           <div className="space-y-2" style={{ color: "#5A5A5A" }}>
             <p>Tutor students online in 1-on-1 math sessions</p>
             <p>Follow a clear session structure and standards</p>
@@ -94,7 +94,7 @@ export default function OnlineTutorsWantedPlain() {
             <p>Apply feedback and improve consistently</p>
 
             <p className="mt-3 font-semibold">You won' be guessing.</p>
-            <p className="font-semibold">Youâ€™ll be trained.</p>
+            <p className="font-semibold">You'll be trained.</p>
           </div>
         </Card>
 
@@ -116,7 +116,7 @@ export default function OnlineTutorsWantedPlain() {
         <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h3 className="text-lg font-bold mb-3">Training & Selection</h3>
           <p style={{ color: "#5A5A5A" }}>Everyone starts in training.</p>
-          <p className="mt-3" style={{ color: "#5A5A5A" }}>During this phase, youâ€™ll be assessed on:</p>
+          <p className="mt-3" style={{ color: "#5A5A5A" }}>During this phase, you'll be assessed on:</p>
           <ul className="list-disc pl-5 mt-2 space-y-2 text-sm sm:text-base" style={{ color: "#5A5A5A" }}>
             <li>Clarity of explanation</li>
             <li>Discipline in following structure</li>
@@ -144,7 +144,7 @@ export default function OnlineTutorsWantedPlain() {
             <li>You earn while developing skills that transfer anywhere</li>
           </ul>
           <p className="mt-3" style={{ color: "#5A5A5A" }}>This isn' just income.
-            Itâ€™s training.
+            It's training.
           </p>
         </Card>
 
@@ -159,7 +159,7 @@ export default function OnlineTutorsWantedPlain() {
         <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h3 className="text-lg font-bold mb-3">Ready to Apply?</h3>
           <p style={{ color: "#5A5A5A" }}>If this sounds demanding, good.
-            That means youâ€™re reading it correctly.
+            That means you're reading it correctly.
           </p>
 
           <p className="mt-4 text-sm" style={{ color: "#5A5A5A" }}>
