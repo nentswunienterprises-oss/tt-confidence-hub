@@ -1,8 +1,8 @@
 // Runtime configuration for API URL
 
 
-// Use the Render backend for production
-const RENDER_URL = 'https://tt-confidence-hub-api.onrender.com';
+// Use the custom API domain for production
+const RENDER_URL = 'https://api.responseintegrity.co.za';
 
 
 export function getApiUrl(): string {

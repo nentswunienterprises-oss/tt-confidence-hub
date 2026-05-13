@@ -8,7 +8,7 @@ export function getApiUrl() {
             return 'http://localhost:5000';
         }
     }
-    // Production: use Render backend
+    // Production: use the custom API domain
     return RENDER_URL;
 }
 // Use the getter function to ensure runtime evaluation

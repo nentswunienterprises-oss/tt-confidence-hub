@@ -823,7 +823,7 @@ export default function ParentGateway() {
       if (session?.access_token) {
         headers["Authorization"] = `Bearer ${session.access_token}`;
       }
-      const res = await fetch("https://tt-confidence-hub-api.onrender.com/api/debug/auth-info", {
+      const res = await fetch(`${API_URL}/api/debug/auth-info`, {
         method: "GET",
         headers,
         credentials: "include"
