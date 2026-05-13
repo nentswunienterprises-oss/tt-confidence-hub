@@ -815,26 +815,6 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
 
     const sandboxEnrollmentPayloads = [
       { ...sandboxEnrollmentBase, is_sandbox_account: true },
-      {
-        user_id: sandboxEnrollmentBase.user_id,
-        parent_full_name: sandboxEnrollmentBase.parent_full_name,
-        parent_phone: sandboxEnrollmentBase.parent_phone,
-        parent_email: sandboxEnrollmentBase.parent_email,
-        parent_city: sandboxEnrollmentBase.parent_city,
-        student_full_name: sandboxEnrollmentBase.student_full_name,
-        student_grade: sandboxEnrollmentBase.student_grade,
-        school_name: sandboxEnrollmentBase.school_name,
-        math_struggle_areas: sandboxEnrollmentBase.math_struggle_areas,
-        previous_tutoring: sandboxEnrollmentBase.previous_tutoring,
-        internet_access: sandboxEnrollmentBase.internet_access,
-        parent_motivation: sandboxEnrollmentBase.parent_motivation,
-        assigned_tutor_id: sandboxEnrollmentBase.assigned_tutor_id,
-        status: sandboxEnrollmentBase.status,
-        current_step: sandboxEnrollmentBase.current_step,
-        created_at: sandboxEnrollmentBase.created_at,
-        updated_at: sandboxEnrollmentBase.updated_at,
-        is_sandbox_account: true,
-      },
       { ...sandboxEnrollmentBase },
     ];
 
