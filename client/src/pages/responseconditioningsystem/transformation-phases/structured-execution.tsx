@@ -72,7 +72,7 @@ const observationSignals = [
 ];
 
 const progressionBands = [
-  "Low: run Structured Execution drill. No time pressure. Boss Battles only if the student can start.",
+  "Low: run Structured Execution drill. No time pressure. No Boss Battles until Controlled Discomfort.",
   "Medium: stay in Structured Execution and reinforce repeatable structure across multiple problems.",
   "High: run High Maintenance checks. Do not phase advance yet. Prove repeatable stability.",
   "High Maintenance: if a full session scores 85 or above, the engine progresses the topic into Controlled Discomfort at Low.",

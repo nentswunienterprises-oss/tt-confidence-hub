@@ -413,9 +413,9 @@ function ModuleTwo({ expandedSections, toggleSection, onComplete, isComplete }: 
           <div className="flex items-start gap-2 sm:gap-3">
             <Lightbulb className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0 mt-1" />
             <div className="min-w-0">
-              <CardTitle className="text-lg sm:text-2xl leading-tight">Module 2: Response Integrity's Tutoring Psychology</CardTitle>
+              <CardTitle className="text-lg sm:text-2xl leading-tight">Module 2: Response Integrity's Response Psychology</CardTitle>
               <CardDescription className="text-white/95 text-sm sm:text-lg mt-1 sm:mt-2">
-                "We're not homework helpers. We're healers, guides, and system-builders."
+                "We're not homework completers. We're response trainers, guides, and system-builders."
               </CardDescription>
             </div>
           </div>
@@ -1405,7 +1405,7 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
                   <li>Wrote 2-3 example problems + 1 bonus</li>
                   <li>Rehearsed explanation mentally (3-5 micro-steps)</li>
                   <li>Setup environment + camera + workspace</li>
-                  <li>Planned a confidence-boosting opening</li>
+                  <li>Planned a phase-oriented opening</li>
                 </ul>
               </div>
             </div>
@@ -1413,7 +1413,7 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
 
           <SectionCard
             id="module5-teach"
-            title="2. Model, Apply & Guide  Show. Don't Just Tell."
+            title="2. Phase-Appropriate Instruction  Show Only When It Serves the Drill."
             expanded={expandedSections["module5-teach"] || false}
             onToggle={() => toggleSection("module5-teach")}
             gradient="from-primary/90 to-primary"
@@ -1421,28 +1421,28 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
             <div className="space-y-4">
               <div className="bg-card p-4 rounded-lg border border-primary/20">
                 <p className="font-bold mb-2">Goal:</p>
-                <p className="text-sm">Deliver an engaging, clear, and step-by-step teaching experience. Your job is to teach by doing, guide by asking, and help the student build confidence while learning the process by letting them lead.</p>
+                <p className="text-sm">Deliver phase-appropriate instruction. In Clarity, teach by modeling and guiding first-step understanding. In later phases, protect independent execution, pressure exposure, and accurate logging.</p>
               </div>
 
               <div className="bg-accent p-4 rounded-lg border border-primary/10">
-                <p className="font-bold mb-3">1. Start with Visual Demonstration</p>
+                <p className="font-bold mb-3">1. Use Visual Demonstration When The Phase Requires It</p>
                 <ul className="space-y-1 text-sm ml-4">
                   <li>Use the Gooseneck Camera Setup to work through the problem in real time</li>
                   <li>Speak your thought process aloud: "First, I.... Then, I..."</li>
-                  <li>Write cleanly and narrate each step - slow enough for them to follow</li>
+                  <li>Write cleanly and narrate each step when Clarity or concept-entry work requires it</li>
                 </ul>
               </div>
 
               <div className="bg-accent p-4 rounded-lg border border-primary/10 mt-4">
-                <p className="font-bold mb-3">2. Use the "Model-Apply-then-Guide" Loop</p>
+                <p className="font-bold mb-3">2. Use the "Model-Apply-Guide" Loop In Clarity And Concept-Entry Work</p>
                 <ol className="space-y-2 text-sm ml-4">
-                  <li><strong>Step 1 (Model it):</strong> You solve an example out loud, using the step-by-step method you just narrated</li>
-                  <li><strong>Step 2 (Make the student do it/Apply it):</strong> They try a similar problem using the same step-by-step method with your support</li>
-                  <li><strong>Step 3 (You Guide them):</strong> Correct them as needed</li>
+                  <li><strong>Step 1 (Model it):</strong> You solve an example out loud when the learner needs Clarity or concept entry</li>
+                  <li><strong>Step 2 (Apply it):</strong> They try a similar problem and begin taking ownership of the method</li>
+                  <li><strong>Step 3 (Guide them):</strong> Correct the gap without carrying the response</li>
                 </ol>
                 <div className="bg-primary/20 p-3 rounded mt-3 text-sm">
                   <p className="font-semibold mb-2">T/N: it's important to implement written step-by-step methods.</p>
-                  <p>Students memorize steps, which is crucial and helps them address any problem, no matter how difficult. As long as their reasoning capacity is always good, they know the rules and remember the steps. They'll experience a great boost of confidence.</p>
+                  <p>Students need clear steps, but steps are trained for execution, not memorized as a substitute for reasoning. Confidence follows when they can repeat the method under the right phase conditions.</p>
                 </div>
                 <p className="mt-3 text-sm">We call this the <strong>Ready, Fire, Aim</strong> approach (from T Harv's book, Secrets of The Millionaire Mind):</p>
                 <ol className="ml-4 mt-2 space-y-1 text-sm">
@@ -1477,16 +1477,16 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
 
               <div className="bg-accent p-4 rounded-lg border border-primary/10 mt-4">
                 <p className="font-bold mb-3">5. Boss Battles</p>
-                <p className="text-sm">After a bit more practice (the 3 layers are fully grasped by the student), implement a Boss Battle challenge of a hard or advanced difficult problem and record each successful battle into the Battle log.</p>
+                <p className="text-sm">When the learner's current phase and drill design call for it, introduce a Boss Battle challenge and record the response accurately.</p>
               </div>
 
               <div className="bg-primary/10 p-4 rounded-lg border border-primary/30 mt-4">
                 <p className="font-bold mb-2">Why This Step is Bulletproof:</p>
                 <ul className="space-y-1 text-sm">
-                  <li>Visual and Model teaching = stronger memory retention</li>
+                  <li>Visual modeling is used when it serves Clarity or concept-entry work</li>
                   <li>The student doesn't just see the skill - they begin to own it</li>
                   <li>The looped structure means they're never passive</li>
-                  <li>Confidence grows because the tutor is right there guiding without pressure or spoon-feeding and tracking growth</li>
+                  <li>Confidence grows because the student proves stability under the correct level of support and pressure</li>
                   <li>Practice makes perfect is a lie, we believe practice makes improvement</li>
                   <li>Lawyer personality breeds a problem-solver identity (that's how students fall in love with math)</li>
                   <li>Progress is data, not a feeling. Every solution they unlock mentally - they just unlocked a new superpower</li>
@@ -1499,7 +1499,7 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
                 <ul className="space-y-1 text-sm">
                   <li>Student successfully applies the method with 80% accuracy after being shown</li>
                   <li>Student can identify which step they struggled with using 3-Layer Lens</li>
-                  <li>At least 1 Boss Battle issued per session</li>
+                  <li>Boss Battles issued only when the phase and drill design require them</li>
                 </ul>
               </div>
 

@@ -64,7 +64,7 @@ export default function OnlineTutorsWantedPlain() {
           </div> 
 
           <p className="max-w-2xl mx-auto text-sm sm:text-base mt-4" style={{ color: "#5A5A5A" }}>
-            Response Integrity is selecting a small number of high-performing, disciplined students to train as System Executors inside our structured math mentorship operation.
+            Response Integrity is selecting a small number of high-performing, disciplined students to train as System Executors inside our structured response-conditioning operation.
           </p>
 
           <div className="mt-6 space-y-2">
@@ -78,7 +78,7 @@ export default function OnlineTutorsWantedPlain() {
         <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h2 className="text-lg font-bold mb-3">What You're Stepping Into</h2>
           <p style={{ color: "#5A5A5A" }}>
-            Response Integrity runs a structured online math mentorship programme for Grades 6-9.
+            Response Integrity runs a structured online response-conditioning programme for Grades 6-9.
           </p>
           <p>We rely on clear systems, repetition, and standards.</p>
           <p className="mt-2">As a System Executor, your job is to run that system precisely - every session, every student.</p>
@@ -87,7 +87,7 @@ export default function OnlineTutorsWantedPlain() {
         <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h3 className="text-lg font-bold mb-3">What You'll Actually Do</h3>
           <div className="space-y-2" style={{ color: "#5A5A5A" }}>
-            <p>Tutor students online in 1-on-1 math sessions</p>
+            <p>Run online math response-conditioning sessions</p>
             <p>Follow a clear session structure and standards</p>
             <p>Help students stay calm when problems get difficult</p>
             <p>Correct mistakes using precise language and steps</p>
@@ -118,7 +118,7 @@ export default function OnlineTutorsWantedPlain() {
           <p style={{ color: "#5A5A5A" }}>Everyone starts in training.</p>
           <p className="mt-3" style={{ color: "#5A5A5A" }}>During this phase, you'll be assessed on:</p>
           <ul className="list-disc pl-5 mt-2 space-y-2 text-sm sm:text-base" style={{ color: "#5A5A5A" }}>
-            <li>Clarity of explanation</li>
+            <li>Phase-appropriate explanation</li>
             <li>Discipline in following structure</li>
             <li>Ability to handle pressure</li>
             <li>Willingness to improve</li>

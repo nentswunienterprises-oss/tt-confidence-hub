@@ -116,13 +116,13 @@ export default function PortalLanding() {
             </div>
           </div>
           <p className="text-sm uppercase tracking-wide mb-4 text-white/60 font-medium">
-            Confidence is teachable
+            Stability is trainable
           </p>
           <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">
-            Ready to Build Confidence?
+            Ready to Train Calm Execution?
           </h2>
           <p className="text-lg mb-10 text-white/80">
-            Join our proven system and help your child thrive under pressure.
+            Join our proven system and help your child build reliable response under pressure.
           </p>
           <button
             className="text-lg font-semibold px-10 py-6 rounded-full border-0 bg-white text-[#E63946]"

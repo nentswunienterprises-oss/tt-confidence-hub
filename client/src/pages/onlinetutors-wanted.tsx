@@ -48,7 +48,7 @@ export default function OnlineTutorsWanted() {
           </h1>
 
           <p className="max-w-2xl mx-auto text-base sm:text-lg mt-6" style={{ color: "#5A5A5A" }}>
-            We run a structured online math mentorship operation and we're selecting a small number of disciplined Grade 10 students to train as <strong>System Executors</strong>  not casual tutors - with real accountability and earning potential.
+            We run a structured online response-conditioning operation and we're selecting a small number of disciplined Grade 10 students to train as <strong>System Executors</strong>  not casual tutors - with real accountability and earning potential.
           </p>
 
 
@@ -59,7 +59,7 @@ export default function OnlineTutorsWanted() {
           <Card className="p-6 max-w-xl mx-auto" style={{ backgroundColor: "white" }}>
             <h2 className="text-xl font-bold mb-4" style={{ color: "#1A1A1A" }}>WHO WE ARE</h2>
             <p className="text-sm sm:text-base" style={{ color: "#5A5A5A" }}>
-              Response Integrity is a premium online math mentorship company. We don' do chaotic tutoring. We don' improvise. We don't babysit.
+              Response Integrity is a premium online response-conditioning company. We don' do chaotic tutoring. We don' improvise. We don't babysit.
               We build calm, confident, high-performing math students through a structured, system-driven approach.
               If you believe great results come from clear processes, high standards, and consistency, you'll fit in here.
             </p>
@@ -68,7 +68,7 @@ export default function OnlineTutorsWanted() {
               <h3 className="font-semibold">THE ROLE</h3>
               <p className="text-sm mt-2" style={{ color: "#5A5A5A" }}>
                 As a Response Integrity Online Math Tutor, you are responsible for delivering structured, high-quality 1-on-1 math sessions to students in Grades 6â€“9.
-                This is not casual tutoring. You will be trained to follow a clear instructional system that prioritizes:
+                This is not casual tutoring. You will be trained to follow a clear operating system that prioritizes:
               </p>
 
               <ul className="mt-3 space-y-2 text-sm" style={{ color: "#5A5A5A" }}>
@@ -88,10 +88,10 @@ export default function OnlineTutorsWanted() {
 
             <ul className="space-y-3 text-sm" style={{ color: "#5A5A5A" }}>
               <li> Deliver live online math sessions (1-on-1)</li>
-              <li> Teach concepts using clear language and structured steps</li>
+              <li> Use phase-appropriate explanation, modeling, and correction</li>
               <li> Help students stay calm and focused when problems get difficult</li>
               <li> Correct mistakes precisely, without guessing or shortcuts</li>
-              <li> Prepare students for tests and exams through disciplined practice</li>
+              <li> Prepare students for tests and exams through disciplined, phase-appropriate practice</li>
               <li> Maintain professional session standards at all times</li>
             </ul>
           </Card>
@@ -103,7 +103,7 @@ export default function OnlineTutorsWanted() {
             <h3 className="text-lg font-bold mb-3">FOR TEENS WHO:</h3>
             <ul className="space-y-3 text-sm" style={{ color: "#5A5A5A" }}>
               <li> Are strong in Grades 6-9 Mathematics</li>
-              <li> Can explain concepts clearly and patiently</li>
+              <li> Can explain concepts clearly when the phase calls for it</li>
               <li> Are comfortable following a structured system</li>
               <li> Take feedback seriously and apply it quickly</li>
               <li> Want real teaching skill development (not just pocket money)</li>
@@ -160,7 +160,7 @@ export default function OnlineTutorsWanted() {
             <div className="space-y-3 sm:space-y-4">
               <h4 className="font-semibold text-sm sm:text-base" style={{ color: "#1A1A1A" }}>About Response Integrity</h4>
               <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-                Response Integrity is a performance-first math mentorship system built on clarity, repetition, and standards.
+                Response Integrity is a performance-first response-conditioning system built on clarity, repetition, and standards.
               </p>
             </div>
             <div className="space-y-3 sm:space-y-4">

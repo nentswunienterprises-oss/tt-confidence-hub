@@ -85,20 +85,20 @@ export default function Landing() {
             <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
               <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: "#E63946" }} />
               <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
-                Confidence-First Tutoring for Grades 6-9
+                Response Training for Grades 6-9
               </span>
             </div>
             
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight" style={{ color: "#1A1A1A" }}>
-              We Don't Just Tutor.
+              We Train Calm Execution.
               <br />
-              <span style={{ color: "#E63946" }}>We Build Confidence.</span>
+              <span style={{ color: "#E63946" }}>Under Pressure.</span>
             </h1>
             
             <p className="text-base sm:text-lg md:text-xl leading-relaxed" style={{ color: "#5A5A5A" }}>
-              At Response Integrity, we believe every child deserves to feel capable. 
+              At Response Integrity, math is the training arena.
               Our tutors work with <span className="font-semibold" style={{ color: "#1A1A1A" }}>Grade 6–9 students</span> to 
-              ignite self-belief and transform how they see themselves.
+              build calm, repeatable execution when work gets hard.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 sm:pt-4">
@@ -154,7 +154,7 @@ export default function Landing() {
             />
             <img
               src="/images/Benefits-of-Online-Tutoring-1-1080x589.png"
-              alt="Student learning with confidence"
+              alt="Student training calm focus"
               className="relative rounded-3xl shadow-2xl w-full object-cover"
               style={{ aspectRatio: "4/3" }}
               onError={(e) => {
@@ -189,8 +189,8 @@ export default function Landing() {
                   <Heart className="w-5 h-5 sm:w-6 sm:h-6 fill-current" style={{ color: "#E63946" }} />
                 </div>
                 <div>
-                  <p className="font-bold text-sm sm:text-lg" style={{ color: "#1A1A1A" }}>Confidence First</p>
-                  <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>Grades follow naturally</p>
+                  <p className="font-bold text-sm sm:text-lg" style={{ color: "#1A1A1A" }}>Calm First</p>
+                  <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>Confidence follows</p>
                 </div>
               </div>
             </div>
@@ -206,7 +206,7 @@ export default function Landing() {
               The Response Integrity Difference
             </h2>
             <p className="text-base sm:text-lg" style={{ color: "#A0A0A0" }}>
-              We're not another tutoring company. We're a confidence transformation movement.
+              We're not another tutoring company. We're a response-conditioning system for execution under pressure.
             </p>
           </div>
 
@@ -214,18 +214,18 @@ export default function Landing() {
             {[
               {
                 icon: Heart,
-                title: "Confidence Blueprint",
-                description: "Our proprietary method focuses on building self-belief before tackling academics. When students believe in themselves, learning becomes natural."
+                title: "Response Blueprint",
+                description: "Our proprietary method trains recognition, method, correction, and pressure tolerance before outcomes are chased."
               },
               {
                 icon: Users,
                 title: "Pod System",
-                description: "Students learn in small, supportive groups called Pods. Each Pod is a community where growth is celebrated and struggles are shared."
+                description: "Students train in small, structured Pods. Each Pod protects repetition, standards, and calm execution."
               },
               {
                 icon: Sparkles,
                 title: "Real Transformation",
-                description: "We measure success not just in grades, but in how students carry themselves. Confidence shows up in every area of life."
+                description: "We measure success in response stability: what students do when certainty drops, time tightens, or mistakes appear."
               }
             ].map((item, index) => (
               <div 
@@ -282,7 +282,7 @@ export default function Landing() {
               Stories of Transformation
             </h2>
             <p className="text-base sm:text-lg" style={{ color: "#5A5A5A" }}>
-              Real families, real results, real confidence.
+              Real families, real results, real response change.
             </p>
           </div>
 
@@ -356,10 +356,10 @@ export default function Landing() {
                 Parents & Students
               </h3>
               <p className="text-sm sm:text-base mb-4 sm:mb-6" style={{ color: "#5A5A5A" }}>
-                Enroll your Grade 6–9 child in our confidence-building tutoring program.
+                Enroll your Grade 6–9 child in our response-conditioning programme.
               </p>
               <ul className="space-y-2 sm:space-y-3 mb-6 sm:mb-8">
-                {["Access to dedicated tutors", "Track confidence growth", "Weekly progress updates", "Parent dashboard"].map((item, i) => (
+                {["Access to trained tutors", "Track response stability", "Weekly progress updates", "Parent dashboard"].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 sm:gap-3">
                     <Check className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" style={{ color: "#E63946" }} />
                     <span className="text-sm sm:text-base" style={{ color: "#5A5A5A" }}>{item}</span>
@@ -391,7 +391,7 @@ export default function Landing() {
                 Become a Tutor
               </h3>
               <p className="text-sm sm:text-base mb-4 sm:mb-6" style={{ color: "#5A5A5A" }}>
-                Join our team of confidence-builders and transform lives while earning.
+                Join our team of response-conditioning operators and build real execution skill while earning.
               </p>
               <ul className="space-y-2 sm:space-y-3 mb-6 sm:mb-8">
                 {["Flexible schedule", "Meaningful work", "Training provided", "Grow your income"].map((item, i) => (
@@ -453,10 +453,10 @@ export default function Landing() {
       <section className="py-12 sm:py-20" style={{ backgroundColor: "#1A1A1A" }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-12 text-center">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6" style={{ color: "white" }}>
-            Ready to Transform Confidence?
+            Ready to Train Calm Execution?
           </h2>
           <p className="text-base sm:text-lg mb-8 sm:mb-10" style={{ color: "#A0A0A0" }}>
-            Join hundreds of families across South Africa who chose confidence first.
+            Join families across South Africa choosing structure, discipline, and response stability.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <Button

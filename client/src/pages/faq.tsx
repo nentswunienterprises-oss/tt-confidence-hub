@@ -62,15 +62,15 @@ const faqs = [
     answer: (
       <>
         <p>Sessions are structured, disciplined, and predictable.</p>
-        <p>Every session includes:</p>
+        <p>Depending on the learner's phase, a session may include:</p>
         <ul>
-          <li>clear problem setup</li>
-          <li>slow, deliberate execution</li>
-          <li>verbalised thinking</li>
+          <li>clear problem setup and phase-appropriate instruction</li>
+          <li>deliberate execution or timed pressure, depending on the drill</li>
+          <li>verbalised thinking where it serves the phase</li>
           <li>correction of response errors (not just math errors)</li>
         </ul>
-        <p>Students are not rushed.<br />
-        They are not rescued.<br />
+        <p>Students are not rushed before the phase requires speed.<br />
+        They are not carried through answers.<br />
         They are trained to stay composed and continue.</p>
         <p>This is how pressure tolerance is built.</p>
       </>

@@ -388,9 +388,9 @@ function ModuleTwo({ expandedSections, toggleSection, onComplete, isComplete }: 
           <div className="flex items-center gap-3">
             <Lightbulb className="w-8 h-8" />
             <div>
-              <CardTitle className="text-2xl">Module 2: Response Integrity's Tutoring Psychology</CardTitle>
+              <CardTitle className="text-2xl">Module 2: Response Integrity's Response Psychology</CardTitle>
               <CardDescription className="text-white/95 text-lg mt-2">
-                "We're not homework helpers. We're healers, guides, and system-builders."
+                "We're not homework completers. We're response trainers, guides, and system-builders."
               </CardDescription>
             </div>
           </div>
@@ -1006,7 +1006,7 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
                   <li>2. <strong>Identify Session Objective</strong> - "Today's mission: __"</li>
                   <li>3. <strong>Prepare Teaching Tools</strong> - Example problems, backup problems</li>
                   <li>4. <strong>Mentally Rehearse</strong> - Break into 3-5 micro-steps</li>
-                  <li>5. <strong>Plan a Warm Opening</strong> - Start with confidence</li>
+                  <li>5. <strong>Plan a Phase-Oriented Opening</strong> - Start with the right drill state</li>
                 </ol>
               </div>
 
@@ -1016,18 +1016,18 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
 
           <SectionCard
             id="module5-teach"
-            title="2. Model, Apply & Guide – Show, Don't Just Tell"
+            title="2. Phase-Appropriate Instruction - Show Only When It Serves the Drill"
             expanded={expandedSections["module5-teach"] || false}
             onToggle={() => toggleSection("module5-teach")}
             gradient="from-primary/90 to-primary"
           >
             <div className="space-y-4">
               <div className="bg-accent p-4 rounded-lg border border-primary/10">
-                <p className="font-bold mb-3">The "Model-Apply-Guide" Loop:</p>
+                <p className="font-bold mb-3">The "Model-Apply-Guide" Loop For Clarity And Concept-Entry Work:</p>
                 <ol className="space-y-2 ml-4">
-                  <li><strong>Step 1 - Model it:</strong> You solve an example out loud (get them "Ready")</li>
-                  <li><strong>Step 2 - Make student Apply:</strong> They try similar problem (let them "Fire")</li>
-                  <li><strong>Step 3 - You Guide:</strong> Correct using mistakes to help them "Aim"</li>
+                  <li><strong>Step 1 - Model it:</strong> You solve an example out loud when Clarity or concept entry requires it</li>
+                  <li><strong>Step 2 - Apply it:</strong> They try a similar problem and begin taking ownership of the method</li>
+                  <li><strong>Step 3 - Guide:</strong> Correct the gap without carrying the response</li>
                 </ol>
               </div>
 
@@ -1042,7 +1042,7 @@ function ModuleFive({ expandedSections, toggleSection, onComplete, isComplete }:
               <div className="bg-card p-4 rounded-lg border-l-4 border-primary mt-4">
                 <p className="font-bold">💡 Remember:</p>
                 <p>After student masters all 3 layers, track it as "Solutions Unlocked"</p>
-                <p className="mt-2">Then implement a Boss Battle challenge and record in Battle Log</p>
+                <p className="mt-2">Then use a Boss Battle only when the phase and drill design require it, and record the response accurately.</p>
               </div>
             </div>
           </SectionCard>

@@ -275,7 +275,7 @@ export default function OperationalLanding() {
             Ready to Make a Difference?
           </h2>
           <p className="text-lg mb-10 text-white/80">
-            Join our founding team of confidence-builders and help prove that transformation is teachable.
+            Join our founding team of response-conditioning operators and help prove that disciplined transformation is teachable.
           </p>
           <Button
             size="lg"

@@ -115,7 +115,7 @@ export default function Home() {
               <Image src="/logos/tt-monogram.png" alt="Response Integrity Logo" width={32} height={32} />
               <p className="text-center md:text-right text-xs sm:text-sm text-[#5A5A5A]">
                 © {new Date().getFullYear()} Response Integrity (Pty) Ltd<br />
-                <span className="text-xs sm:text-sm">Confidence, made inevitable.</span>
+                <span className="text-xs sm:text-sm">Calm execution, made repeatable.</span>
               </p>
             </div>
           </div>

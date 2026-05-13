@@ -263,7 +263,7 @@ function PortalLanding() {
       <section className="py-12 sm:py-20" style={{ backgroundColor: "#1A1A1A" }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-12 text-center">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6" style={{ color: "white" }}>
-            Ready to Build Confidence the Right Way?
+            Ready to Train Calm Execution the Right Way?
           </h2>
           <p className="text-base sm:text-lg mb-8 sm:mb-10" style={{ color: "#A0A0A0" }}>
             Pressure being familiar creates calm. Calm creates ongoing execution.

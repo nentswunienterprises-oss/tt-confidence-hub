@@ -200,10 +200,10 @@ const PHASE_OBSERVATION_CONFIG: Record<
       },
     ],
     interventions: [
-      "Model -> Apply -> Guide loop",
+      "Independent execution loop",
       "Corrected skipped step",
       "Forced independent start",
-      "Re-modeled method",
+      "Corrected method gap",
     ],
     thresholds: {
       low: { remainMax: 49, mediumMax: 79, highMin: 80 },
@@ -843,7 +843,7 @@ const phaseDefinition: Record<PhaseLabel, string> = {
   "Structured Execution":
     [
       "Description: The student must now execute inside the topic. This means: starting without delay, following steps in order, reducing guessing, repeating the method reliably.",
-      "Tool: Use Model → Apply → Guide, 3-Layer Lens correction.",
+      "Tool: Independent execution reps, step-order correction, and 3-Layer Lens checks. Model only if a Clarity gap appears.",
       "Question: Can the student act reliably in this topic without being carried? If no, this topic sits in Structured Execution."
     ].join("\n\n"),
   "Controlled Discomfort":

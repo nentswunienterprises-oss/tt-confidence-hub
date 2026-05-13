@@ -146,7 +146,7 @@ function buildTutorAgreementBody(code: string, formData: Record<string, string>)
           </TutorAgreementSection>
           <TutorAgreementSection title="Programme Definition And Role">
             <p>Response Integrity is not a tutoring service. It is a response-conditioning system delivered through mathematics.</p>
-            <p>The purpose of every session is to train how a learner responds under difficulty, not to explain content or assist with homework.</p>
+            <p>The purpose of every session is to build reliable learner response under difficulty through phase-appropriate instruction, practice, correction, and pressure progression.</p>
             <p>The Contractor operates as a response-conditioning operator, responsible for stabilizing learner execution under pressure.</p>
             <p>Every session is executed strictly under Response Integrity-OS. The required structure depends on the learner&apos;s diagnosed phase, assigned drill, and current stability state.</p>
             <TutorAgreementList items={[

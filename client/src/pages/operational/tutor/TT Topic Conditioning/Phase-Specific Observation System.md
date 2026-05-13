@@ -269,10 +269,10 @@ Interpretation:
 Student understands the topic but does not yet execute it reliably without help.
 
 Next Action:
-Run strict Model → Apply → Guide loops. Enforce step-by-step execution. Correct every skipped step. Force student to start every problem.
+Run independent execution reps with step-order correction. Correct every skipped step. Force student to start every problem.
 
 Constraint:
-No time pressure. Boss Battles only if student can start.
+No time pressure. No Boss Battles until Controlled Discomfort.
 
 Execution + Medium
 
@@ -280,10 +280,10 @@ Interpretation:
 Student can execute in this topic in many cases, but still shows inconsistency.
 
 Next Action:
-Increase independent problem volume. Reduce modeling. Strengthen consistency across multiple problems. Introduce light Boss Battles.
+Increase independent problem volume. Reduce modeling. Strengthen consistency across multiple problems. Prepare Controlled Discomfort readiness check.
 
 Constraint:
-Do not rush to time pressure.
+Do not rush to time pressure. Do not introduce Boss Battles before phase advance.
 
 Execution + High
 

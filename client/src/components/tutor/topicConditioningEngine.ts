@@ -91,12 +91,12 @@ export const NEXT_ACTION_ENGINE: Record<PhaseLabel, Record<StabilityLabel, NextA
     Low: {
       primaryAction: "Run Structured Execution drill",
       nextActions: [
-        "Run strict Model → Apply → Guide loops",
+        "Run independent execution reps with step-order correction",
         "Enforce step-by-step execution",
         "Correct every skipped step",
         "Force student to start every problem",
       ],
-      rules: ["No time pressure", "Boss Battles only if student can start", "No over-explaining"],
+      rules: ["No time pressure", "No Boss Battles until Controlled Discomfort", "No over-explaining"],
     },
     Medium: {
       primaryAction: "Run Structured Execution drill",
@@ -104,9 +104,9 @@ export const NEXT_ACTION_ENGINE: Record<PhaseLabel, Record<StabilityLabel, NextA
         "Run Structured Execution drill",
         "Reduce modeling",
         "Strengthen consistency across multiple problems",
-        "Introduce light Boss Battles",
+        "Prepare Controlled Discomfort readiness check",
       ],
-      rules: ["Do not rush to time pressure", "Still reinforce structure every time"],
+      rules: ["Do not rush to time pressure", "Do not introduce Boss Battles before phase advance", "Still reinforce structure every time"],
     },
     High: {
       primaryAction: "Run Structured Execution High Maintenance drill",

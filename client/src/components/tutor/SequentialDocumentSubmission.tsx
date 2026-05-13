@@ -663,7 +663,7 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
             <TutorAgreementList items={[
               "Response Integrity is not a tutoring service.",
               "It is a response-conditioning system delivered through mathematics.",
-              "The purpose of every session is to train how a learner responds under difficulty, not to explain content or assist with homework.",
+              "The purpose of every session is to build reliable learner response under difficulty through phase-appropriate instruction, practice, correction, and pressure progression.",
               "The Contractor operates as a response-conditioning operator, responsible for stabilizing learner execution under pressure.",
             ]} />
             <p>Every session is executed strictly under the Response Integrity Operating System (Response Integrity-OS). The required structure depends on the learner&apos;s diagnosed phase, assigned drill, and current stability state.</p>
@@ -694,7 +694,7 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
 
           <TutorAgreementSection title="Operating Standards (Non-Negotiable)">
             <p>The Contractor agrees to the following:</p>
-            <TutorAgreementList items={["All sessions must follow the Response Integrity-OS without deviation"]} />
+            <TutorAgreementList items={["All sessions must follow the phase-appropriate Response Integrity-OS requirements without tutor improvisation"]} />
             <p>The following are strictly prohibited:</p>
             <TutorAgreementList items={[
               "Explaining instead of training",

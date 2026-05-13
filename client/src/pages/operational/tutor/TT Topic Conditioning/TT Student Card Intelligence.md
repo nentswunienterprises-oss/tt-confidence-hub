@@ -113,7 +113,7 @@ Then beneath:
 Direction
 
 System direction:
-Remain in Structured Execution. Reinforce structure every time. Boss Battles may be introduced lightly. Do not move to time pressure.
+Remain in Structured Execution. Reinforce structure every time. Do not introduce Boss Battles or time pressure until the system advances the topic.
 
 What the Map must show for every topic
 1. Topic Name
@@ -168,7 +168,7 @@ Fixed instructions.
 Example:
 
 Reinforce Vocabulary, Method, Reason
-Run strict Model → Apply → Guide loops
+Run independent execution reps with step-order correction
 Introduce Boss Battles carefully
 Increase timed repetitions
 6. Rules / Constraints

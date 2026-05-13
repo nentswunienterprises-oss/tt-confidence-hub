@@ -120,7 +120,7 @@ const PARENT_STATE_ENGINE: Record<PhaseLabel, Record<StabilityLabel, ParentState
     Medium: {
       status: "Your child is improving in handling difficult questions.",
       meaning: "They can work through unfamiliar problems, but still show hesitation at times.",
-      focus: "We are increasing exposure to harder questions to build confidence under difficulty.",
+      focus: "We are increasing exposure to harder questions to build stability under difficulty.",
     },
     High: {
       status: "Your child is handling difficult problems well.",
