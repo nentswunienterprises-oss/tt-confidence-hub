@@ -110,7 +110,7 @@ function PortalLanding() {
             </h1>
 
             <p className="text-base sm:text-lg md:text-xl leading-relaxed" style={{ color: "#5A5A5A" }}>
-              Most students don' struggle because they're bad at math or not intelligent.
+              Most students don't struggle because they're bad at math or not intelligent.
               <br />
               They struggle because pressure disrupts the way they respond.
               <br /><br />
@@ -318,7 +318,7 @@ function PortalLanding() {
                   <ResponseIntegrityLogo size="md" variant="integrity" />
               </div>
               <a
-                href="https://www.instagram.com/territorialtutoring?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+                href="https://www.instagram.com/responseintegritysa?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Response Integrity on Instagram"
