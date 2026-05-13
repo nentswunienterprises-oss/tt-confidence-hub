@@ -158,7 +158,7 @@ function buildTutorAgreementBody(code: string, formData: Record<string, string>)
             <TutorAgreementList tone="check" items={[
               "They have read and understood this document in full",
               "They accept all operational, structural, and performance requirements",
-              "They agree to operate strictly within the Response Integrity system",
+              "They agree to operate strictly within the system",
               "They understand that deviation results in removal from the system",
             ]} />
           </TutorAgreementSection>
@@ -198,7 +198,7 @@ function buildTutorAgreementBody(code: string, formData: Record<string, string>)
             <p>The Contractor is engaged as an independent contractor. Nothing in this Agreement creates employment, partnership, joint venture, or agency.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Business Model Acknowledgement">
-            <p>Response Integrity is a response-conditioning system delivered through mathematics. The Contractor operates within Response Integrity&apos;s system, not personal teaching style.</p>
+            <p>Response Integrity is a response-conditioning system delivered through mathematics. The Contractor operates within the system, not personal teaching style.</p>
           </TutorAgreementSection>
           <TutorAgreementSection title="Payment Structure">
             <p>Payment is made per completed session package and is conditional on Response Integrity-OS compliance and accurate reporting.</p>
@@ -222,7 +222,7 @@ function buildTutorAgreementBody(code: string, formData: Record<string, string>)
             <TutorAgreementList items={[
               "Private messaging with learners is prohibited",
               "External-platform contact is prohibited",
-              "Direct communication with parents outside Response Integrity channels is prohibited",
+              "Direct communication with parents outside approved channels is prohibited",
             ]} />
           </TutorAgreementSection>
           <TutorAgreementSection title="Zero-Tolerance Conduct">
@@ -253,7 +253,7 @@ function buildTutorAgreementBody(code: string, formData: Record<string, string>)
             <TutorAgreementList tone="check" items={[
               "Understanding of the data collected and its purpose",
               "Consent to full session recording where required",
-              "Acceptance of data processing as required by the Response Integrity system",
+              "Acceptance of data processing as required by the system",
             ]} />
           </TutorAgreementSection>
         </>

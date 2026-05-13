@@ -861,7 +861,7 @@ export default function ParentDashboard() {
             <CardContent className="space-y-3 text-sm">
               <div>
                 <p className="text-muted-foreground">Assigned tutor</p>
-                <p className="font-semibold text-foreground">{assignedTutor?.name || "Assigned inside Response Integrity"}</p>
+                <p className="font-semibold text-foreground">{assignedTutor?.name || "Assigned through platform"}</p>
               </div>
               {assignedTutor?.bio && (
                 <p className="text-muted-foreground">{assignedTutor.bio}</p>

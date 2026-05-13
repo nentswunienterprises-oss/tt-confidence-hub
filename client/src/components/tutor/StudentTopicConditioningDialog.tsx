@@ -2003,7 +2003,7 @@ export default function StudentTopicConditioningDialog({
                                 </Button>
                               </div>
                               <p className="text-muted-foreground">
-                                Training mode runs this lesson inside Response Integrity without depending on Meet generation or the live lesson window.
+                                Training mode runs this lesson inside the platform without depending on Meet generation or the live lesson window.
                               </p>
                             </div>
                           ))}

@@ -329,7 +329,7 @@ export default function ParentSessions() {
         <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
           <p className="text-base font-semibold text-foreground">Training mode scheduling is active</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Your assigned tutor is currently in Response Integrity training mode. You should still schedule and confirm sessions here, but Response Integrity will run them inside the training flow instead of depending on Google Meet or the normal live-session window.
+            Your assigned tutor is currently in training mode. You should still schedule and confirm sessions here, but the lesson will run inside the training flow instead of depending on Google Meet or the normal live-session window.
           </p>
         </div>
       ) : null}
@@ -498,7 +498,7 @@ export default function ParentSessions() {
                       <p className="text-sm text-green-700">Session confirmed.</p>
                       {trainingModeScheduling ? (
                         <p className="text-sm text-muted-foreground">
-                          Training mode runs this lesson inside Response Integrity without depending on Google Meet.
+                          Training mode runs this lesson inside the platform without depending on Google Meet.
                         </p>
                       ) : session.google_meet_url ? (
                         <a

@@ -50,8 +50,8 @@ export default function TdTermsOfUse() {
         {
           title: "5. Confidentiality and System Protection",
           bullets: [
-            "Response Integrity systems, methods, operating frameworks, tutor data, learner data, and internal records are confidential.",
-            "TDs may not reproduce Response Integrity methodology, divert Response Integrity relationships, or bypass Response Integrity systems.",
+            "Platform systems, methods, operating frameworks, tutor data, learner data, and internal records are confidential.",
+            "TDs may not reproduce Response Integrity methodology, divert platform relationships, or bypass approved systems.",
             "Operational access is granted only for lawful Response Integrity purposes.",
           ],
         },

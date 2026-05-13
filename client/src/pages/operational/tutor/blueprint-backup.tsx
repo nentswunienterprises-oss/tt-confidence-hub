@@ -1259,7 +1259,7 @@ function ModuleSix({ expandedSections, toggleSection, onComplete, isComplete }: 
             
             <div className="mt-6 pt-6 border-t border-white/20">
               <p className="font-bold text-lg">The Final Truth:</p>
-              <p className="mt-2">If you win inside Response Integrity, you'll win in school.</p>
+              <p className="mt-2">If you build consistency here, you'll carry it into school.</p>
               <p className="mt-2 italic">Structure is structure. Discipline is discipline. Character is character.</p>
             </div>
           </div>

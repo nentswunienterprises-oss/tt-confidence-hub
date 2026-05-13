@@ -21,7 +21,7 @@ const disqualifiers = [
 const rolePoints = [
   "You identify real need.",
   "You qualify families accurately.",
-  "You move the right students into the Response Integrity system.",
+  "You move the right students into the system.",
 ];
 
 const nonRolePoints = [
@@ -142,7 +142,7 @@ export default function AffiliateLanding() {
                   </div>
                   <div className="rounded-[22px] border border-[#E6D4C7] bg-white/72 p-4">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8A4B35]">Positioning</p>
-                    <p className="mt-2 text-sm leading-6 text-[#4F4742]">You work inside a defined Response Integrity system, not an improvised pitch.</p>
+                    <p className="mt-2 text-sm leading-6 text-[#4F4742]">You work inside a defined system, not an improvised pitch.</p>
                   </div>
                   <div className="rounded-[22px] border border-[#E6D4C7] bg-white/72 p-4">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8A4B35]">Earnings</p>
@@ -250,7 +250,7 @@ export default function AffiliateLanding() {
                 </div>
               </div>
               <div className="mt-6 rounded-[24px] border border-[#E6D1BF] bg-[#F7ECE1] px-5 py-4">
-<p className="text-sm leading-7 text-[#483E38]">You operate at the front of the Response Integrity system. Your value is not noise. It is accurate placement.</p>
+<p className="text-sm leading-7 text-[#483E38]">You operate at the front of the system. Your value is not noise. It is accurate placement.</p>
               </div>
             </Card>
 
@@ -337,4 +337,3 @@ export default function AffiliateLanding() {
     </div>
   );
 }
-

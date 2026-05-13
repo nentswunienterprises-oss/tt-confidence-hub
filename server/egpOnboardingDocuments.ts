@@ -38,7 +38,7 @@ export const EGP_ONBOARDING_DOCUMENTS: EgpOnboardingDocumentDefinition[] = [
       },
       {
         key: "independent_operator",
-        label: "I understand that I operate as an independent contractor inside Response Integrity's defined system.",
+        label: "I understand that I operate as an independent contractor inside the defined system.",
       },
     ],
   },
@@ -53,7 +53,7 @@ export const EGP_ONBOARDING_DOCUMENTS: EgpOnboardingDocumentDefinition[] = [
     mandatoryClauses: [
       {
         key: "relationships_belong_to_Response Integrity",
-        label: "I acknowledge that all client and tutor relationships accessed through the platform remain the exclusive property of Response Integrity.",
+        label: "I acknowledge that all client and tutor relationships accessed through the platform remain company property.",
       },
       {
         key: "no_side_channel_deals",
@@ -72,11 +72,11 @@ export const EGP_ONBOARDING_DOCUMENTS: EgpOnboardingDocumentDefinition[] = [
     mandatoryClauses: [
       {
         key: "confidential_systems",
-        label: "I acknowledge that Response Integrity's systems, positioning, structures, and operating methods are confidential.",
+        label: "I acknowledge that the systems, positioning, structures, and operating methods are confidential.",
       },
       {
         key: "no_replication",
-        label: "I may not copy, disclose, or recreate Response Integrity's system outside authorized Response Integrity operations.",
+        label: "I may not copy, disclose, or recreate the system outside authorized Response Integrity operations.",
       },
     ],
   },

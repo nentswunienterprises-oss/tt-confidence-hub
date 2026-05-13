@@ -7,7 +7,7 @@ export default function StudentUpdates() {
       <CommunicationInbox
         audience="student"
         title="Student Inbox"
-        description="Message your tutor inside Response Integrity and keep all training communication on-platform."
+        description="Message your tutor on-platform and keep all training communication in one place."
         queryKey={["/api/student/communications"]}
         getPath="/api/student/communications"
         postPath="/api/student/communications"

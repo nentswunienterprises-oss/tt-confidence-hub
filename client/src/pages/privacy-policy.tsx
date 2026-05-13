@@ -86,7 +86,7 @@ export default function PrivacyPolicy() {
             "Payment processors such as Payfast for transaction handling.",
             "Technology providers supporting authentication, storage, scheduling, recordings, notifications, and platform infrastructure.",
             "Professional advisers, regulators, law enforcement, courts, or authorities where disclosure is required or lawfully permitted.",
-            "Operational decision-makers inside Response Integrity where needed for safeguarding, audits, compliance, disputes, or system protection.",
+            "Internal operational decision-makers where needed for safeguarding, audits, compliance, disputes, or system protection.",
           ],
         },
         {
@@ -107,7 +107,7 @@ export default function PrivacyPolicy() {
         {
           title: "9. International and Third-Party Processing",
           paragraphs: [
-            "Some Response Integrity service providers may process or store information outside South Africa. Where this happens, Response Integrity uses providers and arrangements intended to provide appropriate protection for the information involved.",
+            "Some service providers may process or store information outside South Africa. Where this happens, we use providers and arrangements intended to provide appropriate protection for the information involved.",
           ],
         },
         {

@@ -152,7 +152,7 @@ export default function StudentSessions() {
           </CardHeader>
           <CardContent>
             <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-              Your tutor is currently being trained inside Response Integrity, so sessions are being run directly in the Response Integrity system instead of through scheduled Meet links.
+              Your tutor is currently in training mode, so sessions run directly inside the platform instead of through scheduled Meet links.
             </div>
           </CardContent>
         </Card>

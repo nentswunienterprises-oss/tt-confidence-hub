@@ -224,7 +224,7 @@ export default function LegalPage() {
                   <section className="mb-8">
                     <h3 className="text-xl font-semibold mb-3">2.5 Intellectual Property</h3>
                     <p>
-                      All materials, content, and systems remain the property of Response Integrity SA (Pty) Ltd.
+                      All materials, content, and systems remain company property.
                     </p>
                   </section>
 

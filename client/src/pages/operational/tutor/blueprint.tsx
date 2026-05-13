@@ -1863,7 +1863,7 @@ function ModuleSix({ expandedSections, toggleSection, onComplete, isComplete }: 
                 <p className="font-bold mb-3">Here's the formula:</p>
                 <ol className="space-y-3 ml-4">
                   <li><strong>1. Keep Your Commitments</strong><br/>
-                    <span className="text-muted-foreground">When you do Response Integrity sessions on time, you build patterns for your future self (deadlines, exams, life).</span>
+                    <span className="text-muted-foreground">When you show up for sessions on time, you build patterns for your future self (deadlines, exams, life).</span>
                   </li>
                   <li><strong>2. Don't Rely on Emotion</strong><br/>
                     <span className="text-muted-foreground">When you're tired? That's when you lean on the Hub more, not less.</span>
@@ -1916,7 +1916,7 @@ function ModuleSix({ expandedSections, toggleSection, onComplete, isComplete }: 
             
             <div className="mt-6 pt-6 border-t border-white/20">
               <p className="font-bold text-lg">The Final Truth:</p>
-              <p className="mt-2">If you win inside Response Integrity, you'll win in school.</p>
+              <p className="mt-2">If you build consistency here, you'll carry it into school.</p>
               <p className="mt-2 italic">Structure is structure. Discipline is discipline. Character is character.</p>
               <p className="mt-3">The difference between a tutor who thrives and a tutor who burns out? One trusts the system. The other trusts their mood.</p>
             </div>

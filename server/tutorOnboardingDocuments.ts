@@ -36,7 +36,7 @@ export const TUTOR_ONBOARDING_DOCUMENTS: TutorOnboardingDocumentDefinition[] = [
     mandatoryClauses: [
       {
         key: "platform_rules",
-        label: "I acknowledge that I must operate inside Response Integrity's platform rules and system requirements.",
+        label: "I acknowledge that I must operate inside the platform rules and system requirements.",
       },
     ],
   },
@@ -77,7 +77,7 @@ export const TUTOR_ONBOARDING_DOCUMENTS: TutorOnboardingDocumentDefinition[] = [
       },
       {
         key: "tt_platform_control",
-        label: "I agree that Response Integrity controls the platform environment, session structure, and assignment flow.",
+        label: "I agree that the Company controls the platform environment, session structure, and assignment flow.",
       },
       {
         key: "no_circumvention",
@@ -119,7 +119,7 @@ export const TUTOR_ONBOARDING_DOCUMENTS: TutorOnboardingDocumentDefinition[] = [
       },
       {
         key: "no_external_storage",
-        label: "I may not store, share, or process learner data outside approved Response Integrity systems.",
+        label: "I may not store, share, or process learner data outside approved platform systems.",
       },
     ],
   },

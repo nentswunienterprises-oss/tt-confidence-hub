@@ -8,7 +8,7 @@ export default function TutorTermsOfUse() {
       intro={
         <>
           <p>
-            These terms apply to tutor applicants, tutors in onboarding, and tutors operating inside Response Integrity systems.
+            These terms apply to tutor applicants, tutors in onboarding, and tutors operating inside the Response Integrity platform.
           </p>
           <p>
             Tutor access is not general consumer access. It is controlled operational access to a recorded,
@@ -37,13 +37,13 @@ export default function TutorTermsOfUse() {
           bullets: [
             "All sessions must follow Response Integrity-OS, including approved drill structure, progression logic, and reporting requirements.",
             "Tutors may not soften, rewrite, improvise around, or privately replace Response Integrity methodology.",
-            "Tutor judgment operates inside the Response Integrity system, not outside it.",
+            "Tutor judgment operates inside the system, not outside it.",
           ],
         },
         {
           title: "4. Platform Discipline and Communications",
           bullets: [
-            "Tutors may not move learners, parents, or session arrangements outside Response Integrity systems without written authorization.",
+            "Tutors may not move learners, parents, or session arrangements outside approved systems without written authorization.",
             "Tutors may not accept direct payment, private side arrangements, or off-platform tutoring sourced through relationships formed on the platform.",
             "Response Integrity may monitor platform use, submission patterns, session integrity signals, and compliance events.",
           ],
@@ -66,8 +66,8 @@ export default function TutorTermsOfUse() {
         {
           title: "7. Confidentiality and Intellectual Property",
           bullets: [
-            "Response Integrity systems, drill logic, reporting structures, operating documents, recordings, and learner data are confidential and protected.",
-            "Tutors may not copy, reproduce, teach outside Response Integrity, disclose, or commercially reuse Response Integrity methodology or platform materials without written permission.",
+            "Platform systems, drill logic, reporting structures, operating documents, recordings, and learner data are confidential and protected.",
+            "Tutors may not copy, reproduce, teach externally, disclose, or commercially reuse Response Integrity methodology or platform materials without written permission.",
             "Learner data and operational data may be used only for lawful Response Integrity purposes.",
           ],
         },

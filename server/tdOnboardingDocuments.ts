@@ -129,11 +129,11 @@ export const TD_ONBOARDING_DOCUMENTS: TdOnboardingDocumentDefinition[] = [
     mandatoryClauses: [
       {
         key: "protect_tt_systems",
-        label: "I will protect Response Integrity systems, methods, data, and operational frameworks as confidential property.",
+        label: "I will protect company systems, methods, data, and operational frameworks as confidential property.",
       },
       {
         key: "no_replication_or_circumvention",
-        label: "I may not reproduce Response Integrity methodologies, bypass Response Integrity systems, or divert Response Integrity tutors or students.",
+        label: "I may not reproduce proprietary methodologies, bypass approved systems, or divert platform tutors or students.",
       },
     ],
   },

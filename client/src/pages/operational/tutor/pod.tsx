@@ -449,7 +449,7 @@ export default function TutorPod() {
                 <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Tutor Alignment</p>
                 <h2 className="mt-1 text-xl font-semibold tracking-[-0.01em]">Your standing in the system</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  This shows your latest audited alignment state and the battle-test modules already checked by Response Integrity.
+                  This shows your latest audited alignment state and the battle-test modules already completed.
                 </p>
               </div>
             </div>

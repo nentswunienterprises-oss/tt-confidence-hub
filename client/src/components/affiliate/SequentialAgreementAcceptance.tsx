@@ -173,7 +173,7 @@ function buildAgreementBody(document: DocumentDefinition, formData: EgpFormData)
       return (
         <>
           <AgreementSection title="1. Purpose">
-            <p>This Agreement governs the role of the Education Growth Partner as a distribution operator responsible for sourcing qualified students into the Response Integrity system.</p>
+            <p>This Agreement governs the role of the Education Growth Partner as a distribution operator responsible for sourcing qualified students into the system.</p>
             <p>The EGP is not an employee, advisor, or decision-maker. The EGP operates as a performance-based acquisition operator.</p>
           </AgreementSection>
 
@@ -182,7 +182,7 @@ function buildAgreementBody(document: DocumentDefinition, formData: EgpFormData)
             <AgreementList items={[
               "Identifying parents whose children demonstrate real academic performance breakdown",
               "Introducing qualified parents to Response Integrity",
-              "Facilitating enrollment into the Response Integrity system",
+              "Facilitating enrollment into the system",
             ]} />
             <p>The EGP shall not:</p>
             <AgreementList items={[
@@ -250,7 +250,7 @@ function buildAgreementBody(document: DocumentDefinition, formData: EgpFormData)
 
           <AgreementSection title="10. Confidentiality & System Protection">
             <p>The EGP agrees not to:</p>
-            <AgreementList items={["Share Response Integrity systems or processes", "Disclose internal structures", "Replicate Response Integrity model externally"]} />
+            <AgreementList items={["Share proprietary systems or processes", "Disclose internal structures", "Replicate the model externally"]} />
           </AgreementSection>
 
           <AgreementSection title="11. Acknowledgement">
@@ -269,26 +269,26 @@ function buildAgreementBody(document: DocumentDefinition, formData: EgpFormData)
         <>
           <AgreementSection title="1. Purpose">
             <p>This Agreement protects Response Integrity's client relationships, tutor network, and operational structure.</p>
-            <p>The EGP acknowledges that all relationships introduced or accessed through the platform remain the exclusive property of Response Integrity.</p>
+            <p>The EGP acknowledges that all relationships introduced or accessed through the platform remain the Company's exclusive relationship assets.</p>
           </AgreementSection>
 
           <AgreementSection title="2. Non-Circumvention">
             <p>The EGP shall not, directly or indirectly:</p>
             <AgreementList items={[
-              "Engage Response Integrity clients outside the platform",
-              "Offer tutoring or related services privately to Response Integrity clients",
+              "Engage platform clients outside approved channels",
+              "Offer tutoring or related services privately to platform clients",
               "Redirect parents or students away from Response Integrity",
-              "Facilitate third-party services to Response Integrity clients",
+              "Facilitate third-party services to platform clients",
             ]} />
-            <p>All clients introduced remain within the Response Integrity system.</p>
+            <p>All clients introduced remain within the system.</p>
           </AgreementSection>
 
           <AgreementSection title="3. Non-Solicitation (Clients)">
             <p>The EGP shall not:</p>
             <AgreementList items={[
-              "Contact Response Integrity parents for personal or external services",
-              "Attempt to move Response Integrity clients to another platform",
-              "Re-engage former Response Integrity clients outside the platform",
+              "Contact platform parents for personal or external services",
+              "Attempt to move platform clients to another service",
+              "Re-engage former platform clients outside approved channels",
             ]} />
             <p>This applies during and after the relationship with Response Integrity.</p>
           </AgreementSection>
@@ -334,13 +334,13 @@ function buildAgreementBody(document: DocumentDefinition, formData: EgpFormData)
         <>
           <AgreementSection title="1. Purpose">
             <p>This Agreement protects Response Integrity's proprietary systems, methodologies, and internal structures.</p>
-            <p>The EGP acknowledges that Response Integrity operates using a defined system (Response Integrity-OS) and strategic framework that is confidential and commercially sensitive.</p>
+            <p>The EGP acknowledges that Response Integrity operates through a defined system and strategic framework that are confidential and commercially sensitive.</p>
           </AgreementSection>
 
           <AgreementSection title="2. Confidential Information">
             <p>Confidential Information includes, but is not limited to:</p>
             <AgreementList items={[
-              "Response Integrity-OS (Response Integrity Operating System)",
+              "Response Integrity-OS",
               "Training methods and drill structures",
               "Intake and diagnostic processes",
               "Pricing models and revenue structures",
@@ -354,14 +354,14 @@ function buildAgreementBody(document: DocumentDefinition, formData: EgpFormData)
             <p>The EGP shall not:</p>
             <AgreementList items={[
               "Share confidential information with any third party",
-              "Disclose Response Integrity systems or processes externally",
-              "Discuss internal operations outside Response Integrity",
+              "Disclose proprietary systems or processes externally",
+              "Discuss internal operations outside approved channels",
             ]} />
           </AgreementSection>
 
           <AgreementSection title="4. Non-Reproduction">
             <p>The EGP shall not:</p>
-            <AgreementList items={["Copy or replicate Response Integrity systems", "Recreate Response Integrity-OS in any form", "Train or assist others using Response Integrity methodologies"]} />
+            <AgreementList items={["Copy or replicate proprietary systems", "Recreate Response Integrity-OS in any form", "Train or assist others using platform methodologies"]} />
           </AgreementSection>
 
           <AgreementSection title="5. Limited Use">
@@ -405,7 +405,7 @@ function buildAgreementBody(document: DocumentDefinition, formData: EgpFormData)
 
           <AgreementSection title="2. Role In Communication">
             <p>The EGP is responsible for:</p>
-            <AgreementList items={["Identifying potential need", "Introducing parents to Response Integrity", "Positioning Response Integrity accurately"]} />
+            <AgreementList items={["Identifying potential need", "Introducing parents to the offer", "Positioning Response Integrity accurately"]} />
             <p>The EGP is not responsible for:</p>
             <AgreementList items={["Explaining technical training methods", "Diagnosing academic issues in detail", "Closing complex decisions"]} />
           </AgreementSection>
@@ -442,7 +442,7 @@ function buildAgreementBody(document: DocumentDefinition, formData: EgpFormData)
 
           <AgreementSection title="8. Social Media & Public Representation">
             <p>The EGP shall not:</p>
-            <AgreementList items={["Post misleading content about Response Integrity", "Represent themselves as a tutor or expert", "Create independent Response Integrity-branded material"]} />
+            <AgreementList items={["Post misleading content about Response Integrity", "Represent themselves as a tutor or expert", "Create independent branded material"]} />
           </AgreementSection>
 
           <AgreementSection title="9. Breach">

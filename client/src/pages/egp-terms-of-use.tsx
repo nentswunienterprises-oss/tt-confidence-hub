@@ -41,16 +41,16 @@ export default function EgpTermsOfUse() {
         {
           title: "4. Non-Circumvention",
           bullets: [
-            "Relationships, leads, and tracked opportunities accessed through Response Integrity remain Response Integrity relationships.",
-            "EGPs may not move Response Integrity relationships into private, external, competing, or untracked arrangements.",
-            "Response Integrity-issued codes, links, and tracking systems may only be used for authorized Response Integrity acquisition activity.",
+            "Relationships, leads, and tracked opportunities accessed through the platform remain company-managed relationships.",
+            "EGPs may not move platform relationships into private, external, competing, or untracked arrangements.",
+            "Issued codes, links, and tracking systems may only be used for authorized acquisition activity.",
           ],
         },
         {
           title: "5. Confidentiality and System Protection",
           bullets: [
             "Response Integrity positioning, structures, systems, scripts, commercial logic, and internal data are confidential.",
-            "EGPs may not copy, disclose, or recreate Response Integrity systems outside Response Integrity.",
+            "EGPs may not copy, disclose, or recreate proprietary systems outside authorized platform use.",
           ],
         },
         {
@@ -62,7 +62,7 @@ export default function EgpTermsOfUse() {
         {
           title: "7. Suspension and Termination",
           paragraphs: [
-            "Response Integrity may suspend or terminate EGP access immediately for false claims, misuse of tracking systems, confidentiality breaches, circumvention, misconduct, or any role behavior that exposes Response Integrity to operational or reputational risk.",
+            "The Company may suspend or terminate EGP access immediately for false claims, misuse of tracking systems, confidentiality breaches, circumvention, misconduct, or role behavior that creates operational or reputational risk.",
           ],
         },
         {

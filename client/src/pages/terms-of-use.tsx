@@ -52,12 +52,12 @@ export default function TermsOfUse() {
         {
           title: "5. Session Delivery and Scheduling",
           paragraphs: [
-            "Response Integrity sessions may be delivered through approved live scheduling workflows, including Google Meet where enabled, and through Response Integrity training-mode workflows where standard live windows are intentionally not used.",
+            "Sessions may be delivered through approved live scheduling workflows, including Google Meet where enabled, and through training-mode workflows where standard live windows are intentionally not used.",
             "Session infrastructure, recording workflow, and scheduling sequence may vary by operational mode, onboarding stage, and tutor readiness state.",
           ],
           bullets: [
             "Missed learner sessions may be forfeited where notice requirements or scheduling rules are not met.",
-            "Sessions cancelled by Response Integrity will ordinarily be rescheduled or credited in a manner Response Integrity considers operationally appropriate.",
+            "Sessions cancelled by Response Integrity will ordinarily be rescheduled or credited in an operationally appropriate manner.",
           ],
         },
         {
@@ -90,7 +90,7 @@ export default function TermsOfUse() {
         {
           title: "9. Intellectual Property",
           paragraphs: [
-            "Response Integrity-OS, platform content, drill structures, progression logic, reporting templates, recordings controlled by Response Integrity, and associated systems remain the property of Response Integrity or otherwise protected platform material.",
+            "Response Integrity-OS, platform content, drill structures, progression logic, reporting templates, controlled recordings, and associated systems remain Company property or otherwise protected platform material.",
           ],
           bullets: [
             "You may not copy, sell, distribute, reproduce, or commercially reuse Response Integrity methodology or protected content without written permission.",
@@ -99,14 +99,14 @@ export default function TermsOfUse() {
         {
           title: "10. Suspension and Termination",
           paragraphs: [
-            "Response Integrity may suspend, restrict, or terminate access for non-payment, misuse, dishonesty, abuse, platform interference, safeguarding concerns, or conduct harmful to Response Integrity or other users.",
+            "Response Integrity may suspend, restrict, or terminate access for non-payment, misuse, dishonesty, abuse, platform interference, safeguarding concerns, or conduct harmful to the Company or other users.",
             "Families may end participation by written notice, but already-accrued charges, lawful retention duties, and non-refundable completed or forfeited session rules still apply.",
           ],
         },
         {
           title: "11. Liability",
           bullets: [
-            "Response Integrity is not liable for losses caused by user non-compliance, device problems, internet failures, or events outside Response Integrity's reasonable control.",
+            "Response Integrity is not liable for losses caused by user non-compliance, device problems, internet failures, or events outside its reasonable control.",
             "Response Integrity does not guarantee a fixed academic result or timeframe.",
           ],
         },
