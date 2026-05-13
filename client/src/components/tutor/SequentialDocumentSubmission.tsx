@@ -666,11 +666,11 @@ function buildTutorAgreementBody(document: OnboardingDocumentDefinition, formDat
               "The purpose of every session is to train how a learner responds under difficulty, not to explain content or assist with homework.",
               "The Contractor operates as a response-conditioning operator, responsible for stabilizing learner execution under pressure.",
             ]} />
-            <p>Every session is executed strictly under the Response Integrity Operating System (Response Integrity-OS):</p>
+            <p>Every session is executed strictly under the Response Integrity Operating System (Response Integrity-OS). The required structure depends on the learner&apos;s diagnosed phase, assigned drill, and current stability state.</p>
             <TutorAgreementList items={[
-              <><strong>Model:</strong> Demonstrate structured, calm execution</>,
-              <><strong>Apply:</strong> Require independent learner attempt under friction</>,
-              <><strong>Guide:</strong> Stabilize response, not rescue and not spoon-feed</>,
+              <><strong>Clarity and concept-entry work:</strong> Use Model -&gt; Apply -&gt; Guide to build recognition, method understanding, and first-step execution</>,
+              <><strong>Later conditioning phases:</strong> Prioritize independent execution, controlled friction, pressure exposure, stability checks, and accurate logging</>,
+              <><strong>Non-negotiable restraint:</strong> Do not over-model, over-guide, rescue, or turn conditioning sessions into ordinary lessons</>,
             ]} />
             <p>The Contractor does not fix answers. The Contractor fixes how the learner behaves when answers are unclear.</p>
           </TutorAgreementSection>
