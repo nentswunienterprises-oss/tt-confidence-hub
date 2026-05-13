@@ -2,7 +2,7 @@ import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { renderToStaticMarkup } from "react-dom/server.browser";
 import { CheckCircle2, Download, Expand, FileCheck, FileText, Loader2, Upload } from "lucide-react";
-import { API_URL } from "@/lib/config";
+import { apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -609,7 +609,7 @@ export function SequentialAgreementAcceptance({ applicationId, applicationStatus
     queryKey: ["/api/affiliate/onboarding-documents", applicationId],
     enabled: Boolean(applicationId),
     queryFn: async () => {
-      const response = await fetch(`${API_URL}/api/affiliate/onboarding-documents`, { credentials: "include" });
+      const response = await apiRequest("GET", "/api/affiliate/onboarding-documents");
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload?.message || "Failed to load EGP documents");
       return payload;
@@ -788,18 +788,17 @@ export function SequentialAgreementAcceptance({ applicationId, applicationStatus
         reader.readAsDataURL(selectedFile);
       });
 
-      const response = await fetch(`${API_URL}/api/affiliate/onboarding-documents/upload`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
+      const response = await apiRequest(
+        "POST",
+        "/api/affiliate/onboarding-documents/upload",
+        {
           applicationId,
           docStep: currentDocument.step,
           fileName: selectedFile.name,
           fileType: selectedFile.type,
           fileData,
-        }),
-      });
+        }
+      );
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload?.message || "Failed to upload certified ID copy");
@@ -837,11 +836,10 @@ export function SequentialAgreementAcceptance({ applicationId, applicationStatus
         .filter((clause) => clauseChecks[clause.key])
         .map((clause) => clause.key);
 
-      const response = await fetch(`${API_URL}/api/affiliate/onboarding-documents/${currentDocument.step}/accept`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
+      const response = await apiRequest(
+        "POST",
+        `/api/affiliate/onboarding-documents/${currentDocument.step}/accept`,
+        {
           applicationId,
           documentVersion: currentDocument.version,
           documentHash: currentDocument.contentHash,
@@ -856,8 +854,8 @@ export function SequentialAgreementAcceptance({ applicationId, applicationStatus
           viewStartedAt,
           viewCompletedAt,
           acceptClickedAt: new Date().toISOString(),
-        }),
-      });
+        }
+      );
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload?.message || "Failed to accept agreement");
       return payload;

@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { API_URL } from "@/lib/config";
+import { apiRequest } from "@/lib/queryClient";
 import { CheckCircle2, Download, Expand, FileCheck, FileText, Loader2, Upload } from "lucide-react";
 
 type DocumentStatus = "not_started" | "pending_upload" | "pending_review" | "approved" | "rejected";
@@ -1356,7 +1356,7 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
     queryKey: ["/api/tutor/onboarding-documents", applicationId],
     enabled: Boolean(applicationId),
     queryFn: async () => {
-      const response = await fetch(`${API_URL}/api/tutor/onboarding-documents`, { credentials: "include" });
+      const response = await apiRequest("GET", "/api/tutor/onboarding-documents");
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload?.message || "Failed to load onboarding documents");
       return payload;
@@ -1481,11 +1481,10 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
   const acceptMutation = useMutation({
     mutationFn: async () => {
       if (!currentDocument) throw new Error("No document loaded");
-      const response = await fetch(`${API_URL}/api/tutor/onboarding-documents/${currentDocument.step}/accept`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
+      const response = await apiRequest(
+        "POST",
+        `/api/tutor/onboarding-documents/${currentDocument.step}/accept`,
+        {
           applicationId,
           documentVersion: currentDocument.version,
           documentHash: currentDocument.contentHash,
@@ -1500,8 +1499,8 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
           viewStartedAt,
           viewCompletedAt,
           acceptClickedAt: new Date().toISOString(),
-        }),
-      });
+        }
+      );
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload?.message || "Failed to accept document");
       return payload;
@@ -1528,18 +1527,17 @@ export function SequentialDocumentSubmission({ applicationId, applicationStatus 
     mutationFn: async () => {
       if (!selectedFile || !currentDocument) throw new Error("Choose a file first");
       const fileData = await readFileAsBase64(selectedFile);
-      const response = await fetch(`${API_URL}/api/tutor/onboarding-documents/upload`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
+      const response = await apiRequest(
+        "POST",
+        "/api/tutor/onboarding-documents/upload",
+        {
           applicationId,
           docStep: currentDocument.step,
           fileName: `${applicationId}/doc_${currentDocument.step}_${Date.now()}_${selectedFile.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`,
           fileData,
           fileType: selectedFile.type,
-        }),
-      });
+        }
+      );
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload?.message || "Upload failed");
       return payload;

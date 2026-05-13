@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Expand, FileCheck, Loader2, Upload } from "lucide-react";
-import { API_URL } from "@/lib/config";
+import { apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -208,7 +208,7 @@ export function TdSequentialAgreementAcceptance({ applicationId, applicationStat
     queryKey: ["/api/td/onboarding-documents", applicationId],
     enabled: Boolean(applicationId),
     queryFn: async () => {
-      const response = await fetch(`${API_URL}/api/td/onboarding-documents`, { credentials: "include" });
+      const response = await apiRequest("GET", "/api/td/onboarding-documents");
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload?.message || "Failed to load TD documents");
       return payload;
@@ -331,11 +331,10 @@ export function TdSequentialAgreementAcceptance({ applicationId, applicationStat
         .filter((clause) => clauseChecks[clause.key])
         .map((clause) => clause.key);
 
-      const response = await fetch(`${API_URL}/api/td/onboarding-documents/${currentDocument.step}/accept`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
+      const response = await apiRequest(
+        "POST",
+        `/api/td/onboarding-documents/${currentDocument.step}/accept`,
+        {
           applicationId,
           documentVersion: currentDocument.version,
           documentHash: currentDocument.contentHash,
@@ -354,8 +353,8 @@ export function TdSequentialAgreementAcceptance({ applicationId, applicationStat
           viewStartedAt,
           viewCompletedAt: viewCompletedAt || new Date().toISOString(),
           acceptClickedAt: new Date().toISOString(),
-        }),
-      });
+        }
+      );
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload?.message || "Failed to accept agreement");
@@ -391,18 +390,17 @@ export function TdSequentialAgreementAcceptance({ applicationId, applicationStat
       if (!selectedUploadFile) throw new Error("Choose a file before uploading");
 
       const base64 = await fileToBase64(selectedUploadFile);
-      const response = await fetch(`${API_URL}/api/td/onboarding-documents/upload`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
+      const response = await apiRequest(
+        "POST",
+        "/api/td/onboarding-documents/upload",
+        {
           applicationId,
           docStep: currentDocument.step,
           fileName: selectedUploadFile.name,
           fileType: selectedUploadFile.type || "application/octet-stream",
           fileData: base64,
-        }),
-      });
+        }
+      );
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload?.message || "Failed to upload identification");
