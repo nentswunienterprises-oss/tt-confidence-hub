@@ -59,7 +59,7 @@ export default function OperationalLanding() {
         <div className="text-center max-w-3xl mx-auto space-y-5 sm:space-y-8">
           <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
             <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
-              Founding Team â€¢ Response Auditors Only
+              Founding Team  Response Auditors Only
             </span>
           </div>
           

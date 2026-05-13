@@ -72,9 +72,9 @@ export default function OnlineTutorsWanted() {
               </p>
 
               <ul className="mt-3 space-y-2 text-sm" style={{ color: "#5A5A5A" }}>
-                <li>â€¢ Clarity over speed</li>
-                <li>â€¢ Precision over personality</li>
-                <li>â€¢ Consistency over creativity</li>
+                <li> Clarity over speed</li>
+                <li> Precision over personality</li>
+                <li> Consistency over creativity</li>
               </ul>
 
               <p className="mt-3 text-sm" style={{ color: "#5A5A5A" }}>
@@ -87,12 +87,12 @@ export default function OnlineTutorsWanted() {
             <h3 className="text-lg font-bold mb-3">WHAT YOUâ€™LL DO</h3>
 
             <ul className="space-y-3 text-sm" style={{ color: "#5A5A5A" }}>
-              <li>â€¢ Deliver live online math sessions (1-on-1)</li>
-              <li>â€¢ Teach concepts using clear language and structured steps</li>
-              <li>â€¢ Help students stay calm and focused when problems get difficult</li>
-              <li>â€¢ Correct mistakes precisely, without guessing or shortcuts</li>
-              <li>â€¢ Prepare students for tests and exams through disciplined practice</li>
-              <li>â€¢ Maintain professional session standards at all times</li>
+              <li> Deliver live online math sessions (1-on-1)</li>
+              <li> Teach concepts using clear language and structured steps</li>
+              <li> Help students stay calm and focused when problems get difficult</li>
+              <li> Correct mistakes precisely, without guessing or shortcuts</li>
+              <li> Prepare students for tests and exams through disciplined practice</li>
+              <li> Maintain professional session standards at all times</li>
             </ul>
           </Card>
         </div>
@@ -102,22 +102,22 @@ export default function OnlineTutorsWanted() {
           <Card className="p-6" style={{ backgroundColor: "white" }}>
             <h3 className="text-lg font-bold mb-3">FOR TEENS WHO:</h3>
             <ul className="space-y-3 text-sm" style={{ color: "#5A5A5A" }}>
-              <li>â€¢ Are strong in Grades 6-9 Mathematics</li>
-              <li>â€¢ Can explain concepts clearly and patiently</li>
-              <li>â€¢ Are comfortable following a structured system</li>
-              <li>â€¢ Take feedback seriously and apply it quickly</li>
-              <li>â€¢ Want real teaching skill development (not just pocket money)</li>
-              <li>â€¢ Are disciplined, reliable, and coachable</li>
+              <li> Are strong in Grades 6-9 Mathematics</li>
+              <li> Can explain concepts clearly and patiently</li>
+              <li> Are comfortable following a structured system</li>
+              <li> Take feedback seriously and apply it quickly</li>
+              <li> Want real teaching skill development (not just pocket money)</li>
+              <li> Are disciplined, reliable, and coachable</li>
             </ul>
           </Card>
 
           <Card className="p-6 max-w-xl mx-auto" style={{ backgroundColor: "white" }}>
             <h3 className="text-lg font-bold mb-3">NOT FOR THOSE WHO:</h3>
             <ul className="space-y-3 text-sm" style={{ color: "#5A5A5A" }}>
-              <li>â€¢ Prefer improvising or â€œteaching their own wayâ€</li>
-              <li>â€¢ Dislike structure or feedback</li>
-              <li>â€¢ Avoid difficult students or challenging moments</li>
-              <li>â€¢ Want a casual side hustle without accountability</li>
+              <li> Prefer improvising or â€œteaching their own wayâ€</li>
+              <li> Dislike structure or feedback</li>
+              <li> Avoid difficult students or challenging moments</li>
+              <li> Want a casual side hustle without accountability</li>
             </ul>
           </Card>
         </div>
@@ -127,10 +127,10 @@ export default function OnlineTutorsWanted() {
           <Card className="p-6" style={{ backgroundColor: "white" }}>
             <h4 className="font-semibold mb-2">TRAINING & SUPPORT</h4>
             <ul className="text-sm" style={{ color: "#5A5A5A" }}>
-              <li>â€¢ Structured onboarding and system training</li>
-              <li>â€¢ Ongoing coaching and performance feedback</li>
-              <li>â€¢ Clear expectations and progression pathway</li>
-              <li>â€¢ Opportunity to grow into leadership roles over time</li>
+              <li> Structured onboarding and system training</li>
+              <li> Ongoing coaching and performance feedback</li>
+              <li> Clear expectations and progression pathway</li>
+              <li> Opportunity to grow into leadership roles over time</li>
             </ul>
           </Card>
 

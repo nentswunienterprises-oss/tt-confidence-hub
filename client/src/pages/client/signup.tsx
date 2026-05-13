@@ -64,7 +64,7 @@ export default function ClientSignup() {
             </div>
             <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full mx-auto" style={{ backgroundColor: "#FFF0F0" }}>
               <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
-                Founding Cohort â€¢ Limited Spots
+                Founding Cohort  Limited Spots
               </span>
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: "#1A1A1A" }}>

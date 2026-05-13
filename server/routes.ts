@@ -6871,6 +6871,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 topicConditioning: buildTopicConditioningMap(proposalSnapshot),
                 proposalSentAt: parentEnrollment?.proposal_sent_at || null,
                 parentApprovedAt: isApproved ? (proposalAcceptedAt || parentEnrollment?.updated_at) : null,
+                pendingTutorAcceptance: parentEnrollment?.status === "awaiting_tutor_acceptance",
               };
             } catch (err) {
               return {
@@ -6879,6 +6880,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 topicConditioning: null,
                 proposalSentAt: null,
                 parentApprovedAt: null,
+                pendingTutorAcceptance: false,
               };
             }
           })
