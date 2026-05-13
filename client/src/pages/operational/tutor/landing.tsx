@@ -57,13 +57,14 @@ const roleBlocks = [
   },
   {
     title: "What ongoing users should expect",
-    body: "If you already have an account, use the same entry point below. The next screen lets you switch to login instead of signup.",
+    body: "If you already have an account, use the login entry point below. It opens directly on the tutor login side.",
   },
 ] as const;
 
 export default function TutorLanding() {
   const navigate = useNavigate();
-  const entryPath = "/operational/signup?role=tutor";
+  const signupEntryPath = "/operational/signup?role=tutor";
+  const loginEntryPath = "/operational/signup?role=tutor&mode=login";
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -94,7 +95,7 @@ export default function TutorLanding() {
           <Button
             className="hidden rounded-full px-4 text-sm font-semibold sm:inline-flex sm:px-6 sm:text-base"
             style={{ backgroundColor: "#C63F2D", color: "white" }}
-            onClick={() => navigate(entryPath)}
+            onClick={() => navigate(loginEntryPath)}
           >
             Sign In
           </Button>
@@ -119,7 +120,7 @@ export default function TutorLanding() {
                 <div className="mt-5 grid gap-6 lg:grid-cols-[1fr_240px] lg:items-start">
                   <div className="max-w-2xl space-y-3 text-base leading-7 text-[#534A43] sm:text-[17px]">
                     <p>Response Integrity is looking for disciplined young people who are strong in math, coachable under pressure, and serious about building real skill.</p>
-                    <p>This is where first-time applicants start. Returning tutors use the same entry point and switch to login on the next screen.</p>
+                    <p>This is where first-time applicants start. Returning tutors can use the login path below to open directly on the tutor login side.</p>
                   </div>
                   <div className="rounded-[24px] border border-[#E0CCBE] bg-white/58 p-4">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8A4B35]">Role core</p>
@@ -138,7 +139,7 @@ export default function TutorLanding() {
                     size="lg"
                     className="rounded-full px-8 shadow-sm"
                     style={{ backgroundColor: "#B9382F" }}
-                    onClick={() => navigate(entryPath)}
+                    onClick={() => navigate(signupEntryPath)}
                   >
                     Start Tutor Access
                     <ArrowRight className="ml-2 h-4 w-4" />
@@ -256,14 +257,14 @@ export default function TutorLanding() {
               <span className="block text-[#7C2D21]">Enter the Response Integrity pathway.</span>
             </h2>
             <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-[#57504B] sm:text-lg">
-              New applicants start here. Existing tutors use the same button and switch to login on the next screen.
+              New applicants start here. Existing tutors can use the login button to open directly on the tutor login side.
             </p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
               <Button
                 size="lg"
                 className="rounded-full px-8 shadow-sm"
                 style={{ backgroundColor: "#B9382F" }}
-                onClick={() => navigate(entryPath)}
+                onClick={() => navigate(signupEntryPath)}
               >
                 Continue to Tutor Access
               </Button>
@@ -271,7 +272,7 @@ export default function TutorLanding() {
                 size="lg"
                 variant="outline"
                 className="rounded-full border-[#D7C0AF] bg-white/70 px-8 text-[#171311] hover:bg-white"
-                onClick={() => navigate(entryPath)}
+                onClick={() => navigate(loginEntryPath)}
               >
                 Existing Tutor Login
               </Button>
@@ -284,7 +285,7 @@ export default function TutorLanding() {
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:px-6 md:flex-row md:px-12">
           <ResponseIntegrityLogo size="md" variant="integrity" />
           <p className="text-center text-xs text-[#5A5A5A] md:text-right">
-            Â© {new Date().getFullYear()} Response Integrity (Pty) Ltd
+            Copyright {new Date().getFullYear()} Response Integrity (Pty) Ltd
             <br />
             Tutor Gateway
           </p>
@@ -293,4 +294,3 @@ export default function TutorLanding() {
     </div>
   );
 }
-

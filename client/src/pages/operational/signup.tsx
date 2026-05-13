@@ -1,20 +1,27 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AuthForm } from "@/components/auth/auth-form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Crown, ArrowLeft, ArrowRight, Check } from "lucide-react";
 
 export default function OperationalSignup() {
+  const location = useLocation();
   // Allow deep-linking to a specific role using `?role=tutor` or `?role=td`
-  const urlParams = new URLSearchParams(window.location.search);
+  const urlParams = new URLSearchParams(location.search);
   const roleParam = urlParams.get("role");
+  const modeParam = urlParams.get("mode");
   const initialRole = roleParam === "tutor" ? "tutor" : roleParam === "td" ? "td" : null;
+  const initialMode = modeParam === "login" ? "login" : "signup";
 
   const [selectedRole, setSelectedRole] = useState<"tutor" | "td" | null>(initialRole);
-  const [mode, setMode] = useState<"signup" | "login">("signup");
+  const [mode, setMode] = useState<"signup" | "login">(initialMode);
   const navigate = useNavigate();
   const termsHref = selectedRole === "td" ? "/td-terms-of-use" : "/tutor-terms-of-use";
+  useEffect(() => {
+    setSelectedRole(initialRole);
+    setMode(initialMode);
+  }, [initialMode, initialRole]);
 
   if (!selectedRole) {
     return (
