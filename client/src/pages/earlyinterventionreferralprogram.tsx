@@ -186,7 +186,7 @@ export default function EarlyInterventionReferralProgram() {
         </Card>
 
         <Card className="p-4 sm:p-6 mb-6" style={{ backgroundColor: "white" }}>
-          <h2 className="text-lg font-bold mb-3">What Schools Observe (But Canâ€™t Systematically Fix)</h2>
+          <h2 className="text-lg font-bold mb-3">What Schools Observe (But Can' Systematically Fix)</h2>
           <p>
             By Grades 6â€“7, a familiar pattern emerges:
           </p>
@@ -221,7 +221,7 @@ export default function EarlyInterventionReferralProgram() {
           <ul className="list-disc pl-5 mt-2 space-y-2">
             <li>Time pressure appears</li>
             <li>Questions are worded differently</li>
-            <li>A step doesnâ€™t look immediately familiar</li>
+            <li>A step doesn' look immediately familiar</li>
           </ul>
 
           <p className="mt-3">
@@ -262,9 +262,9 @@ export default function EarlyInterventionReferralProgram() {
         </Card>
 
         <Card className="p-4 sm:p-6 mb-6" style={{ backgroundColor: "white" }}>
-          <h2 className="text-lg font-bold mb-3">What Happens If This Isnâ€™t Addressed Early</h2>
+          <h2 className="text-lg font-bold mb-3">What Happens If This Isn' Addressed Early</h2>
           <p>
-            Untrained response systems donâ€™t disappear.
+            Untrained response systems don' disappear.
             They compound.
           </p>
           <ul className="list-disc pl-5 mt-2 space-y-2">
@@ -354,7 +354,7 @@ export default function EarlyInterventionReferralProgram() {
         <Card className="p-4 sm:p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h3 className="text-lg font-bold mb-3">The Core Problem Statement</h3>
           <p>
-            â€œMany capable students fail not because they donâ€™t understand the work, but because they havenâ€™t been trained to respond calmly when certainty disappears.â€
+            â€œMany capable students fail not because they don' understand the work, but because they haven' been trained to respond calmly when certainty disappears.â€
           </p>
           <p className="mt-3">Everything we do ladders up to this.</p>
         </Card>

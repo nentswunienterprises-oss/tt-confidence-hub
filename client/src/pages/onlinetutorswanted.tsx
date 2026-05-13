@@ -93,7 +93,7 @@ export default function OnlineTutorsWantedPlain() {
             <p>Correct mistakes using precise language and steps</p>
             <p>Apply feedback and improve consistently</p>
 
-            <p className="mt-3 font-semibold">You wonâ€™t be guessing.</p>
+            <p className="mt-3 font-semibold">You won' be guessing.</p>
             <p className="font-semibold">Youâ€™ll be trained.</p>
           </div>
         </Card>
@@ -143,16 +143,16 @@ export default function OnlineTutorsWantedPlain() {
             <li>You learn to operate inside a professional system</li>
             <li>You earn while developing skills that transfer anywhere</li>
           </ul>
-          <p className="mt-3" style={{ color: "#5A5A5A" }}>This isnâ€™t just income.
+          <p className="mt-3" style={{ color: "#5A5A5A" }}>This isn' just income.
             Itâ€™s training.
           </p>
         </Card>
 
         <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h3 className="text-lg font-bold mb-3">The Standard</h3>
-          <p style={{ color: "#5A5A5A" }}>We donâ€™t motivate.</p>
-          <p style={{ color: "#5A5A5A" }}>We donâ€™t babysit.</p>
-          <p style={{ color: "#5A5A5A" }}>We donâ€™t lower expectations.</p>
+          <p style={{ color: "#5A5A5A" }}>We don' motivate.</p>
+          <p style={{ color: "#5A5A5A" }}>We don' babysit.</p>
+          <p style={{ color: "#5A5A5A" }}>We don' lower expectations.</p>
           <p className="mt-3" style={{ color: "#5A5A5A" }}>If you execute the system, results follow - for you and your students.</p>
         </Card>
 
