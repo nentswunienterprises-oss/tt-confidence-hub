@@ -815,7 +815,6 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
 
     const sandboxEnrollmentPayloads = [
       { ...sandboxEnrollmentBase, is_sandbox_account: true },
-      { ...sandboxEnrollmentBase, is_sandbox_account: true, confidence_level: "medium" },
       {
         user_id: sandboxEnrollmentBase.user_id,
         parent_full_name: sandboxEnrollmentBase.parent_full_name,
@@ -837,7 +836,6 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
         is_sandbox_account: true,
       },
       { ...sandboxEnrollmentBase },
-      { ...sandboxEnrollmentBase, confidence_level: "medium" },
     ];
 
     let sandboxEnrollment: any = null;
@@ -859,7 +857,6 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
       const message = String(attempt.error?.message || "").toLowerCase();
       const expectedCompatibilityError =
         message.includes("is_sandbox_account") ||
-        message.includes("confidence_level") ||
         message.includes("current_step") ||
         message.includes("response_symptoms") ||
         message.includes("topic_response_symptoms") ||
