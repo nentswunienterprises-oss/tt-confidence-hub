@@ -52,8 +52,7 @@ export default function TermsOfUse() {
         {
           title: "5. Session Delivery and Scheduling",
           paragraphs: [
-            "Sessions may be delivered through approved live scheduling workflows, including Google Meet where enabled, and through training-mode workflows where standard live windows are intentionally not used.",
-            "Session infrastructure, recording workflow, and scheduling sequence may vary by operational mode, onboarding stage, and tutor readiness state.",
+            "Sessions are delivered through Response Integrity's approved scheduling and session systems, including Google Meet where enabled.",
           ],
           bullets: [
             "Missed learner sessions may be forfeited where notice requirements or scheduling rules are not met.",
