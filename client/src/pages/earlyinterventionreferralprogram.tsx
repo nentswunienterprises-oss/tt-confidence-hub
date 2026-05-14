@@ -157,7 +157,7 @@ export default function EarlyInterventionReferralProgram() {
         <div className="text-center mb-6 sm:mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
             <span className="text-sm font-medium" style={{ color: "#E63946" }}>
-              Response Integrity SA (Pty) Ltd
+              Response Integrity (Pty) Ltd
             </span>
           </div>
 
@@ -462,7 +462,7 @@ export default function EarlyInterventionReferralProgram() {
 
               <div className="mt-6 border-t pt-4 text-sm">
                 <br />
-                Response Integrity SA<br />
+                Response Integrity<br />
                 Early Response-Conditioning Infrastructure for Schools
               </div>
             </Card>
@@ -478,7 +478,7 @@ export default function EarlyInterventionReferralProgram() {
               <ResponseIntegrityLogo size="md" variant="integrity" />
             </div>
             <p className="text-center md:text-right" style={{ color: "#5A5A5A" }}>
-              Â© {new Date().getFullYear()} Response Integrity SA (Pty) Ltd
+              Â© {new Date().getFullYear()} Response Integrity (Pty) Ltd
               <br />
               <span className="text-sm">Early Response-Conditioning Infrastructure for Schools.</span>
             </p>

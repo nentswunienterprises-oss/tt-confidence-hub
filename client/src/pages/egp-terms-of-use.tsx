@@ -4,7 +4,7 @@ export default function EgpTermsOfUse() {
   return (
     <LegalDocumentPage
       title="Education Growth Partner Terms of Use"
-      subtitle="Response Integrity SA (Pty) Ltd | Version 1.0 | Effective May 8, 2026"
+      subtitle="Response Integrity (Pty) Ltd | Version 1.0 | Effective May 8, 2026"
       intro={
         <>
           <p>
@@ -80,7 +80,7 @@ export default function EgpTermsOfUse() {
       ]}
       footer={
         <p className="text-sm text-slate-600 text-center">
-          Response Integrity SA (Pty) Ltd | Education Growth Partner Terms of Use | www.responseintegrity.co.za
+          Response Integrity (Pty) Ltd | Education Growth Partner Terms of Use | www.responseintegrity.co.za
         </p>
       }
     />

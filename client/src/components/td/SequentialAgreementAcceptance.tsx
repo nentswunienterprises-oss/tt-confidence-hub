@@ -170,7 +170,7 @@ function DocumentContent({ content, legalName, effectiveDate, documentCode }: { 
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8A7A70]">Party A</p>
-            <p className="text-[#1A1A1A]">Response Integrity SA (Pty) Ltd ("Response Integrity")</p>
+            <p className="text-[#1A1A1A]">Response Integrity (Pty) Ltd ("Response Integrity")</p>
           </div>
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8A7A70]">Party B</p>

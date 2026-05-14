@@ -4,7 +4,7 @@ export default function TermsOfUse() {
   return (
     <LegalDocumentPage
       title="Platform Terms of Use"
-      subtitle="Response Integrity SA (Pty) Ltd | Version 1.1 | Effective May 8, 2026"
+      subtitle="Response Integrity (Pty) Ltd | Version 1.1 | Effective May 8, 2026"
       intro={
         <>
           <p>
@@ -120,7 +120,7 @@ export default function TermsOfUse() {
       ]}
       footer={
         <p className="text-sm text-slate-600 text-center">
-          Response Integrity SA (Pty) Ltd | Platform Terms of Use | www.responseintegrity.co.za
+          Response Integrity (Pty) Ltd | Platform Terms of Use | www.responseintegrity.co.za
         </p>
       }
     />

@@ -315,7 +315,7 @@ export default function StudentLanding() {
 
         {/* Footer */}
         <p className="text-center text-xs text-muted-foreground mt-6">
-          Powered by Response Integrity SA (Pty) Ltd.
+          Powered by Response Integrity (Pty) Ltd.
         </p>
       </div>
     </div>

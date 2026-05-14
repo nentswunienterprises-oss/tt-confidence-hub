@@ -22,12 +22,12 @@ export default function RecruitmentPrivacy() {
           <CardHeader>
             <CardTitle className="text-3xl font-bold text-center">Recruitment & Employee Privacy Notice</CardTitle>
             <CardDescription className="text-center">
-              Response Integrity SA (Pty) Ltd
+              Response Integrity (Pty) Ltd
             </CardDescription>
           </CardHeader>
           <CardContent className="prose prose-slate max-w-none">
             <p className="lead">
-              This Recruitment & Employee Privacy Notice explains how Response Integrity SA (Pty) Ltd ("Response Integrity", "RI") collects, uses, stores, and protects personal information of job applicants, tutors, contractors, and employees in accordance with the Protection of Personal Information Act 4 of 2013 (POPIA).
+              This Recruitment & Employee Privacy Notice explains how Response Integrity (Pty) Ltd ("Response Integrity", "RI") collects, uses, stores, and protects personal information of job applicants, tutors, contractors, and employees in accordance with the Protection of Personal Information Act 4 of 2013 (POPIA).
             </p>
 
             <section className="mb-8">

@@ -4,7 +4,7 @@ export default function TutorTermsOfUse() {
   return (
     <LegalDocumentPage
       title="Tutor Terms of Use"
-      subtitle="Response Integrity SA (Pty) Ltd | Version 1.0 | Effective May 8, 2026"
+      subtitle="Response Integrity (Pty) Ltd | Version 1.0 | Effective May 8, 2026"
       intro={
         <>
           <p>
@@ -92,7 +92,7 @@ export default function TutorTermsOfUse() {
       ]}
       footer={
         <p className="text-sm text-slate-600 text-center">
-          Response Integrity SA (Pty) Ltd | Tutor Terms of Use | www.responseintegrity.co.za
+          Response Integrity (Pty) Ltd | Tutor Terms of Use | www.responseintegrity.co.za
         </p>
       }
     />

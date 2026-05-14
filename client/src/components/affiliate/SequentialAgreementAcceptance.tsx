@@ -555,7 +555,7 @@ export function buildAcceptedCopyHtml(params: {
     <section class="section">
       <h2 class="section-title">Parties</h2>
       <table>
-        <tr><th>Party A</th><td>Response Integrity SA (Pty) Ltd ("Response Integrity")</td></tr>
+        <tr><th>Party A</th><td>Response Integrity (Pty) Ltd ("Response Integrity")</td></tr>
         <tr><th>Party B</th><td>${escapeHtml(acceptedName)} (Education Growth Partner)</td></tr>
       </table>
     </section>
@@ -1287,7 +1287,7 @@ export function SequentialAgreementAcceptance({ applicationId, applicationStatus
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="rounded-xl border border-[#E7D5C8] bg-white p-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#9F1D2B]">Party A</p>
-                      <p className="mt-2 font-semibold text-[#1A1A1A]">Response Integrity SA (Pty) Ltd</p>
+                      <p className="mt-2 font-semibold text-[#1A1A1A]">Response Integrity (Pty) Ltd</p>
                       <p className="text-sm text-[#6B5B52]">The Company</p>
                     </div>
                     <div className="rounded-xl border border-[#E7D5C8] bg-white p-4">

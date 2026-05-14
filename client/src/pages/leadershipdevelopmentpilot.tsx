@@ -347,7 +347,7 @@ export default function LeadershipDevelopmentPilot() {
 
                   <div className="mt-6 border-t pt-4 text-sm">
                     <br />
-                      Response Integrity SA<br />
+                      Response Integrity<br />
                     Academic Leadership &amp; Response-Conditioning for Schools
                   </div>
                 </Card>

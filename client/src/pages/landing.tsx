@@ -484,7 +484,7 @@ export default function Landing() {
             </div>
             <div className="text-center md:text-right">
               <p className="text-sm sm:text-base" style={{ color: "#5A5A5A" }}>
-                © {new Date().getFullYear()} Response Integrity SA (Pty) Ltd
+                © {new Date().getFullYear()} Response Integrity (Pty) Ltd
                 <br />
                 <span className="text-xs sm:text-sm">
                   Manufacturing Confidence & Financial Independence in South African Youth.
