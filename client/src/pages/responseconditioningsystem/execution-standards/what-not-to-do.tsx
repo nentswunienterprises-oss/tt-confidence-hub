@@ -30,7 +30,7 @@ export default function ResponseConditioningWhatNotToDo() {
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-1">
                 What Not To Do
               </h1>
-              <p className="text-muted-foreground mt-1">under Execution Standards</p>
+              <p className="text-muted-foreground mt-1">OS-wide tutor standards</p>
             </div>
           </div>
         </div>
@@ -41,11 +41,10 @@ export default function ResponseConditioningWhatNotToDo() {
         {/* Purpose */}
         <Card className="p-6 space-y-4 border-primary/30 bg-primary/5">
           <h2 className="text-2xl font-bold">Purpose</h2>
-          <p className="text-muted-foreground">These are operating standards, not optional preferences.</p>
-          <p className="text-muted-foreground">This is:</p>
-          <p className="font-medium">what breaks the Response Integrity system</p>
-          <p className="text-muted-foreground">If these behaviors appear consistently:</p>
-          <p className="font-semibold">you are not running Response Integrity-OS</p>
+          <p className="text-muted-foreground">These are OS-wide tutor standards.</p>
+          <p className="text-muted-foreground">They apply across Response Integrity-OS.</p>
+          <p className="text-muted-foreground">Each rule below includes the phase-specific application where it matters.</p>
+          <p className="text-muted-foreground">If these behaviors appear consistently, the standard is not being met.</p>
         </Card>
 
         {/* 1. Do Not Rescue */}
@@ -75,7 +74,17 @@ export default function ResponseConditioningWhatNotToDo() {
 
           <div className="bg-muted rounded p-3">
             <p className="font-semibold text-sm uppercase tracking-wide mb-1">Rule</p>
-            <p className="text-muted-foreground">If you remove the struggle, you remove the training.</p>
+            <p className="text-muted-foreground">If you step in too early, the student does not build independent response.</p>
+          </div>
+
+          <div>
+            <p className="font-semibold mb-2">By Phase</p>
+            <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
+              <li>Clarity: do not let the student solve during recognition reps.</li>
+              <li>Structured Execution: do not interrupt the cold start too early.</li>
+              <li>Controlled Discomfort: no full rescue; one-step confirmation is the maximum allowed help.</li>
+              <li>Time Pressure Stability: keep the timer active and do not rescue structure under time.</li>
+            </ul>
           </div>
         </Card>
 
@@ -106,7 +115,17 @@ export default function ResponseConditioningWhatNotToDo() {
 
           <div className="bg-muted rounded p-3">
             <p className="font-semibold text-sm uppercase tracking-wide mb-1">Rule</p>
-            <p className="text-muted-foreground">If the student is not doing, they are not learning.</p>
+            <p className="text-muted-foreground">The student needs to execute, not only listen.</p>
+          </div>
+
+          <div>
+            <p className="font-semibold mb-2">By Phase</p>
+            <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
+              <li>Clarity: teach through Vocabulary, Method, and Reason, then return to observation.</li>
+              <li>Structured Execution: do not keep remodeling once independent execution is required.</li>
+              <li>Controlled Discomfort: no full explanations are given mid-struggle.</li>
+              <li>Time Pressure Stability: do not replace method discipline with urgency talk.</li>
+            </ul>
           </div>
         </Card>
 
@@ -139,6 +158,15 @@ export default function ResponseConditioningWhatNotToDo() {
             <p className="font-semibold text-sm uppercase tracking-wide mb-1">Rule</p>
             <p className="text-muted-foreground">The student must remain the one doing the work.</p>
           </div>
+
+          <div>
+            <p className="font-semibold mb-2">By Phase</p>
+            <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
+              <li>Structured Execution: after correction, return the work to the student for re-execution.</li>
+              <li>Controlled Discomfort: maintain the difficulty and keep the student working through it.</li>
+              <li>Time Pressure Stability: the tutor does not take control just because the timer is active.</li>
+            </ul>
+          </div>
         </Card>
 
         {/* 4. Do Not Skip the 3-Layer Lens */}
@@ -170,6 +198,15 @@ export default function ResponseConditioningWhatNotToDo() {
             <p className="font-semibold text-sm uppercase tracking-wide mb-1">Rule</p>
             <p className="text-muted-foreground">Every concept must pass through Vocabulary, Method, and Reason.</p>
           </div>
+
+          <div>
+            <p className="font-semibold mb-2">By Phase</p>
+            <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
+              <li>Clarity: Vocabulary, Method, and Reason are the active lens of the phase.</li>
+              <li>Structured Execution: the lens is no longer retaught in full, but structure still depends on it.</li>
+              <li>Controlled Discomfort and Time Pressure Stability: pressure should not erase precise language or method awareness.</li>
+            </ul>
+          </div>
         </Card>
 
         {/* 5. Do Not Accept Vague Language */}
@@ -199,7 +236,15 @@ export default function ResponseConditioningWhatNotToDo() {
 
           <div className="bg-muted rounded p-3">
             <p className="font-semibold text-sm uppercase tracking-wide mb-1">Rule</p>
-            <p className="text-muted-foreground">If language is imprecise, thinking is imprecise.</p>
+            <p className="text-muted-foreground">Imprecise language usually signals imprecise thinking.</p>
+          </div>
+
+          <div>
+            <p className="font-semibold mb-2">By Phase</p>
+            <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
+              <li>Clarity: correct naming and explanation are part of the actual score.</li>
+              <li>Later phases: pressure does not excuse vague terms or skipped reasoning.</li>
+            </ul>
           </div>
         </Card>
 
@@ -229,7 +274,16 @@ export default function ResponseConditioningWhatNotToDo() {
 
           <div className="bg-muted rounded p-3">
             <p className="font-semibold text-sm uppercase tracking-wide mb-1">Rule</p>
-            <p className="text-muted-foreground">Silence is part of the system.</p>
+            <p className="text-muted-foreground">Give the student time to think before you step in.</p>
+          </div>
+
+          <div>
+            <p className="font-semibold mb-2">By Phase</p>
+            <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
+              <li>Structured Execution: observe the cold start before giving correction.</li>
+              <li>Controlled Discomfort: maintain the hold window instead of interrupting the struggle.</li>
+              <li>Time Pressure Stability: observe the first response under time before intervening.</li>
+            </ul>
           </div>
         </Card>
 
@@ -261,6 +315,14 @@ export default function ResponseConditioningWhatNotToDo() {
             <p className="font-semibold text-sm uppercase tracking-wide mb-1">Rule</p>
             <p className="text-muted-foreground">Response Integrity sessions are execution environments, not lectures.</p>
           </div>
+
+          <div>
+            <p className="font-semibold mb-2">By Phase</p>
+            <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
+              <li>Clarity: even when teaching is present, it is structured and limited to the lens.</li>
+              <li>All later phases: the student should be doing more than the tutor is saying.</li>
+            </ul>
+          </div>
         </Card>
 
         {/* 8. Do Not Prioritize Comfort */}
@@ -291,6 +353,15 @@ export default function ResponseConditioningWhatNotToDo() {
             <p className="font-semibold text-sm uppercase tracking-wide mb-1">Rule</p>
             <p className="text-muted-foreground">Comfort alone does not build capability.</p>
           </div>
+
+          <div>
+            <p className="font-semibold mb-2">By Phase</p>
+            <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
+              <li>Clarity: keep the phase light, but do not turn it into free teaching.</li>
+              <li>Controlled Discomfort: do not soften the drill to make the moment feel better.</li>
+              <li>Time Pressure Stability: urgency may rise, but structure remains the priority.</li>
+            </ul>
+          </div>
         </Card>
 
         {/* 9. Do Not Chase Speed */}
@@ -319,7 +390,17 @@ export default function ResponseConditioningWhatNotToDo() {
 
           <div className="bg-muted rounded p-3">
             <p className="font-semibold text-sm uppercase tracking-wide mb-1">Rule</p>
-            <p className="text-muted-foreground">Stability first. Speed follows.</p>
+            <p className="text-muted-foreground">Prioritize stable method before speed.</p>
+          </div>
+
+          <div>
+            <p className="font-semibold mb-2">By Phase</p>
+            <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
+              <li>Clarity: no time pressure is used.</li>
+              <li>Structured Execution: clean order matters more than pace.</li>
+              <li>Controlled Discomfort: no time pressure yet; the target is stability under difficulty.</li>
+              <li>Time Pressure Stability: the timer is active, but method still stays ahead of speed.</li>
+            </ul>
           </div>
         </Card>
 
@@ -351,13 +432,22 @@ export default function ResponseConditioningWhatNotToDo() {
             <p className="font-semibold text-sm uppercase tracking-wide mb-1">Rule</p>
             <p className="text-muted-foreground">Every repeated mistake is a signal.</p>
           </div>
+
+          <div>
+            <p className="font-semibold mb-2">By Phase</p>
+            <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
+              <li>Clarity: track vocabulary, method, and reason misses separately.</li>
+              <li>Structured Execution: track skipped steps, weak starts, and re-execution failures.</li>
+              <li>Controlled Discomfort: track rescue-seeking and structure loss under strain.</li>
+              <li>Time Pressure Stability: track reactive starts, pace loss, and structure drift under the timer.</li>
+            </ul>
+          </div>
         </Card>
 
         {/* Common Pattern Behind Execution Failures */}
         <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">Common Pattern Behind Execution Failures</h2>
-          <p className="text-muted-foreground">Every mistake above comes from:</p>
-          <p className="font-bold text-lg">prioritizing short-term ease over long-term capability</p>
+          <h2 className="text-2xl font-bold">Shared Cause</h2>
+          <p className="text-muted-foreground">Most of these mistakes come from choosing short-term ease over long-term capability.</p>
         </Card>
 
         {/* The Standard */}
@@ -374,28 +464,27 @@ export default function ResponseConditioningWhatNotToDo() {
         {/* Final Principle */}
         <Card className="p-6 space-y-4">
           <h2 className="text-2xl font-bold">Final Principle</h2>
-          <p className="text-muted-foreground">Most tutors try to make sessions feel successful.</p>
-          <p className="text-muted-foreground">Response Integrity ensures:</p>
-          <p className="font-bold text-lg">students become capable</p>
+          <p className="text-muted-foreground">A session can feel smooth and still miss the standard.</p>
+          <p className="font-bold text-lg">The target is student capability, not a smooth session.</p>
         </Card>
 
         {/* Final Rule */}
         <Card className="p-6 space-y-4 border-primary/30 bg-primary/5">
           <h2 className="text-2xl font-bold">Final Rule</h2>
-          <p className="text-muted-foreground">If your session feels:</p>
+          <p className="text-muted-foreground">Use this check at the end of a session.</p>
+          <p className="text-muted-foreground">If the session felt:</p>
           <ul className="space-y-1 pl-4 text-muted-foreground">
             <li>smooth</li>
             <li>easy</li>
             <li>fast</li>
           </ul>
-          <p className="text-muted-foreground">But the student cannot:</p>
+          <p className="text-muted-foreground">but the student still cannot:</p>
           <ul className="space-y-1 pl-4 text-muted-foreground">
             <li>start independently</li>
             <li>follow steps</li>
             <li>stay calm under difficulty</li>
           </ul>
-          <p className="text-muted-foreground">Then:</p>
-          <p className="font-semibold">the system was not executed</p>
+          <p className="font-semibold">then the session did not meet the standard</p>
         </Card>
 
       </div>
