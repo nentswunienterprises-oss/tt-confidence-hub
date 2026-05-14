@@ -1088,7 +1088,7 @@ export default function TDOverview() {
         }
         phaseOptions={activePhaseOptions}
         preSelectedPhaseKeys={activeTutorRun?.autoSelectedPhases?.length === 1 ? activeTutorRun.autoSelectedPhases : []}
-        selectionMode={activeTutorRun?.autoSelectedPhases?.length === 1 ? "fixed" : "multiple"}
+        selectionMode="multiple"
         submitLabel="Save Tutor Battle Test"
         onSubmit={async ({ selectedPhases, responses }) => {
           if (!activeTutorRun) return;
