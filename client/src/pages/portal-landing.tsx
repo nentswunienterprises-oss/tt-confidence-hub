@@ -173,17 +173,17 @@ function PortalLanding() {
               {
                 number: "1",
                 title: "Pattern Gets Trained",
-                description: "When certainty disappears, your child stays oriented. They don't freeze. They execute."
+                description: "When certainty disappears, your child stays oriented. They are better able to stay calm and keep going."
               },
               {
                 number: "2",
                 title: "Calm Becomes Automatic",
-                description: "Through repetition under controlled pressure, executing and moving forward without emotional negotiation becomes habit."
+                description: "Through repetition under controlled pressure, executing and moving forward without extended emotional escalation becomes habit."
               },
               {
                 number: "3",
                 title: "Identity Shifts",
-                description: "Your child stops being someone who panics. They become someone who performs."
+                description: "Your child becomes steadier and more reliable under pressure."
               }
             ].map((item, index) => (
               <div key={index} className="p-5 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl" style={{ backgroundColor: "#2A2A2A" }}>
@@ -220,8 +220,8 @@ function PortalLanding() {
               <div className="space-y-4 sm:space-y-6">
                 {[
                   { title: "Someone Who Doesn't Freeze", desc: "When the question breaks expectation, they stay calm and execute their trained response." },
-                  { title: "Someone Parents Trust", desc: "You stop micromanaging. Their ability to handle pressure becomes predictable." },
-                  { title: "Someone Who Belongs", desc: "Part of a system that values discipline over motivation. Clarity over chaos." }
+                  { title: "Someone Parents Trust", desc: "Parents are able to step back from constant oversight. Their ability to handle pressure becomes more predictable." },
+                  { title: "Someone Who Belongs", desc: "Part of a system that values consistency, clarity, and structure." }
                 ].map((item, i) => (
                   <div key={i} className="flex gap-3 sm:gap-4">
                     <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "#FFF0F0" }}>
@@ -239,9 +239,9 @@ function PortalLanding() {
             <Card className="p-5 sm:p-6 md:p-8 border-0 shadow-lg" style={{ backgroundColor: "white" }}>
               <div className="space-y-4 sm:space-y-6">
                 {[
-                  { title: "Someone Exams Don't Ambush", desc: "Pressure feels familiar. Performance stays stable across terms." },
-                  { title: "Someone Who Stops Self-Labeling", desc: "No more 'I'm bad at math.' Just 'I know how to respond when it gets hard.'" },
-                  { title: "Someone Ready For What's Next", desc: "Academic pressure becomes manageable, not traumatic. The future stops feeling uncertain." }
+                  { title: "Someone Less Thrown by Exams", desc: "Pressure feels familiar. Performance stays stable across terms." },
+                  { title: "Someone Less Defined by Setbacks", desc: "Instead of being defined by difficulty, they learn how to respond when it gets hard." },
+                  { title: "Someone Ready For What's Next", desc: "Academic pressure becomes more manageable. The future feels less uncertain." }
                 ].map((item, i) => (
                   <div key={i} className="flex gap-3 sm:gap-4">
                     <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "#FFF0F0" }}>

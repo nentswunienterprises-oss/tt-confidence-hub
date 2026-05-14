@@ -527,7 +527,7 @@ export default function COODashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground text-sm">Protect institutional credibility, enforce tutor discipline, automate consequences, and maintain trust with schools. Full compliance engine for academic review.</p>
+              <p className="text-muted-foreground text-sm">Protect institutional credibility, maintain tutor standards, automate compliance actions, and maintain trust with schools. Full compliance engine for academic review.</p>
             </CardContent>
           </Card>
         </section>}

@@ -264,7 +264,7 @@ export default function TutorGateway() {
                   We are selecting a small group of individuals who will be trained to guide how students respond when math becomes difficult.
                 </p>
                 <p className="text-xs sm:text-sm font-semibold" style={{ color: "#1A1A1A" }}>
-                  This is not a casual tutoring role.
+                  This is a structured tutoring role.
                 </p>
                 <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
                   Selection is based on discipline, clarity of thinking, and alignment with how we operate.
@@ -273,7 +273,7 @@ export default function TutorGateway() {
                   Complete this carefully.
                 </p>
                 <p className="text-xs sm:text-sm font-semibold" style={{ color: "#1A1A1A" }}>
-                  Low-effort applications remove themselves.
+                  Careful applications stand out here.
                 </p>
               </div>
               {/* Start Application Button */}
@@ -343,7 +343,7 @@ export default function TutorGateway() {
                     Application received. Under review.
                   </p>
                     <p className="text-xs sm:text-sm text-muted-foreground">
-                      Due to commitment to fit, acceptance is limited and not guaranteed.
+                      Acceptance is selective and not guaranteed.
                     </p>
                     <div className="bg-muted/30 rounded-lg p-3 sm:p-4 text-left">
                       <p className="text-xs sm:text-sm font-medium mb-2">What happens next:</p>

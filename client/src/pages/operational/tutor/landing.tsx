@@ -8,11 +8,11 @@ import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 const conditioningModes = [
   {
     title: "Applicant",
-    body: "You are stepping into the system. Response Integrity checks your fit, your readiness, and whether you can take this seriously before tutor responsibility opens.",
+    body: "You are stepping into the system. Response Integrity checks your fit, your readiness, and whether you are ready for tutor responsibility.",
   },
   {
     title: "Training",
-    body: "You learn the Response Integrity standard and prove that you can hold structure, not just explain math in a smart-sounding way.",
+    body: "You learn the Response Integrity standard and show that you can hold structure, not just explain math clearly.",
   },
   {
     title: "Sandbox",
@@ -24,7 +24,7 @@ const conditioningModes = [
   },
   {
     title: "Watchlist or Reset",
-    body: "If your execution starts drifting, Response Integrity tightens the lane again. Trust stays open only while your standard stays clean.",
+    body: "If your execution starts drifting, Response Integrity tightens the lane again. Trust expands only while your standard stays consistent.",
   },
 ] as const;
 
@@ -36,7 +36,7 @@ const fitSignals = [
 ] as const;
 
 const nonFitSignals = [
-  "You want to tutor your own way and treat structure like a suggestion.",
+  "You want to tutor your own way and struggle to work within structure consistently.",
   "You rescue too quickly when a student gets uncomfortable.",
   "You would rather be liked than be clear.",
   "You hear feedback as an insult instead of a tool.",
@@ -45,15 +45,15 @@ const nonFitSignals = [
 const roleBlocks = [
   {
     title: "What this role is",
-    body: "A Response Integrity tutor helps students become clearer, steadier, and more reliable under pressure. You are not here to create a nice vibe. You are here to create real change.",
+    body: "A Response Integrity tutor helps students become clearer, steadier, and more reliable under pressure. The role is centered on structure, consistency, and real change.",
   },
   {
     title: "What this role is not",
-    body: "This is not casual homework help, emotional babysitting, or personality-led tutoring. Response Integrity does not reward loose sessions or random teaching style.",
+    body: "This is not casual homework help, over-accommodating support, or personality-led tutoring. Response Integrity does not reward loose sessions or random teaching style.",
   },
   {
     title: "What the system protects",
-    body: "The system protects clarity, structure, pressure discipline, and session integrity so student improvement is not temporary, fake, or luck-based.",
+    body: "The system protects clarity, structure, pressure discipline, and session integrity so student improvement is stable and repeatable.",
   },
   {
     title: "What ongoing users should expect",
@@ -167,13 +167,13 @@ export default function TutorLanding() {
                 <div className="mt-7 space-y-3 text-sm text-white/82">
                   <div className="flex items-center gap-3"><Shield className="h-4 w-4 text-[#FF917B]" />Clear thinking</div>
                   <div className="flex items-center gap-3"><Users className="h-4 w-4 text-[#FF917B]" />Structured tutoring</div>
-                  <div className="flex items-center gap-3"><AlertTriangle className="h-4 w-4 text-[#FF917B]" />Proof before trust</div>
+                  <div className="flex items-center gap-3"><AlertTriangle className="h-4 w-4 text-[#FF917B]" />Trust is earned through evidence</div>
                 </div>
               </Card>
 
               <Card className="rounded-[28px] border border-[#E5D3C5] bg-white/82 p-5 shadow-sm">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Simple truth</p>
-                <p className="mt-3 text-2xl font-bold tracking-tight text-[#171311]">Being smart</p>
+                <p className="mt-3 text-2xl font-bold tracking-tight text-[#171311]">Subject strength</p>
                 <p className="text-2xl font-bold tracking-tight text-[#171311]">is not enough on its own.</p>
                 <p className="mt-3 text-sm leading-6 text-[#5D5550]">Response Integrity opens responsibility in stages because real tutoring trust should be earned, not assumed.</p>
               </Card>
@@ -225,8 +225,8 @@ export default function TutorLanding() {
             </Card>
 
             <Card className="rounded-[30px] border border-[#2F2621] bg-[#201916] p-7 text-white shadow-sm sm:p-8">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#FFB5A6]">Not for</p>
-              <h2 className="mt-2 text-3xl font-bold tracking-tight">Who this is not for</h2>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#FFB5A6]">Role demands</p>
+              <h2 className="mt-2 text-3xl font-bold tracking-tight">Where this role may not be the right match</h2>
               <div className="mt-7 space-y-4">
                 {nonFitSignals.map((item) => (
                   <div key={item} className="rounded-[22px] border border-white/10 bg-white/5 p-5">

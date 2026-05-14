@@ -59,7 +59,7 @@ export default function OperationalLanding() {
         <div className="text-center max-w-3xl mx-auto space-y-5 sm:space-y-8">
           <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
             <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
-              Founding Team  Response Auditors Only
+              Founding Team Response Auditors
             </span>
           </div>
           
@@ -70,7 +70,7 @@ export default function OperationalLanding() {
           </h1>
           
           <p className="text-base sm:text-lg md:text-xl leading-relaxed" style={{ color: "#5A5A5A" }}>
-            Join a founding team building response integrity into every student. Not motivation - discipline. Not hope - inevitability. We're selective about who audits in our system.
+            Join a founding team building response integrity into every student. The work is built on discipline, clarity, and repeatability. Selection is careful and role-specific.
           </p>
 
           <Button

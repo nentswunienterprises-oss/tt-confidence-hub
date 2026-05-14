@@ -135,13 +135,13 @@ export default function TdGateway() {
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle>Territory Director Application</CardTitle>
-              <CardDescription>System enforcement. Audit integrity. Zero drift tolerance.</CardDescription>
+              <CardDescription>Standards oversight. Audit integrity. Close quality control.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="rounded-2xl bg-[#FFF0F0] p-5 text-sm text-[#5A5A5A]">
                 <p>This is not a tutoring role. This is a system leadership role.</p>
-                <p className="mt-2">You will be responsible for enforcing how tutors operate, maintaining system integrity, and identifying breakdowns in both tutors and students.</p>
-                <p className="mt-2 font-semibold text-[#1A1A1A]">Low-precision or low-authority operators remove themselves here.</p>
+                <p className="mt-2">You will be responsible for maintaining tutor standards, protecting system integrity, and identifying execution breakdowns across tutors and students.</p>
+                <p className="mt-2 font-semibold text-[#1A1A1A]">This stage tends to screen for precision and sound judgment.</p>
               </div>
               <Button className="w-full rounded-full" size="lg" style={{ backgroundColor: "#E63946" }} onClick={() => setShowApplicationForm(true)}>
                 <FileText className="mr-2 h-4 w-4" />
@@ -189,7 +189,7 @@ export default function TdGateway() {
             <CardContent className="space-y-5">
               {applicationStatus.status === "pending" ? (
                 <div className="rounded-xl bg-muted/30 p-4 text-sm text-muted-foreground">
-                  Your application has been received. Response Integrity will review your leadership fit, enforcement mindset, and system-thinking quality before onboarding is unlocked.
+                  Your application has been received. Response Integrity will review your leadership fit, standards judgment, and systems thinking before onboarding is unlocked.
                 </div>
               ) : null}
 
@@ -241,4 +241,3 @@ export default function TdGateway() {
     </div>
   );
 }
-

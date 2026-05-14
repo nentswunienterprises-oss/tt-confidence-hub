@@ -100,12 +100,11 @@ export default function AffiliateLanding() {
                   Precision-first operator role
                 </div>
                 <h1 className="mt-5 max-w-4xl text-4xl font-bold leading-[0.95] tracking-[-0.05em] text-[#171311] sm:text-5xl lg:text-[4.1rem] xl:text-[4.55rem]">
-                  This is not a referral hustle.
-                  <span className="mt-2 block max-w-3xl text-[#7C2D21]">It is controlled student placement.</span>
+                  This is a structured student placement role.
                 </h1>
                 <div className="mt-5 grid gap-6 lg:grid-cols-[1fr_240px] lg:items-start">
                   <div className="max-w-2xl space-y-3 text-base leading-7 text-[#534A43] sm:text-[17px]">
-                    <p>Response Integrity does not need hype operators. It needs disciplined people who can identify real academic breakdown and move the right families into the right system.</p>
+                    <p>Response Integrity works best with clear, need-based operators who can identify real academic breakdown and move the right families into the right system.</p>
                     <p>The role is selective because bad placement damages the system. Precision matters more than volume.</p>
                   </div>
                   <div className="rounded-[24px] border border-[#E0CCBE] bg-white/58 p-4">
@@ -138,7 +137,7 @@ export default function AffiliateLanding() {
                 <div className="mt-7 grid gap-3 md:grid-cols-3">
                   <div className="rounded-[22px] border border-[#E6D4C7] bg-white/72 p-4">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8A4B35]">Screening</p>
-                    <p className="mt-2 text-sm leading-6 text-[#4F4742]">Selective from the start. Weak-fit conversations end early.</p>
+                    <p className="mt-2 text-sm leading-6 text-[#4F4742]">Selective from the start. Conversations with limited fit are usually closed early.</p>
                   </div>
                   <div className="rounded-[22px] border border-[#E6D4C7] bg-white/72 p-4">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8A4B35]">Positioning</p>
@@ -146,7 +145,7 @@ export default function AffiliateLanding() {
                   </div>
                   <div className="rounded-[22px] border border-[#E6D4C7] bg-white/72 p-4">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8A4B35]">Earnings</p>
-                    <p className="mt-2 text-sm leading-6 text-[#4F4742]">Performance-linked from real outcomes, not activity theatre.</p>
+                    <p className="mt-2 text-sm leading-6 text-[#4F4742]">Performance-linked to real outcomes, not surface activity.</p>
                   </div>
                 </div>
               </div>
@@ -173,8 +172,8 @@ export default function AffiliateLanding() {
 
               <Card className="rounded-[28px] border border-[#E5D3C5] bg-white/82 p-5 shadow-sm">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Filter logic</p>
-                <p className="mt-3 text-2xl font-bold tracking-tight text-[#1A1A1A]">No need.</p>
-                <p className="text-2xl font-bold tracking-tight text-[#1A1A1A]">No placement.</p>
+                <p className="mt-3 text-2xl font-bold tracking-tight text-[#1A1A1A]">Confirmed need.</p>
+                <p className="text-2xl font-bold tracking-tight text-[#1A1A1A]">Then placement.</p>
                 <p className="mt-3 text-sm leading-6 text-[#5D5550]">This role rewards accurate qualification.</p>
               </Card>
 
@@ -195,7 +194,7 @@ export default function AffiliateLanding() {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Fit check</p>
                 <h2 className="mt-1 text-3xl font-bold tracking-tight text-[#1A1A1A]">Who this is for</h2>
               </div>
-              <p className="mt-4 max-w-xl text-sm leading-7 text-[#5A524C]">You are not here to push harder. You are here to qualify more accurately and protect the quality of placement.</p>
+              <p className="mt-4 max-w-xl text-sm leading-7 text-[#5A524C]">You are not here to push volume. You are here to qualify more accurately and protect the quality of placement.</p>
               <div className="mt-7 space-y-4">
                 {fitSignals.map((item) => (
                   <div key={item} className="rounded-[22px] border border-[#EEDFD3] bg-[#FFF8F3] p-5">
@@ -209,9 +208,9 @@ export default function AffiliateLanding() {
             </Card>
 
             <Card className="rounded-[30px] border border-[#2F2621] bg-[#201916] p-7 text-white shadow-sm sm:p-8">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#FFB5A6]">Disqualifiers</p>
-              <h2 className="mt-2 text-3xl font-bold tracking-tight">Who this is not for</h2>
-              <p className="mt-4 max-w-xl text-sm leading-7 text-white/70">If you need urgency, persuasion tricks, or emotional pressure to create movement, this role is the wrong fit.</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#FFB5A6]">Role demands</p>
+              <h2 className="mt-2 text-3xl font-bold tracking-tight">Where this role may not be the right match</h2>
+              <p className="mt-4 max-w-xl text-sm leading-7 text-white/70">If you rely on urgency, persuasion tricks, or emotional pressure to create movement, this role may not be the right fit.</p>
               <div className="mt-7 space-y-4">
                 {disqualifiers.map((item) => (
                   <div key={item} className="rounded-[22px] border border-white/10 bg-white/5 p-5">
@@ -250,7 +249,7 @@ export default function AffiliateLanding() {
                 </div>
               </div>
               <div className="mt-6 rounded-[24px] border border-[#E6D1BF] bg-[#F7ECE1] px-5 py-4">
-<p className="text-sm leading-7 text-[#483E38]">You operate at the front of the system. Your value is not noise. It is accurate placement.</p>
+<p className="text-sm leading-7 text-[#483E38]">You operate at the front of the system. Your value is accurate placement.</p>
               </div>
             </Card>
 
@@ -258,7 +257,7 @@ export default function AffiliateLanding() {
               <div className="border-b border-black/5 px-7 py-6 sm:px-8">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">How you earn</p>
                 <h2 className="mt-3 text-3xl font-bold tracking-tight text-[#1A1A1A]">Activation first. Retention after.</h2>
-                <p className="mt-3 max-w-xl text-sm leading-7 text-[#5B4E46]">The earning model is there to reward accurate placement, not activity theatre.</p>
+                <p className="mt-3 max-w-xl text-sm leading-7 text-[#5B4E46]">The earning model is there to reward accurate placement, not surface activity.</p>
               </div>
               <div className="grid gap-4 p-7 sm:p-8">
                 {earningPoints.map((item, index) => (
@@ -271,7 +270,7 @@ export default function AffiliateLanding() {
                 ))}
               </div>
               <div className="border-t border-black/5 px-7 py-5 sm:px-8">
-                <p className="text-sm font-semibold leading-7 text-[#1A1A1A]">No effort to outcome conversion means no income. No fit means no placement.</p>
+                <p className="text-sm font-semibold leading-7 text-[#1A1A1A]">Earnings depend on outcomes, and placement depends on fit.</p>
               </div>
             </Card>
           </div>
@@ -284,9 +283,9 @@ export default function AffiliateLanding() {
             <div className="grid gap-8 lg:grid-cols-[0.92fr_1.08fr]">
               <div className="rounded-[30px] border border-white/10 bg-white/5 p-7 text-white sm:p-8">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#FFB5A6]">Operating principle</p>
-                <h2 className="mt-3 text-3xl font-bold leading-tight sm:text-4xl">If there is no need, you walk away.</h2>
+                <h2 className="mt-3 text-3xl font-bold leading-tight sm:text-4xl">If there is no clear need, you do not proceed.</h2>
                 <p className="mt-5 max-w-xl text-sm leading-8 text-white/72 sm:text-base">
-                  Response Integrity does not need more conversations. It needs the right conversations. The system works when operators listen properly, disqualify early, and stay locked in only where the fit is real.
+                  Response Integrity does not need more conversations. It needs the right conversations. The system works when operators listen carefully, close weak-fit conversations early, and stay focused where the fit is real.
                 </p>
               </div>
 
@@ -310,7 +309,7 @@ export default function AffiliateLanding() {
               <span className="block text-[#7C2D21]">We are looking for precision.</span>
             </h2>
             <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-[#57504B] sm:text-lg">
-              If that feels constraining, this is not your lane. If that feels clean, then apply and let the screening process decide whether you belong inside the system.
+              If that level of structure is not a match for how you work, this role may not be the right fit. If it feels clear, apply and let the screening process decide.
             </p>
             <Button
               size="lg"

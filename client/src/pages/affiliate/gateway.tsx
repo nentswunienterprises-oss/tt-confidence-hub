@@ -148,13 +148,13 @@ export default function AffiliateGateway() {
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle>Education Growth Partner Application</CardTitle>
-              <CardDescription>Precision first. Need first. Performance based.</CardDescription>
+              <CardDescription>Precision first. Need first. Outcome-linked.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="rounded-2xl bg-[#FFF0F0] p-5 text-sm text-[#5A5A5A]">
-                <p>This is not a casual referral role.</p>
-                <p className="mt-2">Response Integrity works with a small number of operators who can identify real need, speak to parents clearly, and walk away when the fit is wrong.</p>
-                <p className="mt-2 font-semibold text-[#1A1A1A]">Low-precision operators remove themselves here.</p>
+                <p>This is a structured student placement role.</p>
+                <p className="mt-2">Response Integrity works with a small number of operators who can identify real need, speak to parents clearly, and step back when the fit is not there.</p>
+                <p className="mt-2 font-semibold text-[#1A1A1A]">This stage tends to filter for precision and judgment.</p>
               </div>
               <Button className="w-full rounded-full" size="lg" style={{ backgroundColor: "#E63946" }} onClick={() => setShowApplicationForm(true)}>
                 <FileText className="mr-2 h-4 w-4" />
@@ -202,7 +202,7 @@ export default function AffiliateGateway() {
             <CardContent className="space-y-5">
               {applicationStatus.status === "pending" ? (
                 <div className="rounded-xl bg-muted/30 p-4 text-sm text-muted-foreground">
-                  Your application has been received. COO will review fit, parent access quality, and alignment with Response Integrity's need-first positioning.
+                  Your application has been received. COO will review fit, parent access quality, and alignment with Response Integrity's need-first approach.
                 </div>
               ) : null}
 
@@ -252,4 +252,3 @@ export default function AffiliateGateway() {
     </div>
   );
 }
-

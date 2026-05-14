@@ -54,10 +54,10 @@ const questionFields: Array<{ key: keyof ApplicationFormData; label: string }> =
   { key: "highToMediumCauses", label: "Q7. A student moves from High to Medium. What are 3 possible causes?" },
   { key: "highScoresNoImprovement", label: "Q8. A tutor gets high session scores but students are not improving long-term. What could be wrong?" },
   { key: "sharedTutorMistakeMeaning", label: "Q9. If multiple tutors show the same mistake, what does that indicate?" },
-  { key: "correctOlderTutor", label: "Q10. You must correct someone older than you who is not following the system. How do you handle it?" },
+  { key: "correctOlderTutor", label: "Q10. You need to correct someone older than you who is not following the system. How do you handle it?" },
   { key: "pushbackResponse", label: "Q11. A tutor disagrees with your correction and pushes back. What do you do?" },
   { key: "unpopularEnforcementCase", label: "Q12. Describe a situation where you had to enforce something unpopular. What happened?" },
-  { key: "noRescueExplanation", label: 'Q13. Explain in a structured way: "Why must a student not be rescued during difficulty?"' },
+  { key: "noRescueExplanation", label: 'Q13. Explain in a structured way: "Why should a student not be interrupted too early during productive difficulty?"' },
   { key: "moreDangerousTutor", label: 'Q14. What is more dangerous: a weak tutor, or a slightly wrong tutor who seems "good"?' },
   { key: "systemDestructionFactors", label: "Q15. What would slowly destroy a system like Response Integrity over time?" },
   { key: "trustReason", label: "Q17. Why should you be trusted to protect a system like this?" },
@@ -218,7 +218,7 @@ export function TdApplicationForm({ onSuccess, onCancel }: Props) {
       <div className="mb-6 rounded-2xl border border-[#F1D2C7] bg-[#FFF6F1] p-5 text-sm text-[#5A5A5A]">
         <p>This is not a tutoring role. This is a system leadership role.</p>
         <p className="mt-3">Response Integrity is looking for calm, structured operators who can enforce standards directly and think in systems, not sessions.</p>
-        <p className="mt-3 font-semibold text-[#1A1A1A]">If you avoid conflict or soften standards, this role is not for you.</p>
+        <p className="mt-3 font-semibold text-[#1A1A1A]">This role requires comfort with direct correction and consistent standards.</p>
       </div>
 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -310,7 +310,7 @@ export function TdApplicationForm({ onSuccess, onCancel }: Props) {
             ))}
 
             <div className="space-y-2">
-              <Label htmlFor="commitmentToStandard">Q16. Are you willing to correct directly, enforce strict rules, and reject when necessary?</Label>
+              <Label htmlFor="commitmentToStandard">Q16. Are you willing to give direct correction, uphold standards, and decline when necessary?</Label>
               <select id="commitmentToStandard" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" {...form.register("commitmentToStandard")}>
                 <option value="yes">Yes</option>
                 <option value="no">No</option>
