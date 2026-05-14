@@ -89,7 +89,7 @@ const PHASE_CONTEXT: Record<PhaseLabel, { purpose: string; constraints: string[]
   },
   "Time Pressure Stability": {
     purpose: "Maintain method structure under urgency. Structure is the target - speed is secondary.",
-    constraints: ["Method over speed", "Timer is active", "Structured response required - no panic tolerance"],
+    constraints: ["Method over speed", "Timer is active", "Structured response required - panic responding is logged as instability."],
   },
 };
 

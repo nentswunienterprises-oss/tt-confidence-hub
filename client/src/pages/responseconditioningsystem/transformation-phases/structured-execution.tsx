@@ -241,7 +241,7 @@ export default function ResponseConditioningStructuredExecution() {
         <Card className="p-6 space-y-5">
           <h2 className="text-2xl font-bold">Tutor Discipline Inside This Phase</h2>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>Do not rescue the cold start. Observe it.</li>
+            <li>Do not interrupt the cold start too early. Observe it first.</li>
             <li>Do not keep remodelling when the phase requires independent execution.</li>
             <li>Do not accept skipped steps because the final answer looks right.</li>
             <li>After correction, return the problem to the student and require re-execution.</li>
@@ -268,7 +268,7 @@ export default function ResponseConditioningStructuredExecution() {
           <h2 className="text-2xl font-bold">Violation Consequence</h2>
           <p className="text-muted-foreground">
             Any attempt to bypass independent execution, interfere early, or clean up the logs can
-            trigger violation detection.
+            trigger compliance review.
           </p>
           <ul className="space-y-2 text-sm text-muted-foreground">
             {criticalFails.map((fail) => (
@@ -277,7 +277,7 @@ export default function ResponseConditioningStructuredExecution() {
           </ul>
           <p className="font-medium">
             Flagged non-compliance can lead to failed audits, suspension from active training,
-            and for repeated or severe breaches, permanent ban or blacklisting from the Response Integrity platform.
+            and for repeated or severe breaches, removal from the platform.
           </p>
         </Card>
       </div>

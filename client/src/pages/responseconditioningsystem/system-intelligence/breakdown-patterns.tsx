@@ -106,8 +106,8 @@ export default function ResponseConditioningBreakdownPatterns() {
             </div>
             <div className="border-l-4 border-primary pl-4">
               <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">Action</p>
-              <p className="font-semibold mt-1">Correct the term.</p>
-              <p className="font-semibold">Immediately.</p>
+              <p className="font-semibold mt-1">Correct the term directly</p>
+              <p className="font-semibold">and return to precise language.</p>
             </div>
           </Card>
 
@@ -163,8 +163,8 @@ export default function ResponseConditioningBreakdownPatterns() {
             </div>
             <div className="border-l-4 border-primary pl-4">
               <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium">Action</p>
-              <p className="font-semibold mt-1">Anchor to law.</p>
-              <p className="font-semibold">Make them say it.</p>
+              <p className="font-semibold mt-1">Anchor to the governing rule</p>
+              <p className="font-semibold">and have the student say it clearly.</p>
             </div>
           </Card>
         </div>
@@ -261,7 +261,7 @@ export default function ResponseConditioningBreakdownPatterns() {
           <div className="space-y-3">
             <div className="border-l-4 border-red-500/50 pl-4 space-y-1">
               <p className="font-semibold">&#10060; "Careless mistake"</p>
-              <p className="text-muted-foreground">Lazy diagnosis.</p>
+              <p className="text-muted-foreground">This diagnosis misses the actual failure point.</p>
             </div>
             <div className="border-l-4 border-red-500/50 pl-4 space-y-1">
               <p className="font-semibold">&#10060; Re-explain everything</p>

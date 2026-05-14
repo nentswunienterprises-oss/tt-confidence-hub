@@ -65,7 +65,7 @@ const diagnosisSets = [
 ];
 
 const observationSignals = [
-  "Vocabulary: can they name terms correctly or do they collapse into vague language?",
+  "Vocabulary: can they name terms correctly or do they shift into vague language?",
   "Method: can they state the steps in order or do they guess the sequence?",
   "Reason: can they explain why the method works or do they repeat without logic?",
   "Immediate apply: when asked to respond, do they avoid, hesitate, or engage?",
@@ -267,7 +267,7 @@ export default function ResponseConditioningClarity() {
             ))}
           </ul>
           <p className="font-medium">
-            Compliance standard is binary: only 100 percent passes. Anything else fails.
+            This phase is scored against full protocol compliance. Anything short of full compliance does not count as a pass.
           </p>
         </Card>
 
@@ -275,7 +275,7 @@ export default function ResponseConditioningClarity() {
           <h2 className="text-2xl font-bold">Violation Consequence</h2>
           <p className="text-muted-foreground">
             If a tutor breaks the Clarity drill rules, softens the protocol, or logs dishonestly,
-            the session can be flagged for violation detection.
+            the session can be flagged for compliance review.
           </p>
           <ul className="space-y-2 text-sm text-muted-foreground">
             {criticalFails.map((fail) => (
@@ -284,7 +284,7 @@ export default function ResponseConditioningClarity() {
           </ul>
           <p className="font-medium">
             Flagged non-compliance can trigger audit failure, tutor suspension, and where violations
-            are severe or repeated, permanent removal or blacklisting from the Response Integrity platform.
+            are severe or repeated, removal from the platform.
           </p>
         </Card>
       </div>

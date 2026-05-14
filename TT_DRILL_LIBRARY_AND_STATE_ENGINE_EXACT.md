@@ -55,7 +55,7 @@ Derived from:
 - Constraints:
   - `Method over speed`
   - `Timer is active`
-  - `Structured response required - no panic tolerance`
+  - `Structured response required - panic responding is logged as instability.`
 
 ## Drill library
 

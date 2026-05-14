@@ -745,7 +745,7 @@ When a question shifts unexpectedly, your child is trained to:
 Read the full problem.
 Extract what is known.
 Select the method.
-Execute without emotional negotiation.
+Execute without extended emotional escalation.
 Continue.
 
 This is practiced repeatedly before exams.
@@ -1042,7 +1042,7 @@ identify what is known
 
 execute the next step calmly
 
-continue without emotional negotiation
+continue without extended emotional escalation
 
 Math is the subject.
 

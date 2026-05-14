@@ -119,7 +119,7 @@ export default function ResponseConditioningTimePressureStability() {
                 Time Pressure Stability
               </h1>
               <p className="text-base md:text-lg text-muted-foreground mt-2">
-                Timed conditioning as an exact algorithmic phase, not a motivational push
+                Timed conditioning is a defined phase with clear scoring, not a motivational exercise.
               </p>
             </div>
           </div>
@@ -137,7 +137,7 @@ export default function ResponseConditioningTimePressureStability() {
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li>Method over speed.</li>
             <li>Timer is active.</li>
-            <li>Structured response required. No panic tolerance.</li>
+            <li>Structured response is required. Panic-style responding is recorded as instability in this phase.</li>
           </ul>
         </Card>
 
@@ -278,7 +278,7 @@ export default function ResponseConditioningTimePressureStability() {
           </ul>
           <p className="font-medium">
             Audit failure can lead to session invalidation and suspension, and repeated or severe
-            violations can justify permanent Response Integrity platform ban or blacklisting.
+            violations can justify suspension or removal from the platform.
           </p>
         </Card>
       </div>

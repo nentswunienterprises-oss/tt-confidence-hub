@@ -41,7 +41,7 @@ export default function ResponseConditioningWhatNotToDo() {
         {/* Purpose */}
         <Card className="p-6 space-y-4 border-primary/30 bg-primary/5">
           <h2 className="text-2xl font-bold">Purpose</h2>
-          <p className="text-muted-foreground">This is not a suggestion list.</p>
+          <p className="text-muted-foreground">These are operating standards, not optional preferences.</p>
           <p className="text-muted-foreground">This is:</p>
           <p className="font-medium">what breaks the Response Integrity system</p>
           <p className="text-muted-foreground">If these behaviors appear consistently:</p>
@@ -289,7 +289,7 @@ export default function ResponseConditioningWhatNotToDo() {
 
           <div className="bg-muted rounded p-3">
             <p className="font-semibold text-sm uppercase tracking-wide mb-1">Rule</p>
-            <p className="text-muted-foreground">Comfort does not build capability.</p>
+            <p className="text-muted-foreground">Comfort alone does not build capability.</p>
           </div>
         </Card>
 
@@ -353,9 +353,9 @@ export default function ResponseConditioningWhatNotToDo() {
           </div>
         </Card>
 
-        {/* The Pattern Behind All Failures */}
+        {/* Common Pattern Behind Execution Failures */}
         <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">The Pattern Behind All Failures</h2>
+          <h2 className="text-2xl font-bold">Common Pattern Behind Execution Failures</h2>
           <p className="text-muted-foreground">Every mistake above comes from:</p>
           <p className="font-bold text-lg">prioritizing short-term ease over long-term capability</p>
         </Card>

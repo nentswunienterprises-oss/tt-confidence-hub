@@ -475,7 +475,7 @@ What Response Integrity actually enables: Step-by-step problem solving, structur
 Response Integrity does not sell confidence. Response Integrity sells cognitive stability under uncertainty. The emotional state is calm, oriented, non-panicked, neutral. Confidence is an indicator, not the offer.
 
 **Level 4 – The Behavior Change (THIS IS THE PRODUCT)**
-Students trained by Response Integrity do one thing differently: They do not freeze when the question breaks expectation. They: Read the question fully → Identify what is known → Execute a trained response paResponse Integrityern → Move forward without emotional negotiation. This behavior change is observable, trainable, repeatable, and testable under pressure. This is response integrity.
+Students trained by Response Integrity do one thing differently: They do not freeze when the question breaks expectation. They: Read the question fully → Identify what is known → Execute a trained response paResponse Integrityern → Move forward without extended emotional escalation. This behavior change is observable, trainable, repeatable, and testable under pressure. This is response integrity.
 
 **Level 5 – The Transformed Future (THE PROMISE)**
 Exams stop feeling like ambushes. Performance stabilizes across terms. Parents stop micromanaging. Students stop self-labeling as “bad at math.” Academic pressure becomes manageable, not traumatic.

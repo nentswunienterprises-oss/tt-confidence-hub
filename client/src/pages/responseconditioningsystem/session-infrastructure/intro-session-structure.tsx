@@ -11,9 +11,9 @@ const sessionRules = [
 ];
 
 const scoreBands = [
-  { range: "0-44", meaning: "Too weak for this phase. De-escalate and verify the earlier phase." },
+  { range: "0-44", meaning: "This phase is too advanced for the current score. Step back and verify the earlier phase." },
   { range: "45-79", meaning: "This phase is the match. Place here and stop diagnosis." },
-  { range: "80-100", meaning: "Too strong for this phase. Escalate and verify the next phase." },
+  { range: "80-100", meaning: "This phase is below the current score. Move up and verify the next phase." },
 ];
 
 const sessionFlow = [
@@ -77,7 +77,7 @@ export default function ResponseConditioningIntroSessionStructure() {
             Where should this student's training begin in this topic?
           </p>
           <p className="font-semibold">
-            In intro, the tutor does not choose the next phase by feel. The tutor runs the block,
+            In intro, the tutor does not choose the next phase by impression. The tutor runs the block,
             logs honestly, and follows the score result.
           </p>
         </Card>
@@ -148,7 +148,7 @@ export default function ResponseConditioningIntroSessionStructure() {
         </Card>
 
         <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-bold">What The Tutor Must Not Do</h2>
+          <h2 className="text-2xl font-bold">What to Avoid in Intro</h2>
           <ul className="space-y-1 pl-5 list-disc text-muted-foreground">
             {sessionRules.map((rule) => (
               <li key={rule}>{rule}</li>

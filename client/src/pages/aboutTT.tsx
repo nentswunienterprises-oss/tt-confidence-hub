@@ -234,7 +234,7 @@ export default function AboutTT() {
               <li>Read the question fully</li>
               <li>Identify what is known</li>
               <li>Execute a trained response pattern</li>
-              <li>Move forward without emotional negotiation</li>
+              <li>Move forward without extended emotional escalation</li>
             </ul>
             <p>This behavior change is:</p>
             <ul>

@@ -96,7 +96,7 @@ const PHASES: PhaseLabel[] = [
 const PHASE_CONTEXT: Record<PhaseLabel, { purpose: string; constraints: string[] }> = {
   Clarity: {
     purpose:
-      "Can the student see the problem clearly before solving? Clarity is naming what's there, recognizing the method, understanding why. If this fails - everything else collapses.",
+      "Can the student see the problem clearly before solving? Clarity is naming what's there, recognizing the method, understanding why. If this is unstable, later performance also becomes unstable.",
     constraints: ["No Boss Battles", "No time pressure", "No skipping layers"],
   },
   "Structured Execution": {
@@ -112,7 +112,7 @@ const PHASE_CONTEXT: Record<PhaseLabel, { purpose: string; constraints: string[]
   "Time Pressure Stability": {
     purpose:
       "Maintain method structure under urgency. Structure is the target - speed is secondary.",
-    constraints: ["Method over speed", "Timer is active", "Structured response required - no panic tolerance"],
+    constraints: ["Method over speed", "Timer is active", "Structured response required - reactive responding is logged as instability"],
   },
 };
 
@@ -246,7 +246,7 @@ const DIAGNOSIS_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
       reps: 3,
       purpose: "Test initial response to difficulty under a no-help condition. What does the student do first?",
       repInstruction: "Try this. No help for 10 seconds.",
-      activeRules: ["No help for 10 seconds", "Hold the discomfort window", "Do not rescue"],
+      activeRules: ["No help for 10 seconds", "Hold the discomfort window", "Avoid rescue beyond the phase allowance"],
       repObservationBlocks: [
         [
           { key: "initialResponse", label: "Immediate Reaction (Rep 1 - Cold Contact)", options: ["freeze", "hesitate", "attempt"] },
@@ -519,7 +519,7 @@ const TRAINING_SETS_BY_PHASE: Record<PhaseLabel, DrillSetConfig[]> = {
       reps: 3,
       purpose: "Build independence under difficulty with no rescue.",
       repInstruction: "Continue. No full help.",
-      activeRules: ["No rescue allowed", "Hold the discomfort", "Observe rescue-seeking pattern"],
+      activeRules: ["No full rescue in this phase", "Maintain the discomfort window", "Observe rescue-seeking pattern"],
       observationBlock: [
         { key: "rescueDependence", label: "Independence", options: ["dependent", "partial", "independent"] },
         { key: "discomfortTolerance", label: "Stability", options: ["breaks", "unstable", "stable"] },

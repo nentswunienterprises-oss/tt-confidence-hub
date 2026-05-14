@@ -119,7 +119,7 @@ export default function ResponseConditioningControlledDiscomfort() {
                 Controlled Discomfort
               </h1>
               <p className="text-base md:text-lg text-muted-foreground mt-2">
-                Difficulty exposure as an exact drill protocol, not a loose coaching style
+                Difficulty exposure is a defined drill protocol, not an open-ended coaching style.
               </p>
             </div>
           </div>
@@ -259,12 +259,12 @@ export default function ResponseConditioningControlledDiscomfort() {
             ))}
           </ul>
           <p className="font-medium">
-            The standard is exact execution. Only 100 percent compliance passes.
+            This phase is scored against full protocol compliance. Partial compliance does not count as a pass.
           </p>
         </Card>
 
         <Card className="p-6 space-y-5 border-l-4 border-l-destructive">
-          <h2 className="text-2xl font-bold">Violation Consequence</h2>
+          <h2 className="text-2xl font-bold">Compliance Consequence</h2>
           <p className="text-muted-foreground">
             If a tutor rescues, relieves the pressure, or falsifies what happened in the discomfort
             window, the platform can flag the session immediately.
@@ -276,7 +276,7 @@ export default function ResponseConditioningControlledDiscomfort() {
           </ul>
           <p className="font-medium">
             Audit failure in this phase can trigger suspension, and repeated or severe drill
-            violations can result in permanent Response Integrity platform ban or blacklisting.
+            violations can result in suspension or removal from the platform.
           </p>
         </Card>
       </div>
