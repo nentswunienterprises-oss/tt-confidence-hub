@@ -131,34 +131,38 @@ const modules = [
 export default function ResponseConditioningSystem() {
   return (
     <div className="min-h-screen bg-background">
-      <div className="border-b bg-card">
+      <div className="border-b border-border/80 bg-background">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
-          <Button variant="ghost" className="mb-4 -ml-2" asChild>
-            <Link to="/tutor/pod">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Pod
-            </Link>
-          </Button>
+          <div className="rounded-3xl border border-primary/15 bg-background p-6 shadow-sm">
+            <Button variant="ghost" className="mb-6 -ml-2" asChild>
+              <Link to="/tutor/pod">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Pod
+              </Link>
+            </Button>
 
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <Lock className="w-6 h-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-2">
-                The Response Conditioning System
-              </h1>
-              <p className="text-base md:text-lg text-muted-foreground max-w-3xl">
-                This is the internal operating map. Open the deep dives, learn the session logic,
-                and execute the system clearly.
-              </p>
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+              <div className="flex items-start gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Lock className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-2">
+                    The Response Conditioning System
+                  </h1>
+                  <p className="text-base md:text-lg text-muted-foreground max-w-3xl">
+                    This is the internal operating map. Open the deep dives, learn the session logic,
+                    and execute the system clearly.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-12 space-y-8">
-        <Card className="border-primary/30 bg-primary/5">
+        <Card className="border-primary/20 bg-primary/5 shadow-sm">
           <div className="p-6">
             <div className="flex gap-3 items-start">
               <AlertTriangle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
@@ -181,7 +185,7 @@ export default function ResponseConditioningSystem() {
             return (
               <Card
                 key={module.id}
-                className="group border border-border/80 bg-card hover:border-primary/40 transition-colors"
+                className="group border border-primary/15 bg-card shadow-sm hover:border-primary/40 transition-colors"
               >
                 <div className="p-6 h-full flex flex-col gap-5">
                   <div className="flex items-start justify-between gap-4">
@@ -200,7 +204,7 @@ export default function ResponseConditioningSystem() {
                       <Link
                         key={item.label}
                         to={item.href}
-                        className="flex items-center justify-between text-sm text-muted-foreground border-b border-dashed border-border/60 pb-2 hover:text-foreground transition-colors"
+                        className="flex items-center justify-between text-sm text-foreground border-b border-dashed border-border/60 pb-2 hover:text-primary transition-colors"
                       >
                         <span>{item.label}</span>
                         <ChevronRight className="w-4 h-4" />

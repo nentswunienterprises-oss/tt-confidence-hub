@@ -71,18 +71,18 @@ export default function TutorLanding() {
   }, []);
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#F5EFE7] text-[#171311]">
+    <div className="min-h-screen overflow-x-hidden bg-[#FFF5ED] text-[#171311]">
       <div
         className="fixed inset-0 -z-10"
         style={{
           background:
-            "radial-gradient(circle at 10% 12%, rgba(214,62,45,0.10) 0%, rgba(214,62,45,0) 28%), radial-gradient(circle at 88% 8%, rgba(28,43,56,0.10) 0%, rgba(28,43,56,0) 25%), linear-gradient(180deg, #FFF8F2 0%, #F5EFE7 46%, #EBDDCE 100%)",
+            "radial-gradient(circle at 10% 12%, rgba(214,62,45,0.10) 0%, rgba(214,62,45,0) 28%), radial-gradient(circle at 88% 8%, rgba(28,43,56,0.10) 0%, rgba(28,43,56,0) 25%), linear-gradient(180deg, #FFF8F2 0%, #FFF5ED 46%, #FFF0F0 100%)",
         }}
       />
 
       <header
         className="fixed inset-x-0 top-0 z-50 border-b border-[#E5D6C9] backdrop-blur-md"
-        style={{ backgroundColor: "rgba(245, 239, 231, 0.9)" }}
+        style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}
       >
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-center px-3 sm:h-20 sm:justify-between sm:px-6 md:px-12">
           <div className="hidden sm:block sm:w-[120px]" aria-hidden="true" />
@@ -94,7 +94,7 @@ export default function TutorLanding() {
 
           <Button
             className="hidden rounded-full px-4 text-sm font-semibold sm:inline-flex sm:px-6 sm:text-base"
-            style={{ backgroundColor: "#C63F2D", color: "white" }}
+            style={{ backgroundColor: "#E63946", color: "white" }}
             onClick={() => navigate(loginEntryPath)}
           >
             Sign In
@@ -138,7 +138,7 @@ export default function TutorLanding() {
                   <Button
                     size="lg"
                     className="rounded-full px-8 shadow-sm"
-                    style={{ backgroundColor: "#B9382F" }}
+                    style={{ backgroundColor: "#E63946" }}
                     onClick={() => navigate(signupEntryPath)}
                   >
                     Start Tutor Access
@@ -194,7 +194,7 @@ export default function TutorLanding() {
             <div className="mt-7 grid gap-4 lg:grid-cols-5">
               {conditioningModes.map((item, index) => (
                 <div key={item.title} className="rounded-[24px] border border-[#EEDFD3] bg-[#FFF8F3] p-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#B9382F]">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#E63946]">
                     {String(index + 1).padStart(2, "0")}
                   </p>
                   <h3 className="mt-3 text-lg font-bold tracking-tight text-[#171311]">{item.title}</h3>
@@ -216,7 +216,7 @@ export default function TutorLanding() {
                 {fitSignals.map((item) => (
                   <div key={item} className="rounded-[22px] border border-[#EEDFD3] bg-[#FFF8F3] p-5">
                     <div className="flex items-start gap-3">
-                      <Check className="mt-1 h-4 w-4 flex-shrink-0 text-[#B9382F]" />
+                      <Check className="mt-1 h-4 w-4 flex-shrink-0 text-[#E63946]" />
                       <p className="text-sm leading-7 text-[#4F4742]">{item}</p>
                     </div>
                   </div>
@@ -263,7 +263,7 @@ export default function TutorLanding() {
               <Button
                 size="lg"
                 className="rounded-full px-8 shadow-sm"
-                style={{ backgroundColor: "#B9382F" }}
+                style={{ backgroundColor: "#E63946" }}
                 onClick={() => navigate(signupEntryPath)}
               >
                 Continue to Tutor Access

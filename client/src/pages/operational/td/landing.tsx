@@ -45,16 +45,16 @@ export default function TdLanding() {
   }, []);
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#F6EFE8] text-[#1A1A1A]">
+    <div className="min-h-screen overflow-x-hidden bg-[#FFF5ED] text-[#1A1A1A]">
       <div
         className="fixed inset-0 -z-10"
         style={{
           background:
-            "radial-gradient(circle at 12% 12%, rgba(230,57,70,0.12) 0%, rgba(230,57,70,0) 30%), radial-gradient(circle at 86% 10%, rgba(21,36,59,0.10) 0%, rgba(21,36,59,0) 24%), linear-gradient(180deg, #FFF8F2 0%, #F6EFE8 48%, #EFE3D8 100%)",
+            "radial-gradient(circle at 12% 12%, rgba(230,57,70,0.12) 0%, rgba(230,57,70,0) 30%), radial-gradient(circle at 86% 10%, rgba(21,36,59,0.10) 0%, rgba(21,36,59,0) 24%), linear-gradient(180deg, #FFF8F2 0%, #FFF5ED 48%, #FFF0F0 100%)",
         }}
       />
 
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-[#E5D6C9] backdrop-blur-md" style={{ backgroundColor: "rgba(246, 239, 232, 0.9)" }}>
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-[#E5D6C9] backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-center px-3 sm:h-20 sm:justify-between sm:px-6 md:px-12">
           <div className="hidden sm:block sm:w-[120px]" aria-hidden="true" />
 
@@ -105,7 +105,7 @@ export default function TdLanding() {
                 </div>
 
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                  <Button size="lg" className="rounded-full px-8 shadow-sm" style={{ backgroundColor: "#B9382F" }} onClick={() => navigate("/operational/td/signup")}>
+                  <Button size="lg" className="rounded-full px-8 shadow-sm" style={{ backgroundColor: "#E63946" }} onClick={() => navigate("/operational/td/signup")}>
                     Apply for TD Access
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -157,7 +157,7 @@ export default function TdLanding() {
                 {fitSignals.map((item) => (
                   <div key={item} className="rounded-[22px] border border-[#EEDFD3] bg-[#FFF8F3] p-5">
                     <div className="flex items-start gap-3">
-                      <Check className="mt-1 h-4 w-4 flex-shrink-0 text-[#B9382F]" />
+                      <Check className="mt-1 h-4 w-4 flex-shrink-0 text-[#E63946]" />
                       <p className="text-sm leading-7 text-[#4F4742]">{item}</p>
                     </div>
                   </div>
@@ -206,7 +206,7 @@ export default function TdLanding() {
             <Button
               size="lg"
               className="mt-8 rounded-full px-8 shadow-sm"
-              style={{ backgroundColor: "#B9382F" }}
+              style={{ backgroundColor: "#E63946" }}
               onClick={() => navigate("/operational/td/signup")}
             >
               Enter TD Access

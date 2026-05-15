@@ -204,7 +204,7 @@ function PortalLanding() {
       </section>
 
       {/* What You Get */}
-      <section className="py-12 sm:py-20 math-wallpaper" style={{ backgroundColor: "#FFF5ED" }}>
+      <section className="py-12 sm:py-20 math-wallpaper" style={{ backgroundColor: "#FFF0F0" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6" style={{ color: "#1A1A1A" }}>
@@ -216,7 +216,7 @@ function PortalLanding() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 max-w-5xl mx-auto">
-            <Card className="p-5 sm:p-6 md:p-8 border-0 shadow-lg" style={{ backgroundColor: "white" }}>
+            <Card className="p-5 sm:p-6 md:p-8 border-0 shadow-lg" style={{ backgroundColor: "#FFF5ED" }}>
               <div className="space-y-4 sm:space-y-6">
                 {[
                   { title: "Someone Who Doesn't Freeze", desc: "When the question breaks expectation, they stay calm and execute their trained response." },
@@ -236,7 +236,7 @@ function PortalLanding() {
               </div>
             </Card>
 
-            <Card className="p-5 sm:p-6 md:p-8 border-0 shadow-lg" style={{ backgroundColor: "white" }}>
+            <Card className="p-5 sm:p-6 md:p-8 border-0 shadow-lg" style={{ backgroundColor: "#FFF5ED" }}>
               <div className="space-y-4 sm:space-y-6">
                 {[
                   { title: "Someone Less Thrown by Exams", desc: "Pressure feels familiar. Performance stays stable across terms." },
