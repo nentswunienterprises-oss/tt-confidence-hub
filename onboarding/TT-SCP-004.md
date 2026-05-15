@@ -2,8 +2,8 @@ TERRITORIAL TUTORING SA (PTY) LTD
 SAFEGUARDING AND CONDUCT POLICY (Response Integrity-SCP-004)
 
 1. PURPOSE
-This policy defines the safeguarding standards, conduct rules, and interaction boundaries required of all tutors operating within the Territorial Tutoring platform.
-Territorial Tutoring operates with minor learners (Grades 6-9) in a controlled online environment.
+This policy defines the safeguarding standards, conduct rules, and interaction boundaries required of all tutors operating within the Response Integrity platform.
+Response Integrity operates with minor learners (Grades 6-9) in a controlled online environment.
 All conduct must prioritize:
 learner safety
 platform integrity
@@ -31,7 +31,7 @@ Direct communication with parents outside Response Integrity channels
 exchange personal contact details
 accept contact requests
 initiate communication outside the platform
-3.3 Any aResponse Integrityempt by a learner or parent to move communication outside the platform must be:
+3.3 Any attempt by a learner or parent to move communication outside the platform must be:
 refused immediately
 reported to Response Integrity
 
@@ -63,7 +63,7 @@ The following result in immediate suspension or termination:
 Any inappropriate or suggestive communication
 Any form of harassment, intimidation, or discrimination
 Sharing personal contact information
-AResponse Integrityempting to meet learners physically
+Attempting to meet learners physically
 Any conduct that places a learner at risk
 No warnings are required.
 
@@ -93,7 +93,7 @@ recordings may be reviewed at any time
 9.1 Tutors must report immediately:
 boundary violations
 inappropriate learner behavior
-aResponse Integrityempts to move communication off-platform
+attempts to move communication off-platform
 any safeguarding concerns
 9.2 Failure to report is considered non-compliance.
 
@@ -110,7 +110,7 @@ present professionally on camera
 use appropriate language at all times
 11.2 The following are prohibited:
 offensive language
-inappropriate aResponse Integrityire
+inappropriate attire
 disruptive or unprofessional behavior
 
 12. ENFORCEMENT

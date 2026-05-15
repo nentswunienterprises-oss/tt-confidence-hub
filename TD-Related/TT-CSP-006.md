@@ -1,13 +1,13 @@
 Response Integrity-CSP-006 - CONFIDENTIALITY & SYSTEM
 PROTECTION AGREEMENT
 This Agreement is entered into between:
-Territorial Tutoring SA (Pty) Ltd (“Response Integrity”)
+Response Integrity (Pty) Ltd (“Response Integrity”)
 and
 ________________________________________ (“Territory Director”)
 Effective Date: ______________________
 1. PURPOSE
 This Agreement protects the proprietary systems, methods, and operational
-frameworks of TT.
+frameworks of Response Integrity.
 The Territory Director acknowledges that Response Integrity operates using a unique performance
 conditioning system (Response Integrity-OS) which constitutes protected intellectual property.
 2. CONFIDENTIAL INFORMATION
@@ -24,7 +24,7 @@ The Territory Director shall not:
 Share Response Integrity systems or methodologies with any third party
 Disclose internal processes or frameworks
 Provide access to Response Integrity materials outside authorized use
-This applies during and after engagement with TT.
+This applies during and after engagement with Response Integrity.
 4. NON-REPRODUCTION
 The Territory Director shall not:
 
@@ -44,7 +44,7 @@ Operate a similar structured training system targeting the same market using Res
 derived knowledge
 
 7. SYSTEM OWNERSHIP
-All systems, frameworks, and intellectual property remain the sole property of TT.
+All systems, frameworks, and intellectual property remain the sole property of Response Integrity.
 The Territory Director acquires:
 No ownership
 No rights to reuse
@@ -67,7 +67,7 @@ Acceptance of all restrictions outlined above
 Signed at __________________________ on this ______ day of ______________ 2026.
 _____________________________________
 Territory Director
-For and on behalf of Territorial Tutoring SA (Pty) Ltd
+For and on behalf of Response Integrity (Pty) Ltd
 Response Integrity Representative Signature: ______________________
 Print Name: Thendo Nentswuni
 Date: ____________________

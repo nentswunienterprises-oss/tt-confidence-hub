@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { renderAgreementHtmlStrict } from "@/components/tutor/SequentialDocumentSubmission";
+import { sanitizeLegacyOnboardingDocumentText } from "@shared/onboardingDocumentSanitizer";
 
 type Clause = {
   key: string;
@@ -88,7 +89,7 @@ function statusLabel(status: string) {
 }
 
 function normalizeDocumentText(content: string) {
-  return content
+  return sanitizeLegacyOnboardingDocumentText(content)
     .replace(/\r\n/g, "\n")
     .replace(/â€œ|â€/g, '"')
     .replace(/â€˜|'/g, "'")

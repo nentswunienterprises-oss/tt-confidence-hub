@@ -1,12 +1,12 @@
 Response Integrity-CEA-002 - Response Integrity-OS COMPLIANCE & ENFORCEMENT
 AGREEMENT
 This Agreement is entered into between:
-Territorial Tutoring SA (Pty) Ltd (“Response Integrity”)
+Response Integrity (Pty) Ltd (“Response Integrity”)
 and
 _________________________________________ (“Territory Director”)
 Effective Date: ______________________
 1. PURPOSE
-This Agreement governs the strict enforcement of the Territorial Tutoring Operating
+This Agreement governs the strict enforcement of the Response Integrity Operating
 System (Response Integrity-OS).
 The Territory Director is not a tutor, coach, or advisor.
 The Territory Director is an enforcer of system execution.
@@ -75,7 +75,7 @@ Commitment to system-first decision making
 Signed at __________________________ on this ______ day of ______________ 2026.
 _____________________________________
 Territory Director
-For and on behalf of Territorial Tutoring SA (Pty) Ltd
+For and on behalf of Response Integrity (Pty) Ltd
 Response Integrity Representative Signature: ______________________
 Print Name: Thendo Nentswuni
 Date: ____________________

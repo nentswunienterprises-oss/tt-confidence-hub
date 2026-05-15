@@ -1,7 +1,7 @@
 Response Integrity-PSA-005 - PERFORMANCE SCORECARD
 ACKNOWLEDGEMENT
 This Acknowledgement is entered into between:
-Territorial Tutoring SA (Pty) Ltd (“Response Integrity”)
+Response Integrity (Pty) Ltd (“Response Integrity”)
 and
 ________________________________________ (“Territory Director”)
 Effective Date: ______________________
@@ -68,7 +68,7 @@ Willingness to be ranked and compared based on performance
 Signed at __________________________ on this ______ day of ______________ 2026.
 _____________________________________
 Territory Director
-For and on behalf of Territorial Tutoring SA (Pty) Ltd
+For and on behalf of Response Integrity (Pty) Ltd
 Response Integrity Representative Signature: ______________________
 Print Name: Thendo Nentswuni
 Date: ____________________

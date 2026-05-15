@@ -1,6 +1,7 @@
 import { createHash } from "crypto";
 import { readFile } from "fs/promises";
 import { resolve } from "path";
+import { sanitizeLegacyOnboardingDocumentText } from "@shared/onboardingDocumentSanitizer";
 
 export interface TutorOnboardingClauseDefinition {
   key: string;
@@ -176,7 +177,7 @@ export async function loadTutorOnboardingDocument(step: number): Promise<LoadedT
 
   const fullPath = resolve(DOC_ROOT, doc.fileName);
   const raw = await readFile(fullPath, "utf8");
-  const content = normalizeText(raw);
+  const content = sanitizeLegacyOnboardingDocumentText(raw);
   const contentHash = createHash("sha256").update(content, "utf8").digest("hex");
 
   return {

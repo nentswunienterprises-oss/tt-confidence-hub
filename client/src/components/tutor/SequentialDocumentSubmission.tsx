@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { sanitizeLegacyOnboardingDocumentText } from "@shared/onboardingDocumentSanitizer";
 import { CheckCircle2, Download, Expand, FileCheck, FileText, Loader2, Upload } from "lucide-react";
 
 type DocumentStatus = "not_started" | "pending_upload" | "pending_review" | "approved" | "rejected";
@@ -196,7 +197,7 @@ function formatAcceptedAt(value: string | null | undefined) {
 }
 
 function normalizeAgreementContent(content: string) {
-  return content
+  return sanitizeLegacyOnboardingDocumentText(content)
     .replace(/\r\n/g, "\n")
     .replace(/[â€œâ€]/g, '"')
     .replace(/[â€˜']/g, "'")
@@ -307,7 +308,7 @@ function renderAgreementHtml(content: string) {
 }
 
 function normalizeAgreementContentStrict(content: string) {
-  return content
+  return sanitizeLegacyOnboardingDocumentText(content)
     .replace(/\r\n/g, "\n")
     .replace(/[^\S\n]+/g, " ")
     .replace(/[\u0000-\u0008\u000B-\u001F]/g, "")
@@ -589,6 +590,7 @@ function buildApplicationLockedFormData(application: any) {
 }
 
 export function hydrateDocumentContent(content: string, fieldValues: Record<string, string>) {
+  const sanitizedContent = sanitizeLegacyOnboardingDocumentText(content);
   const idTypeLabel = fieldValues.idType === "passport" ? "Passport" : "South African ID";
   const replacements: Array<[RegExp, string]> = [
     [/Full Name:\s*_+/i, `Full Name: ${fieldValues.legalName || "______________________________"}`],
@@ -606,7 +608,7 @@ export function hydrateDocumentContent(content: string, fieldValues: Record<stri
     [/Print Name:\s*_+/i, `Print Name: ${fieldValues.legalName || "______________________________"}`],
   ];
 
-  let next = content;
+  let next = sanitizedContent;
   for (const [pattern, replacement] of replacements) {
     next = next.replace(pattern, replacement);
   }
@@ -1118,12 +1120,14 @@ function buildAcceptedCopyHtml(params: {
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>${escapeHtml(document.code)} Accepted Copy</title>
   <style>
     @page { size: A4; margin: 18mm 16mm 18mm 16mm; }
     * { box-sizing: border-box; }
-    body { margin: 0; background: #e7e1d7; color: #1f2933; font-family: "Georgia", "Times New Roman", serif; }
-    .page { width: 210mm; min-height: 297mm; margin: 0 auto; background: #fffdf8; padding: 18mm 16mm; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; padding: 16px; background: #e7e1d7; color: #1f2933; font-family: "Georgia", "Times New Roman", serif; }
+    .page { width: min(210mm, 100%); min-height: 297mm; margin: 0 auto; background: #fffdf8; padding: 18mm 16mm; }
     .eyebrow { font: 600 11px/1.4 Arial, sans-serif; letter-spacing: 0.18em; text-transform: uppercase; color: #8b2c1f; }
     h1 { margin: 8px 0 6px; font-size: 28px; line-height: 1.15; }
     .subhead { margin: 0; font: 500 13px/1.6 Arial, sans-serif; color: #52606d; }
@@ -1137,6 +1141,7 @@ function buildAcceptedCopyHtml(params: {
     th, td { padding: 9px 10px; border: 1px solid #ddd3c5; vertical-align: top; }
     th { width: 34%; background: #f6efe4; text-align: left; font: 600 12px/1.5 Arial, sans-serif; color: #243b53; }
     td { font: 400 13px/1.6 Arial, sans-serif; }
+    h1, h2, h3, p, li, th, td, .summary-value, .signature-box, .footer { overflow-wrap: anywhere; word-break: break-word; }
     .clauses { margin: 0; padding-left: 18px; font: 400 13px/1.7 Arial, sans-serif; }
     .agreement-body { margin-top: 12px; }
     .agreement-body h1, .agreement-body h2 { font-family: Arial, sans-serif; color: #102a43; }
@@ -1161,6 +1166,18 @@ function buildAcceptedCopyHtml(params: {
     .footer { margin-top: 30px; padding-top: 10px; border-top: 1px solid #ddd3c5; font: 400 11px/1.5 Arial, sans-serif; color: #7b8794; }
     .signature { margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
     .signature-box { padding-top: 10px; border-top: 1px solid #9fb3c8; font: 400 12px/1.5 Arial, sans-serif; }
+    @media screen and (max-width: 760px) {
+      body { padding: 0; background: #fffdf8; }
+      .page { width: 100%; min-height: auto; padding: 24px 16px 32px; }
+      h1 { font-size: 24px; }
+      .summary { padding: 12px; }
+      .summary-grid, .signature { grid-template-columns: 1fr; }
+      table { display: block; border-collapse: separate; }
+      tr { display: grid; grid-template-columns: 1fr; margin-bottom: 10px; }
+      th, td { display: block; width: 100%; }
+      th { border-bottom: 0; }
+      td { border-top: 0; }
+    }
   </style>
 </head>
 <body>

@@ -1,5 +1,5 @@
-TERRITORIAL TUTORING SA (PTY) LTD
-Response Integrity LEADERSHIP PROGRAMME
+RESPONSE INTEGRITY (PTY) LTD
+RESPONSE INTEGRITY LEADERSHIP PROGRAMME
 TUTOR CONSENT FORM (Response Integrity-TCF-001)
 
 This in-app agreement must be completed before participation begins.
@@ -10,12 +10,12 @@ Contact Number: ____________________________________
 Date of Birth: _______________________________________
 Email Address: ______________________________________
 ID Number: _________________________________________
-School AResponse Integrityended (Matric): _____________________________
+School Attended (Matric): _____________________________
 Current Status (e.g. Gap Year, University Student, Graduate): _____________________________
 
 SECTION B: PROGRAMME DEFINITION AND ROLE
 By accepting this form, the Contractor acknowledges and accepts the following:
-Territorial Tutoring is not a tutoring service.
+Response Integrity is not a tutoring service.
 It is a response-conditioning system delivered through mathematics.
 The purpose of every session is to train how a learner responds under difficulty, not to explain content or assist with homework.
 The Contractor operates as a response-conditioning operator, responsible for stabilizing learner execution under pressure.
@@ -24,7 +24,7 @@ Model -> Apply -> Guide
 Model:
 Demonstrate structured, calm execution
 Apply:
-Require independent learner aResponse Integrityempt under friction
+Require independent learner attempt under friction
 Guide:
 Stabilize response - not rescue, not spoon-feed
 The Contractor does not fix answers.
@@ -64,8 +64,8 @@ Any deviation from the Response Integrity-OS is considered non-compliance
 SECTION E: PLATFORM AND COMMUNICATION CONTROL
 The Contractor agrees:
 All sessions, communication, and operations must occur within the Response Integrity platform
-No private communication with learners or parents outside Response Integrity is permiResponse Integrityed
-No acceptance of payment outside Response Integrity is permiResponse Integrityed
+No private communication with learners or parents outside Response Integrity is permitted
+No acceptance of payment outside Response Integrity is permitted
 All sessions are recorded and stored for:
 Compliance
 Quality control

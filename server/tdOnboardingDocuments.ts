@@ -1,6 +1,7 @@
 import { createHash } from "crypto";
 import { readFile } from "fs/promises";
 import { resolve } from "path";
+import { sanitizeLegacyOnboardingDocumentText } from "@shared/onboardingDocumentSanitizer";
 
 export interface TdOnboardingClauseDefinition {
   key: string;
@@ -179,7 +180,7 @@ export interface LoadedTdOnboardingDocument extends TdOnboardingDocumentDefiniti
 
 export async function loadTdOnboardingDocument(step: number): Promise<LoadedTdOnboardingDocument> {
   const doc = getTdOnboardingDocumentDefinition(step);
-  const content = doc.fileName ? normalizeText(await readFile(resolve(DOC_ROOT, doc.fileName), "utf8")) : "";
+  const content = doc.fileName ? sanitizeLegacyOnboardingDocumentText(await readFile(resolve(DOC_ROOT, doc.fileName), "utf8")) : "";
   const contentHash = createHash("sha256").update(content, "utf8").digest("hex");
 
   return {

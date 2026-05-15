@@ -1,6 +1,7 @@
 import { createHash } from "crypto";
 import { readFile } from "fs/promises";
 import { resolve } from "path";
+import { sanitizeLegacyOnboardingDocumentText } from "@shared/onboardingDocumentSanitizer";
 
 export interface EgpOnboardingClauseDefinition {
   key: string;
@@ -143,7 +144,7 @@ export interface LoadedEgpOnboardingDocument extends EgpOnboardingDocumentDefini
 export async function loadEgpOnboardingDocument(step: number): Promise<LoadedEgpOnboardingDocument> {
   const doc = getEgpOnboardingDocumentDefinition(step);
   const content = doc.fileName
-    ? normalizeText(await readFile(resolve(DOC_ROOT, doc.fileName), "utf8"))
+    ? sanitizeLegacyOnboardingDocumentText(await readFile(resolve(DOC_ROOT, doc.fileName), "utf8"))
     : "";
   const contentHash = createHash("sha256").update(content, "utf8").digest("hex");
 

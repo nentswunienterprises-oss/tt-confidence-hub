@@ -3,7 +3,7 @@ INDEPENDENT CONTRACTOR AGREEMENT (Response Integrity-ICA-003)
 
 1. PARTIES
 This Agreement is entered into between:
-Territorial Tutoring SA (Pty) Ltd ("Response Integrity" or "the Company")
+Response Integrity (Pty) Ltd ("Response Integrity" or "the Company")
 and
 The Contractor (as identified in onboarding documentation)
 
@@ -113,7 +113,7 @@ operational processes
 engage Response Integrity learners privately
 solicit Response Integrity parents
 redirect Response Integrity relationships outside the platform
-10.2 Any aResponse Integrityempt to bypass Response Integrity constitutes a material breach.
+10.2 Any attempt to bypass Response Integrity constitutes a material breach.
 
 11. SUSPENSION AND TERMINATION
 11.1 Response Integrity may suspend or terminate this Agreement:
@@ -135,7 +135,7 @@ results
 continued engagement
 12.2 The Contractor assumes full responsibility for:
 tax obligations
-personal financial maResponse Integrityers
+personal financial matters
 
 13. GOVERNING LAW
 13.1 This Agreement is governed by the laws of South Africa.

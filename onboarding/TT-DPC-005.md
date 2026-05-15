@@ -2,8 +2,8 @@ TERRITORIAL TUTORING SA (PTY) LTD
 DATA PROTECTION / POPIA CONSENT (Response Integrity-DPC-005)
 
 1. PURPOSE
-This agreement records consent for the collection, processing, storage, and use of personal and performance data within the Territorial Tutoring platform.
-Territorial Tutoring operates a recorded, data-driven response-conditioning system.
+This agreement records consent for the collection, processing, storage, and use of personal and performance data within the Response Integrity platform.
+Response Integrity operates a recorded, data-driven response-conditioning system.
 Data is not optional - it is required for the system to function.
 By participating in Response Integrity, all parties agree to the structured use of data as defined in this document.
 
@@ -82,7 +82,7 @@ request access to their personal data
 request correction of inaccurate data
 request deletion where legally permissible
 lodge a complaint with the Information Regulator of South Africa at www.inforegulator.org.za
-Requests may be submiResponse Integrityed to:
+Requests may be submitted to:
 legal@responseintegrity.co.za
 Note:
 Deletion requests may be limited where data is required for:
