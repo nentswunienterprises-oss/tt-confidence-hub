@@ -1115,6 +1115,11 @@ function buildAcceptedCopyHtml(params: {
     .filter((clause) => clauseKeys.includes(clause.key))
     .map((clause) => `<li>${escapeHtml(clause.label)}</li>`)
     .join("");
+  const acceptedAgreementBody = renderToStaticMarkup(
+    <div className="agreement-body">
+      {buildTutorAgreementBody(document, { ...formData, legalName: acceptedName })}
+    </div>
+  );
 
   return `<!doctype html>
 <html lang="en">
@@ -1209,10 +1214,7 @@ function buildAcceptedCopyHtml(params: {
 
     <section class="section">
       <h2 class="section-title">Accepted Agreement Text</h2>
-      <div class="agreement-body">${renderAgreementHtmlStrict(
-        hydrateDocumentContent(String(acceptance?.documentSnapshot || acceptance?.document_snapshot || document.content || ""), { ...formData, legalName: acceptedName }),
-        document.code
-      )}</div>
+      ${acceptedAgreementBody}
     </section>
 
     <section class="signature">
@@ -1221,7 +1223,7 @@ function buildAcceptedCopyHtml(params: {
     </section>
 
     <div class="footer">
-      This accepted copy was generated from Response Integrity's stored onboarding acceptance record. It reflects the versioned in-app agreement text and acceptance evidence held at the time of assent.
+      This accepted copy was generated from Response Integrity's stored onboarding acceptance record and the in-app agreement renderer used for this document flow.
     </div>
   </main>
 </body>
