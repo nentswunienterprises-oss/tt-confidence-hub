@@ -16,7 +16,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_URL } from "@/lib/config";
 import { CheckCircle2, ChevronDown, Download, ExternalLink, FileCheck, Loader2, ShieldCheck, XCircle } from "lucide-react";
-import { hydrateDocumentContent, renderAgreementHtmlStrict } from "@/components/tutor/SequentialDocumentSubmission";
 
 interface TutorDocumentReviewProps {
   application: any;
@@ -269,7 +268,6 @@ function buildAcceptedAgreementHtml(item: { code: string; title: string }, accep
   const acceptedName = acceptance?.typedFullName || acceptance?.typed_full_name || "Unknown";
   const documentVersion = normalizeDisplayedVersion(acceptance?.documentVersion || acceptance?.document_version || "1");
   const documentChecksum = acceptance?.documentChecksum || acceptance?.document_checksum || "";
-  const documentSnapshot = acceptance?.documentSnapshot || acceptance?.document_snapshot || "";
   const formSnapshot = acceptance?.formSnapshotJson || acceptance?.form_snapshot_json || {};
   const idType = normalizeIdTypeChoice(formSnapshot.idType);
   const acceptedClauses = acceptance?.acceptedClausesJson || acceptance?.accepted_clauses_json || [];
@@ -287,37 +285,22 @@ function buildAcceptedAgreementHtml(item: { code: string; title: string }, accep
   const clauseItems = Array.isArray(acceptedClauses)
     ? acceptedClauses.map((value: string) => `<li>${escapeHtml(String(value))}</li>`).join("")
     : "";
-  const agreementBody = documentSnapshot
-    ? renderAgreementHtmlStrict(
-        hydrateDocumentContent(String(documentSnapshot), {
-          legalName: normalizeValue(acceptedName || formSnapshot.legalName),
-          phoneNumber: normalizeValue(formSnapshot.phoneNumber),
-          dateOfBirth: normalizeValue(formSnapshot.dateOfBirth),
-          emailAddress: normalizeValue(formSnapshot.emailAddress),
-          idType,
-          idNumber: normalizeValue(formSnapshot.idNumber),
-          schoolName: normalizeValue(formSnapshot.schoolName),
-          currentStatus: normalizeValue(formSnapshot.currentStatus),
-          matricYear: normalizeValue(formSnapshot.matricYear),
-          examNumber: normalizeValue(formSnapshot.examNumber),
-        }),
-        item.code
-      )
-    : renderToStaticMarkup(
-        <div className="agreement-body-inner">
-          {buildTutorAgreementBody(item.code, {
-            legalName: normalizeValue(acceptedName || formSnapshot.legalName),
-            phoneNumber: normalizeValue(formSnapshot.phoneNumber),
-            dateOfBirth: normalizeValue(formSnapshot.dateOfBirth),
-            emailAddress: normalizeValue(formSnapshot.emailAddress),
-            idType,
-            idNumber: normalizeValue(formSnapshot.idNumber),
-            schoolName: normalizeValue(formSnapshot.schoolName),
-            currentStatus: normalizeValue(formSnapshot.currentStatus),
-            matricYear: normalizeValue(formSnapshot.matricYear),
-          })}
-        </div>
-      );
+  const agreementBody = renderToStaticMarkup(
+    <div className="agreement-body-inner">
+      {buildTutorAgreementBody(item.code, {
+        legalName: normalizeValue(acceptedName || formSnapshot.legalName),
+        phoneNumber: normalizeValue(formSnapshot.phoneNumber),
+        dateOfBirth: normalizeValue(formSnapshot.dateOfBirth),
+        emailAddress: normalizeValue(formSnapshot.emailAddress),
+        idType,
+        idNumber: normalizeValue(formSnapshot.idNumber),
+        schoolName: normalizeValue(formSnapshot.schoolName),
+        currentStatus: normalizeValue(formSnapshot.currentStatus),
+        matricYear: normalizeValue(formSnapshot.matricYear),
+        examNumber: normalizeValue(formSnapshot.examNumber),
+      })}
+    </div>
+  );
 
   return `<!doctype html>
 <html lang="en">
