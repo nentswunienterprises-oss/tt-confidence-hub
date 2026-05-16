@@ -159,7 +159,7 @@ export default function LeadershipDevelopmentPilot() {
             <ul>
               <li>Panic habits under assessment</li>
               <li>Fragile execution under pressure</li>
-              <li>Avoidance patterns disguised as â€œdiscipline issuesâ€</li>
+              <li>Avoidance patterns disguised as "discipline issues"</li>
               <li>A quiet belief that school is something to survive, not master</li>
             </ul>
 
@@ -234,7 +234,7 @@ export default function LeadershipDevelopmentPilot() {
               </li>
               <li>
                 <strong>Institutional Reputation (Earned, Not Marketed)</strong>
-                <p>High schools can truthfully say: â€œOur students are selected and trained to serve as academic leaders in early intervention.â€</p>
+                <p>High schools can truthfully say: "Our students are selected and trained to serve as academic leaders in early intervention."</p>
               </li>
               <li>
                 <strong>Reducing Warehousing</strong>

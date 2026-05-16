@@ -1,1 +1,1 @@
-export { default } from "./tt-os";
+export { default } from "./response-integrity-os-page";

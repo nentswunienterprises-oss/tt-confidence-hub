@@ -43,7 +43,7 @@ export default function OnlineTutorsWanted() {
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight mt-6" style={{ color: "#1A1A1A" }}>
             ONLINE MATH TUTOR
             <div className="text-lg sm:text-xl font-semibold mt-2" style={{ color: "#5A5A5A" }}>
-              Part-time Â· Remote Â· Performance-based
+              Part-time &middot; Remote &middot; Performance-based
             </div>
           </h1>
 
@@ -59,7 +59,7 @@ export default function OnlineTutorsWanted() {
           <Card className="p-6 max-w-xl mx-auto" style={{ backgroundColor: "white" }}>
             <h2 className="text-xl font-bold mb-4" style={{ color: "#1A1A1A" }}>WHO WE ARE</h2>
             <p className="text-sm sm:text-base" style={{ color: "#5A5A5A" }}>
-              Response Integrity is a premium online response-conditioning company. We don' do chaotic tutoring. We don' improvise. We don't babysit.
+              Response Integrity is a premium online response-conditioning company. We don't do chaotic tutoring. We don't improvise. We don't babysit.
               We build calm, confident, high-performing math students through a structured, system-driven approach.
               If you believe great results come from clear processes, high standards, and consistency, you'll fit in here.
             </p>
@@ -67,7 +67,7 @@ export default function OnlineTutorsWanted() {
             <div className="mt-6">
               <h3 className="font-semibold">THE ROLE</h3>
               <p className="text-sm mt-2" style={{ color: "#5A5A5A" }}>
-                As a Response Integrity Online Math Tutor, you are responsible for delivering structured, high-quality 1-on-1 math sessions to students in Grades 6â€“9.
+                As a Response Integrity Online Math Tutor, you are responsible for delivering structured, high-quality 1-on-1 math sessions to students in Grades 6-9.
                 This is not casual tutoring. You will be trained to follow a clear operating system that prioritizes:
               </p>
 
@@ -114,7 +114,7 @@ export default function OnlineTutorsWanted() {
           <Card className="p-6 max-w-xl mx-auto" style={{ backgroundColor: "white" }}>
             <h3 className="text-lg font-bold mb-3">NOT FOR THOSE WHO:</h3>
             <ul className="space-y-3 text-sm" style={{ color: "#5A5A5A" }}>
-              <li> Prefer improvising or â€œteaching their own wayâ€</li>
+              <li> Prefer improvising or "teaching their own way"</li>
               <li> Dislike structure or feedback</li>
               <li> Avoid difficult students or challenging moments</li>
               <li> Want a casual side hustle without accountability</li>
@@ -187,7 +187,7 @@ export default function OnlineTutorsWanted() {
               <ResponseIntegrityLogo size="md" variant="integrity" />
             </div>
             <p className="text-center md:text-right text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-              Â© {new Date().getFullYear()} Response Integrity (Pty) Ltd
+              &copy; {new Date().getFullYear()} Response Integrity (Pty) Ltd
               <br />
               <span className="text-xs sm:text-sm">Confidence, made inevitable.</span>
             </p>

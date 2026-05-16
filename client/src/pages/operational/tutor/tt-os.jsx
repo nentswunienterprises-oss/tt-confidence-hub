@@ -1,3 +1,3 @@
-import * as moduleExports from './Response Integrity-os.tsx';
-export * from './Response Integrity-os.tsx';
+import * as moduleExports from "./response-integrity-os-page";
+export * from "./response-integrity-os-page";
 export default moduleExports.default;

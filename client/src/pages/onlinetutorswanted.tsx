@@ -69,7 +69,7 @@ export default function OnlineTutorsWantedPlain() {
 
           <div className="mt-6 space-y-2">
             <p className="font-semibold">This is not casual tutoring.</p>
-            <p className="font-semibold">This is not â€œteach your own way.â€</p>
+            <p className="font-semibold">This is not "teach your own way."</p>
             <p className="font-semibold">This is a system.</p>
           </div>
         </div>
@@ -150,9 +150,9 @@ export default function OnlineTutorsWantedPlain() {
 
         <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h3 className="text-lg font-bold mb-3">The Standard</h3>
-          <p style={{ color: "#5A5A5A" }}>We don' motivate.</p>
-          <p style={{ color: "#5A5A5A" }}>We don' babysit.</p>
-          <p style={{ color: "#5A5A5A" }}>We don' lower expectations.</p>
+          <p style={{ color: "#5A5A5A" }}>We don't motivate.</p>
+          <p style={{ color: "#5A5A5A" }}>We don't babysit.</p>
+          <p style={{ color: "#5A5A5A" }}>We don't lower expectations.</p>
           <p className="mt-3" style={{ color: "#5A5A5A" }}>If you execute the system, results follow - for you and your students.</p>
         </Card>
 
@@ -190,7 +190,7 @@ export default function OnlineTutorsWantedPlain() {
               <ResponseIntegrityLogo size="md" variant="integrity" />
             </div>
             <p className="text-center md:text-right" style={{ color: "#5A5A5A" }}>
-              Â© {new Date().getFullYear()} Response Integrity (Pty) Ltd
+              &copy; {new Date().getFullYear()} Response Integrity (Pty) Ltd
               <br />
               <span className="text-sm">Manufacturing Confidence & Financial Independence in South African Youth.</span>
             </p>

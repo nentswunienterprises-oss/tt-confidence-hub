@@ -297,7 +297,7 @@ export default function OperationalLanding() {
               <ResponseIntegrityLogo size="md" variant="integrity" />
             </div>
             <p className="text-center md:text-right" style={{ color: "#5A5A5A" }}>
-              Â© {new Date().getFullYear()} Response Integrity (Pty) Ltd
+              &copy; {new Date().getFullYear()} Response Integrity (Pty) Ltd
               <br />
               <span className="text-sm">
                 Manufacturing Confidence & Financial Independence in South African Youth.

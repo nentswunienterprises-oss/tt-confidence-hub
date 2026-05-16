@@ -188,14 +188,14 @@ export default function EarlyInterventionReferralProgram() {
         <Card className="p-4 sm:p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h2 className="text-lg font-bold mb-3">What Schools Observe (But Can' Systematically Fix)</h2>
           <p>
-            By Grades 6â€“7, a familiar pattern emerges:
+            By Grades 6-7, a familiar pattern emerges:
           </p>
           <ul className="list-disc pl-5 mt-2 space-y-2">
             <li>Students answer confidently in class</li>
             <li>Performance collapses in tests</li>
             <li>Learners rush, freeze, or blank</li>
             <li>Emotional responses spike after assessments</li>
-            <li>Parents report: â€œThey knew it at home.â€</li>
+            <li>Parents report: "They knew it at home."</li>
           </ul>
 
           <p className="mt-3">
@@ -264,20 +264,20 @@ export default function EarlyInterventionReferralProgram() {
         <Card className="p-4 sm:p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h2 className="text-lg font-bold mb-3">What Happens If This Isn' Addressed Early</h2>
           <p>
-            Untrained response systems don' disappear.
+            Untrained response systems don't disappear.
             They compound.
           </p>
           <ul className="list-disc pl-5 mt-2 space-y-2">
             <li>Avoidance patterns harden</li>
             <li>Confidence erosion becomes identity</li>
-            <li>â€œI'm not a math personâ€ replaces curiosity</li>
+            <li>"I'm not a math person" replaces curiosity</li>
           </ul>
 
           <p className="mt-3">At that point, intervention is reactive - and expensive.</p>
 
           <p className="mt-3">Primary schools feel this intuitively.</p>
 
-          <p className="mt-3"><em>â€œIf only we could catch this earlier.â€</em></p>
+          <p className="mt-3"><em>"If only we could catch this earlier."</em></p>
         </Card>
 
         <Card className="p-4 sm:p-6 mb-6" style={{ backgroundColor: "white" }}>
@@ -294,7 +294,7 @@ export default function EarlyInterventionReferralProgram() {
           <p>We train how students respond when certainty disappears.</p>
 
           <p className="mt-3">
-            <a href="/aboutTT" className="text-sm font-semibold text-[#E63946] hover:underline">Learn More</a>
+            <a href="/about" className="text-sm font-semibold text-[#E63946] hover:underline">Learn More</a>
           </p>
         </Card>
 
@@ -343,7 +343,7 @@ export default function EarlyInterventionReferralProgram() {
               <div className="text-sm text-gray-600">Less panic. Slower, more deliberate work. Clearer written reasoning. Improved exam posture. These changes are visible quickly.</div>
             </li>
             <li><strong>Parent Pressure Relief</strong>
-              <div className="text-sm text-gray-600">Schools can confidently say: â€œWe referred your child to a structured support program.â€ This reframes the conversation without defensiveness.</div>
+              <div className="text-sm text-gray-600">Schools can confidently say: "We referred your child to a structured support program." This reframes the conversation without defensiveness.</div>
             </li>
             <li><strong>Long-Term Outcome Protection</strong>
               <div className="text-sm text-gray-600">Students transition to high school without panic-based habits. That reflects positively on the primary school - years later.</div>
@@ -354,7 +354,7 @@ export default function EarlyInterventionReferralProgram() {
         <Card className="p-4 sm:p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h3 className="text-lg font-bold mb-3">The Core Problem Statement</h3>
           <p>
-            â€œMany capable students fail not because they don' understand the work, but because they haven' been trained to respond calmly when certainty disappears.â€
+            "Many capable students fail not because they don't understand the work, but because they haven't been trained to respond calmly when certainty disappears."
           </p>
           <p className="mt-3">Everything we do ladders up to this.</p>
         </Card>
@@ -362,7 +362,7 @@ export default function EarlyInterventionReferralProgram() {
         <Card className="p-4 sm:p-6 mb-6" style={{ backgroundColor: "white" }}>
           <h3 className="text-lg font-bold mb-3">Pilot Structure (Low Risk, High Signal)</h3>
           <ul className="list-disc pl-5 mt-2 space-y-2">
-            <li>Small cohort referral (10â€“20 students)</li>
+            <li>Small cohort referral (10-20 students)</li>
             <li>No administrative burden</li>
             <li>No curriculum disruption</li>
             <li>Observational feedback returned to the school</li>
@@ -478,7 +478,7 @@ export default function EarlyInterventionReferralProgram() {
               <ResponseIntegrityLogo size="md" variant="integrity" />
             </div>
             <p className="text-center md:text-right" style={{ color: "#5A5A5A" }}>
-              Â© {new Date().getFullYear()} Response Integrity (Pty) Ltd
+              &copy; {new Date().getFullYear()} Response Integrity (Pty) Ltd
               <br />
               <span className="text-sm">Early Response-Conditioning Infrastructure for Schools.</span>
             </p>

@@ -26,7 +26,7 @@ function PortalLanding() {
     returnTo: landingReturnTo,
   });
 
-  const aboutTtUrl = buildTrackedPath("/aboutTT", location.search, {
+  const aboutUrl = buildTrackedPath("/about", location.search, {
     returnTo: landingReturnTo,
   });
   
@@ -266,7 +266,7 @@ function PortalLanding() {
             Ready to Train Calm Execution the Right Way?
           </h2>
           <p className="text-base sm:text-lg mb-8 sm:mb-10" style={{ color: "#A0A0A0" }}>
-            Pressure being familiar creates calm. Calm creates ongoing execution.
+            Pressure preparation begins before pressure appears.
           </p>
           <Button
             size="lg"
@@ -296,7 +296,7 @@ function PortalLanding() {
                 <a href={termsOfUseUrl} className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
                   Terms of Use
                 </a>
-                <a href={aboutTtUrl} className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
+                <a href={aboutUrl} className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
                   More About Us
                 </a>
               </div>

@@ -37,7 +37,10 @@ import TutorTermsOfUse from "@/pages/tutor-terms-of-use";
 import TdTermsOfUse from "@/pages/td-terms-of-use";
 import EgpTermsOfUse from "@/pages/egp-terms-of-use";
 import EarlyInterventionReferralProgram from "@/pages/earlyinterventionreferralprogram";
-import AboutTT from "@/pages/aboutTT";
+import AboutIndex from "@/pages/about/index";
+import WhoWeAre from "@/pages/about/who-we-are";
+import HowWeOperate from "@/pages/about/how-we-operate";
+import HowWeTeach from "@/pages/about/how-we-teach";
 import LeadershipDevelopmentPilot from "@/pages/leadershipdevelopmentpilot";
 import FoundingTutorsWanted from "@/pages/foundingtutorswanted";
 import ResponseConditioningSystem from "@/pages/responseconditioningsystem";
@@ -184,7 +187,11 @@ function Router() {
       <Route path="/onlinetutors-wanted" element={<OnlineTutorsWanted />} />
       <Route path="/onlinetutorswanted" element={<OnlineTutorsWantedPlain />} />
       <Route path="/earlyinterventionreferralprogram" element={<EarlyInterventionReferralProgram />} />
-      <Route path="/aboutTT" element={<AboutTT />} />
+      <Route path="/about" element={<AboutIndex />} />
+      <Route path="/about/who-we-are" element={<WhoWeAre />} />
+      <Route path="/about/how-we-operate" element={<HowWeOperate />} />
+      <Route path="/about/how-we-teach" element={<HowWeTeach />} />
+      <Route path="/aboutTT" element={<Navigate to="/about" replace />} />
       <Route path="/leadershipdevelopmentpilot" element={<LeadershipDevelopmentPilot />} />
       <Route path="/foundingtutorswanted" element={<FoundingTutorsWanted />} />
       <Route path="/responseconditioningsystem" element={<ResponseConditioningSystem />} />

@@ -10,6 +10,17 @@ import {
 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 
+const CAROUSEL_STORAGE_KEY = "ri-carousels";
+const LEGACY_CAROUSEL_STORAGE_KEY = "tt-carousels";
+
+const getSavedCarousels = () => {
+  const saved = localStorage.getItem(CAROUSEL_STORAGE_KEY) ?? localStorage.getItem(LEGACY_CAROUSEL_STORAGE_KEY);
+  if (saved && !localStorage.getItem(CAROUSEL_STORAGE_KEY)) {
+    localStorage.setItem(CAROUSEL_STORAGE_KEY, saved);
+  }
+  return saved;
+};
+
 interface TextElement {
   id: string;
   type: "text";
@@ -133,7 +144,7 @@ export default function CarouselCreate() {
   // Load saved carousel if loadId provided
   useEffect(() => {
     if (loadId) {
-      const saved = localStorage.getItem("tt-carousels");
+      const saved = getSavedCarousels();
       if (saved) {
         const carousels = JSON.parse(saved);
         const carousel = carousels.find((c: any) => c.id === loadId);
@@ -148,7 +159,7 @@ export default function CarouselCreate() {
   // Auto-save carousel
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      const saved = localStorage.getItem("tt-carousels");
+      const saved = getSavedCarousels();
       const carousels = saved ? JSON.parse(saved) : [];
       
       const existingIndex = carousels.findIndex((c: any) => c.id === carouselId);
@@ -169,7 +180,7 @@ export default function CarouselCreate() {
         carousels.push(carouselData);
       }
       
-      localStorage.setItem("tt-carousels", JSON.stringify(carousels));
+      localStorage.setItem(CAROUSEL_STORAGE_KEY, JSON.stringify(carousels));
     }, 2000); // Save 2 seconds after last change
     
     return () => clearTimeout(timeoutId);
@@ -866,7 +877,7 @@ export default function CarouselCreate() {
     if (!canvas) return;
 
     const link = document.createElement("a");
-    link.download = `tt-carousel-slide-${currentSlideIndex + 1}.png`;
+    link.download = `response-integrity-carousel-slide-${currentSlideIndex + 1}.png`;
     link.href = canvas.toDataURL("image/png");
     link.click();
   };

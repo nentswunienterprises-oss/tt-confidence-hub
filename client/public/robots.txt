@@ -1,13 +1,16 @@
 User-agent: OAI-SearchBot
+Disallow: /pdfs/
 Allow: /
 
 User-agent: ChatGPT-User
+Disallow: /pdfs/
 Allow: /
 
 User-agent: GPTBot
 Disallow: /
 
 User-agent: *
+Disallow: /pdfs/
 Allow: /
 
 Sitemap: https://responseintegrity.co.za/sitemap.xml

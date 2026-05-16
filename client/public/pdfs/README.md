@@ -5,8 +5,8 @@
 Please copy the following PDF files from your Downloads folder to this directory:
 
 1. `Module 1 - The 3-Layer Lens Teaching Model.pdf`
-2. `Module 2 - TTs Tutoring Psychology.pdf`
-3. `Module 3 - The Real TT Intro Session Blueprint.pdf`
+2. `Module 2 - Response Conditioning Psychology.pdf`
+3. `Module 3 - Response Integrity Intro Session Blueprint.pdf`
 4. `Module 4 - The First Session Blueprint The Launchpad.pdf`
 5. `Module 5 - Standardized Tutoring Execution Process.pdf`
 6. `Module 6 - Balancing Tutoring School. Easy Use Systems.pdf`
@@ -23,3 +23,5 @@ Copy-Item "C:\Users\Thend\Downloads\Module*.pdf" "C:\Users\Thend\Downloads\Techn
 ## Verification
 
 After copying, you should have 7 PDF files in this directory. The blueprint page will load them from `/pdfs/Module X - [Title].pdf`.
+
+Note: this directory contains internal training assets and is blocked from crawler indexing in `robots.txt`.

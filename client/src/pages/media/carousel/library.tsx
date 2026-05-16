@@ -14,6 +14,17 @@ interface SavedCarousel {
   platform?: string;
 }
 
+const CAROUSEL_STORAGE_KEY = "ri-carousels";
+const LEGACY_CAROUSEL_STORAGE_KEY = "tt-carousels";
+
+const getSavedCarousels = () => {
+  const saved = localStorage.getItem(CAROUSEL_STORAGE_KEY) ?? localStorage.getItem(LEGACY_CAROUSEL_STORAGE_KEY);
+  if (saved && !localStorage.getItem(CAROUSEL_STORAGE_KEY)) {
+    localStorage.setItem(CAROUSEL_STORAGE_KEY, saved);
+  }
+  return saved;
+};
+
 export default function CarouselLibrary() {
   const navigate = useNavigate();
   const [carousels, setCarousels] = useState<SavedCarousel[]>([]);
@@ -23,7 +34,7 @@ export default function CarouselLibrary() {
   }, []);
 
   const loadCarousels = () => {
-    const saved = localStorage.getItem("tt-carousels");
+    const saved = getSavedCarousels();
     if (saved) {
       const parsed = JSON.parse(saved);
       setCarousels(parsed.sort((a: SavedCarousel, b: SavedCarousel) => b.lastModified - a.lastModified));
@@ -31,11 +42,11 @@ export default function CarouselLibrary() {
   };
 
   const deleteCarousel = (id: string) => {
-    const saved = localStorage.getItem("tt-carousels");
+    const saved = getSavedCarousels();
     if (saved) {
       const parsed = JSON.parse(saved);
       const filtered = parsed.filter((c: SavedCarousel) => c.id !== id);
-      localStorage.setItem("tt-carousels", JSON.stringify(filtered));
+      localStorage.setItem(CAROUSEL_STORAGE_KEY, JSON.stringify(filtered));
       loadCarousels();
     }
   };

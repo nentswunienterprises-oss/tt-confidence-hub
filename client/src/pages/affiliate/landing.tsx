@@ -327,7 +327,7 @@ export default function AffiliateLanding() {
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:px-6 md:flex-row md:px-12">
           <ResponseIntegrityLogo size="md" variant="integrity" />
           <p className="text-center text-xs text-[#5A5A5A] md:text-right">
-            Â© {new Date().getFullYear()} Response Integrity (Pty) Ltd
+            &copy; {new Date().getFullYear()} Response Integrity (Pty) Ltd
             <br />
             Education Growth Partner
           </p>
