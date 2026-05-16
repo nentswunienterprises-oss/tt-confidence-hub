@@ -7,9 +7,13 @@ const faqs = [
     answer: (
       <>
         <p>Response Integrity is not a tutoring company.</p>
-        <p>It is a performance-conditioning system for students in Grades 6-9.<br />
-        Math is the arena.<br />
-        Response under pressure is the skill.</p>
+        <p>
+          It is a performance-conditioning system for students in Grades 6-9.
+          <br />
+          Math is the arena.
+          <br />
+          Response under pressure is the skill.
+        </p>
         <p>We train how students respond when:</p>
         <ul>
           <li>they get stuck</li>
@@ -26,13 +30,16 @@ const faqs = [
       <>
         <p>Most tutoring focuses on understanding content.</p>
         <p>Response Integrity focuses on execution under pressure.</p>
-        <p>Here’s the distinction:</p>
+        <p>Here's the distinction:</p>
         <ul>
-          <li>Other tutors ask: “Do you understand this?”</li>
-          <li>Response Integrity asks: “What do you do when you don’t?”</li>
+          <li>Other tutors ask: "Do you understand this?"</li>
+          <li>Response Integrity asks: "What do you do when you don't?"</li>
         </ul>
-        <p>Students don’t fail exams because they never saw the work before.<br />
-        They fail because their response collapses when things stop feeling clear.</p>
+        <p>
+          Students don't fail exams because they never saw the work before.
+          <br />
+          They fail because their response collapses when things stop feeling clear.
+        </p>
         <p>We train the response until it becomes calm, repeatable, and automatic.</p>
       </>
     ),
@@ -42,8 +49,11 @@ const faqs = [
     answer: (
       <>
         <p>No.</p>
-        <p>Response Integrity does not motivate students.<br />
-        Response Integrity does not “build confidence” directly.</p>
+        <p>
+          Response Integrity does not motivate students.
+          <br />
+          Response Integrity does not "build confidence" directly.
+        </p>
         <p>Confidence is a by-product of repeated, calm execution.</p>
         <p>We remove:</p>
         <ul>
@@ -52,8 +62,11 @@ const faqs = [
           <li>last-minute cramming</li>
           <li>dependency on reassurance</li>
         </ul>
-        <p>When chaos is removed, confidence appears naturally.<br />
-        No hype required.</p>
+        <p>
+          When chaos is removed, confidence appears naturally.
+          <br />
+          No hype required.
+        </p>
       </>
     ),
   },
@@ -69,9 +82,13 @@ const faqs = [
           <li>verbalised thinking where it serves the phase</li>
           <li>correction of response errors (not just math errors)</li>
         </ul>
-        <p>Students are not rushed before the phase requires speed.<br />
-        They are not carried through answers.<br />
-        They are trained to stay composed and continue.</p>
+        <p>
+          Students are not rushed before the phase requires speed.
+          <br />
+          They are not carried through answers.
+          <br />
+          They are trained to stay composed and continue.
+        </p>
         <p>This is how pressure tolerance is built.</p>
       </>
     ),
@@ -80,7 +97,7 @@ const faqs = [
     question: "Do you help with homework and school content?",
     answer: (
       <>
-        <p>Yes but that’s not the focus.</p>
+        <p>Yes but that's not the focus.</p>
         <p>Homework and school topics are used as training material, not the goal.</p>
         <p>We care less about finishing a worksheet and more about:</p>
         <ul>
@@ -88,8 +105,11 @@ const faqs = [
           <li>what they do when unsure</li>
           <li>how they recover from mistakes</li>
         </ul>
-        <p>The content changes.<br />
-        The response standard and pressure-preparing environment does not.</p>
+        <p>
+          The content changes.
+          <br />
+          The response standard and pressure-preparing environment does not.
+        </p>
       </>
     ),
   },
@@ -99,10 +119,16 @@ const faqs = [
       <>
         <p>Math anxiety is not treated as a condition.</p>
         <p>It is treated as an untrained response to uncertainty.</p>
-        <p>We do not avoid pressure.<br />
-        We introduce it gradually, deliberately, and safely - until it no longer controls behaviour.</p>
-        <p>Students don’t become “less anxious” because we talk about feelings.<br />
-        They become calm because they know what to do next, even when unsure.</p>
+        <p>
+          We do not avoid pressure.
+          <br />
+          We introduce it gradually, deliberately, and safely - until it no longer controls behaviour.
+        </p>
+        <p>
+          Students don't become "less anxious" because we talk about feelings.
+          <br />
+          They become calm because they know what to do next, even when unsure.
+        </p>
       </>
     ),
   },
@@ -137,7 +163,7 @@ const faqs = [
         <ul>
           <li>are limited in size</li>
           <li>run on fixed schedules</li>
-          <li>follow the same response-training doctrine</li>
+          <li>follow the same response-training standard</li>
         </ul>
         <p>This ensures:</p>
         <ul>
@@ -145,8 +171,11 @@ const faqs = [
           <li>accountability</li>
           <li>controlled environments</li>
         </ul>
-        <p>Scarcity exists by design.<br />
-        We don’t expand Pods until standards are protected.</p>
+        <p>
+          Scarcity exists by design.
+          <br />
+          We don't expand Pods until standards are protected.
+        </p>
       </>
     ),
   },
@@ -157,17 +186,20 @@ const faqs = [
         <p>Response Integrity tutors are not random hires.</p>
         <p>They are:</p>
         <ul>
-          <li>trained through Response Integrity’s internal system</li>
+          <li>trained through Response Integrity's internal system</li>
           <li>evaluated on response discipline, not personality</li>
           <li>supervised continuously</li>
         </ul>
-        <p>Tutors do not improvise.<br />
-        They execute the system.</p>
+        <p>
+          Tutors do not improvise.
+          <br />
+          They execute the system.
+        </p>
       </>
     ),
   },
   {
-    question: "How do you measure progress if it’s not just about marks?",
+    question: "How do you measure progress if it's not just about marks?",
     answer: (
       <>
         <p>Marks are tracked but they are basic indicators.</p>
@@ -198,9 +230,12 @@ const faqs = [
           <li>behavioural shifts appear within 2-4 weeks</li>
           <li>academic improvement follows after</li>
         </ul>
-        <p>Response Integrity is not a quick fix.<br />
-        It is a conditioning process.</p>
-        <p>That’s why it works long-term.</p>
+        <p>
+          Response Integrity is not a quick fix.
+          <br />
+          It is a conditioning process.
+        </p>
+        <p>That's why it works long-term.</p>
       </>
     ),
   },
@@ -224,9 +259,13 @@ const faqs = [
     answer: (
       <>
         <p>Yes.</p>
-        <p>We work within the school syllabus.<br />
-        We do not replace school.<br />
-        We train how students engage with it.</p>
+        <p>
+          We work within the school syllabus.
+          <br />
+          We do not replace school.
+          <br />
+          We train how students engage with it.
+        </p>
       </>
     ),
   },
@@ -242,7 +281,7 @@ const faqs = [
           <li>entertain students</li>
           <li>lower standards to keep comfort</li>
         </ul>
-        <p>If that’s what you’re looking for, Response Integrity is not the right fit.</p>
+        <p>If that's what you're looking for, Response Integrity is not the right fit.</p>
       </>
     ),
   },
@@ -257,8 +296,11 @@ const faqs = [
           <li>understand that confidence is earned</li>
           <li>want capability that lasts</li>
         </ul>
-        <p>Belonging signal:<br />
-        “We don’t avoid pressure. We train for it.”</p>
+        <p>
+          Belonging signal:
+          <br />
+          "We don't avoid pressure. We train for it."
+        </p>
       </>
     ),
   },
@@ -267,14 +309,26 @@ const faqs = [
     answer: (
       <>
         <p>Enrollment happens when readiness is clear.</p>
-        <p>Pods are limited.<br />
-        Standards are enforced.</p>
-        <p>You don’t convince your way in.<br />
-        You self-select.</p>
-        <p>Students aren’t broken.<br />
-        They’re untrained for pressure.</p>
-        <p>We train the response.<br />
-        Everything else follows.</p>
+        <p>
+          Pods are limited.
+          <br />
+          Standards are enforced.
+        </p>
+        <p>
+          You don't convince your way in.
+          <br />
+          You self-select.
+        </p>
+        <p>
+          Students aren't broken.
+          <br />
+          They're untrained for pressure.
+        </p>
+        <p>
+          We train the response.
+          <br />
+          Everything else follows.
+        </p>
       </>
     ),
   },
