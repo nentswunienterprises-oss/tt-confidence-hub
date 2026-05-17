@@ -1,129 +1,108 @@
+# Response Integrity Operational Blueprint
+
 Platform Business Model Document
 Version 1.0
 
-1️⃣ BUSINESS TYPE
-Model: <Math Pressure Response-Conditioning>
-Structure: Independent Contractor Marketplace
-Positioning: Structured, systemised academic transformation platform
+## 1. Business type
+
+Model:
+academic performance-conditioning platform
+
+Structure:
+independent contractor marketplace with controlled doctrine
+
+Positioning:
+structured, systems-led response-conditioning infrastructure
 
 This is not a tutoring agency.
 
-It is a platform that connects parents to independent tutors, standardises delivery, and automates operations.
+It is a platform that connects parents to trained operators, standardizes delivery, and automates operations without weakening accountability.
 
-Comparable structural models:
+## 2. Value proposition
 
-Uber
+### For parents
 
-Bolt
+- structured monthly conditioning program
+- recorded sessions where required for safety and review
+- standardized reporting
+- reliable scheduling
+- platform-level accountability
 
-Mr D
+### For tutors and operators
 
-2️⃣ VALUE PROPOSITION
-For Parents
-Structured 8-session monthly program
+- structured student allocation
+- automated scheduling
+- automated payment processing via Payfast
+- reduced admin burden
+- predictable monthly earning logic per active learner
 
-Recorded sessions for safety
+## 3. Pricing model
 
-Standardised reporting
-
-Reliable scheduling
-
-Platform-level accountability
-
-For Tutors (Independent Contractors)
-Guaranteed student allocation
-
-Automated scheduling
-
-Automated payment processing via Payfast
-
-No admin burden
-
-Predictable monthly income per student
-
-3️⃣ PRICING MODEL
 Monthly subscription per student:
 R1,000
 
 Revenue split:
 
-Tutor: R750
+- Tutor: R750
+- Platform: R250
 
-Platform: R250
+Payfast fees are deducted from the tutor portion.
 
-Payfast fees (~3% + R2) deducted from tutor portion.
+## 4. Unit economics
 
-Platform keeps full R250.
-
-4️⃣ UNIT ECONOMICS
 Each tutor:
 
-3 students
+- 3 students
 
-Platform earns: 3 × 250 = R750 per tutor
+Platform earns:
+3 x 250 = R750 per tutor
 
 Pod structure:
 
-12 tutors
-
-36 students
+- 12 tutors
+- 36 students
 
 Platform revenue per pod:
+36 x 250 = R9,000 per month
 
-36 × 250 = R9,000/month
+## 5. Core infrastructure stack
 
-5️⃣ CORE INFRASTRUCTURE STACK
-Payment Processing
-Payfast
+### Payment processing
 
-Card payments (Visa, Mastercard)
+- Payfast
+- card payments
+- webhook-based automation
 
-Webhooks for automation
+### Session hosting and storage
 
-No monthly fee
+- Google Workspace
+- shared account model per pod
 
-Session Hosting & Storage
-Google Workspace
-Business Standard Plan (~R288/user)
+### Backend
 
-Structure:
+- Render hosting
+- Supabase database
 
-4 tutors per workspace account
+The backend is shared across multiple pods.
 
-12 tutors per pod = 3 accounts
+## 6. Pod structure
 
-Workspace cost per pod = R864
+1 pod =
 
-Backend
-Render hosting (~R150–R200)
+- 12 tutors
+- 3 students per tutor
+- 36 students
+- 288 sessions per month
 
-Supabase database (~R90)
+Concurrency is handled through shared Workspace capacity per pod.
 
-Backend shared across unlimited pods.
+## 7. Financial summary per pod
 
-6️⃣ POD STRUCTURE
-1 Pod =
-
-12 tutors
-
-3 students per tutor
-
-36 students
-
-288 sessions/month (36 × 8)
-
-Concurrency handled via:
-3 Google Workspace accounts per pod.
-
-Infra cost per pod:
-≈ R864/month
-
-7️⃣ FINANCIAL SUMMARY PER POD
 Total revenue collected:
-36 × 1,000 = R36,000
+36 x 1,000 = R36,000
 
 Tutor payouts:
-36 × 750 = R27,000
+36 x 750 = R27,000
 
 Platform revenue:
 R9,000
@@ -131,159 +110,141 @@ R9,000
 Workspace cost:
 R864
 
-Net platform income before marketing/admin:
+Net platform income before marketing and admin:
 R8,136
 
-Infra cost percentage:
-~9.6%
+## 8. Operational flow
 
-Healthy margin.
+### Commercial onboarding
 
-8️⃣ OPERATIONAL FLOW (FULLY AUTOMATED)
-Parent subscribes and pays.
+Objective:
+Parent subscribes, pays, and enters the full program immediately.
 
-Payfast webhook triggers backend.
+Flow:
 
-Backend:
+1. Parent creates an account and completes the enrolment form.
+2. Form review confirms fit.
+3. Backend assigns a tutor based on availability and pod structure.
+4. Parent books the introductory session.
+5. Tutor completes the diagnostic and proposal logic in the app.
+6. Parent accepts the proposal and payment is triggered.
+7. Student portal access is created.
+8. Sessions schedule into the normal operating flow.
 
-Assigns tutor
+### Pilot onboarding
 
-Creates recurring Google Calendar event
+Objective:
+Allow controlled trial adoption before payment begins.
 
-Generates Google Meet link
+Flow:
 
-Sends emails to tutor + parent
+1. Parent creates an account and completes the enrolment form.
+2. Form review confirms fit.
+3. Backend assigns a tutor.
+4. Parent books the introductory session.
+5. Tutor completes the diagnostic and proposal logic.
+6. Parent accepts the proposal without immediate payment.
+7. Backend allocates the pilot session block.
+8. After the pilot block, payment request and normal subscription logic begin.
 
-Tutor delivers session.
+Both onboarding flows share the same infrastructure.
+The difference is timing of payment and session allocation.
 
-Session recorded automatically.
+## 9. Quality control model
 
-Tutor logs session in app.
+Session recordings support:
 
-Data stored in database.
+- safeguarding
+- dispute resolution
+- quality review
 
-No human required in scheduling.
+Future analytics may include:
 
-9️⃣ QUALITY CONTROL MODEL
-Session recordings serve as:
+- transcription
+- behavioural tracking
+- reporting support
 
-Safety audit tool
+The rule is simple:
+record where required, review when necessary, preserve accountability.
 
-Dispute resolution tool
+## 10. Cost structure
 
-Quality review system
+Fixed pod costs:
 
-Future AI Layer:
+- Google Workspace
 
-Transcription
+Shared costs:
 
-Engagement tracking
+- backend hosting
+- database
+- domain
 
-Curriculum adherence scoring
+Variable costs:
 
-Automated parent reports
+- Payfast transaction fees
 
-Surveillance model:
-Record everything.
-Review only when necessary.
+## 11. Scalability model
 
-🔟 COST STRUCTURE
-Fixed Costs (Per Pod):
-
-Google Workspace: R864
-
-Shared Fixed Costs:
-
-Backend hosting
-
-Database
-
-Domain
-
-Variable Costs:
-
-Payfast transaction fees (deducted from tutor)
-
-No payroll required for operations if automated.
-
-1️⃣1️⃣ SCALABILITY MODEL
 Pods are modular.
 
-1 pod → R8,136 net
-5 pods → ~R40,000 net
-10 pods → ~R81,000 net
+- 1 pod -> approximately R8,136 net
+- 5 pods -> approximately R40,000 net
+- 10 pods -> approximately R81,000 net
 
-Backend can support multiple pods before scaling needed.
+Backend scaling needs remain low until pod count becomes meaningfully larger.
 
-Growth lever:
-Increase students per tutor from 3 → 4.
+One clear growth lever is increasing average students per tutor while preserving quality.
 
-1️⃣2️⃣ RISK FACTORS
-Primary Risks:
+## 12. Risk factors
 
-Student acquisition cost
+Primary risks:
 
-Tutor churn
+- student acquisition cost
+- tutor churn
+- session rescheduling complexity
+- parent dissatisfaction
+- contractor classification risk
 
-Session rescheduling complexity
+Infrastructure risk is relatively low.
+Human performance risk remains the larger factor.
 
-Parent dissatisfaction
+## 13. Long-term strategic direction
 
-Legal classification of contractors
-
-Infrastructure risk: Low
-Human performance risk: Medium
-Market risk: Variable
-
-1️⃣3️⃣ LONG-TERM STRATEGIC POSITIONING
 Phase 1:
-Operational automation
+operational automation
 
 Phase 2:
-Standardised curriculum systems
+stronger curriculum-aligned conditioning systems
 
 Phase 3:
-AI-assisted session analytics
+analytics-assisted session review
 
 Phase 4:
-Data-driven student performance platform
+data-informed performance platform
 
-1️⃣4️⃣ CORE OPERATIONAL IDENTITY
+## 14. Core operational identity
+
 This business is:
 
-Systems-driven
-
-Process-standardised
-
-Automation-led
-
-Low-overhead
-
-High-margin
-
-Modular
-
-Scalable
+- systems-driven
+- process-standardized
+- automation-led
+- low-overhead
+- modular
+- scalable
 
 It is not personality-dependent.
 
-It is infrastructure-dependent.
+It is infrastructure-dependent and doctrine-dependent.
 
-FINAL VERDICT
-The model is:
+## Final verdict
 
-✔ Structurally sound
-✔ Financially healthy
-✔ Lean
-✔ Scalable
-✔ Automation-compatible
+The model is structurally viable when discipline holds.
 
-Success depends on:
+Its success depends on:
 
-Execution discipline.
-Tutor quality.
-Student acquisition efficiency.
+- execution discipline
+- tutor quality
+- student acquisition efficiency
 
-Not infrastructure.
-
-TERRITORIAL TUTORING 2-LAYER ONBOARDING SYSTEM 1️⃣ OVERVIEW We have two onboarding flows: Commercial Onboarding – Standard, paying parents immediately after proposal acceptance. Pilot Onboarding – Pilot program giving parents 9 free sessions before payment begins, structured for trials, demos, and conversion. Both flows share the same platform infrastructure (Payfast, app, Google Workspace, backend, pods), but differ in timing of payment and initial session assignment. 2️⃣ COMMERCIAL ONBOARDING FLOW Objective: Parent subscribes, pays, and enters full program immediately. Step-by-step: Parent Signup: Creates account in app (Parent enters gateway) Completes enrolment form Form Review: Admin/automation reviews form Parent accepted → proceed Tutor Assignment: Backend assigns tutor automatically based on availability, pod, student load Introductory Session Booking: Parent schedules first session with assigned tutor Google Meet link auto-generated via workspace account Recording enabled Intro Session: Tutor completes diagnostic report in app Triggers monthly proposal for 8 sessions via app Proposal Acceptance & Payment: Parent reviews proposal Accepts → Payfast payment triggered Payment confirms subscription Student Portal Access: Unique student access code generated Student account created Sessions scheduled automatically in backend (Parent leaves gateway) Operational Flow: Scheduling, session logging, and recording proceeds as usual Key Points: Payment begins after proposal acceptance Standard workflow for all commercial parents 3️⃣ PILOT ONBOARDING FLOW Objective: Encourage parent adoption via trial program, with 9 free sessions before payment starts. Step-by-step: Parent Signup: Creates account in app (Enters parent gateway) Completes enrolment form Form Review: Admin/automation reviews form Parent accepted → proceed Tutor Assignment: Backend assigns tutor automatically Parent notified Introductory Session Booking: Parent schedules intro session with tutor Google Meet link auto-generated Introductory Session: Tutor completes diagnostic report Triggers proposal for 8-session/month package Proposal visible to parent, but no payment required yet Parent accepts proposal Pilot Sessions Allocation: Backend schedules first 9 sessions free Student portal access code created (Parent leaves gateway) Sessions tracked independently Pilot Completion: After 9 sessions, backend triggers payment request Payfast subscription automatically starts Parent notified via app/email Standard operations resume for monthly subscription Key Points: 9 sessions are free → counted by backend Payment begins automatically after trial All automation and logging identical to commercial onboarding
+Not on hype.

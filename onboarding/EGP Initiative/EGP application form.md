@@ -1,4 +1,4 @@
-INTRO 
+INTRO
 
 This is not a typical application.
 
@@ -18,37 +18,35 @@ Most applicants do not qualify for this.
 
 We work closely with a small number of individuals who help us understand where students are struggling and connect families to the right support.
 
-This short form helps us get a sense of how you think and who you naturally have access to.
+This short form helps us understand how you think and who you can reach naturally.
 
 Details:
 
 Full name
-
 ID number
-
 Phone number
-
 Email
 
 Questions:
 
 Who exactly can you reach within the next 7 days?
-Be specific (groups, environments, communities).
+Be specific about groups, environments, and communities.
 
 If you had to reach out to a few parents this week, who would come to mind first?
 
-Think of a student you’ve seen (or heard about) who struggles with school.
+Think of a student you have seen or heard about who struggles at school.
 What exactly was happening with them?
 
 A parent says:
-“My child studies, but their marks don’t reflect it.”
+"My child studies, but their marks do not reflect it."
 
 What does this tell you?
 
 A parent says:
-“We just want extra lessons to improve marks.”
+"We just want extra lessons to improve marks."
 
-How do you respond to that?  Do you move forward or pause? Why?
+How do you respond to that?
+Do you move forward or pause? Why?
 
 When would you NOT recommend a parent to Response Integrity?
 
@@ -57,13 +55,13 @@ If a parent is interested, but you cannot clearly identify a real problem, what 
 You speak to 10 parents.
 Only 2 clearly need help.
 
-If you were speaking to a parent about their child’s academics, what would you want to understand first?
+If you were speaking to a parent about their child's academics, what would you want to understand first?
 
-You haven’t earned anything in 2 weeks.
+You have not earned anything in 2 weeks.
 
 What changes in your approach?
 
-In the next 5 days, how would you get 2–3 serious parent conversations?
+In the next 5 days, how would you get 2-3 serious parent conversations?
 Be specific.
 
 This role has:

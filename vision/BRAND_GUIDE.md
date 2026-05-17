@@ -1,79 +1,94 @@
-# Response Integrity -Internal Brand Guide (Short)
+# Response Integrity Internal Brand Guide
 
-Purpose
+## Purpose
 
-- A compact, enforceable reference for tone, banned phrases, and microcopy so all public and internal writing remains on-brand.
+- Keep public and internal company writing aligned to one category, one tone, and one doctrine.
 
-Core Positioning (always available)
+## Core positioning
 
-> **Response Integrity enables high schools to develop academic leaders who prevent failure upstream -before panic becomes identity.**
+> **Response Integrity trains students to respond better when mathematics becomes difficult.**
 
-Tone Pillars (non-negotiable)
+Supporting line:
 
-- **Calm** -measured, steady, never frantic.
-- **Precise** -short lines, clear verbs, no filler.
-- **Observational** -describe behaviour and systems; avoid persuasion theatre.
-- **Disciplined** -clinical about standards; avoid warmth as a crutch.
+> **Response Integrity enables high schools to develop academic leaders who prevent failure upstream before panic becomes identity.**
 
-Quick Rules
+## Tone pillars
 
-- Read aloud slowly; if it loses impact or feels soft, rewrite.
-- Use short sentences and paragraphs (1–3 lines each).
-- No exclamation marks, emojis, or slang.
-- Avoid vague promises and motivational clichés.
+- **Calm**: measured, steady, never frantic.
+- **Precise**: short lines, clear verbs, no filler.
+- **Observational**: describe behaviour, systems, and standards rather than selling emotion.
+- **Disciplined**: credible, structured, and standards-led.
 
-Banned Phrases (examples)
+## Quick rules
 
-- “Boost confidence”
-- “Unlock potential”
-- “Personalised support”
-- “We motivate” / “We inspire”
-- “Friendly tutor” / “Casual side hustle”
+- Read it aloud slowly. If it feels soft, vague, or inflated, rewrite it.
+- Keep sentences and paragraphs short.
+- No exclamation marks, emojis, slang, or motivational theatre.
+- Avoid promises that sound like ordinary tutoring or panic rescue.
+- Keep doctrine phase-aware. Do not describe every session as the same visible loop.
 
-Preferred Language (examples)
+## Banned phrases
 
-- Use: **train responses**, **stabilize execution**, **condition calm under pressure**, **response integrity**, **make execution inevitable**.
-- Use measurable behaviour words: **error recovery**, **time discipline**, **verbal clarity**.
+- "Boost confidence"
+- "Unlock potential"
+- "Personalised support"
+- "We motivate"
+- "We inspire"
+- "Friendly tutor"
+- "Casual side hustle"
+- "Join anytime"
+- "Extra lessons"
+- "Homework help"
 
-Hero & CTA examples (ready-to-use)
+## Preferred language
 
-- Headline: **Train calm execution. Prevent panic.**
-  Subhead: *We turn high‑school leaders into System Executors who condition Grade 6–7 students to execute under pressure.*
-  CTA: **Apply / Refer a School**
+- Use: **train responses**, **stabilize execution**, **condition calm under pressure**, **response stability**, **phase-aware development**, **conditioning cadence**, **preparation before pressure**.
+- Use measurable behaviour words: **error recovery**, **time discipline**, **verbal clarity**, **independent starts**, **structure retention**, **response breakdown**.
 
-- Headline: **We don’t teach confidence. We make it inevitable.**
-  Subhead: *A system that trains how students respond when math gets hard -not another tutoring app.*
+## Doctrine guardrails
+
+- Response Integrity is not a tutoring company.
+- Mathematics is the arena. Response is the skill.
+- Confidence is not chased. It follows repeated stable execution.
+- Model -> Apply -> Guide is mainly a Clarity tool, not the law of every session.
+- Boss Battles and timed work are phase-specific, not universal.
+
+## Ready-to-use copy
+
+- Headline: **Train calm execution before pressure arrives.**
+  Subhead: *A response-conditioning system that helps students stay structured when mathematics becomes difficult.*
   CTA: **See How It Works**
 
-Tutor ad microcopy (50–75 words)
+- Headline: **Preparation before pressure.**
+  Subhead: *We build response stability through cadence, topic conditioning, and accountable execution.*
+  CTA: **Apply / Refer a School**
 
-- *Selected high‑school students are trained as System Executors. Earn R3,500–R5,000/mo while learning elite cognitive and leadership skills. Not casual tutoring -you execute a precise system. Apply now.*
+- Tutor ad microcopy:
+  *Selected high-school students are trained as System Executors inside a disciplined response-conditioning system. Earn while building real leadership, communication, and execution skill. This is not casual tutoring. It is structured operating work.*
 
-School pilot microcopy (short)
+- School partnership microcopy:
+  *Limited intake. No admin burden. Measurable behavioural feedback. We help schools prepare student response before panic hardens into identity.*
 
-- *School partnership: limited intake, no admin burden, measurable behavioural feedback. We train execution before panic becomes identity.*
+## Tone test
 
-Tone Test (use before publishing)
+1. Is it calm and precise when read aloud?
+2. Does it describe systems and behaviour instead of feelings?
+3. Does it avoid banned phrases and motivation-first language?
+4. Would a principal, TD, or serious parent find it credible?
 
-1. Is it calm and precise when read aloud?  
-2. Does it describe systems and behaviour instead of feelings?  
-3. Does it avoid banned phrases and motivation-first language?  
-4. Would a principal or TD say, “That feels credible”? If not, rewrite.
+## Reviewer checklist
 
-Reviewer Checklist (3 items)
+- Positioning is visible.
+- No tutoring, panic-service, or confidence-coaching language.
+- Phase-aware doctrine is preserved.
+- CTA is short and precise.
 
-- Positioning line present and visible.  
-- No banned phrases.  
-- Short, precise CTAs.
+## Enforcement rule
 
-Enforcement rule
+- If the copy cannot be read slowly and calmly without losing impact, it fails.
 
-- If a piece of copy cannot be read slowly and calmly without losing impact -it fails. Rewrite until it holds.
+## Default references
 
-Where to use this guide
-
-- Landing pages, emails to schools, tutor ads, pilot briefs, PR, internal comms that represent core positioning.
-
-Notes
-
-- This is intentionally short. For everything else, default to the language in `vision/WHO_WE_ARE.md` and `vision/our_mission.md`.
+- `vision/WHO_WE_ARE.md`
+- `vision/our_mission.md`
+- `docs/RI category-defining positioning.md`

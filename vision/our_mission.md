@@ -1,45 +1,62 @@
-# Our Mission -Response‑Conditioning Institutional Dream
+# Our Mission - Response-Conditioning Institutional Dream
 
-We are building an external academic leadership institution that prevents downstream failure by training how students respond when uncertainty appears. Our mission is to make calm, reliable execution the default for learners -long before panic hardens into identity.
+We are building an external academic leadership institution that prevents downstream failure by training how students respond when uncertainty appears.
 
-How we operate (Response Integrity‑OS)
+Our mission is to make calm, reliable execution the default for learners long before panic hardens into identity.
 
-- 3‑Layer Lens: Vocabulary → Method → Reason. Diagnose which layer cracked and fix it.
-- Boss Battles: controlled pressure exposures to train emotional regulation and execution under strain.
-- Model → Apply → Guide: every concept follows this sequence; correct errors through the 3‑Layer Lens.
+## How we operate (Response Integrity-OS)
 
-Who we serve & how
+- **Clarity**: teach vocabulary, method, and reason. Model -> Apply -> Guide is most visible here because the student is still learning how to see the topic clearly.
+- **Structured Execution**: train independent starts, step order, repeatability, and reduced guessing without turning the session into a rescue loop.
+- **Controlled Discomfort**: hold the student inside difficulty with phase-appropriate support. Boss Battles belong here when discomfort is the correct load.
+- **Time Pressure Stability**: test whether trained structure survives urgency. Timed work belongs here when pressure is the live instability.
 
-- Students (Grade 6–9)
-  - We train response integrity under pressure through structured 1:1 sessions, simulations, and repetition. 
-  - Outcome: calmer test behaviour, repeatable problem execution, observable improvement within weeks.
+## Who we serve and how
 
-- Parents
-  - We provide predictable outcomes and reduced cognitive load: measurable behavioural change, not just marks. 
-  - Expectation: engagement in reinforcement (attendance, environment), not session management.
+### Students (Grades 6-9)
 
-- Tutors (System Executors)
-  - Selected from top high‑school students; trained intensively to run Response Integrity‑OS precisely. 
-  - Offer: R3,500–R5,000/mo (performance‑based), elite cognitive training, leadership pathway.
+We train response integrity under pressure through structured one-to-one sessions, repetition, and topic-level conditioning.
 
-- Primary schools (partners)
-  - We accept referred learners showing early panic or execution collapse; we require no admin burden and supply observational feedback. 
-  - Benefit: early intervention without stigma, visible behavioral improvement, optional affiliate revenue.
+Outcome: calmer test behaviour, repeatable problem execution, and observable stability gains.
 
-- High schools (feeder partners)
-  - Nominate top candidates; gain leadership development, institutional reputation, and a low‑risk talent pipeline.
+### Parents
 
-Pilot structure
+We provide predictable outcomes and reduced cognitive load through measurable behavioural change, not marks talk alone.
 
-- Small, term‑based cohorts (e.g., 10–20 students)
-- Clear governance: no curriculum interference, full Response Integrity operational oversight
-- Signals: low admin friction, high measurement, promotion of best tutors into TD roles
+Expectation: support cadence, environment, and consistency rather than emergency session management.
 
-Measurement & offers
+### Tutors (System Executors)
 
-- Primary metric: response reliability under pressure (error recovery, time discipline, verbal clarity)
-- Product tracks: Standard (stability), Premium (conditioning), Pro (exam simulations + readiness checks)
+Selected high-school students are trained intensively to run Response Integrity-OS with discipline and precision.
 
-The institutional claim
+Offer: performance-linked income, elite cognitive training, and a leadership pathway.
 
-We are not a tutoring company. We are infrastructure that trains execution. Our work is boring, precise, and repeatable -and that is our defensible advantage.
+### Primary schools (partners)
+
+We support referred learners showing early panic or execution collapse without interfering with school authority.
+
+Benefit: early intervention without stigma, visible behavioural improvement, and clear observational feedback.
+
+### High schools (feeder partners)
+
+High schools nominate top candidates and receive leadership development, institutional reputation, and a low-risk talent pipeline.
+
+## Pilot structure
+
+- Small, term-based cohorts
+- Clear governance with no curriculum interference
+- Full Response Integrity operational oversight
+- Low admin friction and high measurement discipline
+
+## Measurement and offers
+
+- Primary metric: response reliability under pressure, including error recovery, time discipline, verbal clarity, and structure retention
+- Product tracks: stability, conditioning cadence, and exam-pressure rehearsal
+
+## The institutional claim
+
+We are not a tutoring company.
+
+We are infrastructure that trains execution.
+
+Our work is precise, phase-aware, and repeatable, and that is part of the advantage.

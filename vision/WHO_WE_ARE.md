@@ -1,22 +1,25 @@
 # WHO WE ARE
 
-**Response Integrity enables high schools to develop academic leaders who prevent failure upstream -before panic becomes identity.**
+**Response Integrity enables high schools to develop academic leaders who prevent failure upstream before panic becomes identity.**
 
-What we do
+## What we do
 
-- Train top high‑school students as disciplined System Executors who condition Grade 6–7 learners to execute calmly under pressure. 
-- Deliver a repeatable, testable operating system (Response Integrity‑OS) that trains response integrity, not just content knowledge.
+- Train top high-school students as disciplined System Executors who help younger learners build calm, structured execution when mathematics becomes difficult.
+- Deliver a repeatable operating system, Response Integrity-OS, that trains response stability rather than relying on personality, panic, or improvisation.
 
-Our promise
+## Our promise
 
-We do not sell confidence, motivation, or quick fixes. We create conditions where calm execution becomes inevitable through clarity, systems, repetition, and consistency.
+We do not sell motivation, quick fixes, or last-minute rescue.
 
-Non‑negotiables
+We build the conditions where calm execution becomes more stable through clarity, phase-aware development, repetition, and consistent cadence.
+
+## Non-negotiables
 
 - Tone: calm, precise, observational. Short lines, no hype.
-- Product: system first, personality second. Tutors execute the system; they do not improvise.
-- Measurement: behaviour change under pressure is the primary metric; marks follow.
+- Product: system first, personality second. Tutors execute the system; they do not freestyle the doctrine.
+- Doctrine: sessions follow the phase. Model -> Apply -> Guide is most visible in Clarity work, not every phase of the operating system.
+- Measurement: behaviour change under pressure is the primary metric. Marks follow that stability.
 
-Positioning line (place under logo)
+## Positioning line
 
-> Response Integrity enables high schools to develop academic leaders who prevent failure upstream -before panic becomes identity.
+> Response Integrity enables high schools to develop academic leaders who prevent failure upstream before panic becomes identity.

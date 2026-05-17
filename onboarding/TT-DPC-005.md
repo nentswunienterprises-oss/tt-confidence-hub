@@ -1,31 +1,31 @@
-TERRITORIAL TUTORING SA (PTY) LTD
+RESPONSE INTEGRITY (PTY) LTD
 DATA PROTECTION / POPIA CONSENT (Response Integrity-DPC-005)
 
 1. PURPOSE
 This agreement records consent for the collection, processing, storage, and use of personal and performance data within the Response Integrity platform.
 Response Integrity operates a recorded, data-driven response-conditioning system.
-Data is not optional - it is required for the system to function.
+Data is not optional. It is required for the system to function.
 By participating in Response Integrity, all parties agree to the structured use of data as defined in this document.
 
 2. TYPES OF DATA COLLECTED
 Response Integrity collects and processes the following:
 2.1 Personal Information
-Full name
-Contact details
-Identification details (where required)
-Bank account details, for payment processing only
-Signed consent and contractual documentation
+full name
+contact details
+identification details where required
+bank account details for payment processing only
+signed consent and contractual documentation
 2.2 Learner Data
-Academic performance data
-Session results and progression
-Stability states and phase tracking
+academic performance data
+session results and progression
+stability states and phase tracking
 2.3 Session Data
-Full video and audio recordings of all sessions
-Tutor observations and reports
-Interaction logs within the platform
+video and audio recordings where required
+tutor observations and reports
+interaction logs within the platform
 2.4 Technical Data
-Device and access information
-Platform usage data
+device and access information
+platform usage data
 
 3. PURPOSE OF DATA PROCESSING
 Data is collected and used strictly to:
@@ -35,12 +35,12 @@ maintain session integrity and auditability
 monitor tutor compliance with Response Integrity-OS
 generate reports for parents or guardians
 ensure safeguarding and platform security
-comply with POPIA, tax legislation, and any mandatory reporting requirements
+comply with POPIA, tax legislation, and mandatory reporting requirements
 Data is not collected for unrelated purposes.
 
 4. SESSION RECORDING CONSENT
-4.1 All sessions are:
-recorded in full (video and audio)
+4.1 Sessions may be:
+recorded in full where required
 stored securely within Response Integrity systems
 4.2 Recordings are used for:
 quality control
@@ -48,9 +48,9 @@ safeguarding
 compliance audits
 performance verification
 4.3 By participating, the user consents to:
-being recorded during all sessions
+being recorded during required sessions
 storage and review of those recordings
-Participation is not possible without recording consent.
+Participation may not be possible without recording consent where recording is part of the active programme flow.
 
 5. DATA STORAGE AND SECURITY
 5.1 Response Integrity implements reasonable technical and organisational measures to:
@@ -63,7 +63,7 @@ ensure data integrity
 6.1 Response Integrity does not sell personal data.
 6.2 Data may be shared only:
 internally within Response Integrity for operational purposes
-with service providers required to operate the platform (e.g. hosting, video systems)
+with service providers required to operate the platform
 where required by law
 6.3 No external sharing occurs for marketing or unrelated purposes.
 
@@ -100,7 +100,7 @@ All data remains under Response Integrity control.
 10. CONSENT ACKNOWLEDGEMENT
 By accepting this agreement in the Response Integrity platform, the user confirms:
 understanding of the data collected and its purpose
-consent to full session recording (where required)
+consent to required session recording
 acceptance of data processing as required by the Response Integrity system
 understanding that participation requires data processing
 

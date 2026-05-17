@@ -1,4 +1,4 @@
-TERRITORIAL TUTORING SA (PTY) LTD
+RESPONSE INTEGRITY (PTY) LTD
 INDEPENDENT CONTRACTOR AGREEMENT (Response Integrity-ICA-003)
 
 1. PARTIES
@@ -22,12 +22,12 @@ is not entitled to employee benefits
 
 3. BUSINESS MODEL ACKNOWLEDGEMENT
 3.1 The Contractor acknowledges that:
-Response Integrity is not a tutoring company
-Response Integrity is a response-conditioning system delivered through mathematics
+Response Integrity is not a tutoring company.
+Response Integrity is a response-conditioning system delivered through mathematics.
 3.2 The Contractor's role is to:
 execute structured response-conditioning sessions
-train learner behavior under difficulty
-operate within Response Integrity's system, not personal teaching style
+train learner behaviour under difficulty
+operate within Response Integrity's system, not a personal teaching style
 3.3 The Contractor acknowledges that:
 the Response Integrity Operating System (Response Integrity-OS) governs all sessions
 Response Integrity defines how sessions are executed
@@ -35,14 +35,14 @@ deviation from Response Integrity-OS is non-compliance
 
 4. SCOPE OF SERVICES
 4.1 The Contractor agrees to:
-Deliver 1-on-1 online sessions to assigned learners
-Execute all sessions in accordance with Response Integrity-OS
-Record accurate session observations
-Maintain required technical setup
+deliver one-to-one online sessions to assigned learners
+execute all sessions in accordance with Response Integrity-OS
+record accurate session observations
+maintain required technical setup
 4.2 The Contractor may not:
 provide services outside Response Integrity using Response Integrity learners
-communicate with Response Integrity learners/parents outside platform
-modify session structure
+communicate with Response Integrity learners or parents outside the platform
+modify session structure outside the doctrine
 
 5. PLATFORM CONTROL
 5.1 All services must occur within the Response Integrity platform.
@@ -53,7 +53,7 @@ Response Integrity controls access, scheduling, and assignment
 assign or remove learners
 adjust schedules
 restrict platform access
-at its sole discretion.
+at its sole discretion
 
 6. PAYMENT STRUCTURE
 6.1 Payment is made per completed session package.

@@ -1,13 +1,13 @@
-TERRITORIAL TUTORING SA (PTY) LTD
+RESPONSE INTEGRITY (PTY) LTD
 SAFEGUARDING AND CONDUCT POLICY (Response Integrity-SCP-004)
 
 1. PURPOSE
 This policy defines the safeguarding standards, conduct rules, and interaction boundaries required of all tutors operating within the Response Integrity platform.
-Response Integrity operates with minor learners (Grades 6-9) in a controlled online environment.
+Response Integrity operates with minor learners in a controlled online environment.
 All conduct must prioritize:
 learner safety
 platform integrity
-controlled, professional interaction
+controlled professional interaction
 This policy is non-negotiable.
 
 2. CORE PRINCIPLE
@@ -17,16 +17,16 @@ structured
 bounded to the session environment
 Tutors are not:
 friends
-mentors outside scope
-personal contacts
+personal support figures
+private contacts
 They are operators within a controlled system.
 
 3. PLATFORM-ONLY INTERACTION
 3.1 All interaction must occur within the Response Integrity platform.
 The following are strictly prohibited:
-Private messaging with learners
-Contact via WhatsApp, Instagram, SMS, or any external platform
-Direct communication with parents outside Response Integrity channels
+private messaging with learners
+contact via WhatsApp, Instagram, SMS, or any external platform
+direct communication with parents outside Response Integrity channels
 3.2 Tutors may not:
 exchange personal contact details
 accept contact requests
@@ -38,11 +38,12 @@ reported to Response Integrity
 4. SESSION ENVIRONMENT REQUIREMENTS
 4.1 All sessions must:
 be conducted through Response Integrity-approved systems
-be recorded in full (where required)
+be recorded in full where required
 follow Response Integrity-OS structure
 4.2 Tutors must maintain:
-clear visual setup (top-down camera)
-appropriate environment (quiet, controlled, distraction-free)
+clear visual setup
+appropriate environment
+distraction-free working conditions
 4.3 The following are prohibited during sessions:
 inappropriate background environments
 presence of unrelated individuals
@@ -60,17 +61,17 @@ form emotional dependency or familiarity with learners
 
 6. ZERO-TOLERANCE CONDUCT
 The following result in immediate suspension or termination:
-Any inappropriate or suggestive communication
-Any form of harassment, intimidation, or discrimination
-Sharing personal contact information
-Attempting to meet learners physically
-Any conduct that places a learner at risk
+any inappropriate or suggestive communication
+any form of harassment, intimidation, or discrimination
+sharing personal contact information
+attempting to meet learners physically
+any conduct that places a learner at risk
 No warnings are required.
 
 7. BOUNDARY ENFORCEMENT
 7.1 Tutors must maintain strict boundaries at all times.
 This includes:
-no personal favors
+no personal favours
 no gifts
 no off-platform assistance
 no extended communication beyond scheduled sessions
@@ -80,7 +81,7 @@ provide advice outside academic scope
 engage in private tutoring outside Response Integrity
 
 8. SESSION RECORDING AND MONITORING
-8.1 All sessions are recorded.
+8.1 Sessions may be recorded.
 8.2 Recordings are used for:
 safeguarding
 compliance
@@ -92,7 +93,7 @@ recordings may be reviewed at any time
 9. REPORTING OBLIGATIONS
 9.1 Tutors must report immediately:
 boundary violations
-inappropriate learner behavior
+inappropriate learner behaviour
 attempts to move communication off-platform
 any safeguarding concerns
 9.2 Failure to report is considered non-compliance.
@@ -111,7 +112,7 @@ use appropriate language at all times
 11.2 The following are prohibited:
 offensive language
 inappropriate attire
-disruptive or unprofessional behavior
+disruptive or unprofessional behaviour
 
 12. ENFORCEMENT
 12.1 Response Integrity enforces this policy strictly.

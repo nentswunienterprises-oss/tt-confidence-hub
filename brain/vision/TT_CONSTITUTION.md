@@ -1,32 +1,32 @@
-# THE TERRITORIAL TUTORING
-## TECHNOLOGY, SYSTEMS & OPERATIONS CONSTITUTION
+# THE RESPONSE INTEGRITY CONSTITUTION
+## TECHNOLOGY, SYSTEMS, AND OPERATIONS
 
-**(Internal. Non‑negotiable.)**
+**(Internal. Non-negotiable.)**
 
-This constitution governs how Response Integrity is built, scaled, automated, staffed, and delivered -regardless of tools, vendors, or future leadership.
+This constitution governs how Response Integrity is built, scaled, automated, staffed, and delivered regardless of tools, vendors, or future leadership.
 
 ---
 
-### ARTICLE I: FOUNDATIONAL TRUTH (WHY TECH EXISTS)
+### ARTICLE I: FOUNDATIONAL TRUTH
 
-Response Integrity technology exists to condition execution under pressure -not to deliver content, convenience, or dopamine.
+Response Integrity technology exists to condition execution under pressure, not to deliver content, convenience, or dopamine.
 
 Therefore:
 
 - Any system that reduces productive discomfort is a violation.
-- Any feature that prioritises engagement over execution is rejected.
+- Any feature that prioritizes engagement over execution is rejected.
 - Any automation that hides accountability is prohibited.
 
 Tech at Response Integrity is not a product layer.
-It is a discipline enforcement layer.
+It is a discipline-enforcement layer.
 
 ---
 
-### ARTICLE II: THE RESPONSE‑FIRST PRINCIPLE
+### ARTICLE II: THE RESPONSE-FIRST PRINCIPLE
 
 All systems must answer one question before being built:
 
-> “Does this strengthen or weaken the student’s response under uncertainty?”
+> "Does this strengthen or weaken the student's response under uncertainty?"
 
 Implications:
 
@@ -38,42 +38,42 @@ If the system makes students feel better without performing better, it is remove
 
 ---
 
-### ARTICLE III: ONE‑TO‑ONE SUPREMACY RULE
+### ARTICLE III: ONE-TO-ONE PRECISION RULE
 
 Response Integrity exists because classrooms cannot condition individual responses.
 
 Therefore:
 
-- Tech must amplify one‑on‑one precision, not simulate classroom scale.
+- Tech must amplify one-to-one precision, not simulate classroom scale.
 - Dashboards are built per student, not per cohort.
-- Tutor tools prioritise response patterns, not lesson completion.
+- Tutor tools prioritize response patterns, not lesson completion.
 - Scaling must never dilute individual exposure.
 
 ---
 
 ### ARTICLE IV: DISCIPLINE OVER DELIGHT
 
-Response Integrity does not optimise for: fun, ease, addiction, or “user happiness”.
+Response Integrity does not optimize for fun, ease, addiction, or user-happiness theatre.
 
-Response Integrity optimises for:
+Response Integrity optimizes for:
 
 - Calm execution
 - Deliberate pacing
 - Error ownership
 - Emotional regulation under time
 
-Tech Rules:
+Tech rules:
 
 - No infinite scroll.
 - No streaks.
 - No vanity metrics.
-- No “congrats” without evidence.
+- No congratulations without evidence.
 
 Respect is earned through standards, not UX sugar.
 
 ---
 
-### ARTICLE V: ACCOUNTABILITY IS VISIBLE OR IT DOES NOT EXIST
+### ARTICLE V: ACCOUNTABILITY MUST BE VISIBLE
 
 Every role must be traceable through the system.
 
@@ -87,22 +87,22 @@ Students:
 Tutors:
 
 - Session structure auditable
-- Response‑conditioning fidelity measured
-- No “vibes‑based” tutoring allowed
+- Response-conditioning fidelity measured
+- No vibes-based tutoring allowed
 
 Leadership:
 
 - No blind spots
 - No hidden failure
-- No “we didn’t know”
+- No "we did not know"
 
-If it can’t be measured, it can’t be defended.
+If it cannot be measured, it cannot be defended.
 
 ---
 
-### ARTICLE VI: SCHOOLS ARE PARTNERS, NOT USERS
+### ARTICLE VI: SCHOOLS ARE PARTNERS
 
-Technology must reflect Response Integrity’s non‑competitive posture toward schools.
+Technology must reflect Response Integrity's non-competitive posture toward schools.
 
 Therefore:
 
@@ -114,26 +114,24 @@ Response Integrity systems must be:
 
 - Referable
 - Explainable
-- Non‑threatening
+- Non-threatening
 - Institutionally legible
 
 Schools should feel relief, not exposure.
 
 ---
 
-### ARTICLE VII: HIGH SCHOOL LEADERSHIP INTEGRITY CLAUSE
+### ARTICLE VII: HIGH-SCHOOL LEADERSHIP INTEGRITY
 
-Because Response Integrity trains top‑performing high school students:
+Because Response Integrity trains top-performing high-school students:
 
 - Any system must protect their own academic performance first.
 - No workload that risks academic decline.
 - No operational pressure disguised as leadership.
 
-If a student’s grades drop: they pause. They are not “pushed through.”
+If a student's grades drop, they pause. They are not pushed through.
 
-Leadership is revoked, not negotiated.
-
-Leadership at Response Integrity is conditional, not honorary.
+Leadership is conditional, not honorary.
 
 ---
 
@@ -141,7 +139,7 @@ Leadership at Response Integrity is conditional, not honorary.
 
 Response Integrity charges premium because:
 
-- One‑on‑one attention is scarce
+- One-to-one attention is scarce
 - Emotional labour is real
 - Conditioning is intensive
 - Outcomes are structural, not cosmetic
@@ -149,12 +147,12 @@ Response Integrity charges premium because:
 Therefore:
 
 - No discount logic baked into systems
-- No “upgrade nudges”
+- No upgrade nudges
 - No freemium dependency loops
 
 Payment systems must communicate:
 
-This is serious work, not supplementary help.
+This is serious conditioning work, not casual academic support.
 
 ---
 
@@ -165,8 +163,8 @@ Response Integrity does not wait for government legitimacy to operate.
 Therefore:
 
 - Systems must be compliant but not dependent
-- Accreditation is treated as optional validation, not permission
-- Internal certification > external badges
+- Accreditation is optional validation, not permission
+- Internal certification matters more than external badges
 
 If accreditation is pursued:
 
@@ -178,7 +176,7 @@ Legibility to the state is secondary to fidelity to the mission.
 
 ---
 
-### ARTICLE X: TECH STACK IS REPLACEABLE, PRINCIPLES ARE NOT
+### ARTICLE X: TECH STACKS CHANGE, PRINCIPLES DO NOT
 
 Tools will change. Vendors will fail. Platforms will evolve.
 
@@ -188,34 +186,32 @@ Therefore:
 
 - No feature is sacred
 - No tool is permanent
-- No system survives if it violates Articles I–IX
+- No system survives if it violates Articles I-IX
 
-Response Integrity is system‑led, not tool‑led.
+Response Integrity is system-led, not tool-led.
 
 ---
 
-## WHAT THIS MEANS PRACTICALLY (NO FLUFF)
+## PRACTICAL TEST
 
-When building your webapp, ops stack, or workflows, you ask:
+When building the app, ops stack, or workflows, ask:
 
 - Does this increase execution under pressure?
-- Does this preserve one‑on‑one intensity?
+- Does this preserve one-to-one intensity?
 - Does this make accountability unavoidable?
 - Does this respect schools as institutions?
 - Does this protect leadership standards?
 
-If the answer to any is no -you don’t build it.
+If the answer to any is no, do not build it.
 
 ---
 
-## FINAL TRUTH (BRUTAL, BUT NECESSARY)
+## FINAL TRUTH
 
-Response Integrity is not bold because it’s innovative.
+Response Integrity is not bold because it is innovative.
 
-It’s bold because it refuses to soften standards to scale faster.
+It is bold because it refuses to soften standards in order to scale faster.
 
-Most education tech fails because it optimises for comfort.
+Most education tech fails because it optimizes for comfort.
 
-You are building infrastructure that trains people to function when comfort disappears.
-
-That is institutional work.
+We are building infrastructure that trains people to function when comfort disappears.

@@ -1,5 +1,4 @@
-TERRITORIAL TUTORING
-Tutor Playbook -Core Protocols
+# Response Integrity Tutor Playbook
 
 This document defines how every Response Integrity tutor operates.
 
@@ -7,354 +6,180 @@ Response Integrity is not personality-driven teaching.
 
 It is a response-conditioning system.
 
-Tutors do not improvise teaching styles.
+Tutors do not improvise private teaching styles.
 
 They execute the Response Integrity protocol.
 
-PART 1 -THE INTRO SESSION
-Purpose
+## Core doctrine
 
-The Intro Session has only three objectives:
+- Mathematics is the arena. Response is the skill.
+- The student is mapped by topic, not by one global label.
+- The session follows the phase, not the tutor's instinct.
+- Model -> Apply -> Guide is most visible in Clarity work, not every phase of the operating system.
+- Boss Battles and timed work are phase-specific tools, not default session ingredients.
 
-Understand how the student currently responds to difficulty
+## The intro session
 
-Identify the broken learning layer
+The intro session has three objectives:
 
-Establish the Response Integrity working structure
+1. Understand how the student currently responds to difficulty.
+2. Identify the unstable topic and the likely broken layer.
+3. Establish the Response Integrity working structure.
 
-The Intro Session is diagnostic, not intensive teaching.
+The intro session is diagnostic, not a teaching marathon.
 
-Intro Session Structure
+### Intro session flow
 
-The session runs in three phases.
+1. **Orientation**
+   Keep the tone calm and structured.
 
-1. Orientation
-2. Surface the Pattern
-3. Diagnose the Layer
-Phase 1 -Orientation
+   Useful questions:
+   - Which mathematics topics feel easiest right now?
+   - Which topics usually become uncomfortable first?
+   - When a question looks unfamiliar, what usually happens first?
+   - Do you usually rush, freeze, guess, or delay?
 
-Goal: Establish the working tone and remove performance anxiety.
+2. **Surface the pattern**
+   Move into topic-specific discussion.
 
-Keep this section short and structured.
+   Useful questions:
+   - Which topic never feels stable for long?
+   - Where does your mind go blank most often?
+   - Which type of question usually changes your behaviour?
 
-Example questions:
+3. **Observe the response**
+   Give one or two short problems from the unstable topic.
 
-“Which math topics usually feel easiest for you?”
+   Observe silently for:
+   - start behaviour
+   - step order
+   - hesitation
+   - guessing
+   - rescue-seeking
+   - emotional shift after mistakes
 
-“Which topics tend to confuse you the most?”
+### Diagnostic output
 
-“When a question looks unfamiliar, what usually happens first?”
+By the end of the intro session, the tutor must know:
 
-“Do you usually rush, freeze, or guess?”
+- the main unstable topic
+- the current phase or likely phase mismatch
+- the dominant response pattern under difficulty
+- the broken layer, where relevant: vocabulary, method, or reason
 
-You are identifying the student’s default response pattern.
+## Phase-aware session delivery
 
-Do not over-personalize this conversation.
+### 1. Clarity
 
-The goal is clarity, not therapy.
+Goal:
+Build a clear picture of the topic through vocabulary, method, reason, and first-step recognition.
 
-Phase 2 -Surface the Pattern
+Tutor permissions:
 
-Now focus directly on math.
+- model the problem
+- explain the method
+- guide deliberately
+- correct broken layer logic
 
-Ask questions like:
+Main tool:
 
-“Which math topic never quite made sense?”
+- Model -> Apply -> Guide
 
-“Are there moments in math where your mind goes blank?”
+### 2. Structured Execution
 
-“Which type of question usually causes problems?”
+Goal:
+Train independent starts, correct step order, repeatability, and reduced guessing.
 
-Write down two problem areas.
+Tutor permissions:
 
-These will guide the diagnostic.
+- prompt briefly
+- protect structure
+- correct skipped steps
+- reduce dependence
 
-Phase 3 -Diagnose the Layer
+Tutor restrictions:
 
-Give the student 1–2 short problems related to the topics they mentioned.
+- do not restart full teaching loops
+- do not over-explain once the topic is already clear enough to execute
 
-Observe silently.
+### 3. Controlled Discomfort
 
-Do not interrupt.
+Goal:
+Train response stability when the topic becomes uncomfortable, less familiar, or more demanding.
 
-Your job is to identify which learning layer is unstable.
+Tutor permissions:
 
-The 3-Layer Lens
+- hold the difficulty
+- give only phase-appropriate prompts
+- observe whether the student stays functional
 
-Every math concept has three layers.
+Tutor restrictions:
 
-Vocabulary
-Do they understand the terms being used?
+- do not rescue
+- do not soften the session because the student looks uncomfortable
 
-Example failure:
-“What is a denominator again?”
+Main tool:
 
-Method
-Do they know the correct sequence of steps?
+- Boss Battles, when controlled difficulty is the correct load
 
-Example failure:
-They jump between random operations.
+### 4. Time Pressure Stability
 
-Reason
-Do they understand why the steps work?
+Goal:
+Test whether trained structure survives urgency.
 
-Example failure:
-They memorized a trick but cannot explain it.
+Tutor permissions:
 
-Outcome of the Intro Session
+- set time boundaries
+- observe pace and structure
+- note whether urgency causes collapse
 
-By the end of the session, the tutor must know:
+Tutor restrictions:
 
-The student’s main difficulty topic
+- do not coach through every moment
+- do not reward speed without structure
 
-Which learning layer is unstable
+Main tool:
 
-How the student responds when confused
+- timed work, when time pressure is the live instability
 
-This becomes the starting point for the Transformation Process.
+## Support rules
 
-PART 2 -THE TRANSFORMATION PROCESS
+- Fix the broken layer, not the whole problem.
+- Preserve student attempt wherever possible.
+- If support is needed, give the smallest support that keeps the student working.
+- Do not confuse explanation with progress.
+- Do not confuse comfort with stability.
 
-The Transformation Process is how Response Integrity conditions reliable responses to difficult math problems.
+## What tutors must log
 
-It consists of four components.
+Every session must produce usable observation data:
 
-3-Layer Lens
-+
-Model–Apply–Guide
-+
-Boss Battles
-+
-Timed Execution
-=
-Conditioned Response
+- topic
+- active phase
+- response pattern under difficulty
+- start behaviour
+- step integrity
+- dependence or rescue-seeking
+- pace under pressure
+- error recovery
+- next conditioning move
 
-Each component serves a specific purpose.
+## Protocol violations
 
-1 -The 3-Layer Lens
+The following break Response Integrity doctrine:
 
-The 3-Layer Lens is used to teach and diagnose every concept.
+- improvising a private teaching system
+- turning the session into homework help
+- rescuing the student too early
+- skipping independent execution
+- using Boss Battles in the wrong phase
+- using timed work before structure is stable enough to test
+- advancing the student because the tutor feels optimistic
 
-Vocabulary
+## Final principle
 
-Students must understand the terms used in the problem.
+Schools teach content.
 
-Example questions tutors ask:
+Tutors can explain methods.
 
-“What is this part called?”
-
-“What does this term mean?”
-
-Without vocabulary clarity, students cannot interpret the problem correctly.
-
-Method
-
-Students must follow a clear, repeatable sequence of steps.
-
-Example tutor prompts:
-
-“What is the first step?”
-
-“What happens next?”
-
-Students should learn methods as structured procedures, not guesses.
-
-Reason
-
-Students must understand why the method works.
-
-Example tutor prompts:
-
-“Why does this step work?”
-
-“Why do we divide here?”
-
-Reasoning prevents blind memorization.
-
-2 -Model–Apply–Guide
-
-This loop is how skills are learned during the session.
-
-Model
-
-The tutor solves a problem out loud.
-
-The tutor clearly states:
-
-the vocabulary
-
-the steps
-
-the reasoning
-
-The student observes.
-
-Apply
-
-The student attempts a similar problem.
-
-The tutor does not take over.
-
-Struggle is allowed.
-
-This stage builds ownership of the method.
-
-Guide
-
-The tutor corrects and refines the student’s attempt.
-
-The tutor identifies which learning layer broke:
-
-Vocabulary
-
-Method
-
-Reason
-
-Then the tutor fixes that specific layer.
-
-3 -Boss Battles
-
-Once the student understands the concept, introduce a harder problem.
-
-This is called a Boss Battle.
-
-Boss Battles test whether the student can:
-
-recognize the concept
-
-follow the method
-
-explain the reasoning
-
-without assistance.
-
-Boss Battles simulate the moment when difficulty increases unexpectedly.
-
-4 - Timed Execution
-
-As students improve, Boss Battles become timed.
-
-This introduces controlled pressure.
-
-Students must:
-
-read the question carefully
-
-identify known information
-
-execute the method calmly
-
-The goal is to train stable execution under pressure.
-
-PART 3 - THE SESSION OPERATING SYSTEM
-
-Every Response Integrity tutoring session follows the same structure.
-
-1. Prepare
-2. Model
-3. Apply
-4. Guide
-5. Boss Battle
-
-This sequence repeats every session.
-
-Step 1 - Prepare
-
-Before the session begins:
-
-The tutor reviews:
-
-the student’s previous session notes
-
-previous Boss Battles
-
-areas needing reinforcement
-
-The tutor selects one clear concept for the session.
-
-Preparation prevents improvisation.
-
-Step 2 - Model
-
-The tutor demonstrates the concept using the 3-Layer Lens.
-
-The tutor:
-
-writes the example clearly
-
-explains each step
-
-explains the reasoning
-
-Students see exactly what correct execution looks like.
-
-Step 3 - Apply
-
-The student attempts a similar problem.
-
-The tutor observes carefully.
-
-This is where learning actually happens.
-
-Step 4 - Guide
-
-The tutor corrects the student’s work.
-
-The tutor identifies which layer broke:
-
-Vocabulary
-Method
-Reason
-
-Then the tutor reinforces that layer.
-
-Step 5 -Boss Battle
-
-The session ends with a more difficult challenge.
-
-The student attempts it independently.
-
-This confirms whether the skill is stabilizing.
-
-The Core Response Protocol
-
-When a student encounters a difficult problem, they are trained to follow this sequence.
-
-1. Read the full question
-2. Identify what is known
-3. Select the first step of the method
-4. Execute calmly
-5. Continue step by step
-
-This response pattern is practiced repeatedly.
-
-Over time, the student stops freezing and begins executing automatically.
-
-The Standard
-
-Response Integrity tutors are not improvising teachers.
-
-They are operators of a system.
-
-Every session must follow the same structure.
-
-Every concept must be taught through the 3-Layer Lens.
-
-Every session must include independent execution.
-
-Consistency is what produces reliable outcomes.
-
-The Response Integrity Principle
-
-Schools teach concepts.
-
-Tutors explain methods.
-
-Response Integrity trains execution when difficulty appears.
-
-Math is the arena.
-
-Pressure is the environment.
-
-Response is the craft.
+Response Integrity trains the response that appears when mathematics becomes difficult.
