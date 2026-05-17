@@ -1,10 +1,18 @@
-import { LegalDocumentPage } from "@/components/legal/LegalDocumentPage";
+import { LegalDocumentMeta, LegalDocumentPage } from "@/components/legal/LegalDocumentPage";
 
 export default function PrivacyPolicy() {
   return (
     <LegalDocumentPage
       title="Privacy Policy"
-      subtitle="Response Integrity (Pty) Ltd | Version 1.1 | Effective May 9, 2026"
+      subtitle={
+        <LegalDocumentMeta
+          items={[
+            "Response Integrity (Pty) Ltd",
+            "Version 1.1",
+            "Effective May 9, 2026",
+          ]}
+        />
+      }
       intro={
         <>
           <p>
@@ -142,9 +150,15 @@ export default function PrivacyPolicy() {
         },
       ]}
       footer={
-        <p className="text-sm text-slate-600 text-center">
-          Response Integrity (Pty) Ltd | Privacy Policy | Version 1.1 | www.responseintegrity.co.za
-        </p>
+        <LegalDocumentMeta
+          className="text-xs sm:text-sm"
+          items={[
+            "Response Integrity (Pty) Ltd",
+            "Privacy Policy",
+            "Version 1.1",
+            "www.responseintegrity.co.za",
+          ]}
+        />
       }
     />
   );

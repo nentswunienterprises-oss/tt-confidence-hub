@@ -1,10 +1,18 @@
-import { LegalDocumentPage } from "@/components/legal/LegalDocumentPage";
+import { LegalDocumentMeta, LegalDocumentPage } from "@/components/legal/LegalDocumentPage";
 
 export default function TermsOfUse() {
   return (
     <LegalDocumentPage
       title="Platform Terms of Use"
-      subtitle="Response Integrity (Pty) Ltd | Version 1.1 | Effective May 8, 2026"
+      subtitle={
+        <LegalDocumentMeta
+          items={[
+            "Response Integrity (Pty) Ltd",
+            "Version 1.1",
+            "Effective May 8, 2026",
+          ]}
+        />
+      }
       intro={
         <>
           <p>
@@ -118,9 +126,14 @@ export default function TermsOfUse() {
         },
       ]}
       footer={
-        <p className="text-sm text-slate-600 text-center">
-          Response Integrity (Pty) Ltd | Platform Terms of Use | www.responseintegrity.co.za
-        </p>
+        <LegalDocumentMeta
+          className="text-xs sm:text-sm"
+          items={[
+            "Response Integrity (Pty) Ltd",
+            "Platform Terms of Use",
+            "www.responseintegrity.co.za",
+          ]}
+        />
       }
     />
   );
