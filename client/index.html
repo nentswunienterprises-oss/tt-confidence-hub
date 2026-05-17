@@ -40,5 +40,39 @@
         if (loader) loader.style.display = 'none';
       });
     </script>
+    <script>
+      // Debug helper: run only when ?debug_overflow=1 is present in the URL.
+      (function() {
+        if (!location.search.includes('debug_overflow=1')) return;
+        function outlineOverflowing() {
+          const w = window.innerWidth || document.documentElement.clientWidth;
+          const els = Array.from(document.querySelectorAll('body *'));
+          let found = 0;
+          els.forEach((el) => {
+            try {
+              const r = el.getBoundingClientRect();
+              if (r.right > w + 1 || r.left < -1) {
+                found++;
+                el.classList.add('overflow-debug-outline');
+                console.warn('Overflowing element', el, {left: r.left, right: r.right, width: r.width});
+              }
+            } catch (e) {
+              // ignore
+            }
+          });
+          if (!found) console.info('No overflowing elements detected');
+        }
+
+        // add debug style
+        const s = document.createElement('style');
+        s.textContent = `
+          .overflow-debug-outline{outline:3px solid rgba(255,0,0,0.9)!important;}
+        `;
+        document.head.appendChild(s);
+
+        window.addEventListener('load', () => setTimeout(outlineOverflowing, 300));
+        window.addEventListener('resize', () => setTimeout(outlineOverflowing, 200));
+      })();
+    </script>
   </body>
 </html>
