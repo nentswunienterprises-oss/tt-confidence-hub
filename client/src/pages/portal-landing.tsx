@@ -48,7 +48,7 @@ function PortalLanding() {
 `;
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#FFF5ED" }}>
+    <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: "#FFF5ED" }}>
       <style dangerouslySetInnerHTML={{ __html: wallpaperCss }} />
 
       {/* Header */}
