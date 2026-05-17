@@ -142,7 +142,7 @@ function PortalLanding() {
               style={{ aspectRatio: "4/3" }}
             />
 
-            <div className="absolute -bottom-4 sm:-bottom-6 left-2 sm:-left-6 md:-left-12 p-3 sm:p-4 md:p-6 rounded-xl sm:rounded-2xl shadow-xl" style={{ backgroundColor: "white" }}>
+            <div className="absolute -bottom-4 sm:-bottom-6 left-2 sm:left-2 md:-left-12 p-3 sm:p-4 md:p-6 rounded-xl sm:rounded-2xl shadow-xl" style={{ backgroundColor: "white" }}>
               <div className="flex items-center gap-2 sm:gap-3">
                 <div>
                   <p className="font-bold text-sm sm:text-lg" style={{ color: "#1A1A1A" }}>Calm First</p>
