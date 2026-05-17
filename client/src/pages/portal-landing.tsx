@@ -229,14 +229,6 @@ function PortalLanding() {
                               <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
                             </Button>
                           </div>
-                    <div>
-                      <h4 className="font-semibold text-sm sm:text-base mb-0.5 sm:mb-1" style={{ color: "#1A1A1A" }}>{item.title}</h4>
-                      <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>{item.desc}</p>
-                          <div className="relative overflow-hidden">
-                  </div>
-                ))}
-              </div>
-            </Card>
 
             <Card className="p-5 sm:p-6 md:p-8 border-0 shadow-lg" style={{ backgroundColor: "#FFF5ED" }}>
               <div className="space-y-4 sm:space-y-6">
