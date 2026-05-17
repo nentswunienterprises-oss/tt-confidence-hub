@@ -1,4 +1,9 @@
-Response Integrity Drill System -Developer Brief
+# Response Integrity Drill System - Developer Brief
+
+**Canonical reference**
+The single source of truth for live Response Integrity-OS algorithm rules is [Response Integrity-OS Live Implementation Source of Truth](../docs/response-integrity-os-implementation-source-of-truth.md).
+This file is a drill-system product brief, not the canonical implementation spec.
+If any shared engine rule here conflicts with the canonical spec or current code, the canonical spec wins and this file must be brought back into alignment.
 
 We are building a response-conditioning system, not a tutoring session tracker.
 

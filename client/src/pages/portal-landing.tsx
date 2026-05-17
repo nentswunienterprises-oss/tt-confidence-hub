@@ -117,15 +117,16 @@ function PortalLanding() {
               Response Integrity trains that response directly.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 sm:pt-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 sm:pt-4 w-full sm:w-auto">
               <Button
                 size="lg"
-                className="text-base sm:text-lg font-semibold px-6 sm:px-8 py-4 sm:py-6 rounded-full shadow-lg hover:shadow-xl transition-all border-0"
+                className="w-full sm:w-auto text-sm sm:text-lg font-semibold px-4 sm:px-8 py-3 sm:py-6 rounded-full shadow-lg hover:shadow-xl transition-all border-0 whitespace-nowrap flex items-center justify-center gap-2"
                 style={{ backgroundColor: "#E63946", color: "white" }}
                 onClick={() => navigate(buildSignupUrl())}
               >
-                Check Current Enrollment Window
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
+                <span className="block sm:inline">Check Current Enrollment</span>
+                <span className="hidden sm:inline">Window</span>
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
             </div>
 
@@ -272,12 +273,13 @@ function PortalLanding() {
           </p>
           <Button
             size="lg"
-            className="text-base sm:text-lg font-semibold px-6 sm:px-10 py-4 sm:py-6 rounded-full border-0 outline-none"
+            className="text-sm sm:text-lg font-semibold px-4 sm:px-10 py-3 sm:py-6 rounded-full border-0 outline-none whitespace-nowrap flex items-center justify-center gap-2"
             style={{ backgroundColor: "#E63946", color: "white" }}
             onClick={() => navigate(buildSignupUrl())}
           >
-            Check Current Enrollment Window
-            <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
+            <span className="block sm:inline">Check Current Enrollment</span>
+            <span className="hidden sm:inline">Window</span>
+            <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
           </Button>
         </div>
       </section>

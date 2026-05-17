@@ -1,5 +1,10 @@
 # Weekly and Monthly Reports: Full Engine and Output Breakdown
 
+**Canonical reference**
+The single source of truth for live Response Integrity-OS algorithm rules is [Response Integrity-OS Live Implementation Source of Truth](response-integrity-os-implementation-source-of-truth.md).
+This file is a report-specific derivative explainer.
+If any shared engine rule here conflicts with the canonical spec or current code, the canonical spec wins and this file must be brought back into alignment.
+
 This document describes how Response Integrity weekly and monthly reports are currently built, which engines contribute to them, where each output line comes from, and what the possible scenario outputs are.
 
 Primary code paths:

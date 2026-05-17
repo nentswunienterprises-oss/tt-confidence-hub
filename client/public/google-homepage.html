@@ -70,7 +70,11 @@
       .hero-actions { display: flex; flex-direction: column; gap: 12px; padding-top: 8px; }
       .hero-cta {
         display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-        width: fit-content; padding: 16px 24px; border-radius: 999px; font-size: 16px; font-weight: 600;
+        width: fit-content; padding: 14px 16px; border-radius: 999px; font-size: 14px; font-weight: 600;
+        line-height: 1.3; flex-wrap: wrap;
+      }
+      .hero-cta span {
+        display: block; max-width: 280px; word-break: break-word;
       }
       .hero-arrow { width: 18px; height: 18px; flex: 0 0 auto; }
       .image-wrap { position: relative; }
@@ -148,7 +152,8 @@
         h1 { font-size: 48px; text-align: left; }
         .hero-copy p, .section-center p, .cta-section p { font-size: 18px; }
         .hero-actions { flex-direction: row; gap: 16px; padding-top: 16px; }
-        .hero-cta { padding: 20px 32px; font-size: 18px; }
+        .hero-cta { padding: 16px 24px; font-size: 16px; flex-wrap: nowrap; }
+        .hero-cta span { display: inline; max-width: none; }
         .image-note { left: -24px; bottom: -24px; padding: 16px; border-radius: 20px; }
         .image-note strong { font-size: 18px; }
         .image-note span { font-size: 14px; }

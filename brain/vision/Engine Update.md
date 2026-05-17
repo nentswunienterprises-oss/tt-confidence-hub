@@ -1,4 +1,9 @@
-Engine Update
+# Engine Update
+
+**Canonical reference**
+The single source of truth for live Response Integrity-OS algorithm rules is [Response Integrity-OS Live Implementation Source of Truth](../../docs/response-integrity-os-implementation-source-of-truth.md).
+This file is implementation history and design context, not the canonical live algorithm spec.
+If any rule here conflicts with the canonical spec or current code, the canonical spec wins and this file must be brought back into alignment.
 
 Training sessions score drill totals, not session totals
 instead of having one drill per session for each topic, we have a training session and inside it the tutor runs drills on topics.

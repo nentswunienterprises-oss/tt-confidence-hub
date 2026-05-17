@@ -1,5 +1,10 @@
 # Current Report Output Matrix
 
+**Canonical reference**
+The single source of truth for live Response Integrity-OS algorithm rules is [Response Integrity-OS Live Implementation Source of Truth](response-integrity-os-implementation-source-of-truth.md).
+This file is an output/reference snapshot for current report behavior, not a separate algorithm authority.
+If any shared engine rule here conflicts with the canonical spec or current code, the canonical spec wins and this file must be brought back into alignment.
+
 This document reflects the current report-generation code in:
 
 - [server/routes.ts](/abs/path/C:/Users/Thend/Downloads/Technology/PodDigitizer/server/routes.ts)

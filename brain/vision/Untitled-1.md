@@ -1,3 +1,11 @@
+**Status**
+Legacy working note retained for design-history continuity.
+
+**Canonical reference**
+The single source of truth for live Response Integrity-OS algorithm rules is [Response Integrity-OS Live Implementation Source of Truth](../../docs/response-integrity-os-implementation-source-of-truth.md).
+Do not use this file as the final authority for code or threshold changes.
+If any rule below conflicts with the canonical spec or current code, the canonical spec wins and this file must be brought back into alignment.
+
 From Low: 0-49 Low, 50-79 Medium, 80+ High
 From Medium: 0-44 Low, 45-79 Medium, 80+ High
 From High: 0-49 Medium, 50-84 High, 85+ High Maintenance

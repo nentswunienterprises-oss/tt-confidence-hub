@@ -58,6 +58,8 @@ export default function HowWeOperate() {
               <li>execution consistency,</li>
               <li>and conditioning phase inside each topic.</li>
             </ul>
+            <p>That also means we do not view the student as one global state across every topic.</p>
+            <p className="text-muted-foreground">A student can be strong in one topic and unstable in another, so we track topic-specific response state instead of one-size-fits-all labels like "weak" or "behind."</p>
 
             <h2>Conditioning Windows</h2>
             <p>Response Integrity operates through conditioning windows rather than last-minute intervention cycles.</p>

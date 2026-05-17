@@ -1,3 +1,11 @@
+**Status**
+Supporting onboarding explainer only.
+
+**Canonical reference**
+The single source of truth for live Response Integrity-OS algorithm rules is [Response Integrity-OS Live Implementation Source of Truth](../docs/response-integrity-os-implementation-source-of-truth.md).
+Use the canonical spec for exact live thresholds, engine behavior, and change decisions.
+If any rule below conflicts with the canonical spec or current code, the canonical spec wins and this file must be brought back into alignment.
+
 1. THE CORE SCORING MODEL
 A. Rep-level scoring
 
