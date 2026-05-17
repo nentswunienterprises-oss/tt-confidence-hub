@@ -6,7 +6,7 @@ You now have:
 Sessions Completed
 Topics
 What Changed
-Breakdown PaResponse Integrityern
+Breakdown Pattern
 What This Means
 Next Move
 
@@ -28,7 +28,7 @@ max 2 signals
 
 This is your anchor section. Keep it clean like this.
 
-3. Breakdown PaResponse Integrityern -correct positioning
+3. Breakdown Pattern -correct positioning
 
 hesitation under pressure and structure breakdown
 
@@ -146,7 +146,7 @@ no recurring breakdown signal detected
 
 🔧 FIX
 - no recurring breakdown signal detected
-+ no consistent breakdown paResponse Integrityern identified
++ no consistent breakdown pattern identified
 6. Multi-topic flow -one subtle issue
 
 Right now:
@@ -200,7 +200,7 @@ Topics: Linear Equations
 What Changed:
 Linear Equations moved from...
 
-Breakdown PaResponse Integrityern:
+Breakdown Pattern:
 Linear Equations: ...
 
 Next Move:
@@ -227,7 +227,7 @@ BEFORE (current)
 What Changed:
 Linear Equations moved from Structured Execution (Medium) to Structured Execution (High)...
 
-Breakdown PaResponse Integrityern:
+Breakdown Pattern:
 Linear Equations: hesitation under pressure
 
 Next Move:
@@ -237,7 +237,7 @@ What Changed:
 Moved from Structured Execution (Medium) to Structured Execution (High),
 with less delayed starts and more reliable step execution.
 
-Breakdown PaResponse Integrityern:
+Breakdown Pattern:
 Hesitation under pressure
 
 What This Means:
@@ -245,7 +245,7 @@ Execution is now holding independently.
 
 Next Move:
 Increase variation while protecting structure.
-🔥 WHY THIS MAResponse IntegrityERS
+🔥 WHY THIS MATTERS
 1. Removes friction
 
 The reader doesn’t re-parse the same label every section.
@@ -265,7 +265,7 @@ Mode	Behavior
 Single-topic	Implicit context
 Multi-topic	Explicit per-line labeling
 
-That’s intentional design, not formaResponse Integritying.
+That’s intentional design, not formatting.
 
 When only one topic exists in the report, remove all topic prefixes from section outputs.
 The topic should appear only once in the header (“Topics”).

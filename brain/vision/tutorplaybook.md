@@ -3,7 +3,7 @@ Tutor Playbook -Core Protocols
 
 This document defines how every Response Integrity tutor operates.
 
-Territorial Tutoring is not personality-driven teaching.
+Response Integrity is not personality-driven teaching.
 
 It is a response-conditioning system.
 
@@ -351,7 +351,7 @@ Schools teach concepts.
 
 Tutors explain methods.
 
-Territorial Tutoring trains execution when difficulty appears.
+Response Integrity trains execution when difficulty appears.
 
 Math is the arena.
 

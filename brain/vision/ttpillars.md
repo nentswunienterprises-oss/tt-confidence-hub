@@ -26,5 +26,5 @@ We are a tribe of response‑conditioning tutors, not employees.
 Our anthem is growth; our language is mastery. Youth teach youth. Learning is currency. Leadership is earned daily. Tutors operate like entrepreneurs; students operate like strategists. Response is the curriculum; replication is the doctrine; results are the only politics that matter.
 
 
-Territorial Tutoring SA (Pty) Ltd
+Response Integrity (Pty) Ltd
 Where the youth teach the world how to learn again.

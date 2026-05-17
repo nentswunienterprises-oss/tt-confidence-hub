@@ -3,7 +3,7 @@ Tutor Playbook -Core Protocols
 
 This document defines how every Response Integrity tutor operates.
 
-Territorial Tutoring is not personality-driven teaching.
+Response Integrity is not personality-driven teaching.
 
 It is a response-conditioning system.
 
@@ -351,7 +351,7 @@ Schools teach concepts.
 
 Tutors explain methods.
 
-Territorial Tutoring trains execution when difficulty appears.
+Response Integrity trains execution when difficulty appears.
 
 Math is the arena.
 
@@ -363,7 +363,7 @@ TERRITORIAL TUTORING
 Tutor Playbook
 Doctrine
 
-Territorial Tutoring is not a tutoring service.
+Response Integrity is not a tutoring service.
 
 It is a response-conditioning system for young minds.
 
@@ -387,7 +387,7 @@ Common responses include:
 
 When pressure appears, their thinking becomes unstable.
 
-Territorial Tutoring exists to rebuild that response system.
+Response Integrity exists to rebuild that response system.
 
 The Response Integrity Mission
 
@@ -403,7 +403,7 @@ They slow down, analyze the problem, and execute step by step.
 
 The Response Integrity Training Method
 
-Territorial Tutoring conditions this response through four mechanisms.
+Response Integrity conditions this response through four mechanisms.
 
 1 -The 3-Layer Lens
 
@@ -488,7 +488,7 @@ Schools deliver curriculum.
 
 Traditional tutoring explains concepts.
 
-Territorial Tutoring trains the response that appears when math becomes difficult.
+Response Integrity trains the response that appears when math becomes difficult.
 
 Math is the arena.
 
@@ -510,7 +510,7 @@ So this section makes the boundaries crystal clear.
 
 Protocol Violations
 
-Territorial Tutoring operates through a defined system.
+Response Integrity operates through a defined system.
 
 When tutors ignore the protocol, the training environment breaks.
 
@@ -566,7 +566,7 @@ Students must build thinking discipline.
 
 Turning Sessions Into Homework Help
 
-Territorial Tutoring sessions are not homework completion sessions.
+Response Integrity sessions are not homework completion sessions.
 
 Tutors may reference schoolwork when relevant, but the focus must remain on:
 
@@ -607,6 +607,6 @@ This means:
 • maintaining the Model–Apply–Guide cycle
 • introducing independent challenges
 
-Consistency across tutors is what allows Territorial Tutoring to scale.
+Consistency across tutors is what allows Response Integrity to scale.
 
 The strength of the system depends on discipline in execution.

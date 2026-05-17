@@ -33,7 +33,7 @@ Response behavior
 ☐ engages
 SET 2 -LIGHT APPLY PROBE (3 problems)
 
-Student aResponse Integrityempts solving.
+Student attempts solving.
 
 Minimal help.
 
@@ -89,4 +89,4 @@ hesitant start
 6–8 → Clarity HIGH
 clear recognition
 clear steps
-can aResponse Integrityempt
+can attempt

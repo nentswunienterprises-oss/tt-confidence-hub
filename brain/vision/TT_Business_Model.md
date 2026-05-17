@@ -1,8 +1,8 @@
-# Response Integrity Business Model -Territorial Tutoring (Current Evolution)
+# Response Integrity Business Model -Response Integrity (Current Evolution)
 
 ## Who we are (evolution)
 
-Building Territorial Tutoring as an education institution that connects high schools and primary schools to solve a problem neither can fix alone. High schools nominate their top, most disciplined students to be selected into Response Integrity as an elite academic leadership programme -similar to debate or sport, but with strict standards and zero tolerance for academic decline. These students are trained to execute under pressure and to lead others, addressing a real concern schools face: learners leaving with degrees but no execution skills.
+Building Response Integrity as an education institution that connects high schools and primary schools to solve a problem neither can fix alone. High schools nominate their top, most disciplined students to be selected into Response Integrity as an elite academic leadership programme -similar to debate or sport, but with strict standards and zero tolerance for academic decline. These students are trained to execute under pressure and to lead others, addressing a real concern schools face: learners leaving with degrees but no execution skills.
 
 Primary schools, on the other hand, struggle with capable learners who understand the work but panic, rush, or freeze in exams because they were never trained to perform under pressure. Classroom teachers can’t condition individual responses at scale. Response Integrity fills that gap by placing trained high school leaders as one-on-one response-conditioning tutors for Grade 6–7 learners, helping them stay calm, think clearly, and execute in exam conditions. Response Integrity doesn’t replace schools or teachers -it trains execution. It creates the conditions that prepare students for pressure before failure becomes identity.
 
@@ -44,7 +44,7 @@ High schools are expected to fix what should have been trained earlier. That exp
 
 ## The institutional shift we are building
 
-Territorial Tutoring is not a tutoring company.
+Response Integrity is not a tutoring company.
 
 We are an external academic leadership institution that enables high schools to solve a primary-school problem -upstream.
 
@@ -191,7 +191,7 @@ It is deliberate institution-building.
 
 ## The one-sentence positioning (place under the logo)
 
-**Territorial Tutoring enables high schools to develop academic leaders who prevent failure upstream -before panic becomes identity.**
+**Response Integrity enables high schools to develop academic leaders who prevent failure upstream -before panic becomes identity.**
 
 ---
 
@@ -202,14 +202,14 @@ It is deliberate institution-building.
 Not everyone qualifies. That’s the point.
 Earn R2,200–R4,800 per month (tax-free) while building real teaching, leadership, and response-conditioning skills.
 
-Territorial Tutoring is selecting a small number of high-performing, disciplined students to train as Academic Response Mentors inside our structured math mentorship system.
+Response Integrity is selecting a small number of high-performing, disciplined students to train as Academic Response Mentors inside our structured response-conditioning system.
 
 This is not casual tutoring.
 This is not "teach your own way." This is a system.
 
 ### What you’re stepping into
 
-Territorial Tutoring runs a structured online math mentorship programme for Grades 6–9.
+Response Integrity runs a structured online academic performance-conditioning programme for Grades 6–9.
 
 We don’t rely on personality, motivation, or talent alone.
 We rely on clear systems, repetition, and standards.
@@ -236,7 +236,7 @@ You’ll be trained.
 - Want real skill development, not quick cash
 - Can be consistent week after week
 
-Territorial Tutoring – High School Positioning Pillars
+Response Integrity – High School Positioning Pillars
 1. Response Conditioning Expertise
 
 Our core intellectual territory.
@@ -350,7 +350,7 @@ Schools that participate signal a commitment to:
 
 The Strategic Position in One Sentence
 
-Territorial Tutoring partners with high schools to develop selected students into academically disciplined mentors through structured response-conditioning training.
+Response Integrity partners with high schools to develop selected students into academically disciplined mentors through structured response-conditioning training.
 
 The Deeper Strategic Stack (Internal)
 
@@ -574,7 +574,7 @@ By output quality.
 
 So when we say:
 
-“Territorial Tutoring is designed to train execution leadership.”
+“Response Integrity is designed to train execution leadership.”
 
 We mean:
 
@@ -677,7 +677,7 @@ But the response to that pressure is rarely trained directly.
 
 This is where our work sits.
 
-At Territorial Tutoring, math is the subject.
+At Response Integrity, math is the subject.
 
 But the real focus is response.
 
@@ -997,12 +997,12 @@ They are conditioned through structured exposure to difficulty.
 
 And once that conditioning takes place, execution becomes far more reliable under pressure.
 
-Territorial Tutoring Founding Tutor Cohort
+Response Integrity Founding Tutor Cohort
 Most students do not fail because they are unintelligent.
 They fail because their response to difficulty was never trained.
 We are building the first cohort of tutors who know how to train that response.
 
-Territorial Tutoring is not looking for ordinary tutors.
+Response Integrity is not looking for ordinary tutors.
 
 We are building a small group of disciplined academic mentors who can train students to stay calm, think clearly, and execute when math becomes difficult.
 
@@ -1010,11 +1010,11 @@ This is the Founding Tutor Cohort.
 
 If selected, you will not just teach math.
 
-You will be trained in the doctrine, methods, and response-conditioning standards that Territorial Tutoring is built on.
+You will be trained in the doctrine, methods, and response-conditioning standards that Response Integrity is built on.
 
 [ Apply for the Founding Tutor Cohort ]
 
-What Territorial Tutoring Actually Does
+What Response Integrity Actually Does
 
 Most schools teach the content.
 
@@ -1032,7 +1032,7 @@ At that moment, the issue is not always intelligence.
 
 The issue is execution under pressure.
 
-Territorial Tutoring trains students to:
+Response Integrity trains students to:
 
 remain composed when difficulty appears
 
@@ -1101,7 +1101,7 @@ That is a different skill.
 
 2. This is doctrine-driven
 
-Territorial Tutoring operates through clear standards.
+Response Integrity operates through clear standards.
 
 Every tutor is trained in:
 
@@ -1151,7 +1151,7 @@ As part of the Founding Tutor Cohort, you will be trained in:
 
 Response Integrity Doctrine
 
-The worldview and operating standards behind Territorial Tutoring.
+The worldview and operating standards behind Response Integrity.
 
 Response Conditioning
 
@@ -1183,7 +1183,7 @@ the discipline standard
 
 the execution standard
 
-The tutors selected here will shape how Territorial Tutoring operates as it grows.
+The tutors selected here will shape how Response Integrity operates as it grows.
 
 This role carries responsibility.
 
@@ -1231,7 +1231,7 @@ Standards come before student allocation.
 
 The Standard
 
-Territorial Tutoring believes:
+Response Integrity believes:
 
 execution reveals the truth
 

@@ -2,7 +2,7 @@ INTRO
 
 This is not a typical application.
 
-Territorial Tutoring does not operate on volume. We operate on precision.
+Response Integrity does not operate on volume. We operate on precision.
 
 We do not push services. We identify where students are already struggling and step in where there is real need.
 
@@ -50,7 +50,7 @@ A parent says:
 
 How do you respond to that?  Do you move forward or pause? Why?
 
-When would you NOT recommend a parent to Territorial Tutoring?
+When would you NOT recommend a parent to Response Integrity?
 
 If a parent is interested, but you cannot clearly identify a real problem, what do you do?
 

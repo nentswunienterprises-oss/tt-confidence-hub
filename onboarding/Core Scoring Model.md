@@ -191,7 +191,7 @@ Example:
 
 Discomfort Medium scores 61
 new state = Discomfort Medium
-next action = increase Boss BaResponse Integrityle frequency, reduce hesitation time, push independent starts
+next action = increase Boss Battle frequency, reduce hesitation time, push independent starts
 Advance
 
 Two kinds:

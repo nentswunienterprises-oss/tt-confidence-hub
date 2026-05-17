@@ -196,7 +196,7 @@ Marks do not measure intelligence.
 
 They measure response under pressure.
 
-That is the first law of TT.
+That is the first law of Response Integrity.
 
 Law 2
 Composure Is Trainable

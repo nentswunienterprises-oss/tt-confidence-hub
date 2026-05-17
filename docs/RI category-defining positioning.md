@@ -139,7 +139,7 @@ The student learns to see the topic clearly.
 
 This includes vocabulary, method, reason, recognition, and first-step understanding.
 
-This is where Model -> Apply -> Guide belongs most visibly.
+This is where Model > Apply > Guide belongs most visibly.
 
 The tutor may model, explain, guide, and correct because the student is still building the structure needed to act.
 
@@ -151,21 +151,19 @@ The focus shifts away from teaching volume and toward independent starts, step o
 
 The tutor protects structure, corrects skipped steps, and prevents dependency.
 
-This is not the place for full teaching loops or Boss Battles as the main tool.
+This is not the place for full teaching loops or difficulty.
 
 ### 3. Controlled Discomfort
 
 The student is exposed to harder, less familiar, or more uncomfortable forms of the topic.
 
-This is where Boss Battles belong.
-
 The goal is not content coverage. The goal is response under uncertainty.
 
-The tutor does not rescue. The tutor holds the difficulty, gives only phase-appropriate support, and observes whether the student's response stays functional.
+The tutor does not rescue. The tutor holds the difficulty, gives only phase-appropriate support, and observes whether the student's response stays functional and stable.
 
 ### 4. Time Pressure Stability
 
-The student must maintain structure under time constraint.
+The student must now maintain that same structure that was just developed under time constraint.
 
 The goal is not blind speed.
 
@@ -179,7 +177,7 @@ Response Integrity should never sound like every session uses the same visible m
 
 That creates doctrine drift.
 
-Model -> Apply -> Guide is not the whole operating system. It is one tool inside the operating system, mainly for Clarity and concept-entry work.
+Model > Apply > Guide is not the whole operating system. It is one tool inside the operating system, mainly for Clarity and concept-entry work.
 
 Boss Battles are not every session. They belong where controlled discomfort is the correct phase.
 
@@ -219,7 +217,7 @@ It is also true in mathematics performance.
 
 This is where Response Integrity can separate permanently from tutoring culture.
 
-## Operational Doctrine
+## Operational Values
 
 Response Integrity should be known not only for what it teaches, but for how it operates.
 
@@ -381,7 +379,7 @@ Avoid overgeneralizing doctrine:
 
 - Do not say every session is Model -> Apply -> Guide.
 - Do not say every session is slow.
-- Do not say every session has Boss Battles.
+- Do not say every session has Boss Battles/difficulty.
 - Do not say every session has time pressure.
 - Do not say we never explain.
 

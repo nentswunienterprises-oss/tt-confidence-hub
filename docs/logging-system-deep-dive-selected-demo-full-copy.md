@@ -53,7 +53,7 @@ Use the continuity-check flow to verify where training should resume with a new 
 
 - Only log what the student actually did.
 - Do not guess or fill gaps with your own interpretation.
-- Use the drill options exactly as they are wriResponse Integrityen.
+- Use the drill options exactly as they are written.
 - If you did not see it happen, do not log it.
 
 ## How Choices Turn Into a Result
@@ -66,7 +66,7 @@ Use the continuity-check flow to verify where training should resume with a new 
 ## What Tutors Do in the Runner
 
 1. Open the verification block and review the tutor prep step first.
-2. Run each rep exactly as wriResponse Integrityen.
+2. Run each rep exactly as written.
 3. Choose the option that best matches what the student actually did.
 4. Finish the block without rewriting what happened.
 5. Submit to see the evidence summary and system output.
@@ -86,7 +86,7 @@ Use the continuity-check flow to verify where training should resume with a new 
 Because Response Integrity logging is tied directly to evidence and system output, dishonest logging means dishonest evidence capture. That is a compliance issue, not a note-taking issue.
 
 - Selecting stronger observation options than the rep justified
-- Logging a smoother response paResponse Integrityern than the drill score supports
+- Logging a smoother response pattern than the drill score supports
 - Altering or misreporting the automatic system result after scoring
 - Writing around a rescue, pressure break, or structure collapse
 
@@ -102,7 +102,7 @@ Can the student see the problem clearly before solving? Clarity is naming what's
 
 Constraints:
 
-- No Boss BaResponse Integrityles
+- No Boss Battles
 - No time pressure
 - No skipping layers
 
@@ -142,7 +142,7 @@ Can the student see the problem clearly before solving? Clarity is naming what's
 
 Constraints:
 
-- No Boss BaResponse Integrityles
+- No Boss Battles
 - No time pressure
 - No skipping layers
 
@@ -182,7 +182,7 @@ Can the student see the problem clearly before solving? Clarity is naming what's
 
 Constraints:
 
-- No Boss BaResponse Integrityles
+- No Boss Battles
 - No time pressure
 - No skipping layers
 
@@ -247,7 +247,7 @@ Constraints:
 - Diagnostic Topic: Selected Practice Topic
 - Practice Student
 
-### BuResponse Integrityons
+### Buttons
 
 - Back
 - Start Demo Drill
@@ -259,7 +259,7 @@ Constraints:
 
 ### Result screen labels
 
-- Drill submiResponse Integrityed. Scoring complete.
+- Drill submitted. Scoring complete.
 - Set Total
 - Rep 1
 - Rep 2
@@ -316,7 +316,7 @@ Run the correct Clarity training drill for the current topic-state.
 
 - Set 1 is teaching only; no scored observations.
 - Prepare 8 total problems (2 model + 6 drill reps).
-- No boss baResponse Integrityles and no timed pressure in Clarity.
+- No boss battles and no timed pressure in Clarity.
 - Difficulty: keep all problems at Simple/Normal level.
 
 ##### Required confirmations
@@ -580,7 +580,7 @@ Active rules:
 
 - No rescue allowed
 - Hold the discomfort
-- Observe rescue-seeking paResponse Integrityern
+- Observe rescue-seeking pattern
 
 Observation choices shown on each rep:
 
@@ -697,7 +697,7 @@ Active rules:
 
 - Tighter timer
 - No relief
-- Structure and completion both maResponse Integrityer
+- Structure and completion both matter
 
 Observation choices shown on each rep:
 
@@ -837,7 +837,7 @@ Observation choices by rep:
 Rep 1
 
 - Cold Start (Rep 1): avoids / delayed / immediate
-- First Step AResponse Integrityempt (Rep 1): random / guessing, partial steps, full structure
+- First Step Attempt (Rep 1): random / guessing, partial steps, full structure
 - Step Order (Rep 1): incorrect / minor errors / correct
 - Help-Seeking (Rep 1): waits for help / asks after trying / independent
 
@@ -846,7 +846,7 @@ Rep 2
 - Start Under Observation (Rep 2): avoids / delayed / immediate
 - Mid-Execution Discipline (Rep 2): random / guessing, partial steps, full structure
 - Correction Response (Rep 2): incorrect / minor errors / correct
-- Dependence PaResponse Integrityern (Rep 2): waits for help / asks after trying / independent
+- Dependence Pattern (Rep 2): waits for help / asks after trying / independent
 
 Rep 3
 
@@ -909,21 +909,21 @@ Observation choices by rep:
 
 Rep 1
 
-- Immediate Reaction (Rep 1 - Cold Contact): freeze / hesitate / aResponse Integrityempt
+- Immediate Reaction (Rep 1 - Cold Contact): freeze / hesitate / attempt
 - First Step Without Prompt (Rep 1): none / prompted / independent
 - Emotional State (Rep 1): panic / tension / controlled
 - Rescue Seeking (Rep 1): asks immediately / asks later / no rescue
 
 Rep 2
 
-- Persistence Under Hold (Rep 2): freeze / hesitate / aResponse Integrityempt
+- Persistence Under Hold (Rep 2): freeze / hesitate / attempt
 - Step Control Maintained? (Rep 2): none / prompted / independent
 - Tolerance Window (Rep 2): panic / tension / controlled
-- Rescue PaResponse Integrityern (Rep 2): asks immediately / asks later / no rescue
+- Rescue Pattern (Rep 2): asks immediately / asks later / no rescue
 
 Rep 3
 
-- Recovery Behavior (Rep 3): freeze / hesitate / aResponse Integrityempt
+- Recovery Behavior (Rep 3): freeze / hesitate / attempt
 - Reentry After Struggle (Rep 3): none / prompted / independent
 - Final Stability (Rep 3): panic / tension / controlled
 - Final Rescue Check (Rep 3): asks immediately / asks later / no rescue
@@ -951,7 +951,7 @@ Place the topic correctly in Time Pressure Stability.
 - Time Pressure Stability: 3 Light Timer problems
 - The tutor should be ready for the starting phase and the immediate lower phase the system may drop into.
 - Use timed pressure only to verify whether structure survives urgency.
-- Keep pressure controlled. Structure maResponse Integrityers more than speed.
+- Keep pressure controlled. Structure matters more than speed.
 
 ##### Required confirmations
 
@@ -1134,7 +1134,7 @@ Verify whether the inherited Time Pressure Stability topic-state still holds.
 
 - Prepare exactly 3 clean Time Pressure Stability verification problems.
 - Use timed pressure only to verify whether structure survives urgency.
-- Keep pressure controlled. Structure maResponse Integrityers more than speed.
+- Keep pressure controlled. Structure matters more than speed.
 
 ##### Required confirmations
 

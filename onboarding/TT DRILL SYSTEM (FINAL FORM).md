@@ -176,7 +176,7 @@ consistency across reps
 reduced prompting
 Determines
 
-Is execution stable across multiple aResponse Integrityempts?
+Is execution stable across multiple attempts?
 
 Execution + High Drill
 Purpose
@@ -203,8 +203,8 @@ Introduce difficulty safely
 Drill Structure (4 reps)
 Rep	Type	Difficulty
 1	Stabilizer	Easy
-2	Boss BaResponse Integrityle	Medium
-3	Boss BaResponse Integrityle	Medium
+2	Boss Battle	Medium
+3	Boss Battle	Medium
 4	Stabilizer	Easy
 Logging Focus
 first response
@@ -221,7 +221,7 @@ Increase pressure exposure
 
 Drill Structure (4 reps)
 Rep	Type	Difficulty
-1–3	Boss BaResponse Integrityle	Medium–Hard
+1–3	Boss Battle	Medium–Hard
 4	Apply	Medium
 Logging Focus
 hesitation time
@@ -238,7 +238,7 @@ Full uncertainty stability
 
 Drill Structure (4 reps)
 Rep	Type	Difficulty
-1–4	Boss BaResponse Integrityle	Hard
+1–4	Boss Battle	Hard
 Logging Focus
 composure
 no rescue

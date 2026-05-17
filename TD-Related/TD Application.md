@@ -1,7 +1,7 @@
 TERRITORIAL TUTORING
 TD APPLICATION 
 
-Territory Director - Territorial Tutoring
+Territory Director - Response Integrity
 
 This is not a tutoring role.
 

@@ -50,7 +50,7 @@ Tutor Instructions
 what kind of problems to prepare
 what not to do
 what the session target is
-which observations maResponse Integrityer
+which observations matter
 Observation Logic
 which observation block belongs to each set
 which fields are required
@@ -143,7 +143,7 @@ rep_type: light application
 tutor_mode: minimal guidance
 4. What the app must know about reps
 
-Reps are the actual aResponse Integrityempts inside each set.
+Reps are the actual attempts inside each set.
 
 The system does not need to know the actual math content.
 The tutor prepares that.
@@ -153,7 +153,7 @@ But the system must know:
 rep number
 rep role
 rep difficulty type
-whether it is model / identify / apply / boss baResponse Integrityle / timed
+whether it is model / identify / apply / boss battle / timed
 which observation fields belong to that rep
 
 So for the Clarity Session Drill:
@@ -410,7 +410,7 @@ Final principle
 The app must know this:
 
 A session is not a blank event.
-A session is the execution of a specific drill aResponse Integrityached to a topic-state.
+A session is the execution of a specific drill attached to a topic-state.
 
 That is the product logic.
 

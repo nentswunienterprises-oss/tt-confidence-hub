@@ -65,7 +65,7 @@ Keep it in Parent Alignment
 Remove it from Focus Area
 4. Topic repetition inside sections (Hard Violation)
 
-Example paResponse Integrityern:
+Example pattern:
 
 “Kwenadi is currently training in {topic}”
 Then later repeating topic again in unnecessary places

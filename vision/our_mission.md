@@ -5,7 +5,7 @@ We are building an external academic leadership institution that prevents downst
 How we operate (Response Integrity‑OS)
 
 - 3‑Layer Lens: Vocabulary → Method → Reason. Diagnose which layer cracked and fix it.
-- Boss BaResponse Integrityles: controlled pressure exposures to train emotional regulation and execution under strain.
+- Boss Battles: controlled pressure exposures to train emotional regulation and execution under strain.
 - Model → Apply → Guide: every concept follows this sequence; correct errors through the 3‑Layer Lens.
 
 Who we serve & how
@@ -16,7 +16,7 @@ Who we serve & how
 
 - Parents
   - We provide predictable outcomes and reduced cognitive load: measurable behavioural change, not just marks. 
-  - Expectation: engagement in reinforcement (aResponse Integrityendance, environment), not session management.
+  - Expectation: engagement in reinforcement (attendance, environment), not session management.
 
 - Tutors (System Executors)
   - Selected from top high‑school students; trained intensively to run Response Integrity‑OS precisely. 

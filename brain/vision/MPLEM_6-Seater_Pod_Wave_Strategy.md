@@ -1,6 +1,6 @@
 # MPLEM -The 6‑Seater Pod Wave Strategy
 
-The Multi Pod‑Launching Expansion Model (MPLEM) is the financial and operational system that powers Territorial Tutoring’s 6‑Seater Pod Wave Strategy -a scalable, self‑funding expansion engine that grows predictably without increasing structural company costs.
+The Multi Pod‑Launching Expansion Model (MPLEM) is the financial and operational system that powers Response Integrity’s 6‑Seater Pod Wave Strategy -a scalable, self‑funding expansion engine that grows predictably without increasing structural company costs.
 
 MPLEM = one backbone + many profit engines + no scaling friction.
 

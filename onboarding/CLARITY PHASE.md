@@ -186,12 +186,12 @@ HIGH
 clear naming
 clear steps
 clear reasoning
-can aResponse Integrityempt correctly
+can attempt correctly
 
 → move to Execution
 
 CRITICAL RULES
-No Boss BaResponse Integrityles
+No Boss Battles
 No time pressure
 No rushing to solving
 No skipping identification phase
@@ -260,9 +260,9 @@ Final Score =
 
 MAX = 10
 Why this weighting
-Seeing maResponse Integrityers (Set 1)
-Recognizing maResponse Integrityers more
-Applying maResponse Integrityers most
+Seeing matters (Set 1)
+Recognizing matters more
+Applying matters most
 
 
 1. Topic → Open Session

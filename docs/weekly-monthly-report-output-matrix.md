@@ -67,7 +67,7 @@ Each drill row becomes a deterministic session with these report-relevant fields
 - `sessionGroupId`
 - `topic`
 - `drillType`
-- `behaviorPaResponse Integrityerns`
+- `behaviorPatterns`
 - `score`
 - `phaseBefore`
 - `phaseAfter`
@@ -96,7 +96,7 @@ Diagnosis reports can still contribute to weekly/monthly windows because diagnos
 Training rows use:
 
 - topic from `trainingTopic` or `introTopic`
-- phase before from submiResponse Integrityed/current phase
+- phase before from submitted/current phase
 - phase after from `summary.phase`
 - previous stability from `summary.previousStability`
 - stability after from `summary.stability`
@@ -409,7 +409,7 @@ Weak output:
 
 Clear output:
 
-- `beResponse Integrityer control under difficulty`
+- `better control under difficulty`
 
 Absolute version:
 
@@ -484,7 +484,7 @@ Current strong labels from the mapping:
 - `more reliable step execution`
 - `more independent execution`
 - `earlier independent starts`
-- `beResponse Integrityer control under difficulty`
+- `better control under difficulty`
 - `stronger structure retention`
 - `more controlled pace`
 
@@ -511,7 +511,7 @@ Behavior labels are counted by frequency.
 Current limits:
 
 - weekly/monthly challenge fields: top `2` weak labels
-- weekly response paResponse Integrityern: top `3` absolute behavior labels
+- weekly response pattern: top `3` absolute behavior labels
 - phase-progress behavior clause: top `2` strong late behavior labels
 
 Tie behavior:
@@ -567,7 +567,7 @@ Possible strengthened outputs:
 - `more reliable step execution`
 - `more independent execution`
 - `earlier independent starts`
-- `beResponse Integrityer control under difficulty`
+- `better control under difficulty`
 - `stronger structure retention`
 - `more controlled pace`
 
@@ -575,7 +575,7 @@ Fallbacks:
 
 - weekly/monthly improvement with stability advance: `showed stronger stability`
 - weekly/monthly improvement without stability advance: `improved stability across drills`
-- monthly response trend: `showed a more consistent response paResponse Integrityern`
+- monthly response trend: `showed a more consistent response pattern`
 
 ## Topic snapshots
 
@@ -780,10 +780,10 @@ Generated fields:
 - `topicsWorkedOn`
 - `conditioningProgress`
 - `whatImproved`
-- `responsePaResponse Integrityern`
+- `responsePattern`
 - `mainBreakdown`
 - `systemMovement`
-- `whaResponse IntegrityhisMeans`
+- `whatThisMeans`
 - `nextFocus`
 - `internalWeeklyTutorNote`
 - `drillCount`
@@ -798,7 +798,7 @@ Parent card sections:
 - `Topics Worked On`
 - `What Improved`
 - `What This Means`
-- `Response PaResponse Integrityern`
+- `Response Pattern`
 - `Challenges`
 - `System Movement`
 - `Conditioning Progress`
@@ -845,7 +845,7 @@ If no topics qualify:
 
 - `No stability improvements detected this week`
 
-`Response PaResponse Integrityern`:
+`Response Pattern`:
 
 - `{topic}: {top 3 absolute behavior labels}`
 
@@ -863,7 +863,7 @@ Fallback:
 
 Global fallback if no topic breakdown exists:
 
-- `No recurring breakdown paResponse Integrityerns detected`
+- `No recurring breakdown patterns detected`
 
 `System Movement`:
 
@@ -903,7 +903,7 @@ Generated fields:
 - `responseTrend`
 - `recurringChallenge`
 - `systemOutcome`
-- `whaResponse IntegrityhisMeans`
+- `whatThisMeans`
 - `currentStateSnapshot`
 - `nextMonthFocus`
 - `drillCount`
@@ -915,7 +915,7 @@ Parent card sections:
 - `{monthName} Report`
 - date range
 - sent metadata
-- feedback buResponse Integrityon
+- feedback button
 - `Total Sessions Completed`
 - `Topics Conditioned`
 - `What Became Stronger`
@@ -970,7 +970,7 @@ If no topics qualify:
 
 Fallback:
 
-- `{topic}: showed a more consistent response paResponse Integrityern`
+- `{topic}: showed a more consistent response pattern`
 
 `Recurring Challenge`:
 
@@ -1189,7 +1189,7 @@ Weekly output:
 - `Topics Worked On`: all topics
 - `Conditioning Progress`: one row per topic
 - `What Improved`: only topics that improved or had non-remain movement
-- `Response PaResponse Integrityern`: one line per topic
+- `Response Pattern`: one line per topic
 - `Challenges`: one line per topic
 - `System Movement`: one movement line per topic joined with `, `
 - `What This Means`: one meaning line per topic
@@ -1330,7 +1330,7 @@ Monthly insert:
 
 - `report_type`: `monthly`
 - `week_number`: `null`
-- `month_name`: formaResponse Integrityed month name from `monthStartDate`
+- `month_name`: formatted month name from `monthStartDate`
 - `summary`: JSON string of structured monthly data
 - `topics_learned`: `topicsConditioned.join(", ")`
 - `strengths`: `whatBecameStronger.join(" | ")`
@@ -1347,9 +1347,9 @@ If feedback exists:
 
 - monthly card shows `Feedback Given`
 - feedback block shows `Your Feedback`
-- feedback timestamp shows `SubmiResponse Integrityed {date}`
+- feedback timestamp shows `Submitted {date}`
 
-SubmiResponse Integritying feedback updates:
+Submitting feedback updates:
 
 - `parent_feedback`
 - `parent_feedback_at`

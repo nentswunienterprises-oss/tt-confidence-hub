@@ -101,7 +101,7 @@ Below is the current phase-specific output logic used by the lower dashboard sec
 
 `Parent Role`
 
-- `Keep session aResponse Integrityendance steady and protected.`
+- `Keep session attendance steady and protected.`
 - `Use the tutor and training plan as the operating reference.`
 - `Let your child explain what the question is asking before stepping in with the answer.`
 - `Do not rush them into speed before the structure is clear.`
@@ -117,9 +117,9 @@ Below is the current phase-specific output logic used by the lower dashboard sec
 
 `Parent Role`
 
-- `Keep session aResponse Integrityendance steady and protected.`
+- `Keep session attendance steady and protected.`
 - `Use the tutor and training plan as the operating reference.`
-- `Look for clearer reading and beResponse Integrityer first-step recognition, not only marks.`
+- `Look for clearer reading and better first-step recognition, not only marks.`
 - `Do not rush them into speed before the structure is clear.`
 
 ## Structured Execution
@@ -135,7 +135,7 @@ Below is the current phase-specific output logic used by the lower dashboard sec
 
 `Parent Role`
 
-- `Keep session aResponse Integrityendance steady and protected.`
+- `Keep session attendance steady and protected.`
 - `Use the tutor and training plan as the operating reference.`
 - `Let your child start the problem independently before stepping in.`
 - `Look for steadier starts and method order, not speed or perfection yet.`
@@ -151,7 +151,7 @@ Below is the current phase-specific output logic used by the lower dashboard sec
 
 `Parent Role`
 
-- `Keep session aResponse Integrityendance steady and protected.`
+- `Keep session attendance steady and protected.`
 - `Use the tutor and training plan as the operating reference.`
 - `Let your child start the problem independently before stepping in.`
 - `Look for more repeatable method use and steadier starts, not only marks.`
@@ -163,32 +163,32 @@ Below is the current phase-specific output logic used by the lower dashboard sec
 `What is Being Observed`
 
 - `Calmer starts when questions feel less familiar`
-- `BeResponse Integrityer structure holding in harder work`
+- `Better structure holding in harder work`
 - `Less visible shutdown under challenge`
-- `More complete aResponse Integrityempts on difficult questions`
+- `More complete attempts on difficult questions`
 
 `Parent Role`
 
-- `Keep session aResponse Integrityendance steady and protected.`
+- `Keep session attendance steady and protected.`
 - `Use the tutor and training plan as the operating reference.`
 - `Let discomfort happen before stepping in with reassurance.`
-- `Look for calmer starts and steadier aResponse Integrityempts when the work feels harder.`
+- `Look for calmer starts and steadier attempts when the work feels harder.`
 
 ### Live
 
 `What is Being Observed`
 
 - `Calmer starts when questions feel less familiar`
-- `BeResponse Integrityer structure holding in harder work`
+- `Better structure holding in harder work`
 - `Less visible shutdown under challenge`
-- `More complete aResponse Integrityempts on difficult questions`
+- `More complete attempts on difficult questions`
 
 `Parent Role`
 
-- `Keep session aResponse Integrityendance steady and protected.`
+- `Keep session attendance steady and protected.`
 - `Use the tutor and training plan as the operating reference.`
 - `Let discomfort happen before stepping in with reassurance.`
-- `Look for calmer starts and steadier aResponse Integrityempts when the work feels harder.`
+- `Look for calmer starts and steadier attempts when the work feels harder.`
 
 ## Time Pressure Stability
 
@@ -203,7 +203,7 @@ Below is the current phase-specific output logic used by the lower dashboard sec
 
 `Parent Role`
 
-- `Keep session aResponse Integrityendance steady and protected.`
+- `Keep session attendance steady and protected.`
 - `Use the tutor and training plan as the operating reference.`
 - `Protect focused timed work without adding extra panic from outside the session.`
 - `Look for structure under pace, not just whether the answer was finished quickly.`
@@ -219,7 +219,7 @@ Below is the current phase-specific output logic used by the lower dashboard sec
 
 `Parent Role`
 
-- `Keep session aResponse Integrityendance steady and protected.`
+- `Keep session attendance steady and protected.`
 - `Use the tutor and training plan as the operating reference.`
 - `Protect focused timed work without adding extra panic from outside the session.`
 - `Look for structure under pace, not just whether the answer was finished quickly.`
@@ -240,12 +240,12 @@ Example:
   - `Less hesitation when beginning problems`
 - `Functions`
   - `Calmer starts when questions feel less familiar`
-  - `BeResponse Integrityer structure holding in harder work`
+  - `Better structure holding in harder work`
 
 `Parent Role`
 
 - shared
-  - `Keep session aResponse Integrityendance steady and protected.`
+  - `Keep session attendance steady and protected.`
   - `Use the tutor and training plan as the operating reference.`
 - per topic
   - `Algebra`
@@ -256,7 +256,7 @@ Example:
       - `Look for more repeatable method use and steadier starts, not only marks.`
   - `Functions`
     - `Let discomfort happen before stepping in with reassurance.`
-    - `Look for calmer starts and steadier aResponse Integrityempts when the work feels harder.`
+    - `Look for calmer starts and steadier attempts when the work feels harder.`
 
 ## 4 Topics
 
@@ -277,7 +277,7 @@ Example:
   - `Less hesitation when beginning problems`
 - `Geometry`
   - `Calmer starts when questions feel less familiar`
-  - `BeResponse Integrityer structure holding in harder work`
+  - `Better structure holding in harder work`
 - `Trigonometry`
   - `Stronger structure while work is timed`
   - `Fewer rushed breakdowns`
@@ -285,14 +285,14 @@ Example:
 `Parent Role`
 
 - shared
-  - `Keep session aResponse Integrityendance steady and protected.`
+  - `Keep session attendance steady and protected.`
   - `Use the tutor and training plan as the operating reference.`
 - per topic
   - `Algebra`
     - diagnosis-only:
       - `Let your child explain what the question is asking before stepping in with the answer.`
     - live:
-      - `Look for clearer reading and beResponse Integrityer first-step recognition, not only marks.`
+      - `Look for clearer reading and better first-step recognition, not only marks.`
     - both:
       - `Do not rush them into speed before the structure is clear.`
   - `Functions`
@@ -303,7 +303,7 @@ Example:
       - `Look for more repeatable method use and steadier starts, not only marks.`
   - `Geometry`
     - `Let discomfort happen before stepping in with reassurance.`
-    - `Look for calmer starts and steadier aResponse Integrityempts when the work feels harder.`
+    - `Look for calmer starts and steadier attempts when the work feels harder.`
   - `Trigonometry`
     - `Protect focused timed work without adding extra panic from outside the session.`
     - `Look for structure under pace, not just whether the answer was finished quickly.`

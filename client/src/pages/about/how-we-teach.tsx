@@ -46,13 +46,17 @@ export default function HowWeTeach() {
             <p>Students learn why each step works, so they don't rely on memorisation alone.</p>
             <p>This structure helps students think clearly - even when things feel unstable.</p>
 
-            <p>This is the teaching layer.</p>
-            <p>From there, students move through a conditioning progression:</p>
-            <ul>
-              <li>structured execution,</li>
-              <li>controlled difficulty,</li>
-              <li>and pressure stability.</li>
-            </ul>
+            <h2>Our Conditioning Progression</h2>
+            <p>Each topic is developed through a structured progression.</p>
+            <h3>1. Clarity</h3>
+            <p>Students learn the language, structure, and logic of the topic clearly.</p>
+            <h3>2. Structured Execution</h3>
+            <p>Students practice a repeatable way of responding, so they are not guessing when uncertainty appears.</p>
+            <h3>3. Controlled Difficulty</h3>
+            <p>Difficulty is introduced deliberately so students learn to remain functional when the work stops feeling easy.</p>
+            <h3>4. Pressure Stability</h3>
+            <p>As execution improves, students are trained to stay structured under time and assessment pressure.</p>
+            <p>Teaching is one layer of this system. Conditioning the response is the larger goal.</p>
             <p>Not every session is the same. The learner's phase determines the drill, the level of support, and when speed or pressure are introduced.</p>
 
             <h2>Controlled Pressure</h2>

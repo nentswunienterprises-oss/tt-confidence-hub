@@ -60,7 +60,7 @@ export default function WhoWeAre() {
             <p>For this reason, Response Integrity operates through conditioning windows, structured enrollment cycles, and consistent development rhythms rather than reactive, ad hoc tutoring.</p>
             <p>We do not believe meaningful academic conditioning is built through panic-driven preparation shortly before exams. We believe preparation should begin long before pressure peaks.</p>
 
-            <h2>Operational Doctrine</h2>
+            <h2>Operational Values</h2>
             <p>Response Integrity does not treat operations as separate from philosophy.</p>
             <p>If stable response is built through cadence, then enrollment cannot be completely ad hoc, scheduling cannot be random, and pressure preparation cannot begin only when exams are near.</p>
             <p>That is why our operating model uses conditioning windows, structured starts, and consistent repetition rather than reactive tutoring culture.</p>

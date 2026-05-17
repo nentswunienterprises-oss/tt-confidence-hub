@@ -1,8 +1,8 @@
-# Response Integrity Business Model -Territorial Tutoring (Current Evolution)
+# Response Integrity Business Model -Response Integrity (Current Evolution)
 
 ## Who we are (evolution)
 
-Building Territorial Tutoring as an education institution that connects high schools and primary schools to solve a problem neither can fix alone. High schools nominate their top, most disciplined students to be selected into Response Integrity as an elite academic leadership programme -similar to debate or sport, but with strict standards and zero tolerance for academic decline. These students are trained to execute under pressure and to lead others, addressing a real concern schools face: learners leaving with degrees but no execution skills.
+Building Response Integrity as an education institution that connects high schools and primary schools to solve a problem neither can fix alone. High schools nominate their top, most disciplined students to be selected into Response Integrity as an elite academic leadership programme -similar to debate or sport, but with strict standards and zero tolerance for academic decline. These students are trained to execute under pressure and to lead others, addressing a real concern schools face: learners leaving with degrees but no execution skills.
 
 Primary schools, on the other hand, struggle with capable learners who understand the work but panic, rush, or freeze in exams because they were never trained to perform under pressure. Classroom teachers can’t condition individual responses at scale. Response Integrity fills that gap by placing trained high school leaders as one-on-one response-conditioning tutors for Grade 6–7 learners, helping them stay calm, think clearly, and execute in exam conditions. Response Integrity doesn’t replace schools or teachers -it trains execution. It creates the conditions that prepare students for pressure before failure becomes identity.
 
@@ -20,7 +20,7 @@ By Grade 8–10, many learners already carry:
 
 - Panic habits under assessment
 - Fragile execution under pressure
-- Avoidance paResponse Integrityerns disguised as “discipline issues”
+- Avoidance patterns disguised as “discipline issues”
 - A quiet belief that school is something to survive, not master
 
 At this stage, high schools are forced into damage control.
@@ -44,7 +44,7 @@ High schools are expected to fix what should have been trained earlier. That exp
 
 ## The institutional shift we are building
 
-Territorial Tutoring is not a tutoring company.
+Response Integrity is not a tutoring company.
 
 We are an external academic leadership institution that enables high schools to solve a primary-school problem -upstream.
 
@@ -100,7 +100,7 @@ Response Integrity governs the system.
 
 ## Why this benefits high schools directly
 
-1. Leadership Development That Actually MaResponse Integrityers
+1. Leadership Development That Actually Matters
 
 This is not prefect badges or CV padding.
 
@@ -118,7 +118,7 @@ This is youth leadership with consequences.
 Grade 6–7 learners who pass through response-conditioning enter high school:
 
 - With fewer panic habits
-- BeResponse Integrityer exam posture
+- Better exam posture
 - Higher execution confidence
 
 High schools feel this years later, quietly, in results and culture.
@@ -136,14 +136,14 @@ That is prestige backed by structure.
 This model:
 
 - Slows identity collapse
-- Reduces avoidance paResponse Integrityerns
+- Reduces avoidance patterns
 - Decreases the number of learners being pushed forward unprepared
 
 It addresses the problem before learners age out.
 
 ---
 
-## Why this maResponse Integrityers for South Africa
+## Why this matters for South Africa
 
 South Africa does not only need more degrees.
 
@@ -190,7 +190,7 @@ It is deliberate institution-building.
 
 ## The one-sentence positioning 
 
-**Territorial Tutoring enables high schools to develop academic leaders who prevent failure upstream -before panic becomes identity.**
+**Response Integrity enables high schools to develop academic leaders who prevent failure upstream -before panic becomes identity.**
 
 ---
 
@@ -199,7 +199,7 @@ It is deliberate institution-building.
 Not everyone qualifies. That’s the point.
 Earn R3,500–R5,000 per month (tax-free) while building real teaching, leadership, and execution skills.
 
-Territorial Tutoring is selecting a small number of high-performing, disciplined students to train as System Executors inside our structured math mentorship operation.
+Response Integrity is selecting a small number of high-performing, disciplined students to train as System Executors inside our structured response-conditioning operation.
 
 This is not casual tutoring.
 This is not “teach your own way.”
@@ -207,7 +207,7 @@ This is a system.
 
 ### What you’re stepping into
 
-Territorial Tutoring runs a structured online math mentorship programme for Grades 6–9.
+Response Integrity runs a structured online academic performance-conditioning programme for Grades 6–9.
 
 We don’t rely on personality, motivation, or talent alone.
 We rely on clear systems, repetition, and standards.
@@ -271,7 +271,7 @@ Earnings increase with consistency and student load
 
 Top performers grow into leadership roles
 
-You earn more by executing beResponse Integrityer -not by talking more.
+You earn more by executing better -not by talking more.
 
 ---
 
@@ -298,7 +298,7 @@ If you execute the system, results follow -for you and your students.
 
 ### 1. Brand position (non-negotiable)
 
-Territorial Tutoring is not a tutoring company.
+Response Integrity is not a tutoring company.
 It is a performance-conditioning system for young minds.
 
 - Subject: Math
@@ -352,7 +352,7 @@ Definition:
 Response Integrity-OS is the operating system that turns understanding into calm, repeatable execution through structure, repetition, and pressure conditioning.
 
 Response Integrity-OS:
-- 1. Vocabulary, Method, Reason + Boss BaResponse Integrityles
+- 1. Vocabulary, Method, Reason + Boss Battles
 - 2. Model, Apply, Guide + Know Before You Go, Show Don’t Just Tell, Reinforce To Master
 
 Same system for every student.
@@ -402,12 +402,12 @@ Students who:
 
 **What we train**
 - Repetition to build automatic response
-- PaResponse Integrityern recognition under normal stress
+- Pattern recognition under normal stress
 - Emotional regulation during execution
 
 **What it includes**
 - 2× weekly 1-on-1 sessions
-- Denser repetition on the same response paResponse Integrityerns
+- Denser repetition on the same response patterns
 - Tight feedback loops
 - Priority tutor matching
 - Close performance tracking
@@ -452,7 +452,7 @@ Not inspector. Not authority. Readiness Coach. They answer one question: “Does
 
 ## Brand identity
 
-Territorial Tutoring is not a tutoring company.
+Response Integrity is not a tutoring company.
 It is a performance-conditioning system for young minds.
 
 - Subject: Math
@@ -475,7 +475,7 @@ What Response Integrity actually enables: Step-by-step problem solving, structur
 Response Integrity does not sell confidence. Response Integrity sells cognitive stability under uncertainty. The emotional state is calm, oriented, non-panicked, neutral. Confidence is an indicator, not the offer.
 
 **Level 4 – The Behavior Change (THIS IS THE PRODUCT)**
-Students trained by Response Integrity do one thing differently: They do not freeze when the question breaks expectation. They: Read the question fully → Identify what is known → Execute a trained response paResponse Integrityern → Move forward without extended emotional escalation. This behavior change is observable, trainable, repeatable, and testable under pressure. This is response integrity.
+Students trained by Response Integrity do one thing differently: They do not freeze when the question breaks expectation. They: Read the question fully → Identify what is known → Execute a trained response pattern → Move forward without extended emotional escalation. This behavior change is observable, trainable, repeatable, and testable under pressure. This is response integrity.
 
 **Level 5 – The Transformed Future (THE PROMISE)**
 Exams stop feeling like ambushes. Performance stabilizes across terms. Parents stop micromanaging. Students stop self-labeling as “bad at math.” Academic pressure becomes manageable, not traumatic.
@@ -528,7 +528,7 @@ Parents don’t want inspiration. They want relief that doesn’t collapse under
 
 Old framing (insufficient): “Students lack confidence in math.”
 
-Real problem: Students know what to do -but can’t execute when it maResponse Integrityers.
+Real problem: Students know what to do -but can’t execute when it matters.
 
 Symptoms: Freezing in tests; rushing under time pressure; second-guessing correct methods; emotional spikes that break logic.
 
@@ -538,7 +538,7 @@ Schools teach content. Tutors explain concepts. Response Integrity trains execut
 
 ---
 
-## The final test (the only one that maResponse Integrityers)
+## The final test (the only one that matters)
 
 If someone encounters Response Integrity once and later says: “That’s the company that trains how students respond when math gets hard.” You’ve won.
 
@@ -550,15 +550,15 @@ If they say: “That’s an online tutoring app.” You’re dead.
 
 Calm. Precise. Unemotional. Grounded in reality.
 
-Response Integrity does not hype. Response Integrity does not soothe. Response Integrity does not perform warmth. It speaks the way a disciplined operator speaks when outcomes maResponse Integrityer.
+Response Integrity does not hype. Response Integrity does not soothe. Response Integrity does not perform warmth. It speaks the way a disciplined operator speaks when outcomes matter.
 
 ### What Response Integrity’s tone is
 
 1. Calm Under Pressure -Nothing sounds rushed; nothing sounds reactive. No exclamation marks.
 2. Precise, Minimal Language -Short lines; clean verbs; no filler.
 3. Observational, Not Persuasive -“Here’s what we train instead.” No claims, no promises.
-4. Neutral, Not Sympathetic -“This is a normal response paResponse Integrityern. It’s untrained, not broken. Training fixes this.”
-5. Disciplined, Not Friendly -Respectful, not chaResponse Integrityy. No slang, no emojis.
+4. Neutral, Not Sympathetic -“This is a normal response pattern. It’s untrained, not broken. Training fixes this.”
+5. Disciplined, Not Friendly -Respectful, not chatty. No slang, no emojis.
 6. Quietly Confrontational -Names truths people already feel but avoid saying.
 
 ### What Response Integrity’s tone is NOT (banned)
@@ -596,7 +596,7 @@ The actual failure mode: The student’s response system is untrained. When time
 
 Why primary schools cannot solve this alone:
 
-- Classroom scale -one teacher cannot condition 30 individual response paResponse Integrityerns.
+- Classroom scale -one teacher cannot condition 30 individual response patterns.
 - Curriculum pressure -schools must move forward, not sit inside discomfort.
 - Assessment design -tests reveal breakdown, they do not train response to breakdown.
 - Emotional constraints -schools are incentivised to soothe, not deliberately stress.
@@ -604,16 +604,16 @@ Why primary schools cannot solve this alone:
 What happens if this isn’t addressed early:
 
 - Untrained response systems don’t disappear. They compound.
-- Avoidance paResponse Integrityerns harden.
+- Avoidance patterns harden.
 - Confidence erosion becomes identity.
 
 Primary schools feel this intuitively. “If only we could catch this earlier.”
 
 ---
 
-## What Territorial Tutoring actually provides
+## What Response Integrity actually provides
 
-Territorial Tutoring is not extra lessons. It is not curriculum replacement. It is not remedial tutoring.
+Response Integrity is not extra lessons. It is not curriculum replacement. It is not remedial tutoring.
 
 We provide a controlled response-conditioning program for capable students who underperform under pressure.
 
@@ -665,7 +665,7 @@ Response Integrity removes chaos until confidence has no choice but to appear.
 
 ## Frequently Asked Questions (short)
 
-**What exactly is Territorial Tutoring?**
+**What exactly is Response Integrity?**
 A performance-conditioning system for students in Grades 6–7; math is the arena; response under pressure is the skill.
 
 **How is Response Integrity different from other tutoring services?**
@@ -715,13 +715,13 @@ We do not cram before exams, inflate confidence artificially, chase motivation, 
 
 ## Response Integrity-OS (sacred system)
 
-This system is not optional. Execute it with precision. Apply the 3-Layer Lens (Vocabulary → Method → Reason), use Boss BaResponse Integrityles for pressure exposure, and follow Model → Apply → Guide for every concept.
+This system is not optional. Execute it with precision. Apply the 3-Layer Lens (Vocabulary → Method → Reason), use Boss Battles for pressure exposure, and follow Model → Apply → Guide for every concept.
 What Response Integrity-OS Is
 Response Integrity-OS is a response-conditioning system. Not a curriculum. Not a teaching method. A system for training how students respond when certainty disappears.
 
-Most tutors teach content. You train response paResponse Integrityerns. When a student sees a problem they don't immediately recognize, we want them to stay calm, identify what they know, and execute. That response doesn't happen naturally. It gets trained.
+Most tutors teach content. You train response patterns. When a student sees a problem they don't immediately recognize, we want them to stay calm, identify what they know, and execute. That response doesn't happen naturally. It gets trained.
 
-The system has three tools: 3-Layer Lens, Boss BaResponse Integrityles, and Model → Apply → Guide. Use them correctly, students transform. Skip them, you're just another tutor explaining fractions.
+The system has three tools: 3-Layer Lens, Boss Battles, and Model → Apply → Guide. Use them correctly, students transform. Skip them, you're just another tutor explaining fractions.
 
 Tool 1
 The 3-Layer Lens
@@ -733,7 +733,7 @@ Know the names of terms.
 
 Vocabulary is about knowing what things are called. Coefficient. Variable. Exponent. Quadratic. Factor. Solution. Product. Quotient.
 
-When you model a problem, you name every component. When a student makes an error, you check: do they know the terms? If they call the exponent "the liResponse Integrityle number" or the coefficient "that thing in front," the vocabulary layer cracked.
+When you model a problem, you name every component. When a student makes an error, you check: do they know the terms? If they call the exponent "the little number" or the coefficient "that thing in front," the vocabulary layer cracked.
 
 WHEN MODELING
 
@@ -810,25 +810,25 @@ When Correcting (Guiding)
 Diagnose which layer cracked: Terms unknown? Method missing? Reason unclear? Fix the layer that failed.
 
 Tool 2
-Boss BaResponse Integrityles
+Boss Battles
 Strategic pressure exposure. Students get stronger by facing controlled difficulty.
 
 What It Is
-A Boss BaResponse Integrityle is a deliberately challenging problem introduced after a student thinks they've mastered a concept. It's not a trick. It's not impossible. It's just hard enough to trigger their uncertainty response in a controlled environment.
+A Boss Battle is a deliberately challenging problem introduced after a student thinks they've mastered a concept. It's not a trick. It's not impossible. It's just hard enough to trigger their uncertainty response in a controlled environment.
 
 Why It Exists
-Exams ambush students with unexpected difficulty. Boss BaResponse Integrityles remove the ambush. Students learn that hard problems don't mean panic - they mean execute the system.
+Exams ambush students with unexpected difficulty. Boss Battles remove the ambush. Students learn that hard problems don't mean panic - they mean execute the system.
 
 Facing difficulty in session, with you present, trains emotional regulation. The next time they hit a hard problem alone, the response is already conditioned: stay calm, identify what you know, execute.
 
 How to Use It
 Step 1: Timing
 
-Introduce a Boss BaResponse Integrityle when the student feels confident. They've done 3-4 problems correctly. They think they've got it. Now introduce difficulty.
+Introduce a Boss Battle when the student feels confident. They've done 3-4 problems correctly. They think they've got it. Now introduce difficulty.
 
 Step 2: Observe
 
-Watch their reaction. Do they freeze? Rush? Give up? Complain? That's the response paResponse Integrityern you're conditioning against.
+Watch their reaction. Do they freeze? Rush? Give up? Complain? That's the response pattern you're conditioning against.
 
 Step 3: Don't Rescue
 
@@ -840,11 +840,11 @@ After they've sat with it, ask: "What do you know?" or "What type of problem is 
 
 Step 5: Debrief
 
-After they complete it (or aResponse Integrityempt it), name what happened: "You paused. You identified it as quadratic. You started with what you knew. That's the response we're training."
+After they complete it (or attempt it), name what happened: "You paused. You identified it as quadratic. You started with what you knew. That's the response we're training."
 
 Critical Rule:
 
-Boss BaResponse Integrityles are not punishment for geResponse Integritying problems wrong. They're training tools for building pressure tolerance. Use them strategically, not punitively.
+Boss Battles are not punishment for getting problems wrong. They're training tools for building pressure tolerance. Use them strategically, not punitively.
 
 Tool 3
 Model → Apply → Guide
@@ -872,7 +872,7 @@ What to say:
 
 "Now you do this one: x² - 7x + 12 = 0. Name the terms. Show me the method. Tell me why each step works."
 
-Key: Immediate application while the model is fresh. PaResponse Integrityern recognition requires repetition.
+Key: Immediate application while the model is fresh. Pattern recognition requires repetition.
 
 G
 Guide
@@ -897,7 +897,7 @@ Student writes: (x-2) = 0
 You: "Solve that."
 Student: "Oh. x = 2."
 
-Diagnosis: Method layer cracked. They knew vocabulary (factors). They understood reason (zero product property). But they skipped showing the step: seResponse Integritying each factor to zero.
+Diagnosis: Method layer cracked. They knew vocabulary (factors). They understood reason (zero product property). But they skipped showing the step: setting each factor to zero.
 
 Key: Don't just say "that's wrong." Diagnose which layer failed. Correct that specific layer.
 
@@ -909,7 +909,7 @@ Model - Teach concept through Vocabulary + Method + Reason
 Apply - Student executes immediately
 →
 Guide - Diagnose errors through Vocabulary + Method + Reason, fix the layer that cracked
-This is not Model → Apply → Introduce Boss BaResponse Integrityle. Guide means correcting through the lens. That's the system.
+This is not Model → Apply → Introduce Boss Battle. Guide means correcting through the lens. That's the system.
 
 The Law of Inevitability
 This is the philosophy behind everything. Confidence is not taught. It's inevitable when the conditions are right.
@@ -924,7 +924,7 @@ Repeatable processes replace guesswork. When they see x², they know the system.
 
 Repetition
 
-Response paResponse Integrityerns get trained through repetition. One exposure doesn't create a habit. Ten exposures start to. Fifty exposures make it automatic.
+Response patterns get trained through repetition. One exposure doesn't create a habit. Ten exposures start to. Fifty exposures make it automatic.
 
 Consistency
 
@@ -944,10 +944,10 @@ Your job is not to be creative, warm, motivational, or inspiring. Your job is to
 What this means:
 
 • Apply the 3-Layer Lens to every error
-• Introduce Boss BaResponse Integrityles when students feel comfortable
+• Introduce Boss Battles when students feel comfortable
 • Follow Model → Apply → Guide for every concept
 • Correct vocabulary immediately, every time
-• Train response paResponse Integrityerns, not just content knowledge
+• Train response patterns, not just content knowledge
 • Hold standards constant - never lower expectations
 • Trust the system, even when students resist
 When you execute the system, students transform.

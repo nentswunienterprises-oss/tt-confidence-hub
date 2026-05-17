@@ -140,7 +140,7 @@ Right now active training exposes:
 Start Single Drill
 Start Training Session from topic conditioning
 
-That is good for drill execution, but weak for operational compliance because it is not tied to a scheduled TT-owned meeting.
+That is good for drill execution, but weak for operational compliance because it is not tied to a scheduled Response Integrity-owned meeting.
 
 So add a lightweight weekly scheduling layer before those buttons are truly usable live.
 
@@ -389,7 +389,7 @@ This is the outer operational shell.
 
 Purpose
 
-Represents a TT-owned, scheduled Meet lesson tied to a tutor and student.
+Represents a Response Integrity-owned, scheduled Meet lesson tied to a tutor and student.
 
 Fields
 type ScheduledLesson = {

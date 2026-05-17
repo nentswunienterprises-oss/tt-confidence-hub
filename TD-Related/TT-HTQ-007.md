@@ -1,7 +1,7 @@
 Response Integrity-HTQ-007 - HEAD OF TRAINING & QUALITY
 AGREEMENT
 This Agreement is entered into between:
-Territorial Tutoring SA (Pty) Ltd (“Response Integrity”)
+Response Integrity (Pty) Ltd (“Response Integrity”)
 and
 _______________________________________ (“Head of Training & Quality” / “HTQ”)
 Effective Date: ______________________
@@ -41,7 +41,7 @@ Salary is not guaranteed and may be adjusted.
 5. EQUITY STRUCTURE (PERFORMANCE-BASED)
 5.1 TOTAL EQUITY
 The HTQ is eligible to earn:
-5% equity in Territorial Tutoring SA (Pty) Ltd
+5% equity in Response Integrity (Pty) Ltd
 5.2 VESTING STRUCTURE
 Equity is not granted upfront. It vests as follows:
 2% equity upon formal appointment as HTQ
@@ -96,7 +96,7 @@ Alignment with system-first principles
 Signed at __________________________ on this ______ day of ______________ 2026.
 _____________________________________
 Territory Director
-For and on behalf of Territorial Tutoring SA (Pty) Ltd
+For and on behalf of Response Integrity (Pty) Ltd
 Response Integrity Representative Signature: ______________________
 Print Name: Thendo Nentswuni
 Date: ____________________

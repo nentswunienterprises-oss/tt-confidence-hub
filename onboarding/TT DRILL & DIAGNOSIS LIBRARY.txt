@@ -57,7 +57,7 @@ If this fails → everything else collapses.
 1. PHASE STRUCTURE
 Core Components (Fixed)
 
-These are the only things that maResponse Integrityer in Clarity:
+These are the only things that matter in Clarity:
 
 Vocabulary (terms)
 Method (steps)
@@ -179,7 +179,7 @@ Reinforce Reason
 Re-model same concept
 Immediate apply after each model
 Constraints
-❌ No Boss BaResponse Integrityles
+❌ No Boss Battles
 ❌ No time pressure
 ❌ No skipping layers
 Clarity MEDIUM
@@ -193,7 +193,7 @@ Increase Apply reps
 Introduce light execution checks
 Constraints
 ❌ No time pressure
-⚠️ Boss BaResponse Integrityles not primary
+⚠️ Boss Battles not primary
 Reduce explanation, increase reps
 Clarity HIGH
 Interpretation
@@ -206,7 +206,7 @@ reasoning
 System Action
 Transition to Execution drills
 Reduce modeling
-Increase independent aResponse Integrityempts
+Increase independent attempts
 Constraints
 ❌ Do not stay in teaching mode
 9. TRAINING DRILL STRUCTURE (REFERENCE)
@@ -290,7 +290,7 @@ can’t explain why
 
 They are still in Clarity.
 
-No maResponse Integrityer how many answers they get right.
+No matter how many answers they get right.
 
 🔶 PHASE 2 -STRUCTURED EXECUTION
 EXECUTION DIAGNOSIS DRILL
@@ -342,7 +342,7 @@ Step recall
 ☐ partial
 ☐ full
 
-Error paResponse Integrityern
+Error pattern
 ☐ guessing
 ☐ careless
 ☐ structured
@@ -439,7 +439,7 @@ Rep Observation Block
 Initial response
 ☐ freeze
 ☐ hesitate
-☐ aResponse Integrityempt
+☐ attempt
 
 First step
 ☐ none
@@ -460,7 +460,7 @@ Rep Observation Block
 
 Persistence
 ☐ gives up
-☐ short aResponse Integrityempt
+☐ short attempt
 ☐ stays engaged
 
 Rescue behavior

@@ -34,7 +34,7 @@ Implications:
 - No UI that removes friction where friction is pedagogically necessary.
 - No progress indicators that simulate mastery without proof.
 
-If the system makes students feel beResponse Integrityer without performing beResponse Integrityer, it is removed.
+If the system makes students feel better without performing better, it is removed.
 
 ---
 
@@ -46,7 +46,7 @@ Therefore:
 
 - Tech must amplify one‑on‑one precision, not simulate classroom scale.
 - Dashboards are built per student, not per cohort.
-- Tutor tools prioritise response paResponse Integrityerns, not lesson completion.
+- Tutor tools prioritise response patterns, not lesson completion.
 - Scaling must never dilute individual exposure.
 
 ---
@@ -81,7 +81,7 @@ Students:
 
 - Response quality logged
 - Time behaviour tracked
-- Error paResponse Integrityerns visible
+- Error patterns visible
 - Avoidance detectable
 
 Tutors:
@@ -141,7 +141,7 @@ Leadership at Response Integrity is conditional, not honorary.
 
 Response Integrity charges premium because:
 
-- One‑on‑one aResponse Integrityention is scarce
+- One‑on‑one attention is scarce
 - Emotional labour is real
 - Conditioning is intensive
 - Outcomes are structural, not cosmetic

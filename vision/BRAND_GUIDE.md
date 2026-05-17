@@ -1,4 +1,4 @@
-# Territorial Tutoring -Internal Brand Guide (Short)
+# Response Integrity -Internal Brand Guide (Short)
 
 Purpose
 
@@ -6,7 +6,7 @@ Purpose
 
 Core Positioning (always available)
 
-> **Territorial Tutoring enables high schools to develop academic leaders who prevent failure upstream -before panic becomes identity.**
+> **Response Integrity enables high schools to develop academic leaders who prevent failure upstream -before panic becomes identity.**
 
 Tone Pillars (non-negotiable)
 
@@ -43,7 +43,7 @@ Hero & CTA examples (ready-to-use)
 
 - Headline: **We don’t teach confidence. We make it inevitable.**
   Subhead: *A system that trains how students respond when math gets hard -not another tutoring app.*
-  CTA: **See the Pilot**
+  CTA: **See How It Works**
 
 Tutor ad microcopy (50–75 words)
 
@@ -51,7 +51,7 @@ Tutor ad microcopy (50–75 words)
 
 School pilot microcopy (short)
 
-- *Pilot partnership: limited intake, no admin burden, measurable behavioural feedback. We train execution before panic becomes identity.*
+- *School partnership: limited intake, no admin burden, measurable behavioural feedback. We train execution before panic becomes identity.*
 
 Tone Test (use before publishing)
 

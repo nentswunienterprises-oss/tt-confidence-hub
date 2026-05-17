@@ -13,7 +13,7 @@ We train how students respond under pressure so exams feel like practice. Respon
 ## Pillar 3 -Public Perception
 Proof, not promises.
 
-We measure success with observable change: steady voices, improved scores, visible composure. Stories travel faster than ads. Parents see it, teachers feel it, students whisper: “Response Integrity hits different.” Reputation is earned through consistent results and clear evidence, not aResponse Integrityention chasing.
+We measure success with observable change: steady voices, improved scores, visible composure. Stories travel faster than ads. Parents see it, teachers feel it, students whisper: “Response Integrity hits different.” Reputation is earned through consistent results and clear evidence, not attention chasing.
 
 ## Pillar 4 -Technology
 Tech is our silent partner -the force that makes infinite feel personal.
@@ -23,8 +23,8 @@ One platform, many self‑sufficient pods. Automation removes noise so people ca
 ## Pillar 5 -Culture
 We are a tribe of response‑conditioning tutors, not employees.
 
-Our anthem is growth; our language is mastery. Youth teach youth. Learning is currency. Leadership is earned daily. Tutors operate like entrepreneurs; students operate like strategists. Response is the curriculum; replication is the doctrine; results are the only politics that maResponse Integrityer.
+Our anthem is growth; our language is mastery. Youth teach youth. Learning is currency. Leadership is earned daily. Tutors operate like entrepreneurs; students operate like strategists. Response is the curriculum; replication is the doctrine; results are the only politics that matter.
 
 
-Territorial Tutoring SA (Pty) Ltd
+Response Integrity (Pty) Ltd
 Where the youth teach the world how to learn again.
