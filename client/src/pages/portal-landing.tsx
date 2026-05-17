@@ -217,7 +217,27 @@ function PortalLanding() {
             </p>
           </div>
 
-          <div className="max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 max-w-5xl mx-auto">
+            <Card className="p-5 sm:p-6 md:p-8 border-0 shadow-lg" style={{ backgroundColor: "#FFF5ED" }}>
+              <div className="space-y-4 sm:space-y-6">
+                {[
+                  { title: "Someone Who Doesn't Freeze", desc: "When the question breaks expectation, they stay calm and execute their trained response." },
+                  { title: "Someone Parents Trust", desc: "Parents are able to step back from constant oversight. Their ability to handle pressure becomes more predictable." },
+                  { title: "Someone Built Through Structure", desc: "Part of a system that values consistency, clarity, and structured preparation." }
+                ].map((item, i) => (
+                  <div key={i} className="flex gap-3 sm:gap-4">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "#FFF0F0" }}>
+                      <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: "#E63946" }} />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-sm sm:text-base mb-0.5 sm:mb-1" style={{ color: "#1A1A1A" }}>{item.title}</h4>
+                      <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
             <Card className="p-5 sm:p-6 md:p-8 border-0 shadow-lg" style={{ backgroundColor: "#FFF5ED" }}>
               <div className="space-y-4 sm:space-y-6">
                 {[
