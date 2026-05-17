@@ -4,15 +4,13 @@ import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 export default function HowWeTeach() {
   return (
     <div className="min-h-screen bg-[#FCF6F2] text-[#1A1A1A]">
-      <section className="max-w-5xl mx-auto px-6 py-20 text-center">
-        <ResponseIntegrityLogo size="xl" variant="integrity" />
+      <section className="max-w-4xl mx-auto px-6 py-20 text-center">
+        <ResponseIntegrityLogo size="lg" variant="integrity" />
         <p className="mt-8 text-sm uppercase tracking-[0.35em] text-[#E63946]">How We Teach</p>
-        <h1 className="mt-6 text-4xl sm:text-5xl font-semibold tracking-tight">We teach the response before we teach the question.</h1>
-        <p className="mt-6 text-lg leading-8 text-slate-600">The system is built for students who need calm execution under pressure, not another set of practice problems.</p>
       </section>
 
       <section className="max-w-5xl mx-auto px-6 pb-24">
-        <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <Card className="rounded-2xl border border-slate-200 bg-[#F7F0EA] shadow-sm">
           <CardContent className="prose prose-slate max-w-none p-10 sm:p-12">
             <p>Response Integrity helps students stay calm, structured, and reliable when math gets difficult - especially under exam pressure.</p>
             <p>We help students build understanding first, then train them to know what to do when they feel stuck.</p>

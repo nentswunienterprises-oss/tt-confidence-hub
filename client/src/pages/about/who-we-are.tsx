@@ -5,27 +5,18 @@ export default function WhoWeAre() {
   return (
     <div className="min-h-screen bg-[#FCF6F2] text-[#1A1A1A]">
       <section className="max-w-4xl mx-auto px-6 py-20 text-center">
-        <ResponseIntegrityLogo size="xl" variant="integrity" />
+        <ResponseIntegrityLogo size="lg" variant="integrity" />
         <p className="mt-8 text-sm uppercase tracking-[0.35em] text-[#E63946]">
           Who We Are
-        </p>
-        <h1 className="mt-6 text-4xl sm:text-5xl font-semibold tracking-tight">
-          Response Integrity is built around one observation: strong students often fail not because they lack ability, but because their response collapses under pressure.
-        </h1>
-        <p className="mt-6 text-lg leading-8 text-slate-600">
-          Many students do not fail because they lack skill. They collapse because their response becomes unstable when pressure, uncertainty, or difficulty appears.
         </p>
       </section>
 
       <section className="max-w-5xl mx-auto px-6 pb-24">
-        <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <Card className="rounded-2xl border border-slate-200 bg-[#F7F0EA] shadow-sm">
           <CardContent className="prose prose-slate max-w-none p-10 sm:p-12">
             <p>Response Integrity was not built as a traditional tutoring company.</p>
             <p>It was built around a different observation:</p>
             <p>Many students do not collapse because they are incapable. They collapse because their response becomes unstable when pressure, uncertainty, difficulty, or time constraints appear.</p>
-            <div className="rounded-3xl border border-[#E63946] bg-[#FFF0F0] p-6">
-              <p className="font-semibold text-[#1A1A1A]">This is not a learning program for people who want more practice. It is a conditioning system for people who need their response to remain stable when difficulty arrives.</p>
-            </div>
             <p>Some students understand the work during lessons but freeze during exams. Some panic when questions look unfamiliar. Some emotionally shut down after one mistake. Some avoid attempting because difficulty immediately feels like failure.</p>
             <p>Response Integrity exists to train the response behind performance.</p>
             <p>We call this Response Conditioning.</p>

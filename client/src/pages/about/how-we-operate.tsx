@@ -4,54 +4,107 @@ import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 export default function HowWeOperate() {
   return (
     <div className="min-h-screen bg-[#FCF6F2] text-[#1A1A1A]">
-      <section className="max-w-5xl mx-auto px-6 py-20 text-center">
-        <ResponseIntegrityLogo size="xl" variant="integrity" />
+      <section className="max-w-4xl mx-auto px-6 py-20 text-center">
+        <ResponseIntegrityLogo size="lg" variant="integrity" />
         <p className="mt-8 text-sm uppercase tracking-[0.35em] text-[#E63946]">How We Operate</p>
-        <h1 className="mt-6 text-4xl sm:text-5xl font-semibold tracking-tight">Structure, cadence, and the discipline to prepare before pressure.</h1>
-        <p className="mt-6 text-lg leading-8 text-slate-600">
-          Our operating model is designed around cadence, conditioning windows, and consistent rhythms. We do not build academic response the way reactive tutoring does.
-        </p>
       </section>
 
       <section className="max-w-5xl mx-auto px-6 pb-24">
-        <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <Card className="rounded-2xl border border-slate-200 bg-[#F7F0EA] shadow-sm">
           <CardContent className="prose prose-slate max-w-none p-10 sm:p-12">
-            <p>Response Integrity is built to operate like a conditioning system, not an emergency tutoring service.</p>
-            <p>That means we organise each student’s progress around rhythm, cadence, and intentional timing. We do not rely on last-minute urgency or reactive intervention.</p>
-            <h2>Our Operating Principles</h2>
+            <h2>Preparation Before Pressure</h2>
+            <p>Response Integrity does not wait for pressure before preparing students.</p>
+            <p>We believe stable academic performance is built before:</p>
             <ul>
-              <li>Conditioning windows are the primary enrolment periods.</li>
-              <li>Development is paced across consistent, deliberate sessions.</li>
-              <li>Progress is measured in response stability, not short-term spikes.</li>
-              <li>Difficulty is introduced intentionally, with support, so students learn to remain functional under pressure.</li>
-              <li>We avoid panic-driven exam preparation and short-term cramming.</li>
+              <li>exams,</li>
+              <li>deadlines,</li>
+              <li>classroom pressure,</li>
+              <li>and emotional urgency appear.</li>
+            </ul>
+            <p>For this reason, Response Integrity operates through a conditioning-based academic model rather than a reactive tutoring model.</p>
+
+            <h2>Ahead-Of-Class Conditioning</h2>
+            <p>Whenever possible, Response Integrity works from the student’s yearly, termly, or upcoming school topic scope.</p>
+            <p>This allows students to begin conditioning before topics become high-pressure classroom or exam environments.</p>
+            <p>By the time a topic becomes heavily emphasized at school:</p>
+            <ul>
+              <li>the student has already seen the structures,</li>
+              <li>practiced the execution patterns,</li>
+              <li>built familiarity,</li>
+              <li>and begun stabilizing their response inside the topic.</li>
+            </ul>
+            <p>School then becomes:</p>
+            <ul>
+              <li>reinforcement,</li>
+              <li>repetition,</li>
+              <li>and deeper exposure,</li>
+              <li>rather than first contact under pressure.</li>
             </ul>
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <p className="text-sm sm:text-base text-slate-600">
-                Our system is not built to be convenient. It is built to be effective. That means enrolment, pacing, and practice are planned to strengthen response before pressure arrives.
-              </p>
-            </div>
-
-            <h2>Why cadence matters</h2>
-            <p>Stable academic performance is created through repetition, structure, and timing. Random sessions, inconsistent exposure, and emergency learning undermine the response patterns we are trying to build.</p>
-            <p>So our model emphasises:</p>
+            <h2>Topic Conditioning Cadence</h2>
+            <p>Response Integrity uses Topic Conditioning.</p>
+            <p>This means we condition students topic-by-topic using:</p>
             <ul>
-              <li>regular practice windows,</li>
-              <li>guided execution habits,</li>
-              <li>progressive challenge,</li>
-              <li>and recovery between conditioning cycles.</li>
+              <li>structured repetition,</li>
+              <li>execution practice,</li>
+              <li>controlled difficulty,</li>
+              <li>and progressive pressure exposure.</li>
+            </ul>
+            <p>Students move through topics using Response Integrity cadence rather than emergency-based academic urgency.</p>
+            <p>Conditioning is paced intentionally according to:</p>
+            <ul>
+              <li>the student’s stability,</li>
+              <li>response quality,</li>
+              <li>execution consistency,</li>
+              <li>and conditioning phase inside each topic.</li>
             </ul>
 
-            <h2>What this looks like</h2>
-            <p>In practice, Response Integrity operates with:</p>
+            <h2>Conditioning Windows</h2>
+            <p>Response Integrity operates through conditioning windows rather than last-minute intervention cycles.</p>
+            <p>This means preparation begins before pressure peaks.</p>
+            <p>Students are gradually conditioned across the academic cycle so that:</p>
             <ul>
-              <li>structured enrolment cycles,</li>
-              <li>consistent development rhythms,</li>
-              <li>controlled exposure to difficult questions,</li>
-              <li>and a focus on long-term capability over quick fixes.</li>
+              <li>exams feel familiar,</li>
+              <li>execution feels practiced,</li>
+              <li>and pressure feels manageable.</li>
             </ul>
-            <p>This is why our work is intentionally different from traditional tutoring. Our system is designed to make calm execution habitual, not occasional.</p>
+            <p>The goal is not to “save” students shortly before assessments.</p>
+            <p>The goal is to build students who can remain calm, structured, and functional when assessments arrive.</p>
+
+            <h2>Anti-Adhoc Philosophy</h2>
+            <p>Stable response cannot be built through inconsistent exposure.</p>
+            <p>For this reason, Response Integrity does not operate around chaotic, panic-driven academic intervention.</p>
+            <p>We believe:</p>
+            <ul>
+              <li>consistency builds stability,</li>
+              <li>repetition builds familiarity,</li>
+              <li>and familiarity reduces emotional collapse under pressure.</li>
+            </ul>
+            <p>Conditioning requires cadence.</p>
+
+            <h2>The Response Integrity Environment</h2>
+            <p>Response Integrity aims to create a calm-performance culture.</p>
+            <p>Inside this environment:</p>
+            <ul>
+              <li>pressure is normalized,</li>
+              <li>difficulty is expected,</li>
+              <li>structure is reinforced,</li>
+              <li>and preparation happens early.</li>
+            </ul>
+            <p>Students are not trained to fear exams.</p>
+            <p>They are conditioned to experience exams as another execution environment.</p>
+
+            <h2>What Response Integrity Truly Optimizes For</h2>
+            <p>Response Integrity is not optimizing for temporary academic spikes alone.</p>
+            <p>We are optimizing for:</p>
+            <ul>
+              <li>stable response patterns,</li>
+              <li>calm execution,</li>
+              <li>long-term academic resilience,</li>
+              <li>and reliable performance under pressure.</li>
+            </ul>
+            <p>Mathematics is the training arena.</p>
+            <p>But the deeper objective is helping students develop stronger cognitive and emotional stability when difficulty appears.</p>
           </CardContent>
         </Card>
       </section>
