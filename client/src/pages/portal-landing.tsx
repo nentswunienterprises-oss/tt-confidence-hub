@@ -96,7 +96,7 @@ function PortalLanding() {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
-          <div className="space-y-5 sm:space-y-8">
+          <div className="space-y-5 sm:space-y-8 max-w-[calc(100vw-32px)]">
             <div className="mx-auto flex w-fit items-center gap-2 rounded-full px-3 py-1.5 sm:mx-0 sm:px-4 sm:py-2" style={{ backgroundColor: "#FFF0F0" }}>
               <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
                 For Parents of Grade 6-9 Students
@@ -117,7 +117,7 @@ function PortalLanding() {
               Response Integrity trains that response directly.
             </p>
 
-            <div className="w-full max-w-xl mx-auto px-4 pt-2 sm:pt-4">
+            <div className="w-full max-w-[calc(100vw-32px)] mx-auto px-4 pt-2 sm:pt-4">
               <Button
                 size="lg"
                 className="w-full text-base sm:text-lg font-semibold px-5 py-4 sm:px-8 sm:py-6 rounded-full shadow-lg hover:shadow-xl transition-all border-0 flex items-center justify-center gap-3 leading-tight"
@@ -138,7 +138,7 @@ function PortalLanding() {
             <img
               src="/images/Benefits-of-Online-Tutoring-1-1080x589.png"
               alt="Student training calm focus"
-              className="relative rounded-3xl shadow-2xl w-full object-cover"
+              className="relative rounded-3xl shadow-2xl w-full object-cover max-w-[calc(100vw-32px)]"
               style={{ aspectRatio: "4/3" }}
             />
 
