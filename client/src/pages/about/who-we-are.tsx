@@ -102,15 +102,6 @@ export default function WhoWeAre() {
             </ul>
             <p>This system is not designed around urgency culture. It is designed around conditioning culture.</p>
 
-            <h2>What Response Integrity Truly Is</h2>
-            <p>Response Integrity is not simply a mathematics tutoring service.</p>
-            <p>It is a student performance-conditioning system focused on helping young people build:</p>
-            <ul>
-              <li>stable academic behavior,</li>
-              <li>structured thinking,</li>
-              <li>calmer execution,</li>
-              <li>and stronger response patterns under pressure.</li>
-            </ul>
             <p>Mathematics is the training arena. But the deeper goal is helping students become more stable, intentional, and reliable when difficulty appears.</p>
           </CardContent>
         </Card>

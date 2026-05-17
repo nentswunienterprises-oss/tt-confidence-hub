@@ -108,17 +108,6 @@ This system is not designed around urgency culture.
 
 It is designed around conditioning culture.
 
-## What Response Integrity Truly Is
-
-Response Integrity is not simply a mathematics tutoring service.
-
-It is a student performance-conditioning system focused on helping young people build:
-
-* stable academic behavior,
-* structured thinking,
-* calmer execution,
-* and stronger response patterns under pressure.
-
 Mathematics is the training arena.
 
 But the deeper goal is helping students become more stable, intentional, and reliable when difficulty appears.
