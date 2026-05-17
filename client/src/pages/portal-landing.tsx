@@ -113,8 +113,8 @@ function PortalLanding() {
               Most students don't struggle because they're bad at math or not intelligent.
               <br />
               They struggle because pressure disrupts the way they respond.
-              <br /><br />
-              Our focus is training how students respond when math gets hard... eliminating surprises through pattern and calm execution.
+              <br />
+              Response Integrity trains that response directly.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 sm:pt-4">
@@ -124,7 +124,7 @@ function PortalLanding() {
                 style={{ backgroundColor: "#E63946", color: "white" }}
                 onClick={() => navigate(buildSignupUrl())}
               >
-                Start Your Child's Journey
+                Check Current Enrollment Window
                 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
               </Button>
             </div>
@@ -164,7 +164,9 @@ function PortalLanding() {
               How It Works
             </h2>
             <p className="text-base sm:text-lg" style={{ color: "#A0A0A0" }}>
-              We train calm execution to be a normal response.
+              We build stable response through cadence, repetition, and preparation before pressure peaks.
+              <br />
+              
             </p>
           </div>
 
@@ -172,18 +174,18 @@ function PortalLanding() {
             {[
               {
                 number: "1",
-                title: "Pattern Gets Trained",
-                description: "When certainty disappears, your child stays oriented. They are better able to stay calm and keep going."
+                title: "Preparation Starts Early",
+                description: "Students begin building response patterns before tests, exams, and classroom urgency take over."
               },
               {
                 number: "2",
-                title: "Calm Becomes Automatic",
-                description: "Through repetition under controlled pressure, executing and moving forward without extended emotional escalation becomes habit."
+                title: "Patterns Get Repeated",
+                description: "Through consistent weekly exposure, structure becomes familiar and calm execution stops depending on mood or confidence."
               },
               {
                 number: "3",
-                title: "Identity Shifts",
-                description: "Your child becomes steadier and more reliable under pressure."
+                title: "Pressure Feels Familiar",
+                description: "Controlled difficulty is introduced gradually, so your child learns to stay functional when uncertainty and time pressure appear."
               }
             ].map((item, index) => (
               <div key={index} className="p-5 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl" style={{ backgroundColor: "#2A2A2A" }}>
@@ -208,10 +210,10 @@ function PortalLanding() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6" style={{ color: "#1A1A1A" }}>
-              Who Your Child Becomes
+              What This Conditioning Builds
             </h2>
             <p className="text-base sm:text-lg" style={{ color: "#5A5A5A" }}>
-              
+              These changes come from repeated exposure, structured progression, and preparation before pressure peaks.
             </p>
           </div>
 
@@ -221,7 +223,7 @@ function PortalLanding() {
                 {[
                   { title: "Someone Who Doesn't Freeze", desc: "When the question breaks expectation, they stay calm and execute their trained response." },
                   { title: "Someone Parents Trust", desc: "Parents are able to step back from constant oversight. Their ability to handle pressure becomes more predictable." },
-                  { title: "Someone Who Belongs", desc: "Part of a system that values consistency, clarity, and structure." }
+                  { title: "Someone Built Through Structure", desc: "Part of a system that values consistency, clarity, and structured preparation." }
                 ].map((item, i) => (
                   <div key={i} className="flex gap-3 sm:gap-4">
                     <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "#FFF0F0" }}>
@@ -263,10 +265,10 @@ function PortalLanding() {
       <section className="py-12 sm:py-20" style={{ backgroundColor: "#1A1A1A" }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-12 text-center">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6" style={{ color: "white" }}>
-            Ready to Train Calm Execution the Right Way?
+            Ready to Start With Intention?
           </h2>
           <p className="text-base sm:text-lg mb-8 sm:mb-10" style={{ color: "#A0A0A0" }}>
-            Pressure preparation begins before pressure appears.
+            Response Integrity works best when preparation begins early and continues through stable weekly cadence.
           </p>
           <Button
             size="lg"
@@ -274,7 +276,7 @@ function PortalLanding() {
             style={{ backgroundColor: "#E63946", color: "white" }}
             onClick={() => navigate(buildSignupUrl())}
           >
-            Start Your Child's Journey
+            Check Current Enrollment Window
             <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
           </Button>
         </div>
@@ -287,7 +289,9 @@ function PortalLanding() {
             <div className="space-y-3 sm:space-y-4">
               <h4 className="font-semibold text-sm sm:text-base" style={{ color: "#1A1A1A" }}>About Response Integrity</h4>
               <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-              Our system focuses on how students respond when work becomes difficult, unfamiliar, or timed. By training this response directly, students move from inconsistent performance to stable, controlled execution across topics.
+              Response Integrity is a conditioning-based academic performance system. Our system focuses on how students respond when work becomes difficult, unfamiliar, or timed. By training this response directly before pressure arrives, we help students develop stable, controlled execution across topics.
+
+
               </p>
               <div className="space-y-2 pt-2">
                 <a href={privacyPolicyUrl} className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>

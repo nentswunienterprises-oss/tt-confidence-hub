@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 
 export default function HowWeOperate() {
@@ -24,7 +24,7 @@ export default function HowWeOperate() {
             <p>For this reason, Response Integrity operates through a conditioning-based academic model rather than a reactive tutoring model.</p>
 
             <h2>Ahead-Of-Class Conditioning</h2>
-            <p>Whenever possible, Response Integrity works from the student’s yearly, termly, or upcoming school topic scope.</p>
+            <p>Whenever possible, Response Integrity works from the student's yearly, termly, or upcoming school topic scope.</p>
             <p>This allows students to begin conditioning before topics become high-pressure classroom or exam environments.</p>
             <p>By the time a topic becomes heavily emphasized at school:</p>
             <ul>
@@ -53,7 +53,7 @@ export default function HowWeOperate() {
             <p>Students move through topics using Response Integrity cadence rather than emergency-based academic urgency.</p>
             <p>Conditioning is paced intentionally according to:</p>
             <ul>
-              <li>the student’s stability,</li>
+              <li>the student's stability,</li>
               <li>response quality,</li>
               <li>execution consistency,</li>
               <li>and conditioning phase inside each topic.</li>
@@ -68,8 +68,19 @@ export default function HowWeOperate() {
               <li>execution feels practiced,</li>
               <li>and pressure feels manageable.</li>
             </ul>
-            <p>The goal is not to “save” students shortly before assessments.</p>
+            <p>The goal is not to "save" students shortly before assessments.</p>
             <p>The goal is to build students who can remain calm, structured, and functional when assessments arrive.</p>
+
+            <h2>Our Academic Conditioning Cycle</h2>
+            <p>Response Integrity works best when the year is approached as a conditioning cycle rather than a series of emergency tutoring moments.</p>
+            <h3>Early Conditioning Window</h3>
+            <p>Preparation begins before pressure peaks. Students start building familiarity and response stability before topics become stressful.</p>
+            <h3>Reinforcement Cadence</h3>
+            <p>Across the term, repeated structured exposure strengthens familiarity, execution habits, and calmer behavior under difficulty.</p>
+            <h3>Pressure Stability Window</h3>
+            <p>As assessments approach, execution is trained under greater time and pressure demands so urgency does not immediately destabilize performance.</p>
+            <h3>Reflection And Reconditioning</h3>
+            <p>After pressure events, patterns are reviewed, weaknesses are identified, and the next cycle begins with more clarity.</p>
 
             <h2>Anti-Adhoc Philosophy</h2>
             <p>Stable response cannot be built through inconsistent exposure.</p>

@@ -26,12 +26,12 @@ export default function AboutIndex() {
             },
             {
               title: "How We Operate",
-              description: "Discover our conditioning windows, enrollment cycles, and why we avoid reactive, panic-driven tutoring.",
+              description: "Discover our conditioning windows, enrollment rhythm, and why we avoid reactive, panic-driven tutoring culture.",
               href: "/about/how-we-operate",
             },
             {
               title: "How We Teach",
-              description: "Learn how our teaching structure builds clarity, calm execution, and durable response patterns under pressure.",
+              description: "Learn how our teaching structure and conditioning progression build clarity, calm execution, and durable response patterns under pressure.",
               href: "/about/how-we-teach",
             },
           ].map((item) => (

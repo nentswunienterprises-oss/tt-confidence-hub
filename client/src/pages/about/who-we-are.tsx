@@ -42,6 +42,11 @@ export default function WhoWeAre() {
             </ul>
             <p>The goal is not perfection. The goal is stable response.</p>
 
+            <h2>Why We Do Not Call This Tutoring</h2>
+            <p>Tutoring usually describes a service that helps a student understand work or catch up after difficulty appears.</p>
+            <p>Response Integrity includes teaching, but it is built around a larger goal: conditioning the student's response before pressure destabilizes performance.</p>
+            <p>That is why we define Response Integrity as academic performance conditioning rather than as a traditional tutoring company.</p>
+
             <h2>Why We Operate Differently</h2>
             <p>Response Conditioning cannot be built through irregular, emergency-based intervention.</p>
             <p>Stable academic performance requires:</p>
@@ -54,6 +59,11 @@ export default function WhoWeAre() {
             </ul>
             <p>For this reason, Response Integrity operates through conditioning windows, structured enrollment cycles, and consistent development rhythms rather than reactive, ad hoc tutoring.</p>
             <p>We do not believe meaningful academic conditioning is built through panic-driven preparation shortly before exams. We believe preparation should begin long before pressure peaks.</p>
+
+            <h2>Operational Doctrine</h2>
+            <p>Response Integrity does not treat operations as separate from philosophy.</p>
+            <p>If stable response is built through cadence, then enrollment cannot be completely ad hoc, scheduling cannot be random, and pressure preparation cannot begin only when exams are near.</p>
+            <p>That is why our operating model uses conditioning windows, structured starts, and consistent repetition rather than reactive tutoring culture.</p>
 
             <h2>What Parents Should Understand</h2>
             <p>Response Integrity is designed for families who value:</p>

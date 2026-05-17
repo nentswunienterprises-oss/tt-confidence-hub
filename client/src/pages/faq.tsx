@@ -158,12 +158,13 @@ const faqs = [
     question: "How do Pods work?",
     answer: (
       <>
-        <p>Pods are small, structured groups led by a trained tutor and overseen by a Territory Director.</p>
+        <p>Pods are structured conditioning environments led by a trained tutor and overseen by a Territory Director.</p>
         <p>Pods:</p>
         <ul>
           <li>are limited in size</li>
           <li>run on fixed schedules</li>
           <li>follow the same response-training standard</li>
+          <li>protect conditioning cadence through consistent attendance and structured oversight</li>
         </ul>
         <p>This ensures:</p>
         <ul>
@@ -225,11 +226,13 @@ const faqs = [
     answer: (
       <>
         <p>There are no instant transformations.</p>
-        <p>Typically:</p>
+        <p>Early response shifts often appear within a few weeks:</p>
         <ul>
-          <li>behavioural shifts appear within 2-4 weeks</li>
-          <li>academic improvement follows after</li>
+          <li>less freezing</li>
+          <li>more willingness to start</li>
+          <li>better calmness under pressure</li>
         </ul>
+        <p>Broader stability builds through repeated conditioning cycles, not last-minute intensity.</p>
         <p>
           Response Integrity is not a quick fix.
           <br />
@@ -308,11 +311,11 @@ const faqs = [
     question: "How do we get started?",
     answer: (
       <>
-        <p>Enrollment happens when readiness is clear.</p>
+        <p>Enrollment happens when fit, readiness, and timing are clear.</p>
         <p>
-          Pods are limited.
+          Response Integrity works best through structured starts and conditioning windows rather than emergency intervention.
           <br />
-          Standards are enforced.
+          Pods are limited and standards are enforced.
         </p>
         <p>
           You don't convince your way in.
@@ -329,6 +332,20 @@ const faqs = [
           <br />
           Everything else follows.
         </p>
+      </>
+    ),
+  },
+  {
+    question: "Can we join anytime?",
+    answer: (
+      <>
+        <p>Not in the same way casual tutoring services operate.</p>
+        <p>
+          Response Integrity is built around conditioning cadence.
+          <br />
+          Stable response patterns are strengthened through consistent timing, repeated exposure, and structured progression.
+        </p>
+        <p>That is why we use designated enrollment and operating rhythms rather than purely ad hoc entry.</p>
       </>
     ),
   },
