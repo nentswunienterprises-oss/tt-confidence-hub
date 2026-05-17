@@ -133,8 +133,8 @@ function PortalLanding() {
           </div>
 
           {/* Image */}
-          <div className="relative overflow-hidden">
-            <div className="absolute inset-0 rounded-3xl transform rotate-3" style={{ backgroundColor: "#FFF0F0" }} />
+          <div className="relative overflow-hidden w-full max-w-full">
+            <div className="absolute inset-0 rounded-3xl hidden sm:block transform sm:rotate-3" style={{ backgroundColor: "#FFF0F0" }} />
             <img
               src="/images/Benefits-of-Online-Tutoring-1-1080x589.png"
               alt="Student training calm focus"
