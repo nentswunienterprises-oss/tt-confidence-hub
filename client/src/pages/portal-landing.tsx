@@ -117,10 +117,10 @@ function PortalLanding() {
               Response Integrity trains that response directly.
             </p>
 
-            <div className="w-full max-w-[calc(100vw-32px)] mx-auto px-4 pt-2 sm:pt-4">
+            <div className="w-full pt-2 sm:pt-4">
               <Button
                 size="lg"
-                className="w-full text-base sm:text-lg font-semibold px-5 py-4 sm:px-8 sm:py-6 rounded-full shadow-lg hover:shadow-xl transition-all border-0 flex items-center justify-center gap-3 leading-tight"
+                className="w-full text-base sm:text-lg font-semibold px-4 sm:px-8 py-4 sm:py-6 rounded-full shadow-lg hover:shadow-xl transition-all border-0 flex items-center justify-center gap-3 leading-tight"
                 style={{ backgroundColor: "#E63946", color: "white" }}
                 onClick={() => navigate(buildSignupUrl())}
               >
@@ -270,10 +270,10 @@ function PortalLanding() {
           <p className="text-base sm:text-lg mb-8 sm:mb-10" style={{ color: "#A0A0A0" }}>
             Response Integrity works best when preparation begins early and continues through stable weekly cadence.
           </p>
-          <div className="w-full px-4">
+          <div className="w-full">
             <Button
               size="lg"
-              className="w-full text-base sm:text-lg font-semibold px-5 py-4 sm:px-10 sm:py-6 rounded-full border-0 outline-none flex items-center justify-center gap-3 leading-tight"
+              className="w-full text-base sm:text-lg font-semibold px-4 sm:px-10 py-4 sm:py-6 rounded-full border-0 outline-none flex items-center justify-center gap-3 leading-tight"
               style={{ backgroundColor: "#E63946", color: "white" }}
               onClick={() => navigate(buildSignupUrl())}
             >
