@@ -1,9 +1,28 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { PageSeo, SITE_NAME, SITE_ORIGIN } from "@/components/PageSeo";
 import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 
 export default function HowWeOperate() {
   return (
     <div className="min-h-screen bg-[#FCF6F2] text-[#1A1A1A]">
+      <PageSeo
+        title="How We Operate | Response Integrity"
+        description="See how Response Integrity operates through two annual intakes, fixed conditioning cadence, execution-season discipline, and phase-aware academic performance conditioning."
+        path="/about/how-we-operate"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "AboutPage",
+          name: "How We Operate",
+          url: `${SITE_ORIGIN}/about/how-we-operate`,
+          description:
+            "Operational model for Response Integrity, including intake windows, conditioning cadence, execution-season standards, and anti-cramming discipline.",
+          about: {
+            "@type": "Organization",
+            name: SITE_NAME,
+            url: SITE_ORIGIN,
+          },
+        }}
+      />
       <section className="max-w-4xl mx-auto px-6 py-20 text-center">
         <ResponseIntegrityLogo size="lg" variant="integrity" />
         <p className="mt-8 text-sm uppercase tracking-[0.35em] text-[#E63946]">How We Operate</p>

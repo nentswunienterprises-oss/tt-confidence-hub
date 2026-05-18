@@ -1,9 +1,30 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { PageSeo, SITE_NAME, SITE_ORIGIN } from "@/components/PageSeo";
 import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 
 export default function WhoWeAre() {
   return (
     <div className="min-h-screen bg-[#FCF6F2] text-[#1A1A1A]">
+      <PageSeo
+        title="Who We Are | Response Integrity"
+        description="Response Integrity is an academic performance-conditioning system that trains students to stay calm, structured, and functional when mathematics becomes difficult."
+        path="/about/who-we-are"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "AboutPage",
+          name: "Who We Are",
+          url: `${SITE_ORIGIN}/about/who-we-are`,
+          description:
+            "Response Integrity explains its philosophy, response-conditioning focus, and why it is not positioned as a traditional tutoring company.",
+          about: {
+            "@type": "Organization",
+            name: SITE_NAME,
+            url: SITE_ORIGIN,
+            description:
+              "An academic performance-conditioning system focused on response stability under mathematical difficulty and pressure.",
+          },
+        }}
+      />
       <section className="max-w-4xl mx-auto px-6 py-20 text-center">
         <ResponseIntegrityLogo size="lg" variant="integrity" />
         <p className="mt-8 text-sm uppercase tracking-[0.35em] text-[#E63946]">

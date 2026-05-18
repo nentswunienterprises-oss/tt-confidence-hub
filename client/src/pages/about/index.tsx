@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { PageSeo, SITE_NAME, SITE_ORIGIN } from "@/components/PageSeo";
 import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
-import { ShieldCheck, Sparkles, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function AboutIndex() {
@@ -9,6 +9,24 @@ export default function AboutIndex() {
 
   return (
     <div className="min-h-screen bg-[#FCF6F2] text-[#1A1A1A]">
+      <PageSeo
+        title="About Response Integrity | Academic Performance Conditioning"
+        description="Learn who Response Integrity is, how we operate, and how we teach through a structured academic performance-conditioning system built to prepare students before pressure peaks."
+        path="/about"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "AboutPage",
+          name: "About Response Integrity",
+          url: `${SITE_ORIGIN}/about`,
+          description:
+            "Overview of who Response Integrity is, how it operates, and how it teaches through academic performance conditioning.",
+          about: {
+            "@type": "Organization",
+            name: SITE_NAME,
+            url: SITE_ORIGIN,
+          },
+        }}
+      />
       <section className="max-w-5xl mx-auto px-6 py-20 text-center">
         <ResponseIntegrityLogo size="xl" variant="integrity" />
         <p className="mt-8 text-sm uppercase tracking-[0.35em] text-[#E63946]">

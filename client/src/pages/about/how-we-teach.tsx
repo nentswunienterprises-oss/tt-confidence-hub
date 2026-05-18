@@ -1,9 +1,28 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { PageSeo, SITE_NAME, SITE_ORIGIN } from "@/components/PageSeo";
 import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 
 export default function HowWeTeach() {
   return (
     <div className="min-h-screen bg-[#FCF6F2] text-[#1A1A1A]">
+      <PageSeo
+        title="How We Teach | Response Integrity"
+        description="Learn how Response Integrity teaches through clarity, structured execution, controlled discomfort, and pressure stability to build calm mathematical performance under difficulty."
+        path="/about/how-we-teach"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "AboutPage",
+          name: "How We Teach",
+          url: `${SITE_ORIGIN}/about/how-we-teach`,
+          description:
+            "Teaching and conditioning structure used by Response Integrity to build understanding, stable execution, and pressure-resistant performance.",
+          about: {
+            "@type": "Organization",
+            name: SITE_NAME,
+            url: SITE_ORIGIN,
+          },
+        }}
+      />
       <section className="max-w-4xl mx-auto px-6 py-20 text-center">
         <ResponseIntegrityLogo size="lg" variant="integrity" />
         <p className="mt-8 text-sm uppercase tracking-[0.35em] text-[#E63946]">How We Teach</p>
