@@ -1087,7 +1087,7 @@ export default function TDOverview() {
             : "Run the Response Integrity Tutor Alignment Engine."
         }
         phaseOptions={activePhaseOptions}
-        preSelectedPhaseKeys={activeTutorRun?.autoSelectedPhases?.length === 1 ? activeTutorRun.autoSelectedPhases : []}
+        preSelectedPhaseKeys={activeTutorRun?.autoSelectedPhases?.length === 1 ? activeTutorRun.autoSelectedPhases : undefined}
         selectionMode="multiple"
         submitLabel="Save Tutor Battle Test"
         onSubmit={async ({ selectedPhases, responses }) => {

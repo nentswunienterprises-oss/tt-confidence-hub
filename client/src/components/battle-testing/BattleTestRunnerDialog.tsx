@@ -160,17 +160,21 @@ export default function BattleTestRunnerDialog({
   submitLabel,
   onSubmit,
 }: BattleTestRunnerDialogProps) {
-  const hasPreSelectedPhaseKeys = (preSelectedPhaseKeys?.length ?? 0) > 0;
+  const normalizedPreSelectedPhaseKeys = useMemo(
+    () => (preSelectedPhaseKeys?.length ? [...preSelectedPhaseKeys] : []),
+    [preSelectedPhaseKeys?.join("|")]
+  );
+  const hasPreSelectedPhaseKeys = normalizedPreSelectedPhaseKeys.length > 0;
   const fixedMode = selectionMode === "fixed";
   const initialPhaseKeys = useMemo(() => {
     if (fixedMode && hasPreSelectedPhaseKeys) {
-      return preSelectedPhaseKeys!;
+      return normalizedPreSelectedPhaseKeys;
     }
-    if (!fixedMode && preSelectedPhaseKeys?.length === 1) {
-      return preSelectedPhaseKeys;
+    if (!fixedMode && normalizedPreSelectedPhaseKeys.length === 1) {
+      return normalizedPreSelectedPhaseKeys;
     }
     return fixedMode ? phaseOptions.map((phase) => phase.key) : [];
-  }, [phaseOptions, fixedMode, hasPreSelectedPhaseKeys, preSelectedPhaseKeys]);
+  }, [phaseOptions, fixedMode, hasPreSelectedPhaseKeys, normalizedPreSelectedPhaseKeys]);
 
   const [selectedPhaseKeys, setSelectedPhaseKeys] = useState<string[]>(initialPhaseKeys);
   const [hasStarted, setHasStarted] = useState(fixedMode);
@@ -194,6 +198,7 @@ export default function BattleTestRunnerDialog({
     setResponses({});
     setIsSubmitting(false);
     setSaveCompleted(false);
+    setRunSummaryExpanded(true);
     setSelectionStage(fixedMode ? "questions" : "group");
     setActiveGroupKey(null);
   }, [open, initialPhaseKeys, fixedMode]);
