@@ -133,7 +133,7 @@ function PortalLanding() {
           </div>
 
           {/* Image */}
-          <div className="relative overflow-hidden w-full max-w-full">
+          <div className="relative overflow-visible w-full max-w-full">
             <div className="absolute inset-0 rounded-3xl hidden sm:block transform sm:rotate-3" style={{ backgroundColor: "#FFF0F0" }} />
             <img
               src="/images/Benefits-of-Online-Tutoring-1-1080x589.png"
@@ -164,9 +164,7 @@ function PortalLanding() {
               How It Works
             </h2>
             <p className="text-base sm:text-lg" style={{ color: "#A0A0A0" }}>
-              We build stable response through cadence, repetition, and preparation before pressure peaks.
-              <br />
-              
+              A conditioning system that builds stable response through cadence, repetition, and preparation before pressure peaks, not casual last-minute tutoring.
             </p>
           </div>
 
@@ -185,7 +183,7 @@ function PortalLanding() {
               {
                 number: "3",
                 title: "Pressure Feels Familiar",
-                description: "Controlled difficulty is introduced gradually, so your child learns to stay functional when uncertainty and time pressure appear."
+                description: "Controlled difficulty is introduced gradually, so your child learns to stay unshaken when uncertainty and time pressure appear."
               }
             ].map((item, index) => (
               <div key={index} className="p-5 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl" style={{ backgroundColor: "#2A2A2A" }}>
@@ -291,7 +289,7 @@ function PortalLanding() {
             <div className="space-y-3 sm:space-y-4">
               <h4 className="font-semibold text-sm sm:text-base" style={{ color: "#1A1A1A" }}>About Response Integrity</h4>
               <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-              Response Integrity is a conditioning-based academic performance system. Our system focuses on how students respond when work becomes difficult, unfamiliar, or timed. By training this response directly before pressure arrives, we help students develop stable, controlled execution across topics.
+              Response Integrity is built for families who are ready to prepare before pressure arrives. Our system depends on cadence, consistency, and early conditioning. For this reason, enrollment happens through defined conditioning windows, and students are expected to maintain the training rhythm required for stable response development.
 
 
               </p>
