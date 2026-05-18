@@ -13,51 +13,45 @@ function optionalExistingPath(...candidates: string[]) {
   return candidates.find((candidate) => existsSync(candidate)) || null;
 }
 
+function resolveTransformationPhasePath(fileName: string) {
+  return optionalExistingPath(
+    resolve(TUTOR_TRANSFORMATION_PHASE_ROOT, `Response Integrity-OS Trasnformation Phases Battle-Testing = ${fileName}.md`),
+    resolve(TUTOR_BATTLE_TESTING_ROOT, `Response Integrity-OS Trasnformation Phases Battle-Testing = ${fileName}.md`),
+    resolve(TUTOR_TRANSFORMATION_PHASE_ROOT, `TT-OS Trasnformation Phases Battle-Testing = ${fileName}.md`),
+    resolve(TUTOR_BATTLE_TESTING_ROOT, `TT-OS Trasnformation Phases Battle-Testing = ${fileName}.md`)
+  );
+}
+
 const TUTOR_SOURCE_FILES = [
   {
     key: "clarity",
     title: "Clarity",
     description: "Response Integrity-OS BATTLE TEST: CLARITY (SCORING VERSION)",
-    path: optionalExistingPath(
-      resolve(TUTOR_TRANSFORMATION_PHASE_ROOT, "Response Integrity-OS Trasnformation Phases Battle-Testing = Clarity.md"),
-      resolve(TUTOR_BATTLE_TESTING_ROOT, "Response Integrity-OS Trasnformation Phases Battle-Testing = Clarity.md")
-    ),
+    path: resolveTransformationPhasePath("Clarity"),
   },
   {
     key: "structured_execution",
     title: "Structured Execution",
     description: "Response Integrity-OS BATTLE TEST: STRUCTURED EXECUTION (SCORING VERSION)",
-    path: optionalExistingPath(
-      resolve(TUTOR_TRANSFORMATION_PHASE_ROOT, "Response Integrity-OS Trasnformation Phases Battle-Testing = Structured Execution.md"),
-      resolve(TUTOR_BATTLE_TESTING_ROOT, "Response Integrity-OS Trasnformation Phases Battle-Testing = Structured Execution.md")
-    ),
+    path: resolveTransformationPhasePath("Structured Execution"),
   },
   {
     key: "controlled_discomfort",
     title: "Controlled Discomfort",
     description: "Response Integrity-OS BATTLE TEST: CONTROLLED DISCOMFORT (SCORING VERSION)",
-    path: optionalExistingPath(
-      resolve(TUTOR_TRANSFORMATION_PHASE_ROOT, "Response Integrity-OS Trasnformation Phases Battle-Testing = Controlled Discomfort.md"),
-      resolve(TUTOR_BATTLE_TESTING_ROOT, "Response Integrity-OS Trasnformation Phases Battle-Testing = Controlled Discomfort.md")
-    ),
+    path: resolveTransformationPhasePath("Controlled Discomfort"),
   },
   {
     key: "time_pressure_stability",
     title: "Time Pressure Stability",
     description: "Response Integrity-OS BATTLE TEST: TIME PRESSURE STABILITY (SCORING VERSION)",
-    path: optionalExistingPath(
-      resolve(TUTOR_TRANSFORMATION_PHASE_ROOT, "Response Integrity-OS Trasnformation Phases Battle-Testing = Time Pressure Stability.md"),
-      resolve(TUTOR_BATTLE_TESTING_ROOT, "Response Integrity-OS Trasnformation Phases Battle-Testing = Time Pressure Stability.md")
-    ),
+    path: resolveTransformationPhasePath("Time Pressure Stability"),
   },
   {
     key: "topic_conditioning",
     title: "Topic Conditioning",
     description: "Response Integrity-OS BATTLE TEST: TOPIC CONDITIONING (SCORING VERSION)",
-    path: optionalExistingPath(
-      resolve(TUTOR_TRANSFORMATION_PHASE_ROOT, "Response Integrity-OS Trasnformation Phases Battle-Testing = Topic Conditioning.md"),
-      resolve(TUTOR_BATTLE_TESTING_ROOT, "Response Integrity-OS Trasnformation Phases Battle-Testing = Topic Conditioning.md")
-    ),
+    path: resolveTransformationPhasePath("Topic Conditioning"),
   },
   {
     key: "intro_session_structure",
@@ -342,9 +336,10 @@ export const TUTOR_BATTLE_TEST_PHASES_EXACT: BattleTestPhaseDefinition[] = TUTOR
   ];
 });
 
-export const TUTOR_BATTLE_TEST_PHASES_SAFE: BattleTestPhaseDefinition[] = TUTOR_BATTLE_TEST_PHASES_EXACT.map((exactPhase) =>
-  exactPhase.questions.length ? exactPhase : TUTOR_BATTLE_TEST_PHASES.find((fallbackPhase) => fallbackPhase.key === exactPhase.key) || exactPhase
-);
+export const TUTOR_BATTLE_TEST_PHASES_SAFE: BattleTestPhaseDefinition[] = TUTOR_BATTLE_TEST_PHASES.map((fallbackPhase) => {
+  const exactPhase = TUTOR_BATTLE_TEST_PHASES_EXACT.find((phase) => phase.key === fallbackPhase.key) || null;
+  return exactPhase?.questions.length ? exactPhase : fallbackPhase;
+});
 
 export const TD_BATTLE_TEST_PHASE_EXACT: BattleTestPhaseDefinition = TD_SOURCE_FILE.path
   ? parseBattleTestDocument(
