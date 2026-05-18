@@ -26,16 +26,28 @@
       .section { background: #1a1a1a; color: #fff; padding: 48px 16px; text-align: center; }
       .section-title { font-size: 2rem; font-weight: 700; margin-bottom: 16px; }
       .section-desc { color: #a0a0a0; font-size: 1.1rem; margin-bottom: 32px; }
-      .how-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; }
-      .how-item { background: #2a2a2a; border-radius: 16px; padding: 24px; width: 260px; }
-      .how-num { background: #e63946; color: #fff; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; margin: 0 auto 12px auto; }
-      .how-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
-      .how-desc { color: #a0a0a0; font-size: 1rem; line-height: 1.6; }
+      .section-light { background: #fff0f0; padding: 48px 16px; }
+      .who-grid { display: grid; gap: 16px; max-width: 960px; margin: 0 auto; }
+      .who-card { border-radius: 24px; background: #fff; padding: 20px; box-shadow: 0 18px 35px rgba(0, 0, 0, .08); }
+      .who-list { display: flex; flex-direction: column; gap: 16px; }
+      .who-item { display: flex; gap: 12px; align-items: flex-start; }
+      .check-badge { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: 0 0 28px; border-radius: 999px; background: #fff0f0; color: #e63946; font-weight: 700; }
+      .who-item h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; color: #1a1a1a; }
+      .who-item p { margin: 0; color: #5a5a5a; font-size: 12px; line-height: 1.6; }
+      .section-dark { background: #1a1a1a; color: #fff; padding: 48px 16px; text-align: center; }
+      .cta-section p { margin: 0 0 32px; color: #a0a0a0; font-size: 16px; }
+      .hero-cta {
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        width: fit-content; padding: 14px 16px; border-radius: 999px; font-size: 14px; font-weight: 600;
+        background: #e63946; color: #fff; text-decoration: none;
+      }
+      .hero-arrow { width: 18px; height: 18px; }
       .footer { color: #5a5a5a; font-size: 0.95rem; }
       @media (max-width: 600px) {
         .hero-title { font-size: 2rem; }
         .section-title { font-size: 1.3rem; }
         .how-item { width: 100%; }
+        .who-grid { display: grid; gap: 16px; }
       }
       @media (min-width: 640px) {
         .cta-btn { padding: 16px 40px; font-size: 1.1rem; max-width: none; }
@@ -61,7 +73,7 @@
       </div>
       <a href="/client/signup"><button class="cta-btn">Check Current Enrollment Window</button></a>
     </div>
-    <div class="section">
+    <section class="section">
       <div class="section-title">How It Works</div>
       <div class="section-desc">A conditioning system that builds stable response through cadence, repetition, and preparation before pressure peaks, not casual last-minute tutoring.</div>
       <div class="how-list">
@@ -81,8 +93,41 @@
           <div class="how-desc">Controlled difficulty is introduced gradually, so students learn to stay unshaken when uncertainty and time pressure appear.</div>
         </div>
       </div>
+  </section>
+  <section class="section-light">
+    <div class="container">
+      <div class="section-center"><h2>What This Conditioning Builds</h2><p>These changes come from repeated exposure, structured progression, and preparation before pressure peaks.</p></div>
+      <div class="who-grid">
+        <div class="who-card">
+          <div class="who-list">
+            <div class="who-item"><span class="check-badge">✓</span><div><h3>Someone Who Doesn't Freeze</h3><p>When the question breaks expectation, they stay calm and execute their trained response.</p></div></div>
+            <div class="who-item"><span class="check-badge">✓</span><div><h3>Someone Parents Trust</h3><p>Parents are able to step back from constant oversight. Their ability to handle pressure becomes more predictable.</p></div></div>
+            <div class="who-item"><span class="check-badge">✓</span><div><h3>Someone Built Through Structure</h3><p>Part of a system that values consistency, clarity, and structured preparation.</p></div></div>
+          </div>
+        </div>
+        <div class="who-card">
+          <div class="who-list">
+            <div class="who-item"><span class="check-badge">✓</span><div><h3>Someone Less Thrown by Exams</h3><p>Pressure feels familiar. Performance stays stable across terms.</p></div></div>
+            <div class="who-item"><span class="check-badge">✓</span><div><h3>Someone Less Defined by Setbacks</h3><p>Instead of being defined by difficulty, they learn how to respond when it gets hard.</p></div></div>
+            <div class="who-item"><span class="check-badge">✓</span><div><h3>Someone Ready For What's Next</h3><p>Academic pressure becomes more manageable. The future feels less uncertain.</p></div></div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="footer">
+  </section>
+  <section class="section-dark cta-section">
+    <div class="container" style="max-width: 896px;">
+      <div class="section-center" style="margin-bottom: 32px;">
+        <h2>Ready to Start With Intention?</h2>
+        <p>Response Integrity works best when preparation begins early and continues through stable weekly cadence.</p>
+      </div>
+      <a class="hero-cta" href="/client/signup">
+        <span>Check Current Enrollment Window</span>
+        <svg class="hero-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      </a>
+    </div>
+  </section>
+  <div class="footer">
       &copy; 2026 Response Integrity (Pty) Ltd<br />
       Preparation before pressure.
     </div>
