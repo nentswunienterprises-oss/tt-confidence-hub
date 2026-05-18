@@ -53,7 +53,7 @@ export default function HowWeTeach() {
             <h3>2. Structured Execution</h3>
             <p>Students practice a repeatable way of responding, so they are not guessing when uncertainty appears.</p>
             <h3>3. Controlled Difficulty</h3>
-            <p>Difficulty is introduced deliberately so students learn to remain functional when the work stops feeling easy.</p>
+            <p>Difficulty is introduced deliberately so students learn to remain grounded when the work stops feeling easy.</p>
             <h3>4. Pressure Stability</h3>
             <p>As execution improves, students are trained to stay structured under time and assessment pressure.</p>
             <p>Teaching is one layer of this system. Conditioning the response is the larger goal.</p>
