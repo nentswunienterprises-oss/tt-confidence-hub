@@ -70,7 +70,7 @@ That is the battlefield Response Integrity targets.
 When pressure rises:
 
 - Untrained systems become chaotic.
-- Conditioned systems remain functional.
+- Conditioned systems remain grounded.
 
 This is why Response Integrity feels deeper than ordinary tutoring. It is not simply trying to make students know more. It is training students to remain structured when knowing becomes harder to access.
 
