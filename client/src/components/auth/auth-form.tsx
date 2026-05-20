@@ -357,6 +357,15 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
                 className="rounded-lg border-gray-200 focus:border-[#E63946] focus:ring-[#E63946]"
               />
             </div>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                className="text-sm font-medium text-[#E63946] hover:underline"
+                onClick={() => navigate('/forgot-password')}
+              >
+                Forgot password?
+              </button>
+            </div>
           </>
         )}
 

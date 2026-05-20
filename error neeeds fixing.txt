@@ -6,4 +6,4 @@
   126 |   AlertDialogAction,
   127 |   AlertDialogCancel,
   128 |   AlertDialogContent,
-C:/Users/Thend/Downloads/Technology/PodDigitizer/client/src/pages/executive/coo/pod-detail.tsx
+C:/Users/Thend/Downloads/Technology/PodDigitizer/client/src/pages/executive/coo/pod-detail.tsxfix

@@ -291,7 +291,7 @@ export default function ProposalView({
 
     if (stability === "High Maintenance") {
       return nextAction.advanceTo
-        ? `${studentFirstName} is no longer learning how to solve. ${pronounCapitalized} is now proving that execution holds under repetition.`
+        ? `${studentFirstName} is no longer learning how to solve. ${pronounCapitalizedWithVerb} now proving that execution holds under repetition.`
         : `${studentFirstName} is now holding a stable standard, and the current job is to confirm that it continues to hold over time.`;
     }
 
@@ -400,6 +400,7 @@ export default function ProposalView({
 
   const pronounForStudent = "they";
   const pronounCapitalized = "They";
+  const pronounCapitalizedWithVerb = "They are";
 
   const stateCopy = {
     status: personalizeCopy(getParentDashboardCopyByState(trainingStartPhase as TopicPhase, normalizedStability as TopicStability).status),
@@ -565,7 +566,7 @@ export default function ProposalView({
                     <div key={item.topic} className="rounded-lg border bg-muted/20 p-4 space-y-3">
                       <p className="text-base font-semibold text-foreground">{item.topic}</p>
                       <p className="text-sm text-muted-foreground">
-                        {pronounCapitalized} is operating at <Badge variant="secondary" className="align-middle ml-1">{item.stateLabel}</Badge> <span className="ml-1">meaning {item.meaning}</span>
+                                {pronounCapitalizedWithVerb} operating at <Badge variant="secondary" className="align-middle ml-1">{item.stateLabel}</Badge> <span className="ml-1">meaning {item.meaning}</span>
                       </p>
                     </div>
                   ))}
@@ -577,7 +578,7 @@ export default function ProposalView({
                   {studentFirstName} is currently training in <span className="text-foreground font-medium">{primaryLiveTopicBlock.topic}</span>.
                 </p>
                 <p>
-                  {pronounCapitalized} is operating at <span className="text-foreground font-medium">{primaryLiveTopicBlock.stateLabel}</span> - meaning {primaryLiveTopicBlock.meaning}
+                  {pronounCapitalizedWithVerb} operating at <span className="text-foreground font-medium">{primaryLiveTopicBlock.stateLabel}</span> - meaning {primaryLiveTopicBlock.meaning}
                 </p>
               </div>
             ) : null

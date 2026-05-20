@@ -40,7 +40,7 @@ const faqs = [
           <br />
           They fail because their response collapses when things stop feeling clear.
         </p>
-        <p>We train the response until it becomes calm, repeatable, and automatic.</p>
+        <p>We train the response until it becomes calm, repeatable, and consistently reliable.</p>
       </>
     ),
   },
@@ -300,7 +300,7 @@ const faqs = [
           <li>want capability that lasts</li>
         </ul>
         <p>
-          Belonging signal:
+           
           <br />
           "We don't avoid pressure. We train for it."
         </p>

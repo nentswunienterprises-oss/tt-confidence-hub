@@ -289,7 +289,7 @@ function PortalLanding() {
             <div className="space-y-3 sm:space-y-4">
               <h4 className="font-semibold text-sm sm:text-base" style={{ color: "#1A1A1A" }}>About Response Integrity</h4>
               <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-              Response Integrity is built for families who are ready to prepare before pressure arrives. Our system depends on cadence, consistency, and early conditioning. For this reason, enrollment happens through defined conditioning windows, and students are expected to maintain the training rhythm required for stable response development.
+              Response Integrity is built for families who believe in preparation before pressure arrives. Our system values cadence, consistency, and early conditioning. For this reason, enrollment happens through defined conditioning windows, and students are expected to maintain the training rhythm required for stable response development.
 
 
               </p>

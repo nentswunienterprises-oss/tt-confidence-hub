@@ -211,7 +211,7 @@ will naturally fall away.
 That protects the culture.
 The Premium Declaration
 RI can say this without sounding harsh:
-Response Integrity is built for families who are ready to prepare before pressure arrives. Our system depends on cadence, consistency, and early conditioning. For this reason, enrollment happens through defined conditioning windows, and students are expected to maintain the training rhythm required for stable response development.
+Response Integrity is built for families who believe in preparation before pressure arrives. Our system values cadence, consistency, and early conditioning. For this reason, enrollment happens through defined conditioning windows, and students are expected to maintain the training rhythm required for stable response development.
 That sounds serious, not rude.
 The Core Operating Standard
 This should become internal doctrine:

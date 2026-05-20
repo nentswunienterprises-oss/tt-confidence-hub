@@ -25,32 +25,32 @@ function resolveTransformationPhasePath(fileName: string) {
 const TUTOR_SOURCE_FILES = [
   {
     key: "clarity",
-    title: "Clarity",
-    description: "Response Integrity-OS BATTLE TEST: CLARITY (SCORING VERSION)",
+    title: "Clarity Deep Dive",
+    description: "Recognition before solving: vocabulary, method, reason, and immediate apply.",
     path: resolveTransformationPhasePath("Clarity"),
   },
   {
     key: "structured_execution",
-    title: "Structured Execution",
-    description: "Response Integrity-OS BATTLE TEST: STRUCTURED EXECUTION (SCORING VERSION)",
+    title: "Structured Execution Deep Dive",
+    description: "Independent, ordered, repeatable method execution without tutor carry.",
     path: resolveTransformationPhasePath("Structured Execution"),
   },
   {
     key: "controlled_discomfort",
-    title: "Controlled Discomfort",
-    description: "Response Integrity-OS BATTLE TEST: CONTROLLED DISCOMFORT (SCORING VERSION)",
+    title: "Controlled Discomfort Deep Dive",
+    description: "Response stability when uncertainty, difficulty, or unfamiliar forms appear.",
     path: resolveTransformationPhasePath("Controlled Discomfort"),
   },
   {
     key: "time_pressure_stability",
-    title: "Time Pressure Stability",
-    description: "Response Integrity-OS BATTLE TEST: TIME PRESSURE STABILITY (SCORING VERSION)",
+    title: "Time Pressure Stability Deep Dive",
+    description: "Method-first execution that survives urgency and timed conditions.",
     path: resolveTransformationPhasePath("Time Pressure Stability"),
   },
   {
     key: "topic_conditioning",
-    title: "Topic Conditioning",
-    description: "Response Integrity-OS BATTLE TEST: TOPIC CONDITIONING (SCORING VERSION)",
+    title: "Topic Conditioning Deep Dive",
+    description: "Topic-by-topic phase placement, breakdown fields, and next RI-OS action.",
     path: resolveTransformationPhasePath("Topic Conditioning"),
   },
   {
@@ -99,11 +99,11 @@ const TD_SOURCE_FILE = {
 } as const;
 
 const AUTO_CRITICAL_BY_PHASE: Record<string, Set<string>> = {
-  clarity: new Set(["Q7", "Scenario 2", "Scenario 3", "FINAL QUESTION"]),
-  structured_execution: new Set(["Q7", "Q8", "Scenario 1", "Scenario 2", "Scenario 3", "Scenario 4", "FINAL QUESTION"]),
-  controlled_discomfort: new Set(["Q2", "Q4", "Q7", "Q8", "Scenario 1", "Scenario 2", "Scenario 3", "FINAL QUESTION"]),
-  time_pressure_stability: new Set(["Q7", "Scenario 1", "Scenario 2", "Scenario 3", "FINAL QUESTION"]),
-  topic_conditioning: new Set(["Scenario 1", "Scenario 3", "Scenario 4", "FINAL QUESTION"]),
+  clarity: new Set(["Q15"]),
+  structured_execution: new Set(["Q15"]),
+  controlled_discomfort: new Set(["Q15"]),
+  time_pressure_stability: new Set(["Q15"]),
+  topic_conditioning: new Set(["Q15"]),
   intro_session_structure: new Set(["Q7", "Scenario 1", "Scenario 2", "Scenario 3", "FINAL QUESTION"]),
   logging_system: new Set(["Q7", "Scenario 1", "Scenario 3", "Scenario 4", "FINAL QUESTION"]),
   session_flow_control: new Set(["Q9", "Scenario 1", "Scenario 2", "Scenario 4", "FINAL QUESTION"]),
