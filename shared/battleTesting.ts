@@ -426,7 +426,7 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "structured_execution_q14",
         section: "Progression and Success",
-        prompt: "What evidence should the tutor log to show Structured Execution is becoming complete/ready for RI-OS review?",
+        prompt: "What evidence should the tutor log to show Structured Execution is becoming complete and ready to be progressed to the next phase?",
         expectedAnswer: "The tutor should log evidence that the student can start independently, follow steps in order, repeat the method reliably, and reduce tutor dependence across reps.",
         failIndicators: ["They got one answer right", "They said they understand", "The tutor feels ready to move them", "They are more confident"],
       },
@@ -457,10 +457,10 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "controlled_discomfort_q2",
         section: "Core Purpose",
-        prompt: "When should Controlled Discomfort be used?",
+        prompt: "What evidence should exist before RI-OS assigns Controlled Discomfort work?",
         expectedAnswer:
-          "After the student has enough Clarity and Structured Execution to face difficulty without the tutor needing to reteach the whole method.",
-        failIndicators: ["Anytime they are bored", "when they need motivation", "before they know the method"],
+          "The student should have enough Clarity and Structured Execution evidence to attempt harder or unfamiliar forms without needing the tutor to reteach the full method.",
+        failIndicators: ["When they are bored", "When the tutor wants to challenge them", "Before they know the method", "When the parent wants harder work"],
       },
       {
         key: "controlled_discomfort_q3",
@@ -473,7 +473,7 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "controlled_discomfort_q4",
         section: "Fields and Breakdown",
-        prompt: "A student sees a harder question and immediately says, 'I can't do this.' What field is weak?",
+        prompt: "During an assigned Controlled Discomfort rep, the student sees an unfamiliar form and immediately says, 'I can't do this.' What field is weak?",
         expectedAnswer: "Discomfort tolerance and initial response are weak. The student is collapsing when uncertainty appears.",
         failIndicators: ["They need easier work", "they lack intelligence", "they should skip it"],
       },
@@ -487,15 +487,15 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "controlled_discomfort_q6",
         section: "Fields and Breakdown",
-        prompt: "A student cannot solve the full harder question but can identify the first step. Is that useful?",
-        expectedAnswer: "Yes. Controlled Discomfort values first-step control because the goal is stable response under uncertainty, not instant full success.",
-        failIndicators: ["No, they failed", "only final answers matter", "move back immediately"],
+        prompt: "During a Controlled Discomfort rep, the student cannot complete the full question but can stay calm, identify the problem type, and give the first step. What does that show?",
+        expectedAnswer: "It shows first-step control and partial response stability under uncertainty. Controlled Discomfort is not only about final answers; it observes whether the student can stay oriented when certainty disappears.",
+        failIndicators: ["They failed completely", "Only final answers matter", "Move them manually", "Explain everything immediately"],
       },
       {
         key: "controlled_discomfort_q7",
         section: "Protocol and Execution",
-        prompt: "During Controlled Discomfort, the tutor gives a full explanation mid-struggle. What rule was broken?",
-        expectedAnswer: "The tutor removed the discomfort the phase was meant to expose. Full explanations mid-struggle break the phase condition.",
+        prompt: "During an assigned Controlled Discomfort rep, the tutor gives a full explanation mid-struggle. What rule was broken?",
+        expectedAnswer: "The tutor broke the Controlled Discomfort condition. Full explanations mid-struggle remove the uncertainty the phase is designed to observe. The tutor should preserve the assigned rep, give minimal guidance, and log the student's response.",
         failIndicators: ["They were helping", "students need explanation", "it prevents frustration"],
       },
       {
@@ -515,9 +515,9 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "controlled_discomfort_q10",
         section: "Purpose and Design",
-        prompt: "A tutor changes the hard question into an easier one because the student is uncomfortable. What happened?",
-        expectedAnswer: "The rep was invalidated. The tutor removed the condition that was supposed to reveal the response pattern.",
-        failIndicators: ["Good adaptation", "student-centered teaching", "helpful scaffolding"],
+        prompt: "A tutor changes the assigned Controlled Discomfort rep into an easier one because the student is uncomfortable. What happened?",
+        expectedAnswer: "The rep condition was broken. The tutor removed the discomfort the drill was meant to observe, so the log no longer reflects the assigned phase accurately.",
+        failIndicators: ["Good adaptation", "Helpful scaffolding", "Student-centered teaching", "Comfort matters more than the drill"],
       },
       {
         key: "controlled_discomfort_q11",
@@ -537,7 +537,7 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
         key: "controlled_discomfort_q13",
         section: "Constraints",
         prompt: "A tutor gives a question far beyond the student's current method. Is that Controlled Discomfort?",
-        expectedAnswer: "No. Controlled Discomfort is controlled. The difficulty must test response under uncertainty, not introduce impossible content.",
+        expectedAnswer: "No. Controlled Discomfort is controlled. It tests whether known structure survives uncertainty. It is not random difficulty or content the student has no access to.",
         failIndicators: ["Yes, harder is better", "pressure builds grit", "let them struggle"],
       },
       {
@@ -552,7 +552,7 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
         section: "Final Filter",
         prompt: "What is the tutor's job inside Controlled Discomfort?",
         expectedAnswer:
-          "Preserve controlled difficulty, prevent rescue, observe the student's response under uncertainty, and guide only enough to return them to first-step execution.",
+          "Preserve the assigned difficulty condition, avoid rescue, observe the student's response under uncertainty, guide only enough to return them to identification or first-step control, and log honestly.",
         failIndicators: ["Explain fully", "make them comfortable", "challenge them randomly"],
         autoCriticalOnFail: true,
       },
@@ -574,10 +574,10 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "time_pressure_stability_q2",
         section: "Core Purpose",
-        prompt: "When should Time Pressure Stability be used?",
+        prompt: "What evidence should exist before RI-OS assigns Time Pressure Stability work?",
         expectedAnswer:
-          "After the student has enough Clarity, Structured Execution, and Controlled Discomfort to maintain structure before time is added.",
-        failIndicators: ["Before exams only", "whenever they are slow", "to force improvement"],
+          "The student should already show enough Clarity, Structured Execution, and Controlled Discomfort evidence that time pressure is now testing whether structure survives urgency, not replacing missing foundations.",
+        failIndicators: ["When they are slow", "Before exams only", "To force improvement", "When the tutor wants speed"],
       },
       {
         key: "time_pressure_stability_q3",
@@ -590,14 +590,14 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "time_pressure_stability_q4",
         section: "Fields and Breakdown",
-        prompt: "A student finishes quickly but skips steps and becomes messy. Is that stable?",
-        expectedAnswer: "No. Speed without structure is not Time Pressure Stability. The student must maintain method discipline under time.",
-        failIndicators: ["Yes, they were fast", "exam speed matters most", "mark it as progress"],
+        prompt: "A student finishes quickly under time but skips steps and becomes messy. Should the tutor mark this as strong Time Pressure Stability evidence?",
+        expectedAnswer: "No. Speed without structure is not strong time-pressure evidence. The tutor should log weak structure under time and weak completion integrity.",
+        failIndicators: ["Yes, because they were fast", "Exam speed matters most", "Correct answer means stable", "Ignore skipped steps"],
       },
       {
         key: "time_pressure_stability_q5",
         section: "Fields and Breakdown",
-        prompt: "The timer starts and the student immediately panics before reading the question. What field is weak?",
+        prompt: "In a timed rep, the student panics before reading the question properly. What field is weak?",
         expectedAnswer: "Start under time is weak. The student's initial response collapses under time pressure.",
         failIndicators: ["They are slow", "they lack content knowledge", "they need motivation"],
       },
@@ -618,29 +618,29 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "time_pressure_stability_q8",
         section: "Protocol and Execution",
-        prompt: "A student completes the task on time but with broken method and guessed answers. Can it count as a strong completion?",
-        expectedAnswer: "No. Completion integrity is weak because the task was finished without preserving structure.",
+        prompt: "A student completes the timed task, but the method is broken and several answers are guessed. How should the tutor log completion integrity?",
+        expectedAnswer: "Completion integrity is weak. Finishing on time does not count as stable if the student abandoned structure or guessed through the work.",
         failIndicators: ["Yes, because completed", "marks are enough", "speed was good"],
       },
       {
         key: "time_pressure_stability_q9",
         section: "Tutor Discipline",
         prompt: "During a timed rep, the tutor keeps saying, 'Hurry, hurry, hurry.' What is wrong?",
-        expectedAnswer: "The tutor replaced method discipline with urgency talk. Time Pressure Stability should train calm structure under time, not panic.",
+        expectedAnswer: "The tutor replaced method discipline with urgency talk. Time Pressure Stability trains calm structure under time, not panic. The tutor should preserve the timer condition without pushing panic.",
         failIndicators: ["Good exam preparation", "pressure motivates", "students need urgency"],
       },
       {
         key: "time_pressure_stability_q10",
         section: "Tutor Moves",
         prompt: "The student rushes and skips the method under time. What should the tutor do after the rep?",
-        expectedAnswer: "Log the breakdown, reset the structure, identify where method discipline collapsed, and repeat with focus on controlled pace and step integrity.",
+        expectedAnswer: "After the rep, log the breakdown, reset the structure, identify where method discipline collapsed, and repeat according to the assigned RI-OS action. Do not correct mid-timed rep unless protocol allows or turn the timed rep into panic coaching.",
         failIndicators: ["Tell them to go faster", "give easier work", "ignore it if answer is right"],
       },
       {
         key: "time_pressure_stability_q11",
         section: "Constraints",
         prompt: "A student cannot recognize the problem type, but the tutor starts timed practice anyway. What is wrong?",
-        expectedAnswer: "The drill is invalid. Time pressure cannot be added before Clarity and basic execution are stable enough.",
+        expectedAnswer: "The timed drill is invalid because the student does not have the Clarity needed for time pressure. Time cannot be used to fix missing recognition.",
         failIndicators: ["Time reveals weakness", "exam practice is needed", "pressure builds skill"],
       },
       {
@@ -654,15 +654,15 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
         key: "time_pressure_stability_q13",
         section: "Success and Stability",
         prompt: "A student works slowly under time but keeps the method intact. Is that automatically a fail?",
-        expectedAnswer: "No. It may show developing stability. The tutor should log pace control and completion integrity separately instead of judging only speed.",
+        expectedAnswer: "No. The tutor should log pace control separately from structure under time and completion integrity. Slow but structured may show developing stability, while pace remains a field to train.",
         failIndicators: ["Yes, too slow", "speed is the only goal", "fail because incomplete"],
       },
       {
         key: "time_pressure_stability_q14",
         section: "Progression",
-        prompt: "When can a student progress in Time Pressure Stability?",
-        expectedAnswer: "When they maintain structure under time, control pace, start without panic, and preserve completion integrity across reps.",
-        failIndicators: ["When they finish fast once", "when they get a high mark", "when they feel confident"],
+        prompt: "What evidence should the tutor log to show strong Time Pressure Stability?",
+        expectedAnswer: "The student starts without panic, keeps structure under time, controls pace, and preserves completion integrity across timed reps. The tutor logs this evidence; RI-OS determines the next action.",
+        failIndicators: ["They finished fast once", "They got a high mark", "They felt confident", "The tutor decides they are done"],
       },
       {
         key: "time_pressure_stability_q15",

@@ -154,7 +154,7 @@ Controlled Discomfort
 Time Pressure
 
 Q14
-What evidence should the tutor log to show Structured Execution is becoming complete/ready for RI-OS review?
+What evidence should the tutor log to show Structured Execution is becoming complete and ready to be progressed to the next phase?
 
 Expected Answer
 The tutor should log evidence that the student can start independently, follow steps in order, repeat the method reliably, and reduce tutor dependence across reps.
