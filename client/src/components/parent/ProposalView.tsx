@@ -37,6 +37,7 @@ interface ProposalData {
   student?: {
     name: string;
     grade: string;
+    gender?: string | null;
   };
   tutor?: {
     name: string;
@@ -89,6 +90,67 @@ export default function ProposalView({
   const studentName = proposal.student?.name || "Your Child";
   const studentFirstName = studentName.trim().split(/\s+/)[0] || "Your child";
   const isPilotOnboarding = proposal.onboardingType === "pilot";
+
+  type StudentPronounSet = {
+    subject: "he" | "she" | "they";
+    subjectCapitalized: "He" | "She" | "They";
+    object: "him" | "her" | "them";
+    possessiveAdjective: "his" | "her" | "their";
+    possessivePronoun: "his" | "hers" | "theirs";
+    reflexive: "himself" | "herself" | "themselves";
+    be: "is" | "are";
+    have: "has" | "have";
+    need: "needs" | "need";
+  };
+
+  const resolveStudentPronouns = (value?: string | null): StudentPronounSet => {
+    const normalized = String(value || "").trim().toLowerCase();
+
+    if (["he_him", "he/him", "he him", "he", "male", "boy"].includes(normalized)) {
+      return {
+        subject: "he",
+        subjectCapitalized: "He",
+        object: "him",
+        possessiveAdjective: "his",
+        possessivePronoun: "his",
+        reflexive: "himself",
+        be: "is",
+        have: "has",
+        need: "needs",
+      };
+    }
+
+    if (["she_her", "she/her", "she her", "she", "female", "girl"].includes(normalized)) {
+      return {
+        subject: "she",
+        subjectCapitalized: "She",
+        object: "her",
+        possessiveAdjective: "her",
+        possessivePronoun: "hers",
+        reflexive: "herself",
+        be: "is",
+        have: "has",
+        need: "needs",
+      };
+    }
+
+    return {
+      subject: "they",
+      subjectCapitalized: "They",
+      object: "them",
+      possessiveAdjective: "their",
+      possessivePronoun: "theirs",
+      reflexive: "themselves",
+      be: "are",
+      have: "have",
+      need: "need",
+    };
+  };
+
+  const studentPronouns = resolveStudentPronouns(proposal.student?.gender || null);
+  const pronounForStudent = studentPronouns.subject;
+  const pronounCapitalized = studentPronouns.subjectCapitalized;
+  const pronounCapitalizedWithVerb = `${studentPronouns.subjectCapitalized} ${studentPronouns.be}`;
 
   const splitList = (value?: string): string[] => {
     if (!value) return [];
@@ -262,21 +324,21 @@ export default function ProposalView({
     if (stability === "High Maintenance") {
       switch (phase) {
         case "Clarity":
-          return "they are recognising what the question is asking consistently, and we are now confirming that the next layer can be introduced cleanly.";
+          return `${pronounForStudent} ${studentPronouns.be} recognising what the question is asking consistently, and we are now confirming that the next layer can be introduced cleanly.`;
         case "Structured Execution":
-          return "they are consistently applying the correct method, and we are now confirming that it holds under repetition.";
+          return `${pronounForStudent} ${studentPronouns.be} consistently applying the correct method, and we are now confirming that it holds under repetition.`;
         case "Controlled Discomfort":
-          return "they are handling harder work with stability, and we are now confirming that timed pressure can be introduced safely.";
+          return `${pronounForStudent} ${studentPronouns.be} handling harder work with stability, and we are now confirming that timed pressure can be introduced safely.`;
         case "Time Pressure Stability":
-          return "they are keeping structure intact under pace pressure, and we are now preserving that standard across repeated sessions.";
+          return `${pronounForStudent} ${studentPronouns.be} keeping structure intact under pace pressure, and we are now preserving that standard across repeated sessions.`;
       }
     }
 
     switch (phase) {
       case "Clarity":
-        return "they are still learning to recognise what the question is asking and to choose the right structure early.";
+        return `${pronounForStudent} ${studentPronouns.be} still learning to recognise what the question is asking and to choose the right structure early.`;
       case "Structured Execution":
-        return "they can see the correct method, but it still needs to hold independently and consistently.";
+        return `${pronounForStudent} can see the correct method, but it still needs to hold independently and consistently.`;
       case "Controlled Discomfort":
         return "the method now needs to hold when the work becomes harder or less familiar.";
       case "Time Pressure Stability":
@@ -398,10 +460,6 @@ export default function ProposalView({
     return [...phaseSignals[phase], stabilitySignal];
   };
 
-  const pronounForStudent = "they";
-  const pronounCapitalized = "They";
-  const pronounCapitalizedWithVerb = "They are";
-
   const stateCopy = {
     status: personalizeCopy(getParentDashboardCopyByState(trainingStartPhase as TopicPhase, normalizedStability as TopicStability).status),
     meaning: personalizeCopy(getParentDashboardCopyByState(trainingStartPhase as TopicPhase, normalizedStability as TopicStability).meaning),
@@ -412,7 +470,7 @@ export default function ProposalView({
       case "Clarity":
         return [
           `${studentFirstName} is not yet reading this topic with full clarity.`,
-          `${pronounCapitalized} still needs support to identify the structure and meaning of the work correctly.`,
+          `${pronounCapitalized} still ${studentPronouns.need} support to identify the structure and meaning of the work correctly.`,
         ];
       case "Structured Execution":
         return [
@@ -422,12 +480,12 @@ export default function ProposalView({
       case "Controlled Discomfort":
         return [
           `${studentFirstName} can work through familiar questions, but becomes less stable when difficulty increases.`,
-          `${pronounCapitalized} still needs support to stay composed and structured when the work feels unfamiliar.`,
+          `${pronounCapitalized} still ${studentPronouns.need} support to stay composed and structured when the work feels unfamiliar.`,
         ];
       case "Time Pressure Stability":
         return [
           `${studentFirstName} can solve correctly, but timed pressure still affects consistency.`,
-          `${pronounCapitalized} needs reinforcement to keep structure stable when speed is added.`,
+          `${pronounCapitalized} ${studentPronouns.need} reinforcement to keep structure stable when speed is added.`,
         ];
       default:
         return [stateCopy.status, stateCopy.meaning];
@@ -519,7 +577,7 @@ export default function ProposalView({
         phase,
         stability,
         stateLabel: `${phase} (${stability})`,
-        meaning: getPhaseMeaning(phase, stability).replace(/\bshe\b/i, pronounForStudent),
+        meaning: getPhaseMeaning(phase, stability),
         position: getLivePositionText(phase, stability),
         observations: getLiveObservationLines(phase, stability, false),
         direction: getLiveDirectionText(phase, stability),

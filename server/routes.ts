@@ -569,7 +569,7 @@ async function getStudentOperationalMode(studentId: string): Promise<"training" 
 
 function isMissingSandboxAccountColumnError(error: any) {
   const message = String(error?.message || "").toLowerCase();
-  return message.includes("is_sandbox_account");
+  return message.includes("is_sandbox_account") || message.includes("student_gender");
 }
 
 function isHeuristicSandboxEnrollment(enrollment: any, tutorId?: string) {
@@ -698,7 +698,7 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
 
   let { data: sourceEnrollments, error: sourceEnrollmentsError } = await supabase
     .from("parent_enrollments")
-    .select("id, parent_full_name, parent_email, student_full_name, student_grade, school_name, math_struggle_areas, previous_tutoring, internet_access, parent_motivation")
+    .select("id, parent_full_name, parent_email, student_full_name, student_grade, student_gender, school_name, math_struggle_areas, previous_tutoring, internet_access, parent_motivation")
     .eq("assigned_tutor_id", tutorId)
     .eq("is_sandbox_account", false)
     .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES])
@@ -795,6 +795,7 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
       parent_city: "Sandbox City",
       student_full_name: fakeStudentName,
       student_grade: source?.student_grade || ["8", "9", "10", "11", "12"][offset % 5],
+      student_gender: source?.student_gender || (sandboxOrdinal % 2 === 0 ? "female" : "male"),
       school_name: caseSeed.schoolName,
       math_struggle_areas: caseSeed.mathStruggleAreas,
       response_symptoms: caseSeed.responseSymptoms,
@@ -816,6 +817,14 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
     const sandboxEnrollmentPayloads = [
       { ...sandboxEnrollmentBase, is_sandbox_account: true },
       { ...sandboxEnrollmentBase },
+      (() => {
+        const { student_gender, ...payload } = { ...sandboxEnrollmentBase, is_sandbox_account: true } as any;
+        return payload;
+      })(),
+      (() => {
+        const { student_gender, ...payload } = sandboxEnrollmentBase as any;
+        return payload;
+      })(),
     ];
 
     let sandboxEnrollment: any = null;
@@ -838,6 +847,7 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
       const expectedCompatibilityError =
         message.includes("is_sandbox_account") ||
         message.includes("current_step") ||
+        message.includes("student_gender") ||
         message.includes("response_symptoms") ||
         message.includes("topic_response_symptoms") ||
         message.includes("response_signal_scores") ||
@@ -9090,7 +9100,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (
         rowError &&
         fallbackSelect &&
-        String(rowError.message || "").includes("assigned_student_id")
+        (
+          String(rowError.message || "").includes("assigned_student_id") ||
+          String(rowError.message || "").includes("student_gender")
+        )
       ) {
         const fallbackResult = await supabase
           .from("parent_enrollments")
@@ -9158,7 +9171,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (
         rowError &&
         fallbackSelect &&
-        String(rowError.message || "").includes("assigned_student_id")
+        (
+          String(rowError.message || "").includes("assigned_student_id") ||
+          String(rowError.message || "").includes("student_gender")
+        )
       ) {
         rowError = null;
       }
@@ -9179,7 +9195,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (
       error &&
       fallbackSelect &&
-      String(error.message || "").includes("assigned_student_id")
+      (
+        String(error.message || "").includes("assigned_student_id") ||
+        String(error.message || "").includes("student_gender")
+      )
     ) {
       const fallbackResult = await supabase
         .from("parent_enrollments")
@@ -9211,7 +9230,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (
           error &&
           fallbackSelect &&
-          String(error.message || "").includes("assigned_student_id")
+          (
+            String(error.message || "").includes("assigned_student_id") ||
+            String(error.message || "").includes("student_gender")
+          )
         ) {
           const emailFallbackResult = await supabase
             .from("parent_enrollments")
@@ -18966,6 +18988,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         parentCity,
         studentFullName,
         studentGrade,
+        studentGender,
         schoolName,
         stuckAreas,
         mathStruggleAreas,
@@ -19037,6 +19060,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         !parentPhone ||
         !studentFullName ||
         !studentGrade ||
+        !studentGender ||
         !schoolName ||
         !mathStruggleAreas ||
         reportedTopics.length === 0 ||
@@ -19152,6 +19176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           parent_city: parentCity,
           student_full_name: studentFullName,
           student_grade: studentGrade,
+          student_gender: studentGender,
           school_name: schoolName,
           math_struggle_areas: normalizedMathStruggleAreas,
           response_symptoms: effectiveResponseSymptoms,
@@ -19580,12 +19605,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { data: enrollment, error: enrollmentError } = await selectLatestParentEnrollment({
         parentId,
-        primarySelect: "id, proposal_id, status",
+        primarySelect: "id, proposal_id, status, student_full_name, student_grade",
       });
 
       const { data: enrollmentFull } = await selectLatestParentEnrollment({
         parentId,
-        primarySelect: "math_struggle_areas",
+        primarySelect: "math_struggle_areas, student_gender",
+        fallbackSelect: "math_struggle_areas",
       });
 
       console.log("📋 Enrollment data:", enrollment, "Error:", enrollmentError);
@@ -19626,7 +19652,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get student info separately
       const { data: student } = await supabase
         .from("students")
-        .select("name, grade, concept_mastery")
+        .select("name, grade, concept_mastery, personal_profile")
         .eq("id", proposal.student_id)
         .single();
 
@@ -19718,6 +19744,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return latestTopic || null;
       })();
 
+      const resolvedStudentGender =
+        String(
+          (student?.personal_profile &&
+          typeof student.personal_profile === "object" &&
+          ((student.personal_profile as any).gender || (student.personal_profile as any).pronouns)) ||
+          enrollmentFull?.student_gender ||
+          ""
+        ).trim() || null;
+
       // Combine data and convert to camelCase
       const enrichedProposal = {
         id: proposal.id,
@@ -19750,7 +19785,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         childWillWin: proposal.child_will_win,
         parentCode: proposal.parent_code,
         createdAt: proposal.created_at,
-        student: student || null,
+        student: {
+          name: student?.name || enrollment?.student_full_name || "Your child",
+          grade: student?.grade || enrollment?.student_grade || "",
+          gender: resolvedStudentGender,
+        },
         tutor: tutor ? {
           name: tutor.user_metadata?.name || tutor.email,
           email: tutor.email,

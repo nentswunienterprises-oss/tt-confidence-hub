@@ -640,6 +640,15 @@ export function StudentCard({
             <p className="text-xs text-muted-foreground text-center">
               New parent assignment received. Accept or decline this assignment before intro booking can begin.
             </p>
+            <PreSessionIntelligenceSummary
+              reportedTopics={reportedTopics}
+              symptomSignals={symptomSignals}
+              topicIntelligence={topicIntelligence}
+              suggestedTopic={suggestedTopic}
+              suggestedSymptoms={suggestedSymptoms}
+              recommendedStartingPhase={recommendedStartingPhase}
+              recommendedStartingReason={recommendedStartingReason}
+            />
             <Button
               className="w-full"
               variant="outline"
@@ -660,11 +669,22 @@ export function StudentCard({
         )}
 
         {effectiveWorkflow?.assignmentAccepted && !handoverVerificationActive && !effectiveWorkflow.introConfirmed && (
-          <TutorIntroSessionActions
-            studentId={student.id}
-            parentId={student.parentInfo?.parent_id}
-            tutorId={student.tutor_id}
-          />
+          <>
+            <PreSessionIntelligenceSummary
+              reportedTopics={reportedTopics}
+              symptomSignals={symptomSignals}
+              topicIntelligence={topicIntelligence}
+              suggestedTopic={suggestedTopic}
+              suggestedSymptoms={suggestedSymptoms}
+              recommendedStartingPhase={recommendedStartingPhase}
+              recommendedStartingReason={recommendedStartingReason}
+            />
+            <TutorIntroSessionActions
+              studentId={student.id}
+              parentId={student.parentInfo?.parent_id}
+              tutorId={student.tutor_id}
+            />
+          </>
         )}
 
         {effectiveWorkflow?.assignmentAccepted && handoverVerificationActive && (
@@ -791,6 +811,16 @@ export function StudentCard({
             <p className="font-medium text-foreground">Student: {student.name}</p>
             <p className="text-muted-foreground mt-1">Parent: {student.parentInfo?.parent_full_name || "Unknown"}</p>
           </div>
+          <PreSessionIntelligenceSummary
+            reportedTopics={reportedTopics}
+            symptomSignals={symptomSignals}
+            topicIntelligence={topicIntelligence}
+            suggestedTopic={suggestedTopic}
+            suggestedSymptoms={suggestedSymptoms}
+            recommendedStartingPhase={recommendedStartingPhase}
+            recommendedStartingReason={recommendedStartingReason}
+            compact
+          />
           <DialogFooter className="gap-2 sm:gap-0">
             <Button
               variant="outline"
@@ -975,6 +1005,88 @@ function HandoverVerificationSection({
 
       {completionError ? (
         <p className="text-xs text-red-600 text-center">{completionError}</p>
+      ) : null}
+    </div>
+  );
+}
+
+function PreSessionIntelligenceSummary({
+  reportedTopics,
+  symptomSignals,
+  topicIntelligence,
+  suggestedTopic,
+  suggestedSymptoms,
+  recommendedStartingPhase,
+  recommendedStartingReason,
+  compact = false,
+}) {
+  const visibleTopics = reportedTopics.slice(0, compact ? 3 : 4);
+  const visibleSymptoms =
+    topicIntelligence[0]?.symptoms?.length > 0
+      ? topicIntelligence[0].symptoms.slice(0, compact ? 4 : 6)
+      : suggestedSymptoms.slice(0, compact ? 4 : 6);
+
+  const hasSignals =
+    visibleTopics.length > 0 ||
+    visibleSymptoms.length > 0 ||
+    symptomSignals.length > 0 ||
+    topicIntelligence.length > 0;
+
+  if (!hasSignals) {
+    return null;
+  }
+
+  return (
+    <div className="rounded-xl border border-primary/20 bg-muted/20 p-3 space-y-3">
+      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Intake Signals</p>
+
+      {visibleTopics.length > 0 ? (
+        <div className="space-y-1">
+          <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Topics</p>
+          <div className="flex flex-wrap gap-1.5">
+            {visibleTopics.map((topic) => (
+              <Badge
+                key={topic}
+                variant="outline"
+                className="max-w-full whitespace-normal break-words text-left leading-snug text-[10px] border-primary/20 bg-background/70 text-foreground"
+              >
+                {topic}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {visibleSymptoms.length > 0 ? (
+        <div className="space-y-1">
+          <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Symptoms</p>
+          <div className="flex flex-wrap gap-1.5">
+            {visibleSymptoms.map((symptom) => (
+              <Badge
+                key={symptom}
+                variant="outline"
+                className="max-w-full whitespace-normal break-words text-left leading-snug text-[10px] border-primary/20 bg-background/70 text-foreground"
+              >
+                {symptom}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="rounded-lg border border-primary/15 bg-background/80 px-3 py-2">
+          <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Start With</p>
+          <p className="mt-1 text-sm font-medium text-foreground">{suggestedTopic}</p>
+        </div>
+        <div className="rounded-lg border border-primary/15 bg-background/80 px-3 py-2">
+          <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Suggested Phase</p>
+          <p className="mt-1 text-sm font-medium text-foreground">{recommendedStartingPhase}</p>
+        </div>
+      </div>
+
+      {!compact ? (
+        <p className="text-xs text-muted-foreground">{trimRationaleSignals(recommendedStartingReason)}</p>
       ) : null}
     </div>
   );

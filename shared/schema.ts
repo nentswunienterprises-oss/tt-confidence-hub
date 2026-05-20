@@ -1251,6 +1251,7 @@ export const parentEnrollments = pgTable("parent_enrollments", {
   // Student Info
   studentFullName: varchar("student_full_name").notNull(),
   studentGrade: varchar("student_grade").notNull(),
+  studentGender: varchar("student_gender"),
   schoolName: varchar("school_name").notNull(),
   mathStruggleAreas: text("math_struggle_areas").notNull(),
   responseSymptoms: jsonb("response_symptoms"),

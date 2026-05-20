@@ -388,6 +388,7 @@ export default function ParentGateway() {
     parentCity: "",
     studentFullName: "",
     studentGrade: "",
+    studentGender: "",
     schoolName: "",
     stuckAreas: [] as string[],
     mathStruggleAreas: "",
@@ -494,6 +495,7 @@ export default function ParentGateway() {
       formData.parentCity &&
       formData.studentFullName &&
       formData.studentGrade &&
+      formData.studentGender &&
       formData.schoolName &&
       hasMathTopics &&
       everyTopicHasSymptoms &&
@@ -523,6 +525,7 @@ export default function ParentGateway() {
       !formData.parentCity ||
       !formData.studentFullName ||
       !formData.studentGrade ||
+      !formData.studentGender ||
       !formData.schoolName ||
       submittedMathTopics.length === 0 ||
       submittedMathTopics.some((topic) => (formData.topicResponseSymptoms[topic] || []).length === 0) ||
@@ -1036,6 +1039,31 @@ export default function ParentGateway() {
                           }}
                         >
                           {grade}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium mb-2" style={{ color: "#1A1A1A" }}>
+                      Student Gender *
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {[
+                        { value: "male", label: "Male" },
+                        { value: "female", label: "Female" },
+                      ].map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => handleInputChange("studentGender", option.value)}
+                          className="px-3 sm:px-4 py-2 rounded-lg border text-xs sm:text-sm font-medium transition"
+                          style={{
+                            backgroundColor: formData.studentGender === option.value ? "#E63946" : "transparent",
+                            color: formData.studentGender === option.value ? "white" : "#1A1A1A",
+                            borderColor: formData.studentGender === option.value ? "#E63946" : "#E5E5E5"
+                          }}
+                        >
+                          {option.label}
                         </button>
                       ))}
                     </div>
