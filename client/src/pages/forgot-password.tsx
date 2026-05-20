@@ -15,6 +15,14 @@ export default function ForgotPasswordPage() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  const goBackToLogin = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/auth?mode=login');
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
@@ -54,7 +62,7 @@ export default function ForgotPasswordPage() {
             variant="ghost"
             className="hidden md:inline-flex text-sm sm:text-base font-medium hover:bg-transparent items-center gap-1 sm:gap-2 px-2 sm:px-4"
             style={{ color: "#1A1A1A" }}
-            onClick={() => navigate('/auth?mode=login')}
+            onClick={goBackToLogin}
           >
             <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Back to Login
