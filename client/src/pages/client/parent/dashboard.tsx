@@ -515,6 +515,11 @@ function getCurrentStepCopy(introSession: IntroSessionInfo | null, hasProposal: 
   };
 }
 
+function formatParentGradeLabel(grade: string): string {
+  const trimmed = grade.trim();
+  return /^grade\b/i.test(trimmed) ? trimmed : `Grade ${trimmed}`;
+}
+
 export default function ParentDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -768,7 +773,7 @@ export default function ParentDashboard() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            {studentInfo?.grade && <Badge variant="outline" className="border-primary/30 bg-background/70">{studentInfo.grade}</Badge>}
+            {studentInfo?.grade && <Badge variant="outline" className="border-primary/30 bg-background/70">{formatParentGradeLabel(studentInfo.grade)}</Badge>}
             {studentInfo?.podName && <Badge className="bg-primary/90 text-primary-foreground">{studentInfo.podName}</Badge>}
           </div>
         </div>

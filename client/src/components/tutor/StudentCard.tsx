@@ -66,6 +66,11 @@ function normalizeTopicKey(rawValue) {
   return normalized ? normalized.toLowerCase() : null;
 }
 
+function formatTutorGradeLabel(grade) {
+  const trimmed = String(grade || "").trim();
+  return /^grade\b/i.test(trimmed) ? trimmed : trimmed ? `Grade ${trimmed}` : trimmed;
+}
+
 function getTopicMapValue(source, topic) {
   if (!source || typeof source !== "object") return null;
   const normalizedTopic = normalizeTopicKey(topic);
@@ -541,7 +546,7 @@ export function StudentCard({
               </div>
             </div>
             <div className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground mt-1">
-              {student.grade || "Grade pending"}
+              {student.grade ? formatTutorGradeLabel(student.grade) : "Grade pending"}
             </div>
             {student.parentInfo && (
               <div className="mt-3 rounded-xl border border-border/60 bg-muted/20 px-3 py-2 text-sm">

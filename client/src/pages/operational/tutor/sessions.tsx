@@ -91,6 +91,11 @@ function sessionLabel(type?: string | null) {
   return String(type || "").trim().toLowerCase() === "intro" ? "Intro Session" : "Training Session";
 }
 
+function formatTutorGradeLabel(grade?: string | null) {
+  const trimmed = String(grade || "").trim();
+  return /^grade\b/i.test(trimmed) ? trimmed : trimmed ? `Grade ${trimmed}` : trimmed;
+}
+
 export default function TutorSessions() {
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [selectedLogSession, setSelectedLogSession] = useState<TutorWeeklyScheduleSession | null>(null);
@@ -240,7 +245,7 @@ export default function TutorSessions() {
                                 </p>
                                 <p className="text-sm text-muted-foreground">
                                   {format(new Date(session.scheduled_time), "h:mm a")}
-                                  {session.student?.grade ? ` • ${session.student.grade}` : ""}
+                                  {session.student?.grade ? ` • ${formatTutorGradeLabel(session.student.grade)}` : ""}
                                 </p>
                               </div>
                               <Badge variant="outline">{statusLabel(session.status)}</Badge>

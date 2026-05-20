@@ -109,6 +109,11 @@ function formatTutorMode(value: TutorAlignmentSummaryData["operationalMode"]) {
   return "Training Mode";
 }
 
+function formatTutorGradeLabel(grade?: string | null) {
+  const trimmed = String(grade || "").trim();
+  return /^grade\b/i.test(trimmed) ? trimmed : trimmed ? `Grade ${trimmed}` : trimmed;
+}
+
 export default function TutorPod() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
@@ -872,7 +877,7 @@ export default function TutorPod() {
                     <p className="text-sm text-muted-foreground">Email: {selectedTeamMember.email || "Not provided"}</p>
                     <p className="text-sm text-muted-foreground">Phone: {selectedTeamMember.phone || "Not provided"}</p>
                     <p className="text-sm text-muted-foreground">School: {selectedTeamMember.school || "Not provided"}</p>
-                    <p className="text-sm text-muted-foreground">Grade: {selectedTeamMember.grade || "Not provided"}</p>
+                    <p className="text-sm text-muted-foreground">Grade: {selectedTeamMember.grade ? formatTutorGradeLabel(selectedTeamMember.grade) : "Not provided"}</p>
                     <p className="text-sm text-muted-foreground">
                       Certification: {selectedTeamMember.certificationStatus || "pending"}
                     </p>
