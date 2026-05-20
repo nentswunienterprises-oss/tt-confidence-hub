@@ -340,10 +340,10 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "structured_execution_q2",
         section: "Core Purpose",
-        prompt: "When should a student enter Structured Execution?",
+        prompt: "What evidence shows that Clarity is strong enough for RI-OS to assign Structured Execution work?",
         expectedAnswer:
-          "When Clarity is sufficient: the student knows what the problem is, knows the method, understands the reason, and can begin applying it.",
-        failIndicators: ["When they get answers right once", "when the tutor has explained", "when the parent wants progress"],
+          "The student can recognize the problem type, name the components, understand the steps, explain the reason, and apply lightly enough that the next issue is execution independence, not basic clarity.",
+        failIndicators: ["When the tutor feels ready", "When they got one answer right", "When the parent wants progress", "When the tutor has explained it"],
       },
       {
         key: "structured_execution_q3",
@@ -356,9 +356,9 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "structured_execution_q4",
         section: "Fields and Breakdown",
-        prompt: "A student knows the method but waits for the tutor to tell them the first step. What is weak?",
-        expectedAnswer: "Start behavior and independence are weak. They cannot initiate without support.",
-        failIndicators: ["Clarity", "they forgot", "they need motivation"],
+        prompt: "A student can explain the steps after being asked, but when the question is placed in front of them, they wait for the tutor to start them off. What is weak?",
+        expectedAnswer: "Start behavior and independence are weak. The student is not initiating execution without tutor support.",
+        failIndicators: ["Clarity is completely missing", "They just need confidence", "Tutor should explain again", "Move to easier work immediately"],
       },
       {
         key: "structured_execution_q5",
@@ -377,16 +377,16 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "structured_execution_q7",
         section: "Protocol and Execution",
-        prompt: "In Structured Execution, should the tutor keep remodeling the method?",
-        expectedAnswer: "No. If Clarity is present, the tutor must stop carrying and require independent execution. Only return to modeling if a true Clarity gap appears.",
-        failIndicators: ["Yes, to help them remember", "model until perfect", "explain each step"],
+        prompt: "During Structured Execution, the student hesitates and the tutor starts modeling the whole method again. What rule is being broken?",
+        expectedAnswer: "The tutor is carrying the student after independent execution is required. In Structured Execution, the tutor should not keep remodeling unless a true Clarity gap appears. The tutor should target the exact point of failure and return the student to execution.",
+        failIndicators: ["Remodel every time they hesitate", "Explain the full method again", "Keep teaching until they feel confident", "Make the tutor do the first step"],
       },
       {
         key: "structured_execution_q8",
         section: "Protocol and Execution",
-        prompt: "The student says, 'I don't know,' but they already learned the method. What should the tutor do?",
-        expectedAnswer: "Give thinking time, bring them back to identification, ask for the first step, and require execution without giving the full method again.",
-        failIndicators: ["Explain again", "show the solution", "make it easier"],
+        prompt: "In a Structured Execution drill, the student has already seen the method but says, 'I don’t know,' before attempting the first step. What should the tutor do?",
+        expectedAnswer: "Stay inside the assigned drill. Give thinking time, return them to the problem type, ask what the first step should be, and require an attempt without re-teaching the full method.",
+        failIndicators: ["Explain the whole method again", "Show the first step immediately", "Change the drill", "Move them back manually"],
       },
       {
         key: "structured_execution_q9",
@@ -426,16 +426,16 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "structured_execution_q14",
         section: "Progression and Success",
-        prompt: "When is a student ready to leave Structured Execution?",
-        expectedAnswer: "When they can start independently, follow the method in order, repeat it reliably, and reduce tutor dependence across reps.",
-        failIndicators: ["When they get one answer right", "when they say they understand", "when the tutor feels ready"],
+        prompt: "What evidence should the tutor log to show Structured Execution is becoming complete/ready for RI-OS review?",
+        expectedAnswer: "The tutor should log evidence that the student can start independently, follow steps in order, repeat the method reliably, and reduce tutor dependence across reps.",
+        failIndicators: ["They got one answer right", "They said they understand", "The tutor feels ready to move them", "They are more confident"],
       },
       {
         key: "structured_execution_q15",
         section: "Final Filter",
         prompt: "What is the tutor's job inside Structured Execution?",
         expectedAnswer:
-          "Protect the method structure, reduce dependence, correct skipped steps, and require independent ordered execution.",
+          "Protect the known method structure, reduce tutor dependence, correct only the exact broken step, and require independent ordered execution without drifting back into full teaching.",
         failIndicators: ["Explain more", "make it easier", "help them finish"],
         autoCriticalOnFail: true,
       },
