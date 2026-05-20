@@ -54,7 +54,7 @@ function PortalLanding() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-center sm:justify-between">
-          <div className="flex-shrink-0 scale-90 origin-center sm:origin-left">
+          <div className="flex-shrink-0 scale-80 origin-center sm:origin-left">
             <ResponseIntegrityLogo size="lg" variant="integrity" />
           </div>
 
