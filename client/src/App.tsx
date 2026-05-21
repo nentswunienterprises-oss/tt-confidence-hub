@@ -28,6 +28,7 @@ import OnlineTutorsWanted from "@/pages/onlinetutors-wanted";
 import OnlineTutorsWantedPlain from "@/pages/onlinetutorswanted";
 import AuthPage from "@/pages/auth";
 import ForgotPasswordPage from "@/pages/forgot-password";
+import ResetPasswordPage from "@/pages/reset-password";
 import AuthCallback from "@/pages/auth-callback";
 import Home from "@/pages/home";
 import NotFound from "@/pages/not-found";
@@ -177,6 +178,7 @@ function Router() {
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/login" element={<AuthPage />} />
       <Route path="/signup" element={<AuthPage />} />
       <Route path="/home" element={<Home />} />
