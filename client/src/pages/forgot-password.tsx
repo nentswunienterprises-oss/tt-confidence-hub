@@ -1,5 +1,5 @@
-import { FormEvent, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,20 +7,23 @@ import { supabase } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
 import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
+import { getPasswordResetFallbackLoginPath, storePasswordResetReturnTo } from "@/lib/password-reset-navigation";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const { toast } = useToast();
+  const location = useLocation();
   const navigate = useNavigate();
+  const returnTo = useMemo(() => getPasswordResetFallbackLoginPath(location.search), [location.search]);
+
+  useEffect(() => {
+    storePasswordResetReturnTo(returnTo);
+  }, [returnTo]);
 
   const goBackToLogin = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate('/auth?mode=login');
-    }
+    navigate(returnTo);
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -28,6 +31,7 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
+      storePasswordResetReturnTo(returnTo);
       const redirectTo = `${window.location.origin}/reset-password`;
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo,
@@ -102,7 +106,7 @@ export default function ForgotPasswordPage() {
                 <Button
                   className="w-full rounded-full font-semibold py-6 mt-6 border-0 shadow-lg hover:shadow-xl transition-all"
                   style={{ backgroundColor: "#E63946", color: "white" }}
-                  onClick={() => navigate('/auth?mode=login')}
+                  onClick={() => navigate(returnTo)}
                 >
                   Return to Login
                 </Button>

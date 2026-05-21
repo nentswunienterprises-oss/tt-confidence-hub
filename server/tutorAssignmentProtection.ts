@@ -17,6 +17,20 @@ type TutorEnrollmentUnassignOptions = {
   cleanupArtifacts?: boolean;
 };
 
+function buildCompactSandboxSeed(seed: string | null | undefined) {
+  return (
+    String(seed || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "")
+      .slice(0, 10) || "parent"
+  );
+}
+
+function buildCompactSandboxEmailPrefix(prefix: string, seed: string | null | undefined) {
+  return `${prefix}-${buildCompactSandboxSeed(seed)}-`;
+}
+
 function buildReassignmentResumeStep(status: string | null | undefined): string {
   const normalized = String(status || "").trim().toLowerCase();
   if (!normalized) return `${REASSIGNMENT_RESUME_PREFIX}assigned`;
@@ -27,7 +41,9 @@ function isHeuristicSandboxEnrollment(enrollment: any, tutorId?: string) {
   const parentEmail = String(enrollment?.parent_email || "").trim().toLowerCase();
   const parentName = String(enrollment?.parent_full_name || "").trim().toLowerCase();
   const studentName = String(enrollment?.student_full_name || "").trim().toLowerCase();
-  const expectedEmailPrefix = tutorId ? `sandbox-parent-${String(tutorId).trim().toLowerCase()}-` : "sandbox-parent-";
+  const expectedEmailPrefix = tutorId
+    ? buildCompactSandboxEmailPrefix("sandbox-parent", tutorId)
+    : "sandbox-parent-";
 
   return (
     (parentEmail.startsWith(expectedEmailPrefix) && parentEmail.endsWith("@territorialtutoring.com")) ||
@@ -309,11 +325,18 @@ export async function cleanupLegacyLiveEnrollmentsForNonLiveTutor(
     return { detachedCount: 0, detachedEnrollments: [] as any[] };
   }
 
-  let { data: liveEnrollments, error: liveEnrollmentsError } = await supabase
-    .from("parent_enrollments")
-    .select("id, user_id, student_full_name, assigned_tutor_id, assigned_student_id, status, proposal_id, current_step, is_sandbox_account, parent_full_name, parent_email, student_grade, school_name, math_struggle_areas, previous_tutoring, internet_access, parent_motivation")
-    .eq("assigned_tutor_id", tutorId)
-    .eq("is_sandbox_account", false);
+  let liveEnrollments: any[] | null = null;
+  let liveEnrollmentsError: any = null;
+  {
+    const initial = await supabase
+      .from("parent_enrollments")
+      .select("id, user_id, student_full_name, assigned_tutor_id, assigned_student_id, status, proposal_id, current_step, is_sandbox_account, parent_full_name, parent_email, student_grade, school_name, math_struggle_areas, previous_tutoring, internet_access, parent_motivation")
+      .eq("assigned_tutor_id", tutorId)
+      .eq("is_sandbox_account", false);
+
+    liveEnrollments = initial.data as any;
+    liveEnrollmentsError = initial.error as any;
+  }
 
   if (liveEnrollmentsError) {
     const message = String((liveEnrollmentsError as any)?.message || "").toLowerCase();

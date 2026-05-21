@@ -1,13 +1,19 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { AuthForm } from "@/components/auth/auth-form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 export default function TdSignup() {
+  const location = useLocation();
   const [mode, setMode] = useState<"signup" | "login">("signup");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    setMode(params.get("mode") === "login" ? "login" : "signup");
+  }, [location.search]);
 
   return (
     <div className="min-h-screen bg-[#FFF5ED]">

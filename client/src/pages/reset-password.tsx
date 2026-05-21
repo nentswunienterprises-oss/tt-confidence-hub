@@ -7,6 +7,11 @@ import { supabase } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
 import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
+import {
+  buildForgotPasswordPath,
+  clearPasswordResetReturnTo,
+  getPasswordResetFallbackLoginPath,
+} from "@/lib/password-reset-navigation";
 
 export default function ResetPasswordPage() {
   const location = useLocation();
@@ -16,6 +21,7 @@ export default function ResetPasswordPage() {
     () => new URLSearchParams(location.hash.startsWith("#") ? location.hash.slice(1) : location.hash),
     [location.hash]
   );
+  const returnTo = useMemo(() => getPasswordResetFallbackLoginPath(location.search), [location.search]);
   const [isRecovery, setIsRecovery] = useState(() => {
     return (
       searchParams.get("type") === "recovery" ||
@@ -89,6 +95,7 @@ export default function ResetPasswordPage() {
         throw error;
       }
 
+      clearPasswordResetReturnTo();
       setCompleted(true);
       toast({
         title: "Password updated",
@@ -114,7 +121,7 @@ export default function ResetPasswordPage() {
             variant="ghost"
             className="hidden md:inline-flex text-sm sm:text-base font-medium hover:bg-transparent items-center gap-1 sm:gap-2 px-2 sm:px-4"
             style={{ color: "#1A1A1A" }}
-            onClick={() => navigate('/auth?mode=login')}
+            onClick={() => navigate(returnTo)}
           >
             <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Back to Login
@@ -156,7 +163,7 @@ export default function ResetPasswordPage() {
                 <Button
                   className="w-full rounded-full font-semibold py-6 mt-6 border-0 shadow-lg hover:shadow-xl transition-all"
                   style={{ backgroundColor: "#E63946", color: "white" }}
-                  onClick={() => navigate('/auth?mode=login')}
+                  onClick={() => navigate(returnTo)}
                 >
                   Return to Login
                 </Button>
@@ -208,7 +215,7 @@ export default function ResetPasswordPage() {
                 <Button
                   className="w-full rounded-full font-semibold py-6 mt-6 border-0 shadow-lg hover:shadow-xl transition-all"
                   style={{ backgroundColor: "#E63946", color: "white" }}
-                  onClick={() => navigate('/forgot-password')}
+                  onClick={() => navigate(buildForgotPasswordPath(returnTo))}
                 >
                   Request a reset link
                 </Button>

@@ -309,12 +309,22 @@ function isValidPayfastEmail(value: string | null | undefined) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized);
 }
 
+function buildCompactSandboxSeed(seed: string | null | undefined) {
+  return (
+    String(seed || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "")
+      .slice(0, 10) || "parent"
+  );
+}
+
+function buildCompactSandboxEmailPrefix(prefix: string, seed: string | null | undefined) {
+  return `${prefix}-${buildCompactSandboxSeed(seed)}-`;
+}
+
 function buildCompactSandboxEmail(prefix: string, seed: string | null | undefined) {
-  const normalizedSeed = String(seed || "")
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, "");
-  const compactSeed = normalizedSeed.slice(0, 10) || "parent";
+  const compactSeed = buildCompactSandboxSeed(seed);
   const compactTime = Date.now().toString(36).slice(-8);
   return `${prefix}-${compactSeed}-${compactTime}@territorialtutoring.com`;
 }
@@ -572,14 +582,27 @@ function isMissingSandboxAccountColumnError(error: any) {
   return message.includes("is_sandbox_account") || message.includes("student_gender");
 }
 
+function isTutorScopedSandboxParentEmail(parentEmail: string | null | undefined, tutorId?: string) {
+  if (!tutorId) return false;
+  const normalizedEmail = String(parentEmail || "").trim().toLowerCase();
+  return (
+    normalizedEmail.startsWith(buildCompactSandboxEmailPrefix("sandbox-parent", tutorId)) &&
+    normalizedEmail.endsWith("@territorialtutoring.com")
+  );
+}
+
 function isHeuristicSandboxEnrollment(enrollment: any, tutorId?: string) {
   const parentEmail = String(enrollment?.parent_email || "").trim().toLowerCase();
   const parentName = String(enrollment?.parent_full_name || "").trim().toLowerCase();
   const studentName = String(enrollment?.student_full_name || "").trim().toLowerCase();
-  const expectedEmailPrefix = tutorId ? `sandbox-parent-${String(tutorId).trim().toLowerCase()}-` : "sandbox-parent-";
 
   return (
-    (parentEmail.startsWith(expectedEmailPrefix) && parentEmail.endsWith("@territorialtutoring.com")) ||
+    (
+      (tutorId
+        ? isTutorScopedSandboxParentEmail(parentEmail, tutorId)
+        : parentEmail.startsWith("sandbox-parent-")) &&
+      parentEmail.endsWith("@territorialtutoring.com")
+    ) ||
     parentName.startsWith("sandbox ") ||
     studentName.startsWith("sandbox ")
   );
@@ -588,10 +611,14 @@ function isHeuristicSandboxEnrollment(enrollment: any, tutorId?: string) {
 function isHeuristicSandboxStudent(student: any, tutorId?: string) {
   const parentContact = String(student?.parent_contact || student?.parentContact || "").trim().toLowerCase();
   const studentName = String(student?.name || "").trim().toLowerCase();
-  const expectedEmailPrefix = tutorId ? `sandbox-parent-${String(tutorId).trim().toLowerCase()}-` : "sandbox-parent-";
 
   return (
-    (parentContact.startsWith(expectedEmailPrefix) && parentContact.endsWith("@territorialtutoring.com")) ||
+    (
+      (tutorId
+        ? isTutorScopedSandboxParentEmail(parentContact, tutorId)
+        : parentContact.startsWith("sandbox-parent-")) &&
+      parentContact.endsWith("@territorialtutoring.com")
+    ) ||
     studentName.startsWith("sandbox ")
   );
 }
@@ -609,6 +636,12 @@ function studentMatchesEnrollmentSandboxBoundary(enrollment: any, student: any, 
   const sandboxStudent = isHeuristicSandboxStudent(student, tutorId || enrollment?.assigned_tutor_id);
   return sandboxEnrollment ? sandboxStudent : !sandboxStudent;
 }
+
+function isTrafficVisibleEnrollment(enrollment: any) {
+  return !isSandboxLikeEnrollment(enrollment, enrollment?.assigned_tutor_id);
+}
+
+let ensureStudentForEnrollment: (enrollment: any, tutorIdOverride?: string) => Promise<any> = async () => null;
 
 async function loadTutorAssignedEnrollments(
   tutorId: string,
@@ -662,6 +695,88 @@ async function loadTutorAssignedEnrollments(
   return { data: data || [], error };
 }
 
+async function loadDetachedSandboxEnrollmentsForTutor(tutorId: string) {
+  let { data, error } = await supabase
+    .from("parent_enrollments")
+    .select("*")
+    .is("assigned_tutor_id", null)
+    .eq("status", "awaiting_assignment")
+    .eq("is_sandbox_account", true)
+    .order("updated_at", { ascending: true });
+
+  if (error && isMissingSandboxAccountColumnError(error)) {
+    const fallback = await supabase
+      .from("parent_enrollments")
+      .select("*")
+      .is("assigned_tutor_id", null)
+      .eq("status", "awaiting_assignment")
+      .order("updated_at", { ascending: true });
+
+    data = fallback.data;
+    error = fallback.error;
+  }
+
+  if (error) {
+    return { data: [] as any[], error };
+  }
+
+  return {
+    data: (data || []).filter((enrollment: any) =>
+      isTutorScopedSandboxParentEmail(enrollment?.parent_email, tutorId)
+    ),
+    error: null,
+  };
+}
+
+async function reactivateDetachedSandboxEnrollment(enrollment: any, tutorId: string) {
+  const nowIso = new Date().toISOString();
+  const activationPayload = {
+    assigned_tutor_id: tutorId,
+    status: "awaiting_tutor_acceptance",
+    current_step: "awaiting_tutor_acceptance",
+    proposal_id: null,
+    updated_at: nowIso,
+  };
+
+  let { data, error } = await supabase
+    .from("parent_enrollments")
+    .update(activationPayload)
+    .eq("id", enrollment.id)
+    .select("*")
+    .maybeSingle();
+
+  if (error) {
+    const message = String(error?.message || "").toLowerCase();
+    const missingOptionalColumn = message.includes("current_step") || message.includes("proposal_id");
+
+    if (missingOptionalColumn) {
+      const fallback = await supabase
+        .from("parent_enrollments")
+        .update({
+          assigned_tutor_id: tutorId,
+          status: "awaiting_tutor_acceptance",
+          updated_at: nowIso,
+        })
+        .eq("id", enrollment.id)
+        .select("*")
+        .maybeSingle();
+
+      data = fallback.data;
+      error = fallback.error;
+    }
+  }
+
+  if (error || !data) {
+    throw new Error(
+      `Failed to reactivate detached sandbox enrollment ${String(enrollment?.id || "unknown")}: ${
+        error?.message || "no enrollment returned"
+      }`
+    );
+  }
+
+  return data;
+}
+
 async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCount = 3) {
   const certificationMode = await getTutorCertificationMode(tutorId);
   if (certificationMode !== "sandbox") {
@@ -696,13 +811,63 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
     return { certificationMode, createdAccounts: [] as any[] };
   }
 
-  let { data: sourceEnrollments, error: sourceEnrollmentsError } = await supabase
-    .from("parent_enrollments")
-    .select("id, parent_full_name, parent_email, student_full_name, student_grade, student_gender, school_name, math_struggle_areas, previous_tutoring, internet_access, parent_motivation")
-    .eq("assigned_tutor_id", tutorId)
-    .eq("is_sandbox_account", false)
-    .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES])
-    .order("updated_at", { ascending: false });
+  const createdAccounts: Array<{
+    parentId: string;
+    enrollmentId: string;
+    parentEmail: string;
+    studentName: string;
+    sourceEnrollmentId: string | null;
+    authProvisioned?: boolean;
+    caseProfile?: string | null;
+    topicCount?: number | null;
+    provisionAction: "created" | "reused";
+  }> = [];
+
+  const missingSandboxCount = minimumCount - existingSandboxCount;
+  const { data: detachedSandboxEnrollments, error: detachedSandboxError } =
+    await loadDetachedSandboxEnrollmentsForTutor(tutorId);
+
+  if (detachedSandboxError) {
+    throw new Error(`Failed to load detached sandbox enrollments: ${detachedSandboxError.message}`);
+  }
+
+  const reusableSandboxEnrollments = (detachedSandboxEnrollments || []).slice(0, missingSandboxCount);
+  for (const detachedEnrollment of reusableSandboxEnrollments) {
+    const reactivatedEnrollment = await reactivateDetachedSandboxEnrollment(detachedEnrollment, tutorId);
+    await ensureStudentForEnrollment(reactivatedEnrollment, tutorId);
+
+    createdAccounts.push({
+      parentId: String(reactivatedEnrollment.user_id || "").trim(),
+      enrollmentId: reactivatedEnrollment.id,
+      parentEmail: reactivatedEnrollment.parent_email,
+      studentName: reactivatedEnrollment.student_full_name,
+      sourceEnrollmentId: null,
+      authProvisioned: false,
+      caseProfile: null,
+      topicCount: null,
+      provisionAction: "reused",
+    });
+  }
+
+  const newSandboxCountNeeded = missingSandboxCount - reusableSandboxEnrollments.length;
+  if (newSandboxCountNeeded <= 0) {
+    return { certificationMode, createdAccounts };
+  }
+
+  let sourceEnrollments: any[] | null = null;
+  let sourceEnrollmentsError: any = null;
+  {
+    const initial = await supabase
+      .from("parent_enrollments")
+      .select("id, parent_full_name, parent_email, student_full_name, student_grade, student_gender, school_name, math_struggle_areas, previous_tutoring, internet_access, parent_motivation")
+      .eq("assigned_tutor_id", tutorId)
+      .eq("is_sandbox_account", false)
+      .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES])
+      .order("updated_at", { ascending: false });
+
+    sourceEnrollments = initial.data as any;
+    sourceEnrollmentsError = initial.error as any;
+  }
 
   if (sourceEnrollmentsError && isMissingSandboxAccountColumnError(sourceEnrollmentsError)) {
     const fallback = await supabase
@@ -721,24 +886,14 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
     throw new Error(`Failed to load sandbox seed enrollments: ${sourceEnrollmentsError.message}`);
   }
 
-  const createdAccounts: Array<{
-    parentId: string;
-    enrollmentId: string;
-    parentEmail: string;
-    studentName: string;
-    sourceEnrollmentId: string | null;
-    authProvisioned?: boolean;
-    caseProfile?: string;
-    topicCount?: number;
-  }> = [];
-
-  for (let offset = 0; offset < minimumCount - existingSandboxCount; offset++) {
+  for (let offset = 0; offset < newSandboxCountNeeded; offset++) {
+    const ordinalOffset = reusableSandboxEnrollments.length + offset;
     const source = (sourceEnrollments || []).length
-      ? sourceEnrollments![offset % sourceEnrollments!.length]
+      ? sourceEnrollments![ordinalOffset % sourceEnrollments!.length]
       : null;
-    const caseSeed = buildSandboxEnrollmentCase(existingSandboxCount + offset, source);
-    const sandboxOrdinal = existingSandboxCount + offset + 1;
-    const fakeParentEmail = buildCompactSandboxEmail("sandbox-parent", `${tutorId}-${offset}`);
+    const caseSeed = buildSandboxEnrollmentCase(existingSandboxCount + ordinalOffset, source);
+    const sandboxOrdinal = existingSandboxCount + ordinalOffset + 1;
+    const fakeParentEmail = buildCompactSandboxEmail("sandbox-parent", `${tutorId}-${existingSandboxCount + ordinalOffset}`);
     const fakeParentName = source?.parent_full_name
       ? `Sandbox ${String(source.parent_full_name).trim()} ${sandboxOrdinal}`
       : `Sandbox Parent ${sandboxOrdinal}`;
@@ -875,6 +1030,7 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
       authProvisioned,
       caseProfile: caseSeed.caseId,
       topicCount: caseSeed.topicCount,
+      provisionAction: "created",
     });
   }
 
@@ -1004,11 +1160,18 @@ function isSandboxEnrollmentForTutor(enrollment: any, tutorId?: string) {
 }
 
 async function loadTutorAssignmentLoadStats(tutorId: string) {
-  let { data, error } = await supabase
-    .from("parent_enrollments")
-    .select("id, status, current_step, is_sandbox_account, parent_full_name, parent_email, student_full_name")
-    .eq("assigned_tutor_id", tutorId)
-    .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES, "awaiting_tutor_acceptance"]);
+  let data: any[] | null = null;
+  let error: any = null;
+  {
+    const initial = await supabase
+      .from("parent_enrollments")
+      .select("id, status, current_step, is_sandbox_account, parent_full_name, parent_email, student_full_name")
+      .eq("assigned_tutor_id", tutorId)
+      .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES, "awaiting_tutor_acceptance"]);
+
+    data = initial.data as any;
+    error = initial.error as any;
+  }
 
   if (error && isMissingSandboxAccountColumnError(error)) {
     const fallback = await supabase
@@ -5209,7 +5372,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(500).json({ message: "Internal server error" });
       }
     });
-  const ensureStudentForEnrollment = async (enrollment: any, tutorIdOverride?: string) => {
+  ensureStudentForEnrollment = async (enrollment: any, tutorIdOverride?: string) => {
     const tutorId = tutorIdOverride || enrollment?.assigned_tutor_id;
     if (!enrollment || !tutorId || !enrollment.user_id || !enrollment.student_full_name || !enrollment.student_grade) {
       return null;
@@ -6977,8 +7140,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
+        const reusedCount = result.createdAccounts.filter((account: any) => account.provisionAction === "reused").length;
+        const createdCount = result.createdAccounts.length - reusedCount;
+
         res.json({
-          message: `Created ${result.createdAccounts.length} sandbox accounts for tutor training`,
+          message:
+            reusedCount > 0
+              ? `Prepared ${result.createdAccounts.length} sandbox accounts for tutor training (${createdCount} new, ${reusedCount} reused)`
+              : `Created ${createdCount} sandbox accounts for tutor training`,
           accounts: result.createdAccounts,
         });
       } catch (error) {
@@ -17250,32 +17419,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let totalEnrollments = 0;
         let studentEnrollments = 0;
         try {
-          // Get this month's enrollments first
           const currentMonth = new Date();
           const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-          
-          const { data: monthEnrollments, error: enrollError } = await supabase
+
+          let { data: trafficEnrollments, error: enrollError } = await supabase
             .from("parent_enrollments")
-            .select("id")
-            .gte("created_at", firstDay.toISOString());
-          
+            .select("id, created_at, assigned_tutor_id, parent_email, parent_full_name, student_full_name, is_sandbox_account, current_step")
+            .order("created_at", { ascending: false });
+
           if (enrollError) {
-            console.warn("Error fetching month enrollments:", enrollError);
-          } else if (monthEnrollments) {
-            studentEnrollments = monthEnrollments.length;
+            const message = String((enrollError as any)?.message || "").toLowerCase();
+            const missingOptionalColumn =
+              message.includes("is_sandbox_account") || message.includes("current_step");
+
+            if (missingOptionalColumn) {
+              const fallback = await supabase
+                .from("parent_enrollments")
+                .select("id, created_at, assigned_tutor_id, parent_email, parent_full_name, student_full_name")
+                .order("created_at", { ascending: false });
+
+              trafficEnrollments = fallback.data as any;
+              enrollError = fallback.error as any;
+            }
           }
 
-          // Get total enrollments (use count for efficiency)
-          const { count, error: countError } = await supabase
-            .from("parent_enrollments")
-            .select("*", { count: "exact", head: true });
-          
-          if (countError) {
-            console.warn("Error fetching total enrollments count:", countError);
-            // Fallback: total should be at least this month's count
-            totalEnrollments = studentEnrollments;
+          if (enrollError) {
+            console.warn("Error fetching traffic enrollments:", enrollError);
           } else {
-            totalEnrollments = count || studentEnrollments;
+            const liveTrafficEnrollments = (trafficEnrollments || []).filter((enrollment: any) =>
+              isTrafficVisibleEnrollment(enrollment)
+            );
+
+            totalEnrollments = liveTrafficEnrollments.length;
+            studentEnrollments = liveTrafficEnrollments.filter((enrollment: any) => {
+              const createdAt = enrollment?.created_at ? new Date(enrollment.created_at) : null;
+              return createdAt instanceof Date && !Number.isNaN(createdAt.getTime()) && createdAt >= firstDay;
+            }).length;
           }
         } catch (e) {
           console.warn("Could not fetch parent enrollments:", e);
@@ -17374,6 +17553,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json([]);
         }
 
+        data = (data || []).filter((enrollment: any) => isTrafficVisibleEnrollment(enrollment));
+
         const tutorIds = Array.from(
           new Set(
             (data || [])
@@ -17464,7 +17645,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
         });
 
-        console.log(`/api/hr/enrollments returned ${transformed.length} rows`);
+        console.log(`/api/hr/enrollments returned ${transformed.length} live rows`);
         res.json(transformed);
       } catch (error) {
         console.error("Error in /api/hr/enrollments:", error);

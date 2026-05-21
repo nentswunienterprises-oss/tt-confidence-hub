@@ -4,11 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom"; // ✅ React Router hook
 import { getDefaultDashboardRoute } from "@shared/portals";
 import type { Role } from "@shared/portals";
 import { API_URL } from "@/lib/config";
 import { clearAllCache } from "@/lib/queryClient";
+import { buildForgotPasswordPath, buildPasswordResetReturnTo } from "@/lib/password-reset-navigation";
 
 interface AuthFormProps {
   mode: "signup" | "login";
@@ -32,7 +34,10 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
   const [role] = useState<Role>(defaultRole);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const location = useLocation();
   const navigate = useNavigate(); // ✅ use React Router navigate
+
+  const passwordResetReturnTo = buildPasswordResetReturnTo(location.pathname, location.search, role);
 
   const redirectByRole = (role: Role) => {
     const dashboardRoute = getDefaultDashboardRoute(role);
@@ -361,7 +366,7 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
               <button
                 type="button"
                 className="text-sm font-medium text-[#E63946] hover:underline"
-                onClick={() => navigate('/forgot-password')}
+                onClick={() => navigate(buildForgotPasswordPath(passwordResetReturnTo))}
               >
                 Forgot password?
               </button>

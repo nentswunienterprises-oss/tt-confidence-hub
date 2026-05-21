@@ -297,6 +297,26 @@ function mapPersistedDeepDiveProgressRows(rows: any[]): TutorBattleTestDeepDiveP
     );
 }
 
+function hasCompleteTutorDocumentation(row: any): boolean {
+  return !!(
+    row?.doc_1_submission_verified &&
+    row?.doc_2_submission_verified &&
+    row?.doc_3_submission_verified &&
+    row?.doc_4_submission_verified &&
+    row?.doc_5_submission_verified &&
+    row?.doc_6_submission_verified
+  );
+}
+
+function isLegacyApplicantModePersistenceError(error: { message?: string } | null | undefined) {
+  const message = String(error?.message || "").toLowerCase();
+  return (
+    message.includes("invalid input value for enum") &&
+    message.includes("applicant") &&
+    (message.includes("tutor_certification_mode_old") || message.includes("tutor_certification_mode"))
+  );
+}
+
 // Check if all required tutor documents are uploaded and verified
 async function checkTutorDocumentationComplete(tutorId: string): Promise<boolean> {
   const { data, error } = await supabase
@@ -310,14 +330,76 @@ async function checkTutorDocumentationComplete(tutorId: string): Promise<boolean
   }
 
   // All 6 documents must be verified to move past applicant mode
-  return !!(
-    data.doc_1_submission_verified &&
-    data.doc_2_submission_verified &&
-    data.doc_3_submission_verified &&
-    data.doc_4_submission_verified &&
-    data.doc_5_submission_verified &&
-    data.doc_6_submission_verified
-  );
+  return hasCompleteTutorDocumentation(data);
+}
+
+async function loadTutorDocumentationCompleteMap(tutorIds: string[]) {
+  const uniqueTutorIds = Array.from(new Set(tutorIds.filter(Boolean)));
+  const completionMap = new Map<string, boolean>();
+
+  for (const tutorId of uniqueTutorIds) {
+    completionMap.set(tutorId, false);
+  }
+
+  if (!uniqueTutorIds.length) {
+    return completionMap;
+  }
+
+  const { data, error } = await supabase
+    .from("tutor_applications")
+    .select(
+      "user_id, doc_1_submission_verified, doc_2_submission_verified, doc_3_submission_verified, doc_4_submission_verified, doc_5_submission_verified, doc_6_submission_verified"
+    )
+    .in("user_id", uniqueTutorIds);
+
+  if (error || !data) {
+    return completionMap;
+  }
+
+  for (const row of data) {
+    const tutorId = String((row as any).user_id || "");
+    if (!tutorId) continue;
+    completionMap.set(tutorId, hasCompleteTutorDocumentation(row));
+  }
+
+  return completionMap;
+}
+
+async function insertTutorCertificationStatusRow(payload: {
+  tutor_assignment_id: string;
+  tutor_id: string;
+  mode: TutorTrainingMode | "suspended";
+  module_progress: TutorBattleTestModuleProgress[];
+  next_battle_tests: TutorBattleTestRecommendation[];
+  last_synced_at: string;
+  updated_at: string;
+  certification_recovery_note: string | null;
+  recovery_required_until: string | null;
+}) {
+  const { error: insertStatusError } = await supabase.from("tutor_battle_test_statuses").insert(payload);
+
+  if (insertStatusError && payload.mode === "applicant" && isLegacyApplicantModePersistenceError(insertStatusError)) {
+    const fallbackPayload = {
+      ...payload,
+      mode: "training" as const,
+    };
+
+    const { error: fallbackInsertError } = await supabase
+      .from("tutor_battle_test_statuses")
+      .insert(fallbackPayload);
+
+    if (fallbackInsertError) {
+      throw new Error(`Failed to save tutor certification status: ${fallbackInsertError.message}`);
+    }
+
+    return fallbackPayload.mode;
+  }
+
+  if (insertStatusError) {
+    throw new Error(`Failed to save tutor certification status: ${insertStatusError.message}`);
+  }
+
+  return payload.mode;
 }
 
 async function syncTutorCertificationState(
@@ -417,7 +499,7 @@ async function syncTutorCertificationState(
     throw new Error(`Failed to reset tutor certification status: ${deleteStatusError.message}`);
   }
 
-  const { error: insertStatusError } = await supabase.from("tutor_battle_test_statuses").insert({
+  const persistedMode = await insertTutorCertificationStatusRow({
     tutor_assignment_id: tutorAssignmentId,
     tutor_id: tutorId,
     mode,
@@ -428,9 +510,6 @@ async function syncTutorCertificationState(
     certification_recovery_note: recoveryNote,
     recovery_required_until: recoveryRequiredUntil,
   });
-  if (insertStatusError) {
-    throw new Error(`Failed to save tutor certification status: ${insertStatusError.message}`);
-  }
 
   const effectiveOperationalMode = mode === "certified_live" ? "certified_live" : "training";
   const { error: assignmentModeError } = await supabase
@@ -441,7 +520,7 @@ async function syncTutorCertificationState(
     throw new Error(`Failed to sync tutor assignment operational mode: ${assignmentModeError.message}`);
   }
 
-  await upsertTutorPortableCertificationSnapshot(tutorAssignmentId, tutorId);
+  await upsertTutorPortableCertificationSnapshot(tutorAssignmentId, tutorId, persistedMode);
   await cleanupLegacyLiveEnrollmentsForNonLiveTutor(tutorId, mode);
 }
 
@@ -463,25 +542,11 @@ export async function clearTutorAssignmentCertificationState(tutorAssignmentId: 
   }
 }
 
-export async function upsertTutorPortableCertificationSnapshot(tutorAssignmentId: string, tutorId: string) {
-  const { data: statusRow, error: statusError } = await supabase
-    .from("tutor_battle_test_statuses")
-    .select(
-      "mode, module_progress, next_battle_tests, last_synced_at, certification_recovery_note, recovery_required_until"
-    )
-    .eq("tutor_assignment_id", tutorAssignmentId)
-    .order("updated_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (statusError) {
-    throw new Error(`Failed to load tutor certification status for portable snapshot: ${statusError.message}`);
-  }
-
-  if (!statusRow) {
-    return null;
-  }
-
+export async function upsertTutorPortableCertificationSnapshot(
+  tutorAssignmentId: string,
+  tutorId: string,
+  persistedModeOverride?: TutorTrainingMode | "suspended"
+) {
   const deepDiveSelectFields =
     "phase_key, title, module_key, module_title, historical_state, current_health_state, current_streak, consecutive_drift_count, latest_score, completed_at, last_tested_at, attempts_count, critical_flag";
   const legacyDeepDiveSelectFields =
@@ -509,17 +574,39 @@ export async function upsertTutorPortableCertificationSnapshot(tutorAssignmentId
     throw new Error(`Failed to load tutor deep dive progress for portable snapshot: ${deepDiveError.message}`);
   }
 
+  const { data: statusRow, error: statusError } = await supabase
+    .from("tutor_battle_test_statuses")
+    .select(
+      "mode, module_progress, next_battle_tests, last_synced_at, certification_recovery_note, recovery_required_until"
+    )
+    .eq("tutor_assignment_id", tutorAssignmentId)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (statusError) {
+    throw new Error(`Failed to load tutor certification status for portable snapshot: ${statusError.message}`);
+  }
+
+  const effectiveStatusMode =
+    persistedModeOverride ||
+    (statusRow?.mode ? (statusRow.mode as TutorTrainingMode | "suspended") : null);
+
+  if (!effectiveStatusMode && !statusRow) {
+    return null;
+  }
+
   const nowIso = new Date().toISOString();
   const payload = {
     tutor_id: tutorId,
     source_assignment_id: tutorAssignmentId,
-    mode: statusRow.mode,
-    module_progress: statusRow.module_progress || [],
-    next_battle_tests: statusRow.next_battle_tests || [],
+    mode: effectiveStatusMode || "training",
+    module_progress: statusRow?.module_progress || [],
+    next_battle_tests: statusRow?.next_battle_tests || [],
     deep_dive_progress: deepDiveRows || [],
-    certification_recovery_note: (statusRow as any).certification_recovery_note || null,
-    recovery_required_until: (statusRow as any).recovery_required_until || null,
-    last_synced_at: statusRow.last_synced_at || nowIso,
+    certification_recovery_note: (statusRow as any)?.certification_recovery_note || null,
+    recovery_required_until: (statusRow as any)?.recovery_required_until || null,
+    last_synced_at: statusRow?.last_synced_at || nowIso,
     updated_at: nowIso,
   };
 
@@ -587,23 +674,17 @@ export async function hydrateTutorAssignmentFromPortableSnapshot(tutorAssignment
   }
 
   const mode = (snapshotRow.mode || "training") as TutorTrainingMode;
-  const { error: insertStatusError } = await supabase
-    .from("tutor_battle_test_statuses")
-    .insert({
-      tutor_assignment_id: tutorAssignmentId,
-      tutor_id: tutorId,
-      mode,
-      module_progress: (snapshotRow as any).module_progress || [],
-      next_battle_tests: (snapshotRow as any).next_battle_tests || [],
-      last_synced_at: (snapshotRow as any).last_synced_at || syncedAt,
-      certification_recovery_note: (snapshotRow as any).certification_recovery_note || null,
-      recovery_required_until: (snapshotRow as any).recovery_required_until || null,
-      updated_at: syncedAt,
-    });
-
-  if (insertStatusError) {
-    throw new Error(`Failed to restore tutor certification status: ${insertStatusError.message}`);
-  }
+  await insertTutorCertificationStatusRow({
+    tutor_assignment_id: tutorAssignmentId,
+    tutor_id: tutorId,
+    mode,
+    module_progress: (snapshotRow as any).module_progress || [],
+    next_battle_tests: (snapshotRow as any).next_battle_tests || [],
+    last_synced_at: (snapshotRow as any).last_synced_at || syncedAt,
+    certification_recovery_note: (snapshotRow as any).certification_recovery_note || null,
+    recovery_required_until: (snapshotRow as any).recovery_required_until || null,
+    updated_at: syncedAt,
+  });
 
   const effectiveOperationalMode = mode === "certified_live" ? "certified_live" : "training";
   const { error: assignmentModeError } = await supabase
@@ -801,6 +882,10 @@ export function reconcileTutorTrainingMode({
   docsComplete: boolean;
 }): TutorTrainingMode {
   const computedMode = deriveTutorTrainingMode(moduleProgress, deepDiveProgress, currentState, docsComplete);
+
+  if (!docsComplete) {
+    return "applicant";
+  }
 
   if (!persistedMode) {
     return computedMode;
@@ -1157,6 +1242,7 @@ export async function buildPodBattleTestingSummary(
   const { statusByAssignmentId, deepDiveProgressByAssignmentId } = await loadTutorCertificationSnapshots(
     tutorMeta.map((entry) => entry.assignmentId)
   );
+  const docsCompleteByTutorId = await loadTutorDocumentationCompleteMap(tutorMeta.map((entry) => entry.tutorId));
 
   for (const run of runRows) {
     if (run.subject_type !== "tutor") continue;
@@ -1238,7 +1324,7 @@ export async function buildPodBattleTestingSummary(
       moduleProgress: effectiveModuleProgress,
       deepDiveProgress: effectiveDeepDiveProgress,
       currentState: effectiveState,
-      docsComplete: persistedStatus?.mode !== "applicant",
+      docsComplete: docsCompleteByTutorId.get(meta.tutorId) ?? false,
     });
     const tutorSummary: BattleTestingTutorSummary = {
       assignmentId: meta.assignmentId,
