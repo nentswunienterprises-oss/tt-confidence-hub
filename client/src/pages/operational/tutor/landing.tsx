@@ -116,9 +116,8 @@ export default function TutorLanding() {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-center px-3 sm:h-20 sm:justify-between sm:px-6 md:px-12">
           <div className="hidden sm:block sm:w-[120px]" aria-hidden="true" />
 
-          <div className="text-center">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#8A4B35]">Operational Gateway</p>
-            <p className="mt-0.5 text-sm font-bold tracking-tight text-[#171311] sm:text-xl">Tutor</p>
+          <div className="flex-shrink-0 scale-90 origin-center sm:origin-center">
+            <ResponseIntegrityLogo size="lg" variant="integrity" />
           </div>
 
           <Button
@@ -126,7 +125,7 @@ export default function TutorLanding() {
             style={{ backgroundColor: "#E63946", color: "white" }}
             onClick={() => navigate(loginEntryPath)}
           >
-            Sign In
+            Log In
           </Button>
         </div>
       </header>
@@ -136,9 +135,9 @@ export default function TutorLanding() {
       <main>
         <section className="mx-auto max-w-7xl px-4 pb-12 pt-6 sm:px-6 md:px-12 md:pb-16 md:pt-10">
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
-            <div className="overflow-hidden rounded-[34px] border border-[#E5D3C5] bg-[linear-gradient(135deg,#FFF9F3_0%,#F5E6D7_46%,#EFDACD_100%)] shadow-[0_28px_90px_rgba(84,45,22,0.09)]">
+            <div className="overflow-hidden rounded-[34px] border border-[#E7CEC4] bg-[#FFF1E8] shadow-sm">
               <div className="p-6 sm:p-7 lg:p-9 xl:p-10">
-                <div className="inline-flex rounded-full border border-[#E9CFC2] bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#8A3024] shadow-sm">
+                <div className="inline-flex rounded-full border border-[#E9CFC2] bg-[#FFF4EE]/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#8A3024] shadow-sm">
                   Youth tutor pathway
                 </div>
                 <h1 className="mt-5 max-w-4xl text-4xl font-bold leading-[0.95] tracking-[-0.05em] text-[#171311] sm:text-5xl lg:text-[4.1rem] xl:text-[4.55rem]">

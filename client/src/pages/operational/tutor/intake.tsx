@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 import { buildTrackedPath, buildTrackedReturnTo, resolveTrackedBackTarget } from "@/lib/publicTracking";
 import { getTutorCycleDefinitions, getTutorIntakeStatus } from "@/lib/intakeWindows";
-import { ArrowLeft, ArrowRight, LockKeyhole, LogIn, Shield } from "lucide-react";
+import { ArrowLeft, ArrowRight, LockKeyhole, LogIn } from "lucide-react";
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -88,7 +88,7 @@ export default function TutorIntakeEntry() {
             style={{ backgroundColor: "#E63946", color: "white" }}
             onClick={() => navigate(loginPath)}
           >
-            Sign In
+            Log In
           </Button>
         </div>
       </header>
@@ -97,16 +97,16 @@ export default function TutorIntakeEntry() {
 
       <main className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6 md:px-12 md:pb-20 md:pt-10">
         <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="overflow-hidden rounded-[34px] border border-[#E5D3C5] bg-[linear-gradient(135deg,#FFF9F3_0%,#F5E6D7_46%,#EFDACD_100%)] shadow-[0_28px_90px_rgba(84,45,22,0.09)]">
+          <div className="overflow-hidden rounded-[34px] border border-[#E7CEC4] bg-[#FFF1E8] shadow-sm">
             <div className="p-6 sm:p-8 lg:p-10">
-              <div className="inline-flex rounded-full border border-[#E9CFC2] bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#8A3024] shadow-sm">
+              <div className="inline-flex rounded-full border border-[#E9CFC2] bg-[#FFF4EE]/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#8A3024] shadow-sm">
                 Tutor intake gateway
               </div>
               <h1 className="mt-5 max-w-4xl text-4xl font-bold leading-[0.95] tracking-[-0.05em] text-[#171311] sm:text-5xl lg:text-[4.15rem]">
                 {status.isOpen ? "Check the current operator window." : "Tutor entry is protected by window."}
               </h1>
               <div className="mt-6 max-w-3xl space-y-3 text-base leading-7 text-[#534A43] sm:text-[17px]">
-                <p className="font-semibold text-[#7C2D21]">{status.heading}</p>
+                <p className="font-semibold text-[#E63946]">{status.heading}</p>
                 <p>{status.summary}</p>
                 <p>{status.detail}</p>
               </div>
@@ -147,7 +147,7 @@ export default function TutorIntakeEntry() {
 
           <div className="grid gap-4 xl:content-start">
             <Card className="rounded-[28px] border border-[#2A211D] bg-[#1F1814] p-5 text-white shadow-[0_18px_50px_rgba(25,19,16,0.18)]">
-              <p className="text-sm font-bold uppercase tracking-tight text-[#E97B67]">Today In The Operator Rhythm</p>
+              <p className="text-sm font-bold uppercase tracking-tight text-[#E63946]">Today In The Operator Rhythm</p>
               <div className="mt-6 space-y-4 text-sm text-white/82">
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.18em] text-white/55">Date</p>
@@ -165,18 +165,15 @@ export default function TutorIntakeEntry() {
             </Card>
 
             <Card className="rounded-[28px] border border-[#E5D3C5] bg-white/84 p-5 shadow-sm">
-              <div className="flex items-start gap-3">
-                <Shield className="mt-1 h-5 w-5 text-[#E63946]" />
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Protected standard</p>
-                  <p className="mt-3 text-base font-semibold leading-7 text-[#171311]">
-                    Two certification cycles.
-                    <br />
-                    Evidence before trust.
-                    <br />
-                    No casual operator entry.
-                  </p>
-                </div>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Protected standard</p>
+                <p className="mt-3 text-base font-semibold leading-7 text-[#171311]">
+                  Two certification cycles.
+                  <br />
+                  Evidence before trust.
+                  <br />
+                  No casual operator entry.
+                </p>
               </div>
             </Card>
           </div>
