@@ -120,13 +120,7 @@ export default function TutorLanding() {
             <ResponseIntegrityLogo size="lg" variant="integrity" />
           </div>
 
-          <Button
-            className="hidden rounded-full px-4 text-sm font-semibold sm:inline-flex sm:px-6 sm:text-base"
-            style={{ backgroundColor: "#E63946", color: "white" }}
-            onClick={() => navigate(loginEntryPath)}
-          >
-            Log In
-          </Button>
+          <div className="hidden sm:block sm:w-[120px]" aria-hidden="true" />
         </div>
       </header>
 
