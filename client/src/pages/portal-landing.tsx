@@ -1,20 +1,24 @@
-﻿import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 import { buildTrackedPath, buildTrackedReturnTo } from "@/lib/publicTracking";
-
+import { ArrowRight, Check, Instagram } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowRight, BookOpen, Users, Zap, Check, Heart, Sparkles, Star, Instagram } from "lucide-react";
 
 function PortalLanding() {
   const navigate = useNavigate();
   const location = useLocation();
   const landingReturnTo = buildTrackedReturnTo(location.pathname, location.search);
 
-  const buildSignupUrl = (mode?: "login") =>
+  const buildParentIntakeUrl = () =>
+    buildTrackedPath("/client/intake", location.search, {
+      returnTo: landingReturnTo,
+    });
+
+  const buildLoginUrl = () =>
     buildTrackedPath("/client/signup", location.search, {
-      mode,
+      mode: "login",
+      lock: "login",
       returnTo: landingReturnTo,
     });
 
@@ -29,12 +33,8 @@ function PortalLanding() {
   const aboutUrl = buildTrackedPath("/about", location.search, {
     returnTo: landingReturnTo,
   });
-  
-  // If you use useAuth or other hooks, initialize them here
-  // const { ... } = useAuth();
 
-  // If wallpaperSvg is defined elsewhere, ensure it's present. Otherwise, define it or import it.
-  const wallpaperSvg = '';
+  const wallpaperSvg = "";
   const svgEncoded = encodeURIComponent(wallpaperSvg);
   const wallpaperCss = `
 .math-wallpaper {
@@ -51,7 +51,6 @@ function PortalLanding() {
     <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: "#FFF5ED" }}>
       <style dangerouslySetInnerHTML={{ __html: wallpaperCss }} />
 
-      {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-center sm:justify-between">
           <div className="flex-shrink-0 scale-90 origin-center sm:origin-left">
@@ -69,17 +68,17 @@ function PortalLanding() {
               variant="ghost"
               className="text-sm sm:text-base font-medium hover:bg-transparent px-2 sm:px-4"
               style={{ color: "#1A1A1A" }}
-              onClick={() => navigate(buildSignupUrl("login"))}
+              onClick={() => navigate(buildLoginUrl())}
             >
               Log In
             </Button>
             <Button
               className="text-sm sm:text-base font-semibold px-4 sm:px-6 py-2 sm:py-5 rounded-full border-0 shadow-lg hover:shadow-xl transition-all"
               style={{ backgroundColor: "#E63946", color: "white" }}
-              onClick={() => navigate(buildSignupUrl())}
+              onClick={() => navigate(buildParentIntakeUrl())}
             >
-              <span className="hidden sm:inline">Get Started</span>
-              <span className="sm:hidden">Start</span>
+              <span className="hidden sm:inline">Check Intake</span>
+              <span className="sm:hidden">Intake</span>
             </Button>
           </div>
         </div>
@@ -87,7 +86,6 @@ function PortalLanding() {
 
       <div className="h-16 sm:h-20" />
 
-      {/* Hero */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-4 sm:pt-8 md:pt-16 md:-mt-12 lg:-mt-14 xl:-mt-16 pb-12 sm:pb-20">
         <div className="md:hidden text-center mb-6">
           <span className="text-2xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
@@ -110,7 +108,7 @@ function PortalLanding() {
             </h1>
 
             <p className="text-base sm:text-lg md:text-xl leading-relaxed" style={{ color: "#5A5A5A" }}>
-              Most students don't struggle because they're bad at math or not intelligent.
+              Some students do not struggle because they are bad at math or not intelligent.
               <br />
               They struggle because pressure disrupts the way they respond.
               <br />
@@ -122,17 +120,14 @@ function PortalLanding() {
                 size="lg"
                 className="w-full text-base sm:text-lg font-semibold px-4 sm:px-8 py-4 sm:py-6 rounded-full shadow-lg hover:shadow-xl transition-all border-0 flex items-center justify-center gap-3 leading-tight"
                 style={{ backgroundColor: "#E63946", color: "white" }}
-                onClick={() => navigate(buildSignupUrl())}
+                onClick={() => navigate(buildParentIntakeUrl())}
               >
-                <span>Check Current Enrollment Window</span>
+                <span>Check Current Intake Window</span>
                 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
             </div>
-
-
           </div>
 
-          {/* Image */}
           <div className="relative overflow-visible w-full max-w-full">
             <div className="absolute inset-0 rounded-3xl hidden sm:block transform sm:rotate-3" style={{ backgroundColor: "#FFF0F0" }} />
             <img
@@ -151,19 +146,34 @@ function PortalLanding() {
               </div>
             </div>
           </div>
-
-
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="py-12 sm:py-20" style={{ backgroundColor: "#1A1A1A" }}>
+      <section className="pb-12 sm:pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
+          <div className="rounded-[30px] border border-[#E5D3C5] bg-white/82 p-5 sm:p-6 md:p-8 shadow-sm">
+            <div className="max-w-2xl">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em]" style={{ color: "#8A4B35" }}>
+                Protected Rhythm
+              </p>
+              <h2 className="mt-2 text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
+                Two annual intakes. One standard.
+              </h2>
+              <p className="mt-4 text-sm sm:text-base leading-7" style={{ color: "#5A5A5A" }}>
+                Families enter through a defined intake and continue on a cadence that prepares response ahead of pressure.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-12 sm:py-20" style={{ backgroundColor: "#F7F0EA" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6" style={{ color: "white" }}>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6" style={{ color: "#1A1A1A" }}>
               How It Works
             </h2>
-            <p className="text-base sm:text-lg" style={{ color: "#A0A0A0" }}>
+            <p className="text-base sm:text-lg" style={{ color: "#5A5A5A" }}>
               A conditioning system that builds stable response through cadence, repetition, and preparation before pressure peaks, not casual last-minute tutoring.
             </p>
           </div>
@@ -173,28 +183,30 @@ function PortalLanding() {
               {
                 number: "1",
                 title: "Preparation Starts Early",
-                description: "Students begin building response patterns before tests, exams, and classroom urgency take over."
+                description: "Students begin building response patterns before tests, exams, and classroom urgency take over.",
               },
               {
                 number: "2",
                 title: "Patterns Get Repeated",
-                description: "Through consistent weekly exposure, structure becomes familiar and calm execution stops depending on mood or confidence."
+                description: "Through consistent weekly exposure, structure becomes familiar and calm execution stops depending on mood or confidence.",
               },
               {
                 number: "3",
                 title: "Pressure Feels Familiar",
-                description: "Controlled difficulty is introduced gradually, so your child learns to stay unshaken when uncertainty and time pressure appear."
-              }
-            ].map((item, index) => (
-              <div key={index} className="p-5 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl" style={{ backgroundColor: "#2A2A2A" }}>
-                <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-full flex items-center justify-center mb-4 sm:mb-6"
-                  style={{ backgroundColor: "#E63946", color: "white", fontSize: "1.75rem", fontWeight: 800, letterSpacing: "-0.02em" }}>
+                description: "Controlled difficulty is introduced gradually, so your child learns to stay unshaken when uncertainty and time pressure appear.",
+              },
+            ].map((item) => (
+              <div key={item.number} className="p-5 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl" style={{ backgroundColor: "#FFF5ED" }}>
+                <div
+                  className="w-11 h-11 sm:w-14 sm:h-14 rounded-full flex items-center justify-center mb-4 sm:mb-6"
+                  style={{ backgroundColor: "#E63946", color: "white", fontSize: "1.75rem", fontWeight: 800, letterSpacing: "-0.02em" }}
+                >
                   {item.number}
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3" style={{ color: "white" }}>
+                <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3" style={{ color: "#1A1A1A" }}>
                   {item.title}
                 </h3>
-                <p className="text-sm sm:text-base" style={{ color: "#A0A0A0" }}>
+                <p className="text-sm sm:text-base" style={{ color: "#5A5A5A" }}>
                   {item.description}
                 </p>
               </div>
@@ -203,7 +215,6 @@ function PortalLanding() {
         </div>
       </section>
 
-      {/* What You Get */}
       <section className="py-12 sm:py-20 math-wallpaper" style={{ backgroundColor: "#FFF0F0" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
@@ -219,11 +230,11 @@ function PortalLanding() {
             <Card className="p-5 sm:p-6 md:p-8 border-0 shadow-lg" style={{ backgroundColor: "#FFF5ED" }}>
               <div className="space-y-4 sm:space-y-6">
                 {[
-                  { title: "Someone Who Doesn't Freeze", desc: "When the question breaks expectation, they stay calm and execute their trained response." },
+                  { title: "Someone Who Does Not Freeze", desc: "When the question breaks expectation, they stay calm and execute their trained response." },
                   { title: "Someone Parents Trust", desc: "Parents are able to step back from constant oversight. Their ability to handle pressure becomes more predictable." },
-                  { title: "Someone Built Through Structure", desc: "Part of a system that values consistency, clarity, and structured preparation." }
-                ].map((item, i) => (
-                  <div key={i} className="flex gap-3 sm:gap-4">
+                  { title: "Someone Built Through Structure", desc: "Part of a system that values consistency, clarity, and structured preparation." },
+                ].map((item) => (
+                  <div key={item.title} className="flex gap-3 sm:gap-4">
                     <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "#FFF0F0" }}>
                       <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: "#E63946" }} />
                     </div>
@@ -241,9 +252,9 @@ function PortalLanding() {
                 {[
                   { title: "Someone Less Thrown by Exams", desc: "Pressure feels familiar. Performance stays stable across terms." },
                   { title: "Someone Less Defined by Setbacks", desc: "Instead of being defined by difficulty, they learn how to respond when it gets hard." },
-                  { title: "Someone Ready For What's Next", desc: "Academic pressure becomes more manageable. The future feels less uncertain." }
-                ].map((item, i) => (
-                  <div key={i} className="flex gap-3 sm:gap-4">
+                  { title: "Someone Ready For What Is Next", desc: "Academic pressure becomes more manageable. The future feels less uncertain." },
+                ].map((item) => (
+                  <div key={item.title} className="flex gap-3 sm:gap-4">
                     <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "#FFF0F0" }}>
                       <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: "#E63946" }} />
                     </div>
@@ -256,10 +267,42 @@ function PortalLanding() {
               </div>
             </Card>
           </div>
+
+          <div className="mt-8 sm:mt-10 grid gap-4 max-w-5xl mx-auto md:grid-cols-2 xl:grid-cols-[280px_1fr_1fr]">
+            <Card className="border-[#EEDFD3] bg-white/84 p-5 sm:p-6 shadow-sm xl:h-full">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em]" style={{ color: "#8A4B35" }}>
+                Standard
+              </p>
+              <p className="mt-3 text-sm sm:text-base font-semibold leading-7" style={{ color: "#1A1A1A" }}>
+                2 sessions per week.
+                <br />
+                8 sessions per month.
+                <br />
+                No panic enrollment.
+              </p>
+            </Card>
+
+            <Card className="border-[#EEDFD3] bg-white/84 p-5 sm:p-6 shadow-sm xl:h-full">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: "#E63946" }}>
+                Full-Year Conditioning Intake
+              </p>
+              <p className="mt-3 text-sm leading-7" style={{ color: "#5A5A5A" }}>
+                Built for families preparing before the academic year becomes urgent.
+              </p>
+            </Card>
+
+            <Card className="border-[#EEDFD3] bg-white/84 p-5 sm:p-6 shadow-sm xl:h-full">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: "#E63946" }}>
+                Mid-Year Conditioning Intake
+              </p>
+              <p className="mt-3 text-sm leading-7" style={{ color: "#5A5A5A" }}>
+                Built for families who still have serious runway before final-year pressure peaks.
+              </p>
+            </Card>
+          </div>
         </div>
       </section>
 
-      {/* CTA */}
       <section className="py-12 sm:py-20" style={{ backgroundColor: "#1A1A1A" }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-12 text-center">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6" style={{ color: "white" }}>
@@ -273,25 +316,22 @@ function PortalLanding() {
               size="lg"
               className="w-full text-base sm:text-lg font-semibold px-4 sm:px-10 py-4 sm:py-6 rounded-full border-0 outline-none flex items-center justify-center gap-3 leading-tight"
               style={{ backgroundColor: "#E63946", color: "white" }}
-              onClick={() => navigate(buildSignupUrl())}
+              onClick={() => navigate(buildParentIntakeUrl())}
             >
-              <span>Check Current Enrollment Window</span>
+              <span>Check Current Intake Window</span>
               <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="py-8 sm:py-12" style={{ backgroundColor: "#FFF5ED" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 pb-6 sm:pb-8 mb-6 sm:mb-8 border-b" style={{ borderColor: "#E5E5E5" }}>
             <div className="space-y-3 sm:space-y-4">
               <h4 className="font-semibold text-sm sm:text-base" style={{ color: "#1A1A1A" }}>About Response Integrity</h4>
               <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
-              Response Integrity is built for families who believe in preparation before pressure arrives. Our system values cadence, consistency, and early conditioning. For this reason, enrollment happens through defined conditioning windows, and students are expected to maintain the training rhythm required for stable response development.
-
-
+                Response Integrity is built for families who believe in preparation before pressure arrives. Our system values cadence, consistency, and early conditioning. For this reason, enrollment happens through defined conditioning windows, and students are expected to maintain the training rhythm required for stable response development.
               </p>
               <div className="space-y-2 pt-2">
                 <a href={privacyPolicyUrl} className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
@@ -306,8 +346,6 @@ function PortalLanding() {
               </div>
             </div>
 
-
-
             <div className="space-y-3 sm:space-y-4 sm:col-span-2 md:col-span-1">
               <h4 className="font-semibold text-sm sm:text-base" style={{ color: "#1A1A1A" }}>FAQ</h4>
               <a href="/faq" className="text-xs sm:text-sm block text-blue-600 hover:underline" style={{ color: "#2563eb" }}>
@@ -318,8 +356,8 @@ function PortalLanding() {
 
           <div className="flex flex-col md:flex-row md:justify-between items-center gap-4 sm:gap-6">
             <div className="flex flex-col md:flex-row items-center gap-3 sm:gap-4">
-                <div>
-                  <ResponseIntegrityLogo size="md" variant="integrity" />
+              <div>
+                <ResponseIntegrityLogo size="md" variant="integrity" />
               </div>
               <a
                 href="https://www.instagram.com/responseintegritysa?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
@@ -345,4 +383,3 @@ function PortalLanding() {
 }
 
 export default PortalLanding;
-
