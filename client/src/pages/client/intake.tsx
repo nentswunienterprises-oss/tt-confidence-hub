@@ -40,13 +40,7 @@ export default function ParentIntakeEntry() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#FFF5ED] text-[#171311]">
-      <div
-        className="fixed inset-0 -z-10"
-        style={{
-          background:
-            "radial-gradient(circle at 16% 18%, rgba(230,57,70,0.09) 0%, rgba(230,57,70,0) 28%), linear-gradient(180deg, #FFF9F3 0%, #FFF5ED 52%, #FFF0F0 100%)",
-        }}
-      />
+      <div className="fixed inset-0 -z-10 bg-[#FFF5ED]" />
 
       <header
         className="fixed inset-x-0 top-0 z-50 border-b border-[#E8D6CB] backdrop-blur-md"
@@ -80,9 +74,9 @@ export default function ParentIntakeEntry() {
 
       <main className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6 md:px-12 md:pb-20 md:pt-10">
         <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="overflow-hidden rounded-[34px] border border-[#E5D3C5] bg-[linear-gradient(135deg,#FFF9F3_0%,#F8EADF_46%,#F1DED2_100%)] shadow-[0_28px_90px_rgba(84,45,22,0.08)]">
+          <div className="overflow-hidden rounded-[34px] border border-[#E7CEC4] bg-[#FFF1E8] shadow-sm">
             <div className="p-6 sm:p-8 lg:p-10">
-              <div className="inline-flex rounded-full border border-[#E9CFC2] bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#8A3024] shadow-sm">
+              <div className="inline-flex rounded-full border border-[#E9CFC2] bg-[#FFF4EE]/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#8A3024] shadow-sm">
                 Parent intake gateway
               </div>
               <h1 className="mt-5 max-w-4xl text-4xl font-bold leading-[0.95] tracking-[-0.05em] text-[#171311] sm:text-5xl lg:text-[4.15rem]">
@@ -91,7 +85,6 @@ export default function ParentIntakeEntry() {
               <div className="mt-6 max-w-3xl space-y-3 text-base leading-7 text-[#544B45] sm:text-[17px]">
                 <p className="font-semibold text-[#7C2D21]">{status.heading}</p>
                 <p>{status.summary}</p>
-                <p>{status.detail}</p>
               </div>
 
               <div className="mt-7 flex flex-col gap-3 sm:flex-row">
@@ -130,7 +123,7 @@ export default function ParentIntakeEntry() {
 
           <div className="grid gap-4 xl:content-start">
             <Card className="rounded-[28px] border border-[#2A211D] bg-[#1F1814] p-5 text-white shadow-[0_18px_50px_rgba(25,19,16,0.18)]">
-              <p className="text-sm font-bold uppercase tracking-tight text-[#E97B67]">Today In The Rhythm</p>
+              <p className="text-sm font-bold uppercase tracking-tight text-[#E63946]">Today In The Rhythm</p>
               <div className="mt-6 space-y-4 text-sm text-white/82">
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.18em] text-white/55">Date</p>
@@ -148,18 +141,15 @@ export default function ParentIntakeEntry() {
             </Card>
 
             <Card className="rounded-[28px] border border-[#E5D3C5] bg-white/84 p-5 shadow-sm">
-              <div className="flex items-start gap-3">
-                <LockKeyhole className="mt-1 h-5 w-5 text-[#E63946]" />
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Protected standard</p>
-                  <p className="mt-3 text-base font-semibold leading-7 text-[#171311]">
-                    Two annual intakes.
-                    <br />
-                    Fixed cadence.
-                    <br />
-                    No panic enrollment.
-                  </p>
-                </div>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Protected standard</p>
+                <p className="mt-3 text-base font-semibold leading-7 text-[#171311]">
+                  Two annual intakes.
+                  <br />
+                  Fixed cadence.
+                  <br />
+                  No panic enrollment.
+                </p>
               </div>
             </Card>
           </div>
@@ -212,11 +202,10 @@ export default function ParentIntakeEntry() {
 
         <section className="mt-10 rounded-[30px] border border-[#E5D3C5] bg-white/86 p-7 shadow-sm sm:p-8">
           <div className="max-w-3xl">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Why the friction exists</p>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight text-[#171311]">The rhythm is part of the product.</h2>
+            <h2 className="text-3xl font-bold tracking-tight text-[#171311]">The rhythm is part of the product.</h2>
             <p className="mt-4 text-sm leading-7 text-[#534B45] sm:text-base">
               Response Integrity does not organize families around random sessions. The intake window, the fixed cadence,
-              and the protected login path all reinforce the same standard: preparation happens on purpose before pressure peaks.
+              and the protected login path all reinforce the same standard for true conditioning: preparation happens on purpose before pressure peaks.
             </p>
           </div>
 

@@ -167,13 +167,13 @@ function PortalLanding() {
         </div>
       </section>
 
-      <section className="py-12 sm:py-20" style={{ backgroundColor: "#F7F0EA" }}>
+      <section className="py-12 sm:py-20" style={{ backgroundColor: "#1A1A1A" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6" style={{ color: "#1A1A1A" }}>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6" style={{ color: "white" }}>
               How It Works
             </h2>
-            <p className="text-base sm:text-lg" style={{ color: "#5A5A5A" }}>
+            <p className="text-base sm:text-lg" style={{ color: "#A0A0A0" }}>
               A conditioning system that builds stable response through cadence, repetition, and preparation before pressure peaks, not casual last-minute tutoring.
             </p>
           </div>
@@ -196,17 +196,17 @@ function PortalLanding() {
                 description: "Controlled difficulty is introduced gradually, so your child learns to stay unshaken when uncertainty and time pressure appear.",
               },
             ].map((item) => (
-              <div key={item.number} className="p-5 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl" style={{ backgroundColor: "#FFF5ED" }}>
+              <div key={item.number} className="p-5 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl" style={{ backgroundColor: "#2A2A2A" }}>
                 <div
                   className="w-11 h-11 sm:w-14 sm:h-14 rounded-full flex items-center justify-center mb-4 sm:mb-6"
                   style={{ backgroundColor: "#E63946", color: "white", fontSize: "1.75rem", fontWeight: 800, letterSpacing: "-0.02em" }}
                 >
                   {item.number}
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3" style={{ color: "#1A1A1A" }}>
+                <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3" style={{ color: "white" }}>
                   {item.title}
                 </h3>
-                <p className="text-sm sm:text-base" style={{ color: "#5A5A5A" }}>
+                <p className="text-sm sm:text-base" style={{ color: "#A0A0A0" }}>
                   {item.description}
                 </p>
               </div>
@@ -270,19 +270,6 @@ function PortalLanding() {
 
           <div className="mt-8 sm:mt-10 grid gap-4 max-w-5xl mx-auto md:grid-cols-2 xl:grid-cols-[280px_1fr_1fr]">
             <Card className="border-[#EEDFD3] bg-white/84 p-5 sm:p-6 shadow-sm xl:h-full">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em]" style={{ color: "#8A4B35" }}>
-                Standard
-              </p>
-              <p className="mt-3 text-sm sm:text-base font-semibold leading-7" style={{ color: "#1A1A1A" }}>
-                2 sessions per week.
-                <br />
-                8 sessions per month.
-                <br />
-                No panic enrollment.
-              </p>
-            </Card>
-
-            <Card className="border-[#EEDFD3] bg-white/84 p-5 sm:p-6 shadow-sm xl:h-full">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: "#E63946" }}>
                 Full-Year Conditioning Intake
               </p>
@@ -297,6 +284,19 @@ function PortalLanding() {
               </p>
               <p className="mt-3 text-sm leading-7" style={{ color: "#5A5A5A" }}>
                 Built for families who still have serious runway before final-year pressure peaks.
+              </p>
+            </Card>
+
+            <Card className="border-[#EEDFD3] bg-white/84 p-5 sm:p-6 shadow-sm xl:h-full">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em]" style={{ color: "#8A4B35" }}>
+                Standard
+              </p>
+              <p className="mt-3 text-sm sm:text-base font-semibold leading-7" style={{ color: "#1A1A1A" }}>
+                2 sessions per week.
+                <br />
+                8 sessions per month.
+                <br />
+                No panic enrollment.
               </p>
             </Card>
           </div>
