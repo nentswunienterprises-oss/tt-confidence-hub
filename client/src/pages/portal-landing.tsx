@@ -11,16 +11,16 @@ function PortalLanding() {
   const landingReturnTo = buildTrackedReturnTo(location.pathname, location.search);
 
   const buildParentIntakeUrl = () =>
-    `#${buildTrackedPath("/client/intake", location.search, {
+    buildTrackedPath("/client/intake", location.search, {
       returnTo: landingReturnTo,
-    })}`;
+    });
 
   const buildLoginUrl = () =>
-    `#${buildTrackedPath("/client/signup", location.search, {
+    buildTrackedPath("/client/signup", location.search, {
       mode: "login",
       lock: "login",
       returnTo: landingReturnTo,
-    })}`;
+    });
 
   const privacyPolicyUrl = buildTrackedPath("/privacy-policy", location.search, {
     returnTo: landingReturnTo,
