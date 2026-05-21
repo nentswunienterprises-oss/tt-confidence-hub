@@ -58,9 +58,8 @@ export default function TdLanding() {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-center px-3 sm:h-20 sm:justify-between sm:px-6 md:px-12">
           <div className="hidden sm:block sm:w-[120px]" aria-hidden="true" />
 
-          <div className="text-center">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#8A4B35]">Operational Gateway</p>
-            <p className="mt-0.5 text-sm font-bold tracking-tight text-[#1A1A1A] sm:text-xl">Territory Director</p>
+          <div className="flex-shrink-0 scale-90 origin-center sm:origin-center">
+            <ResponseIntegrityLogo size="lg" variant="integrity" />
           </div>
 
           <Button
@@ -68,7 +67,7 @@ export default function TdLanding() {
             style={{ backgroundColor: "#E63946", color: "white" }}
             onClick={() => navigate("/operational/td/signup")}
           >
-            Sign In
+            Log In
           </Button>
         </div>
       </header>
@@ -78,14 +77,14 @@ export default function TdLanding() {
       <main>
         <section className="mx-auto max-w-7xl px-4 pb-12 pt-6 sm:px-6 md:px-12 md:pb-16 md:pt-10">
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
-            <div className="overflow-hidden rounded-[34px] border border-[#E5D3C5] bg-[linear-gradient(135deg,#FFF9F3_0%,#F4E6D9_45%,#EEDBCE_100%)] shadow-[0_28px_90px_rgba(84,45,22,0.09)]">
+            <div className="overflow-hidden rounded-[34px] border border-[#E7CEC4] bg-[#FFF1E8] shadow-sm">
               <div className="p-6 sm:p-7 lg:p-9 xl:p-10">
-                <div className="inline-flex rounded-full border border-[#E9CFC2] bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#8A3024] shadow-sm">
+                <div className="inline-flex rounded-full border border-[#E9CFC2] bg-[#FFF4EE]/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#8A3024] shadow-sm">
                   Leadership pathway
                 </div>
                 <h1 className="mt-5 max-w-4xl text-4xl font-bold leading-[0.95] tracking-[-0.05em] text-[#171311] sm:text-5xl lg:text-[4.1rem] xl:text-[4.55rem]">
                   This is where strong operators
-                  <span className="mt-2 block max-w-3xl text-[#7C2D21]">step into real responsibility.</span>
+                  <span className="mt-2 block max-w-3xl text-[#E63946]">step into real responsibility.</span>
                 </h1>
                 <div className="mt-5 grid gap-6 lg:grid-cols-[1fr_240px] lg:items-start">
                   <div className="max-w-2xl space-y-3 text-base leading-7 text-[#534A43] sm:text-[17px]">
@@ -130,9 +129,9 @@ export default function TdLanding() {
                   </span>
                 </div>
                 <div className="mt-7 space-y-3 text-sm text-white/82">
-                  <div className="flex items-center gap-3"><Shield className="h-4 w-4 text-[#FF917B]" />Clear standards</div>
-                  <div className="flex items-center gap-3"><Target className="h-4 w-4 text-[#FF917B]" />Accurate judgment</div>
-                  <div className="flex items-center gap-3"><Users className="h-4 w-4 text-[#FF917B]" />Direct correction</div>
+                  <div className="flex items-center gap-3"><Shield className="h-4 w-4 text-[#E63946]" />Clear standards</div>
+                  <div className="flex items-center gap-3"><Target className="h-4 w-4 text-[#E63946]" />Accurate judgment</div>
+                  <div className="flex items-center gap-3"><Users className="h-4 w-4 text-[#E63946]" />Direct correction</div>
                 </div>
               </Card>
 
@@ -198,7 +197,7 @@ export default function TdLanding() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Final filter</p>
             <h2 className="mt-4 text-3xl font-bold leading-tight text-[#1A1A1A] sm:text-4xl">
               Response Integrity does not need louder leadership.
-              <span className="block text-[#7C2D21]">It needs clearer judgment.</span>
+              <span className="block text-[#E63946]">It needs clearer judgment.</span>
             </h2>
             <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-[#57504B] sm:text-lg">
               If this level of directness is not a match for how you work, this role may not be the right fit. If the role feels clear and demanding in the right way, enter the TD flow and let the screening process decide.
