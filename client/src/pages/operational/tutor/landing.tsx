@@ -54,10 +54,10 @@ const fitSignals = [
 ] as const;
 
 const nonFitSignals = [
-  "You want to tutor your own way and struggle to work within structure consistently.",
-  "You rescue too quickly when a student gets uncomfortable.",
-  "You would rather be liked than be clear.",
-  "You hear feedback as an insult instead of a tool.",
+  "You prefer a looser tutoring style and may not enjoy working inside a fixed operating standard.",
+  "You tend to step in early when a student feels discomfort, rather than holding the learning process steady.",
+  "You feel more drawn to keeping the interaction easy than to maintaining clear structure under pressure.",
+  "You may find a high-feedback, high-correction environment harder to enjoy or sustain.",
 ] as const;
 
 const roleBlocks = [
@@ -137,9 +137,6 @@ export default function TutorLanding() {
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
             <div className="overflow-hidden rounded-[34px] border border-[#E7CEC4] bg-[#FFF1E8] shadow-sm">
               <div className="p-6 sm:p-7 lg:p-9 xl:p-10">
-                <div className="inline-flex rounded-full border border-[#E9CFC2] bg-[#FFF4EE]/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#8A3024] shadow-sm">
-                  Youth tutor pathway
-                </div>
                 <h1 className="mt-5 max-w-4xl text-4xl font-bold leading-[0.95] tracking-[-0.05em] text-[#171311] sm:text-5xl lg:text-[4.1rem] xl:text-[4.55rem]">
                   Become the kind of tutor
                   <span className="mt-2 block max-w-3xl text-[#E63946]">who stays calm, clear,</span>
@@ -289,8 +286,7 @@ export default function TutorLanding() {
             </Card>
 
             <Card className="rounded-[30px] border border-[#2F2621] bg-[#201916] p-7 text-white shadow-sm sm:p-8">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#FFB5A6]">Role demands</p>
-              <h2 className="mt-2 text-3xl font-bold tracking-tight">Where this role may not be the right match</h2>
+              <h2 className="mt-2 text-3xl font-bold tracking-tight">When this role may feel less natural</h2>
               <div className="mt-7 space-y-4">
                 {nonFitSignals.map((item) => (
                   <div key={item} className="rounded-[22px] border border-white/10 bg-white/5 p-5">
