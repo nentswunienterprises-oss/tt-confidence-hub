@@ -28,7 +28,9 @@ export default function AboutIndex() {
         }}
       />
       <section className="max-w-5xl mx-auto px-6 py-20 text-center">
-        <ResponseIntegrityLogo size="xl" variant="integrity" />
+        <div className="mx-auto" style={{ transform: "scale(0.85)" }}>
+          <ResponseIntegrityLogo size="lg" variant="integrity" />
+        </div>
         <p className="mt-8 text-sm uppercase tracking-[0.35em] text-[#E63946]">
           More About Us
         </p>
