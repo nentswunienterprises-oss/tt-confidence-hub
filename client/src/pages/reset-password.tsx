@@ -11,9 +11,19 @@ import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 export default function ResetPasswordPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
-  const type = params.get("type");
-  const isRecovery = type === "recovery";
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const hashParams = useMemo(
+    () => new URLSearchParams(location.hash.startsWith("#") ? location.hash.slice(1) : location.hash),
+    [location.hash]
+  );
+  const [isRecovery, setIsRecovery] = useState(() => {
+    return (
+      searchParams.get("type") === "recovery" ||
+      hashParams.get("type") === "recovery" ||
+      searchParams.has("code") ||
+      hashParams.has("access_token")
+    );
+  });
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -22,25 +32,28 @@ export default function ResetPasswordPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!isRecovery) return;
+    const looksLikeRecoveryLink =
+      searchParams.get("type") === "recovery" ||
+      hashParams.get("type") === "recovery" ||
+      searchParams.has("code") ||
+      hashParams.has("access_token");
 
-    async function syncRecoverySession() {
-      try {
-        const { error } = await supabase.auth.getSessionFromUrl();
-        if (error && error.message !== "No auth session found.") {
-          toast({
-            title: "Unable to complete recovery",
-            description: error.message,
-            variant: "destructive",
-          });
-        }
-      } catch (error: any) {
-        console.error("Password recovery session sync error:", error);
-      }
+    if (looksLikeRecoveryLink) {
+      setIsRecovery(true);
     }
 
-    syncRecoverySession();
-  }, [isRecovery, toast]);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setIsRecovery(true);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [hashParams, searchParams]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
