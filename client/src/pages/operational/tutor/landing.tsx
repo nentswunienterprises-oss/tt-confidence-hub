@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowRight, Check, Shield, Users, AlertTriangle, LockKeyhole } from "lucide-react";
+import { ArrowRight, Check, Shield, Users, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
@@ -142,9 +142,9 @@ export default function TutorLanding() {
                   Youth tutor pathway
                 </div>
                 <h1 className="mt-5 max-w-4xl text-4xl font-bold leading-[0.95] tracking-[-0.05em] text-[#171311] sm:text-5xl lg:text-[4.1rem] xl:text-[4.55rem]">
-                  Enter the tutor pathway
-                  <span className="mt-2 block max-w-3xl text-[#7C2D21]">through the right operator window,</span>
-                  <span className="mt-2 block max-w-3xl text-[#7C2D21]">not through casual entry.</span>
+                  Become the kind of tutor
+                  <span className="mt-2 block max-w-3xl text-[#E63946]">who stays calm, clear,</span>
+                  <span className="mt-2 block max-w-3xl text-[#E63946]">and sharp when pressure rises.</span>
                 </h1>
                 <div className="mt-5 grid gap-6 lg:grid-cols-[1fr_240px] lg:items-start">
                   <div className="max-w-2xl space-y-3 text-base leading-7 text-[#534A43] sm:text-[17px]">
@@ -188,27 +188,24 @@ export default function TutorLanding() {
             <div className="grid gap-4 xl:content-start">
               <Card className="rounded-[28px] border border-[#2A211D] bg-[#1F1814] p-5 text-white shadow-[0_18px_50px_rgba(25,19,16,0.18)]">
                 <div className="flex items-start justify-between gap-4">
-                  <span className="text-sm font-bold uppercase tracking-tight text-[#E97B67]">WHAT RESPONSE INTEGRITY CARES ABOUT</span>
+                  <span className="text-sm font-bold uppercase tracking-tight text-[#E63946]">WHAT RESPONSE INTEGRITY CARES ABOUT</span>
                   <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-white/75">
                     Response Integrity lane
                   </span>
                 </div>
                 <div className="mt-7 space-y-3 text-sm text-white/82">
-                  <div className="flex items-center gap-3"><Shield className="h-4 w-4 text-[#FF917B]" />Clear thinking</div>
-                  <div className="flex items-center gap-3"><Users className="h-4 w-4 text-[#FF917B]" />Structured tutoring</div>
-                  <div className="flex items-center gap-3"><AlertTriangle className="h-4 w-4 text-[#FF917B]" />Trust is earned through evidence</div>
+                  <div className="flex items-center gap-3"><Shield className="h-4 w-4 text-[#E63946]" />Clear thinking</div>
+                  <div className="flex items-center gap-3"><Users className="h-4 w-4 text-[#E63946]" />Structured tutoring</div>
+                  <div className="flex items-center gap-3"><AlertTriangle className="h-4 w-4 text-[#E63946]" />Trust is earned through evidence</div>
                 </div>
               </Card>
 
               <Card className="rounded-[28px] border border-[#E5D3C5] bg-white/82 p-5 shadow-sm">
-                <div className="flex items-start gap-3">
-                  <LockKeyhole className="h-5 w-5 mt-1 text-[#E63946]" />
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Simple truth</p>
-                    <p className="mt-3 text-2xl font-bold tracking-tight text-[#171311]">Subject strength</p>
-                    <p className="text-2xl font-bold tracking-tight text-[#171311]">is not enough on its own.</p>
-                    <p className="mt-3 text-sm leading-6 text-[#5D5550]">Response Integrity opens responsibility in stages because real tutoring trust should be earned, not assumed.</p>
-                  </div>
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Simple truth</p>
+                  <p className="mt-3 text-2xl font-bold tracking-tight text-[#171311]">Subject strength</p>
+                  <p className="text-2xl font-bold tracking-tight text-[#171311]">is not enough on its own.</p>
+                  <p className="mt-3 text-sm leading-6 text-[#5D5550]">Response Integrity opens responsibility in stages because real tutoring trust should be earned, not assumed.</p>
                 </div>
               </Card>
             </div>
@@ -278,8 +275,7 @@ export default function TutorLanding() {
           <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
             <Card className="rounded-[30px] border border-[#E5D3C5] bg-white/86 p-7 shadow-sm sm:p-8">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Fit check</p>
-                <h2 className="mt-1 text-3xl font-bold tracking-tight text-[#171311]">Who this is for</h2>
+                <h2 className="text-3xl font-bold tracking-tight text-[#171311]">Who this is for</h2>
               </div>
               <div className="mt-7 space-y-4">
                 {fitSignals.map((item) => (
