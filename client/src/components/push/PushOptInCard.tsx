@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import { BellRing } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -13,8 +14,30 @@ export function PushOptInCard({
   description: string;
 }) {
   const push = useWebPushSubscription(enabled);
+  const dismissKey = useMemo(() => "push-opt-in-card-hidden", []);
+  const [hidden, setHidden] = useState(false);
 
-  if (!enabled || !push.supported || !push.resolved || push.subscribed) {
+  useEffect(() => {
+    try {
+      setHidden(window.localStorage.getItem(dismissKey) === "true");
+    } catch {
+      setHidden(false);
+    }
+  }, [dismissKey]);
+
+  useEffect(() => {
+    try {
+      if (hidden) {
+        window.localStorage.setItem(dismissKey, "true");
+      } else {
+        window.localStorage.removeItem(dismissKey);
+      }
+    } catch {
+      // ignore localStorage failures
+    }
+  }, [dismissKey, hidden]);
+
+  if (!enabled || !push.supported || !push.resolved || push.subscribed || hidden) {
     return null;
   }
 
@@ -48,6 +71,13 @@ export function PushOptInCard({
             {push.error}
           </p>
         )}
+        <Button
+          variant="ghost"
+          className="mt-4 text-sm"
+          onClick={() => setHidden(true)}
+        >
+          No thanks.
+        </Button>
       </CardContent>
     </Card>
   );
