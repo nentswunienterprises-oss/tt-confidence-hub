@@ -1,9 +1,27 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { ArrowRight, Check, Shield, Users, AlertTriangle } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { ArrowRight, Check, Shield, Users, AlertTriangle, LockKeyhole } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
+import { buildTrackedPath, buildTrackedReturnTo } from "@/lib/publicTracking";
+
+const operatorCycles = [
+  {
+    title: "Annual Operator Certification Cycle",
+    support: "Supports the Full-Year Conditioning Intake",
+    applicationWindow: "1 October - 31 October",
+    conditioningWindow: "1 November - 15 January",
+    deploymentBegins: "1 February",
+  },
+  {
+    title: "Mid-Year Operator Certification Cycle",
+    support: "Supports the Mid-Year Conditioning Intake",
+    applicationWindow: "1 April - 30 April",
+    conditioningWindow: "1 May - 20 May",
+    deploymentBegins: "1 June",
+  },
+] as const;
 
 const conditioningModes = [
   {
@@ -57,14 +75,25 @@ const roleBlocks = [
   },
   {
     title: "What ongoing users should expect",
-    body: "If you already have an account, use the login entry point below. It opens directly on the tutor login side.",
+    body: "If you already have an account, use the login entry point below. It opens directly on the tutor login side with no signup detour.",
   },
 ] as const;
 
 export default function TutorLanding() {
   const navigate = useNavigate();
-  const signupEntryPath = "/operational/signup?role=tutor";
-  const loginEntryPath = "/operational/signup?role=tutor&mode=login";
+  const location = useLocation();
+  const landingReturnTo = buildTrackedReturnTo(location.pathname, location.search);
+
+  const intakeEntryPath = buildTrackedPath("/operational/tutor/intake", location.search, {
+    returnTo: landingReturnTo,
+  });
+
+  const loginEntryPath = buildTrackedPath("/operational/signup", location.search, {
+    role: "tutor",
+    mode: "login",
+    lock: "login",
+    returnTo: landingReturnTo,
+  });
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -113,14 +142,14 @@ export default function TutorLanding() {
                   Youth tutor pathway
                 </div>
                 <h1 className="mt-5 max-w-4xl text-4xl font-bold leading-[0.95] tracking-[-0.05em] text-[#171311] sm:text-5xl lg:text-[4.1rem] xl:text-[4.55rem]">
-                  Become the kind of tutor
-                  <span className="mt-2 block max-w-3xl text-[#7C2D21]">who stays calm, clear,</span>
-                  <span className="mt-2 block max-w-3xl text-[#7C2D21]">and sharp when pressure rises.</span>
+                  Enter the tutor pathway
+                  <span className="mt-2 block max-w-3xl text-[#7C2D21]">through the right operator window,</span>
+                  <span className="mt-2 block max-w-3xl text-[#7C2D21]">not through casual entry.</span>
                 </h1>
                 <div className="mt-5 grid gap-6 lg:grid-cols-[1fr_240px] lg:items-start">
                   <div className="max-w-2xl space-y-3 text-base leading-7 text-[#534A43] sm:text-[17px]">
                     <p>Response Integrity is looking for disciplined young people who are strong in math, coachable under pressure, and serious about building real skill.</p>
-                    <p>This is where first-time applicants start. Returning tutors can use the login path below to open directly on the tutor login side.</p>
+                    <p>Tutor entry happens through two certification cycles tied to the student intake rhythm. Existing tutors use the login path directly. New tutors first check the current operator window.</p>
                   </div>
                   <div className="rounded-[24px] border border-[#E0CCBE] bg-white/58 p-4">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8A4B35]">Role core</p>
@@ -139,18 +168,18 @@ export default function TutorLanding() {
                     size="lg"
                     className="rounded-full px-8 shadow-sm"
                     style={{ backgroundColor: "#E63946" }}
-                    onClick={() => navigate(signupEntryPath)}
+                    onClick={() => navigate(intakeEntryPath)}
                   >
-                    Start Tutor Access
+                    Check Current Operator Window
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                   <Button
                     size="lg"
                     variant="outline"
                     className="rounded-full border-[#D7C0AF] bg-white/70 px-8 text-[#171311] hover:bg-white"
-                    onClick={() => document.getElementById("conditioning-path")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                    onClick={() => navigate(loginEntryPath)}
                   >
-                    See The Path
+                    Existing Tutor Login
                   </Button>
                 </div>
               </div>
@@ -172,11 +201,51 @@ export default function TutorLanding() {
               </Card>
 
               <Card className="rounded-[28px] border border-[#E5D3C5] bg-white/82 p-5 shadow-sm">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Simple truth</p>
-                <p className="mt-3 text-2xl font-bold tracking-tight text-[#171311]">Subject strength</p>
-                <p className="text-2xl font-bold tracking-tight text-[#171311]">is not enough on its own.</p>
-                <p className="mt-3 text-sm leading-6 text-[#5D5550]">Response Integrity opens responsibility in stages because real tutoring trust should be earned, not assumed.</p>
+                <div className="flex items-start gap-3">
+                  <LockKeyhole className="h-5 w-5 mt-1 text-[#E63946]" />
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Simple truth</p>
+                    <p className="mt-3 text-2xl font-bold tracking-tight text-[#171311]">Subject strength</p>
+                    <p className="text-2xl font-bold tracking-tight text-[#171311]">is not enough on its own.</p>
+                    <p className="mt-3 text-sm leading-6 text-[#5D5550]">Response Integrity opens responsibility in stages because real tutoring trust should be earned, not assumed.</p>
+                  </div>
+                </div>
               </Card>
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 md:px-12">
+          <div className="rounded-[30px] border border-[#E5D3C5] bg-white/86 p-7 shadow-sm sm:p-8">
+            <div className="max-w-3xl">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Operator windows</p>
+              <h2 className="mt-1 text-3xl font-bold tracking-tight text-[#171311]">Two certification cycles. Two deployment moments.</h2>
+              <p className="mt-3 text-sm leading-7 text-[#4F4742] sm:text-base">
+                Tutor intake follows the same disciplined rhythm as student entry. Applications open inside defined windows, conditioning happens by deadline, and only certified live operators become deployable.
+              </p>
+            </div>
+
+            <div className="mt-7 grid gap-4 lg:grid-cols-2">
+              {operatorCycles.map((cycle) => (
+                <Card key={cycle.title} className="rounded-[26px] border border-[#EEDFD3] bg-[#FFF8F3] p-6 shadow-none">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#E63946]">{cycle.support}</p>
+                  <h3 className="mt-3 text-2xl font-bold tracking-tight text-[#171311]">{cycle.title}</h3>
+                  <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-[#8A4B35]">Application window</p>
+                      <p className="mt-2 text-sm font-semibold leading-6 text-[#171311]">{cycle.applicationWindow}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-[#8A4B35]">Conditioning window</p>
+                      <p className="mt-2 text-sm font-semibold leading-6 text-[#171311]">{cycle.conditioningWindow}</p>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-[#8A4B35]">Deployment begins</p>
+                      <p className="mt-2 text-sm font-semibold leading-6 text-[#171311]">{cycle.deploymentBegins}</p>
+                    </div>
+                  </div>
+                </Card>
+              ))}
             </div>
           </div>
         </section>
@@ -254,19 +323,19 @@ export default function TutorLanding() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Entry point</p>
             <h2 className="mt-4 text-3xl font-bold leading-tight text-[#171311] sm:text-4xl">
               Want to build real tutoring skill?
-              <span className="block text-[#7C2D21]">Enter the Response Integrity pathway.</span>
+              <span className="block text-[#7C2D21]">Check the current operator window first.</span>
             </h2>
             <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-[#57504B] sm:text-lg">
-              New applicants start here. Existing tutors can use the login button to open directly on the tutor login side.
+              New applicants begin through the intake-aware operator gate. Existing tutors use the login button to open directly on the tutor login side.
             </p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
               <Button
                 size="lg"
                 className="rounded-full px-8 shadow-sm"
                 style={{ backgroundColor: "#E63946" }}
-                onClick={() => navigate(signupEntryPath)}
+                onClick={() => navigate(intakeEntryPath)}
               >
-                Continue to Tutor Access
+                Check Current Operator Window
               </Button>
               <Button
                 size="lg"

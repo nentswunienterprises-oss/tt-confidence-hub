@@ -2,22 +2,33 @@ import { useEffect, useState } from "react";
 import { AuthForm } from "@/components/auth/auth-form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { getTutorCycleLabel } from "@/lib/intakeWindows";
+import { resolveTrackedBackTarget } from "@/lib/publicTracking";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Crown, ArrowLeft, ArrowRight, Check } from "lucide-react";
 
 export default function OperationalSignup() {
   const location = useLocation();
-  // Allow deep-linking to a specific role using `?role=tutor` or `?role=td`
+  const navigate = useNavigate();
   const urlParams = new URLSearchParams(location.search);
   const roleParam = urlParams.get("role");
   const modeParam = urlParams.get("mode");
+  const lockParam = urlParams.get("lock");
   const initialRole = roleParam === "tutor" ? "tutor" : roleParam === "td" ? "td" : null;
-  const initialMode = modeParam === "login" ? "login" : "signup";
+  const lockedMode = lockParam === "login" || lockParam === "signup"
+    ? (lockParam as "signup" | "login")
+    : null;
+  const initialMode = lockedMode ?? (modeParam === "login" ? "login" : "signup");
 
   const [selectedRole, setSelectedRole] = useState<"tutor" | "td" | null>(initialRole);
   const [mode, setMode] = useState<"signup" | "login">(initialMode);
-  const navigate = useNavigate();
   const termsHref = selectedRole === "td" ? "/td-terms-of-use" : "/tutor-terms-of-use";
+  const cycleLabel = getTutorCycleLabel(urlParams.get("cycle"));
+  const backTarget = resolveTrackedBackTarget(
+    location.search,
+    initialRole === "tutor" ? "/operational/tutor/landing" : "/operational/landing",
+  );
+
   useEffect(() => {
     setSelectedRole(initialRole);
     setMode(initialMode);
@@ -26,31 +37,28 @@ export default function OperationalSignup() {
   if (!selectedRole) {
     return (
       <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#FFF5ED" }}>
-        {/* Header */}
         <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
           <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
             <Button
               variant="ghost"
               className="text-sm sm:text-base font-medium hover:bg-transparent flex items-center gap-1 sm:gap-2 px-2 sm:px-4"
               style={{ color: "#1A1A1A" }}
-              onClick={() => navigate("/operational/landing")}
+              onClick={() => navigate(backTarget)}
             >
               <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               Back
             </Button>
-            
+
             <span className="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
               JOIN OUR TEAM
             </span>
-            
-            <div className="w-16 sm:w-20" /> {/* Spacer for centering */}
+
+            <div className="w-16 sm:w-20" />
           </div>
         </header>
 
-        {/* Spacer for fixed header */}
         <div className="h-16 sm:h-20" />
 
-        {/* Role Selection */}
         <div className="flex-1 flex items-center justify-center px-6 py-12">
           <div className="w-full max-w-3xl space-y-10">
             <div className="text-center space-y-4">
@@ -63,36 +71,33 @@ export default function OperationalSignup() {
                 How Would You Like to <span style={{ color: "#E63946" }}>Make an Impact?</span>
               </h2>
               <p style={{ color: "#5A5A5A" }}>
-                Select whether you're joining as a Tutor or Territory Director
+                Select whether you&apos;re joining as a Tutor or Territory Director
               </p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-8">
-              {/* Tutor Card */}
-              <Card 
-                className="p-8 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group" 
+              <Card
+                className="p-8 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group"
                 style={{ backgroundColor: "white" }}
                 onClick={() => setSelectedRole("tutor")}
               >
-                <div 
+                <div
                   className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
                   style={{ backgroundColor: "#FFF0F0" }}
-                >
-                  {/* Icon removed for tutor */}
-                </div>
+                />
                 <h3 className="text-2xl font-bold mb-3" style={{ color: "#1A1A1A" }}>Tutor</h3>
                 <p className="mb-6" style={{ color: "#5A5A5A" }}>
-                  Lead 4-6 students in Response Pods and transform mathematical confidence
+                  Lead student Response Pods and train execution
                 </p>
                 <ul className="space-y-2 mb-6">
-                  {["Learn the Operating System", "Be part of proof", "Shape the future"].map((item, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm" style={{ color: "#5A5A5A" }}>
+                  {["Learn the Operating System", "Be part of proof", "Shape the future"].map((item) => (
+                    <li key={item} className="flex items-center gap-2 text-sm" style={{ color: "#5A5A5A" }}>
                       <Check className="w-4 h-4" style={{ color: "#E63946" }} />
                       {item}
                     </li>
                   ))}
                 </ul>
-                <Button 
+                <Button
                   className="w-full rounded-full py-6 font-semibold border-0"
                   style={{ backgroundColor: "#E63946", color: "white" }}
                 >
@@ -101,13 +106,12 @@ export default function OperationalSignup() {
                 </Button>
               </Card>
 
-              {/* Territory Director Card */}
-              <Card 
-                className="p-8 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group" 
+              <Card
+                className="p-8 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group"
                 style={{ backgroundColor: "white" }}
                 onClick={() => setSelectedRole("td")}
               >
-                <div 
+                <div
                   className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
                   style={{ backgroundColor: "#FFF0F0" }}
                 >
@@ -118,14 +122,14 @@ export default function OperationalSignup() {
                   Oversee multiple pods, tutors, and ensure quality consistency
                 </p>
                 <ul className="space-y-2 mb-6">
-                  {["Lead the method rollout", "Build founding pods", "Own a territory"].map((item, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm" style={{ color: "#5A5A5A" }}>
+                  {["Lead the method rollout", "Build founding pods", "Own a territory"].map((item) => (
+                    <li key={item} className="flex items-center gap-2 text-sm" style={{ color: "#5A5A5A" }}>
                       <Check className="w-4 h-4" style={{ color: "#E63946" }} />
                       {item}
                     </li>
                   ))}
                 </ul>
-                <Button 
+                <Button
                   className="w-full rounded-full py-6 font-semibold border-0"
                   style={{ backgroundColor: "#E63946", color: "white" }}
                 >
@@ -140,93 +144,117 @@ export default function OperationalSignup() {
     );
   }
 
+  const isTutorRole = selectedRole === "tutor";
+  const title = isTutorRole
+    ? lockedMode === "login"
+      ? "Continue to Tutor Login"
+      : lockedMode === "signup"
+        ? "Continue to Tutor Application"
+        : "Join as a Tutor"
+    : "Join as Territory Director";
+  const description = isTutorRole
+    ? lockedMode === "login"
+      ? "Existing tutors continue here. This route is reserved for login only."
+      : lockedMode === "signup"
+        ? `${cycleLabel} entry continues here. This route is reserved for application only.`
+        : "Help transform students and condition reliable responses to math pressure."
+    : "Lead a territory and oversee multiple pods and tutors.";
+  const badgeText = isTutorRole
+    ? lockedMode === "login"
+      ? "Existing Tutor Access"
+      : lockedMode === "signup"
+        ? cycleLabel
+        : "Tutor Access"
+    : "Territory Director Access";
+
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#FFF5ED" }}>
-      {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-6 md:px-12 h-20 flex items-center justify-between">
-          {!initialRole && (
-            <Button
-              variant="ghost"
-              className="text-base font-medium hover:bg-transparent flex items-center gap-2"
-              style={{ color: "#1A1A1A" }}
-              onClick={() => setSelectedRole(null)}
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Roles
-            </Button>
-          )}
-          
+          <Button
+            variant="ghost"
+            className="text-base font-medium hover:bg-transparent flex items-center gap-2"
+            style={{ color: "#1A1A1A" }}
+            onClick={() => {
+              if (!initialRole) {
+                setSelectedRole(null);
+                return;
+              }
+
+              navigate(backTarget);
+            }}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {!initialRole ? "Back to Roles" : "Back"}
+          </Button>
+
           <span className="text-xl lg:text-2xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
             {selectedRole === "tutor" ? "TUTOR" : "TERRITORY DIRECTOR"}
           </span>
-          
-          <div className="w-28" /> {/* Spacer for centering */}
+
+          <div className="w-28" />
         </div>
       </header>
 
-      {/* Spacer for fixed header */}
       <div className="h-20" />
 
-      {/* Main Content */}
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-md space-y-8">
-          {/* Hero Section */}
           <div className="text-center space-y-4">
-            <div 
+            <div
               className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto"
               style={{ backgroundColor: "#FFF0F0" }}
             >
-              {selectedRole === "tutor" ? (
-                null
-              ) : (
+              {selectedRole === "tutor" ? null : (
                 <Crown className="w-8 h-8" style={{ color: "#E63946" }} />
               )}
             </div>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mx-auto" style={{ backgroundColor: "#FFF0F0" }}>
+              <span className="text-xs font-medium" style={{ color: "#E63946" }}>
+                {badgeText}
+              </span>
+            </div>
             <h2 className="text-3xl font-bold" style={{ color: "#1A1A1A" }}>
-              {selectedRole === "tutor" ? "Join as a Tutor" : "Join as Territory Director"}
+              {title}
             </h2>
             <p style={{ color: "#5A5A5A" }}>
-              {selectedRole === "tutor"
-                ? "Help transform students and condition reliable responses to math pressure."
-                : "Lead a territory and oversee multiple pods and tutors."}
+              {description}
             </p>
           </div>
 
-          {/* Mode Toggle */}
-          <div className="flex gap-2 justify-center p-1 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
-            <button
-              className={`flex-1 py-3 px-6 rounded-full font-semibold transition-all ${
-                mode === "signup" ? "shadow-md" : ""
-              }`}
-              style={{ 
-                backgroundColor: mode === "signup" ? "#E63946" : "transparent",
-                color: mode === "signup" ? "white" : "#5A5A5A"
-              }}
-              onClick={() => setMode("signup")}
-            >
-              Sign Up
-            </button>
-            <button
-              className={`flex-1 py-3 px-6 rounded-full font-semibold transition-all ${
-                mode === "login" ? "shadow-md" : ""
-              }`}
-              style={{ 
-                backgroundColor: mode === "login" ? "#E63946" : "transparent",
-                color: mode === "login" ? "white" : "#5A5A5A"
-              }}
-              onClick={() => setMode("login")}
-            >
-              Login
-            </button>
-          </div>
+          {lockedMode ? null : (
+            <div className="flex gap-2 justify-center p-1 rounded-full" style={{ backgroundColor: "#FFF0F0" }}>
+              <button
+                className={`flex-1 py-3 px-6 rounded-full font-semibold transition-all ${
+                  mode === "signup" ? "shadow-md" : ""
+                }`}
+                style={{
+                  backgroundColor: mode === "signup" ? "#E63946" : "transparent",
+                  color: mode === "signup" ? "white" : "#5A5A5A"
+                }}
+                onClick={() => setMode("signup")}
+              >
+                Sign Up
+              </button>
+              <button
+                className={`flex-1 py-3 px-6 rounded-full font-semibold transition-all ${
+                  mode === "login" ? "shadow-md" : ""
+                }`}
+                style={{
+                  backgroundColor: mode === "login" ? "#E63946" : "transparent",
+                  color: mode === "login" ? "white" : "#5A5A5A"
+                }}
+                onClick={() => setMode("login")}
+              >
+                Login
+              </button>
+            </div>
+          )}
 
-          {/* Auth Form Container */}
           <Card className="p-8 border-0 shadow-lg" style={{ backgroundColor: "white" }}>
             <AuthForm mode={mode} defaultRole={selectedRole} />
           </Card>
 
-          {/* Footer Info */}
           <p className="text-xs text-center" style={{ color: "#5A5A5A" }}>
             By signing up, you agree to our{" "}
             <a href={termsHref} target="_blank" className="underline hover:text-[#E63946]" style={{ color: "#1A1A1A" }}>

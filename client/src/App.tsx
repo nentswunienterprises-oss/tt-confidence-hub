@@ -95,6 +95,7 @@ import LeadershipPilotRequests from "@/pages/executive/coo/leadership-pilot-requ
 // NEW: Client Portal Pages
 import ParentDashboard from "@/pages/client/parent/dashboard";
 import ParentGateway from "@/pages/client/parent/gateway";
+import ParentIntakeEntry from "@/pages/client/intake";
 import ParentSessions from "@/pages/client/parent/sessions";
 import ParentProgress from "@/pages/client/parent/progress";
 import ParentUpdates from "@/pages/client/parent/updates";
@@ -113,6 +114,7 @@ import OperationalTDDashboard from "@/pages/operational/td/dashboard";
 import TdGateway from "@/pages/operational/td/gateway";
 import TdLanding from "@/pages/operational/td/landing";
 import TdSignup from "@/pages/operational/td/signup";
+import TutorIntakeEntry from "@/pages/operational/tutor/intake";
 import TutorLanding from "@/pages/operational/tutor/landing";
 
 // NEW: Affiliate Portal Pages
@@ -370,6 +372,7 @@ function Router() {
 
       {/* ==================== CLIENT PORTAL ==================== */}
       {/* Client Signup */}
+      <Route path="/client/intake" element={<ParentIntakeEntry />} />
       <Route path="/client/signup" element={<ClientSignup />} />
       {/* Parent Routes */}
       <Route path="/client/parent/gateway" element={<ParentGateway />} />
@@ -390,6 +393,7 @@ function Router() {
       {/* Operational Landing */}
       <Route path="/operational/landing" element={<OperationalLanding />} />
       <Route path="/operational/tutor/landing" element={<TutorLanding />} />
+      <Route path="/operational/tutor/intake" element={<TutorIntakeEntry />} />
       {/* Operational Signup */}
       <Route path="/operational/signup" element={<OperationalSignup />} />
 

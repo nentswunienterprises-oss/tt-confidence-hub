@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { AuthForm } from "@/components/auth/auth-form";
 import { Button } from "@/components/ui/button";
+import { getParentIntakeLabel } from "@/lib/intakeWindows";
 import { buildTrackedPath, resolveTrackedBackTarget } from "@/lib/publicTracking";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, Heart, Sparkles } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 
 export default function ClientSignup() {
@@ -13,12 +14,44 @@ export default function ClientSignup() {
   const backTarget = resolveTrackedBackTarget(location.search);
   const termsUrl = buildTrackedPath("/terms-of-use", location.search, { returnTo: backTarget });
   const privacyUrl = buildTrackedPath("/privacy-policy", location.search, { returnTo: backTarget });
+  const params = new URLSearchParams(location.search);
+  const lockedMode = params.get("lock") === "login" || params.get("lock") === "signup"
+    ? (params.get("lock") as "signup" | "login")
+    : null;
+  const intakeLabel = getParentIntakeLabel(params.get("intake"));
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
     const m = params.get('mode');
-    if (m === 'login') setMode('login');
-  }, [location.search]);
+    if (lockedMode) {
+      setMode(lockedMode);
+      return;
+    }
+
+    if (m === 'login') {
+      setMode('login');
+      return;
+    }
+
+    setMode('signup');
+  }, [location.search, lockedMode]);
+
+  const badgeText = lockedMode === "login"
+    ? "Existing Parent Access"
+    : lockedMode === "signup"
+      ? intakeLabel
+      : "Parent Portal";
+
+  const title = lockedMode === "login"
+    ? "Continue to Parent Login"
+    : lockedMode === "signup"
+      ? `Continue with ${intakeLabel}`
+      : "Join Response Integrity";
+
+  const description = lockedMode === "login"
+    ? "Already enrolled families continue here. This route is reserved for login only."
+    : lockedMode === "signup"
+      ? "This is the protected signup path for the current intake. New family entry continues here only after the intake gateway."
+      : "Give your child the response of calm execution under pressure.";
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#FFF5ED" }}>
@@ -64,42 +97,43 @@ export default function ClientSignup() {
             </div>
             <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full mx-auto" style={{ backgroundColor: "#FFF0F0" }}>
               <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
-                Founding Cohort  Limited Spots
+                {badgeText}
               </span>
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: "#1A1A1A" }}>
-              Join Response Integrity
+              {title}
             </h2>
             <p className="text-base sm:text-lg" style={{ color: "#5A5A5A" }}>
-              Give your child the response of calm execution under pressure.
+              {description}
             </p>
           </div>
 
-          {/* Mode Toggle */}
-          <div className="flex gap-2 sm:gap-3 justify-center">
-            <Button
-              className="px-4 sm:px-6 py-3 sm:py-5 rounded-full font-semibold transition-all text-sm sm:text-base border-0"
-              style={{ 
-                backgroundColor: mode === "signup" ? "#E63946" : "transparent",
-                color: mode === "signup" ? "white" : "#1A1A1A",
-                border: mode === "signup" ? "none" : "2px solid #1A1A1A"
-              }}
-              onClick={() => setMode("signup")}
-            >
-              Sign Up
-            </Button>
-            <Button
-              className="px-4 sm:px-6 py-3 sm:py-5 rounded-full font-semibold transition-all text-sm sm:text-base border-0"
-              style={{ 
-                backgroundColor: mode === "login" ? "#E63946" : "transparent",
-                color: mode === "login" ? "white" : "#1A1A1A",
-                border: mode === "login" ? "none" : "2px solid #1A1A1A"
-              }}
-              onClick={() => setMode("login")}
-            >
-              Log In
-            </Button>
-          </div>
+          {lockedMode ? null : (
+            <div className="flex gap-2 sm:gap-3 justify-center">
+              <Button
+                className="px-4 sm:px-6 py-3 sm:py-5 rounded-full font-semibold transition-all text-sm sm:text-base border-0"
+                style={{
+                  backgroundColor: mode === "signup" ? "#E63946" : "transparent",
+                  color: mode === "signup" ? "white" : "#1A1A1A",
+                  border: mode === "signup" ? "none" : "2px solid #1A1A1A"
+                }}
+                onClick={() => setMode("signup")}
+              >
+                Sign Up
+              </Button>
+              <Button
+                className="px-4 sm:px-6 py-3 sm:py-5 rounded-full font-semibold transition-all text-sm sm:text-base border-0"
+                style={{
+                  backgroundColor: mode === "login" ? "#E63946" : "transparent",
+                  color: mode === "login" ? "white" : "#1A1A1A",
+                  border: mode === "login" ? "none" : "2px solid #1A1A1A"
+                }}
+                onClick={() => setMode("login")}
+              >
+                Log In
+              </Button>
+            </div>
+          )}
 
           {/* Auth Form Card */}
           <div 
