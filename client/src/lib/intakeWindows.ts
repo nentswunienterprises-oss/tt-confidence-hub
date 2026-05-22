@@ -281,7 +281,7 @@ const tutorPhases: TutorPhase[] = [
     applicationsOpen: false,
     cycleKey: "mid_year",
     description:
-      "Only certified live operators are being matched now. Mid-year schedules and capacity are being locked before June deployment.",
+      "Only certified live operators are being matched now.  ",
   },
   {
     key: "mid_year_live",

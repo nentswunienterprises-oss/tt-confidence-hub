@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Check, Shield, Target, Users, X } from "lucide-react";
+import { ArrowRight, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
@@ -12,10 +12,10 @@ const fitSignals = [
 ];
 
 const disqualifiers = [
-  "You want to work around the system instead of enforcing it.",
-  "You avoid hard conversations when standards need to be held.",
-  "You soften truth to stay comfortable with people.",
-  "You prefer flexibility when the system needs firmness.",
+  "You may prefer working around a system rather than consistently enforcing one.",
+  "You may find a role with frequent hard conversations less natural to sustain.",
+  "You may feel more drawn to preserving comfort in the moment than to delivering direct correction.",
+  "You may work best in environments with more flexibility than this role usually allows.",
 ];
 
 const roleBlocks = [
@@ -62,13 +62,7 @@ export default function TdLanding() {
             <ResponseIntegrityLogo size="lg" variant="integrity" />
           </div>
 
-          <Button
-            className="hidden rounded-full px-4 text-sm font-semibold sm:inline-flex sm:px-6 sm:text-base"
-            style={{ backgroundColor: "#E63946", color: "white" }}
-            onClick={() => navigate("/operational/td/signup")}
-          >
-            Log In
-          </Button>
+          <div className="hidden sm:block sm:w-[120px]" aria-hidden="true" />
         </div>
       </header>
 
@@ -79,9 +73,6 @@ export default function TdLanding() {
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
             <div className="overflow-hidden rounded-[34px] border border-[#E7CEC4] bg-[#FFF1E8] shadow-sm">
               <div className="p-6 sm:p-7 lg:p-9 xl:p-10">
-                <div className="inline-flex rounded-full border border-[#E9CFC2] bg-[#FFF4EE]/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#8A3024] shadow-sm">
-                  Leadership pathway
-                </div>
                 <h1 className="mt-5 max-w-4xl text-4xl font-bold leading-[0.95] tracking-[-0.05em] text-[#171311] sm:text-5xl lg:text-[4.1rem] xl:text-[4.55rem]">
                   This is where strong operators
                   <span className="mt-2 block max-w-3xl text-[#E63946]">step into real responsibility.</span>
@@ -129,9 +120,9 @@ export default function TdLanding() {
                   </span>
                 </div>
                 <div className="mt-7 space-y-3 text-sm text-white/82">
-                  <div className="flex items-center gap-3"><Shield className="h-4 w-4 text-[#E63946]" />Clear standards</div>
-                  <div className="flex items-center gap-3"><Target className="h-4 w-4 text-[#E63946]" />Accurate judgment</div>
-                  <div className="flex items-center gap-3"><Users className="h-4 w-4 text-[#E63946]" />Direct correction</div>
+                  <div>Clear standards</div>
+                  <div>Accurate judgment</div>
+                  <div>Direct correction</div>
                 </div>
               </Card>
 
@@ -149,8 +140,7 @@ export default function TdLanding() {
           <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
             <Card className="rounded-[30px] border border-[#E5D3C5] bg-white/86 p-7 shadow-sm sm:p-8">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Fit check</p>
-                <h2 className="mt-1 text-3xl font-bold tracking-tight text-[#1A1A1A]">Who this is for</h2>
+                <h2 className="text-3xl font-bold tracking-tight text-[#1A1A1A]">Who this is for</h2>
               </div>
               <div className="mt-7 space-y-4">
                 {fitSignals.map((item) => (
@@ -165,8 +155,7 @@ export default function TdLanding() {
             </Card>
 
             <Card className="rounded-[30px] border border-[#2F2621] bg-[#201916] p-7 text-white shadow-sm sm:p-8">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#FFB5A6]">Role demands</p>
-              <h2 className="mt-2 text-3xl font-bold tracking-tight">Where this role may not be the right match</h2>
+              <h2 className="mt-2 text-3xl font-bold tracking-tight">When this role may feel less natural</h2>
               <div className="mt-7 space-y-4">
                 {disqualifiers.map((item) => (
                   <div key={item} className="rounded-[22px] border border-white/10 bg-white/5 p-5">

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowRight, Check, Shield, Users, AlertTriangle } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
@@ -184,9 +184,9 @@ export default function TutorLanding() {
                   </span>
                 </div>
                 <div className="mt-7 space-y-3 text-sm text-white/82">
-                  <div className="flex items-center gap-3"><Shield className="h-4 w-4 text-[#E63946]" />Clear thinking</div>
-                  <div className="flex items-center gap-3"><Users className="h-4 w-4 text-[#E63946]" />Structured tutoring</div>
-                  <div className="flex items-center gap-3"><AlertTriangle className="h-4 w-4 text-[#E63946]" />Trust is earned through evidence</div>
+                  <div>Clear thinking</div>
+                  <div>Structured skill</div>
+                  <div>Trust is earned through evidence</div>
                 </div>
               </Card>
 
@@ -307,8 +307,8 @@ export default function TutorLanding() {
           <div className="rounded-[32px] border border-[#E5D3C5] bg-white/82 px-6 py-10 text-center shadow-sm sm:px-10 sm:py-12">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Entry point</p>
             <h2 className="mt-4 text-3xl font-bold leading-tight text-[#171311] sm:text-4xl">
-              Want to build real tutoring skill?
-              <span className="block text-[#7C2D21]">Check the current operator window first.</span>
+              Want to become a response-training specialist?
+              <span className="block text-[#E63946]">Check the current operator window first.</span>
             </h2>
             <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-[#57504B] sm:text-lg">
               New applicants begin through the intake-aware operator gate. Existing tutors use the login button to open directly on the tutor login side.

@@ -60,8 +60,9 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#FFF5ED" }}>
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
-          <ResponseIntegrityLogo size="md" variant="integrity" />
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-28 sm:h-20 pb-6 sm:pb-0 flex items-end sm:items-center justify-center md:justify-between">
+          <div className="hidden md:block md:w-[140px]" aria-hidden="true" />
+          <ResponseIntegrityLogo size="lg" variant="integrity" />
           <Button
             variant="ghost"
             className="hidden md:inline-flex text-sm sm:text-base font-medium hover:bg-transparent items-center gap-1 sm:gap-2 px-2 sm:px-4"
@@ -74,16 +75,11 @@ export default function ForgotPasswordPage() {
         </div>
       </header>
 
-      <div className="h-16 sm:h-20" />
+      <div className="h-28 sm:h-20" />
 
       <div className="flex-1 flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12">
         <div className="w-full max-w-md space-y-6 sm:space-y-8">
           <div className="text-center space-y-3 sm:space-y-4">
-            <div className="md:hidden">
-              <span className="text-xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
-                RESPONSE INTEGRITY
-              </span>
-            </div>
             <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full mx-auto" style={{ backgroundColor: "#FFF0F0" }}>
               <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
                 Reset Password
