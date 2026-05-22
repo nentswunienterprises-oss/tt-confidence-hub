@@ -11128,31 +11128,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const isPendingTutorAcceptance = enrollmentForStudent?.status === "awaiting_tutor_acceptance";
 
-        // Backfill signal: if an intro diagnosis drill exists, treat intro as completed.
-        const { data: latestIntroDrillRow } = await supabase
-          .from("intro_session_drills")
-          .select("drill, submitted_at")
-          .eq("student_id", studentId)
-          .eq("tutor_id", dbUser.id)
-          .order("submitted_at", { ascending: false })
-          .maybeSingle();
-        
-        const latestIntroDrillPayload =
-          typeof latestIntroDrillRow?.drill === "string"
-            ? (() => {
-                try {
-                  return JSON.parse(latestIntroDrillRow.drill);
-                } catch {
-                  return null;
-                }
-              })()
-            : latestIntroDrillRow?.drill || null;
-        
-        const hasCompletedIntroDrill = !!(
-          latestIntroDrillPayload &&
-          (latestIntroDrillPayload.drillType === "diagnosis" || !latestIntroDrillPayload.drillType)
-        );
-
         // Fallback: if not found, try by tutor_id + enrollment_id (pre-acceptance)
         if (!latestProposal) {
           // Find enrollment for this student
@@ -11238,13 +11213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
 
-        const inferredIntroCompleted = !!(
-          workflow.introCompletedAt ||
-          hasCompletedIntroDrill ||
-          student.identitySheetCompletedAt ||
-          latestProposal?.sent_at ||
-          latestProposal?.accepted_at
-        );
+        const inferredIntroCompleted = !!workflow.introCompletedAt;
 
         const assignmentAccepted = isPendingTutorAcceptance
           ? false
