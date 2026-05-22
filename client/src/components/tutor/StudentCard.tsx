@@ -1134,168 +1134,145 @@ function IntroDiagnosticTopicSection({
     setDialogOpen(false);
   };
 
-  if (!activatedTopic) {
-    return (
-      <div className="pt-4 border-t border-border/60 space-y-2">
-        <div className="space-y-3 mb-2">
-          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Pre-Session Intelligence</p>
+  const preSessionIntelligenceBlock = (
+    <div className="space-y-3 mb-2">
+      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Pre-Session Intelligence</p>
 
-          <div className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-2">
-            <p className="text-[11px] font-medium text-foreground">Parent-Reported Topics</p>
-            {reportedTopics.length > 0 ? (
-              <ul className="text-xs text-muted-foreground space-y-1">
-                {reportedTopics.slice(0, 4).map((topic) => (
-                  <li key={topic}>{topic}</li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-xs text-muted-foreground">No specific topics listed by parent.</p>
-            )}
-          </div>
+      <div className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-2">
+        <p className="text-[11px] font-medium text-foreground">Parent-Reported Topics</p>
+        {reportedTopics.length > 0 ? (
+          <ul className="text-xs text-muted-foreground space-y-1">
+            {reportedTopics.slice(0, 4).map((topic) => (
+              <li key={topic}>{topic}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-xs text-muted-foreground">No specific topics listed by parent.</p>
+        )}
+      </div>
 
-          {topicIntelligence.length > 0 ? (
-            <div className="space-y-3">
-              {topicIntelligence.map((entry) => (
-                <div key={entry.topic} className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-3">
-                  <div className="space-y-1">
-                    <p className="text-[11px] font-medium text-foreground">{entry.topic}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Start adaptive diagnosis at <span className="text-foreground font-medium">{entry.recommendedStartingPhase}</span>.
-                    </p>
-                    <p className="text-xs text-muted-foreground">{trimRationaleSignals(entry.recommendedStartingReason)}</p>
+      {topicIntelligence.length > 0 ? (
+        <div className="space-y-3">
+          {topicIntelligence.map((entry) => (
+            <div key={entry.topic} className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-3">
+              <div className="space-y-1">
+                <p className="text-[11px] font-medium text-foreground">{entry.topic}</p>
+                <p className="text-xs text-muted-foreground">
+                  Start adaptive diagnosis at <span className="text-foreground font-medium">{entry.recommendedStartingPhase}</span>.
+                </p>
+                <p className="text-xs text-muted-foreground">{trimRationaleSignals(entry.recommendedStartingReason)}</p>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Parent-Observed Symptoms</p>
+                {entry.symptoms.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {entry.symptoms.map((symptom) => (
+                      <Badge
+                        key={`${entry.topic}-${symptom}`}
+                        variant="outline"
+                        className="max-w-full whitespace-normal break-words text-left leading-snug text-[10px] border-primary/20 bg-background/70 text-foreground"
+                      >
+                        {symptom}
+                      </Badge>
+                    ))}
                   </div>
-
-                  <div className="space-y-2">
-                    <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Parent-Observed Symptoms</p>
-                    {entry.symptoms.length > 0 ? (
-                      <div className="flex flex-wrap gap-1.5">
-                        {entry.symptoms.map((symptom) => (
-                          <Badge
-                            key={`${entry.topic}-${symptom}`}
-                            variant="outline"
-                            className="max-w-full whitespace-normal break-words text-left leading-snug text-[10px] border-primary/20 bg-background/70 text-foreground"
-                          >
-                            {symptom}
-                          </Badge>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">
-                        No topic-specific symptom mapping was captured for this topic.
-                      </p>
-                    )}
-                  </div>
-                </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    No topic-specific symptom mapping was captured for this topic.
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-2">
+          <p className="text-[11px] font-medium text-foreground">Parent-Observed Symptoms</p>
+          {symptomSignals.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {symptomSignals.map((symptom) => (
+                <Badge
+                  key={symptom}
+                  variant="outline"
+                  className="max-w-full whitespace-normal break-words text-left leading-snug text-[10px] border-primary/20 bg-background/70 text-foreground"
+                >
+                  {symptom}
+                </Badge>
               ))}
             </div>
           ) : (
-          <div className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-2">
-            <p className="text-[11px] font-medium text-foreground">Parent-Observed Symptoms</p>
-            {topicIntelligence.length > 0 ? (
-              <div className="space-y-2">
-                {topicIntelligence.slice(0, 4).map((entry) => (
-                  <div key={entry.topic} className="rounded-lg border border-primary/10 bg-background/70 p-2.5 space-y-1.5">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-foreground">
-                      {entry.topic}
-                    </p>
-                    {entry.symptoms.length > 0 ? (
-                      <div className="flex flex-wrap gap-1.5">
-                        {entry.symptoms.map((symptom) => (
-                          <Badge
-                            key={`${entry.topic}-${symptom}`}
-                            variant="outline"
-                            className="max-w-full whitespace-normal break-words text-left leading-snug text-[10px] border-primary/20 bg-background/70 text-foreground"
-                          >
-                            {symptom}
-                          </Badge>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">
-                        No topic-specific symptoms selected. Verify this topic live during diagnosis.
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : symptomSignals.length > 0 ? (
-              <div className="flex flex-wrap gap-1.5">
-                {symptomSignals.map((symptom) => (
-                  <Badge
-                    key={symptom}
-                    variant="outline"
-                    className="max-w-full whitespace-normal break-words text-left leading-snug text-[10px] border-primary/20 bg-background/70 text-foreground"
-                  >
-                    {symptom}
-                  </Badge>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-muted-foreground">
-                No explicit symptom keywords found. Observe freeze, rush, guess, avoid, and early help-seeking.
-              </p>
-            )}
-            </div>
+            <p className="text-xs text-muted-foreground">
+              No explicit symptom keywords found. Observe freeze, rush, guess, avoid, and early help-seeking.
+            </p>
           )}
-
-          <div className="rounded-xl border border-primary/20 bg-muted/20 p-3 space-y-1">
-            <p className="text-[11px] font-semibold text-foreground">Diagnostic Focus Suggestion</p>
-            <p className="text-xs text-muted-foreground">Start with: <span className="text-foreground font-medium">{suggestedTopic}</span></p>
-            <p className="text-xs text-muted-foreground">
-              Watch for: <span className="text-foreground font-medium">
-                {suggestedSymptoms.length > 0
-                  ? `the parent-observed symptoms listed above for ${suggestedTopic}`
-                  : "freezing and early help-seeking during live diagnosis"}
-              </span>
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 space-y-3">
-            <p className="text-[11px] font-semibold text-foreground">System-Recommended Starting Phase</p>
-            <p className="text-xs text-muted-foreground">
-              Start adaptive diagnosis at: <span className="text-foreground font-medium">{recommendedStartingPhase}</span>
-            </p>
-            <p className="text-xs text-muted-foreground">{trimRationaleSignals(recommendedStartingReason)}</p>
-            {secondarySignal ? (
-              <p className="text-xs text-muted-foreground">
-                Secondary watchpoint: <span className="text-foreground font-medium">{secondarySignal.phase}</span>
-              </p>
-            ) : null}
-            <div className="rounded-lg border border-primary/15 bg-background/80 p-2.5 space-y-2">
-              <button
-                type="button"
-                className="flex w-full items-center justify-between text-left"
-                onClick={() => setShowResponseSignalBreakdown((current) => !current)}
-              >
-                <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Response Signal Breakdown</p>
-                {showResponseSignalBreakdown ? (
-                  <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                ) : (
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                )}
-              </button>
-              {showResponseSignalBreakdown ? (
-                <div className="grid grid-cols-1 gap-1.5">
-                  {responseSignalBreakdown.map(({ phase, score }) => (
-                    <div
-                      key={phase}
-                      className={`flex items-center justify-between rounded-md border px-2 py-1.5 text-[11px] ${scoreTone(score)}`}
-                    >
-                      <span className="font-medium">{phase}</span>
-                      <span className="tabular-nums">{score}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-            <div className="rounded-lg border border-primary/15 bg-background/80 p-2.5">
-              <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Tutor Launch Rule</p>
-              <p className="mt-1 text-xs text-foreground">
-                Start at <span className="font-medium">{recommendedStartingPhase}</span>, but let adaptive diagnosis verify it. Do not treat this recommendation as final placement.
-              </p>
-            </div>
-          </div>
         </div>
+      )}
+
+      <div className="rounded-xl border border-primary/20 bg-muted/20 p-3 space-y-1">
+        <p className="text-[11px] font-semibold text-foreground">Diagnostic Focus Suggestion</p>
+        <p className="text-xs text-muted-foreground">Start with: <span className="text-foreground font-medium">{suggestedTopic}</span></p>
+        <p className="text-xs text-muted-foreground">
+          Watch for: <span className="text-foreground font-medium">
+            {suggestedSymptoms.length > 0
+              ? `the parent-observed symptoms listed above for ${suggestedTopic}`
+              : "freezing and early help-seeking during live diagnosis"}
+          </span>
+        </p>
+      </div>
+
+      <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 space-y-3">
+        <p className="text-[11px] font-semibold text-foreground">System-Recommended Starting Phase</p>
+        <p className="text-xs text-muted-foreground">
+          Start adaptive diagnosis at: <span className="text-foreground font-medium">{recommendedStartingPhase}</span>
+        </p>
+        <p className="text-xs text-muted-foreground">{trimRationaleSignals(recommendedStartingReason)}</p>
+        {secondarySignal ? (
+          <p className="text-xs text-muted-foreground">
+            Secondary watchpoint: <span className="text-foreground font-medium">{secondarySignal.phase}</span>
+          </p>
+        ) : null}
+        <div className="rounded-lg border border-primary/15 bg-background/80 p-2.5 space-y-2">
+          <button
+            type="button"
+            className="flex w-full items-center justify-between text-left"
+            onClick={() => setShowResponseSignalBreakdown((current) => !current)}
+          >
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Response Signal Breakdown</p>
+            {showResponseSignalBreakdown ? (
+              <ChevronUp className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            )}
+          </button>
+          {showResponseSignalBreakdown ? (
+            <div className="grid grid-cols-1 gap-1.5">
+              {responseSignalBreakdown.map(({ phase, score }) => (
+                <div
+                  key={phase}
+                  className={`flex items-center justify-between rounded-md border px-2 py-1.5 text-[11px] ${scoreTone(score)}`}
+                >
+                  <span className="font-medium">{phase}</span>
+                  <span className="tabular-nums">{score}</span>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+        <div className="rounded-lg border border-primary/15 bg-background/80 p-2.5">
+          <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Tutor Launch Rule</p>
+          <p className="mt-1 text-xs text-foreground">
+            Start at <span className="font-medium">{recommendedStartingPhase}</span>, but let adaptive diagnosis verify it. Do not treat this recommendation as final placement.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (!activatedTopic) {
+    return (
+      <div className="pt-4 border-t border-border/60 space-y-2">
+        {preSessionIntelligenceBlock}
 
         <Button
           className="w-full"
@@ -1334,15 +1311,7 @@ function IntroDiagnosticTopicSection({
 
   return (
     <div className="pt-4 border-t border-border/60 space-y-2">
-      <PreSessionIntelligenceSummary
-        reportedTopics={reportedTopics}
-        symptomSignals={symptomSignals}
-        topicIntelligence={topicIntelligence}
-        suggestedTopic={suggestedTopic}
-        suggestedSymptoms={suggestedSymptoms}
-        recommendedStartingPhase={recommendedStartingPhase}
-        recommendedStartingReason={recommendedStartingReason}
-      />
+      {preSessionIntelligenceBlock}
       {operationalMode !== "training" && introSession?.scheduled_time ? (
         <div className="rounded-xl border border-primary/20 bg-muted/20 p-3 space-y-1">
           <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Scheduled Intro Lesson</p>
