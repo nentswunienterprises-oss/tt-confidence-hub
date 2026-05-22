@@ -11222,12 +11222,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
               (enrollmentForStudent && enrollmentForStudent.status !== "awaiting_tutor_acceptance")
             );
 
+        const effectiveIntroStatus = getEffectiveScheduledSessionStatus(introSession);
+        const effectiveHandoverStatus = handoverSession
+          ? getEffectiveScheduledSessionStatus(handoverSession)
+          : "not_scheduled";
+
         res.json({
           assignmentAccepted,
-          introConfirmed: ["confirmed", "ready", "live", "completed"].includes(String(introSession?.status || "")),
+          introConfirmed: ["confirmed", "ready", "live", "completed"].includes(String(effectiveIntroStatus || "")),
           introCompleted: inferredIntroCompleted,
           handoverVerificationRequired,
-          handoverSessionConfirmed: ["confirmed", "ready", "live", "completed"].includes(String(handoverSession?.status || "")),
+          handoverSessionConfirmed: ["confirmed", "ready", "live", "completed"].includes(String(effectiveHandoverStatus || "")),
           handoverCompleted: !!workflow.handoverCompletedAt,
           identitySaved: !!student.identitySheetCompletedAt,
           proposalSent: !!latestProposal?.sent_at,
