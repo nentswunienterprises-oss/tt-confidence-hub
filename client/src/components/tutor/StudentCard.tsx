@@ -1334,6 +1334,15 @@ function IntroDiagnosticTopicSection({
 
   return (
     <div className="pt-4 border-t border-border/60 space-y-2">
+      <PreSessionIntelligenceSummary
+        reportedTopics={reportedTopics}
+        symptomSignals={symptomSignals}
+        topicIntelligence={topicIntelligence}
+        suggestedTopic={suggestedTopic}
+        suggestedSymptoms={suggestedSymptoms}
+        recommendedStartingPhase={recommendedStartingPhase}
+        recommendedStartingReason={recommendedStartingReason}
+      />
       {operationalMode !== "training" && introSession?.scheduled_time ? (
         <div className="rounded-xl border border-primary/20 bg-muted/20 p-3 space-y-1">
           <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Scheduled Intro Lesson</p>
