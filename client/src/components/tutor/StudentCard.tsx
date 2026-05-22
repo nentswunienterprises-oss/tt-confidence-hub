@@ -716,6 +716,17 @@ export function StudentCard({
 
         {effectiveWorkflow?.assignmentAccepted && effectiveWorkflow?.introCompleted && !effectiveWorkflow.proposalSent && !effectiveWorkflow?.proposalAccepted && (
           <div className="pt-4 border-t border-border/60 space-y-3">
+            <DetailedPreSessionIntelligence
+              reportedTopics={reportedTopics}
+              symptomSignals={symptomSignals}
+              topicIntelligence={topicIntelligence}
+              suggestedTopic={suggestedTopic}
+              suggestedSymptoms={suggestedSymptoms}
+              responseSignalBreakdown={responseSignalBreakdown}
+              recommendedStartingPhase={recommendedStartingPhase}
+              recommendedStartingReason={recommendedStartingReason}
+              secondarySignal={secondarySignal}
+            />
             <Button
               className="w-full"
               variant="outline"
@@ -733,6 +744,17 @@ export function StudentCard({
 
         {effectiveWorkflow?.assignmentAccepted && effectiveWorkflow?.proposalSent && !effectiveWorkflow.proposalAccepted && (
           <div className="pt-4 border-t border-border/60 space-y-2">
+            <DetailedPreSessionIntelligence
+              reportedTopics={reportedTopics}
+              symptomSignals={symptomSignals}
+              topicIntelligence={topicIntelligence}
+              suggestedTopic={suggestedTopic}
+              suggestedSymptoms={suggestedSymptoms}
+              responseSignalBreakdown={responseSignalBreakdown}
+              recommendedStartingPhase={recommendedStartingPhase}
+              recommendedStartingReason={recommendedStartingReason}
+              secondarySignal={secondarySignal}
+            />
             <p className="text-xs text-muted-foreground text-center">
               Proposal sent. Waiting for parent acceptance to unlock systems.
             </p>
@@ -741,6 +763,17 @@ export function StudentCard({
 
         {workflow?.proposalAccepted && !handoverVerificationActive && (
           <div className="pt-4 border-t border-border/60 space-y-3">
+            <DetailedPreSessionIntelligence
+              reportedTopics={reportedTopics}
+              symptomSignals={symptomSignals}
+              topicIntelligence={topicIntelligence}
+              suggestedTopic={suggestedTopic}
+              suggestedSymptoms={suggestedSymptoms}
+              responseSignalBreakdown={responseSignalBreakdown}
+              recommendedStartingPhase={recommendedStartingPhase}
+              recommendedStartingReason={recommendedStartingReason}
+              secondarySignal={secondarySignal}
+            />
             <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Systems</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <Button
@@ -1092,10 +1125,7 @@ function PreSessionIntelligenceSummary({
   );
 }
 
-function IntroDiagnosticTopicSection({
-  student,
-  introSession,
-  operationalMode = "training",
+function DetailedPreSessionIntelligence({
   reportedTopics,
   symptomSignals,
   topicIntelligence,
@@ -1106,35 +1136,9 @@ function IntroDiagnosticTopicSection({
   recommendedStartingReason,
   secondarySignal,
 }) {
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [diagnosticTopic, setDiagnosticTopic] = useState("");
-  const [activationError, setActivationError] = useState("");
-  const [activatedTopic, setActivatedTopic] = useState<string | null>(null);
   const [showResponseSignalBreakdown, setShowResponseSignalBreakdown] = useState(false);
 
-  const storageKey = `intro-diagnostic-topic:${student.id}`;
-
-  useEffect(() => {
-    const stored = window.sessionStorage.getItem(storageKey);
-    if (stored) {
-      setActivatedTopic(stored);
-    }
-  }, [storageKey]);
-
-  const handleActivate = () => {
-    setActivationError("");
-    const nextTopic = diagnosticTopic.trim();
-    if (!nextTopic) {
-      setActivationError("Please enter a topic name to continue.");
-      return;
-    }
-    window.sessionStorage.setItem(storageKey, nextTopic);
-    setActivatedTopic(nextTopic);
-    setDiagnosticTopic("");
-    setDialogOpen(false);
-  };
-
-  const preSessionIntelligenceBlock = (
+  return (
     <div className="space-y-3 mb-2">
       <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Pre-Session Intelligence</p>
 
@@ -1268,11 +1272,63 @@ function IntroDiagnosticTopicSection({
       </div>
     </div>
   );
+}
+
+function IntroDiagnosticTopicSection({
+  student,
+  introSession,
+  operationalMode = "training",
+  reportedTopics,
+  symptomSignals,
+  topicIntelligence,
+  suggestedTopic,
+  suggestedSymptoms,
+  responseSignalBreakdown,
+  recommendedStartingPhase,
+  recommendedStartingReason,
+  secondarySignal,
+}) {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [diagnosticTopic, setDiagnosticTopic] = useState("");
+  const [activationError, setActivationError] = useState("");
+  const [activatedTopic, setActivatedTopic] = useState<string | null>(null);
+
+  const storageKey = `intro-diagnostic-topic:${student.id}`;
+
+  useEffect(() => {
+    const stored = window.sessionStorage.getItem(storageKey);
+    if (stored) {
+      setActivatedTopic(stored);
+    }
+  }, [storageKey]);
+
+  const handleActivate = () => {
+    setActivationError("");
+    const nextTopic = diagnosticTopic.trim();
+    if (!nextTopic) {
+      setActivationError("Please enter a topic name to continue.");
+      return;
+    }
+    window.sessionStorage.setItem(storageKey, nextTopic);
+    setActivatedTopic(nextTopic);
+    setDiagnosticTopic("");
+    setDialogOpen(false);
+  };
 
   if (!activatedTopic) {
     return (
       <div className="pt-4 border-t border-border/60 space-y-2">
-        {preSessionIntelligenceBlock}
+        <DetailedPreSessionIntelligence
+          reportedTopics={reportedTopics}
+          symptomSignals={symptomSignals}
+          topicIntelligence={topicIntelligence}
+          suggestedTopic={suggestedTopic}
+          suggestedSymptoms={suggestedSymptoms}
+          responseSignalBreakdown={responseSignalBreakdown}
+          recommendedStartingPhase={recommendedStartingPhase}
+          recommendedStartingReason={recommendedStartingReason}
+          secondarySignal={secondarySignal}
+        />
 
         <Button
           className="w-full"
@@ -1311,7 +1367,17 @@ function IntroDiagnosticTopicSection({
 
   return (
     <div className="pt-4 border-t border-border/60 space-y-2">
-      {preSessionIntelligenceBlock}
+      <DetailedPreSessionIntelligence
+        reportedTopics={reportedTopics}
+        symptomSignals={symptomSignals}
+        topicIntelligence={topicIntelligence}
+        suggestedTopic={suggestedTopic}
+        suggestedSymptoms={suggestedSymptoms}
+        responseSignalBreakdown={responseSignalBreakdown}
+        recommendedStartingPhase={recommendedStartingPhase}
+        recommendedStartingReason={recommendedStartingReason}
+        secondarySignal={secondarySignal}
+      />
       {operationalMode !== "training" && introSession?.scheduled_time ? (
         <div className="rounded-xl border border-primary/20 bg-muted/20 p-3 space-y-1">
           <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Scheduled Intro Lesson</p>
