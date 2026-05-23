@@ -198,7 +198,7 @@ The live runtime should derive pre-session topic intelligence from:
 
 Parent intake should submit topics in structured form rather than relying on a legacy comma-separated topic string.
 
-Legacy topic strings such as `math_struggle_areas` may still exist for compatibility, transport, or historical display, but they are not the authoritative Response Integrity-OS topic-conditioning source of truth.
+Legacy topic strings such as `math_struggle_areas` are not part of the live Response Integrity-OS topic-conditioning flow and should not be read or written by current runtime paths.
 
 ### Scheduled session
 

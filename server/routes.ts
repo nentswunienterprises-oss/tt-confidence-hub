@@ -158,13 +158,6 @@ const SANDBOX_CASE_TEMPLATES: SandboxCaseTemplate[] = [
 
 function buildSandboxEnrollmentCase(seedIndex: number, source?: any | null) {
   const template = SANDBOX_CASE_TEMPLATES[seedIndex % SANDBOX_CASE_TEMPLATES.length];
-  const sourceTopics =
-    typeof source?.math_struggle_areas === "string"
-      ? String(source.math_struggle_areas)
-          .split(/[,\n;|]+/)
-          .map((value) => String(value || "").trim())
-          .filter(Boolean)
-      : [];
   const sourceTopicResponseSymptoms =
     source?.topic_response_symptoms && typeof source.topic_response_symptoms === "object"
       ? Object.fromEntries(
@@ -173,9 +166,23 @@ function buildSandboxEnrollmentCase(seedIndex: number, source?: any | null) {
             .filter(([topic, symptoms]) => topic.length > 0 && (symptoms as string[]).length > 0)
         )
       : {};
+  const sourceTopicRecommendedStartingPhases =
+    source?.topic_recommended_starting_phases &&
+    typeof source.topic_recommended_starting_phases === "object"
+      ? Object.fromEntries(
+          Object.entries(source.topic_recommended_starting_phases as Record<string, unknown>)
+            .map(([topic, recommendation]) => [String(topic || "").trim(), recommendation])
+            .filter(([topic]) => topic.length > 0)
+        )
+      : {};
   const sourceResponseSymptoms = normalizeResponseSymptoms(source?.response_symptoms);
+  const sourceTopics = Array.from(
+    new Set([
+      ...Object.keys(sourceTopicResponseSymptoms),
+      ...Object.keys(sourceTopicRecommendedStartingPhases),
+    ])
+  );
   const topics = sourceTopics.length > 0 ? sourceTopics : template.topics;
-  const mathStruggleAreas = topics.join(", ");
   const normalizedResponseSymptoms =
     sourceResponseSymptoms.length > 0
       ? sourceResponseSymptoms
@@ -211,7 +218,6 @@ function buildSandboxEnrollmentCase(seedIndex: number, source?: any | null) {
   return {
     caseId: template.id,
     topicCount: topics.length,
-    mathStruggleAreas,
     responseSymptoms: normalizedResponseSymptoms,
     topicResponseSymptoms,
     responseSignalScores: responseRecommendation.scores,
@@ -921,7 +927,7 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
   {
     const initial = await supabase
       .from("parent_enrollments")
-      .select("id, parent_full_name, parent_email, student_full_name, student_grade, student_gender, school_name, math_struggle_areas, response_symptoms, topic_response_symptoms, response_signal_scores, topic_response_signal_scores, recommended_starting_phase, topic_recommended_starting_phases, previous_tutoring, internet_access, parent_motivation")
+      .select("id, parent_full_name, parent_email, student_full_name, student_grade, student_gender, school_name, response_symptoms, topic_response_symptoms, response_signal_scores, topic_response_signal_scores, recommended_starting_phase, topic_recommended_starting_phases, previous_tutoring, internet_access, parent_motivation")
       .eq("assigned_tutor_id", tutorId)
       .eq("is_sandbox_account", false)
       .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES])
@@ -945,7 +951,7 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
   ) {
     const fallback = await supabase
       .from("parent_enrollments")
-      .select("id, parent_full_name, parent_email, student_full_name, student_grade, school_name, math_struggle_areas, previous_tutoring, internet_access, parent_motivation")
+      .select("id, parent_full_name, parent_email, student_full_name, student_grade, school_name, previous_tutoring, internet_access, parent_motivation")
       .eq("assigned_tutor_id", tutorId)
       .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES])
       .order("updated_at", { ascending: false });
@@ -1025,7 +1031,6 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
       student_grade: source?.student_grade || ["8", "9", "10", "11", "12"][offset % 5],
       student_gender: source?.student_gender || (sandboxOrdinal % 2 === 0 ? "female" : "male"),
       school_name: caseSeed.schoolName,
-      math_struggle_areas: caseSeed.mathStruggleAreas,
       response_symptoms: caseSeed.responseSymptoms,
       topic_response_symptoms: caseSeed.topicResponseSymptoms,
       response_signal_scores: caseSeed.responseSignalScores,
@@ -6764,7 +6769,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const buildReportedTopics = (
     topicResponseSymptomsOrIds: unknown,
     structuredTopics: unknown,
-    mathStruggleAreas: unknown,
     topicRecommendations?: unknown
   ): string[] => {
     const structuredTopicKeys =
@@ -6780,10 +6784,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .filter(Boolean)
         : [];
     const directlyReportedTopics = parseStructuredTopics(structuredTopics);
-    const typed = parseTopicText(mathStruggleAreas);
     return Array.from(
       new Set(
-        [...structuredTopicKeys, ...recommendationTopicKeys, ...directlyReportedTopics, ...typed].filter(
+        [...structuredTopicKeys, ...recommendationTopicKeys, ...directlyReportedTopics].filter(
           (topic) => !NON_TOPIC_CONTEXT_LABELS.has(topic.toLowerCase().trim())
         )
       )
@@ -6806,7 +6809,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const reportedTopics = buildReportedTopics(
       topicResponseSymptoms,
       enrollment?.reported_topics,
-      enrollment?.math_struggle_areas,
       topicRecommendedStartingPhases
     );
     const normalizedSymptoms = normalizeResponseSymptoms(enrollment?.response_symptoms);
@@ -17615,7 +17617,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Try full projection first; fall back if some optional columns are not present in older DBs.
         let { data, error } = await supabase
           .from("parent_enrollments")
-          .select("id, user_id, parent_full_name, parent_phone, parent_email, parent_city, student_full_name, student_grade, school_name, math_struggle_areas, response_symptoms, topic_response_symptoms, response_signal_scores, topic_response_signal_scores, recommended_starting_phase, topic_recommended_starting_phases, previous_tutoring, internet_access, parent_motivation, status, current_step, assigned_tutor_id, assigned_student_id, created_at, updated_at")
+          .select("id, user_id, parent_full_name, parent_phone, parent_email, parent_city, student_full_name, student_grade, school_name, response_symptoms, topic_response_symptoms, response_signal_scores, topic_response_signal_scores, recommended_starting_phase, topic_recommended_starting_phases, previous_tutoring, internet_access, parent_motivation, status, current_step, assigned_tutor_id, assigned_student_id, created_at, updated_at")
           .order("created_at", { ascending: false });
 
         if (error) {
@@ -17633,7 +17635,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (missingOptionalColumn) {
             const fallback = await supabase
               .from("parent_enrollments")
-              .select("id, user_id, parent_full_name, parent_phone, parent_email, parent_city, student_full_name, student_grade, school_name, math_struggle_areas, previous_tutoring, internet_access, parent_motivation, status, assigned_tutor_id, created_at, updated_at")
+              .select("id, user_id, parent_full_name, parent_phone, parent_email, parent_city, student_full_name, student_grade, school_name, previous_tutoring, internet_access, parent_motivation, status, assigned_tutor_id, created_at, updated_at")
               .order("created_at", { ascending: false });
 
             data = fallback.data as any;
@@ -19266,7 +19268,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         schoolName,
         stuckAreas,
         reportedTopics: rawReportedTopics,
-        mathStruggleAreas,
         previousTutoring,
         internetAccess,
         responseSymptoms: rawResponseSymptoms,
@@ -19281,8 +19282,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const reportedTopics = buildReportedTopics(
         rawTopicResponseSymptoms,
-        rawReportedTopics,
-        mathStruggleAreas
+        rawReportedTopics
       );
       const normalizedTopicResponseSymptoms = reportedTopics.reduce<Record<string, string[]>>((acc, topic) => {
         const rawTopicSymptoms =
@@ -19315,8 +19315,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const responseRecommendation = recommendStartingPhaseFromSymptoms(effectiveResponseSymptoms);
       const responseSymptoms = getResponseSymptomLabels(effectiveResponseSymptoms);
 
-      const normalizedMathStruggleAreas =
-        reportedTopics.length > 0 ? reportedTopics.join(", ") : mathStruggleAreas;
       const normalizedParentMotivation = [
         parentMotivation,
         processAlignment ? `Process alignment: ${processAlignment}` : "",
@@ -19456,7 +19454,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           student_grade: studentGrade,
           student_gender: studentGender,
           school_name: schoolName,
-          math_struggle_areas: normalizedMathStruggleAreas,
           response_symptoms: effectiveResponseSymptoms,
           topic_response_symptoms: normalizedTopicResponseSymptoms,
           response_signal_scores: responseRecommendation.scores,
@@ -19888,8 +19885,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { data: enrollmentFull } = await selectLatestParentEnrollment({
         parentId,
-        primarySelect: "math_struggle_areas, student_gender, response_symptoms, topic_response_symptoms, topic_recommended_starting_phases",
-        fallbackSelect: "math_struggle_areas, response_symptoms, topic_response_symptoms, topic_recommended_starting_phases",
+        primarySelect: "student_gender, response_symptoms, topic_response_symptoms, topic_recommended_starting_phases",
+        fallbackSelect: "response_symptoms, topic_response_symptoms, topic_recommended_starting_phases",
       });
 
       console.log("📋 Enrollment data:", enrollment, "Error:", enrollmentError);
@@ -20043,7 +20040,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         reportedTopics: buildReportedTopics(
           enrollmentFull?.topic_response_symptoms,
           enrollmentFull?.reported_topics,
-          enrollmentFull?.math_struggle_areas,
           enrollmentFull?.topic_recommended_starting_phases
         ),
         currentTopics: (proposal.current_topics && proposal.current_topics !== "Onboarding baseline diagnostic")
@@ -20052,7 +20048,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
               buildReportedTopics(
                 enrollmentFull?.topic_response_symptoms,
                 enrollmentFull?.reported_topics,
-                enrollmentFull?.math_struggle_areas,
                 enrollmentFull?.topic_recommended_starting_phases
               ).join(", ") || proposal.current_topics
             ),
@@ -20066,7 +20061,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   buildReportedTopics(
                     enrollmentFull?.topic_response_symptoms,
                     enrollmentFull?.reported_topics,
-                    enrollmentFull?.math_struggle_areas,
                     enrollmentFull?.topic_recommended_starting_phases
                   ).join(", ") || proposal.current_topics
                 ),

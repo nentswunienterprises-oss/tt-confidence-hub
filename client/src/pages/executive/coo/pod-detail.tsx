@@ -59,30 +59,6 @@ import {
 
 type TutorAuditGroupKey = "transformation_phases" | "session_infrastructure";
 
-function formatEnrollmentTopics(rawValue: string | null | undefined) {
-  const ignoredContexts = new Set([
-    "word problems",
-    "tests",
-    "timed work",
-    "new topics",
-    "careless errors",
-  ]);
-
-  return String(rawValue || "")
-    .split(/[,\n;|]+/)
-    .map((part) => part.replace(/^[-*\u2022\s]+/, "").trim())
-    .filter(Boolean)
-    .filter((part) => !ignoredContexts.has(part.toLowerCase()))
-    .join(", ");
-}
-
-function splitEnrollmentItems(rawValue: string | null | undefined) {
-  return String(rawValue || "")
-    .split(/[,\n;|]+/)
-    .map((part) => part.replace(/^[-*\u2022\s]+/, "").trim())
-    .filter(Boolean);
-}
-
 function formatPhaseLabel(value: string | null | undefined) {
   return String(value || "")
     .split("_")
@@ -368,7 +344,6 @@ interface ParentEnrollment {
   student_full_name: string;
   student_grade: string;
   school_name: string;
-  math_struggle_areas: string;
   previous_tutoring?: string | null;
   internet_access?: string | null;
   parent_motivation?: string | null;
@@ -1920,7 +1895,6 @@ function TutorStudentsSection({
                             ...((Array.isArray(enrollment.parentInfo?.reported_topics) ? enrollment.parentInfo!.reported_topics : [])),
                             ...Object.keys(enrollment.parentInfo?.topic_response_symptoms || {}),
                             ...Object.keys(enrollment.parentInfo?.topic_recommended_starting_phases || {}),
-                            ...splitEnrollmentItems(formatEnrollmentTopics(enrollment.math_struggle_areas)),
                           ])
                         );
                         const fallbackSymptoms =
