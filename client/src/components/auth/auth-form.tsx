@@ -41,7 +41,7 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
 
   const redirectByRole = (role: Role) => {
     const dashboardRoute = getDefaultDashboardRoute(role);
-    window.location.href = dashboardRoute;
+    navigate(dashboardRoute, { replace: true });
   };
 
   // Google OAuth login handler
@@ -253,7 +253,7 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
         throw new Error("Could not determine redirect location. Please contact support.");
       }
       
-      window.location.href = redirectUrl;
+      navigate(redirectUrl, { replace: true });
     } catch (err: any) {
       toast({
         title: "Error",

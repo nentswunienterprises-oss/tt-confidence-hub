@@ -146,8 +146,7 @@ export function ExecutiveAuthForm({ role, mode, setMode }: ExecutiveAuthFormProp
         throw new Error("Could not determine redirect location");
       }
 
-      // Force page reload to ensure fresh session
-      window.location.href = redirectUrl;
+      navigate(redirectUrl, { replace: true });
     } catch (err: any) {
       toast({
         title: "Error",
