@@ -4580,10 +4580,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 return res.status(500).json({ message: "Failed to store drill results" });
               }
 
-              // Mark intro completed on successful diagnosis drill submission.
+              // Mark intro completed on the first successful diagnosis submission.
+              // Sandbox/training-mode intros can run without a scheduled intro shell, so this
+              // cannot depend on `diagnosisSessionKind === "intro"`.
               const existingProfile = (student.personalProfile as any) || {};
               const existingWorkflow = (existingProfile.workflow as any) || {};
-              if (diagnosisSessionKind === "intro" && !existingWorkflow.introCompletedAt) {
+              if (!existingWorkflow.introCompletedAt) {
                 await storage.updateStudent(studentId, {
                   personalProfile: {
                     ...existingProfile,

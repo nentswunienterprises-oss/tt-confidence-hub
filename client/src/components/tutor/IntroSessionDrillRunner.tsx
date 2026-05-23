@@ -897,6 +897,15 @@ export default function IntroSessionDrillRunner() {
     navigate("/tutor/pod");
   };
 
+  const handleContinueToProposal = () => {
+    if (!studentId) {
+      navigate("/tutor/pod");
+      return;
+    }
+
+    navigate(`/tutor/pod?openProposal=1&studentId=${encodeURIComponent(studentId)}`);
+  };
+
   const handleBackStep = () => {
     if (submitting || submitSuccess) return;
     if (adaptiveTransition) {
@@ -1943,7 +1952,7 @@ export default function IntroSessionDrillRunner() {
             <button
               type="button"
               className="px-4 py-2 rounded bg-primary text-white"
-              onClick={handleExitToPod}
+              onClick={handleContinueToProposal}
             >
               Continue to Proposal
             </button>

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import "./pod.mobile.css";
 import { useIntroSessionStatus } from "@/hooks/useIntroSessionStatus";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { API_URL } from "@/lib/config";
@@ -119,6 +119,7 @@ export default function TutorPod() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   
   const [showApplicationForm, setShowApplicationForm] = useState(false);
   const [identitySheetOpen, setIdentitySheetOpen] = useState(false);
@@ -387,6 +388,29 @@ export default function TutorPod() {
 
   const firstName = user?.name?.split(" ")[0] || "Tutor";
   const selectedTeamMember = sortedTeamMembers.find((m) => m.id === selectedTeamMemberId) || null;
+
+  useEffect(() => {
+    const openProposal = searchParams.get("openProposal");
+    const proposalStudentId = searchParams.get("studentId");
+
+    if (openProposal !== "1" || !proposalStudentId) {
+      return;
+    }
+
+    const matchedStudent = (students as any[]).find((student: any) => String(student.id) === proposalStudentId);
+    if (!matchedStudent) {
+      return;
+    }
+
+    setSelectedStudentId(String(matchedStudent.id));
+    setSelectedStudentName(String(matchedStudent.name || matchedStudent.fullName || ""));
+    setProposalOpen(true);
+
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("openProposal");
+    nextParams.delete("studentId");
+    setSearchParams(nextParams, { replace: true });
+  }, [searchParams, setSearchParams, students]);
 
   return (
     <DashboardLayout>

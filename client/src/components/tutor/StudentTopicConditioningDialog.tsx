@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useNavigate } from "react-router-dom";
 
 import {
   Dialog,
@@ -876,6 +877,7 @@ export default function StudentTopicConditioningDialog({
   topicConditioning,
   persistedTopicStates,
 }: StudentTopicConditioningDialogProps) {
+  const navigate = useNavigate();
   const { data: workflow } = useStudentWorkflowState(studentId, apiBasePath, !readOnly);
   const assignmentAccepted = workflow?.assignmentAccepted ?? true;
   const isTrainingMode = operationalMode === "training";
@@ -1000,17 +1002,17 @@ export default function StudentTopicConditioningDialog({
       const sessionParam = sessionId ? `&scheduledSessionId=${encodeURIComponent(sessionId)}` : "";
       setSessionTopicsModalOpen(false);
       if (!topicState.hasObservedState) {
-        window.location.href = `/tutor/intro-session/${studentId}?topic=${topicParam}&phase=${phaseParam}&stability=${stabilityParam}&context=training${sessionParam}`;
+        navigate(`/tutor/intro-session/${studentId}?topic=${topicParam}&phase=${phaseParam}&stability=${stabilityParam}&context=training${sessionParam}`);
         return;
       }
-      window.location.href = `/tutor/intro-session/${studentId}?mode=training&topic=${topicParam}&phase=${phaseParam}&stability=${stabilityParam}${sessionParam}`;
+      navigate(`/tutor/intro-session/${studentId}?mode=training&topic=${topicParam}&phase=${phaseParam}&stability=${stabilityParam}${sessionParam}`);
       return;
     }
 
     const topicsParam = selectedTopics.map((t) => encodeURIComponent(t)).join(',');
     const sessionParam = sessionId ? `&scheduledSessionId=${encodeURIComponent(sessionId)}` : "";
     setSessionTopicsModalOpen(false);
-    window.location.href = `/tutor/intro-session/${studentId}?mode=session&topics=${topicsParam}${sessionParam}`;
+    navigate(`/tutor/intro-session/${studentId}?mode=session&topics=${topicsParam}${sessionParam}`);
   };
 
   const handleStartTrainingSession = () => {

@@ -12,6 +12,7 @@ import { TutorIntroSessionActions } from "./TutorIntroSessionActions";
 import { useScheduledSession } from "@/hooks/useScheduledSession";
 import { Input } from "@/components/ui/input";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   buildStartingPhaseRationale,
   deriveResponseSignalScores,
@@ -173,6 +174,7 @@ export function StudentCard({
   setReportsDialogOpen,
   setCommunicationDialogOpen,
 }) {
+  const navigate = useNavigate();
   // ...existing code...
   // State for assignment modal
   const [assignmentModalOpen, setAssignmentModalOpen] = useState(false);
@@ -1021,7 +1023,7 @@ function HandoverVerificationSection({
               const sessionParam = session?.id
                 ? `&scheduledSessionId=${encodeURIComponent(session.id)}`
                 : "";
-              window.location.href = `/tutor/intro-session/${studentId}?mode=handover&topic=${topicParam}${phaseParam}${stabilityParam}${sessionParam}`;
+              navigate(`/tutor/intro-session/${studentId}?mode=handover&topic=${topicParam}${phaseParam}${stabilityParam}${sessionParam}`);
             }}
             disabled={!session?.id}
           >
@@ -1039,7 +1041,7 @@ function HandoverVerificationSection({
                 const sessionParam = session?.id
                   ? `&scheduledSessionId=${encodeURIComponent(session.id)}`
                   : "";
-                window.location.href = `/tutor/intro-session/${studentId}?mode=handover&rediagnosis=1&topic=${topicParam}${phaseParam}${stabilityParam}${sessionParam}`;
+                navigate(`/tutor/intro-session/${studentId}?mode=handover&rediagnosis=1&topic=${topicParam}${phaseParam}${stabilityParam}${sessionParam}`);
               }}
               disabled={!session?.id}
             >
@@ -1426,7 +1428,7 @@ function IntroDiagnosticTopicSection({
               : introSession?.id
                 ? `&scheduledSessionId=${encodeURIComponent(introSession.id)}`
                 : "";
-          window.location.href = `/tutor/intro-session/${student.id}?topic=${topicParam}${phaseParam}${sessionParam}`;
+          navigate(`/tutor/intro-session/${student.id}?topic=${topicParam}${phaseParam}${sessionParam}`);
         }}
         disabled={
           operationalMode === "training"
