@@ -6754,8 +6754,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .filter(Boolean);
   };
 
+  const parseStructuredTopics = (value: unknown): string[] => {
+    if (!Array.isArray(value)) return [];
+    return value
+      .map((topic) => String(topic || "").trim())
+      .filter(Boolean);
+  };
+
   const buildReportedTopics = (
     topicResponseSymptomsOrIds: unknown,
+    structuredTopics: unknown,
     mathStruggleAreas: unknown,
     topicRecommendations?: unknown
   ): string[] => {
@@ -6771,10 +6779,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .map((topic) => String(topic || "").trim())
             .filter(Boolean)
         : [];
+    const directlyReportedTopics = parseStructuredTopics(structuredTopics);
     const typed = parseTopicText(mathStruggleAreas);
     return Array.from(
       new Set(
-        [...structuredTopicKeys, ...recommendationTopicKeys, ...typed].filter(
+        [...structuredTopicKeys, ...recommendationTopicKeys, ...directlyReportedTopics, ...typed].filter(
           (topic) => !NON_TOPIC_CONTEXT_LABELS.has(topic.toLowerCase().trim())
         )
       )
@@ -6796,6 +6805,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         : {};
     const reportedTopics = buildReportedTopics(
       topicResponseSymptoms,
+      enrollment?.reported_topics,
       enrollment?.math_struggle_areas,
       topicRecommendedStartingPhases
     );
@@ -19255,6 +19265,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         studentGender,
         schoolName,
         stuckAreas,
+        reportedTopics: rawReportedTopics,
         mathStruggleAreas,
         previousTutoring,
         internetAccess,
@@ -19268,7 +19279,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         affiliateCode: bodyAffiliateCode
       } = req.body;
 
-      const reportedTopics = buildReportedTopics(rawTopicResponseSymptoms, mathStruggleAreas);
+      const reportedTopics = buildReportedTopics(
+        rawTopicResponseSymptoms,
+        rawReportedTopics,
+        mathStruggleAreas
+      );
       const normalizedTopicResponseSymptoms = reportedTopics.reduce<Record<string, string[]>>((acc, topic) => {
         const rawTopicSymptoms =
           rawTopicResponseSymptoms && typeof rawTopicResponseSymptoms === "object"
@@ -19326,7 +19341,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         !studentGrade ||
         !studentGender ||
         !schoolName ||
-        !mathStruggleAreas ||
         reportedTopics.length === 0 ||
         reportedTopics.some((topic) => (normalizedTopicResponseSymptoms[topic] || []).length === 0) ||
         !previousTutoring ||
@@ -20028,6 +20042,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         growthDrivers: proposal.growth_drivers,
         reportedTopics: buildReportedTopics(
           enrollmentFull?.topic_response_symptoms,
+          enrollmentFull?.reported_topics,
           enrollmentFull?.math_struggle_areas,
           enrollmentFull?.topic_recommended_starting_phases
         ),
@@ -20036,6 +20051,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           : (
               buildReportedTopics(
                 enrollmentFull?.topic_response_symptoms,
+                enrollmentFull?.reported_topics,
                 enrollmentFull?.math_struggle_areas,
                 enrollmentFull?.topic_recommended_starting_phases
               ).join(", ") || proposal.current_topics
@@ -20049,6 +20065,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               : (
                   buildReportedTopics(
                     enrollmentFull?.topic_response_symptoms,
+                    enrollmentFull?.reported_topics,
                     enrollmentFull?.math_struggle_areas,
                     enrollmentFull?.topic_recommended_starting_phases
                   ).join(", ") || proposal.current_topics

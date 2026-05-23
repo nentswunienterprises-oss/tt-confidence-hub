@@ -391,7 +391,7 @@ export default function ParentGateway() {
     studentGender: "",
     schoolName: "",
     stuckAreas: [] as string[],
-    mathStruggleAreas: "",
+    reportedTopics: [] as string[],
     topicResponseSymptoms: {} as Record<string, string[]>,
     previousTutoring: "",
     internetAccess: "",
@@ -400,8 +400,8 @@ export default function ParentGateway() {
     agreedToTerms: false,
   });
   const selectedMathTopics = useMemo(
-    () => parseMathTopicEntries(formData.mathStruggleAreas),
-    [formData.mathStruggleAreas]
+    () => Array.from(new Set((Array.isArray((formData as any).reportedTopics) ? (formData as any).reportedTopics : []).map((topic) => String(topic || "").trim()).filter(Boolean))),
+    [(formData as any).reportedTopics]
   );
 
   // Auto-fill parent name and email from user data
@@ -433,7 +433,7 @@ export default function ParentGateway() {
   };
 
   const syncMathTopicEntries = (entries: string[]) => {
-    handleInputChange("mathStruggleAreas", entries.join(", "));
+    handleInputChange("reportedTopics", entries);
   };
 
   const addMathTopics = (rawValue: string) => {
@@ -513,7 +513,7 @@ export default function ParentGateway() {
       ])
     );
 
-    if (submittedMathTopics.join(", ") !== formData.mathStruggleAreas) {
+    if (submittedMathTopics.join(", ") !== selectedMathTopics.join(", ")) {
       syncMathTopicEntries(submittedMathTopics);
       setMathTopicDraft("");
     }
@@ -554,7 +554,7 @@ export default function ParentGateway() {
         credentials: "include",
         body: JSON.stringify({
           ...formData,
-          mathStruggleAreas: submittedMathTopics.join(", "),
+          reportedTopics: submittedMathTopics,
           responseSymptoms: Array.from(
             new Set(
               submittedMathTopics.flatMap((topic) => formData.topicResponseSymptoms[topic] || [])

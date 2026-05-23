@@ -196,6 +196,8 @@ The live runtime should derive pre-session topic intelligence from:
 - `topic_response_symptom_ids` or `topic_response_symptoms`
 - `topic_recommended_starting_phases`
 
+Parent intake should submit topics in structured form rather than relying on a legacy comma-separated topic string.
+
 Legacy topic strings such as `math_struggle_areas` may still exist for compatibility, transport, or historical display, but they are not the authoritative Response Integrity-OS topic-conditioning source of truth.
 
 ### Scheduled session
