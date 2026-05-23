@@ -75,6 +75,17 @@ interface ParentEnrollment {
   };
 }
 
+function getStructuredEnrollmentTopics(enrollment: ParentEnrollment): string[] {
+  return Array.from(
+    new Set([
+      ...(Array.isArray(enrollment.parentInfo?.reported_topics) ? enrollment.parentInfo!.reported_topics : []),
+      ...Object.keys(enrollment.parentInfo?.topic_response_symptoms || {}),
+      ...Object.keys(enrollment.parentInfo?.topic_recommended_starting_phases || {}),
+      ...splitEnrollmentItems(formatEnrollmentTopics(enrollment.math_struggle_areas)),
+    ])
+  );
+}
+
 function formatEnrollmentTopics(rawValue: string | null | undefined) {
   const ignoredContexts = new Set([
     "word problems",
@@ -520,8 +531,10 @@ export default function ExecutiveHRTraffic() {
             <p className="font-medium">{enrollment.school_name}</p>
           </div>
           <div>
-            <p className="text-muted-foreground text-xs uppercase tracking-wide">Math Struggle Areas</p>
-            <p className="font-medium">{formatEnrollmentTopics(enrollment.math_struggle_areas) || "Not provided"}</p>
+            <p className="text-muted-foreground text-xs uppercase tracking-wide">Reported Topics</p>
+            <p className="font-medium">
+              {getStructuredEnrollmentTopics(enrollment).join(", ") || "Not provided"}
+            </p>
           </div>
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wide">Previous Tutoring</p>
@@ -576,13 +589,7 @@ export default function ExecutiveHRTraffic() {
   void LegacyEnrollmentCard;
 
   const EnrollmentReviewCard = ({ enrollment }: { enrollment: ParentEnrollment }) => {
-    const topics = Array.from(
-      new Set([
-        ...splitEnrollmentItems(formatEnrollmentTopics(enrollment.math_struggle_areas)),
-        ...Object.keys(enrollment.parentInfo?.topic_response_symptoms || {}),
-        ...Object.keys(enrollment.parentInfo?.topic_recommended_starting_phases || {}),
-      ])
-    );
+    const topics = getStructuredEnrollmentTopics(enrollment);
     const legacyNoteSymptoms = extractLegacySymptomsFromParentNote(enrollment.parent_motivation);
     const fallbackSymptoms =
       enrollment.parentInfo?.response_symptoms && enrollment.parentInfo.response_symptoms.length > 0

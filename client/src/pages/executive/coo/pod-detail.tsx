@@ -375,6 +375,7 @@ interface ParentEnrollment {
   status: string;
   created_at?: string | null;
   parentInfo?: {
+    reported_topics?: string[];
     response_symptoms?: string[];
     topic_response_symptoms?: Record<string, string[]>;
     topic_recommended_starting_phases?: Record<
@@ -1916,9 +1917,10 @@ function TutorStudentsSection({
                       {(() => {
                         const topics = Array.from(
                           new Set([
-                            ...splitEnrollmentItems(formatEnrollmentTopics(enrollment.math_struggle_areas)),
+                            ...((Array.isArray(enrollment.parentInfo?.reported_topics) ? enrollment.parentInfo!.reported_topics : [])),
                             ...Object.keys(enrollment.parentInfo?.topic_response_symptoms || {}),
                             ...Object.keys(enrollment.parentInfo?.topic_recommended_starting_phases || {}),
+                            ...splitEnrollmentItems(formatEnrollmentTopics(enrollment.math_struggle_areas)),
                           ])
                         );
                         const fallbackSymptoms =
