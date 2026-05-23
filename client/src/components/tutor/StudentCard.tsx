@@ -312,7 +312,9 @@ export function StudentCard({
     const topicSymptoms =
       topicSymptomIds.length > 0
         ? getResponseSymptomLabels(topicSymptomIds)
-        : rawTopicSymptomLabels;
+        : rawTopicSymptomLabels.length > 0
+          ? rawTopicSymptomLabels
+          : symptomSignals;
     const recommendedTopicData = getTopicMapValue(topicRecommendedStartingPhasesRaw, topic);
     const topicScoresRaw = getTopicMapValue(topicResponseSignalScoresRaw, topic) || {};
     const computedRecommendation = recommendStartingPhaseFromSymptoms(topicSymptomIds);
