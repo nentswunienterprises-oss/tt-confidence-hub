@@ -1,6 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
+import {
+  getFastTrackBadgeLabel,
+  getFastTrackDescription,
+  getFastTrackExtraParams,
+  isFastTrackAccessEnabled,
+} from "@/lib/fastTrackAccess";
 import { buildTrackedPath, buildTrackedReturnTo } from "@/lib/publicTracking";
 import { ArrowRight, Check, Instagram } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -9,10 +15,15 @@ function PortalLanding() {
   const navigate = useNavigate();
   const location = useLocation();
   const landingReturnTo = buildTrackedReturnTo(location.pathname, location.search);
+  const fastTrackEnabled = isFastTrackAccessEnabled(location.search);
+  const fastTrackBadge = getFastTrackBadgeLabel(location.search);
+  const fastTrackDescription = getFastTrackDescription(location.search);
+  const fastTrackParams = getFastTrackExtraParams(location.search);
 
   const buildParentIntakeUrl = () =>
     buildTrackedPath("/client/intake", location.search, {
       returnTo: landingReturnTo,
+      ...fastTrackParams,
     });
 
   const buildLoginUrl = () =>
@@ -20,6 +31,14 @@ function PortalLanding() {
       mode: "login",
       lock: "login",
       returnTo: landingReturnTo,
+      ...fastTrackParams,
+    });
+
+  const buildDirectSignupUrl = () =>
+    buildTrackedPath("/client/signup", location.search, {
+      mode: "signup",
+      returnTo: landingReturnTo,
+      ...fastTrackParams,
     });
 
   const privacyPolicyUrl = buildTrackedPath("/privacy-policy", location.search, {
@@ -166,6 +185,35 @@ function PortalLanding() {
           </div>
         </div>
       </section>
+
+      {fastTrackEnabled ? (
+        <section className="pb-12 sm:pb-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
+            <div className="rounded-[30px] border border-dashed border-[#D9B8AA] bg-[#FFF8F4] p-5 sm:p-6 md:p-8 shadow-sm">
+              <div className="max-w-2xl">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em]" style={{ color: "#8A4B35" }}>
+                  {fastTrackBadge}
+                </p>
+                <h2 className="mt-2 text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
+                  Direct parent signup is unlocked.
+                </h2>
+                <p className="mt-4 text-sm sm:text-base leading-7" style={{ color: "#5A5A5A" }}>
+                  {fastTrackDescription}
+                </p>
+                <div className="mt-6">
+                  <Button
+                    className="text-sm sm:text-base font-semibold px-4 sm:px-6 py-2 sm:py-5 rounded-full border-0 shadow-lg hover:shadow-xl transition-all"
+                    style={{ backgroundColor: "#1A1A1A", color: "white" }}
+                    onClick={() => navigate(buildDirectSignupUrl())}
+                  >
+                    Direct Parent Signup
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <section className="py-12 sm:py-20" style={{ backgroundColor: "#1A1A1A" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">

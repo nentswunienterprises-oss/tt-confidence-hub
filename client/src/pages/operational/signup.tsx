@@ -2,6 +2,11 @@ import { useEffect, useState } from "react";
 import { AuthForm } from "@/components/auth/auth-form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  getFastTrackBadgeLabel,
+  getFastTrackDescription,
+  isFastTrackAccessEnabled,
+} from "@/lib/fastTrackAccess";
 import { getTutorCycleLabel } from "@/lib/intakeWindows";
 import { resolveTrackedBackTarget } from "@/lib/publicTracking";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -24,6 +29,9 @@ export default function OperationalSignup() {
   const [mode, setMode] = useState<"signup" | "login">(initialMode);
   const termsHref = selectedRole === "td" ? "/td-terms-of-use" : "/tutor-terms-of-use";
   const cycleLabel = getTutorCycleLabel(urlParams.get("cycle"));
+  const fastTrackEnabled = isFastTrackAccessEnabled(location.search);
+  const fastTrackBadge = getFastTrackBadgeLabel(location.search);
+  const fastTrackDescription = getFastTrackDescription(location.search);
   const backTarget = resolveTrackedBackTarget(
     location.search,
     initialRole === "tutor" ? "/operational/tutor/landing" : "/operational/landing",
@@ -149,21 +157,33 @@ export default function OperationalSignup() {
     ? lockedMode === "login"
       ? "Continue to Tutor Login"
       : lockedMode === "signup"
-        ? "Continue to Tutor Application"
+        ? fastTrackEnabled && !urlParams.get("cycle")
+          ? "Continue to Direct Tutor Signup"
+          : "Continue to Tutor Application"
+        : fastTrackEnabled
+          ? "Direct Tutor Signup"
         : "Join as a Tutor"
     : "Join as Territory Director";
   const description = isTutorRole
     ? lockedMode === "login"
       ? "Existing tutors continue here. This route is reserved for login only."
       : lockedMode === "signup"
-        ? `${cycleLabel} entry continues here. This route is reserved for application only.`
+        ? fastTrackEnabled && !urlParams.get("cycle")
+          ? fastTrackDescription ?? "Direct tutor signup is temporarily unlocked outside the standard operator window."
+          : `${cycleLabel} entry continues here. This route is reserved for application only.`
+        : fastTrackEnabled
+          ? fastTrackDescription ?? "Direct tutor signup is temporarily unlocked outside the standard operator window."
         : "Help transform students and condition reliable responses to math pressure."
     : "Lead a territory and oversee multiple pods and tutors.";
   const badgeText = isTutorRole
     ? lockedMode === "login"
       ? "Existing Tutor Access"
       : lockedMode === "signup"
-        ? cycleLabel
+        ? fastTrackEnabled && !urlParams.get("cycle")
+          ? fastTrackBadge ?? cycleLabel
+          : cycleLabel
+        : fastTrackEnabled
+          ? fastTrackBadge ?? "Tutor Access"
         : "Tutor Access"
     : "Territory Director Access";
 

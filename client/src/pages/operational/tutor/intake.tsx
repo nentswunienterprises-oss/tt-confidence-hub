@@ -1,9 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  getFastTrackBadgeLabel,
+  getFastTrackDescription,
+  getFastTrackExtraParams,
+  isFastTrackAccessEnabled,
+} from "@/lib/fastTrackAccess";
 import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 import { buildTrackedPath, buildTrackedReturnTo, resolveTrackedBackTarget } from "@/lib/publicTracking";
 import { getTutorCycleDefinitions, getTutorIntakeStatus } from "@/lib/intakeWindows";
-import { ArrowLeft, ArrowRight, LockKeyhole, LogIn } from "lucide-react";
+import { ArrowLeft, ArrowRight, LogIn } from "lucide-react";
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -33,12 +39,17 @@ export default function TutorIntakeEntry() {
   const cycleDefinitions = getTutorCycleDefinitions();
   const backTarget = resolveTrackedBackTarget(location.search, "/operational/tutor/landing");
   const intakeReturnTo = buildTrackedReturnTo(location.pathname, location.search);
+  const fastTrackEnabled = isFastTrackAccessEnabled(location.search);
+  const fastTrackBadge = getFastTrackBadgeLabel(location.search);
+  const fastTrackDescription = getFastTrackDescription(location.search);
+  const fastTrackParams = getFastTrackExtraParams(location.search);
 
   const loginPath = buildTrackedPath("/operational/signup", location.search, {
     role: "tutor",
     mode: "login",
     lock: "login",
     returnTo: intakeReturnTo,
+    ...fastTrackParams,
   });
 
   const signupPath = status.isOpen && status.activeCycle
@@ -48,7 +59,15 @@ export default function TutorIntakeEntry() {
         lock: "signup",
         cycle: status.activeCycle.key,
         returnTo: intakeReturnTo,
+        ...fastTrackParams,
       })
+    : fastTrackEnabled
+      ? buildTrackedPath("/operational/signup", location.search, {
+          role: "tutor",
+          mode: "signup",
+          returnTo: intakeReturnTo,
+          ...fastTrackParams,
+        })
     : null;
 
   useEffect(() => {
@@ -288,6 +307,35 @@ export default function TutorIntakeEntry() {
             ) : null}
           </div>
         </section>
+
+        {fastTrackEnabled ? (
+          <section className="mt-10 rounded-[30px] border border-dashed border-[#D9B8AA] bg-[#FFF8F4] p-7 shadow-sm sm:p-8">
+            <div className="max-w-3xl">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">
+                {fastTrackBadge}
+              </p>
+              <h2 className="mt-2 text-3xl font-bold tracking-tight text-[#171311]">Direct tutor signup is temporarily unlocked.</h2>
+              <p className="mt-4 text-sm leading-7 text-[#534B45] sm:text-base">{fastTrackDescription}</p>
+            </div>
+
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <Button
+                size="lg"
+                className="rounded-full px-8 shadow-sm"
+                style={{ backgroundColor: "#171311", color: "white" }}
+                onClick={() => navigate(buildTrackedPath("/operational/signup", location.search, {
+                  role: "tutor",
+                  mode: "signup",
+                  returnTo: intakeReturnTo,
+                  ...fastTrackParams,
+                }))}
+              >
+                Enter Direct Tutor Signup
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </section>
+        ) : null}
       </main>
     </div>
   );

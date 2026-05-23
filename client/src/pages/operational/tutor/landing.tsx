@@ -4,6 +4,12 @@ import { ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
+import {
+  getFastTrackBadgeLabel,
+  getFastTrackDescription,
+  getFastTrackExtraParams,
+  isFastTrackAccessEnabled,
+} from "@/lib/fastTrackAccess";
 import { buildTrackedPath, buildTrackedReturnTo } from "@/lib/publicTracking";
 
 const operatorCycles = [
@@ -83,9 +89,14 @@ export default function TutorLanding() {
   const navigate = useNavigate();
   const location = useLocation();
   const landingReturnTo = buildTrackedReturnTo(location.pathname, location.search);
+  const fastTrackEnabled = isFastTrackAccessEnabled(location.search);
+  const fastTrackBadge = getFastTrackBadgeLabel(location.search);
+  const fastTrackDescription = getFastTrackDescription(location.search);
+  const fastTrackParams = getFastTrackExtraParams(location.search);
 
   const intakeEntryPath = buildTrackedPath("/operational/tutor/intake", location.search, {
     returnTo: landingReturnTo,
+    ...fastTrackParams,
   });
 
   const loginEntryPath = buildTrackedPath("/operational/signup", location.search, {
@@ -93,6 +104,14 @@ export default function TutorLanding() {
     mode: "login",
     lock: "login",
     returnTo: landingReturnTo,
+    ...fastTrackParams,
+  });
+
+  const directSignupPath = buildTrackedPath("/operational/signup", location.search, {
+    role: "tutor",
+    mode: "signup",
+    returnTo: landingReturnTo,
+    ...fastTrackParams,
   });
 
   useEffect(() => {
@@ -333,6 +352,31 @@ export default function TutorLanding() {
             </div>
           </div>
         </section>
+
+        {fastTrackEnabled ? (
+          <section className="mx-auto max-w-5xl px-4 pb-16 sm:px-6 md:px-12">
+            <div className="rounded-[32px] border border-dashed border-[#D9B8AA] bg-[#FFF8F4] px-6 py-10 shadow-sm sm:px-10 sm:py-12">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">{fastTrackBadge}</p>
+              <h2 className="mt-4 text-3xl font-bold leading-tight text-[#171311] sm:text-4xl">
+                Direct tutor signup is unlocked.
+              </h2>
+              <p className="mt-6 max-w-3xl text-base leading-8 text-[#57504B] sm:text-lg">
+                {fastTrackDescription}
+              </p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Button
+                  size="lg"
+                  className="rounded-full px-8 shadow-sm"
+                  style={{ backgroundColor: "#171311", color: "white" }}
+                  onClick={() => navigate(directSignupPath)}
+                >
+                  Direct Tutor Signup
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </section>
+        ) : null}
       </main>
 
       <footer className="border-t border-black/5 py-8">

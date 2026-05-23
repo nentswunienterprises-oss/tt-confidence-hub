@@ -1,9 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  getFastTrackBadgeLabel,
+  getFastTrackDescription,
+  getFastTrackExtraParams,
+  isFastTrackAccessEnabled,
+} from "@/lib/fastTrackAccess";
 import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
 import { buildTrackedPath, buildTrackedReturnTo, resolveTrackedBackTarget } from "@/lib/publicTracking";
 import { getParentIntakeDefinitions, getParentIntakeStatus } from "@/lib/intakeWindows";
-import { ArrowLeft, ArrowRight, LockKeyhole, LogIn } from "lucide-react";
+import { ArrowLeft, ArrowRight, LogIn } from "lucide-react";
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -14,11 +20,16 @@ export default function ParentIntakeEntry() {
   const intakeDefinitions = getParentIntakeDefinitions();
   const backTarget = resolveTrackedBackTarget(location.search, "/");
   const intakeReturnTo = buildTrackedReturnTo(location.pathname, location.search);
+  const fastTrackEnabled = isFastTrackAccessEnabled(location.search);
+  const fastTrackBadge = getFastTrackBadgeLabel(location.search);
+  const fastTrackDescription = getFastTrackDescription(location.search);
+  const fastTrackParams = getFastTrackExtraParams(location.search);
 
   const loginPath = buildTrackedPath("/client/signup", location.search, {
     mode: "login",
     lock: "login",
     returnTo: intakeReturnTo,
+    ...fastTrackParams,
   });
 
   const signupPath = status.activeDefinition
@@ -27,7 +38,14 @@ export default function ParentIntakeEntry() {
         lock: "signup",
         intake: status.activeDefinition.key,
         returnTo: intakeReturnTo,
+        ...fastTrackParams,
       })
+    : fastTrackEnabled
+      ? buildTrackedPath("/client/signup", location.search, {
+          mode: "signup",
+          returnTo: intakeReturnTo,
+          ...fastTrackParams,
+        })
     : null;
 
   const operatingModelPath = buildTrackedPath("/about/how-we-operate", location.search, {
@@ -247,6 +265,34 @@ export default function ParentIntakeEntry() {
             </Button>
           </div>
         </section>
+
+        {fastTrackEnabled ? (
+          <section className="mt-10 rounded-[30px] border border-dashed border-[#D9B8AA] bg-[#FFF8F4] p-7 shadow-sm sm:p-8">
+            <div className="max-w-3xl">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">
+                {fastTrackBadge}
+              </p>
+              <h2 className="mt-2 text-3xl font-bold tracking-tight text-[#171311]">Direct signup is temporarily unlocked.</h2>
+              <p className="mt-4 text-sm leading-7 text-[#534B45] sm:text-base">{fastTrackDescription}</p>
+            </div>
+
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <Button
+                size="lg"
+                className="rounded-full px-8 shadow-sm"
+                style={{ backgroundColor: "#171311", color: "white" }}
+                onClick={() => navigate(buildTrackedPath("/client/signup", location.search, {
+                  mode: "signup",
+                  returnTo: intakeReturnTo,
+                  ...fastTrackParams,
+                }))}
+              >
+                Enter Direct Parent Signup
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </section>
+        ) : null}
       </main>
     </div>
   );

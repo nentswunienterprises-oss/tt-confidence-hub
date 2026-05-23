@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
 import { AuthForm } from "@/components/auth/auth-form";
 import { Button } from "@/components/ui/button";
+import {
+  getFastTrackBadgeLabel,
+  getFastTrackDescription,
+  isFastTrackAccessEnabled,
+} from "@/lib/fastTrackAccess";
 import { getParentIntakeLabel } from "@/lib/intakeWindows";
 import { buildTrackedPath, resolveTrackedBackTarget } from "@/lib/publicTracking";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -19,6 +24,9 @@ export default function ClientSignup() {
     ? (params.get("lock") as "signup" | "login")
     : null;
   const intakeLabel = getParentIntakeLabel(params.get("intake"));
+  const fastTrackEnabled = isFastTrackAccessEnabled(location.search);
+  const fastTrackBadge = getFastTrackBadgeLabel(location.search);
+  const fastTrackDescription = getFastTrackDescription(location.search);
 
   useEffect(() => {
     const m = params.get('mode');
@@ -38,19 +46,31 @@ export default function ClientSignup() {
   const badgeText = lockedMode === "login"
     ? "Existing Parent Access"
     : lockedMode === "signup"
-      ? intakeLabel
+      ? fastTrackEnabled && !params.get("intake")
+        ? fastTrackBadge ?? intakeLabel
+        : intakeLabel
+      : fastTrackEnabled
+        ? fastTrackBadge ?? "Parent Portal"
       : "Parent Portal";
 
   const title = lockedMode === "login"
     ? "Continue to Parent Login"
     : lockedMode === "signup"
-      ? `Continue with ${intakeLabel}`
+      ? fastTrackEnabled && !params.get("intake")
+        ? "Continue with Direct Parent Signup"
+        : `Continue with ${intakeLabel}`
+      : fastTrackEnabled
+        ? "Direct Parent Signup"
       : "Join Response Integrity";
 
   const description = lockedMode === "login"
     ? "Already enrolled families continue here. This route is reserved for login only."
     : lockedMode === "signup"
-      ? "This is the protected signup path for the current intake. New family entry continues here only after the intake gateway."
+      ? fastTrackEnabled && !params.get("intake")
+        ? fastTrackDescription ?? "Direct signup is temporarily unlocked outside the standard intake gate."
+        : "This is the protected signup path for the current intake. New family entry continues here only after the intake gateway."
+      : fastTrackEnabled
+        ? fastTrackDescription ?? "Direct signup is temporarily unlocked outside the standard intake gate."
       : "Give your child the response of calm execution under pressure.";
 
   return (
