@@ -6982,7 +6982,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const studentsWithParentInfo = await Promise.all(
           canonicalStudents.map(async ({ student, enrollment }: { student: any; enrollment: any }, index) => {
             try {
-              const parentEnrollment = enrollment;
+              let parentEnrollment = enrollment;
               const sandboxDisplayOrdinal = certificationMode === "sandbox" ? index + 1 : null;
               const sandboxDisplayStudentName = sandboxDisplayOrdinal
                 ? `Sandbox Student ${sandboxDisplayOrdinal}`
@@ -6990,6 +6990,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const sandboxDisplayParentName = sandboxDisplayOrdinal
                 ? `Sandbox Parent ${sandboxDisplayOrdinal}`
                 : parentEnrollment?.parent_full_name || null;
+
+              const missingCanonicalResponseSignals = !!(
+                parentEnrollment &&
+                isSandboxLikeEnrollment(parentEnrollment, tutorId) &&
+                (
+                  normalizeResponseSymptoms(parentEnrollment.response_symptoms).length === 0 ||
+                  !parentEnrollment.topic_response_symptoms ||
+                  typeof parentEnrollment.topic_response_symptoms !== "object" ||
+                  Object.keys(parentEnrollment.topic_response_symptoms || {}).length === 0
+                )
+              );
+
+              if (missingCanonicalResponseSignals) {
+                const sandboxCase = buildSandboxEnrollmentCase(index, parentEnrollment);
+                const canonicalSignalUpdate = {
+                  response_symptoms: sandboxCase.responseSymptoms,
+                  topic_response_symptoms: sandboxCase.topicResponseSymptoms,
+                  response_signal_scores: sandboxCase.responseSignalScores,
+                  topic_response_signal_scores: sandboxCase.topicResponseSignalScores,
+                  recommended_starting_phase: sandboxCase.recommendedStartingPhase,
+                  topic_recommended_starting_phases: sandboxCase.topicRecommendedStartingPhases,
+                  previous_tutoring: parentEnrollment?.previous_tutoring || sandboxCase.previousTutoring,
+                  parent_motivation: parentEnrollment?.parent_motivation || sandboxCase.parentMotivation,
+                  updated_at: new Date().toISOString(),
+                };
+
+                const { data: updatedEnrollment, error: canonicalSignalError } = await supabase
+                  .from("parent_enrollments")
+                  .update(canonicalSignalUpdate)
+                  .eq("id", parentEnrollment.id)
+                  .select("*")
+                  .single();
+
+                if (canonicalSignalError) {
+                  console.error("Failed to backfill canonical sandbox response signals:", canonicalSignalError);
+                } else if (updatedEnrollment) {
+                  parentEnrollment = updatedEnrollment;
+                } else {
+                  parentEnrollment = {
+                    ...parentEnrollment,
+                    ...canonicalSignalUpdate,
+                  };
+                }
+              }
 
               // Check if proposal was accepted by querying the proposal table
               let proposalAcceptedAt = null;
