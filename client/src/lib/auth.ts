@@ -1,15 +1,21 @@
 import { supabase } from "./supabaseClient";
 import { apiRequest, clearAllCache } from "./queryClient";
 
+function navigateToAuthPath(path: string) {
+  const normalizedHashPath = path.startsWith("#") ? path : `#${path}`;
+  window.location.hash = normalizedHashPath;
+}
+
 function getLogoutRedirect(user) {
   const pathname = window.location.pathname || "";
+  const tutorLoginPath = "/operational/signup?role=tutor&mode=login&lock=login&returnTo=/operational/tutor/intake";
 
   if (user?.role === "tutor") {
-    return "/operational/signup?role=tutor";
+    return tutorLoginPath;
   }
 
   if (user?.role === "td") {
-    return "/operational/td/signup";
+    return "/operational/td/signup?mode=login&lock=login";
   }
 
   if (user?.role === "coo" || user?.role === "hr" || user?.role === "ceo" || user?.role === "executive") {
@@ -30,11 +36,11 @@ function getLogoutRedirect(user) {
 
   // If role is missing/stale, infer the portal from the current route.
   if (pathname.startsWith("/operational/tutor") || pathname.startsWith("/tutor")) {
-    return "/operational/signup?role=tutor";
+    return tutorLoginPath;
   }
 
   if (pathname.startsWith("/operational/td") || pathname.startsWith("/td")) {
-    return "/operational/td/signup";
+    return "/operational/td/signup?mode=login&lock=login";
   }
 
   if (pathname.startsWith("/executive")) {
@@ -59,10 +65,10 @@ export async function logout(user) {
     // Clear ALL React Query cache (memory + localStorage) to prevent stale user data
     clearAllCache();
 
-    window.location.href = redirectPath;
+    navigateToAuthPath(redirectPath);
   } catch (error) {
     console.error("Logout error:", error);
     clearAllCache();
-    window.location.href = redirectPath;
+    navigateToAuthPath(redirectPath);
   }
 }
