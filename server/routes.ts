@@ -11065,34 +11065,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
         }
 
-        // Try to find intro session directly by student_id
-        let introSession: { status: string } | null = null;
-        const { data: introByStudent } = await supabase
-          .from("scheduled_sessions")
-          .select("status")
-          .eq("tutor_id", dbUser.id)
-          .eq("student_id", studentId)
-          .eq("type", "intro")
-          .order("created_at", { ascending: false })
-          .maybeSingle();
-        introSession = introByStudent;
-
-        // Fallback: look for intro sessions stored with parent_id only (student_id is null)
-        if (!introSession) {
-          const parentId = (student as any).parentId || (() => null)();
-          if (parentId) {
-            const { data: introByParent } = await supabase
-              .from("scheduled_sessions")
-              .select("status")
-              .eq("tutor_id", dbUser.id)
-              .eq("parent_id", parentId)
-              .eq("type", "intro")
-              .is("student_id", null)
-              .order("created_at", { ascending: false })
-              .maybeSingle();
-            introSession = introByParent;
-          }
-        }
+        const { session: introSession } = await resolveTutorScheduledSession(
+          dbUser.id,
+          studentId,
+          "intro"
+        );
 
 
         let { data: latestProposal } = await supabase
@@ -11185,32 +11162,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const workflow = personalProfile.workflow || {};
         const handoverVerificationRequired = !!workflow.handoverRequiredAt && !workflow.handoverCompletedAt;
 
-        let handoverSession: { status: string } | null = null;
+        let handoverSession: any = null;
         if (handoverVerificationRequired) {
-          const { data: handoverByStudent } = await supabase
-            .from("scheduled_sessions")
-            .select("status")
-            .eq("tutor_id", dbUser.id)
-            .eq("student_id", studentId)
-            .eq("type", "handover")
-            .order("created_at", { ascending: false })
-            .maybeSingle();
-          handoverSession = handoverByStudent;
-
-          if (!handoverSession) {
-            const parentId = (student as any).parentId || null;
-            if (parentId) {
-              const { data: handoverByParent } = await supabase
-                .from("scheduled_sessions")
-                .select("status")
-                .eq("tutor_id", dbUser.id)
-                .eq("parent_id", parentId)
-                .eq("type", "handover")
-                .order("created_at", { ascending: false })
-                .maybeSingle();
-              handoverSession = handoverByParent;
-            }
-          }
+          const { session: resolvedHandoverSession } = await resolveTutorScheduledSession(
+            dbUser.id,
+            studentId,
+            "handover"
+          );
+          handoverSession = resolvedHandoverSession;
         }
 
         const inferredIntroCompleted = !!workflow.introCompletedAt;
