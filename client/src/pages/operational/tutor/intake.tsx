@@ -20,7 +20,7 @@ const pathwayStages = [
   },
   {
     title: "Training Mode",
-    body: "You learn the Response Integrity standard and prove you can operate inside structure, not just explain math.",
+    body: "You learn the Response Integrity OS and prove you can operate inside structure, not just explain math.",
   },
   {
     title: "Sandbox Mode",

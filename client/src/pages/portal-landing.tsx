@@ -316,7 +316,7 @@ function PortalLanding() {
             </Card>
           </div>
 
-          <div className="mt-8 sm:mt-10 grid gap-4 max-w-5xl mx-auto md:grid-cols-2 xl:grid-cols-[280px_1fr_1fr]">
+          <div className="mt-8 sm:mt-10 grid gap-4 max-w-5xl mx-auto md:grid-cols-2">
             <Card className="border-[#EEDFD3] bg-white/84 p-5 sm:p-6 shadow-sm xl:h-full">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: "#E63946" }}>
                 Full-Year Conditioning Intake
@@ -332,19 +332,6 @@ function PortalLanding() {
               </p>
               <p className="mt-3 text-sm leading-7" style={{ color: "#5A5A5A" }}>
                 Built for families who still have serious runway before final-year pressure peaks.
-              </p>
-            </Card>
-
-            <Card className="border-[#EEDFD3] bg-white/84 p-5 sm:p-6 shadow-sm xl:h-full">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em]" style={{ color: "#8A4B35" }}>
-                Standard
-              </p>
-              <p className="mt-3 text-sm sm:text-base font-semibold leading-7" style={{ color: "#1A1A1A" }}>
-                2 sessions per week.
-                <br />
-                8 sessions per month.
-                <br />
-                No panic enrollment.
               </p>
             </Card>
           </div>

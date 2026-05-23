@@ -264,7 +264,7 @@ export default function TutorGateway() {
                   We are selecting a small group of individuals who will be trained to guide how students respond when math becomes difficult.
                 </p>
                 <p className="text-xs sm:text-sm font-semibold" style={{ color: "#1A1A1A" }}>
-                  This is a structured tutoring role.
+                   This is a structured role.
                 </p>
                 <p className="text-xs sm:text-sm" style={{ color: "#5A5A5A" }}>
                   Selection is based on discipline, clarity of thinking, and alignment with how we operate.

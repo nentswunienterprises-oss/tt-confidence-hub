@@ -36,7 +36,7 @@ const conditioningModes = [
   },
   {
     title: "Training",
-    body: "You learn the Response Integrity standard and show that you can hold structure, not just explain math clearly.",
+    body: "You learn the Response Integrity OS and show that you can hold structure, not just explain math clearly.",
   },
   {
     title: "Sandbox",
