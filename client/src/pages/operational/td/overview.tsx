@@ -1151,8 +1151,11 @@ export default function TDOverview() {
         studentName={selectedStudentName}
         studentGrade={selectedStudentRecord?.grade || null}
         parentTopics={
-          (selectedStudentRecord?.parentInfo?.response_topics as string) ||
-          (selectedStudentRecord?.parentInfo?.math_struggle_areas as string) ||
+          (Array.isArray(selectedStudentRecord?.parentInfo?.reported_topics)
+            ? selectedStudentRecord.parentInfo.reported_topics.join(", ")
+            : "") ||
+          Object.keys((selectedStudentRecord?.parentInfo?.topic_response_symptoms as Record<string, unknown> | undefined) || {}).join(", ") ||
+          Object.keys((selectedStudentRecord?.parentInfo?.topic_recommended_starting_phases as Record<string, unknown> | undefined) || {}).join(", ") ||
           (selectedStudentRecord?.struggleAreas as string) ||
           null
         }
