@@ -255,6 +255,30 @@ export default function TutorPod() {
     }
   }, [podData?.students]);
 
+  useEffect(() => {
+    const openProposal = searchParams.get("openProposal");
+    const proposalStudentId = searchParams.get("studentId");
+    const students = podData?.students || [];
+
+    if (openProposal !== "1" || !proposalStudentId || students.length === 0) {
+      return;
+    }
+
+    const matchedStudent = students.find((student: any) => String(student.id) === proposalStudentId);
+    if (!matchedStudent) {
+      return;
+    }
+
+    setSelectedStudentId(String(matchedStudent.id));
+    setSelectedStudentName(String(matchedStudent.name || matchedStudent.fullName || ""));
+    setProposalOpen(true);
+
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("openProposal");
+    nextParams.delete("studentId");
+    setSearchParams(nextParams, { replace: true });
+  }, [searchParams, setSearchParams, podData?.students]);
+
   // Authentication is handled by route protection, no need for manual redirects
 
   if (authLoading || isLoading || applicationsLoading) {
@@ -388,29 +412,6 @@ export default function TutorPod() {
 
   const firstName = user?.name?.split(" ")[0] || "Tutor";
   const selectedTeamMember = sortedTeamMembers.find((m) => m.id === selectedTeamMemberId) || null;
-
-  useEffect(() => {
-    const openProposal = searchParams.get("openProposal");
-    const proposalStudentId = searchParams.get("studentId");
-
-    if (openProposal !== "1" || !proposalStudentId) {
-      return;
-    }
-
-    const matchedStudent = (students as any[]).find((student: any) => String(student.id) === proposalStudentId);
-    if (!matchedStudent) {
-      return;
-    }
-
-    setSelectedStudentId(String(matchedStudent.id));
-    setSelectedStudentName(String(matchedStudent.name || matchedStudent.fullName || ""));
-    setProposalOpen(true);
-
-    const nextParams = new URLSearchParams(searchParams);
-    nextParams.delete("openProposal");
-    nextParams.delete("studentId");
-    setSearchParams(nextParams, { replace: true });
-  }, [searchParams, setSearchParams, students]);
 
   return (
     <DashboardLayout>
