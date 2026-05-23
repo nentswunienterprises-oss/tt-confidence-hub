@@ -186,6 +186,18 @@ Each active topic conceptually carries:
 
 This is the true unit of conditioning.
 
+### Intake topic source of truth
+
+The authoritative intake topic model is topic-structured, not a legacy free-text field.
+
+The live runtime should derive pre-session topic intelligence from:
+
+- `reported_topics`
+- `topic_response_symptom_ids` or `topic_response_symptoms`
+- `topic_recommended_starting_phases`
+
+Legacy topic strings such as `math_struggle_areas` may still exist for compatibility, transport, or historical display, but they are not the authoritative Response Integrity-OS topic-conditioning source of truth.
+
 ### Scheduled session
 
 The operational shell uses `scheduled_sessions` as the real-world lesson container.

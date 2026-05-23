@@ -6754,21 +6754,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .filter(Boolean);
   };
 
-  const buildReportedTopics = (stuckAreas: unknown, mathStruggleAreas: unknown): string[] => {
+  const buildReportedTopics = (
+    topicResponseSymptomsOrIds: unknown,
+    mathStruggleAreas: unknown,
+    topicRecommendations?: unknown
+  ): string[] => {
+    const structuredTopicKeys =
+      topicResponseSymptomsOrIds && typeof topicResponseSymptomsOrIds === "object"
+        ? Object.keys(topicResponseSymptomsOrIds as Record<string, unknown>)
+            .map((topic) => String(topic || "").trim())
+            .filter(Boolean)
+        : [];
+    const recommendationTopicKeys =
+      topicRecommendations && typeof topicRecommendations === "object"
+        ? Object.keys(topicRecommendations as Record<string, unknown>)
+            .map((topic) => String(topic || "").trim())
+            .filter(Boolean)
+        : [];
     const typed = parseTopicText(mathStruggleAreas);
     return Array.from(
       new Set(
-        typed.filter((topic) => !NON_TOPIC_CONTEXT_LABELS.has(topic.toLowerCase().trim()))
+        [...structuredTopicKeys, ...recommendationTopicKeys, ...typed].filter(
+          (topic) => !NON_TOPIC_CONTEXT_LABELS.has(topic.toLowerCase().trim())
+        )
       )
     );
   };
 
   const buildIntakeSignals = (enrollment: any) => {
-    const reportedTopics = buildReportedTopics([], enrollment?.math_struggle_areas);
-    const normalizedSymptoms = normalizeResponseSymptoms(enrollment?.response_symptoms);
-    const recommendation = recommendStartingPhaseFromSymptoms(normalizedSymptoms);
-    const recommendedStartingPhase =
-      tryParsePhase(enrollment?.recommended_starting_phase) || recommendation.phase;
     const topicResponseSymptoms =
       enrollment?.topic_response_symptoms && typeof enrollment.topic_response_symptoms === "object"
         ? Object.fromEntries(
@@ -6777,10 +6790,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .filter(([topic, symptomIds]) => String(topic || "").trim().length > 0 && (symptomIds as string[]).length > 0)
           )
         : {};
+    const topicRecommendedStartingPhases =
+      enrollment?.topic_recommended_starting_phases && typeof enrollment.topic_recommended_starting_phases === "object"
+        ? enrollment.topic_recommended_starting_phases
+        : {};
+    const reportedTopics = buildReportedTopics(
+      topicResponseSymptoms,
+      enrollment?.math_struggle_areas,
+      topicRecommendedStartingPhases
+    );
+    const normalizedSymptoms = normalizeResponseSymptoms(enrollment?.response_symptoms);
+    const topicDerivedSymptomIds = Array.from(
+      new Set(Object.values(topicResponseSymptoms).flat())
+    );
+    const effectiveSymptoms = topicDerivedSymptomIds.length > 0 ? topicDerivedSymptomIds : normalizedSymptoms;
+    const recommendation = recommendStartingPhaseFromSymptoms(effectiveSymptoms);
+    const recommendedStartingPhase =
+      tryParsePhase(enrollment?.recommended_starting_phase) || recommendation.phase;
     return {
       reported_topics: reportedTopics,
-      response_symptoms: getResponseSymptomLabels(normalizedSymptoms),
-      response_symptom_ids: normalizedSymptoms,
+      response_symptoms: getResponseSymptomLabels(effectiveSymptoms),
+      response_symptom_ids: effectiveSymptoms,
       topic_response_symptoms: Object.fromEntries(
         Object.entries(topicResponseSymptoms).map(([topic, symptomIds]) => [topic, getResponseSymptomLabels(symptomIds as string[])])
       ),
@@ -6791,17 +6821,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ? enrollment.topic_response_signal_scores
           : {},
       recommended_starting_phase: recommendedStartingPhase,
-      topic_recommended_starting_phases:
-        enrollment?.topic_recommended_starting_phases && typeof enrollment.topic_recommended_starting_phases === "object"
-          ? enrollment.topic_recommended_starting_phases
-          : {},
+      topic_recommended_starting_phases: topicRecommendedStartingPhases,
       recommended_starting_reason: buildStartingPhaseRationale(
         recommendedStartingPhase,
         recommendation.supportingSymptoms
       ),
       diagnostic_focus: {
         start_with: reportedTopics[0] || null,
-        watch_for: getResponseSymptomLabels(normalizedSymptoms).slice(0, 2),
+        watch_for: getResponseSymptomLabels(effectiveSymptoms).slice(0, 2),
       },
     };
   };
@@ -19241,7 +19268,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         affiliateCode: bodyAffiliateCode
       } = req.body;
 
-      const reportedTopics = buildReportedTopics(stuckAreas, mathStruggleAreas);
+      const reportedTopics = buildReportedTopics(rawTopicResponseSymptoms, mathStruggleAreas);
       const normalizedTopicResponseSymptoms = reportedTopics.reduce<Record<string, string[]>>((acc, topic) => {
         const rawTopicSymptoms =
           rawTopicResponseSymptoms && typeof rawTopicResponseSymptoms === "object"
@@ -19999,16 +20026,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         confidenceKillers: proposal.confidence_killers,
         pressureResponse: proposal.pressure_response,
         growthDrivers: proposal.growth_drivers,
+        reportedTopics: buildReportedTopics(
+          enrollmentFull?.topic_response_symptoms,
+          enrollmentFull?.math_struggle_areas,
+          enrollmentFull?.topic_recommended_starting_phases
+        ),
         currentTopics: (proposal.current_topics && proposal.current_topics !== "Onboarding baseline diagnostic")
           ? proposal.current_topics
-          : (enrollmentFull?.math_struggle_areas || proposal.current_topics),
+          : (
+              buildReportedTopics(
+                enrollmentFull?.topic_response_symptoms,
+                enrollmentFull?.math_struggle_areas,
+                enrollmentFull?.topic_recommended_starting_phases
+              ).join(", ") || proposal.current_topics
+            ),
         topicConditioning:
           liveTopicConditioning ||
           buildTopicConditioningMap({
             ...proposal,
             current_topics: (proposal.current_topics && proposal.current_topics !== "Onboarding baseline diagnostic")
               ? proposal.current_topics
-              : (enrollmentFull?.math_struggle_areas || proposal.current_topics),
+              : (
+                  buildReportedTopics(
+                    enrollmentFull?.topic_response_symptoms,
+                    enrollmentFull?.math_struggle_areas,
+                    enrollmentFull?.topic_recommended_starting_phases
+                  ).join(", ") || proposal.current_topics
+                ),
           }),
         immediateStruggles: proposal.immediate_struggles,
         gapsIdentified: proposal.gaps_identified,

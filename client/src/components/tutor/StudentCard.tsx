@@ -254,6 +254,10 @@ export function StudentCard({
     student.parentInfo?.topic_response_symptoms && typeof student.parentInfo.topic_response_symptoms === "object"
       ? student.parentInfo.topic_response_symptoms
       : {};
+  const topicResponseSymptomIdsRaw =
+    student.parentInfo?.topic_response_symptom_ids && typeof student.parentInfo.topic_response_symptom_ids === "object"
+      ? student.parentInfo.topic_response_symptom_ids
+      : {};
   const topicRecommendedStartingPhasesRaw =
     student.parentInfo?.topic_recommended_starting_phases && typeof student.parentInfo.topic_recommended_starting_phases === "object"
       ? student.parentInfo.topic_recommended_starting_phases
@@ -263,32 +267,53 @@ export function StudentCard({
       ? student.parentInfo.topic_response_signal_scores
       : {};
 
+  const structuredTopicSymptomIds = Array.from(
+    new Set(
+      Object.values(topicResponseSymptomIdsRaw)
+        .flatMap((value: any) => normalizeResponseSymptoms(value))
+    )
+  );
+
+  const structuredTopicSymptomLabels = structuredTopicSymptomIds.length > 0
+    ? getResponseSymptomLabels(structuredTopicSymptomIds)
+    : Array.from(
+        new Set(
+          Object.values(topicResponseSymptomsRaw)
+            .flatMap((value: any) => getRawTopicSymptomLabels(value))
+        )
+      );
+
   // Always define inferredSymptoms to prevent ReferenceError
   const inferredSymptoms = inferReportedSymptoms({
-    struggleAreas: student.parentInfo?.math_struggle_areas || student.struggleAreas || "",
+    struggleAreas: "",
     parentMotivation: student.parentInfo?.parent_motivation || ""
   });
 
-  const symptomSignals = reportedSymptoms.length > 0 ? reportedSymptoms : inferredSymptoms;
+  const symptomSignals =
+    reportedSymptoms.length > 0
+      ? reportedSymptoms
+      : structuredTopicSymptomLabels.length > 0
+        ? structuredTopicSymptomLabels
+        : inferredSymptoms;
 
 
-  // Derive reportedTopics from all possible parent fields
+  // Derive reportedTopics from canonical intake fields first
   let reportedTopics: string[] = [];
-  // 1. response_topics (legacy string)
-  if (student.parentInfo?.response_topics) {
-    reportedTopics = reportedTopics.concat(splitReportedTopics(student.parentInfo.response_topics));
-  }
-  // 2. reported_topics (array)
+  // 1. reported_topics (canonical derived array)
   if (Array.isArray(student.parentInfo?.reported_topics)) {
     reportedTopics = reportedTopics.concat(student.parentInfo.reported_topics.map(String));
   }
-  // 3. math_struggle_areas (string)
-  if (student.parentInfo?.math_struggle_areas) {
-    reportedTopics = reportedTopics.concat(splitReportedTopics(student.parentInfo.math_struggle_areas));
+  // 2. topic_response_symptom_ids keys
+  if (topicResponseSymptomIdsRaw && typeof topicResponseSymptomIdsRaw === "object") {
+    reportedTopics = reportedTopics.concat(Object.keys(topicResponseSymptomIdsRaw));
   }
-  // 4. struggleAreas (legacy string)
-  if (student.struggleAreas) {
-    reportedTopics = reportedTopics.concat(splitReportedTopics(student.struggleAreas));
+  // 3. topic_response_symptoms keys
+  if (topicResponseSymptomsRaw && typeof topicResponseSymptomsRaw === "object") {
+    reportedTopics = reportedTopics.concat(Object.keys(topicResponseSymptomsRaw));
+  }
+  // 4. topic_recommended_starting_phases keys
+  if (topicRecommendedStartingPhasesRaw && typeof topicRecommendedStartingPhasesRaw === "object") {
+    reportedTopics = reportedTopics.concat(Object.keys(topicRecommendedStartingPhasesRaw));
   }
   // 5. Add topics from topicConditioning if present
   if (student.topicConditioning && typeof student.topicConditioning === 'object') {
@@ -302,7 +327,7 @@ export function StudentCard({
 
   const topicIntelligence = reportedTopics.map((topic) => {
     const topicSymptomsSource = getTopicMapValue(topicResponseSymptomsRaw, topic);
-    const topicSymptomIdsSource = getTopicMapValue(student.parentInfo?.topic_response_symptom_ids, topic);
+    const topicSymptomIdsSource = getTopicMapValue(topicResponseSymptomIdsRaw, topic);
     const topicSymptomIds = normalizeResponseSymptoms(
       topicSymptomIdsSource && Array.isArray(topicSymptomIdsSource) && topicSymptomIdsSource.length > 0
         ? topicSymptomIdsSource

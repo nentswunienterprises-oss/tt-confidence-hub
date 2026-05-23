@@ -767,7 +767,11 @@ export default function TutorPod() {
           studentName={selectedStudentName}
           tutorName={user?.name || "Your Tutor"}
           identitySheetData={studentIdentitySheets[selectedStudentId]}
-          parentTopics={((podData?.students as any[]) ?? []).find((s: any) => s.id === selectedStudentId)?.parentInfo?.math_struggle_areas || ""}
+          parentTopics={
+            (((podData?.students as any[]) ?? []).find((s: any) => s.id === selectedStudentId)?.parentInfo?.reported_topics as string[] | undefined)?.join(", ") ||
+            Object.keys((((podData?.students as any[]) ?? []).find((s: any) => s.id === selectedStudentId)?.parentInfo?.topic_response_symptoms as Record<string, unknown> | undefined) || {}).join(", ") ||
+            ""
+          }
         />
 
         <ViewAssignmentsDialog
@@ -798,7 +802,11 @@ export default function TutorPod() {
           studentName={selectedStudentName}
           operationalMode={(assignment as any).operationalMode || "training"}
           studentGrade={selectedStudent?.grade || null}
-          parentTopics={selectedStudent?.parentInfo?.math_struggle_areas || ""}
+          parentTopics={
+            (selectedStudent?.parentInfo?.reported_topics as string[] | undefined)?.join(", ") ||
+            Object.keys((selectedStudent?.parentInfo?.topic_response_symptoms as Record<string, unknown> | undefined) || {}).join(", ") ||
+            ""
+          }
           topicConditioning={selectedStudent?.topicConditioning || null}
           persistedTopicStates={((selectedStudent as any)?.conceptMastery?.topicConditioning?.topics as Record<string, any>) || null}
         />
