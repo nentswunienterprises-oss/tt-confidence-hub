@@ -330,7 +330,7 @@ export async function cleanupLegacyLiveEnrollmentsForNonLiveTutor(
   {
     const initial = await supabase
       .from("parent_enrollments")
-      .select("id, user_id, student_full_name, assigned_tutor_id, assigned_student_id, status, proposal_id, current_step, is_sandbox_account, parent_full_name, parent_email, student_grade, school_name, math_struggle_areas, previous_tutoring, internet_access, parent_motivation")
+      .select("id, user_id, student_full_name, assigned_tutor_id, assigned_student_id, status, proposal_id, current_step, is_sandbox_account, parent_full_name, parent_email, student_grade, school_name, previous_tutoring, internet_access, parent_motivation")
       .eq("assigned_tutor_id", tutorId)
       .eq("is_sandbox_account", false);
 
@@ -349,7 +349,7 @@ export async function cleanupLegacyLiveEnrollmentsForNonLiveTutor(
     if (missingOptionalColumn) {
       const fallback = await supabase
         .from("parent_enrollments")
-        .select("id, user_id, student_full_name, assigned_tutor_id, status, parent_full_name, parent_email, student_grade, school_name, math_struggle_areas, previous_tutoring, internet_access, parent_motivation")
+        .select("id, user_id, student_full_name, assigned_tutor_id, status, parent_full_name, parent_email, student_grade, school_name, previous_tutoring, internet_access, parent_motivation")
         .eq("assigned_tutor_id", tutorId);
 
       liveEnrollments = (fallback.data || []).filter(

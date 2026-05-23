@@ -192,9 +192,9 @@ The authoritative intake topic model is topic-structured, not a legacy free-text
 
 The live runtime should derive pre-session topic intelligence from:
 
-- `reported_topics`
 - `topic_response_symptom_ids` or `topic_response_symptoms`
 - `topic_recommended_starting_phases`
+- a derived `reported_topics` view assembled from those topic-structured fields
 
 Parent intake should submit topics in structured form rather than relying on a legacy comma-separated topic string.
 

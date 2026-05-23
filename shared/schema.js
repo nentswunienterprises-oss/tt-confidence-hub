@@ -655,7 +655,7 @@ export var parentEnrollments = pgTable("parent_enrollments", {
     studentFullName: varchar("student_full_name").notNull(),
     studentGrade: varchar("student_grade").notNull(),
     schoolName: varchar("school_name").notNull(),
-    mathStruggleAreas: text("math_struggle_areas").notNull(),
+    mathStruggleAreas: text("math_struggle_areas"),
     responseSymptoms: jsonb("response_symptoms"),
     topicResponseSymptoms: jsonb("topic_response_symptoms"),
     responseSignalScores: jsonb("response_signal_scores"),

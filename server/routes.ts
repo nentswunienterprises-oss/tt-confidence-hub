@@ -19888,8 +19888,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { data: enrollmentFull } = await selectLatestParentEnrollment({
         parentId,
-        primarySelect: "math_struggle_areas, student_gender",
-        fallbackSelect: "math_struggle_areas",
+        primarySelect: "math_struggle_areas, student_gender, response_symptoms, topic_response_symptoms, topic_recommended_starting_phases",
+        fallbackSelect: "math_struggle_areas, response_symptoms, topic_response_symptoms, topic_recommended_starting_phases",
       });
 
       console.log("📋 Enrollment data:", enrollment, "Error:", enrollmentError);
