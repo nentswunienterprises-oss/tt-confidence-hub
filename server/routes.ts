@@ -728,6 +728,22 @@ async function loadDetachedSandboxEnrollmentsForTutor(tutorId: string) {
   };
 }
 
+function hasCanonicalSandboxResponseSignals(enrollment: any): boolean {
+  if (!enrollment || typeof enrollment !== "object") {
+    return false;
+  }
+
+  const responseSymptoms = normalizeResponseSymptoms(enrollment.response_symptoms);
+  const topicResponseSymptoms =
+    enrollment.topic_response_symptoms && typeof enrollment.topic_response_symptoms === "object"
+      ? Object.entries(enrollment.topic_response_symptoms as Record<string, unknown>)
+          .map(([topic, symptoms]) => [String(topic || "").trim(), normalizeResponseSymptoms(symptoms)] as const)
+          .filter(([topic, symptoms]) => topic.length > 0 && symptoms.length > 0)
+      : [];
+
+  return responseSymptoms.length > 0 && topicResponseSymptoms.length > 0;
+}
+
 async function reactivateDetachedSandboxEnrollment(enrollment: any, tutorId: string) {
   const nowIso = new Date().toISOString();
   const activationPayload = {
@@ -823,6 +839,46 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
     provisionAction: "created" | "reused";
   }> = [];
 
+  const ensureCanonicalSandboxEnrollmentSignals = async (
+    enrollment: any,
+    seedIndex: number,
+    source?: any | null
+  ) => {
+    if (!isSandboxLikeEnrollment(enrollment, tutorId) || hasCanonicalSandboxResponseSignals(enrollment)) {
+      return enrollment;
+    }
+
+    const sandboxCase = buildSandboxEnrollmentCase(seedIndex, source || enrollment);
+    const canonicalSignalUpdate = {
+      response_symptoms: sandboxCase.responseSymptoms,
+      topic_response_symptoms: sandboxCase.topicResponseSymptoms,
+      response_signal_scores: sandboxCase.responseSignalScores,
+      topic_response_signal_scores: sandboxCase.topicResponseSignalScores,
+      recommended_starting_phase: sandboxCase.recommendedStartingPhase,
+      topic_recommended_starting_phases: sandboxCase.topicRecommendedStartingPhases,
+      previous_tutoring: enrollment?.previous_tutoring || sandboxCase.previousTutoring,
+      parent_motivation: enrollment?.parent_motivation || sandboxCase.parentMotivation,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data: updatedEnrollment, error: canonicalSignalError } = await supabase
+      .from("parent_enrollments")
+      .update(canonicalSignalUpdate)
+      .eq("id", enrollment.id)
+      .select("*")
+      .single();
+
+    if (canonicalSignalError) {
+      console.error("Failed to provision canonical sandbox response signals:", canonicalSignalError);
+      return {
+        ...enrollment,
+        ...canonicalSignalUpdate,
+      };
+    }
+
+    return updatedEnrollment || { ...enrollment, ...canonicalSignalUpdate };
+  };
+
   const missingSandboxCount = minimumCount - existingSandboxCount;
   const { data: detachedSandboxEnrollments, error: detachedSandboxError } =
     await loadDetachedSandboxEnrollmentsForTutor(tutorId);
@@ -832,15 +888,21 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
   }
 
   const reusableSandboxEnrollments = (detachedSandboxEnrollments || []).slice(0, missingSandboxCount);
-  for (const detachedEnrollment of reusableSandboxEnrollments) {
+  for (let index = 0; index < reusableSandboxEnrollments.length; index++) {
+    const detachedEnrollment = reusableSandboxEnrollments[index];
     const reactivatedEnrollment = await reactivateDetachedSandboxEnrollment(detachedEnrollment, tutorId);
-    await ensureStudentForEnrollment(reactivatedEnrollment, tutorId);
+    const canonicalEnrollment = await ensureCanonicalSandboxEnrollmentSignals(
+      reactivatedEnrollment,
+      existingSandboxCount + index,
+      detachedEnrollment
+    );
+    await ensureStudentForEnrollment(canonicalEnrollment, tutorId);
 
     createdAccounts.push({
-      parentId: String(reactivatedEnrollment.user_id || "").trim(),
-      enrollmentId: reactivatedEnrollment.id,
-      parentEmail: reactivatedEnrollment.parent_email,
-      studentName: reactivatedEnrollment.student_full_name,
+      parentId: String(canonicalEnrollment.user_id || "").trim(),
+      enrollmentId: canonicalEnrollment.id,
+      parentEmail: canonicalEnrollment.parent_email,
+      studentName: canonicalEnrollment.student_full_name,
       sourceEnrollmentId: null,
       authProvisioned: false,
       caseProfile: null,
@@ -859,7 +921,7 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
   {
     const initial = await supabase
       .from("parent_enrollments")
-      .select("id, parent_full_name, parent_email, student_full_name, student_grade, student_gender, school_name, math_struggle_areas, previous_tutoring, internet_access, parent_motivation")
+      .select("id, parent_full_name, parent_email, student_full_name, student_grade, student_gender, school_name, math_struggle_areas, response_symptoms, topic_response_symptoms, response_signal_scores, topic_response_signal_scores, recommended_starting_phase, topic_recommended_starting_phases, previous_tutoring, internet_access, parent_motivation")
       .eq("assigned_tutor_id", tutorId)
       .eq("is_sandbox_account", false)
       .in("status", [...ACTIVE_PARENT_ENROLLMENT_STATUSES])
@@ -869,7 +931,18 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
     sourceEnrollmentsError = initial.error as any;
   }
 
-  if (sourceEnrollmentsError && isMissingSandboxAccountColumnError(sourceEnrollmentsError)) {
+  if (
+    sourceEnrollmentsError &&
+    (
+      isMissingSandboxAccountColumnError(sourceEnrollmentsError) ||
+      String(sourceEnrollmentsError?.message || "").toLowerCase().includes("response_symptoms") ||
+      String(sourceEnrollmentsError?.message || "").toLowerCase().includes("topic_response_symptoms") ||
+      String(sourceEnrollmentsError?.message || "").toLowerCase().includes("response_signal_scores") ||
+      String(sourceEnrollmentsError?.message || "").toLowerCase().includes("topic_response_signal_scores") ||
+      String(sourceEnrollmentsError?.message || "").toLowerCase().includes("recommended_starting_phase") ||
+      String(sourceEnrollmentsError?.message || "").toLowerCase().includes("topic_recommended_starting_phases")
+    )
+  ) {
     const fallback = await supabase
       .from("parent_enrollments")
       .select("id, parent_full_name, parent_email, student_full_name, student_grade, school_name, math_struggle_areas, previous_tutoring, internet_access, parent_motivation")
@@ -1018,6 +1091,12 @@ async function autoProvisionSandboxAccountsForTutor(tutorId: string, minimumCoun
     if (sandboxEnrollmentError || !sandboxEnrollment) {
       throw new Error(`Failed to create sandbox enrollment: ${sandboxEnrollmentError?.message || "no enrollment returned"}`);
     }
+
+    sandboxEnrollment = await ensureCanonicalSandboxEnrollmentSignals(
+      sandboxEnrollment,
+      existingSandboxCount + ordinalOffset,
+      source
+    );
 
     await ensureStudentForEnrollment(sandboxEnrollment, tutorId);
 
