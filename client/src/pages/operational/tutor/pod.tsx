@@ -724,24 +724,25 @@ export default function TutorPod() {
               </div>
             </Card>
           ) : (
-            <div className={`grid gap-5 ${students.length > 1 ? "xl:grid-cols-2" : ""} 2xl:gap-6 tutor-pod-student-cards`}>
+            <div className="flex flex-col gap-5 xl:flex-row xl:flex-wrap xl:items-start 2xl:gap-6 tutor-pod-student-cards">
               {students.map((student: any) => {
                 console.log('StudentCard student data:', student);
                 return (
-                  <StudentCard
-                    key={student.id}
-                    student={student}
-                    operationalMode={(assignment as any).operationalMode || "training"}
-                    setSelectedStudentId={setSelectedStudentId}
-                    setSelectedStudentName={setSelectedStudentName}
-                    setIdentitySheetOpen={setIdentitySheetOpen}
-                    setTrackingDialogOpen={setTrackingDialogOpen}
-                    setAssignmentsDialogOpen={setAssignmentsDialogOpen}
-                    setProposalOpen={setProposalOpen}
-                    setTopicConditioningDialogOpen={setTopicConditioningDialogOpen}
-                    setReportsDialogOpen={setReportsDialogOpen}
-                    setCommunicationDialogOpen={setCommunicationDialogOpen}
-                  />
+                  <div key={student.id} className="w-full xl:w-[calc(50%-1.25rem)]">
+                    <StudentCard
+                      student={student}
+                      operationalMode={(assignment as any).operationalMode || "training"}
+                      setSelectedStudentId={setSelectedStudentId}
+                      setSelectedStudentName={setSelectedStudentName}
+                      setIdentitySheetOpen={setIdentitySheetOpen}
+                      setTrackingDialogOpen={setTrackingDialogOpen}
+                      setAssignmentsDialogOpen={setAssignmentsDialogOpen}
+                      setProposalOpen={setProposalOpen}
+                      setTopicConditioningDialogOpen={setTopicConditioningDialogOpen}
+                      setReportsDialogOpen={setReportsDialogOpen}
+                      setCommunicationDialogOpen={setCommunicationDialogOpen}
+                    />
+                  </div>
                 );
               })}
             </div>
