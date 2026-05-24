@@ -724,7 +724,7 @@ export default function TutorPod() {
               </div>
             </Card>
           ) : (
-            <div className="grid gap-5 xl:grid-cols-2 2xl:gap-6 tutor-pod-student-cards">
+            <div className={`grid gap-5 ${students.length > 1 ? "xl:grid-cols-2" : ""} 2xl:gap-6 tutor-pod-student-cards`}>
               {students.map((student: any) => {
                 console.log('StudentCard student data:', student);
                 return (
