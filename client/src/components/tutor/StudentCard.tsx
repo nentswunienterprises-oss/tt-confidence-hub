@@ -72,6 +72,25 @@ function formatTutorGradeLabel(grade) {
   return /^grade\b/i.test(trimmed) ? trimmed : trimmed ? `Grade ${trimmed}` : trimmed;
 }
 
+function formatStudentGender(rawValue) {
+  const value = String(rawValue || "").trim().toLowerCase();
+  if (!value) return "Unknown";
+  if (value === "m" || value === "male") return "Male";
+  if (value === "f" || value === "female") return "Female";
+  if (value === "nonbinary" || value === "non-binary" || value === "nb") return "Non-binary";
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function resolveStudentSchool(student) {
+  return (
+    student?.school ||
+    student?.schoolName ||
+    student?.school_name ||
+    student?.personalProfile?.school ||
+    "Unknown"
+  );
+}
+
 function getTopicMapValue(source, topic) {
   if (!source || typeof source !== "object") return null;
   const normalizedTopic = normalizeTopicKey(topic);
@@ -872,9 +891,31 @@ export function StudentCard({
               You can accept this assignment to start onboarding, or decline it so the parent can be rematched.
             </DialogDescription>
           </DialogHeader>
-          <div className="rounded-md border bg-muted/40 p-3 text-sm">
-            <p className="font-medium text-foreground">Student: {student.name}</p>
-            <p className="text-muted-foreground mt-1">Parent: {student.parentInfo?.parent_full_name || "Unknown"}</p>
+          <div className="rounded-md border bg-muted/40 p-3 text-sm space-y-3">
+            <div>
+              <p className="font-medium text-foreground">Student: {student.name}</p>
+              <p className="text-muted-foreground mt-1">Parent: {student.parentInfo?.parent_full_name || "Unknown"}</p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Grade</p>
+                <p className="mt-1 text-sm font-medium text-foreground">
+                  {student.grade ? formatTutorGradeLabel(student.grade) : "Grade pending"}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">School</p>
+                <p className="mt-1 text-sm font-medium text-foreground">
+                  {resolveStudentSchool(student)}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Gender</p>
+                <p className="mt-1 text-sm font-medium text-foreground">
+                  {formatStudentGender(student.gender || student.personalProfile?.gender)}
+                </p>
+              </div>
+            </div>
           </div>
           <PreSessionIntelligenceSummary
             reportedTopics={reportedTopics}
