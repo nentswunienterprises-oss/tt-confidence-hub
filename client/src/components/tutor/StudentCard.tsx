@@ -181,28 +181,17 @@ export function StudentCard({
   // ...existing code...
   // State for assignment modal
   const [assignmentModalOpen, setAssignmentModalOpen] = useState(false);
-  const [preSessionIntelligenceCollapsed, setPreSessionIntelligenceCollapsed] = useState(false);
 
   const PreSessionIntelligenceSection = () => (
-    <div className="pt-4 border-t border-border/60 space-y-3">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
-          Pre-Session Intelligence
-        </p>
-        <button
-          type="button"
-          onClick={() => setPreSessionIntelligenceCollapsed((prev) => !prev)}
-          className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/20 px-3 py-1 text-sm font-medium text-foreground transition hover:bg-muted"
-        >
-          {preSessionIntelligenceCollapsed ? "Show" : "Hide"}
-          {preSessionIntelligenceCollapsed ? (
-            <ChevronDown className="h-4 w-4" />
-          ) : (
-            <ChevronUp className="h-4 w-4" />
-          )}
-        </button>
-      </div>
-      {!preSessionIntelligenceCollapsed && (
+    <details open className="pt-4 border-t border-border/60">
+      <summary className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-border/60 bg-muted/20 px-4 py-3 text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+        <span>Pre-Session Intelligence</span>
+        <span className="inline-flex items-center gap-2 text-sm font-medium text-foreground">
+          <span className="text-[11px]">Toggle</span>
+          <ChevronDown className="h-4 w-4 transition-transform duration-200" />
+        </span>
+      </summary>
+      <div className="space-y-3 p-4">
         <DetailedPreSessionIntelligence
           reportedTopics={reportedTopics}
           symptomSignals={symptomSignals}
@@ -215,8 +204,8 @@ export function StudentCard({
           secondarySignal={secondarySignal}
           hideSectionTitle
         />
-      )}
-    </div>
+      </div>
+    </details>
   );
 
   const completedSessions = Math.max(0, Number(student.sessionProgress || 0));
