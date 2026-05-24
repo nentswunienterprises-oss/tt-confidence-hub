@@ -181,7 +181,7 @@ export function StudentCard({
   // ...existing code...
   // State for assignment modal
   const [assignmentModalOpen, setAssignmentModalOpen] = useState(false);
-  const [preSessionIntelligenceCollapsed, setPreSessionIntelligenceCollapsed] = useState(false);
+  const [preSessionIntelligenceCollapsed, setPreSessionIntelligenceCollapsed] = useState(true);
 
   const PreSessionIntelligenceSection = () => (
     <div className="pt-4 border-t border-border/60 space-y-3">
@@ -194,12 +194,13 @@ export function StudentCard({
             variant="outline"
             size="sm"
             onClick={() => setPreSessionIntelligenceCollapsed((prev) => !prev)}
+            aria-expanded={!preSessionIntelligenceCollapsed}
           >
-            {preSessionIntelligenceCollapsed ? "Show details" : "Hide details"}
+            {preSessionIntelligenceCollapsed ? "Show Pre-Session Intelligence" : "Hide Pre-Session Intelligence"}
           </Button>
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          Use this button to collapse or expand the full Pre-Session Intelligence section.
+          Use this button to expand or collapse the Pre-Session Intelligence details.
         </p>
       </div>
       {!preSessionIntelligenceCollapsed && (
