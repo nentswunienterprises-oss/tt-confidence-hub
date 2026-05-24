@@ -20357,8 +20357,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         {
           merchant_id: payfastConfig.merchantId,
           merchant_key: payfastConfig.merchantKey,
-          return_url: `${getAppBaseUrl()}/client/parent/gateway?payfast=return`,
-          cancel_url: `${getAppBaseUrl()}/client/parent/gateway?payfast=cancelled`,
+          return_url: `${getAppBaseUrl()}/client/parent/gateway?payfast=return&merchantReference=${encodeURIComponent(merchantReference)}`,
+          cancel_url: `${getAppBaseUrl()}/client/parent/gateway?payfast=cancelled&merchantReference=${encodeURIComponent(merchantReference)}`,
           notify_url: `${getApiPublicUrl()}/api/payments/payfast/notify`,
           name_first: String((req as any).dbUser?.firstName || "").trim(),
           name_last: String((req as any).dbUser?.lastName || "").trim(),

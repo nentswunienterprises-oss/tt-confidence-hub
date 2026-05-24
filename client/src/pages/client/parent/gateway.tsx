@@ -125,6 +125,7 @@ export default function ParentGateway() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const payfastState = params.get("payfast");
+    const payfastMerchantReferenceFromUrl = params.get("merchantReference");
     if (!payfastState) return;
     if (handledPayfastReturnRef.current) return;
     if (authLoading) return;
@@ -151,7 +152,9 @@ export default function ParentGateway() {
             credentials: "include",
             headers,
             body: JSON.stringify({
-              merchantReference: window.sessionStorage.getItem(PAYFAST_MERCHANT_REFERENCE_STORAGE_KEY),
+              merchantReference:
+                payfastMerchantReferenceFromUrl ||
+                window.sessionStorage.getItem(PAYFAST_MERCHANT_REFERENCE_STORAGE_KEY),
             }),
           });
 
