@@ -253,6 +253,7 @@ export function StudentCard({
     .join("")
     .toUpperCase()
     .slice(0, 2);
+  const studentSchool = resolveStudentSchool(student);
 
   const { data: workflow, isLoading: workflowLoading } = useStudentWorkflowState(student.id);
   const markHandoverCompleted = useMarkHandoverCompleted(student.id);
@@ -638,6 +639,7 @@ export function StudentCard({
             </div>
             <div className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground mt-1">
               {student.grade ? formatTutorGradeLabel(student.grade) : "Grade pending"}
+              {studentSchool ? ` · ${studentSchool}` : ""}
             </div>
             {student.parentInfo && (
               <div className="mt-3 rounded-xl border border-border/60 bg-muted/20 px-3 py-2 text-sm">
