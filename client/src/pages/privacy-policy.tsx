@@ -8,8 +8,8 @@ export default function PrivacyPolicy() {
         <LegalDocumentMeta
           items={[
             "Response Integrity (Pty) Ltd",
-            "Version 1.1",
-            "Effective May 9, 2026",
+            "Version 1.2",
+            "Effective May 24, 2026",
           ]}
         />
       }
@@ -46,8 +46,9 @@ export default function PrivacyPolicy() {
           ],
           bullets: [
             "Identity and account data such as names, email addresses, phone numbers, role, login details, and account status.",
-            "Learner and family data such as learner name, age, grade, school, enrollment details, parent contact data, and consent records.",
-            "Session and academic data such as diagnoses, drill logs, reports, progression states, phase and stability records, observations, scheduling activity, and session outcomes.",
+            "Learner and family data such as learner name, age, grade, school, enrollment details, intake-cycle or waitlist status, parent contact data, and consent records.",
+            "Academic scope and intake data such as school topic coverage, upcoming curriculum scope, topic concerns, parent-reported response symptoms, learner history, fit-review inputs, and topic-priority information provided during planning or onboarding.",
+            "Session and academic data such as diagnoses, recommended starting phases, topic maps, drill logs, reports, progression states, phase and stability records, observations, scheduling activity, and session outcomes.",
             "Recording and compliance data such as session recordings, audio, video, submitted recording files, associated timestamps, and related compliance artifacts, which may include transcript-related records where available.",
             "Payment and billing data such as payment status, transaction references, plan status, and subscription-related records. Card processing is handled through payment processors such as Payfast; Response Integrity does not store full card details.",
             "Operational workforce data such as ID documents, contractor records, onboarding acceptances, certifications, audit history, banking details for payout administration, and performance-linked operational records.",
@@ -59,6 +60,7 @@ export default function PrivacyPolicy() {
           title: "3. How We Collect Information",
           bullets: [
             "Directly from you when you sign up, apply, enroll, upload documents, book sessions, make payments, or contact Response Integrity.",
+            "Directly from parents or guardians during intake, onboarding, scope collection, waitlist registration, schedule alignment, diagnostics preparation, and related planning activities.",
             "Automatically through platform use, authentication flows, scheduling systems, logs, notifications, and browser or device interactions.",
             "From Response Integrity operational users such as tutors, TDs, EGPs, or executives when they record lawful platform observations or workflow actions.",
             "From service providers and processors used to operate Response Integrity, including payment, storage, scheduling, authentication, and communication providers.",
@@ -68,7 +70,10 @@ export default function PrivacyPolicy() {
           title: "4. Why We Use Information",
           bullets: [
             "To create and manage accounts, onboarding flows, and access permissions.",
-            "To deliver Response Integrity response-conditioning services, scheduling workflows, learner progression, and reporting.",
+            "To review enrollment fit, intake eligibility, waitlist placement, and lawful service-entry decisions.",
+            "To deliver Response Integrity response-conditioning services, scheduling workflows, learner progression, topic mapping, and reporting.",
+            "To prepare ahead-of-class conditioning using school scope, topic history, parent-reported symptoms, and related academic planning inputs.",
+            "To generate or support phase recommendations, diagnostic starting points, stability tracking, and other rules-based operational outputs inside Response Integrity-OS.",
             "To process payments, confirm account status, manage early-access eligibility, and administer contractor or affiliate-related payment records.",
             "To safeguard learners, investigate incidents, review disputes, and maintain system integrity.",
             "To monitor compliance, quality, audit accuracy, and role performance across Response Integrity operations.",
@@ -122,7 +127,7 @@ export default function PrivacyPolicy() {
           title: "10. Retention",
           paragraphs: [
             "We keep personal information only for as long as necessary for the purposes for which it was collected, unless longer retention is required or justified by law or legitimate operational need.",
-            "Some records cannot be deleted immediately on request because Response Integrity may need to retain them for safeguarding, child-protection duties, payment and tax compliance, fraud prevention, disputes, legal claims, audits, contractor administration, session integrity review, or other lawful record-keeping obligations.",
+            "Some records cannot be deleted immediately on request because Response Integrity may need to retain them for safeguarding, child-protection duties, payment and tax compliance, fraud prevention, disputes, legal claims, audits, contractor administration, session integrity review, intake-history review, waitlist records, or other lawful record-keeping obligations.",
           ],
         },
         {
@@ -155,7 +160,7 @@ export default function PrivacyPolicy() {
           items={[
             "Response Integrity (Pty) Ltd",
             "Privacy Policy",
-            "Version 1.1",
+            "Version 1.2",
             "www.responseintegrity.co.za",
           ]}
         />
