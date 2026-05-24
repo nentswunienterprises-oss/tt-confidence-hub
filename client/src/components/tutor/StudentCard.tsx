@@ -1179,7 +1179,7 @@ function DetailedPreSessionIntelligence({
   recommendedStartingReason,
   secondarySignal,
   hideSectionTitle = false,
-  collapsible = false,
+  collapsible = true,
 }) {
   const [showResponseSignalBreakdown, setShowResponseSignalBreakdown] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
