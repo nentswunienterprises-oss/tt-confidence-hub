@@ -844,13 +844,6 @@ export function StudentCard({
           </div>
         )}
 
-        {workflow?.proposalAccepted && handoverVerificationActive && (
-          <div className="pt-4 border-t border-border/60 space-y-2">
-            <p className="text-xs text-muted-foreground text-center">
-              Core training systems stay gated until the continuity check is completed. This keeps inherited topic-state intact while the new tutor verifies where work should resume.
-            </p>
-          </div>
-        )}
       </div>
 
       <Dialog open={assignmentModalOpen} onOpenChange={setAssignmentModalOpen}>
