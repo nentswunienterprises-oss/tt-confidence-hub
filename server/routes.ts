@@ -620,6 +620,45 @@ function isSandboxLikeEnrollment(enrollment: any, tutorId?: string) {
   );
 }
 
+async function resolveSandboxContextForParentStudent(options: {
+  parentId: string;
+  studentId?: string | null;
+  tutorId?: string | null;
+}) {
+  if (!options.parentId) return false;
+
+  const query = supabase
+    .from("parent_enrollments")
+    .select("id, is_sandbox_account, parent_email, current_step, assigned_tutor_id")
+    .eq("user_id", options.parentId)
+    .order("updated_at", { ascending: false })
+    .limit(1);
+
+  if (options.studentId) {
+    query.eq("assigned_student_id", options.studentId);
+  }
+
+  const { data: enrollment, error } = await query.maybeSingle();
+  if (!error && enrollment) {
+    if (isSandboxLikeEnrollment(enrollment, options.tutorId || enrollment?.assigned_tutor_id)) {
+      return true;
+    }
+  }
+
+  if (options.studentId) {
+    try {
+      const student = await storage.getStudent(options.studentId);
+      if (isHeuristicSandboxStudent(student, options.tutorId || (enrollment as any)?.assigned_tutor_id)) {
+        return true;
+      }
+    } catch (err) {
+      console.error("Failed to resolve student for sandbox context:", err);
+    }
+  }
+
+  return false;
+}
+
 function studentMatchesEnrollmentSandboxBoundary(enrollment: any, student: any, tutorId?: string) {
   const sandboxEnrollment = isSandboxLikeEnrollment(enrollment, tutorId || enrollment?.assigned_tutor_id);
   const sandboxStudent = isHeuristicSandboxStudent(student, tutorId || enrollment?.assigned_tutor_id);
@@ -1565,6 +1604,7 @@ async function upsertMembershipMonth(options: {
   studentId: string;
   enrollmentId?: string | null;
   monthStartIso: string;
+  isSandbox?: boolean;
 }) {
   const monthKey = toMonthKey(options.monthStartIso);
   const nowIso = new Date().toISOString();
@@ -1575,6 +1615,7 @@ async function upsertMembershipMonth(options: {
     .eq("parent_id", options.parentId)
     .eq("student_id", options.studentId)
     .eq("month_key", monthKey)
+    .eq("is_sandbox", !!options.isSandbox)
     .maybeSingle();
 
   if (existing) return existing;
@@ -1591,6 +1632,7 @@ async function upsertMembershipMonth(options: {
       sessions_used: 0,
       sessions_remaining: MONTHLY_SESSION_QUOTA,
       status: "active",
+      is_sandbox: !!options.isSandbox,
       created_at: nowIso,
       updated_at: nowIso,
     })
@@ -1609,6 +1651,7 @@ async function recalculateMembershipMonthUsage(options: {
   parentId: string;
   studentId: string;
   monthStartIso: string;
+  isSandbox?: boolean;
 }) {
   const monthStart = options.monthStartIso.slice(0, 10);
   const nextMonthDate = new Date(options.monthStartIso);
@@ -1625,7 +1668,33 @@ async function recalculateMembershipMonthUsage(options: {
     .gte("scheduled_time", `${monthStart}T00:00:00.000Z`)
     .lt("scheduled_time", `${nextMonth}T00:00:00.000Z`);
 
-  const completedUsed = (completedSessions || []).length;
+  // Filter sessions by sandbox flag (resolve enrollment per session)
+  let completedUsed = 0;
+  for (const row of (completedSessions || [])) {
+    try {
+      const sessionEnrollmentId = await resolveEnrollmentIdForSession({ parent_id: options.parentId, student_id: options.studentId, id: row.id });
+      if (!sessionEnrollmentId) {
+        // No enrollment, count as production
+        completedUsed++;
+        continue;
+      }
+      const { data: linkedEnrollment } = await supabase
+        .from("parent_enrollments")
+        .select("id, is_sandbox_account, parent_email, current_step")
+        .eq("id", sessionEnrollmentId)
+        .maybeSingle();
+
+      const isSandbox = isSandboxPaymentEnrollment(linkedEnrollment);
+      if (!!options.isSandbox) {
+        if (isSandbox) completedUsed++;
+      } else {
+        if (!isSandbox) completedUsed++;
+      }
+    } catch (err) {
+      // On error, be conservative and count the session
+      completedUsed++;
+    }
+  }
 
   const { data: eventRows } = await supabase
     .from("session_billing_events")
@@ -1633,7 +1702,8 @@ async function recalculateMembershipMonthUsage(options: {
     .eq("parent_id", options.parentId)
     .eq("student_id", options.studentId)
     .gte("effective_at", `${monthStart}T00:00:00.000Z`)
-    .lt("effective_at", `${nextMonth}T00:00:00.000Z`);
+    .lt("effective_at", `${nextMonth}T00:00:00.000Z`)
+    .eq("is_sandbox", !!options.isSandbox);
 
   const eventUsed = (eventRows || []).reduce((sum: number, row: any) => {
     const delta = Number(row?.credits_delta || 0);
@@ -1653,6 +1723,7 @@ async function recalculateMembershipMonthUsage(options: {
     .eq("parent_id", options.parentId)
     .eq("student_id", options.studentId)
     .eq("month_key", toMonthKey(options.monthStartIso))
+    .eq("is_sandbox", !!options.isSandbox)
     .select("*")
     .maybeSingle();
 
@@ -1678,11 +1749,40 @@ async function recordSessionBillingEvent(options: {
   const monthStartIso = getMonthStartIso(effectiveAtIso);
   if (!monthStartIso) return null;
 
+  // detect whether this event should be marked as sandbox
+  let isSandboxEvent = false;
+  try {
+    if (options.enrollmentId) {
+      const { data: linkedEnrollment } = await supabase
+        .from("parent_enrollments")
+        .select("id, is_sandbox_account, parent_email, current_step, assigned_tutor_id")
+        .eq("id", options.enrollmentId)
+        .maybeSingle();
+
+      if (linkedEnrollment) {
+        isSandboxEvent = isSandboxLikeEnrollment(linkedEnrollment, linkedEnrollment.assigned_tutor_id);
+      } else {
+        isSandboxEvent = await resolveSandboxContextForParentStudent({
+          parentId: options.parentId,
+          studentId: options.studentId,
+        });
+      }
+    } else {
+      isSandboxEvent = await resolveSandboxContextForParentStudent({
+        parentId: options.parentId,
+        studentId: options.studentId,
+      });
+    }
+  } catch (err) {
+    console.error("Failed to resolve enrollment for sandbox detection:", err);
+  }
+
   await upsertMembershipMonth({
     parentId: options.parentId,
     studentId: options.studentId,
     enrollmentId: options.enrollmentId || null,
     monthStartIso,
+    isSandbox: isSandboxEvent,
   });
 
   const { error } = await supabase.from("session_billing_events").insert({
@@ -1698,6 +1798,7 @@ async function recordSessionBillingEvent(options: {
     reason_codes: options.reasonCodes || [],
     reason_note: options.reasonNote || null,
     metadata: options.metadata || {},
+    is_sandbox: isSandboxEvent,
     effective_at: effectiveAtIso,
     created_at: new Date().toISOString(),
   });
@@ -1711,6 +1812,7 @@ async function recordSessionBillingEvent(options: {
     parentId: options.parentId,
     studentId: options.studentId,
     monthStartIso,
+    isSandbox: isSandboxEvent,
   });
 }
 
@@ -1719,12 +1821,24 @@ async function getMonthlySessionQuotaSnapshot(options: { parentId: string; stude
   if (!monthStartIso) return null;
   const monthKey = toMonthKey(monthStartIso);
 
+  // detect whether this parent/student should use sandbox membership row
+  let isSandboxContext = false;
+  try {
+    isSandboxContext = await resolveSandboxContextForParentStudent({
+      parentId: options.parentId,
+      studentId: options.studentId,
+    });
+  } catch (err) {
+    console.error("Failed to resolve enrollment for sandbox context:", err);
+  }
+
   let { data: row } = await supabase
     .from("membership_months")
     .select("*")
     .eq("parent_id", options.parentId)
     .eq("student_id", options.studentId)
     .eq("month_key", monthKey)
+    .eq("is_sandbox", isSandboxContext)
     .maybeSingle();
 
   if (!row) {
@@ -1732,6 +1846,7 @@ async function getMonthlySessionQuotaSnapshot(options: { parentId: string; stude
       parentId: options.parentId,
       studentId: options.studentId,
       monthStartIso,
+      isSandbox: isSandboxContext,
     });
   }
 
@@ -1741,6 +1856,7 @@ async function getMonthlySessionQuotaSnapshot(options: { parentId: string; stude
     parentId: options.parentId,
     studentId: options.studentId,
     monthStartIso,
+    isSandbox: isSandboxContext,
   });
 
   return updated || row;
@@ -8572,13 +8688,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const nextMonthDate = new Date(monthStartIso);
           nextMonthDate.setUTCMonth(nextMonthDate.getUTCMonth() + 1);
           const nextMonth = nextMonthDate.toISOString().slice(0, 10);
+          const enrollmentIdForReschedule = await resolveEnrollmentIdForSession(session);
+          let isSandboxReschedule = false;
+          try {
+            if (enrollmentIdForReschedule) {
+              const { data: linkedEnrollment } = await supabase
+                .from("parent_enrollments")
+                .select("id, is_sandbox_account, parent_email, current_step")
+                .eq("id", enrollmentIdForReschedule)
+                .maybeSingle();
+              isSandboxReschedule = isSandboxPaymentEnrollment(linkedEnrollment);
+            }
+          } catch (err) {
+            console.error("Failed to resolve enrollment for reschedule sandbox check:", err);
+          }
+
           const { data: rescheduleEvents } = await supabase
             .from("session_billing_events")
             .select("id")
             .eq("session_id", String(sessionId))
             .eq("event_type", "reschedule_tutor")
             .gte("effective_at", `${monthStart}T00:00:00.000Z`)
-            .lt("effective_at", `${nextMonth}T00:00:00.000Z`);
+            .lt("effective_at", `${nextMonth}T00:00:00.000Z`)
+            .eq("is_sandbox", isSandboxReschedule);
           if ((rescheduleEvents || []).length >= RESCHEDULE_LIMIT_PER_SESSION_PER_MONTH) {
             return res.status(409).json({
               message: `This session has reached the ${RESCHEDULE_LIMIT_PER_SESSION_PER_MONTH} reschedule limit for the month. COO override is required.`,
@@ -9468,13 +9600,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const nextMonthDate = new Date(monthStartIso);
         nextMonthDate.setUTCMonth(nextMonthDate.getUTCMonth() + 1);
         const nextMonth = nextMonthDate.toISOString().slice(0, 10);
+        const enrollmentIdForReschedule = await resolveEnrollmentIdForSession(session);
+        let isSandboxReschedule = false;
+        try {
+          if (enrollmentIdForReschedule) {
+            const { data: linkedEnrollment } = await supabase
+              .from("parent_enrollments")
+              .select("id, is_sandbox_account, parent_email, current_step")
+              .eq("id", enrollmentIdForReschedule)
+              .maybeSingle();
+            isSandboxReschedule = isSandboxPaymentEnrollment(linkedEnrollment);
+          }
+        } catch (err) {
+          console.error("Failed to resolve enrollment for reschedule sandbox check:", err);
+        }
+
         const { data: rescheduleEvents } = await supabase
           .from("session_billing_events")
           .select("id")
           .eq("session_id", String(sessionId))
           .eq("event_type", "reschedule_parent")
           .gte("effective_at", `${monthStart}T00:00:00.000Z`)
-          .lt("effective_at", `${nextMonth}T00:00:00.000Z`);
+          .lt("effective_at", `${nextMonth}T00:00:00.000Z`)
+          .eq("is_sandbox", isSandboxReschedule);
         if ((rescheduleEvents || []).length >= RESCHEDULE_LIMIT_PER_SESSION_PER_MONTH) {
           return res.status(409).json({
             message: `This session has reached the ${RESCHEDULE_LIMIT_PER_SESSION_PER_MONTH} reschedule limit for the month. COO override is required.`,
