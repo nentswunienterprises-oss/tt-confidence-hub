@@ -74,7 +74,7 @@ function formatTutorGradeLabel(grade) {
 
 function formatStudentGender(rawValue) {
   const value = String(rawValue || "").trim().toLowerCase();
-  if (!value) return "Unknown";
+  if (!value) return null;
   if (value === "m" || value === "male") return "Male";
   if (value === "f" || value === "female") return "Female";
   if (value === "nonbinary" || value === "non-binary" || value === "nb") return "Non-binary";
@@ -83,11 +83,18 @@ function formatStudentGender(rawValue) {
 
 function resolveStudentSchool(student) {
   return (
-    student?.school ||
-    student?.schoolName ||
-    student?.school_name ||
     student?.personalProfile?.school ||
-    "Unknown"
+    student?.parentInfo?.school_name ||
+    student?.parentInfo?.schoolName ||
+    null
+  );
+}
+
+function resolveStudentGender(student) {
+  return (
+    formatStudentGender(student?.personalProfile?.gender) ||
+    formatStudentGender(student?.parentInfo?.student_gender) ||
+    null
   );
 }
 
@@ -906,13 +913,13 @@ export function StudentCard({
               <div>
                 <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">School</p>
                 <p className="mt-1 text-sm font-medium text-foreground">
-                  {resolveStudentSchool(student)}
+                  {resolveStudentSchool(student) || "Not captured"}
                 </p>
               </div>
               <div>
                 <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Gender</p>
                 <p className="mt-1 text-sm font-medium text-foreground">
-                  {formatStudentGender(student.gender || student.personalProfile?.gender)}
+                  {resolveStudentGender(student) || "Not captured"}
                 </p>
               </div>
             </div>
