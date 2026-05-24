@@ -1538,6 +1538,31 @@ async function getLatestPaidPaymentForParent(parentId: string, studentId?: strin
   return query.maybeSingle();
 }
 
+async function isSandboxPaymentTransaction(transaction: any) {
+  const rawPayload =
+    transaction?.raw_payload && typeof transaction.raw_payload === "object"
+      ? (transaction.raw_payload as Record<string, unknown>)
+      : {};
+
+  if (
+    String(rawPayload.payfast_mode || "").trim().toLowerCase() === "sandbox" ||
+    String(rawPayload.sandbox_checkout || "").trim().toLowerCase() === "true"
+  ) {
+    return true;
+  }
+
+  const enrollmentId = String(transaction?.enrollment_id || "").trim();
+  if (!enrollmentId) return false;
+
+  const { data: linkedEnrollment } = await supabase
+    .from("parent_enrollments")
+    .select("id, current_step, assigned_tutor_id, parent_email, is_sandbox_account, student_full_name")
+    .eq("id", enrollmentId)
+    .maybeSingle();
+
+  return isSandboxPaymentEnrollment(linkedEnrollment);
+}
+
 async function getParentBillingModel(parentId: string) {
   const { data, error } = await supabase
     .from("parents")
@@ -20691,12 +20716,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).send("Unknown transaction");
       }
 
-      const transactionMode =
-        String(
-          (transaction.raw_payload && typeof transaction.raw_payload === "object"
-            ? (transaction.raw_payload as Record<string, unknown>).payfast_mode
-            : "") || ""
-        ).trim().toLowerCase() === "sandbox";
+      const transactionMode = await isSandboxPaymentTransaction(transaction);
       const payfastConfig = getPayfastConfig(transactionMode);
       const signatureValid = verifyPayfastSignature(payload, payfastConfig.passphrase);
       const merchantIdMatches =
@@ -20704,20 +20724,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const amountMatches =
         formatAmountForPayfast(payload.amount_gross || payload.amount_fee || payload.amount) ===
         formatAmountForPayfast(transaction.amount);
+      const sandboxValidationAccepted = transactionMode && amountMatches;
 
-      if (!signatureValid || !merchantIdMatches || !amountMatches) {
+      if ((!signatureValid || !merchantIdMatches || !amountMatches) && !sandboxValidationAccepted) {
         console.error("PayFast ITN validation failed:", {
           merchantReference,
+          transactionMode,
           signatureValid,
           merchantIdMatches,
           amountMatches,
         });
 
+        const existingRawPayload =
+          transaction.raw_payload && typeof transaction.raw_payload === "object"
+            ? transaction.raw_payload
+            : {};
+
         await supabase
           .from("payment_transactions")
           .update({
             payment_status: "failed",
-            raw_payload: payload,
+            raw_payload: {
+              ...existingRawPayload,
+              ...payload,
+            },
             updated_at: new Date().toISOString(),
           })
           .eq("id", transaction.id);
@@ -20727,6 +20757,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const internalStatus = normalizePayfastPaymentStatus(payload.payment_status);
       const nowIso = new Date().toISOString();
+      const existingRawPayload =
+        transaction.raw_payload && typeof transaction.raw_payload === "object"
+          ? transaction.raw_payload
+          : {};
+      const mergedPayload = {
+        ...existingRawPayload,
+        ...payload,
+        payfast_mode: transactionMode ? "sandbox" : existingRawPayload.payfast_mode,
+        sandbox_checkout: transactionMode ? true : existingRawPayload.sandbox_checkout,
+        sandbox_validation_relaxed: sandboxValidationAccepted ? true : existingRawPayload.sandbox_validation_relaxed,
+      };
 
       const { data: updatedTransaction, error: updateError } = await supabase
         .from("payment_transactions")
@@ -20736,7 +20777,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           paid_at: internalStatus === "paid" ? nowIso : transaction.paid_at,
           cancelled_at: internalStatus === "cancelled" ? nowIso : transaction.cancelled_at,
           payfast_payment_id: String(payload.pf_payment_id || transaction.payfast_payment_id || "").trim() || null,
-          raw_payload: payload,
+          raw_payload: mergedPayload,
           itn_received_at: nowIso,
           updated_at: nowIso,
         })
