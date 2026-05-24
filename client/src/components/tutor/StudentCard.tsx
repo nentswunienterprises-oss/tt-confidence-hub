@@ -1122,6 +1122,7 @@ function PreSessionIntelligenceSummary({
   collapsible = true,
 }) {
   const [collapsed, setCollapsed] = useState(collapsible);
+  const [showDetails, setShowDetails] = useState(false);
 
   const visibleTopics = reportedTopics.slice(0, compact ? 3 : 4);
   const visibleSymptoms =
@@ -1210,6 +1211,19 @@ function PreSessionIntelligenceSummary({
         <p className="text-xs text-muted-foreground">{trimRationaleSignals(recommendedStartingReason)}</p>
       ) : null}
 
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => setShowDetails((v) => !v)}
+          className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/20 px-3 py-1 text-sm font-medium text-foreground transition hover:bg-muted"
+        >
+          {showDetails ? "Hide details" : "Show details"}
+          {showDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </button>
+      </div>
+
+      {showDetails ? (
+        <div className="mt-3">
           <DetailedPreSessionIntelligence
             reportedTopics={reportedTopics}
             symptomSignals={symptomSignals}
@@ -1223,6 +1237,8 @@ function PreSessionIntelligenceSummary({
             hideSectionTitle
             collapsible={false}
           />
+        </div>
+      ) : null}
 
         </>
       ) : null}
