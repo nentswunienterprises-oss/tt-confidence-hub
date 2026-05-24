@@ -132,7 +132,6 @@ function getWorkflowLabel(workflow) {
   if (!workflow.introConfirmed) return "Intro Booking";
   if (!workflow.introCompleted) return "Intro Confirmed";
   if (workflow.proposalAccepted && workflow.introCompleted) return "Active Training";
-  if (!workflow.identitySaved) return "Identity Sheet";
   if (!workflow.proposalSent) return "Proposal Draft";
   if (!workflow.proposalAccepted) return "Awaiting Parent";
   return "Active Training";
@@ -796,17 +795,6 @@ export function StudentCard({
 
         {workflow?.proposalAccepted && !handoverVerificationActive && (
           <div className="pt-4 border-t border-border/60 space-y-3">
-            <DetailedPreSessionIntelligence
-              reportedTopics={reportedTopics}
-              symptomSignals={symptomSignals}
-              topicIntelligence={topicIntelligence}
-              suggestedTopic={suggestedTopic}
-              suggestedSymptoms={suggestedSymptoms}
-              responseSignalBreakdown={responseSignalBreakdown}
-              recommendedStartingPhase={recommendedStartingPhase}
-              recommendedStartingReason={recommendedStartingReason}
-              secondarySignal={secondarySignal}
-            />
             <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Systems</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <Button
