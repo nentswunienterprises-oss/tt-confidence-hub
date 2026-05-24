@@ -707,12 +707,7 @@ export function StudentCard({
             </p>
             <PreSessionIntelligenceSummary
               reportedTopics={reportedTopics}
-              symptomSignals={symptomSignals}
               topicIntelligence={topicIntelligence}
-              suggestedTopic={suggestedTopic}
-              suggestedSymptoms={suggestedSymptoms}
-              recommendedStartingPhase={recommendedStartingPhase}
-              recommendedStartingReason={recommendedStartingReason}
             />
             <Button
               className="w-full"
@@ -737,12 +732,7 @@ export function StudentCard({
           <>
             <PreSessionIntelligenceSummary
               reportedTopics={reportedTopics}
-              symptomSignals={symptomSignals}
               topicIntelligence={topicIntelligence}
-              suggestedTopic={suggestedTopic}
-              suggestedSymptoms={suggestedSymptoms}
-              recommendedStartingPhase={recommendedStartingPhase}
-              recommendedStartingReason={recommendedStartingReason}
             />
             <TutorIntroSessionActions
               studentId={student.id}
@@ -783,14 +773,7 @@ export function StudentCard({
           <>
             <PreSessionIntelligenceSummary
               reportedTopics={reportedTopics}
-              symptomSignals={symptomSignals}
               topicIntelligence={topicIntelligence}
-              suggestedTopic={suggestedTopic}
-              suggestedSymptoms={suggestedSymptoms}
-              responseSignalBreakdown={responseSignalBreakdown}
-              recommendedStartingPhase={recommendedStartingPhase}
-              recommendedStartingReason={recommendedStartingReason}
-              secondarySignal={secondarySignal}
             />
             <Button
               className="w-full"
@@ -811,14 +794,7 @@ export function StudentCard({
           <>
             <PreSessionIntelligenceSummary
               reportedTopics={reportedTopics}
-              symptomSignals={symptomSignals}
               topicIntelligence={topicIntelligence}
-              suggestedTopic={suggestedTopic}
-              suggestedSymptoms={suggestedSymptoms}
-              responseSignalBreakdown={responseSignalBreakdown}
-              recommendedStartingPhase={recommendedStartingPhase}
-              recommendedStartingReason={recommendedStartingReason}
-              secondarySignal={secondarySignal}
             />
             <p className="text-xs text-muted-foreground text-center">
               Proposal sent. Waiting for parent acceptance to unlock systems.
@@ -902,12 +878,7 @@ export function StudentCard({
           </div>
           <PreSessionIntelligenceSummary
             reportedTopics={reportedTopics}
-            symptomSignals={symptomSignals}
             topicIntelligence={topicIntelligence}
-            suggestedTopic={suggestedTopic}
-            suggestedSymptoms={suggestedSymptoms}
-            recommendedStartingPhase={recommendedStartingPhase}
-            recommendedStartingReason={recommendedStartingReason}
             compact
           />
           <DialogFooter className="gap-2 sm:gap-0">
@@ -1101,30 +1072,14 @@ function HandoverVerificationSection({
 
 function PreSessionIntelligenceSummary({
   reportedTopics,
-  symptomSignals,
   topicIntelligence,
-  suggestedTopic,
-  suggestedSymptoms,
-  responseSignalBreakdown = [],
-  recommendedStartingPhase,
-  recommendedStartingReason,
-  secondarySignal,
   compact = false,
   collapsible = true,
 }) {
   const [collapsed, setCollapsed] = useState(collapsible);
-  const [showDetails, setShowDetails] = useState(false);
-
-  const visibleTopics = reportedTopics.slice(0, compact ? 3 : 4);
-  const visibleSymptoms =
-    topicIntelligence[0]?.symptoms?.length > 0
-      ? topicIntelligence[0].symptoms.slice(0, compact ? 4 : 6)
-      : suggestedSymptoms.slice(0, compact ? 4 : 6);
 
   const hasSignals =
-    visibleTopics.length > 0 ||
-    visibleSymptoms.length > 0 ||
-    symptomSignals.length > 0 ||
+    reportedTopics.length > 0 ||
     topicIntelligence.length > 0;
 
   if (!hasSignals) {
@@ -1152,77 +1107,57 @@ function PreSessionIntelligenceSummary({
       </div>
 
       {!collapsed ? (
-        <>
-          {visibleTopics.length > 0 ? (
-            <div className="space-y-1">
-              <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Topics</p>
-              <div className="flex flex-wrap gap-1.5">
-                {visibleTopics.map((topic) => (
-                  <Badge
-                    key={topic}
-                    variant="outline"
-                    className="max-w-full whitespace-normal break-words text-left leading-snug text-[10px] border-primary/20 bg-background/70 text-foreground"
-                  >
-                    {topic}
-                  </Badge>
+        <div className="space-y-3">
+          <div className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-2">
+            <p className="text-[11px] font-medium text-foreground">Parent-Reported Topics</p>
+            {reportedTopics.length > 0 ? (
+              <ul className="text-xs text-muted-foreground space-y-1">
+                {reportedTopics.map((topic) => (
+                  <li key={topic}>{topic}</li>
                 ))}
-              </div>
+              </ul>
+            ) : (
+              <p className="text-xs text-muted-foreground">No specific topics listed by parent.</p>
+            )}
+          </div>
+
+          {topicIntelligence.length > 0 ? (
+            <div className="space-y-3">
+              {topicIntelligence.map((entry) => (
+                <div key={entry.topic} className="rounded-lg border border-primary/15 bg-background/80 px-3 py-2">
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Topic</p>
+                      <p className="mt-1 text-sm font-medium text-foreground">{entry.topic}</p>
+                    </div>
+
+                    {entry.symptoms.length > 0 ? (
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Symptoms</p>
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                          {entry.symptoms.map((symptom) => (
+                            <Badge
+                              key={`${entry.topic}-${symptom}`}
+                              variant="outline"
+                              className="max-w-full whitespace-normal break-words text-left leading-snug text-[10px] border-primary/20 bg-background/70 text-foreground"
+                            >
+                              {symptom}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Starting Phase</p>
+                      <p className="mt-1 text-sm font-medium text-foreground">{entry.recommendedStartingPhase}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : null}
-
-      {visibleSymptoms.length > 0 ? (
-        <div className="space-y-1">
-          <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Symptoms</p>
-          <div className="flex flex-wrap gap-1.5">
-            {visibleSymptoms.map((symptom) => (
-              <Badge
-                key={symptom}
-                variant="outline"
-                className="max-w-full whitespace-normal break-words text-left leading-snug text-[10px] border-primary/20 bg-background/70 text-foreground"
-              >
-                {symptom}
-              </Badge>
-            ))}
-          </div>
         </div>
-      ) : null}
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        <div className="rounded-lg border border-primary/15 bg-background/80 px-3 py-2">
-          <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Start With</p>
-          <p className="mt-1 text-sm font-medium text-foreground">{suggestedTopic}</p>
-        </div>
-        <div className="rounded-lg border border-primary/15 bg-background/80 px-3 py-2">
-          <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Suggested Phase</p>
-          <p className="mt-1 text-sm font-medium text-foreground">{recommendedStartingPhase}</p>
-        </div>
-      </div>
-
-      {!compact ? (
-        <p className="text-xs text-muted-foreground">{trimRationaleSignals(recommendedStartingReason)}</p>
-      ) : null}
-
-      <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={() => setShowDetails((v) => !v)}
-          className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/20 px-3 py-1 text-sm font-medium text-foreground transition hover:bg-muted"
-        >
-          {showDetails ? "Hide details" : "Show details"}
-          {showDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-        </button>
-      </div>
-
-      {showDetails ? (
-        <div className="mt-3">
-          <DetailedPreSessionIntelligence
-            reportedTopics={reportedTopics}
-            topicIntelligence={topicIntelligence}
-          />
-        </div>
-      ) : null}
-
-        </>
       ) : null}
     </div>
   );
