@@ -815,6 +815,7 @@ export function StudentCard({
 
         {workflow?.proposalAccepted && !handoverVerificationActive && (
           <>
+            <PreSessionIntelligenceSection />
             <div className="pt-4 border-t border-border/60 space-y-3">
               <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Systems</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
