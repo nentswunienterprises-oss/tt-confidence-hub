@@ -1516,7 +1516,8 @@ export default function StudentTopicConditioningDialog({
                             <p className="text-xs text-muted-foreground">No topic-specific symptoms captured.</p>
                           )}
                         </div>
-                    ))}
+                                );
+                              })}
                   </div>
                 </div>
               ) : null}
