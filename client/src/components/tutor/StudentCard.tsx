@@ -184,24 +184,23 @@ export function StudentCard({
   const [preSessionIntelligenceCollapsed, setPreSessionIntelligenceCollapsed] = useState(false);
 
   const PreSessionIntelligenceSection = () => (
-    <div className="pt-4 border-t border-border/60">
-      <div className="flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-muted/20 px-4 py-3">
-        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
-          Pre-Session Intelligence
+    <div className="pt-4 border-t border-border/60 space-y-3">
+      <div className="rounded-xl border border-border/60 bg-muted/20 p-4">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+            Pre-Session Intelligence
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPreSessionIntelligenceCollapsed((prev) => !prev)}
+          >
+            {preSessionIntelligenceCollapsed ? "Show details" : "Hide details"}
+          </Button>
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Use this button to collapse or expand the full Pre-Session Intelligence section.
         </p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setPreSessionIntelligenceCollapsed((prev) => !prev)}
-          className="inline-flex items-center gap-2"
-        >
-          {preSessionIntelligenceCollapsed ? "Show details" : "Hide details"}
-          {preSessionIntelligenceCollapsed ? (
-            <ChevronDown className="h-4 w-4" />
-          ) : (
-            <ChevronUp className="h-4 w-4" />
-          )}
-        </Button>
       </div>
       {!preSessionIntelligenceCollapsed && (
         <div className="space-y-3 p-4">
@@ -1180,17 +1179,38 @@ function DetailedPreSessionIntelligence({
   recommendedStartingReason,
   secondarySignal,
   hideSectionTitle = false,
+  collapsible = false,
 }) {
   const [showResponseSignalBreakdown, setShowResponseSignalBreakdown] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <div className="space-y-3 mb-2">
-      {!hideSectionTitle && (
-        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Pre-Session Intelligence</p>
-      )}
-
-      <div className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-2">
-        <p className="text-[11px] font-medium text-foreground">Parent-Reported Topics</p>
+      <div className="flex items-center justify-between gap-3">
+        {!hideSectionTitle ? (
+          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Pre-Session Intelligence</p>
+        ) : (
+          <span />
+        )}
+        {collapsible ? (
+          <button
+            type="button"
+            onClick={() => setCollapsed((prev) => !prev)}
+            className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/20 px-3 py-1 text-sm font-medium text-foreground transition hover:bg-muted"
+          >
+            {collapsed ? "Show details" : "Hide details"}
+            {collapsed ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronUp className="h-4 w-4" />
+            )}
+          </button>
+        ) : null}
+      </div>
+      {!collapsed && (
+        <>
+          <div className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-2">
+            <p className="text-[11px] font-medium text-foreground">Parent-Reported Topics</p>
         {reportedTopics.length > 0 ? (
           <ul className="text-xs text-muted-foreground space-y-1">
             {reportedTopics.slice(0, 4).map((topic) => (
@@ -1316,7 +1336,8 @@ function DetailedPreSessionIntelligence({
             Start at <span className="font-medium">{recommendedStartingPhase}</span>, but let adaptive diagnosis verify it. Do not treat this recommendation as final placement.
           </p>
         </div>
-      </div>
+</>
+      )}
     </div>
   );
 }
