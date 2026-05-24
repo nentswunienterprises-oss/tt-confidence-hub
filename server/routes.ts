@@ -1507,6 +1507,20 @@ async function getLatestPaymentForEnrollment(enrollmentId: string) {
   return { data, error };
 }
 
+async function getLatestPaidPaymentForEnrollment(enrollmentId: string) {
+  const { data, error } = await supabase
+    .from("payment_transactions")
+    .select("*")
+    .eq("enrollment_id", enrollmentId)
+    .eq("provider", PAYMENT_PROVIDER_PAYFAST)
+    .eq("payment_status", "paid")
+    .order("paid_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return { data, error };
+}
+
 async function getLatestPaidPaymentForParent(parentId: string, studentId?: string | null) {
   let query = supabase
     .from("payment_transactions")
@@ -19212,9 +19226,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      const { data: latestPayment } = await getLatestPaymentForEnrollment(String(enrollmentData.id));
+      let { data: latestPayment } = await getLatestPaymentForEnrollment(String(enrollmentData.id));
       enrollmentDebug.latestPaymentId = latestPayment?.id || null;
       enrollmentDebug.latestPaymentStatus = latestPayment?.payment_status || null;
+
+      if (String(status) === "proposal_sent") {
+        const { data: latestPaidPayment, error: latestPaidPaymentError } = await getLatestPaidPaymentForEnrollment(
+          String(enrollmentData.id),
+        );
+
+        if (latestPaidPaymentError) {
+          console.error("Failed to resolve paid payment for proposal finalization:", latestPaidPaymentError);
+          enrollmentDebug.latestPaidPaymentError = String(latestPaidPaymentError.message || latestPaidPaymentError);
+        } else if (latestPaidPayment) {
+          try {
+            const finalized = await finalizeAcceptedProposalFromPayment(latestPaidPayment);
+            latestPayment = latestPaidPayment;
+            status = finalized.status;
+            effectiveStep = finalized.status;
+            enrollmentDebug.autoFinalizedFromPaidPayment = true;
+            enrollmentDebug.latestPaymentId = latestPaidPayment.id || enrollmentDebug.latestPaymentId;
+            enrollmentDebug.latestPaymentStatus = latestPaidPayment.payment_status || enrollmentDebug.latestPaymentStatus;
+          } catch (finalizationError) {
+            console.error("Failed to auto-finalize paid proposal from enrollment status:", finalizationError);
+            enrollmentDebug.autoFinalizationError =
+              finalizationError instanceof Error ? finalizationError.message : String(finalizationError);
+          }
+        }
+      }
 
       res.json({
         status,
