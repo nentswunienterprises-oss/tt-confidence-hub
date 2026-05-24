@@ -270,15 +270,10 @@ function isSandboxPaymentEnrollment(enrollment: any) {
 }
 
 function getPayfastConfig(useSandbox: boolean) {
-  const merchantId = useSandbox
-    ? String(process.env.PAYFAST_SANDBOX_MERCHANT_ID || "").trim()
-    : String(process.env.PAYFAST_MERCHANT_ID || "").trim();
-  const merchantKey = useSandbox
-    ? String(process.env.PAYFAST_SANDBOX_MERCHANT_KEY || "").trim()
-    : String(process.env.PAYFAST_MERCHANT_KEY || "").trim();
-  const passphrase = useSandbox
-    ? String(process.env.PAYFAST_SANDBOX_PASSPHRASE || "").trim()
-    : String(process.env.PAYFAST_PASSPHRASE || "").trim();
+  // PayFast uses same credentials for both sandbox and live; only endpoint URL differs
+  const merchantId = String(process.env.PAYFAST_MERCHANT_ID || "").trim();
+  const merchantKey = String(process.env.PAYFAST_MERCHANT_KEY || "").trim();
+  const passphrase = String(process.env.PAYFAST_PASSPHRASE || "").trim();
 
   return {
     merchantId,
