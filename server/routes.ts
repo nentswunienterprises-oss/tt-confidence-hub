@@ -1538,6 +1538,276 @@ async function getLatestPaidPaymentForParent(parentId: string, studentId?: strin
   return query.maybeSingle();
 }
 
+const MONTHLY_SESSION_QUOTA = 8;
+const RESCHEDULE_LIMIT_PER_SESSION_PER_MONTH = 3;
+const CANCELLATION_CUTOFF_HOURS = 12;
+
+function getMonthStartIso(input: string | Date) {
+  const date = input instanceof Date ? new Date(input) : new Date(input);
+  if (Number.isNaN(date.getTime())) return null;
+  const year = date.getUTCFullYear();
+  const month = date.getUTCMonth();
+  return new Date(Date.UTC(year, month, 1)).toISOString();
+}
+
+function toMonthKey(monthStartIso: string) {
+  return monthStartIso.slice(0, 10);
+}
+
+function toIsoDateTime(value: unknown) {
+  const parsed = new Date(String(value || ""));
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed.toISOString();
+}
+
+async function upsertMembershipMonth(options: {
+  parentId: string;
+  studentId: string;
+  enrollmentId?: string | null;
+  monthStartIso: string;
+}) {
+  const monthKey = toMonthKey(options.monthStartIso);
+  const nowIso = new Date().toISOString();
+
+  const { data: existing } = await supabase
+    .from("membership_months")
+    .select("*")
+    .eq("parent_id", options.parentId)
+    .eq("student_id", options.studentId)
+    .eq("month_key", monthKey)
+    .maybeSingle();
+
+  if (existing) return existing;
+
+  const { data: inserted, error } = await supabase
+    .from("membership_months")
+    .insert({
+      parent_id: options.parentId,
+      student_id: options.studentId,
+      enrollment_id: options.enrollmentId || null,
+      month_start: monthKey,
+      month_key: monthKey,
+      session_quota: MONTHLY_SESSION_QUOTA,
+      sessions_used: 0,
+      sessions_remaining: MONTHLY_SESSION_QUOTA,
+      status: "active",
+      created_at: nowIso,
+      updated_at: nowIso,
+    })
+    .select("*")
+    .maybeSingle();
+
+  if (error) {
+    console.error("Failed to upsert membership month:", error);
+    return null;
+  }
+
+  return inserted;
+}
+
+async function recalculateMembershipMonthUsage(options: {
+  parentId: string;
+  studentId: string;
+  monthStartIso: string;
+}) {
+  const monthStart = options.monthStartIso.slice(0, 10);
+  const nextMonthDate = new Date(options.monthStartIso);
+  nextMonthDate.setUTCMonth(nextMonthDate.getUTCMonth() + 1);
+  const nextMonth = nextMonthDate.toISOString().slice(0, 10);
+
+  const { data: completedSessions } = await supabase
+    .from("scheduled_sessions")
+    .select("id")
+    .eq("parent_id", options.parentId)
+    .eq("student_id", options.studentId)
+    .eq("type", "training")
+    .eq("status", "completed")
+    .gte("scheduled_time", `${monthStart}T00:00:00.000Z`)
+    .lt("scheduled_time", `${nextMonth}T00:00:00.000Z`);
+
+  const completedUsed = (completedSessions || []).length;
+
+  const { data: eventRows } = await supabase
+    .from("session_billing_events")
+    .select("credits_delta")
+    .eq("parent_id", options.parentId)
+    .eq("student_id", options.studentId)
+    .gte("effective_at", `${monthStart}T00:00:00.000Z`)
+    .lt("effective_at", `${nextMonth}T00:00:00.000Z`);
+
+  const eventUsed = (eventRows || []).reduce((sum: number, row: any) => {
+    const delta = Number(row?.credits_delta || 0);
+    return sum + (delta > 0 ? delta : 0);
+  }, 0);
+
+  const used = Math.max(0, Math.min(MONTHLY_SESSION_QUOTA, completedUsed + eventUsed));
+  const remaining = Math.max(0, MONTHLY_SESSION_QUOTA - used);
+
+  const { data: updated } = await supabase
+    .from("membership_months")
+    .update({
+      sessions_used: used,
+      sessions_remaining: remaining,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("parent_id", options.parentId)
+    .eq("student_id", options.studentId)
+    .eq("month_key", toMonthKey(options.monthStartIso))
+    .select("*")
+    .maybeSingle();
+
+  return updated;
+}
+
+async function recordSessionBillingEvent(options: {
+  sessionId: string;
+  parentId: string;
+  studentId: string;
+  enrollmentId?: string | null;
+  eventType: string;
+  actorRole: "parent" | "tutor" | "system";
+  actorId: string;
+  billingImpact: "none" | "consume" | "restore";
+  creditsDelta: number;
+  reasonCodes?: string[];
+  reasonNote?: string | null;
+  metadata?: Record<string, unknown>;
+  effectiveAtIso?: string | null;
+}) {
+  const effectiveAtIso = options.effectiveAtIso || new Date().toISOString();
+  const monthStartIso = getMonthStartIso(effectiveAtIso);
+  if (!monthStartIso) return null;
+
+  await upsertMembershipMonth({
+    parentId: options.parentId,
+    studentId: options.studentId,
+    enrollmentId: options.enrollmentId || null,
+    monthStartIso,
+  });
+
+  const { error } = await supabase.from("session_billing_events").insert({
+    session_id: options.sessionId,
+    parent_id: options.parentId,
+    student_id: options.studentId,
+    enrollment_id: options.enrollmentId || null,
+    event_type: options.eventType,
+    actor_role: options.actorRole,
+    actor_id: options.actorId,
+    billing_impact: options.billingImpact,
+    credits_delta: options.creditsDelta,
+    reason_codes: options.reasonCodes || [],
+    reason_note: options.reasonNote || null,
+    metadata: options.metadata || {},
+    effective_at: effectiveAtIso,
+    created_at: new Date().toISOString(),
+  });
+
+  if (error) {
+    console.error("Failed to record session billing event:", error);
+    return null;
+  }
+
+  return recalculateMembershipMonthUsage({
+    parentId: options.parentId,
+    studentId: options.studentId,
+    monthStartIso,
+  });
+}
+
+async function getMonthlySessionQuotaSnapshot(options: { parentId: string; studentId: string; referenceIso?: string | null }) {
+  const monthStartIso = getMonthStartIso(options.referenceIso || new Date().toISOString());
+  if (!monthStartIso) return null;
+  const monthKey = toMonthKey(monthStartIso);
+
+  let { data: row } = await supabase
+    .from("membership_months")
+    .select("*")
+    .eq("parent_id", options.parentId)
+    .eq("student_id", options.studentId)
+    .eq("month_key", monthKey)
+    .maybeSingle();
+
+  if (!row) {
+    row = await upsertMembershipMonth({
+      parentId: options.parentId,
+      studentId: options.studentId,
+      monthStartIso,
+    });
+  }
+
+  if (!row) return null;
+
+  const updated = await recalculateMembershipMonthUsage({
+    parentId: options.parentId,
+    studentId: options.studentId,
+    monthStartIso,
+  });
+
+  return updated || row;
+}
+
+async function resolveEnrollmentIdForSession(session: any) {
+  const parentId = String(session?.parent_id || "").trim();
+  const tutorId = String(session?.tutor_id || "").trim();
+  const studentId = String(session?.student_id || "").trim();
+  if (!parentId) return null;
+
+  let enrollmentQuery = supabase
+    .from("parent_enrollments")
+    .select("id")
+    .eq("user_id", parentId)
+    .order("updated_at", { ascending: false })
+    .limit(1);
+
+  if (tutorId) enrollmentQuery = enrollmentQuery.eq("assigned_tutor_id", tutorId);
+  if (studentId) enrollmentQuery = enrollmentQuery.eq("assigned_student_id", studentId);
+
+  const { data } = await enrollmentQuery.maybeSingle();
+  return data?.id || null;
+}
+
+function classifyCancellationBillingImpact(options: {
+  actorRole: "parent" | "tutor";
+  scheduledTimeIso?: string | null;
+  nowIso?: string | null;
+}) {
+  const scheduledAt = toIsoDateTime(options.scheduledTimeIso);
+  const nowIso = options.nowIso || new Date().toISOString();
+  const now = new Date(nowIso).getTime();
+  const scheduled = scheduledAt ? new Date(scheduledAt).getTime() : null;
+
+  if (!scheduled) {
+    return {
+      eventType: "cancelled_unknown_timing",
+      impact: "none" as const,
+      creditsDelta: 0,
+    };
+  }
+
+  if (now >= scheduled) {
+    return {
+      eventType: options.actorRole === "parent" ? "no_show_parent" : "no_show_tutor",
+      impact: options.actorRole === "parent" ? ("consume" as const) : ("restore" as const),
+      creditsDelta: options.actorRole === "parent" ? 1 : 0,
+    };
+  }
+
+  const diffHours = (scheduled - now) / (1000 * 60 * 60);
+  if (diffHours < CANCELLATION_CUTOFF_HOURS) {
+    return {
+      eventType: options.actorRole === "parent" ? "cancelled_late_parent" : "cancelled_late_tutor",
+      impact: options.actorRole === "parent" ? ("consume" as const) : ("none" as const),
+      creditsDelta: options.actorRole === "parent" ? 1 : 0,
+    };
+  }
+
+  return {
+    eventType: options.actorRole === "parent" ? "cancelled_early_parent" : "cancelled_early_tutor",
+    impact: "none" as const,
+    creditsDelta: 0,
+  };
+}
+
 async function isSandboxPaymentTransaction(transaction: any) {
   const rawPayload =
     transaction?.raw_payload && typeof transaction.raw_payload === "object"
@@ -8133,9 +8403,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const { studentId, sessionId } = req.params;
         const tutorId = (req as any).dbUser.id;
-        const { action, scheduledStart } = req.body as {
+        const { action, scheduledStart, reasonCodes, reasonNote } = req.body as {
           action?: "confirm" | "reschedule" | "cancel";
           scheduledStart?: string;
+          reasonCodes?: string[];
+          reasonNote?: string;
         };
         const timezone = String(req.body?.timezone || "Africa/Johannesburg");
         const student = await storage.getStudent(studentId);
@@ -8189,6 +8461,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         if (action === "cancel") {
+          const normalizedReasonCodes = Array.isArray(reasonCodes)
+            ? reasonCodes.map((item) => String(item || "").trim()).filter(Boolean)
+            : [];
+          if (normalizedReasonCodes.length === 0) {
+            return res.status(400).json({ message: "At least one cancellation reason is required." });
+          }
+
           if (["completed", "live", "cancelled", "flagged"].includes(String(session.status || ""))) {
             return res.status(400).json({ message: "This training session can no longer be cancelled" });
           }
@@ -8216,6 +8495,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return res.status(500).json({ message: "Failed to cancel training session" });
           }
 
+          const enrollmentId = await resolveEnrollmentIdForSession(session);
+          const cancellationImpact = classifyCancellationBillingImpact({
+            actorRole: "tutor",
+            scheduledTimeIso: session.scheduled_time,
+          });
+          const monthlyQuota = await recordSessionBillingEvent({
+            sessionId: String(sessionId),
+            parentId: String(session.parent_id || ""),
+            studentId: String(session.student_id || studentId),
+            enrollmentId,
+            eventType: cancellationImpact.eventType,
+            actorRole: "tutor",
+            actorId: String(tutorId),
+            billingImpact: cancellationImpact.impact,
+            creditsDelta: cancellationImpact.creditsDelta,
+            reasonCodes: normalizedReasonCodes,
+            reasonNote: String(reasonNote || "").trim() || null,
+            metadata: {
+              action: "cancel",
+              policy_cutoff_hours: CANCELLATION_CUTOFF_HOURS,
+              scheduled_time: session.scheduled_time,
+            },
+          });
+
           await safeSendPush(
             session.parent_id,
             {
@@ -8231,6 +8534,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             success: true,
             session: cancelledSession,
             status: "cancelled",
+            monthlyQuota,
             googleMeetConfigured: false,
             googleMeetSync: null,
             googleMeetError: null,
@@ -8258,6 +8562,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           if (parsedStart.getTime() <= Date.now()) {
             return res.status(400).json({ message: "Rescheduled sessions must be in the future." });
+          }
+
+          const monthStartIso = getMonthStartIso(session.scheduled_time || new Date().toISOString());
+          if (!monthStartIso) {
+            return res.status(400).json({ message: "Session month could not be resolved for reschedule policy." });
+          }
+          const monthStart = monthStartIso.slice(0, 10);
+          const nextMonthDate = new Date(monthStartIso);
+          nextMonthDate.setUTCMonth(nextMonthDate.getUTCMonth() + 1);
+          const nextMonth = nextMonthDate.toISOString().slice(0, 10);
+          const { data: rescheduleEvents } = await supabase
+            .from("session_billing_events")
+            .select("id")
+            .eq("session_id", String(sessionId))
+            .eq("event_type", "reschedule_tutor")
+            .gte("effective_at", `${monthStart}T00:00:00.000Z`)
+            .lt("effective_at", `${nextMonth}T00:00:00.000Z`);
+          if ((rescheduleEvents || []).length >= RESCHEDULE_LIMIT_PER_SESSION_PER_MONTH) {
+            return res.status(409).json({
+              message: `This session has reached the ${RESCHEDULE_LIMIT_PER_SESSION_PER_MONTH} reschedule limit for the month. COO override is required.`,
+            });
           }
 
           const { data: updatedSession, error: updateError } = await supabase
@@ -8297,6 +8622,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return res.status(500).json({ message: "Failed to reschedule training session" });
           }
 
+          const enrollmentId = await resolveEnrollmentIdForSession(session);
+          const monthlyQuota = await recordSessionBillingEvent({
+            sessionId: String(sessionId),
+            parentId: String(session.parent_id || ""),
+            studentId: String(session.student_id || studentId),
+            enrollmentId,
+            eventType: "reschedule_tutor",
+            actorRole: "tutor",
+            actorId: String(tutorId),
+            billingImpact: "none",
+            creditsDelta: 0,
+            reasonCodes: Array.isArray(reasonCodes)
+              ? reasonCodes.map((item) => String(item || "").trim()).filter(Boolean)
+              : [],
+            reasonNote: String(reasonNote || "").trim() || null,
+            metadata: {
+              action: "reschedule",
+              from: session.scheduled_time,
+              to: nextStart,
+            },
+          });
+
           await safeSendPush(
             session.parent_id,
             {
@@ -8312,6 +8659,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             success: true,
             session: updatedSession,
             status: "pending_parent_confirmation",
+            monthlyQuota,
             googleMeetConfigured: isGoogleMeetIntegrationAvailable(),
             googleMeetSync: null,
             googleMeetError: null,
@@ -8335,10 +8683,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const meetSync = await syncMeetForScheduledSession(updatedSession, { studentName: student.name });
+        const monthlyQuota =
+          updatedSession.parent_id && updatedSession.student_id
+            ? await getMonthlySessionQuotaSnapshot({
+                parentId: String(updatedSession.parent_id),
+                studentId: String(updatedSession.student_id),
+              })
+            : null;
 
         res.json({
           success: true,
           session: updatedSession,
+          monthlyQuota,
           googleMeetConfigured: isGoogleMeetIntegrationAvailable(),
           ...getMeetSyncResponsePayload(meetSync),
         });
@@ -8725,6 +9081,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const studentRecord = await resolveCanonicalStudentForEnrollment(enrollment);
       const studentId = studentRecord?.id || enrollment.assigned_student_id || null;
+      const monthlyQuota =
+        studentId
+          ? await getMonthlySessionQuotaSnapshot({
+              parentId: userId,
+              studentId: String(studentId),
+            })
+          : null;
 
       let query = supabase
         .from("scheduled_sessions")
@@ -8763,6 +9126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         operationalMode,
         sessionSchedulingEnabled: true,
+        monthlyQuota,
         sessions: sessionsWithArtifacts.map((session: any) => ({
           ...session,
           launch: getSessionLaunchState(session, "training"),
@@ -8841,6 +9205,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!studentId) {
         return res.status(400).json({ message: "Student must be linked before weekly sessions can be scheduled." });
+      }
+
+      const monthlyQuota = await getMonthlySessionQuotaSnapshot({
+        parentId: userId,
+        studentId: String(studentId),
+      });
+      if (monthlyQuota && Number(monthlyQuota.sessions_remaining || 0) <= 0) {
+        return res.status(409).json({
+          message: "This month's 8-session quota is exhausted. New scheduling opens next month or by COO adjustment.",
+          monthlyQuota,
+        });
       }
 
       const parsedSlots = rawSlots
@@ -8951,10 +9326,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = (req as any).dbUser.id;
       const operationalMode = await getParentAssignedTutorOperationalMode(userId);
-      const { sessionId, action, scheduledStart } = req.body as {
+      const { sessionId, action, scheduledStart, reasonCodes, reasonNote } = req.body as {
         sessionId?: string;
         action?: "confirm" | "reschedule" | "cancel";
         scheduledStart?: string;
+        reasonCodes?: string[];
+        reasonNote?: string;
       };
       const timezone = String(req.body?.timezone || "Africa/Johannesburg");
 
@@ -8987,6 +9364,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (action === "cancel") {
+        const normalizedReasonCodes = Array.isArray(reasonCodes)
+          ? reasonCodes.map((item) => String(item || "").trim()).filter(Boolean)
+          : [];
+        if (normalizedReasonCodes.length === 0) {
+          return res.status(400).json({ message: "At least one cancellation reason is required." });
+        }
+
         if (["completed", "live", "cancelled", "flagged"].includes(String(session.status || ""))) {
           return res.status(400).json({ message: "This training session can no longer be cancelled" });
         }
@@ -9014,6 +9398,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ message: "Failed to cancel session" });
         }
 
+        const enrollmentId = await resolveEnrollmentIdForSession(session);
+        const cancellationImpact = classifyCancellationBillingImpact({
+          actorRole: "parent",
+          scheduledTimeIso: session.scheduled_time,
+        });
+        const monthlyQuota = await recordSessionBillingEvent({
+          sessionId: String(sessionId),
+          parentId: String(session.parent_id || userId),
+          studentId: String(session.student_id || ""),
+          enrollmentId,
+          eventType: cancellationImpact.eventType,
+          actorRole: "parent",
+          actorId: String(userId),
+          billingImpact: cancellationImpact.impact,
+          creditsDelta: cancellationImpact.creditsDelta,
+          reasonCodes: normalizedReasonCodes,
+          reasonNote: String(reasonNote || "").trim() || null,
+          metadata: {
+            action: "cancel",
+            policy_cutoff_hours: CANCELLATION_CUTOFF_HOURS,
+            scheduled_time: session.scheduled_time,
+          },
+        });
+
         await safeSendPush(
           cancelledSession.tutor_id,
           {
@@ -9029,6 +9437,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           success: true,
           status: "cancelled",
           session: cancelledSession,
+          monthlyQuota,
         });
       }
 
@@ -9049,6 +9458,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (parsedStart.getTime() <= Date.now()) {
           return res.status(400).json({ message: "Rescheduled sessions must be in the future." });
+        }
+
+        const monthStartIso = getMonthStartIso(session.scheduled_time || new Date().toISOString());
+        if (!monthStartIso) {
+          return res.status(400).json({ message: "Session month could not be resolved for reschedule policy." });
+        }
+        const monthStart = monthStartIso.slice(0, 10);
+        const nextMonthDate = new Date(monthStartIso);
+        nextMonthDate.setUTCMonth(nextMonthDate.getUTCMonth() + 1);
+        const nextMonth = nextMonthDate.toISOString().slice(0, 10);
+        const { data: rescheduleEvents } = await supabase
+          .from("session_billing_events")
+          .select("id")
+          .eq("session_id", String(sessionId))
+          .eq("event_type", "reschedule_parent")
+          .gte("effective_at", `${monthStart}T00:00:00.000Z`)
+          .lt("effective_at", `${nextMonth}T00:00:00.000Z`);
+        if ((rescheduleEvents || []).length >= RESCHEDULE_LIMIT_PER_SESSION_PER_MONTH) {
+          return res.status(409).json({
+            message: `This session has reached the ${RESCHEDULE_LIMIT_PER_SESSION_PER_MONTH} reschedule limit for the month. COO override is required.`,
+          });
         }
 
         const { data: updatedSession, error: updateError } = await supabase
@@ -9088,6 +9518,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ message: "Failed to reschedule session" });
         }
 
+        const enrollmentId = await resolveEnrollmentIdForSession(session);
+        const monthlyQuota = await recordSessionBillingEvent({
+          sessionId: String(sessionId),
+          parentId: String(session.parent_id || userId),
+          studentId: String(session.student_id || ""),
+          enrollmentId,
+          eventType: "reschedule_parent",
+          actorRole: "parent",
+          actorId: String(userId),
+          billingImpact: "none",
+          creditsDelta: 0,
+          reasonCodes: Array.isArray(reasonCodes)
+            ? reasonCodes.map((item) => String(item || "").trim()).filter(Boolean)
+            : [],
+          reasonNote: String(reasonNote || "").trim() || null,
+          metadata: {
+            action: "reschedule",
+            from: session.scheduled_time,
+            to: nextStart,
+          },
+        });
+
         await safeSendPush(
           updatedSession.tutor_id,
           {
@@ -9103,6 +9555,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           success: true,
           status: "pending_tutor_confirmation",
           session: updatedSession,
+          monthlyQuota,
         });
       }
 
@@ -9140,11 +9593,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           : await syncMeetForScheduledSession(updatedSession, {
               studentName: assignedStudent?.name || null,
             });
+      const monthlyQuota =
+        updatedSession.parent_id && updatedSession.student_id
+          ? await getMonthlySessionQuotaSnapshot({
+              parentId: String(updatedSession.parent_id),
+              studentId: String(updatedSession.student_id),
+            })
+          : null;
 
       return res.json({
         success: true,
         status: "confirmed",
         session: updatedSession,
+        monthlyQuota,
         googleMeetConfigured: operationalMode === "training" ? false : isGoogleMeetIntegrationAvailable(),
         ...getMeetSyncResponsePayload(meetSync),
       });

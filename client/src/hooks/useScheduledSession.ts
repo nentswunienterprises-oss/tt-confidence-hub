@@ -116,12 +116,14 @@ export function useRespondTrainingSession(studentId) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ sessionId, action, scheduledStart, timezone }) => {
+    mutationFn: async ({ sessionId, action, scheduledStart, timezone, reasonCodes, reasonNote }) => {
       const res = await apiRequest("POST", `/api/tutor/students/${studentId}/training-sessions/${sessionId}/respond`, {
         sessionId,
         action,
         scheduledStart,
         timezone,
+        reasonCodes,
+        reasonNote,
       });
       return await res.json();
     },
