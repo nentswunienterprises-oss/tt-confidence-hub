@@ -790,7 +790,17 @@ export function StudentCard({
 
         {effectiveWorkflow?.assignmentAccepted && effectiveWorkflow?.introCompleted && !effectiveWorkflow.proposalSent && !effectiveWorkflow?.proposalAccepted && (
           <>
-            <PreSessionIntelligenceSection />
+            <PreSessionIntelligenceSummary
+              reportedTopics={reportedTopics}
+              symptomSignals={symptomSignals}
+              topicIntelligence={topicIntelligence}
+              suggestedTopic={suggestedTopic}
+              suggestedSymptoms={suggestedSymptoms}
+              responseSignalBreakdown={responseSignalBreakdown}
+              recommendedStartingPhase={recommendedStartingPhase}
+              recommendedStartingReason={recommendedStartingReason}
+              secondarySignal={secondarySignal}
+            />
             <Button
               className="w-full"
               variant="outline"
@@ -808,7 +818,17 @@ export function StudentCard({
 
         {effectiveWorkflow?.assignmentAccepted && effectiveWorkflow?.proposalSent && !effectiveWorkflow.proposalAccepted && (
           <>
-            <PreSessionIntelligenceSection />
+            <PreSessionIntelligenceSummary
+              reportedTopics={reportedTopics}
+              symptomSignals={symptomSignals}
+              topicIntelligence={topicIntelligence}
+              suggestedTopic={suggestedTopic}
+              suggestedSymptoms={suggestedSymptoms}
+              responseSignalBreakdown={responseSignalBreakdown}
+              recommendedStartingPhase={recommendedStartingPhase}
+              recommendedStartingReason={recommendedStartingReason}
+              secondarySignal={secondarySignal}
+            />
             <p className="text-xs text-muted-foreground text-center">
               Proposal sent. Waiting for parent acceptance to unlock systems.
             </p>
@@ -1094,8 +1114,10 @@ function PreSessionIntelligenceSummary({
   topicIntelligence,
   suggestedTopic,
   suggestedSymptoms,
+  responseSignalBreakdown = [],
   recommendedStartingPhase,
   recommendedStartingReason,
+  secondarySignal,
   compact = false,
   collapsible = true,
 }) {
@@ -1187,6 +1209,21 @@ function PreSessionIntelligenceSummary({
       {!compact ? (
         <p className="text-xs text-muted-foreground">{trimRationaleSignals(recommendedStartingReason)}</p>
       ) : null}
+
+          <DetailedPreSessionIntelligence
+            reportedTopics={reportedTopics}
+            symptomSignals={symptomSignals}
+            topicIntelligence={topicIntelligence}
+            suggestedTopic={suggestedTopic}
+            suggestedSymptoms={suggestedSymptoms}
+            responseSignalBreakdown={responseSignalBreakdown}
+            recommendedStartingPhase={recommendedStartingPhase}
+            recommendedStartingReason={recommendedStartingReason}
+            secondarySignal={secondarySignal}
+            hideSectionTitle
+            collapsible={false}
+          />
+
         </>
       ) : null}
     </div>
