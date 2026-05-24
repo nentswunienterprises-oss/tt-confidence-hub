@@ -1045,6 +1045,9 @@ export default function ParentDashboard() {
             <Button variant="outline" className="w-full justify-start text-sm" onClick={() => navigate("/client/parent/updates?tab=messages")}>
               Message Tutor
             </Button>
+            <Button variant="outline" className="w-full justify-start text-sm" onClick={() => navigate("/client/parent/progress?tab=analytics")}>
+              View Analytics
+            </Button>
             {proposal?.parentCode && (
               <Button variant="outline" className="w-full justify-start text-sm" onClick={() => navigator.clipboard.writeText(proposal.parentCode)}>
                 Copy Student Code
