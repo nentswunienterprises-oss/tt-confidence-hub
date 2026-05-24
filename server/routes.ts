@@ -9389,10 +9389,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     parentId,
     primarySelect,
     fallbackSelect,
+    preferPaidEnrollment = false,
   }: {
     parentId: string;
     primarySelect: string;
     fallbackSelect?: string;
+    preferPaidEnrollment?: boolean;
   }) => {
     const resolveParentEmail = async () => {
       const { data: userRow, error: userError } = await supabase
@@ -9578,6 +9580,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const studentLinkedResult = await resolveEnrollmentFromStudent();
       data = studentLinkedResult.data;
       error = studentLinkedResult.error;
+    }
+
+    const currentStatus = String((data as any)?.status || "").trim().toLowerCase();
+    const currentEnrollmentId = String((data as any)?.id || "").trim();
+
+    if (
+      preferPaidEnrollment &&
+      !error &&
+      (!data || currentStatus === "proposal_sent")
+    ) {
+      const { data: latestPaidPayment, error: latestPaidPaymentError } = await getLatestPaidPaymentForParent(parentId);
+
+      if (latestPaidPaymentError) {
+        console.error("Failed to resolve paid enrollment preference for parent:", latestPaidPaymentError);
+      } else {
+        const paidEnrollmentId = String(latestPaidPayment?.enrollment_id || "").trim();
+        if (paidEnrollmentId && paidEnrollmentId !== currentEnrollmentId) {
+          const paidEnrollmentResult = await selectEnrollmentById(paidEnrollmentId);
+          if (paidEnrollmentResult.data && !paidEnrollmentResult.error) {
+            data = paidEnrollmentResult.data;
+            error = null;
+          }
+        }
+      }
     }
 
     return { data, error };
@@ -19071,6 +19097,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { data: enrollmentData, error } = await selectLatestParentEnrollment({
         parentId: userId,
         primarySelect: "*",
+        preferPaidEnrollment: true,
       });
       enrollmentDebug.lookupError = error ? String(error.message || error) : null;
       enrollmentDebug.enrollmentId = enrollmentData?.id || null;
@@ -19957,12 +19984,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { data: enrollment, error: enrollmentError } = await selectLatestParentEnrollment({
         parentId,
         primarySelect: "id, proposal_id, status, student_full_name, student_grade",
+        preferPaidEnrollment: true,
       });
 
       const { data: enrollmentFull } = await selectLatestParentEnrollment({
         parentId,
         primarySelect: "student_gender, response_symptoms, topic_response_symptoms, topic_recommended_starting_phases",
         fallbackSelect: "response_symptoms, topic_response_symptoms, topic_recommended_starting_phases",
+        preferPaidEnrollment: true,
       });
 
       console.log("📋 Enrollment data:", enrollment, "Error:", enrollmentError);
