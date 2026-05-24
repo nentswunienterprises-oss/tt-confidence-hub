@@ -13,14 +13,16 @@ type TutorGatewaySession = {
 export function TutorGatewayGuard({ children }: { children: ReactNode }) {
   const location = useLocation();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const currentPath = location.pathname;
+  const isGatewayRoute = currentPath === "/operational/tutor/gateway";
 
   const { data: gatewaySession, isLoading: gatewayLoading } = useQuery<TutorGatewaySession>({
     queryKey: ["/api/tutor/gateway-session"],
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && isGatewayRoute,
     retry: false,
   });
 
-  if (authLoading || (isAuthenticated && gatewayLoading)) {
+  if (authLoading || (isGatewayRoute && isAuthenticated && gatewayLoading)) {
     return (
       <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
         Loading tutor access...
@@ -29,11 +31,13 @@ export function TutorGatewayGuard({ children }: { children: ReactNode }) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/operational/signup?role=tutor" replace />;
+    return <Navigate to="/operational/signup?role=tutor&mode=login&lock=login&returnTo=/operational/tutor/intake" replace />;
   }
 
-  const currentPath = location.pathname;
-  const isGatewayRoute = currentPath === "/operational/tutor/gateway";
+  if (!isGatewayRoute) {
+    return <>{children}</>;
+  }
+
   const status = String(gatewaySession?.applicationStatus?.status || "").toLowerCase();
   const hasPodAssignment = Boolean(gatewaySession?.assignment);
   const hasTutorAccess = status === "confirmed" && hasPodAssignment;
