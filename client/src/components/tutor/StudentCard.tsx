@@ -181,6 +181,44 @@ export function StudentCard({
   // ...existing code...
   // State for assignment modal
   const [assignmentModalOpen, setAssignmentModalOpen] = useState(false);
+  const [preSessionIntelligenceCollapsed, setPreSessionIntelligenceCollapsed] = useState(false);
+
+  const PreSessionIntelligenceSection = () => (
+    <div className="pt-4 border-t border-border/60 space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+          Pre-Session Intelligence
+        </p>
+        <button
+          type="button"
+          onClick={() => setPreSessionIntelligenceCollapsed((prev) => !prev)}
+          className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/20 px-3 py-1 text-sm font-medium text-foreground transition hover:bg-muted"
+        >
+          {preSessionIntelligenceCollapsed ? "Show" : "Hide"}
+          {preSessionIntelligenceCollapsed ? (
+            <ChevronDown className="h-4 w-4" />
+          ) : (
+            <ChevronUp className="h-4 w-4" />
+          )}
+        </button>
+      </div>
+      {!preSessionIntelligenceCollapsed && (
+        <DetailedPreSessionIntelligence
+          reportedTopics={reportedTopics}
+          symptomSignals={symptomSignals}
+          topicIntelligence={topicIntelligence}
+          suggestedTopic={suggestedTopic}
+          suggestedSymptoms={suggestedSymptoms}
+          responseSignalBreakdown={responseSignalBreakdown}
+          recommendedStartingPhase={recommendedStartingPhase}
+          recommendedStartingReason={recommendedStartingReason}
+          secondarySignal={secondarySignal}
+          hideSectionTitle
+        />
+      )}
+    </div>
+  );
+
   const completedSessions = Math.max(0, Number(student.sessionProgress || 0));
   const progressLabel = 'Program Progress';
   const progressTotal = 8;
@@ -747,18 +785,8 @@ export function StudentCard({
 
 
         {effectiveWorkflow?.assignmentAccepted && effectiveWorkflow?.introCompleted && !effectiveWorkflow.proposalSent && !effectiveWorkflow?.proposalAccepted && (
-          <div className="pt-4 border-t border-border/60 space-y-3">
-            <DetailedPreSessionIntelligence
-              reportedTopics={reportedTopics}
-              symptomSignals={symptomSignals}
-              topicIntelligence={topicIntelligence}
-              suggestedTopic={suggestedTopic}
-              suggestedSymptoms={suggestedSymptoms}
-              responseSignalBreakdown={responseSignalBreakdown}
-              recommendedStartingPhase={recommendedStartingPhase}
-              recommendedStartingReason={recommendedStartingReason}
-              secondarySignal={secondarySignal}
-            />
+          <>
+            <PreSessionIntelligenceSection />
             <Button
               className="w-full"
               variant="outline"
@@ -771,32 +799,24 @@ export function StudentCard({
             >
               Create & Send Proposal
             </Button>
-          </div>
+          </>
         )}
 
         {effectiveWorkflow?.assignmentAccepted && effectiveWorkflow?.proposalSent && !effectiveWorkflow.proposalAccepted && (
-          <div className="pt-4 border-t border-border/60 space-y-2">
-            <DetailedPreSessionIntelligence
-              reportedTopics={reportedTopics}
-              symptomSignals={symptomSignals}
-              topicIntelligence={topicIntelligence}
-              suggestedTopic={suggestedTopic}
-              suggestedSymptoms={suggestedSymptoms}
-              responseSignalBreakdown={responseSignalBreakdown}
-              recommendedStartingPhase={recommendedStartingPhase}
-              recommendedStartingReason={recommendedStartingReason}
-              secondarySignal={secondarySignal}
-            />
+          <>
+            <PreSessionIntelligenceSection />
             <p className="text-xs text-muted-foreground text-center">
               Proposal sent. Waiting for parent acceptance to unlock systems.
             </p>
-          </div>
+          </>
         )}
 
         {workflow?.proposalAccepted && !handoverVerificationActive && (
-          <div className="pt-4 border-t border-border/60 space-y-3">
-            <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Systems</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <>
+            <PreSessionIntelligenceSection />
+            <div className="pt-4 border-t border-border/60 space-y-3">
+              <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Systems</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <Button
                 className="w-full"
                 variant="outline"
@@ -844,6 +864,13 @@ export function StudentCard({
           </div>
         )}
 
+        {workflow?.proposalAccepted && handoverVerificationActive && (
+          <div className="pt-4 border-t border-border/60 space-y-2">
+            <p className="text-xs text-muted-foreground text-center">
+              Core training systems stay gated until the continuity check is completed. This keeps inherited topic-state intact while the new tutor verifies where work should resume.
+            </p>
+          </div>
+        )}
       </div>
 
       <Dialog open={assignmentModalOpen} onOpenChange={setAssignmentModalOpen}>
@@ -1149,12 +1176,15 @@ function DetailedPreSessionIntelligence({
   recommendedStartingPhase,
   recommendedStartingReason,
   secondarySignal,
+  hideSectionTitle = false,
 }) {
   const [showResponseSignalBreakdown, setShowResponseSignalBreakdown] = useState(false);
 
   return (
     <div className="space-y-3 mb-2">
-      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Pre-Session Intelligence</p>
+      {!hideSectionTitle && (
+        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Pre-Session Intelligence</p>
+      )}
 
       <div className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-2">
         <p className="text-[11px] font-medium text-foreground">Parent-Reported Topics</p>
