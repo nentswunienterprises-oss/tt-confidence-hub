@@ -216,6 +216,7 @@ export function StudentCard({
             recommendedStartingReason={recommendedStartingReason}
             secondarySignal={secondarySignal}
             hideSectionTitle
+            collapsible={false}
           />
         </div>
       )}
