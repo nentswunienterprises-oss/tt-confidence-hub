@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom"; // ✅ React Router hook
 import { getDefaultDashboardRoute } from "@shared/portals";
 import type { Role } from "@shared/portals";
 import { API_URL } from "@/lib/config";
-import { clearAllCache } from "@/lib/queryClient";
+import { clearAllCache, queryClient, setCurrentUserId } from "@/lib/queryClient";
 import { buildForgotPasswordPath, buildPasswordResetReturnTo } from "@/lib/password-reset-navigation";
 
 interface AuthFormProps {
@@ -214,6 +214,13 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
           throw new Error(data.message || "Login failed");
         }
 
+        if (data.dbUser) {
+          queryClient.setQueryData(["/api/auth/user"], data.dbUser);
+          if (data.dbUser.id) {
+            setCurrentUserId(data.dbUser.id);
+          }
+        }
+
         // Also sign in to Supabase on the client side
         // IMPORTANT: Wait for this to complete before redirecting
         const { data: loginData, error: supabaseError } = await supabase.auth.signInWithPassword({
@@ -243,9 +250,6 @@ export function AuthForm({ mode, defaultRole = "parent", affiliateCode = "" }: A
           description: "You have been logged in successfully.",
         });
       }
-
-      // Wait for session to fully propagate before redirecting
-      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Ensure redirectUrl is defined before redirecting
       if (!redirectUrl) {

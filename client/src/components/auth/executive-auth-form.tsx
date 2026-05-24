@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "@/lib/config";
-import { clearAllCache } from "@/lib/queryClient";
+import { clearAllCache, queryClient, setCurrentUserId } from "@/lib/queryClient";
 
 type Role = "coo" | "hr" | "ceo";
 
@@ -129,6 +129,13 @@ export function ExecutiveAuthForm({ role, mode, setMode }: ExecutiveAuthFormProp
           throw new Error(data.message || "Login failed");
         }
 
+        if (data.dbUser) {
+          queryClient.setQueryData(["/api/auth/user"], data.dbUser);
+          if (data.dbUser.id) {
+            setCurrentUserId(data.dbUser.id);
+          }
+        }
+
         redirectUrl = data.redirectUrl || dashboardRoutes[role];
 
         toast({
@@ -136,9 +143,6 @@ export function ExecutiveAuthForm({ role, mode, setMode }: ExecutiveAuthFormProp
           description: "You have been logged in successfully.",
         });
       }
-
-      // Wait for session to be fully established
-      await new Promise(resolve => setTimeout(resolve, 300));
 
       // Ensure redirectUrl is defined before redirecting
       if (!redirectUrl) {
