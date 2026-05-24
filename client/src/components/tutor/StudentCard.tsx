@@ -138,6 +138,10 @@ function getWorkflowLabel(workflow) {
   return "Active Training";
 }
 
+function usesDirectDrillLaunch(operationalMode?: string | null) {
+  return String(operationalMode || "").trim().toLowerCase() !== "certified_live";
+}
+
 function inferReportedSymptoms({ struggleAreas, parentMotivation }) {
   const combined = `${struggleAreas || ""} ${parentMotivation || ""}`.toLowerCase();
   const symptoms = [];
@@ -1321,6 +1325,7 @@ function IntroDiagnosticTopicSection({
   const [diagnosticTopic, setDiagnosticTopic] = useState("");
   const [activationError, setActivationError] = useState("");
   const [activatedTopic, setActivatedTopic] = useState<string | null>(null);
+  const directDrillLaunch = usesDirectDrillLaunch(operationalMode);
 
   const storageKey = `intro-diagnostic-topic:${student.id}`;
 
@@ -1407,7 +1412,7 @@ function IntroDiagnosticTopicSection({
         recommendedStartingReason={recommendedStartingReason}
         secondarySignal={secondarySignal}
       />
-      {operationalMode !== "training" && introSession?.scheduled_time ? (
+      {!directDrillLaunch && introSession?.scheduled_time ? (
         <div className="rounded-xl border border-primary/20 bg-muted/20 p-3 space-y-1">
           <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Scheduled Intro Lesson</p>
           <p className="text-sm text-foreground">
@@ -1423,7 +1428,7 @@ function IntroDiagnosticTopicSection({
           const topicParam = encodeURIComponent(activatedTopic);
           const phaseParam = `&phase=${encodeURIComponent(recommendedStartingPhase)}`;
           const sessionParam =
-            operationalMode === "training"
+            directDrillLaunch
               ? ""
               : introSession?.id
                 ? `&scheduledSessionId=${encodeURIComponent(introSession.id)}`
@@ -1431,7 +1436,7 @@ function IntroDiagnosticTopicSection({
           navigate(`/tutor/intro-session/${student.id}?topic=${topicParam}${phaseParam}${sessionParam}`);
         }}
         disabled={
-          operationalMode === "training"
+          directDrillLaunch
             ? false
             : !introSession?.id || !["confirmed", "ready", "live", "scheduled"].includes(String(introSession?.status || ""))
         }
@@ -1441,7 +1446,7 @@ function IntroDiagnosticTopicSection({
       <p className="text-xs text-muted-foreground text-center">
         Intro Diagnostic Topic: <span className="font-semibold text-foreground">{activatedTopic}</span>
       </p>
-      {operationalMode !== "training" && (!introSession?.id || !["confirmed", "ready", "live", "scheduled"].includes(String(introSession?.status || ""))) ? (
+      {!directDrillLaunch && (!introSession?.id || !["confirmed", "ready", "live", "scheduled"].includes(String(introSession?.status || ""))) ? (
         <p className="text-xs text-amber-700 text-center">
           Confirm the intro lesson before entering the drill runner.
         </p>
@@ -1475,7 +1480,7 @@ function IntroDiagnosticTopicSection({
         </DialogContent>
       </Dialog>
       <p className="text-xs text-muted-foreground text-center">
-        {operationalMode === "training"
+        {directDrillLaunch
           ? "Training mode is active. Launch the intro drill directly without waiting for a booked lesson window."
           : `Launch the adaptive Intro Session diagnosis starting at ${recommendedStartingPhase}. Scoring and next actions remain system-driven.`}
       </p>

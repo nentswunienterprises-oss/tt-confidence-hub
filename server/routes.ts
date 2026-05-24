@@ -6921,62 +6921,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const certificationMode = await getTutorCertificationMode(tutorId);
-        const cleanupResult = await cleanupLegacyLiveEnrollmentsForNonLiveTutor(tutorId, certificationMode);
-        if (certificationMode === "sandbox") {
-          try {
-            await ensureVisibleSandboxStudentsForTutor(
-              tutorId,
-              Math.max(3, cleanupResult.detachedCount || 0)
-            );
-          } catch (error) {
-            console.error("Sandbox provisioning/backfill failed while loading tutor pod:", error);
-          }
-        }
-
-        // First, check for parent enrollments assigned to this tutor that don't have students yet
-        const { data: assignedEnrollments } = await loadTutorAssignedEnrollments(tutorId, {
-          sandboxOnly: certificationMode === "sandbox",
-          ordered: false,
-        });
-
-        // For each enrollment, check if a student exists, if not create one
-        if (assignedEnrollments && assignedEnrollments.length > 0) {
-          for (const enrollment of assignedEnrollments) {
-            try {
-              const ensuredStudent = await ensureStudentForEnrollment(enrollment, tutorId);
-              if (ensuredStudent) {
-                console.log("Ensured student exists:", enrollment.student_full_name);
-              }
-            } catch (err) {
-              console.error("Error creating student from enrollment:", err);
-            }
-          }
-        }
-
-        // Re-read after backfill so assigned_student_id links are current.
-        const { data: refreshedAssignedEnrollments, error: refreshedAssignedEnrollmentsError } =
+        const { data: assignedEnrollments, error: assignedEnrollmentsError } =
           await loadTutorAssignedEnrollments(tutorId, {
             sandboxOnly: certificationMode === "sandbox",
             ordered: true,
           });
 
-        if (refreshedAssignedEnrollmentsError) {
-          console.error("Error refreshing assigned enrollments for pod:", refreshedAssignedEnrollmentsError);
-          return res.status(500).json({ message: "Failed to refresh assigned enrollments" });
+        if (assignedEnrollmentsError) {
+          console.error("Error loading assigned enrollments for pod:", assignedEnrollmentsError);
+          return res.status(500).json({ message: "Failed to load assigned enrollments" });
         }
 
         let students = await hydrateStudentsWithSessionProgress(tutorId, await storage.getStudentsByTutor(tutorId));
-        if (certificationMode === "sandbox" && students.length === 0) {
-          try {
-            await ensureVisibleSandboxStudentsForTutor(tutorId, Math.max(3, cleanupResult.detachedCount || 0));
-          } catch (error) {
-            console.error("Sandbox recovery pass failed while loading tutor pod:", error);
-          }
-          students = await hydrateStudentsWithSessionProgress(tutorId, await storage.getStudentsByTutor(tutorId));
-        }
         if (certificationMode === "sandbox") {
           const sandboxEnrollmentIds = new Set(
-            (refreshedAssignedEnrollments || []).map((enrollment: any) => String(enrollment?.id || "").trim()).filter(Boolean)
+            (assignedEnrollments || []).map((enrollment: any) => String(enrollment?.id || "").trim()).filter(Boolean)
           );
           students = students.filter((student: any) => {
             const parentEnrollmentId = String(
@@ -7009,7 +6968,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ])
         );
 
-        let canonicalStudents = (refreshedAssignedEnrollments || [])
+        let canonicalStudents = (assignedEnrollments || [])
           .map((enrollment: any) => {
             const assignedStudentId = String(enrollment?.assigned_student_id || "").trim();
             const enrollmentId = String(enrollment?.id || "").trim();
@@ -7056,7 +7015,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
 
         if (certificationMode !== "sandbox" && canonicalStudents.length === 0 && students.length > 0) {
-          const unmatchedEnrollments = [...(refreshedAssignedEnrollments || [])];
+          const unmatchedEnrollments = [...(assignedEnrollments || [])];
           canonicalStudents = students.map((student: any) => {
             const explicitEnrollmentId = String(
               (student as any)?.parentEnrollmentId || (student as any)?.parent_enrollment_id || ""
@@ -7211,6 +7170,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
         
         res.json({ assignment, students: studentsWithParentInfo });
+
+        void (async () => {
+          try {
+            const cleanupResult = await cleanupLegacyLiveEnrollmentsForNonLiveTutor(tutorId, certificationMode);
+
+            if (certificationMode === "sandbox") {
+              try {
+                await ensureVisibleSandboxStudentsForTutor(
+                  tutorId,
+                  Math.max(3, cleanupResult.detachedCount || 0)
+                );
+              } catch (error) {
+                console.error("Sandbox provisioning/backfill failed after tutor pod response:", error);
+              }
+            }
+
+            const { data: maintenanceEnrollments } = await loadTutorAssignedEnrollments(tutorId, {
+              sandboxOnly: certificationMode === "sandbox",
+              ordered: false,
+            });
+
+            for (const enrollment of maintenanceEnrollments || []) {
+              try {
+                const ensuredStudent = await ensureStudentForEnrollment(enrollment, tutorId);
+                if (ensuredStudent) {
+                  console.log("Ensured student exists after pod response:", enrollment.student_full_name);
+                }
+              } catch (err) {
+                console.error("Error creating student from enrollment after pod response:", err);
+              }
+            }
+          } catch (error) {
+            console.error("Deferred tutor pod maintenance failed:", error);
+          }
+        })();
       } catch (error) {
         console.error("Error fetching pod:", error);
         res.status(500).json({ message: "Failed to fetch pod" });
@@ -11324,6 +11318,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const personalProfile = (student.personalProfile as any) || {};
         const workflow = personalProfile.workflow || {};
+        const conceptMastery = student.conceptMastery && typeof student.conceptMastery === "object"
+          ? (student.conceptMastery as any)
+          : {};
+        const topicConditioningStore =
+          conceptMastery.topicConditioning && typeof conceptMastery.topicConditioning === "object"
+            ? conceptMastery.topicConditioning
+            : {};
+        const topicConditioningTopics =
+          topicConditioningStore.topics && typeof topicConditioningStore.topics === "object"
+            ? topicConditioningStore.topics
+            : {};
+        const hasTopicConditioningEvidence =
+          Object.keys(topicConditioningTopics).length > 0 ||
+          !!String(topicConditioningStore.topic || "").trim() ||
+          !!String(topicConditioningStore.entry_phase || "").trim();
         const handoverVerificationRequired = !!workflow.handoverRequiredAt && !workflow.handoverCompletedAt;
 
         let handoverSession: any = null;
@@ -11336,7 +11345,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
           handoverSession = resolvedHandoverSession;
         }
 
-        const inferredIntroCompleted = !!workflow.introCompletedAt;
+        const { data: recentDrillRows } = await supabase
+          .from("intro_session_drills")
+          .select("id, drill, submitted_at")
+          .eq("student_id", studentId)
+          .eq("tutor_id", dbUser.id)
+          .order("submitted_at", { ascending: false })
+          .limit(8);
+
+        let hasDiagnosisEvidence = false;
+        let hasTrainingEvidence = false;
+        for (const row of recentDrillRows || []) {
+          try {
+            const parsed = row?.drill && typeof row.drill === "object"
+              ? row.drill
+              : JSON.parse(typeof row?.drill === "string" ? row.drill : "{}");
+            const drillType = String(parsed?.drillType || "").trim().toLowerCase();
+            if (drillType === "diagnosis") {
+              hasDiagnosisEvidence = true;
+            }
+            if (drillType === "training") {
+              hasTrainingEvidence = true;
+            }
+            if (hasDiagnosisEvidence && hasTrainingEvidence) {
+              break;
+            }
+          } catch {
+            // Ignore malformed historical drill rows and fall back to other evidence.
+          }
+        }
+
+        const inferredIntroCompleted =
+          !!workflow.introCompletedAt ||
+          hasTopicConditioningEvidence ||
+          hasDiagnosisEvidence ||
+          hasTrainingEvidence;
 
         const assignmentAccepted = isPendingTutorAcceptance
           ? false
@@ -11344,6 +11387,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
               workflow.assignmentAcceptedAt ||
               (enrollmentForStudent && enrollmentForStudent.status !== "awaiting_tutor_acceptance")
             );
+        const enrollmentStatus = String(enrollmentForStudent?.status || "").trim().toLowerCase();
+        const inferredProposalSent =
+          !!latestProposal?.sent_at ||
+          ["proposal_sent", "session_booked", "report_received", "confirmed"].includes(enrollmentStatus) ||
+          hasTrainingEvidence;
+        const inferredProposalAccepted =
+          !!latestProposal?.accepted_at ||
+          ["session_booked", "report_received", "confirmed"].includes(enrollmentStatus) ||
+          hasTrainingEvidence;
 
         const effectiveIntroStatus = getEffectiveScheduledSessionStatus(introSession);
         const effectiveHandoverStatus = handoverSession
@@ -11358,8 +11410,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           handoverSessionConfirmed: ["confirmed", "ready", "live", "completed"].includes(String(effectiveHandoverStatus || "")),
           handoverCompleted: !!workflow.handoverCompletedAt,
           identitySaved: !!student.identitySheetCompletedAt,
-          proposalSent: !!latestProposal?.sent_at,
-          proposalAccepted: !!latestProposal?.accepted_at,
+          proposalSent: inferredProposalSent,
+          proposalAccepted: inferredProposalAccepted,
         });
       } catch (error) {
         console.error("Error fetching workflow state:", error);

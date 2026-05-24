@@ -224,6 +224,16 @@ export default function TutorPod() {
     navigate,
   ]);
 
+  useEffect(() => {
+    if (!authLoading && !isLoading && isAuthenticated && podData?.assignment && (!podData.students || podData.students.length === 0)) {
+      const retryTimer = window.setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["/api/tutor/pod"] });
+      }, 3000);
+
+      return () => window.clearTimeout(retryTimer);
+    }
+  }, [authLoading, isAuthenticated, isLoading, podData, queryClient]);
+
   // Fetch identity sheets for all students
   useEffect(() => {
     if (podData?.students && podData.students.length > 0) {
@@ -281,7 +291,7 @@ export default function TutorPod() {
 
   // Authentication is handled by route protection, no need for manual redirects
 
-  if (authLoading || isLoading || applicationsLoading) {
+  if (authLoading || isLoading) {
     return (
       <DashboardLayout>
         <div className="space-y-6">
