@@ -1125,10 +1125,9 @@ function PreSessionIntelligenceSummary({
   const [showDetails, setShowDetails] = useState(false);
 
   const visibleTopics = reportedTopics.slice(0, compact ? 3 : 4);
-  const visibleSymptoms =
-    topicIntelligence[0]?.symptoms?.length > 0
-      ? topicIntelligence[0].symptoms.slice(0, compact ? 4 : 6)
-      : suggestedSymptoms.slice(0, compact ? 4 : 6);
+  // Use global parent-reported symptom signals for the compact summary
+  // (topic-specific symptoms appear in the detailed view to avoid confusion)
+  const visibleSymptoms = symptomSignals.slice(0, compact ? 4 : 6);
 
   const hasSignals =
     visibleTopics.length > 0 ||
