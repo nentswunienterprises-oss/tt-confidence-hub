@@ -10,6 +10,11 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarDays } from "lucide-react";
+import { TrainingSessionCancellationDialog } from "@/components/scheduling/TrainingSessionCancellationDialog";
+import {
+  PARENT_TRAINING_SESSION_CANCELLATION_REASONS,
+  buildTrainingSessionCancellationNote,
+} from "@/lib/trainingSessionCancellation";
 
 type ParentTrainingSession = {
   id: string;
@@ -44,6 +49,7 @@ export default function ParentSessions() {
   const [cancellingSessionId, setCancellingSessionId] = useState<string | null>(null);
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [adjustedTime, setAdjustedTime] = useState("");
+  const [cancelSessionTarget, setCancelSessionTarget] = useState<ParentTrainingSession | null>(null);
 
   const formatScheduleLabel = (value?: string | Date | null) => {
     if (!value) return "Choose a date";
@@ -309,11 +315,7 @@ export default function ParentSessions() {
     }
   };
 
-  const handleCancelSession = async (sessionId: string) => {
-    if (!window.confirm("Cancel this confirmed lesson? You can schedule a new week after the session is cancelled.")) {
-      return;
-    }
-
+  const handleCancelSession = async (sessionId: string, reasonCodes: string[], reasonNote: string | null) => {
     setCancellingSessionId(sessionId);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -329,8 +331,13 @@ export default function ParentSessions() {
         body: JSON.stringify({
           sessionId,
           action: "cancel",
-          reasonCodes: ["parent_cancelled"],
-          reasonNote: "Parent cancelled the confirmed training session.",
+          reasonCodes,
+          reasonNote: buildTrainingSessionCancellationNote(
+            "Parent",
+            PARENT_TRAINING_SESSION_CANCELLATION_REASONS,
+            reasonCodes,
+            reasonNote,
+          ),
         }),
       });
 
@@ -346,11 +353,7 @@ export default function ParentSessions() {
 
       queryClient.invalidateQueries({ queryKey: ["/api/parent/training-sessions"] });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to cancel session.",
-        variant: "destructive",
-      });
+      throw error instanceof Error ? error : new Error("Failed to cancel session.");
     } finally {
       setCancellingSessionId(null);
     }
@@ -570,7 +573,7 @@ export default function ParentSessions() {
                             size="sm"
                             variant="outline"
                             className="whitespace-nowrap"
-                            onClick={() => handleCancelSession(session.id)}
+                            onClick={() => setCancelSessionTarget(session)}
                             disabled={cancellingSessionId === session.id}
                           >
                             {cancellingSessionId === session.id ? "Cancelling..." : "Cancel Session"}
@@ -615,6 +618,30 @@ export default function ParentSessions() {
           )}
         </div>
       </div>
+      <TrainingSessionCancellationDialog
+        open={!!cancelSessionTarget}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) {
+            setCancelSessionTarget(null);
+          }
+        }}
+        title="Cancel Confirmed Session"
+        description={
+          cancelSessionTarget
+            ? `You are cancelling the confirmed lesson on ${formatSessionDateTime(cancelSessionTarget.scheduled_time)}. Select the reason so the tutor and billing trail stay accurate.`
+            : "Select the cancellation reason so the tutor and billing trail stay accurate."
+        }
+        confirmLabel="Cancel Session"
+        isSubmitting={!!cancellingSessionId}
+        reasonOptions={PARENT_TRAINING_SESSION_CANCELLATION_REASONS}
+        notePlaceholder="Add any extra context your tutor should know about this cancellation."
+        onConfirm={async ({ reasonCodes, reasonNote }) => {
+          if (!cancelSessionTarget) {
+            throw new Error("No confirmed session selected.");
+          }
+          await handleCancelSession(cancelSessionTarget.id, reasonCodes, reasonNote);
+        }}
+      />
     </div>
   );
 }

@@ -47,6 +47,11 @@ import { Progress } from "../ui/progress";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 import type { PhaseLabel, StabilityLabel, TopicTrend } from "./topicConditioningEngine";
 import { useConfirmTrainingSession, useRespondTrainingSession, useRetryScheduledSessionMeetSync, useTrainingSessions } from "@/hooks/useScheduledSession";
+import { TrainingSessionCancellationDialog } from "@/components/scheduling/TrainingSessionCancellationDialog";
+import {
+  TUTOR_TRAINING_SESSION_CANCELLATION_REASONS,
+  buildTrainingSessionCancellationNote,
+} from "@/lib/trainingSessionCancellation";
 
 type TopicConditioningMap = {
   topic?: string | null;
@@ -1115,6 +1120,10 @@ export default function StudentTopicConditioningDialog({
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
   const [showFullSelectedTimeline, setShowFullSelectedTimeline] = useState(false);
   const [expandedPhaseDefinitions, setExpandedPhaseDefinitions] = useState<Set<PhaseLabel>>(new Set());
+  const [cancelTrainingSessionTarget, setCancelTrainingSessionTarget] = useState<{
+    id: string;
+    scheduledTimeLabel: string;
+  } | null>(null);
 
   // Initialize topic selection when dialog opens
   useEffect(() => {
@@ -1427,6 +1436,27 @@ export default function StudentTopicConditioningDialog({
           minute: "2-digit",
         }).format(new Date(value))
       : "-";
+  const handleCancelConfirmedTrainingSession = async (
+    sessionId: string,
+    reasonCodes: string[],
+    reasonNote: string | null,
+  ) => {
+    const result = await respondTrainingSession.mutateAsync({
+      sessionId,
+      action: "cancel",
+      reasonCodes,
+      reasonNote: buildTrainingSessionCancellationNote(
+        "Tutor",
+        TUTOR_TRAINING_SESSION_CANCELLATION_REASONS,
+        reasonCodes,
+        reasonNote,
+      ),
+    });
+
+    setTrainingSessionMeetMessage(
+      result?.message || "Training session cancelled. The parent can reschedule a new week."
+    );
+  };
   const toggleTopicExpanded = (topic: string) => {
     setExpandedTopics((prev) => {
       const next = new Set(prev);
@@ -2068,25 +2098,11 @@ export default function StudentTopicConditioningDialog({
                                   <Button
                                     size="sm"
                                     variant="destructive"
-                                    onClick={async () => {
-                                      if (!window.confirm("Cancel this confirmed lesson? The parent will need to reschedule a new week.")) {
-                                        return;
-                                      }
-                                      try {
-                                        const result = await respondTrainingSession.mutateAsync({
-                                          sessionId: session.id,
-                                          action: "cancel",
-                                          reasonCodes: ["tutor_cancelled"],
-                                          reasonNote: "Tutor cancelled the confirmed training lesson.",
-                                        });
-                                        setTrainingSessionMeetMessage(
-                                          result?.message || "Training session cancelled. The parent can reschedule a new week."
-                                        );
-                                      } catch (error) {
-                                        setTrainingSessionMeetMessage(
-                                          error instanceof Error ? error.message : "Failed to cancel training session."
-                                        );
-                                      }
+                                    onClick={() => {
+                                      setCancelTrainingSessionTarget({
+                                        id: session.id,
+                                        scheduledTimeLabel: formatLessonTime(session.scheduled_time),
+                                      });
                                     }}
                                     disabled={respondTrainingSession.isPending || confirmTrainingSession.isPending || !assignmentAccepted}
                                     title={!assignmentAccepted ? "Accept the assignment before cancelling lessons." : undefined}
@@ -2103,6 +2119,34 @@ export default function StudentTopicConditioningDialog({
                         </div>
                       </div>
                     ) : null}
+                    <TrainingSessionCancellationDialog
+                      open={!!cancelTrainingSessionTarget}
+                      onOpenChange={(nextOpen) => {
+                        if (!nextOpen) {
+                          setCancelTrainingSessionTarget(null);
+                        }
+                      }}
+                      title="Cancel Confirmed Lesson"
+                      description={
+                        cancelTrainingSessionTarget
+                          ? `You are cancelling ${cancelTrainingSessionTarget.scheduledTimeLabel}. Select the cancellation reason so the parent-facing and billing trail stays accurate.`
+                          : "Select the cancellation reason so the parent-facing and billing trail stays accurate."
+                      }
+                      confirmLabel="Cancel Lesson"
+                      isSubmitting={respondTrainingSession.isPending}
+                      reasonOptions={TUTOR_TRAINING_SESSION_CANCELLATION_REASONS}
+                      notePlaceholder="Add any extra operational context the parent or internal billing trail should keep."
+                      onConfirm={async ({ reasonCodes, reasonNote }) => {
+                        if (!cancelTrainingSessionTarget) {
+                          throw new Error("No confirmed lesson selected.");
+                        }
+                        await handleCancelConfirmedTrainingSession(
+                          cancelTrainingSessionTarget.id,
+                          reasonCodes,
+                          reasonNote,
+                        );
+                      }}
+                    />
                     {pendingTutorConfirmationSessions.length > 0 ? (
                       <div className="rounded border border-blue-200 bg-blue-50 px-3 py-2 text-xs space-y-2">
                         <p className="font-medium text-blue-900">Awaiting tutor confirmation</p>
