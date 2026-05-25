@@ -262,6 +262,7 @@ export function StudentCard({
     student.enrollmentId || student.parentEnrollmentId || student.parent_enrollment_id || student.parentInfo?.id || null
   );
   const { data: introSessionDetails } = useScheduledSession(student.id);
+  const { data: trainingSessionsData } = useTrainingSessions(student.id, true);
 
   const effectiveWorkflow = useMemo(() => {
     const baseWorkflow = {
@@ -309,6 +310,9 @@ export function StudentCard({
   });
 
   const communicationUnreadCount = Number(communicationUnreadData?.unreadCount || 0);
+  const hasPendingTutorConfirmation = Boolean(
+    trainingSessionsData?.sessions?.some((session: any) => session?.status === "pending_tutor_confirmation")
+  );
 
 
   const reportedSymptoms =
@@ -835,32 +839,23 @@ export function StudentCard({
             <div className="pt-4 border-t border-border/60 space-y-3">
               <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Systems</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {(() => {
-                const { data: _trainingSessions } = useTrainingSessions(student.id, true);
-                const hasPendingTutorConfirmation = Boolean(
-                  _trainingSessions?.sessions?.some((s: any) => s?.status === "pending_tutor_confirmation")
-                );
-
-                return (
-                  <Button
-                    className="w-full"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedStudentId(student.id);
-                      setSelectedStudentName(student.name);
-                      setTopicConditioningDialogOpen(true);
-                    }}
-                  >
-                    <span className="inline-flex items-center gap-2">
-                      <span>Topic Conditioning</span>
-                      {hasPendingTutorConfirmation ? (
-                        <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-semibold text-white">!</span>
-                      ) : null}
-                    </span>
-                  </Button>
-                );
-              })()}
+              <Button
+                className="w-full"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSelectedStudentId(student.id);
+                  setSelectedStudentName(student.name);
+                  setTopicConditioningDialogOpen(true);
+                }}
+              >
+                <span className="inline-flex items-center gap-2">
+                  <span>Topic Conditioning</span>
+                  {hasPendingTutorConfirmation ? (
+                    <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-semibold text-white">!</span>
+                  ) : null}
+                </span>
+              </Button>
               <Button
                 className="w-full"
                 variant="outline"
