@@ -2033,24 +2033,54 @@ export default function StudentTopicConditioningDialog({
                                   <p className="font-medium text-foreground">{formatLessonTime(session.scheduled_time)}</p>
                                   <p className="text-muted-foreground">Status: {String(session.status || "").replaceAll("_", " ")}</p>
                                 </div>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => {
-                                    if (activeTrainingSession?.id !== session.id) {
-                                      setTrainingSessionMeetMessage(
-                                        "Start Session will launch the earliest confirmed weekly lesson first. Complete it before opening the next confirmed slot."
-                                      );
-                                      return;
-                                    }
-                                    setSessionPrepChecks({});
-                                    setSessionTopicsModalOpen(true);
-                                  }}
-                                  disabled={!assignmentAccepted}
-                                  title={!assignmentAccepted ? "Accept the assignment before running training sessions." : undefined}
-                                >
-                                  Start Session
-                                </Button>
+                                <div className="flex flex-wrap gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      if (activeTrainingSession?.id !== session.id) {
+                                        setTrainingSessionMeetMessage(
+                                          "Start Session will launch the earliest confirmed weekly lesson first. Complete it before opening the next confirmed slot."
+                                        );
+                                        return;
+                                      }
+                                      setSessionPrepChecks({});
+                                      setSessionTopicsModalOpen(true);
+                                    }}
+                                    disabled={!assignmentAccepted}
+                                    title={!assignmentAccepted ? "Accept the assignment before running training sessions." : undefined}
+                                  >
+                                    Start Session
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={async () => {
+                                      if (!window.confirm("Cancel this confirmed lesson? The parent will need to reschedule a new week.")) {
+                                        return;
+                                      }
+                                      try {
+                                        const result = await respondTrainingSession.mutateAsync({
+                                          sessionId: session.id,
+                                          action: "cancel",
+                                          reasonCodes: ["tutor_cancelled"],
+                                          reasonNote: "Tutor cancelled the confirmed training lesson.",
+                                        });
+                                        setTrainingSessionMeetMessage(
+                                          result?.message || "Training session cancelled. The parent can reschedule a new week."
+                                        );
+                                      } catch (error) {
+                                        setTrainingSessionMeetMessage(
+                                          error instanceof Error ? error.message : "Failed to cancel training session."
+                                        );
+                                      }
+                                    }}
+                                    disabled={respondTrainingSession.isPending || confirmTrainingSession.isPending || !assignmentAccepted}
+                                    title={!assignmentAccepted ? "Accept the assignment before cancelling lessons." : undefined}
+                                  >
+                                    Cancel Lesson
+                                  </Button>
+                                </div>
                               </div>
                               <p className="text-muted-foreground">
                                 Training mode runs this lesson inside the platform without depending on Meet generation or the live lesson window.

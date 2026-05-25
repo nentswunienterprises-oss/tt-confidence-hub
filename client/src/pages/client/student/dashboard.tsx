@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 
 interface StudentStats {
   bossBattlesCompleted: number;
@@ -213,7 +213,7 @@ function formatDateLabel(dateText?: string | null): string {
 }
 
 export default function StudentDashboard() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
 
   const { data: stats, isLoading, dataUpdatedAt } = useQuery<StudentStats>({
     queryKey: ["/api/student/stats"],
@@ -292,6 +292,11 @@ export default function StudentDashboard() {
 
   const topicCards = normalizedTopicStates.length > 0 ? normalizedTopicStates : fallbackTopicCards;
 
+  const studentFirstName =
+    studentInfo?.firstName ||
+    String(studentInfo?.name || "").trim().split(/\s+/)[0] ||
+    "Student";
+
   const trainingMarkers = [
     { label: "Sessions Completed", value: stats?.totalSessions || 0 },
     { label: "Challenge Exposure", value: stats?.bossBattlesCompleted || 0 },
@@ -328,7 +333,7 @@ export default function StudentDashboard() {
     <div className="space-y-5">
       <div>
         <h1 className="text-2xl font-semibold tracking-[-0.01em]">
-          Welcome back, {studentInfo?.firstName || "Student"}
+          Welcome back, {studentFirstName}
         </h1>
         <p className="mt-0.5 text-sm text-muted-foreground">Your training overview</p>
       </div>
@@ -428,7 +433,7 @@ export default function StudentDashboard() {
           <Card
             key={action.title}
             className="border-primary/15 bg-background cursor-pointer transition-colors hover:bg-muted/10"
-            onClick={() => setLocation(action.path)}
+            onClick={() => navigate(action.path)}
           >
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-medium tracking-[-0.01em]">{action.title}</CardTitle>

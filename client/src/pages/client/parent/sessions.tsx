@@ -41,6 +41,7 @@ export default function ParentSessions() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmingSessionId, setConfirmingSessionId] = useState<string | null>(null);
   const [adjustingSessionId, setAdjustingSessionId] = useState<string | null>(null);
+  const [cancellingSessionId, setCancellingSessionId] = useState<string | null>(null);
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [adjustedTime, setAdjustedTime] = useState("");
 
@@ -308,6 +309,53 @@ export default function ParentSessions() {
     }
   };
 
+  const handleCancelSession = async (sessionId: string) => {
+    if (!window.confirm("Cancel this confirmed lesson? You can schedule a new week after the session is cancelled.")) {
+      return;
+    }
+
+    setCancellingSessionId(sessionId);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: HeadersInit = { "Content-Type": "application/json" };
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`;
+      }
+
+      const response = await fetch(`${API_URL}/api/parent/training-sessions/respond`, {
+        method: "POST",
+        credentials: "include",
+        headers,
+        body: JSON.stringify({
+          sessionId,
+          action: "cancel",
+          reasonCodes: ["parent_cancelled"],
+          reasonNote: "Parent cancelled the confirmed training session.",
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload?.message || "Failed to cancel session");
+      }
+
+      toast({
+        title: "Session Cancelled",
+        description: "The lesson has been cancelled. You can now schedule a new week.",
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["/api/parent/training-sessions"] });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to cancel session.",
+        variant: "destructive",
+      });
+    } finally {
+      setCancellingSessionId(null);
+    }
+  };
+
   const sessions = data?.sessions || [];
   const schedulingEnabled = data?.sessionSchedulingEnabled ?? true;
   const trainingModeScheduling = data?.operationalMode === "training";
@@ -494,26 +542,71 @@ export default function ParentSessions() {
                   ) : null}
 
                   {["confirmed", "ready", "live"].includes(String(session.status || "")) ? (
-                    <div className="space-y-1">
-                      <p className="text-sm text-green-700">Session confirmed.</p>
-                      {trainingModeScheduling ? (
-                        <p className="text-sm text-muted-foreground">
-                          Training mode runs this lesson inside the platform without depending on Google Meet.
-                        </p>
-                      ) : session.google_meet_url ? (
-                        <a
-                          href={session.google_meet_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex text-sm text-primary underline underline-offset-2"
-                        >
-                          Join Google Meet
-                        </a>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">
-                          Meet link pending calendar sync.
-                        </p>
-                      )}
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <p className="text-sm text-green-700">Session confirmed.</p>
+                          {trainingModeScheduling ? (
+                            <p className="text-sm text-muted-foreground">
+                              Training mode runs this lesson inside the platform without depending on Google Meet.
+                            </p>
+                          ) : session.google_meet_url ? (
+                            <a
+                              href={session.google_meet_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex text-sm text-primary underline underline-offset-2"
+                            >
+                              Join Google Meet
+                            </a>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">
+                              Meet link pending calendar sync.
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="whitespace-nowrap"
+                            onClick={() => handleCancelSession(session.id)}
+                            disabled={cancellingSessionId === session.id}
+                          >
+                            {cancellingSessionId === session.id ? "Cancelling..." : "Cancel Session"}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setEditingSessionId((current) => (current === session.id ? null : session.id));
+                              setAdjustedTime(new Date(session.scheduled_time).toISOString().slice(0, 16));
+                            }}
+                            disabled={adjustingSessionId === session.id}
+                          >
+                            {editingSessionId === session.id ? "Hide reschedule" : "Request New Time"}
+                          </Button>
+                        </div>
+                      </div>
+                      {editingSessionId === session.id ? (
+                        <div className="rounded-md border border-amber-200 bg-amber-50 p-3 space-y-2">
+                          <Input
+                            type="datetime-local"
+                            value={adjustedTime}
+                            onChange={(e) => setAdjustedTime(e.target.value)}
+                          />
+                          <div className="flex justify-end">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleAdjustSession(session.id)}
+                              disabled={adjustingSessionId === session.id}
+                            >
+                              {adjustingSessionId === session.id ? "Sending..." : "Send New Time"}
+                            </Button>
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
                   ) : null}
                 </div>
