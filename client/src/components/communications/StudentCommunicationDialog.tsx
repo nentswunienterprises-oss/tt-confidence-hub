@@ -284,7 +284,7 @@ export default function StudentCommunicationDialog({
     if (open) {
       setActiveTab("parent");
     }
-  }, [open, studentId]);
+  }, [open]);
 
   const sendMessage = useMutation({
     mutationFn: async ({

@@ -187,7 +187,7 @@ export default function ViewTrackingSystemsDialog({
     if (open && studentId) {
       void refetchReports();
     }
-  }, [open, studentId, refetchReports]);
+  }, [open, studentId]);
 
   const { data: assignments, isLoading: assignmentsLoading } = useQuery<Assignment[]>({
     queryKey: [`${apiBasePath}/students/${studentId}/assignments`],

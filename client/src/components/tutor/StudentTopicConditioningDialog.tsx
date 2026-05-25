@@ -1048,6 +1048,8 @@ export default function StudentTopicConditioningDialog({
     queryKey: [apiBasePath, "sessions"],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: open && !!studentId && !readOnly,
+    staleTime: 60000,
+    refetchOnMount: false,
   });
 
   const studentSessions = useMemo(
@@ -1114,13 +1116,15 @@ export default function StudentTopicConditioningDialog({
   const [showFullSelectedTimeline, setShowFullSelectedTimeline] = useState(false);
   const [expandedPhaseDefinitions, setExpandedPhaseDefinitions] = useState<Set<PhaseLabel>>(new Set());
 
+  // Initialize topic selection when dialog opens
   useEffect(() => {
-    if (topics.length === 0) return;
+    if (!open || topics.length === 0) return;
     if (!selectedTopic || !topics.some((t) => t.topic === selectedTopic)) {
       setSelectedTopic(topics[0].topic);
     }
-  }, [topics, selectedTopic]);
+  }, [open, topics.length, topics[0]?.topic, selectedTopic]);
 
+  // Reset form state when dialog opens
   useEffect(() => {
     if (!open) return;
     const firstTopic = topics[0]?.topic || sanitizeTopic(splitTopics(parentTopics)[0]) || "";
@@ -1133,7 +1137,7 @@ export default function StudentTopicConditioningDialog({
     setPhaseObservedField(topics[0]?.phase || normalizePhase(topicConditioning?.entry_phase));
     setStabilityObservedField(topics[0]?.stability || normalizeStability(topicConditioning?.stability));
     setExpandedPhaseDefinitions(new Set());
-  }, [open, topics, parentTopics, topicConditioning]);
+  }, [open]);
 
   // When selectedTopic changes (Map tab), sync phase and stability fields
   useEffect(() => {

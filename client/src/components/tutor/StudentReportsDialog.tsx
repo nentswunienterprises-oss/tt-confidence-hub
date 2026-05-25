@@ -217,7 +217,7 @@ export default function StudentReportsDialog({
     if (open && studentId) {
       void refetch();
     }
-  }, [open, studentId, refetch]);
+  }, [open, studentId]);
 
   const weeklyReports = useMemo(
     () => (data?.reports || []).filter((r) => r.reportType === "weekly"),
