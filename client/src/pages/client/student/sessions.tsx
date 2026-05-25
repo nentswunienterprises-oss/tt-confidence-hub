@@ -1,9 +1,11 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
 import { CalendarDays, Clock, Video } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 type StudentSession = {
   id: string;
@@ -92,6 +94,7 @@ function canJoinMeet(session: StudentSession) {
 }
 
 export default function StudentSessions() {
+  const navigate = useNavigate();
   const { data, isLoading } = useQuery<StudentSessionsResponse>({
     queryKey: ["/api/student/sessions"],
     queryFn: getQueryFn({ on401: "returnNull" }),
