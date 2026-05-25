@@ -8,6 +8,8 @@ import {
 } from "../client/src/lib/legalDocuments";
 
 const SITE_ORIGIN = "https://responseintegrity.co.za";
+const SOCIAL_IMAGE_URL = `${SITE_ORIGIN}/images/Benefits-of-Online-Tutoring-1-1080x589.png`;
+const SOCIAL_IMAGE_ALT = "Response Integrity response-training";
 
 const HTML_ESCAPE_MAP: Record<string, string> = {
   "&": "&amp;",
@@ -79,9 +81,13 @@ function renderDocument(document: LegalDocumentDefinition) {
     <meta property="og:type" content="website" />
     <meta property="og:url" content="${escapeHtml(canonicalUrl)}" />
     <meta property="og:site_name" content="Response Integrity" />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content="${escapeHtml(SOCIAL_IMAGE_URL)}" />
+    <meta property="og:image:alt" content="${escapeHtml(SOCIAL_IMAGE_ALT)}" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${escapeHtml(document.title)}" />
     <meta name="twitter:description" content="${escapeHtml(document.description)}" />
+    <meta name="twitter:image" content="${escapeHtml(SOCIAL_IMAGE_URL)}" />
+    <meta name="twitter:image:alt" content="${escapeHtml(SOCIAL_IMAGE_ALT)}" />
     <link rel="canonical" href="${escapeHtml(canonicalUrl)}" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />

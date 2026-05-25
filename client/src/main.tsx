@@ -1,24 +1,10 @@
 import React from "react";
-import ReactDOM from "react-dom/client";
-import { HashRouter } from "react-router-dom";
+import { createRoot, hydrateRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
 import App from "./App.tsx";
 import "./index.css";
 
 console.log("main.tsx executing...");
-
-// Normalize direct URL visits for HashRouter.
-// This lets links like /td/landing resolve to /#/td/landing instead of falling back to /.
-if (typeof window !== "undefined") {
-  const { pathname, search, hash } = window.location;
-  const hasAppHashRoute = hash.startsWith("#/");
-  const isRootPath = pathname === "/" || pathname === "/index.html";
-
-  if (!hasAppHashRoute && !isRootPath) {
-    const normalizedPath = pathname === "/index.html" ? "/" : pathname;
-    const nextUrl = `/#${normalizedPath}${search}`;
-    window.location.replace(nextUrl);
-  }
-}
 
 // Get the root element
 const rootElement = document.getElementById("root");
@@ -33,13 +19,20 @@ if (loader) {
 }
 
 if (rootElement) {
-  ReactDOM.createRoot(rootElement).render(
+  const app = (
     <React.StrictMode>
-      <HashRouter>
+      <BrowserRouter>
         <App />
-      </HashRouter>
+      </BrowserRouter>
     </React.StrictMode>
   );
+
+  if (rootElement.hasChildNodes()) {
+    hydrateRoot(rootElement, app);
+  } else {
+    createRoot(rootElement).render(app);
+  }
+
   console.log("React app mounted");
 } else {
   console.error("Root element not found!");

@@ -21,16 +21,250 @@
         { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
         { "key": "Access-Control-Allow-Headers", "value": "X-Requested-With, Content-Type, Authorization" }
       ]
+    },
+    {
+      "source": "/auth",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/auth/:path*",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/login",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/signup",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/forgot-password",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/reset-password",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/client/:path*",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/student/:path*",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/responseconditioningsystem/:path*",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/media/:path*",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/landing",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/onlinetutors-wanted",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/onlinetutorswanted",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/operational/landing",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/operational/signup",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/operational/signup/:path*",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/operational/tutor/intake",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/operational/tutor/gateway",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/operational/td/gateway",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/operational/td/signup",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/affiliate/gateway",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/affiliate/signup",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/executive",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/executive/landing",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/executive/signup",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/aboutTT",
+      "destination": "/about",
+      "permanent": true
+    },
+    {
+      "source": "/more-about-TT",
+      "destination": "/about",
+      "permanent": true
+    },
+    {
+      "source": "/foundingtutorswanted",
+      "destination": "/operational/tutor/landing",
+      "permanent": true
+    },
+    {
+      "source": "/tutor/landing",
+      "destination": "/operational/tutor/landing",
+      "permanent": true
+    },
+    {
+      "source": "/td/landing",
+      "destination": "/operational/td/landing",
+      "permanent": true
+    },
+    {
+      "source": "/td/signup",
+      "destination": "/operational/td/signup",
+      "permanent": true
     }
   ],
   "rewrites": [
-    { "source": "/api/:path*", "destination": "hResponse Integrityps://Response Integrity-confidence-hub-api.onrender.com/api/:path*" },
-    { "source": "/", "destination": "/google-homepage.html" },
-    { "source": "/privacy-policy", "destination": "/privacy-policy.html" },
-    { "source": "/terms-of-use", "destination": "/terms-of-use.html" },
-    { "source": "/more-about-Response Integrity", "destination": "/abouResponse IntegrityT.html" },
-    { "source": "/abouResponse IntegrityT", "destination": "/abouResponse IntegrityT.html" },
-    { "source": "/faq", "destination": "/faq.html" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/api/:path*",
+      "destination": "https://api.responseintegrity.co.za/api/:path*"
+    },
+    {
+      "source": "/",
+      "destination": "/google-homepage.html"
+    },
+    {
+      "source": "/privacy-policy",
+      "destination": "/privacy-policy.html"
+    },
+    {
+      "source": "/terms-of-use",
+      "destination": "/terms-of-use.html"
+    },
+    {
+      "source": "/faq",
+      "destination": "/faq.html"
+    },
+    {
+      "source": "/about",
+      "destination": "/about/index.html"
+    },
+    {
+      "source": "/about/who-we-are",
+      "destination": "/about/who-we-are/index.html"
+    },
+    {
+      "source": "/about/how-we-operate",
+      "destination": "/about/how-we-operate/index.html"
+    },
+    {
+      "source": "/about/how-we-teach",
+      "destination": "/about/how-we-teach/index.html"
+    },
+    {
+      "source": "/operational/tutor/landing",
+      "destination": "/operational/tutor/landing/index.html"
+    },
+    {
+      "source": "/operational/td/landing",
+      "destination": "/operational/td/landing/index.html"
+    },
+    {
+      "source": "/affiliate/landing",
+      "destination": "/affiliate/landing/index.html"
+    },
+    {
+      "source": "/earlyinterventionreferralprogram",
+      "destination": "/earlyinterventionreferralprogram/index.html"
+    },
+    {
+      "source": "/leadershipdevelopmentpilot",
+      "destination": "/leadershipdevelopmentpilot/index.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }

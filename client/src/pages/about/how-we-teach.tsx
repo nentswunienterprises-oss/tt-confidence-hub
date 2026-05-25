@@ -1,3 +1,4 @@
+import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageSeo, SITE_NAME, SITE_ORIGIN } from "@/components/PageSeo";
 import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";

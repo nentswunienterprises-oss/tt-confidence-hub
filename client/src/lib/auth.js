@@ -38,8 +38,7 @@ import { supabase } from "./supabaseClient";
 import { apiRequest, clearAllCache } from "./queryClient";
 
 function navigateToAuthPath(path) {
-    var normalizedHashPath = path.startsWith("#") ? path : "#".concat(path);
-    window.location.hash = normalizedHashPath;
+    window.location.assign(path);
 }
 
 function getLogoutRedirect(user) {
@@ -58,7 +57,7 @@ function getLogoutRedirect(user) {
         return "/";
     }
     if ((user === null || user === void 0 ? void 0 : user.role) === "student") {
-        return "/";
+        return "/student";
     }
     if ((user === null || user === void 0 ? void 0 : user.role) === "affiliate" || (user === null || user === void 0 ? void 0 : user.role) === "od") {
         return "/";

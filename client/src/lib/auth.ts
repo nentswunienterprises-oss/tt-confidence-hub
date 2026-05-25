@@ -2,8 +2,7 @@ import { supabase } from "./supabaseClient";
 import { apiRequest, clearAllCache } from "./queryClient";
 
 function navigateToAuthPath(path: string) {
-  const normalizedHashPath = path.startsWith("#") ? path : `#${path}`;
-  window.location.hash = normalizedHashPath;
+  window.location.assign(path);
 }
 
 function getLogoutRedirect(user) {
@@ -27,7 +26,7 @@ function getLogoutRedirect(user) {
   }
 
   if (user?.role === "student") {
-    return "/";
+    return "/student";
   }
 
   if (user?.role === "affiliate" || user?.role === "od") {

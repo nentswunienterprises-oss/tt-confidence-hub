@@ -7,6 +7,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { queryClient, persister } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
+import { RouteSeoManager } from "@/components/RouteSeoManager";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { DashboardLayoutSimple } from "@/components/layout/dashboard-layout-simple";
@@ -44,7 +45,6 @@ import WhoWeAre from "@/pages/about/who-we-are";
 import HowWeOperate from "@/pages/about/how-we-operate";
 import HowWeTeach from "@/pages/about/how-we-teach";
 import LeadershipDevelopmentPilot from "@/pages/leadershipdevelopmentpilot";
-import FoundingTutorsWanted from "@/pages/foundingtutorswanted";
 import ResponseConditioningSystem from "@/pages/responseconditioningsystem";
 import ResponseConditioningClarity from "@/pages/responseconditioningsystem/transformation-phases/clarity";
 import ResponseConditioningStructuredExecution from "@/pages/responseconditioningsystem/transformation-phases/structured-execution";
@@ -199,7 +199,7 @@ function Router() {
       <Route path="/about/how-we-teach" element={<HowWeTeach />} />
       <Route path="/aboutTT" element={<Navigate to="/about" replace />} />
       <Route path="/leadershipdevelopmentpilot" element={<LeadershipDevelopmentPilot />} />
-      <Route path="/foundingtutorswanted" element={<FoundingTutorsWanted />} />
+      <Route path="/foundingtutorswanted" element={<Navigate to="/operational/tutor/landing" replace />} />
       <Route path="/responseconditioningsystem" element={<ResponseConditioningSystem />} />
       <Route
         path="/responseconditioningsystem/clarity"
@@ -487,9 +487,9 @@ function Router() {
       <Route path="/tutor/updates" element={<TutorGatewayGuard><DashboardLayout><TutorUpdates /></DashboardLayout></TutorGatewayGuard>} />
 
       {/* Legacy TD Routes */}
-      <Route path="/tutor/landing" element={<TutorLanding />} />
-      <Route path="/td/landing" element={<TdLanding />} />
-      <Route path="/td/signup" element={<TdSignup />} />
+      <Route path="/tutor/landing" element={<Navigate to="/operational/tutor/landing" replace />} />
+      <Route path="/td/landing" element={<Navigate to="/operational/td/landing" replace />} />
+      <Route path="/td/signup" element={<Navigate to="/operational/td/signup" replace />} />
       <Route path="/td/no-pod" element={<TdGatewayGuard><TDNoPod /></TdGatewayGuard>} />
       <Route path="/td/dashboard" element={<TdGatewayGuard><TDDashboard /></TdGatewayGuard>} />
       <Route path="/td/overview" element={<TdGatewayGuard><DashboardLayout><TDOverview /></DashboardLayout></TdGatewayGuard>} />
@@ -525,6 +525,7 @@ export default function App() {
     >
       <TooltipProvider>
         <ScrollToTop />
+        <RouteSeoManager />
         <OfflineIndicator />
         <Toaster />
         <Router />

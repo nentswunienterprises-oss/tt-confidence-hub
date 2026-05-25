@@ -1,9 +1,19 @@
 User-agent: OAI-SearchBot
 Disallow: /pdfs/
+Disallow: /auth
+Disallow: /client/
+Disallow: /student/
+Disallow: /responseconditioningsystem/
+Disallow: /media/
 Allow: /
 
 User-agent: ChatGPT-User
 Disallow: /pdfs/
+Disallow: /auth
+Disallow: /client/
+Disallow: /student/
+Disallow: /responseconditioningsystem/
+Disallow: /media/
 Allow: /
 
 User-agent: GPTBot
@@ -11,6 +21,11 @@ Disallow: /
 
 User-agent: *
 Disallow: /pdfs/
+Disallow: /auth
+Disallow: /client/
+Disallow: /student/
+Disallow: /responseconditioningsystem/
+Disallow: /media/
 Allow: /
 
 Sitemap: https://responseintegrity.co.za/sitemap.xml
