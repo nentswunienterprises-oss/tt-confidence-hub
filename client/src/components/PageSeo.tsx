@@ -146,7 +146,7 @@ export function PageSeo({
         cleanups[index]();
       }
     };
-  }, [description, image, imageAlt, jsonLd, path, robots, title, twitterCard, type]);
+  }, [description, image, imageAlt, JSON.stringify(jsonLd), path, robots, title, twitterCard, type]);
 
   return null;
 }
