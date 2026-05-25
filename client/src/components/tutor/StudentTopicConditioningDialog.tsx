@@ -1435,7 +1435,14 @@ export default function StudentTopicConditioningDialog({
           <TabsList className={`flex w-full flex-row sm:grid h-auto rounded-xl border border-primary/15 bg-muted/20 p-1 gap-1 ${showTopicManagement ? "sm:grid-cols-2" : "sm:grid-cols-1"}`}>
             <TabsTrigger value="dashboard" className="flex-1 h-auto whitespace-normal text-xs sm:text-sm py-2 px-2">Map</TabsTrigger>
             {showTopicManagement ? (
-              <TabsTrigger value="session-form" className="flex-1 h-auto whitespace-normal text-xs sm:text-sm py-2 px-2">Training</TabsTrigger>
+              <TabsTrigger value="session-form" className="flex-1 h-auto whitespace-normal text-xs sm:text-sm py-2 px-2">
+                <span className="inline-flex items-center gap-2">
+                  <span>Training</span>
+                  {trainingSessionsData?.sessions?.some((s: any) => s?.status === "pending_tutor_confirmation") ? (
+                    <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-semibold text-white">!</span>
+                  ) : null}
+                </span>
+              </TabsTrigger>
             ) : null}
           </TabsList>
 
