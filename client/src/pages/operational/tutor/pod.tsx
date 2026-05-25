@@ -177,6 +177,10 @@ export default function TutorPod() {
   const podCapacity = podTeamData?.capacity || 12;
   const podMemberCount = podTeamData?.memberCount || 0;
   const teamMembers = podTeamData?.members || [];
+  const studentIds = useMemo(
+    () => (podData?.students || []).map((student) => String(student.id)).join(","),
+    [podData?.students]
+  );
 
   const sortedTeamMembers = useMemo(() => {
     return [...teamMembers].sort((a, b) => a.name.localeCompare(b.name));
@@ -220,7 +224,7 @@ export default function TutorPod() {
     isAuthenticated,
     onboardingCompleted,
     hasQualifiedApplication,
-    podData,
+    podData?.assignment,
     navigate,
   ]);
 
@@ -232,7 +236,7 @@ export default function TutorPod() {
 
       return () => window.clearTimeout(retryTimer);
     }
-  }, [authLoading, isAuthenticated, isLoading, podData, queryClient]);
+  }, [authLoading, isAuthenticated, isLoading, podData?.assignment, podData?.students?.length, queryClient]);
 
   // Fetch identity sheets for all students
   useEffect(() => {
@@ -263,7 +267,7 @@ export default function TutorPod() {
       };
       fetchIdentitySheets();
     }
-  }, [podData?.students]);
+  }, [studentIds]);
 
   useEffect(() => {
     const openProposal = searchParams.get("openProposal");
@@ -280,14 +284,14 @@ export default function TutorPod() {
     }
 
     setSelectedStudentId(String(matchedStudent.id));
-    setSelectedStudentName(String(matchedStudent.name || matchedStudent.fullName || ""));
+    setSelectedStudentName(String(matchedStudent.name || ""));
     setProposalOpen(true);
 
     const nextParams = new URLSearchParams(searchParams);
     nextParams.delete("openProposal");
     nextParams.delete("studentId");
     setSearchParams(nextParams, { replace: true });
-  }, [searchParams, setSearchParams, podData?.students]);
+  }, [searchParams.toString(), podData?.students?.length, studentIds]);
 
   // Authentication is handled by route protection, no need for manual redirects
 
