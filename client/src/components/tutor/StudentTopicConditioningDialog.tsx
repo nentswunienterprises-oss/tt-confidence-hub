@@ -1158,9 +1158,18 @@ export default function StudentTopicConditioningDialog({
       setStabilityObservedField(found.stability);
       // Reset phaseSelections to last in-progress for this topic/phase, or empty
       const phaseKey = `${found.topic}::${found.phase}`;
-      setPhaseSelections(phaseSelectionsMap[phaseKey] || {});
+      const nextPhaseSelections = phaseSelectionsMap[phaseKey] || {};
+      const currentKeys = Object.keys(phaseSelections);
+      const nextKeys = Object.keys(nextPhaseSelections);
+      const selectionsChanged =
+        currentKeys.length !== nextKeys.length ||
+        nextKeys.some((key) => phaseSelections[key] !== nextPhaseSelections[key]);
+
+      if (selectionsChanged) {
+        setPhaseSelections(nextPhaseSelections);
+      }
     }
-  }, [activeTopicField, topics]);
+  }, [activeTopicField, topics, phaseSelections, phaseSelectionsMap]);
 
   // Always use activeTopicField as the source of truth for Topic Management tab
   // When switching to session-form tab, ensure activeTopicField is set and in sync
