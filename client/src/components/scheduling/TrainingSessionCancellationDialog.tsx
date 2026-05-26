@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Dialog,
@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import type { TrainingSessionCancellationReasonOption } from "@/lib/trainingSessionCancellation";
 import { TRAINING_SESSION_CANCELLATION_OTHER_CODE } from "@/lib/trainingSessionCancellation";
@@ -36,37 +36,31 @@ export function TrainingSessionCancellationDialog({
   notePlaceholder = "Add any operational detail that should stay with the cancellation record.",
   onConfirm,
 }: TrainingSessionCancellationDialogProps) {
-  const [selectedReasonCodes, setSelectedReasonCodes] = useState<string[]>([]);
+  const [selectedReasonCode, setSelectedReasonCode] = useState("");
   const [reasonNote, setReasonNote] = useState("");
   const [error, setError] = useState("");
 
-  const otherSelected = useMemo(
-    () => selectedReasonCodes.includes(TRAINING_SESSION_CANCELLATION_OTHER_CODE),
-    [selectedReasonCodes],
-  );
+  const otherSelected = selectedReasonCode === TRAINING_SESSION_CANCELLATION_OTHER_CODE;
 
   useEffect(() => {
     if (open) {
       setError("");
       return;
     }
-    setSelectedReasonCodes([]);
+    setSelectedReasonCode("");
     setReasonNote("");
     setError("");
   }, [open]);
 
-  const toggleReason = (code: string, checked: boolean) => {
-    setSelectedReasonCodes((current) => {
-      if (checked) {
-        return current.includes(code) ? current : [...current, code];
-      }
-      return current.filter((item) => item !== code);
-    });
-  };
+  useEffect(() => {
+    if (!otherSelected && reasonNote) {
+      setReasonNote("");
+    }
+  }, [otherSelected, reasonNote]);
 
   const handleConfirm = async () => {
-    if (selectedReasonCodes.length === 0) {
-      setError("Select at least one cancellation reason.");
+    if (!selectedReasonCode) {
+      setError("Select a cancellation reason.");
       return;
     }
 
@@ -78,8 +72,8 @@ export function TrainingSessionCancellationDialog({
     setError("");
     try {
       await onConfirm({
-        reasonCodes: selectedReasonCodes,
-        reasonNote: String(reasonNote || "").trim() || null,
+        reasonCodes: [selectedReasonCode],
+        reasonNote: otherSelected ? String(reasonNote || "").trim() || null : null,
       });
       onOpenChange(false);
     } catch (err) {
@@ -96,17 +90,25 @@ export function TrainingSessionCancellationDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="space-y-3">
+          <RadioGroup
+            value={selectedReasonCode}
+            onValueChange={(value) => {
+              setSelectedReasonCode(value);
+              if (error) {
+                setError("");
+              }
+            }}
+            className="space-y-3"
+          >
             {reasonOptions.map((option) => {
-              const checked = selectedReasonCodes.includes(option.code);
               return (
                 <label
                   key={option.code}
                   className="flex items-start gap-3 rounded-md border border-border bg-muted/10 px-3 py-3 text-sm"
                 >
-                  <Checkbox
-                    checked={checked}
-                    onCheckedChange={(value) => toggleReason(option.code, Boolean(value))}
+                  <RadioGroupItem
+                    value={option.code}
+                    id={`training-session-cancel-${option.code}`}
                     className="mt-0.5"
                   />
                   <span className="space-y-1">
@@ -116,19 +118,19 @@ export function TrainingSessionCancellationDialog({
                 </label>
               );
             })}
-          </div>
+          </RadioGroup>
 
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-foreground">
-              Extra note {otherSelected ? "(required)" : "(optional)"}
-            </p>
-            <Textarea
-              placeholder={notePlaceholder}
-              value={reasonNote}
-              onChange={(event) => setReasonNote(event.target.value)}
-              rows={4}
-            />
-          </div>
+          {otherSelected ? (
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-foreground">Extra note (required)</p>
+              <Textarea
+                placeholder={notePlaceholder}
+                value={reasonNote}
+                onChange={(event) => setReasonNote(event.target.value)}
+                rows={4}
+              />
+            </div>
+          ) : null}
 
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
