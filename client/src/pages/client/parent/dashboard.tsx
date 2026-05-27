@@ -1069,7 +1069,7 @@ export default function ParentDashboard() {
         <Card className="border-primary/20 bg-background shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-semibold tracking-[-0.01em]">Session Markers</CardTitle>
-            <CardDescription>Operational secondary signals. Useful context, not the main Response Integrity outcome layer.</CardDescription>
+            <CardDescription> </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1091,7 +1091,7 @@ export default function ParentDashboard() {
             <CardDescription>
               {isDiagnosisOnlyView
                 ? "Training markers will appear here once regular Response Integrity training sessions begin."
-                : "Secondary signals that show conditioning pressure and response structure."}
+                : " "}
             </CardDescription>
           </CardHeader>
           <CardContent>
