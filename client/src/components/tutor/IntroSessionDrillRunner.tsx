@@ -1114,6 +1114,7 @@ export default function IntroSessionDrillRunner() {
       const shouldStop = !nextPhase || phaseSummary.band === "place";
 
       if (!shouldStop) {
+        setAdaptiveDiagnosisMessage(null);
         setAdaptiveTransition({
           currentPhase: activeDiagnosisPhase,
           nextPhase,
@@ -1633,7 +1634,7 @@ export default function IntroSessionDrillRunner() {
           {submitError}
         </div>
       )}
-      {adaptiveDiagnosisMessage && !submitSuccess && isAdaptiveVerificationFlow && (
+      {adaptiveDiagnosisMessage && !adaptiveTransition && !submitSuccess && isAdaptiveVerificationFlow && (
         <div className="mb-4 p-3 rounded-md border border-primary/20 bg-primary/5 text-sm text-foreground">
           {adaptiveDiagnosisMessage}
         </div>
