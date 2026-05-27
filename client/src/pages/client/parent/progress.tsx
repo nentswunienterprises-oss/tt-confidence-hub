@@ -396,7 +396,13 @@ export default function ParentProgress() {
               <p className="text-xs sm:text-sm text-muted-foreground">Session allocation, quota and usage for the current month.</p>
             </div>
 
-            {!monthlyQuota ? (
+            {trainingDataLoading ? (
+              <Card>
+                <CardContent className="p-4 text-sm text-muted-foreground">
+                  Loading analytics...
+                </CardContent>
+              </Card>
+            ) : !monthlyQuota ? (
               <Card>
                 <CardContent className="p-4 text-sm text-muted-foreground">No analytics available yet - schedule a session or confirm enrollment to see quota data.</CardContent>
               </Card>
