@@ -47,7 +47,7 @@ These are the exact `status` / `meaning` / `focus` strings for each topic.
 - `Ratios` -Structured Execution / High
   - Status: "Your child can now solve problems consistently in this topic."
   - Meaning: "They are able to follow the correct steps independently with minimal support."
-  - Focus: "We are introducing more challenging questions to strengthen their response under difficulty."
+  - Focus: "We are verifying sustained high execution through repeated, constrained practice before introducing more challenging questions to strengthen their response under difficulty."
 
 ### Weekly report 1 (sessions 1-2)
 
@@ -265,7 +265,7 @@ Weeks 3-4 / Sessions 5-8
 - `Algebra` -Structured Execution / High
   - Status: "Your child can now solve problems consistently in this topic."
   - Meaning: "They are able to follow the correct steps independently with minimal support."
-  - Focus: "We are introducing more challenging questions to strengthen their response under difficulty."
+  - Focus: "We are verifying sustained high execution through repeated, constrained practice before introducing more challenging questions to strengthen their response under difficulty."
 
 - `Geometry` -Controlled Discomfort / High
   - Status: "Your child is handling difficult problems well."

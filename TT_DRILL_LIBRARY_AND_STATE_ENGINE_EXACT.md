@@ -704,7 +704,7 @@ This is the phase-specific parent dashboard matrix to use for `status`, `meaning
 - High:
   - Status: `Your child can now solve problems consistently in this topic.`
   - Meaning: `They are able to follow the correct steps independently with minimal support.`
-  - Focus: `We are introducing more challenging questions to strengthen their response under difficulty.`
+  - Focus: `We are verifying sustained high execution through repeated, constrained practice before introducing more challenging questions to strengthen their response under difficulty.`
 - High Maintenance:
   - Status: `Your child has sustained strong execution consistency in this topic.`
   - Meaning: `They have held high execution quality across sessions and are ready for progression decisions.`

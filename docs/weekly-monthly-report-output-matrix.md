@@ -699,7 +699,7 @@ Used when no phase progress, no stability regress, and no final maintenance over
 
 - Status: `Your child can now solve problems consistently in this topic.`
 - Meaning: `They are able to follow the correct steps independently with minimal support.`
-- Focus: `We are introducing more challenging questions to strengthen their response under difficulty.`
+- Focus: `We are verifying sustained high execution through repeated, constrained practice before introducing more challenging questions to strengthen their response under difficulty.`
 
 `High Maintenance`
 
