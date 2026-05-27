@@ -686,7 +686,11 @@ export default function ParentDashboard() {
     bucket: "active" as const,
   }));
 
-  const topicCards = normalizedTopicStates.length > 0 ? normalizedTopicStates : fallbackTopicCards;
+  const topicCards = normalizedTopicStates.length > 0
+    ? normalizedTopicStates
+    : isDiagnosisOnlyView
+      ? fallbackTopicCards
+      : [];
   const primaryDashboardTopic = topicCards[0] || null;
   const primaryDashboardPhase = normalizePhaseLabel(primaryDashboardTopic?.phase);
   const currentBreakpointTopics = (topicCards.filter((item) => item.bucket === "active").length > 0

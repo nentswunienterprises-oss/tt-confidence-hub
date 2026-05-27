@@ -300,6 +300,7 @@ export default function ProposalView({
   const activeLiveTopicStates = normalizedLiveTopicStates.filter((item) => item.bucket === "active");
   const currentLiveTopicStates = activeLiveTopicStates.length > 0 ? activeLiveTopicStates : normalizedLiveTopicStates;
   const isLiveTrainingView = !forceDiagnosisView && currentLiveTopicStates.length > 0;
+  const isLiveTrainingStatePending = !forceDiagnosisView && currentLiveTopicStates.length === 0;
 
   const currentTopicNames = currentLiveTopicStates.map((item) => item.topic);
   const currentTopicSummary = formatListWithAnd(currentTopicNames);
@@ -601,13 +602,13 @@ export default function ProposalView({
       <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-6 rounded-lg">
         <h2 className="text-2xl font-bold text-foreground mb-2">{studentFirstName} Training Plan</h2>
         <p className="text-muted-foreground">
-          {isLiveTrainingView ? "Live Operating Plan" : `Structured plan for ${studentName}`}
+          {isLiveTrainingView || isLiveTrainingStatePending ? "Live Operating Plan" : `Structured plan for ${studentName}`}
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>{isLiveTrainingView ? "Current Focus" : "Diagnosis Context"}</CardTitle>
+          <CardTitle>{isLiveTrainingView || isLiveTrainingStatePending ? "Current Focus" : "Diagnosis Context"}</CardTitle>
         </CardHeader>
         <CardContent>
           {isLiveTrainingView ? (
@@ -640,6 +641,15 @@ export default function ProposalView({
                 </p>
               </div>
             ) : null
+          ) : isLiveTrainingStatePending ? (
+            <div className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                Live topic-conditioning state is syncing for {studentFirstName}.
+              </p>
+              <p>
+                This view will refresh from the student's current training position as soon as the latest live topic state is available.
+              </p>
+            </div>
           ) : (
             <p className="text-sm text-muted-foreground">
               Diagnosis ran on: <span className="text-foreground font-medium">{diagnosisTopic}</span>
@@ -648,10 +658,10 @@ export default function ProposalView({
         </CardContent>
       </Card>
 
-      {(isLiveTrainingView || normalizedStability === "Low" || normalizedStability === "Medium") && (
+      {(isLiveTrainingView || isLiveTrainingStatePending || normalizedStability === "Low" || normalizedStability === "Medium") && (
         <Card>
           <CardHeader>
-            <CardTitle>{isLiveTrainingView ? "Current Position" : `Where ${studentFirstName} Currently Gets Stuck`}</CardTitle>
+            <CardTitle>{isLiveTrainingView || isLiveTrainingStatePending ? "Current Position" : `Where ${studentFirstName} Currently Gets Stuck`}</CardTitle>
           </CardHeader>
           <CardContent>
             {isLiveTrainingView ? (
@@ -667,6 +677,10 @@ export default function ProposalView({
               ) : primaryLiveTopicBlock ? (
                 <p className="text-sm text-muted-foreground">{primaryLiveTopicBlock.position}</p>
               ) : null
+            ) : isLiveTrainingStatePending ? (
+              <p className="text-sm text-muted-foreground">
+                The current live training position will appear here once topic-conditioning state finishes syncing.
+              </p>
             ) : (
               <p className="text-sm text-muted-foreground">{getFirstBreakdown()}</p>
             )}
@@ -676,10 +690,10 @@ export default function ProposalView({
 
       <Card>
         <CardHeader>
-          <CardTitle>{isLiveTrainingView ? "What We Are Observing" : "What We Have Observed"}</CardTitle>
+          <CardTitle>{isLiveTrainingView || isLiveTrainingStatePending ? "What We Are Observing" : "What We Have Observed"}</CardTitle>
         </CardHeader>
         <CardContent>
-          {(isLiveTrainingView ? liveTopicBlocks : Array.from(new Set(observedResponse))).length > 0 ? (
+          {(isLiveTrainingView ? liveTopicBlocks : isLiveTrainingStatePending ? [] : Array.from(new Set(observedResponse))).length > 0 ? (
             isLiveTrainingView ? (
               hasMultipleLiveTopics ? (
                 <div className="space-y-3">
@@ -710,7 +724,7 @@ export default function ProposalView({
             )
           ) : (
             <p className="text-sm text-muted-foreground">
-              {isLiveTrainingView ? "Live topic-conditioning observations will appear here as the current state updates." : "Observed response patterns captured during intro session."}
+              {isLiveTrainingView || isLiveTrainingStatePending ? "Live topic-conditioning observations will appear here as the current state updates." : "Observed response patterns captured during intro session."}
             </p>
           )}
         </CardContent>
@@ -718,7 +732,7 @@ export default function ProposalView({
 
       <Card>
         <CardHeader>
-          <CardTitle>{isLiveTrainingView ? "Training Direction" : "Training Path"}</CardTitle>
+          <CardTitle>{isLiveTrainingView || isLiveTrainingStatePending ? "Training Direction" : "Training Path"}</CardTitle>
         </CardHeader>
         <CardContent>
           {isLiveTrainingView ? (
@@ -734,18 +748,22 @@ export default function ProposalView({
             ) : primaryLiveTopicBlock ? (
               <p className="text-sm text-muted-foreground">{primaryLiveTopicBlock.direction}</p>
             ) : null
-          ) : (
-            <p className="text-sm text-muted-foreground">{getFirstPriority()}</p>
-          )}
+            ) : isLiveTrainingStatePending ? (
+              <p className="text-sm text-muted-foreground">
+                Training direction will populate from the latest live topic-conditioning state once it is available.
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground">{getFirstPriority()}</p>
+            )}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>{isLiveTrainingView ? "Structure" : "Conditioning Structure"}</CardTitle>
+          <CardTitle>{isLiveTrainingView || isLiveTrainingStatePending ? "Structure" : "Conditioning Structure"}</CardTitle>
         </CardHeader>
         <CardContent>
-          {isLiveTrainingView ? (
+          {isLiveTrainingView || isLiveTrainingStatePending ? (
             <ul className="text-sm text-muted-foreground space-y-1">
               <li>- 2 sessions per week (8 per month)</li>
               <li>- Method-first execution</li>
@@ -767,18 +785,18 @@ export default function ProposalView({
 
       <Card>
         <CardHeader>
-          <CardTitle>{isLiveTrainingView ? "How Progress Will Show" : "How Progress Will Be Observed"}</CardTitle>
+          <CardTitle>{isLiveTrainingView || isLiveTrainingStatePending ? "How Progress Will Show" : "How Progress Will Be Observed"}</CardTitle>
         </CardHeader>
         <CardContent>
-          {(isLiveTrainingView ? liveProgressMarkers : progressSignals).length > 0 ? (
+          {(isLiveTrainingView ? liveProgressMarkers : isLiveTrainingStatePending ? [] : progressSignals).length > 0 ? (
             <ul className="text-sm text-muted-foreground space-y-1">
-              {(isLiveTrainingView ? liveProgressMarkers : progressSignals).map((item) => (
+              {(isLiveTrainingView ? liveProgressMarkers : isLiveTrainingStatePending ? [] : progressSignals).map((item) => (
                 <li key={item}>- {item}</li>
               ))}
             </ul>
           ) : (
             <ul className="text-sm text-muted-foreground space-y-1">
-              {progressSignals.map((item) => (
+              {(isLiveTrainingStatePending ? ["Live progress markers will appear here once the latest topic-conditioning state is available."] : progressSignals).map((item) => (
                 <li key={item}>- {item}</li>
               ))}
             </ul>
@@ -788,7 +806,7 @@ export default function ProposalView({
 
       <Card className="bg-gradient-to-r from-primary/10 to-primary/5">
         <CardContent className="pt-6">
-          <h3 className="font-bold text-lg mb-2">{isLiveTrainingView ? "Parent Note" : "Parent Alignment"}</h3>
+          <h3 className="font-bold text-lg mb-2">{isLiveTrainingView || isLiveTrainingStatePending ? "Parent Note" : "Parent Alignment"}</h3>
           {isLiveTrainingView ? (
             <ul className="text-sm text-muted-foreground space-y-1">
               {hasMultipleLiveTopics ? (
@@ -802,6 +820,11 @@ export default function ProposalView({
                   <li>- As their execution stabilizes, the training phase will advance.</li>
                 </>
               )}
+            </ul>
+          ) : isLiveTrainingStatePending ? (
+            <ul className="text-sm text-muted-foreground space-y-1">
+              <li>- This view no longer falls back to onboarding-era topic placement once active training has begun.</li>
+              <li>- If live state is still syncing, the current training position will appear here as soon as the latest topic-conditioning state is available.</li>
             </ul>
           ) : (
             <>
