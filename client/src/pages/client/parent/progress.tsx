@@ -221,14 +221,14 @@ export default function ParentProgress() {
 
             <TabsContent value="weekly" className="mt-0 space-y-4">
               <div>
-                <h2 className="text-lg sm:text-2xl font-bold">Weekly Reports</h2>
+                <h2 className="text-lg sm:text-2xl font-bold">Weekly Updates</h2>
                 <p className="text-xs sm:text-sm text-muted-foreground">Review week-by-week progress without scrolling through monthly summaries.</p>
               </div>
 
               {weeklyReports.length === 0 ? (
                 <Card>
                   <CardContent className="p-4 sm:pt-6 text-center text-sm sm:text-base text-muted-foreground">
-                    No weekly reports yet. Your tutor will send reports after each week of sessions.
+                    No weekly updates yet. Your tutor will send an update after each week of sessions.
                   </CardContent>
                 </Card>
               ) : (
@@ -240,7 +240,7 @@ export default function ParentProgress() {
                           <div>
                             <CardTitle className="flex flex-wrap items-center gap-2 text-sm sm:text-base">
                               <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
-                              Weekly Report
+                              Weekly Update
                               {isLegacyWeeklyReport(report) && (
                                 <Badge variant="outline" className="text-xs">
                                   Legacy format
