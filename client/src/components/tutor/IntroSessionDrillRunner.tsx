@@ -875,6 +875,20 @@ export default function IntroSessionDrillRunner() {
   const isLastRep = set ? currentRep === set.reps - 1 : false;
   const isLastSet = drillStructure ? currentSet === drillStructure.length - 1 : false;
   const showSessionInstructions = isSessionMode && sessionTopicIndex === 0 && isFirstSet;
+  const activeRunnerLabel = isSessionMode
+    ? "Training session"
+    : drillMode === "training"
+      ? "Training drill"
+      : drillMode === "handover"
+        ? handoverReDiagnosisMode
+          ? "Targeted re-diagnosis"
+          : "Handover verification"
+        : "Adaptive intro diagnosis";
+  const scheduledSessionTypeLabel = scheduledSession?.type === "training"
+    ? "Training lesson"
+    : scheduledSession?.type === "handover"
+      ? "Handover lesson"
+      : "Intro lesson";
 
   useEffect(() => {
     if (!drillStructure) return;
@@ -1376,7 +1390,8 @@ export default function IntroSessionDrillRunner() {
           </p>
           <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
             <span>Status: {scheduledSession.status}</span>
-            <span>Type: {scheduledSession.type}</span>
+            <span>Lesson Context: {scheduledSessionTypeLabel}</span>
+            <span>Runner: {activeRunnerLabel}</span>
           </div>
         </div>
       )}
