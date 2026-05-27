@@ -264,7 +264,7 @@ export const PARENT_DASHBOARD_COPY_BY_STATE: Record<TopicPhase, Record<TopicStab
     High: {
       status: "Your child can now solve problems consistently in this topic.",
       meaning: "They are able to follow the correct steps independently with minimal support.",
-      focus: "We are introducing more challenging questions while still in Structured Execution, preparing for repeated confirmation before Controlled Discomfort.",
+      focus: "We are verifying sustained high execution through harder questions before moving to the next phase.",
     },
     "High Maintenance": {
       status: "Your child has sustained strong execution consistency in this topic.",
