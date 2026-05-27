@@ -2667,7 +2667,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 { setName: "Light Apply", reps: 3 },
               ],
               "Structured Execution": [
-                { setName: "Forced Structure", reps: 3 },
+                { setName: "Required Structure", reps: 3 },
                 { setName: "Independent Execution", reps: 3 },
                 { setName: "Variation Control", reps: 3 },
               ],
