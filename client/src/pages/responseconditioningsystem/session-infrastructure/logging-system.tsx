@@ -1206,6 +1206,37 @@ function DemoRunnerOverlay({
     if (!stabilityValue) return String(phaseValue || "Not recorded");
     return `${phaseValue} (${stabilityValue})`;
   };
+  const displayActionDetails = (() => {
+    if (mode === "diagnosis") {
+      return {
+        nextFocusLabel: "Next Session Focus",
+        nextFocus: displaySummary.nextAction,
+        followOnLabel: null as string | null,
+        followOnAction: null as string | null,
+        constraint: displaySummary.constraint,
+      };
+    }
+
+    if (displaySummary.stability === "High") {
+      const maintenanceAction = getNextActionData(displaySummary.phase, "High");
+      const followOnAction = getNextActionData(displaySummary.phase, "High Maintenance");
+      return {
+        nextFocusLabel: "Immediate Next Drill",
+        nextFocus: maintenanceAction.nextActions?.[0] || maintenanceAction.primaryAction,
+        followOnLabel: followOnAction.advanceTo ? "Then If Strong Again" : null,
+        followOnAction: followOnAction.advanceTo ? followOnAction.primaryAction : null,
+        constraint: maintenanceAction.rules?.[0] || displaySummary.constraint,
+      };
+    }
+
+    return {
+      nextFocusLabel: "Next Session Focus",
+      nextFocus: displaySummary.nextAction,
+      followOnLabel: null as string | null,
+      followOnAction: null as string | null,
+      constraint: displaySummary.constraint,
+    };
+  })();
 
   const handleObservation = (fieldKey: string, option: string) => {
     if (adaptiveTransition) {
@@ -1692,14 +1723,16 @@ function DemoRunnerOverlay({
                       <span className="text-muted-foreground">Now</span>
                       <span className="font-medium">{formatState(displaySummary.phase, displaySummary.stability)}</span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Phase</span>
-                      <span className="font-medium">{displaySummary.phase}</span>
-                    </div>
                     <div className="border-t pt-2">
-                      <p className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">Next Session Focus</p>
-                      <p className="font-semibold text-blue-700">{displaySummary.nextAction}</p>
+                      <p className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">{displayActionDetails.nextFocusLabel}</p>
+                      <p className="font-semibold text-blue-700">{displayActionDetails.nextFocus}</p>
                     </div>
+                    {displayActionDetails.followOnAction && (
+                      <div className="border-t pt-2">
+                        <p className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">{displayActionDetails.followOnLabel}</p>
+                        <p className="font-medium">{displayActionDetails.followOnAction}</p>
+                      </div>
+                    )}
                     <div className="border-t pt-2">
                       <p className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">Reason</p>
                       <p className="font-medium">{displaySummary.transitionReason}</p>
@@ -1708,9 +1741,9 @@ function DemoRunnerOverlay({
                       <p className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">Tutor Meaning</p>
                       <p className="font-medium">{displaySummary.tutorMeaning}</p>
                     </div>
-                    {displaySummary.constraint && (
+                    {displayActionDetails.constraint && (
                       <div className="mt-1 border-t pt-2 text-xs text-muted-foreground">
-                        Constraint: {displaySummary.constraint}
+                        Constraint: {displayActionDetails.constraint}
                       </div>
                     )}
                   </div>

@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { observationLevelFromOptionIndex, type ObservationLevel } from "@shared/observationScoring";
 import { tryParsePhase } from "@shared/topicConditioningEngine";
+import { getNextActionData } from "./topicConditioningEngine";
 import {
   computeAdaptiveDiagnosisPhaseSummary,
   getAdjacentDiagnosisPhase,
@@ -1482,6 +1483,33 @@ export default function IntroSessionDrillRunner() {
           if (!stabilityValue) return String(phaseValue || "Not recorded");
           return `${phaseValue} (${stabilityValue})`;
         };
+        const getDisplayedActionDetails = (row: any) => {
+          const transitionReason = String(row?.transitionReason || row?.phaseDecision || "remain").toLowerCase();
+          const enteredMaintenanceCheckpoint =
+            transitionReason === "stability advance" &&
+            row?.phaseBefore === row?.phase &&
+            row?.stabilityBefore === "High" &&
+            row?.stability === "High Maintenance";
+
+          if (!enteredMaintenanceCheckpoint) {
+            return {
+              nextFocusLabel: "Next Session Focus",
+              nextFocus: row?.nextAction || "Not recorded",
+              followOnLabel: null as string | null,
+              followOnAction: null as string | null,
+              constraint: row?.constraint || null,
+            };
+          }
+
+          const maintenanceAction = getNextActionData(row.phaseBefore, row.stabilityBefore);
+          return {
+            nextFocusLabel: "Immediate Next Drill",
+            nextFocus: maintenanceAction.nextActions?.[0] || maintenanceAction.primaryAction || row?.nextAction || "Not recorded",
+            followOnLabel: "Then If Strong Again",
+            followOnAction: row?.nextAction || null,
+            constraint: maintenanceAction.rules?.[0] || row?.constraint || null,
+          };
+        };
         return (
           <div className="mb-6 space-y-4">
             <div className="p-3 rounded-md border border-primary/25 bg-primary/10 text-foreground font-medium">
@@ -1531,6 +1559,7 @@ export default function IntroSessionDrillRunner() {
             {/* Per-topic direction cards */}
             {topicSummaries.map(({ topicName, lastRow, topicScore }) => {
               const stabilityColor = stabilityColorFor(lastRow?.stability);
+              const actionDetails = getDisplayedActionDetails(lastRow);
               return (
                 <div key={topicName} className="rounded-xl border border-primary/15 bg-background overflow-hidden">
                   <div className="bg-primary/5 px-4 py-2">
@@ -1557,17 +1586,19 @@ export default function IntroSessionDrillRunner() {
                       <span className="text-muted-foreground">Now</span>
                       <span className="font-medium">{formatState(lastRow?.phase, lastRow?.stability)}</span>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Phase</span>
-                      <span className="font-medium">{lastRow?.phase}</span>
-                    </div>
                     <div className="pt-2 border-t">
-                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Next Session Focus</p>
-                      <p className="font-semibold text-blue-700">{lastRow?.nextAction}</p>
+                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">{actionDetails.nextFocusLabel}</p>
+                      <p className="font-semibold text-blue-700">{actionDetails.nextFocus}</p>
                     </div>
-                    {lastRow?.constraint && (
+                    {actionDetails.followOnAction && (
+                      <div className="mt-1 pt-2 border-t">
+                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">{actionDetails.followOnLabel}</p>
+                        <p className="font-medium text-foreground">{actionDetails.followOnAction}</p>
+                      </div>
+                    )}
+                    {actionDetails.constraint && (
                       <div className="mt-1 pt-2 border-t text-xs text-muted-foreground">
-                        Constraint: {lastRow.constraint}
+                        Constraint: {actionDetails.constraint}
                       </div>
                     )}
                   </div>
