@@ -740,10 +740,6 @@ export default function ParentDashboard() {
     ? []
     : [
         {
-          label: "Topics Trained",
-          value: stats?.bossBattlesCompleted || 0,
-        },
-        {
           label: "Active Topics In Conditioning",
           value: activeTopicCount > 0 ? activeTopicCount : topicCards.length,
         },
