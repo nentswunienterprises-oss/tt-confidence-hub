@@ -20419,9 +20419,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Confirm the intro session before sending a proposal." });
       }
 
-      const tutorCertificationMode = await getTutorCertificationMode(tutorId);
-      const allowTrainingContextDiagnosisForProposal = tutorCertificationMode === "sandbox";
-
       // Tie proposal generation to latest intro drill result for this tutor+student.
       const { data: latestIntroDrills, error: introDrillError } = await supabase
         .from("intro_session_drills")
@@ -20455,9 +20452,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const scheduledSessionMatch =
           String(row.scheduled_session_id || parsed?.scheduledSessionId || "").trim() === String(confirmedIntroSession.id);
         const sessionContextKind = String(parsed?.sessionContextKind || "intro").trim().toLowerCase();
-        const isAcceptedProposalContext =
-          sessionContextKind === "intro" ||
-          (allowTrainingContextDiagnosisForProposal && sessionContextKind === "training");
+        const isAcceptedProposalContext = sessionContextKind === "intro";
         const explicitDrillMatch = introDrillId && String(row.id) === String(introDrillId);
 
         if (isDiagnosis && isAcceptedProposalContext && explicitDrillMatch) {

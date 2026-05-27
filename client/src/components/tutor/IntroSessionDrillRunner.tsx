@@ -1184,10 +1184,11 @@ export default function IntroSessionDrillRunner() {
             queryClient.invalidateQueries({ queryKey: [`/api/tutor/students/${studentId}/reports-center`] }),
             queryClient.invalidateQueries({ queryKey: [`/api/tutor/students/${studentId}/assignments`] }),
             queryClient.invalidateQueries({ queryKey: ["/api/parent/reports"] }),
-            queryClient.invalidateQueries({ queryKey: ["/api/parent/dashboard-student"] }),
-            queryClient.invalidateQueries({ queryKey: ["/api/parent/dashboard-topic-states"] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/parent/student-stats"] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/parent/student-info"] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/parent/topic-conditioning-states"] }),
             queryClient.invalidateQueries({ queryKey: ["/api/parent/assigned-tutor"] }),
-            queryClient.invalidateQueries({ queryKey: ["/api/parent/intro-session"] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/parent/intro-session-confirmation"] }),
             queryClient.invalidateQueries({ queryKey: ["/api/parent/proposal"] }),
           ]);
           await Promise.all([
@@ -1322,10 +1323,11 @@ export default function IntroSessionDrillRunner() {
             queryClient.invalidateQueries({ queryKey: [`/api/tutor/students/${studentId}/reports-center`] }),
             queryClient.invalidateQueries({ queryKey: [`/api/tutor/students/${studentId}/assignments`] }),
             queryClient.invalidateQueries({ queryKey: ["/api/parent/reports"] }),
-            queryClient.invalidateQueries({ queryKey: ["/api/parent/dashboard-student"] }),
-            queryClient.invalidateQueries({ queryKey: ["/api/parent/dashboard-topic-states"] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/parent/student-stats"] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/parent/student-info"] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/parent/topic-conditioning-states"] }),
             queryClient.invalidateQueries({ queryKey: ["/api/parent/assigned-tutor"] }),
-            queryClient.invalidateQueries({ queryKey: ["/api/parent/intro-session"] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/parent/intro-session-confirmation"] }),
             queryClient.invalidateQueries({ queryKey: ["/api/parent/proposal"] }),
           ]);
           await Promise.all([
@@ -1995,7 +1997,7 @@ export default function IntroSessionDrillRunner() {
           >
             Back to Pod
           </button>
-          {drillMode === "diagnosis" && (
+          {drillMode === "diagnosis" && diagnosisSessionKind === "intro" && (
             <button
               type="button"
               className="px-4 py-2 rounded bg-primary text-white"
