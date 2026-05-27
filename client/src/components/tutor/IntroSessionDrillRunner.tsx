@@ -1740,7 +1740,7 @@ export default function IntroSessionDrillRunner() {
       {drillStructure && set && (
         !((isAdaptiveDiagnosisMode || isHandoverMode) && !submitSuccess && (!prepReady || !!adaptiveTransition)) && (
         <>
-          <h2 className="text-2xl font-bold mb-2">
+          <h2 className="text-xl font-bold sm:text-2xl mb-2">
             {isSessionMode
               ? `Training Session - Topic ${sessionTopicIndex + 1} of ${sessionTopics.length}`
               : drillMode === "training"
@@ -1857,21 +1857,21 @@ export default function IntroSessionDrillRunner() {
       )}
 
       {/* Set context block -purpose, rep instruction, active rules */}
-      <div className="mb-4 p-3 rounded-xl border border-primary/15 bg-background shadow-sm">
-        <div className="flex items-center justify-between mb-2">
-          <div className="font-semibold text-sm flex items-center gap-2">
+      <div className="mb-4 p-2 sm:p-3 rounded-xl border border-primary/15 bg-background shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2 mb-2">
+          <div className="font-semibold text-xs sm:text-sm flex items-center gap-1 sm:gap-2">
             Set {currentSet + 1} / {drillStructure.length}: {set?.setName}
           </div>
-          <div className="text-sm font-medium text-muted-foreground">{isModelingSet ? "Pre-Drill Step" : `Rep ${currentRep + 1} / ${set?.reps ?? 0}`}</div>
+          <div className="text-xs sm:text-sm font-medium text-muted-foreground">{isModelingSet ? "Pre-Drill Step" : `Rep ${currentRep + 1} / ${set?.reps ?? 0}`}</div>
         </div>
-        <div className="text-xs text-muted-foreground mb-3">{set?.purpose}</div>
-        <div className="p-2 rounded-md border border-primary/20 bg-primary/5 mb-3">
+        <div className="text-xs text-muted-foreground mb-2 sm:mb-3">{set?.purpose}</div>
+        <div className="p-2 rounded-md border border-primary/20 bg-primary/5 mb-2 sm:mb-3">
           <div className="text-xs font-semibold text-primary mb-0.5">→ Rep instruction</div>
-          <div className="text-sm text-foreground font-medium">{set?.repInstruction}</div>
+          <div className="text-xs sm:text-sm text-foreground font-medium">{set?.repInstruction}</div>
         </div>
         <div className="flex flex-wrap gap-1">
           {set?.activeRules?.map((rule, i) => (
-            <span key={i} className="px-2 py-0.5 bg-background border border-primary/15 text-muted-foreground rounded text-xs">{rule}</span>
+            <span key={i} className="px-1 sm:px-2 py-0.5 bg-background border border-primary/15 text-muted-foreground rounded text-[10px] sm:text-xs">{rule}</span>
           ))}
         </div>
       </div>
@@ -1884,13 +1884,13 @@ export default function IntroSessionDrillRunner() {
         )}
         {getObservationBlockForRep(set, currentRep).map((obs) => (
           <div key={obs.key}>
-            <label className="block font-medium mb-1">{obs.label}</label>
-            <div className="flex gap-2">
+            <label className="block font-medium mb-2 text-sm sm:text-base">{obs.label}</label>
+            <div className="flex flex-wrap gap-1 sm:gap-2">
               {obs.options.map((option: string) => (
                 <button
                   type="button"
                   key={option}
-                  className={`px-3 py-1 rounded-md border transition-colors ${observations[`set${currentSet}_rep${currentRep}_${obs.key}`] === option ? "bg-primary text-primary-foreground border-primary" : "bg-background border-primary/20 hover:bg-primary/5"}`}
+                  className={`px-2 sm:px-3 py-1 rounded-md border text-xs sm:text-sm transition-colors whitespace-nowrap ${observations[`set${currentSet}_rep${currentRep}_${obs.key}`] === option ? "bg-primary text-primary-foreground border-primary" : "bg-background border-primary/20 hover:bg-primary/5"}`}
                   onClick={() => handleObservation(obs.key, option)}
                 >
                   {option}

@@ -1329,9 +1329,9 @@ function DemoRunnerOverlay({
     <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm">
       <div className="flex h-full flex-col">
         <div className="border-b bg-card/95">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-4 sm:gap-4 sm:px-6">
             <div className="min-w-0">
-              <h2 className="text-2xl font-bold tracking-tight">
+              <h2 className="text-xl font-bold tracking-tight sm:text-2xl">
                 {mode === "training"
                   ? `Training Drill - ${displayPhase}`
                   : mode === "handover"
@@ -1588,16 +1588,16 @@ function DemoRunnerOverlay({
 
                     return (
                       <div key={field.key}>
-                        <div className="mb-2 flex items-center justify-between gap-3">
-                          <label className="block font-medium">{field.label}</label>
-                          {selectedLevel && <Badge variant="secondary">{selectedLevel}</Badge>}
+                        <div className="mb-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+                          <label className="block font-medium text-sm sm:text-base">{field.label}</label>
+                          {selectedLevel && <Badge variant="secondary" className="w-fit">{selectedLevel}</Badge>}
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-1 sm:gap-2">
                           {field.options.map((option) => (
                             <button
                               type="button"
                               key={option}
-                              className={`rounded-md border px-3 py-1 transition-colors ${
+                              className={`rounded-md border px-2 sm:px-3 py-1 text-xs sm:text-sm transition-colors whitespace-nowrap ${
                                 selected === option
                                   ? "border-primary bg-primary text-primary-foreground"
                                   : "border-primary/20 bg-background hover:bg-primary/5"
@@ -1815,7 +1815,7 @@ export default function ResponseConditioningLoggingSystem() {
               <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
                 Response Integrity-OS Deep Dive
               </p>
-              <h1 className="mt-1 text-3xl font-bold tracking-tight md:text-4xl">Logging System</h1>
+              <h2 className="text-2xl font-bold sm:text-3xl md:text-4xl">Logging System</h2>
               <p className="mt-1 text-muted-foreground">
                 Evidence capture, score resolution, and system-led output
               </p>
@@ -1954,14 +1954,14 @@ export default function ResponseConditioningLoggingSystem() {
                 })}
               </div>
 
-              <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
-                <div className="rounded-2xl border border-primary/15 bg-background p-4 shadow-sm">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Selected Demo</p>
-                  <h4 className="mt-2 text-xl font-semibold">
+              <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_340px]">
+                <div className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 shadow-sm">
+                  <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Selected Demo</p>
+                  <h4 className="mt-2 text-lg sm:text-xl font-semibold">
                     {demoMode === "training" ? "Training" : demoMode === "handover" ? "Handover" : "Intro Diagnosis Start"}: {selectedPhase}
                   </h4>
-                  <p className="mt-2 text-sm text-muted-foreground">{PHASE_CONTEXT[selectedPhase].purpose}</p>
-                  <div className="mt-4 flex flex-wrap gap-2">
+                  <p className="mt-1 text-xs sm:mt-2 sm:text-sm text-muted-foreground">{PHASE_CONTEXT[selectedPhase].purpose}</p>
+                  <div className="mt-3 sm:mt-4 flex flex-wrap gap-1 sm:gap-2">
                     {PHASE_CONTEXT[selectedPhase].constraints.map((rule) => (
                       <span
                         key={rule}
@@ -1973,9 +1973,9 @@ export default function ResponseConditioningLoggingSystem() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-primary/15 bg-background p-4 shadow-sm">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">In This Demo</p>
-                  <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                <div className="rounded-2xl border border-primary/15 bg-background p-3 sm:p-4 shadow-sm">
+                  <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.08em] text-muted-foreground">In This Demo</p>
+                  <ul className="mt-2 sm:mt-3 space-y-1 sm:space-y-2 text-xs sm:text-sm text-muted-foreground">
                     <li>Tutor prep before the drill starts</li>
                     <li>
                       {demoMode === "training"
