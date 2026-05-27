@@ -23181,8 +23181,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { data: enrollment, error: enrollmentError } = await selectLatestParentEnrollment({
         parentId,
-        primarySelect: "id, user_id, student_full_name, student_grade, assigned_tutor_id, assigned_student_id, parent_email",
-        fallbackSelect: "id, user_id, student_full_name, student_grade, assigned_tutor_id, parent_email",
+        primarySelect: "id, user_id, student_full_name, student_grade, assigned_tutor_id, assigned_student_id, parent_email, proposal_id",
+        fallbackSelect: "id, user_id, student_full_name, student_grade, assigned_tutor_id, parent_email, proposal_id",
       });
 
       if (enrollmentError) {
@@ -23325,7 +23325,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return cleaned;
       };
 
-      const studentRecord = await resolveCanonicalStudentForEnrollment(enrollment);
+      let studentRecord = await resolveCanonicalStudentForEnrollment(enrollment);
+
+      if (!studentRecord && enrollment?.proposal_id) {
+        const { data: proposalStudent } = await supabase
+          .from("onboarding_proposals")
+          .select("student_id")
+          .eq("id", enrollment.proposal_id)
+          .maybeSingle();
+
+        if (proposalStudent?.student_id) {
+          const proposalLinkedStudent = await storage.getStudent(String(proposalStudent.student_id));
+          if (proposalLinkedStudent) {
+            studentRecord = normalizeStudentRecord(proposalLinkedStudent);
+          }
+        }
+      }
 
       if (!studentRecord) return res.json([]);
 
