@@ -130,7 +130,7 @@ Valid phases:
 
 Phase purposes used in monthly `Next Month Focus`:
 
-- `Clarity`: `recognizing terms, steps, and reasoning`
+- `Clarity`: `the four-layer mental model: what the problem is, how to solve it, why it works, and applying that clarity`
 - `Structured Execution`: `following steps independently`
 - `Controlled Discomfort`: `staying stable under difficulty`
 - `Time Pressure Stability`: `maintaining structure under time`
@@ -1280,7 +1280,7 @@ Output:
 - `System Outcome`: `Linear Equations: advanced into Controlled Discomfort; Fractions: held in Clarity`
 - `Current Conditioning State`: `Linear Equations - Controlled Discomfort ({stability}); Fractions - Clarity ({stability})`
 - `What This Means`: `Linear Equations: Your child has entered the challenge phase in this topic and is learning to stay stable when work becomes difficult.; Fractions: {parent dashboard meaning}`
-- `Next Month Focus`: `Linear Equations: Continue training staying stable under difficulty.; Fractions: Continue training recognizing terms, steps, and reasoning.`
+- `Next Month Focus`: `Linear Equations: Continue training staying stable under difficulty.; Fractions: Continue training the four-layer mental model: what the problem is, how to solve it, why it works, and applying that clarity.`
 
 ## Legacy and fallback behavior
 

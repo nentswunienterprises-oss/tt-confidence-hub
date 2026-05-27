@@ -171,7 +171,7 @@ function buildSandboxEnrollmentCase(seedIndex: number, source?: any | null) {
     typeof source.topic_recommended_starting_phases === "object"
       ? Object.fromEntries(
           Object.entries(source.topic_recommended_starting_phases as Record<string, unknown>)
-            .map(([topic, recommendation]) => [String(topic || "").trim(), recommendation])
+            .map(([topic, recommendation]) => [String(topic || "").trim(), recommendation] as [string, unknown])
             .filter(([topic]) => topic.length > 0)
         )
       : {};
@@ -2550,7 +2550,8 @@ async function resolveTutorScheduledSession(
     query = query.eq("id", sessionId);
   }
 
-  const { data, error } = sessionId ? await query.maybeSingle() : await query.limit(20);
+  const scheduledSessionResult: any = sessionId ? await query.maybeSingle() : await query.limit(20);
+  const { data, error } = scheduledSessionResult;
   if (error) {
     return { session: null, error };
   }
@@ -2570,7 +2571,7 @@ async function resolveTutorScheduledSession(
 }
 
 async function getPendingTrainingConfirmationSession(tutorId: string, studentId: string) {
-  const { data, error } = await supabase
+  const pendingSessionResult: any = await supabase
     .from("scheduled_sessions")
     .select(SCHEDULED_SESSION_SELECT)
     .eq("tutor_id", tutorId)
@@ -2581,6 +2582,8 @@ async function getPendingTrainingConfirmationSession(tutorId: string, studentId:
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  const { data, error } = pendingSessionResult;
 
   return { session: data || null, error };
 }
@@ -3290,17 +3293,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
               return signals;
             };
 
-            const buildBehaviorSummary = (signals: ObservationSignal[], context: string) => {
-              const behaviors = normalizeBehaviorLabelsForContext(
+            const buildBehaviorSummary = (signals: ObservationSignal[], context: string, stability?: string) => {
+              const labels = normalizeBehaviorLabelsForContext(
                 mapObservationsToBehavior(signals).filter(
                   (behavior) => behavior !== "no mapped observation signal detected"
                 ),
                 "absolute"
               );
-              if (behaviors.length === 0) {
+              if (labels.length === 0) {
                 return `No mapped observation pattern was detected during ${context}.`;
               }
-              return `The student showed ${naturalJoin(behaviors)} during ${context}.`;
+
+              const stabilityNormalized = String(stability || "").trim();
+
+              const toVerbPhrase = (label: string) => {
+                const l = String(label || "").trim();
+                const lower = l.toLowerCase();
+
+                if (stabilityNormalized === "High") {
+                  return `showed ${lower}`;
+                }
+
+                if (stabilityNormalized === "Medium") {
+                  // neutral, descriptive phrasing without implying progress
+                  if (/^clear(er)?\s+/i.test(lower)) {
+                    return `demonstrated ${lower.replace(/^clear(er)?\s+/i, "")}`;
+                  }
+                  return `demonstrated ${lower}`;
+                }
+
+                // Low or unknown -> cautious / limited phrasing
+                if (stabilityNormalized === "Low") {
+                  if (/^clear(er)?\s+/i.test(lower)) {
+                    return `had limited ${lower.replace(/^clear(er)?\s+/i, "")}`;
+                  }
+                  return `${lower} was limited`;
+                }
+
+                // default (no stability): keep original neutral show
+                return `showed ${lower}`;
+              };
+
+              const verbPhrases = labels.map(toVerbPhrase);
+              // join verb phrases into a readable sentence fragment
+              const combined = verbPhrases.length === 1 ? verbPhrases[0] : naturalJoin(verbPhrases);
+              return `The student ${combined} during ${context}.`;
             };
 
             const rawBehaviorPatterns = (signals: ObservationSignal[]) =>
@@ -3369,7 +3406,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 deterministicLog: {
                   topicFocus: `This session focused on ${topic}, targeting baseline diagnosis in ${diagnosisPhase}.`,
                   whatWasTrained: `A diagnosis drill was used to identify ${DRILL_PURPOSE_BY_PHASE[diagnosisPhase] || "phase-specific response patterns"}.`,
-                  behaviorSummary: buildBehaviorSummary(observationSignals, "diagnosis"),
+                  behaviorSummary: buildBehaviorSummary(observationSignals, "diagnosis", stability),
                   performanceResult: describePerformanceResult({
                     phaseBefore: diagnosisPhase,
                     phaseAfter: trainingEntryPhase,
@@ -3443,9 +3480,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               nextAction,
               transitionReason,
                 deterministicLog: {
-                topicFocus: `This session focused on ${topic}, targeting ${DRILL_PURPOSE_BY_PHASE[observedPhase] || "phase-specific execution"}.`,
+                topicFocus: `This session focused on ${topic}, targeting ${observedPhase} phase skills.`,
                   whatWasTrained: `A training drill was used to train ${DRILL_PURPOSE_BY_PHASE[observedPhase] || "phase-specific behavior"}.`,
-                  behaviorSummary: buildBehaviorSummary(observationSignals, "the drill"),
+                  behaviorSummary: buildBehaviorSummary(observationSignals, "the drill", stability),
                   performanceResult: describePerformanceResult({
                     phaseBefore: observedPhase,
                     phaseAfter: resultingPhase,
@@ -3469,7 +3506,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     drillType: "training",
                   }),
                 nextMove: nextAction,
-                summaryText: `This session focused on ${topic}, targeting ${DRILL_PURPOSE_BY_PHASE[observedPhase] || "phase-specific execution"}.`,
+                summaryText: `This session focused on ${topic}, targeting ${observedPhase} phase skills.`,
                 drillLabel: `Training Drill (${observedPhase})`,
                 score: sessionScore,
                 stability,
@@ -3725,7 +3762,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
 
           const DRILL_PURPOSE_BY_PHASE: Record<string, string> = {
-            Clarity: "recognizing terms, steps, and reasoning",
+            Clarity: "the four-layer mental model: what the problem is, how to solve it, why it works, and applying that clarity",
             "Structured Execution": "following steps independently",
             "Controlled Discomfort": "staying stable under difficulty",
             "Time Pressure Stability": "maintaining structure under time",
@@ -4884,7 +4921,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
 
               if (normalizedScheduledSessionId) {
-                const { data: explicitScheduledSession, error: explicitScheduledSessionError } = await supabase
+                const explicitScheduledSessionResult: any = await supabase
                   .from("scheduled_sessions")
                   .select(SCHEDULED_SESSION_SELECT)
                   .eq("id", normalizedScheduledSessionId)
@@ -4892,6 +4929,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   .eq("student_id", studentId)
                   .in("type", ["intro", "training"])
                   .maybeSingle();
+                const { data: explicitScheduledSession, error: explicitScheduledSessionError } = explicitScheduledSessionResult;
 
                 if (explicitScheduledSessionError) {
                   return res.status(500).json({ message: "Failed to validate drill session context" });
@@ -4950,8 +4988,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const diagnosisSummary = isAdaptiveDiagnosis
                 ? computeAdaptiveDiagnosisSummary(startingPhase!, adaptiveBlocks)
                 : computeIntroDiagnosisSummary(drillPhase!, drillSets);
+              const adaptiveDiagnosisSummary = isAdaptiveDiagnosis
+                ? (diagnosisSummary as ReturnType<typeof computeAdaptiveDiagnosisSummary>)
+                : null;
+              const introDiagnosisSummary = !isAdaptiveDiagnosis
+                ? (diagnosisSummary as ReturnType<typeof computeIntroDiagnosisSummary>)
+                : null;
               if (isAdaptiveDiagnosis) {
-                const adaptivePathError = validateAdaptiveDiagnosisPath(startingPhase!, diagnosisSummary as ReturnType<typeof computeAdaptiveDiagnosisSummary>);
+                const adaptivePathError = validateAdaptiveDiagnosisPath(startingPhase!, adaptiveDiagnosisSummary!);
                 if (adaptivePathError) {
                   return res.status(400).json({ message: adaptivePathError });
                 }
@@ -5006,7 +5050,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
 
               const scoringResults = isAdaptiveDiagnosis
-                ? diagnosisSummary.phaseChecks.flatMap((check: any) =>
+                ? adaptiveDiagnosisSummary!.phaseChecks.flatMap((check: any) =>
                     check.repRows.map((row: any) => ({
                       set: check.setName,
                       rep: row.rep,
@@ -5020,16 +5064,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       band: check.band,
                       bandLabel: labelAdaptiveDiagnosisBand(check.band),
                       nextPhase: check.nextPhase,
-                      nextAction: diagnosisSummary.nextAction,
-                      constraint: diagnosisSummary.constraint,
+                      nextAction: adaptiveDiagnosisSummary!.nextAction,
+                      constraint: adaptiveDiagnosisSummary!.constraint,
                     }))
                   )
-                : diagnosisSummary.repRows.map((row) => {
-                    const setIndex = diagnosisSummary.repRows.findIndex(
+                : introDiagnosisSummary!.repRows.map((row) => {
+                    const setIndex = introDiagnosisSummary!.repRows.findIndex(
                       (candidate) => candidate.set === row.set && candidate.rep === row.rep
                     );
                     const scoredSetIndex = Math.max(0, Math.floor(setIndex / 3));
-                    const setScore = diagnosisSummary.setScores[scoredSetIndex] ?? row.repScore;
+                    const setScore = introDiagnosisSummary!.setScores[scoredSetIndex] ?? row.repScore;
 
                     return {
                       set: row.set,
@@ -5038,11 +5082,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       setScore,
                       setPoints: setScore,
                       setMaxPoints: 100,
-                      sessionScore: diagnosisSummary.diagnosisScore,
-                      phase: diagnosisSummary.phase,
-                      stability: diagnosisSummary.stability,
-                      nextAction: diagnosisSummary.nextAction,
-                      constraint: diagnosisSummary.constraint,
+                      sessionScore: introDiagnosisSummary!.diagnosisScore,
+                      phase: introDiagnosisSummary!.phase,
+                      stability: introDiagnosisSummary!.stability,
+                      nextAction: introDiagnosisSummary!.nextAction,
+                      constraint: introDiagnosisSummary!.constraint,
                     };
                   });
 
@@ -5091,8 +5135,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       startingPhase: isAdaptiveDiagnosis ? startingPhase : drillPhase,
                       diagnosisMode: isAdaptiveDiagnosis ? "adaptive" : "legacy",
                       diagnosisScore: diagnosisSummary.diagnosisScore,
-                      finalBand: isAdaptiveDiagnosis ? diagnosisSummary.finalBand : null,
-                      pathLength: isAdaptiveDiagnosis ? diagnosisSummary.pathLength : null,
+                      finalBand: isAdaptiveDiagnosis ? adaptiveDiagnosisSummary?.finalBand || null : null,
+                      pathLength: isAdaptiveDiagnosis ? adaptiveDiagnosisSummary?.pathLength || null : null,
                       nextAction: diagnosisSummary.nextAction,
                       constraint: diagnosisSummary.constraint,
                     },
@@ -6146,7 +6190,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .eq("student_id", studentId);
           console.log("[DEBUG] All scheduled_sessions for tutor and student:", { debugSessions, debugSessionsError, tutorId: dbUser.id, studentId });
           // Find latest intro session for this student/tutor
-          const { data: session, error: sessionError } = await supabase
+          const sessionLookupResult: any = await supabase
             .from("scheduled_sessions")
             .select(SCHEDULED_SESSION_SELECT)
             .eq("tutor_id", dbUser.id)
@@ -6154,6 +6198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .eq("type", sessionType)
             .order("created_at", { ascending: false })
             .maybeSingle();
+          const { data: session, error: sessionError } = sessionLookupResult;
 
           let resolvedSession = session;
           let resolvedSessionError = sessionError;
@@ -6161,7 +6206,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (!resolvedSession) {
             const parentId = (student as any).parentId || null;
             if (parentId) {
-              const { data: fallbackSession, error: fallbackError } = await supabase
+              const fallbackSessionResult: any = await supabase
                 .from("scheduled_sessions")
                 .select(SCHEDULED_SESSION_SELECT)
                 .eq("tutor_id", dbUser.id)
@@ -6169,6 +6214,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 .eq("type", sessionType)
                 .order("created_at", { ascending: false })
                 .maybeSingle();
+              const { data: fallbackSession, error: fallbackError } = fallbackSessionResult;
 
               if (fallbackSession) {
                 resolvedSession = fallbackSession;
@@ -6187,11 +6233,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           if (shouldReconcileSessionArtifacts(resolvedSession)) {
             await reconcileArtifactsForScheduledSession(resolvedSession);
-            const { data: refreshedSession } = await supabase
+            const refreshedSessionResult: any = await supabase
               .from("scheduled_sessions")
               .select(SCHEDULED_SESSION_SELECT)
               .eq("id", resolvedSession.id)
               .maybeSingle();
+            const { data: refreshedSession } = refreshedSessionResult;
             if (refreshedSession) {
               resolvedSession = refreshedSession;
             }
@@ -6491,7 +6538,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
         // Find all intro sessions for this parent/tutor
-        let { data: allSessions, error: allSessionsError } = await supabase
+        const allSessionsResult: any = await supabase
           .from("scheduled_sessions")
           .select(SCHEDULED_SESSION_SELECT)
           .eq("parent_id", userId)
@@ -6499,6 +6546,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .eq("type", sessionType)
           .order("updated_at", { ascending: false })
           .order("created_at", { ascending: false });
+        let { data: allSessions, error: allSessionsError } = allSessionsResult;
 
         // Fallback for rows linked by student_id if parent_id linkage is absent or inconsistent.
         if ((!allSessions || allSessions.length === 0) && assignedStudent?.id) {
@@ -6589,11 +6637,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing sessionId" });
       }
 
-      const { data: session, error: sessionError } = await supabase
+      const parentSessionResult: any = await supabase
         .from("scheduled_sessions")
         .select(SCHEDULED_SESSION_SELECT)
         .eq("id", sessionId)
         .maybeSingle();
+      const { data: session, error: sessionError } = parentSessionResult;
 
       if (sessionError || !session) {
         return res.status(404).json({ message: "Session not found" });
@@ -6606,7 +6655,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Session is not waiting for parent confirmation" });
       }
 
-      const { data: updatedSession, error: updateError } = await supabase
+      const updatedParentSessionResult: any = await supabase
         .from("scheduled_sessions")
         .update({
           parent_confirmed: true,
@@ -6617,6 +6666,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .eq("id", sessionId)
         .select(SCHEDULED_SESSION_SELECT)
         .single();
+      const { data: updatedSession, error: updateError } = updatedParentSessionResult;
 
       if (updateError) {
         console.error("Failed to confirm intro session:", updateError);
@@ -7224,8 +7274,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const normalizedSymptoms = normalizeResponseSymptoms(enrollment?.response_symptoms);
     const topicDerivedSymptomIds = Array.from(
       new Set(Object.values(topicResponseSymptoms).flat())
-    );
-    const effectiveSymptoms = topicDerivedSymptomIds.length > 0 ? topicDerivedSymptomIds : normalizedSymptoms;
+    ) as string[];
+    const effectiveSymptoms: string[] = topicDerivedSymptomIds.length > 0 ? topicDerivedSymptomIds : normalizedSymptoms;
     const recommendation = recommendStartingPhaseFromSymptoms(effectiveSymptoms);
     const recommendedStartingPhase =
       tryParsePhase(enrollment?.recommended_starting_phase) || recommendation.phase;
@@ -8050,7 +8100,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const studentWorkflow = ((student?.personalProfile as any) || {}).workflow || {};
       const sessionType = studentWorkflow.handoverRequiredAt && !studentWorkflow.handoverCompletedAt ? "handover" : "intro";
       // Try to find the intro session for this tutor/student
-      let { data: session, error: sessionError } = await supabase
+      const tutorSessionLookupResult: any = await supabase
         .from("scheduled_sessions")
         .select(SCHEDULED_SESSION_SELECT)
         .eq("tutor_id", dbUser.id)
@@ -8058,6 +8108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .eq("type", sessionType)
         .order("created_at", { ascending: false })
         .maybeSingle();
+      let { data: session, error: sessionError } = tutorSessionLookupResult;
       // If not found, try fallback: find by parent_id where student_id is null
       if (!session) {
         // Get parentId for this student
@@ -8068,7 +8119,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .maybeSingle();
         const parentId = studentRow?.parent_id;
         if (parentId) {
-          const { data: fallbackSession } = await supabase
+          const fallbackTutorSessionResult: any = await supabase
             .from("scheduled_sessions")
             .select(SCHEDULED_SESSION_SELECT)
             .eq("tutor_id", dbUser.id)
@@ -8077,6 +8128,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .eq("type", sessionType)
             .order("created_at", { ascending: false })
             .maybeSingle();
+          const { data: fallbackSession } = fallbackTutorSessionResult;
           if (fallbackSession) {
             session = fallbackSession;
           }
@@ -8109,11 +8161,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid action" });
       }
       console.log('[DEBUG] Updating scheduled_sessions', { sessionId: session.id, updateFields });
-      const { error: updateError, data: updateData } = await supabase
+      const tutorSessionUpdateResult: any = await supabase
         .from("scheduled_sessions")
         .update(updateFields)
         .eq("id", session.id)
         .select(SCHEDULED_SESSION_SELECT);
+      const { error: updateError, data: updateData } = tutorSessionUpdateResult;
       console.log('[DEBUG] Update result', { updateError, updateData });
       if (updateError) {
         return res.status(500).json({ message: "Failed to update session", details: updateError });
@@ -8149,7 +8202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const studentWorkflow = ((student?.personalProfile as any) || {}).workflow || {};
       const sessionType = studentWorkflow.handoverRequiredAt && !studentWorkflow.handoverCompletedAt ? "handover" : "intro";
       // Try to find the intro session for this tutor/student
-      let { data: session, error: sessionError } = await supabase
+      const introSessionPluralLookupResult: any = await supabase
         .from("scheduled_sessions")
         .select(SCHEDULED_SESSION_SELECT)
         .eq("tutor_id", dbUser.id)
@@ -8157,6 +8210,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .eq("type", sessionType)
         .order("created_at", { ascending: false })
         .maybeSingle();
+      let { data: session, error: sessionError } = introSessionPluralLookupResult;
       // If not found, try fallback: find by parent_id where student_id is null
       if (!session) {
         // Get parentId for this student
@@ -8208,11 +8262,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid action" });
       }
       console.log('[DEBUG] Updating scheduled_sessions', { sessionId: session.id, updateFields });
-      const { error: updateError, data: updateData } = await supabase
+      const introSessionUpdateResult: any = await supabase
         .from("scheduled_sessions")
         .update(updateFields)
         .eq("id", session.id)
         .select(SCHEDULED_SESSION_SELECT);
+      const { error: updateError, data: updateData } = introSessionUpdateResult;
       console.log('[DEBUG] Update result', { updateError, updateData });
       if (updateError) {
         return res.status(500).json({ message: "Failed to update session", details: updateError });
@@ -8358,7 +8413,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           req.body?.scheduledEnd || addMinutesToIso(scheduledStart, TRAINING_SESSION_DURATION_MINUTES)
         );
 
-        const { data: inserted, error } = await supabase
+        const trainingSessionInsertResult: any = await supabase
           .from("scheduled_sessions")
           .insert({
             parent_id: parentId,
@@ -8381,6 +8436,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           })
           .select(SCHEDULED_SESSION_SELECT)
           .single();
+        const { data: inserted, error } = trainingSessionInsertResult;
 
         if (error || !inserted) {
           console.error("Error creating training session:", error);
@@ -8459,7 +8515,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(premiumAccess.status).json({ message: premiumAccess.message });
         }
 
-        const { data: session, error: sessionError } = await supabase
+        const tutorTrainingSessionLookupResult: any = await supabase
           .from("scheduled_sessions")
           .select(SCHEDULED_SESSION_SELECT)
           .eq("id", sessionId)
@@ -8467,6 +8523,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .eq("tutor_id", tutorId)
           .eq("type", "training")
           .maybeSingle();
+        const { data: session, error: sessionError } = tutorTrainingSessionLookupResult;
 
         if (sessionError || !session) {
           return res.status(404).json({ message: "Training session not found" });
@@ -8476,7 +8533,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "Training session is not waiting for tutor confirmation" });
         }
 
-        const { data: updatedSession, error: updateError } = await supabase
+        const tutorTrainingSessionConfirmResult: any = await supabase
           .from("scheduled_sessions")
           .update({
             parent_confirmed: true,
@@ -8488,6 +8545,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .select(SCHEDULED_SESSION_SELECT)
           .single();
 
+        const { data: updatedSession, error: updateError } = tutorTrainingSessionConfirmResult;
         if (updateError || !updatedSession) {
           return res.status(500).json({ message: "Failed to confirm training session" });
         }
@@ -8563,7 +8621,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(premiumAccess.status).json({ message: premiumAccess.message });
         }
 
-        const { data: session, error: sessionError } = await supabase
+        const tutorTrainingSessionActionLookupResult: any = await supabase
           .from("scheduled_sessions")
           .select(SCHEDULED_SESSION_SELECT)
           .eq("id", sessionId)
@@ -8571,6 +8629,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .eq("tutor_id", tutorId)
           .eq("type", "training")
           .maybeSingle();
+        const { data: session, error: sessionError } = tutorTrainingSessionActionLookupResult;
 
         if (sessionError || !session) {
           return res.status(404).json({ message: "Training session not found" });
@@ -8588,7 +8647,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return res.status(400).json({ message: "This training session can no longer be cancelled" });
           }
 
-          const { data: cancelledSession, error: cancelError } = await supabase
+          const tutorTrainingCancelResult: any = await supabase
             .from("scheduled_sessions")
             .update({
               status: "cancelled",
@@ -8606,6 +8665,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .eq("id", sessionId)
             .select(SCHEDULED_SESSION_SELECT)
             .single();
+          const { data: cancelledSession, error: cancelError } = tutorTrainingCancelResult;
 
           if (cancelError || !cancelledSession) {
             return res.status(500).json({ message: "Failed to cancel training session" });
@@ -8717,7 +8777,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
           }
 
-          const { data: updatedSession, error: updateError } = await supabase
+          const tutorTrainingRescheduleResult: any = await supabase
             .from("scheduled_sessions")
             .update({
               scheduled_time: nextStart,
@@ -8749,6 +8809,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .eq("id", sessionId)
             .select(SCHEDULED_SESSION_SELECT)
             .single();
+          const { data: updatedSession, error: updateError } = tutorTrainingRescheduleResult;
 
           if (updateError || !updatedSession) {
             return res.status(500).json({ message: "Failed to reschedule training session" });
@@ -8798,7 +8859,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        const { data: updatedSession, error: updateError } = await supabase
+        const tutorTrainingConfirmAfterAdjustmentResult: any = await supabase
           .from("scheduled_sessions")
           .update({
             parent_confirmed: true,
@@ -8810,6 +8871,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .select(SCHEDULED_SESSION_SELECT)
           .single();
 
+        const { data: updatedSession, error: updateError } = tutorTrainingConfirmAfterAdjustmentResult;
         if (updateError || !updatedSession) {
           return res.status(500).json({ message: "Failed to confirm training session" });
         }
@@ -9028,13 +9090,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Unauthorized: Student does not belong to this tutor" });
         }
 
-        const { data: session, error } = await supabase
+        const recordingSessionLookupResult: any = await supabase
           .from("scheduled_sessions")
           .select(SCHEDULED_SESSION_SELECT)
           .eq("id", sessionId)
           .eq("student_id", studentId)
           .eq("tutor_id", tutorId)
           .maybeSingle();
+        const { data: session, error } = recordingSessionLookupResult;
 
         if (error) {
           return res.status(500).json({ message: "Failed to load scheduled session" });
@@ -9087,13 +9150,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "Recording link or uploaded file is required" });
         }
 
-        const { data: session, error } = await supabase
+        const recordingSessionLookupResult: any = await supabase
           .from("scheduled_sessions")
           .select(SCHEDULED_SESSION_SELECT)
           .eq("id", sessionId)
           .eq("student_id", studentId)
           .eq("tutor_id", tutorId)
           .maybeSingle();
+        const { data: session, error } = recordingSessionLookupResult;
 
         if (error || !session) {
           return res.status(404).json({ message: "Scheduled session not found" });
@@ -9152,7 +9216,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
 
-        const { data: updatedSession, error: updateError } = await supabase
+        const recordingUpdateResult: any = await supabase
           .from("scheduled_sessions")
           .update({
             recording_file_id: persistedRecordingUrl,
@@ -9165,6 +9229,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .eq("id", sessionId)
           .select(SCHEDULED_SESSION_SELECT)
           .single();
+        const { data: updatedSession, error: updateError } = recordingUpdateResult;
 
         if (updateError || !updatedSession) {
           return res.status(500).json({ message: "Failed to save recording" });
@@ -9480,12 +9545,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Action must be 'confirm', 'reschedule', or 'cancel'" });
       }
 
-      const { data: session, error: sessionError } = await supabase
+      const parentTrainingSessionLookupResult: any = await supabase
         .from("scheduled_sessions")
         .select(SCHEDULED_SESSION_SELECT)
         .eq("id", sessionId)
         .eq("type", "training")
         .maybeSingle();
+      const { data: session, error: sessionError } = parentTrainingSessionLookupResult;
 
       if (sessionError || !session) {
         return res.status(404).json({ message: "Training session not found" });
@@ -9507,7 +9573,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "This training session can no longer be cancelled" });
         }
 
-        const { data: cancelledSession, error: cancelError } = await supabase
+        const parentTrainingCancelResult: any = await supabase
           .from("scheduled_sessions")
           .update({
             status: "cancelled",
@@ -9525,6 +9591,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .eq("id", sessionId)
           .select(SCHEDULED_SESSION_SELECT)
           .single();
+        const { data: cancelledSession, error: cancelError } = parentTrainingCancelResult;
 
         if (cancelError || !cancelledSession) {
           return res.status(500).json({ message: "Failed to cancel session" });
@@ -9629,7 +9696,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        const { data: updatedSession, error: updateError } = await supabase
+        const parentTrainingRescheduleResult: any = await supabase
           .from("scheduled_sessions")
           .update({
             scheduled_time: nextStart,
@@ -9661,6 +9728,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .eq("id", sessionId)
           .select(SCHEDULED_SESSION_SELECT)
           .single();
+        const { data: updatedSession, error: updateError } = parentTrainingRescheduleResult;
 
         if (updateError || !updatedSession) {
           return res.status(500).json({ message: "Failed to reschedule session" });
@@ -9707,7 +9775,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { data: updatedSession, error: updateError } = await supabase
+      const parentTrainingConfirmResult: any = await supabase
         .from("scheduled_sessions")
         .update({
           parent_confirmed: true,
@@ -9718,6 +9786,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .eq("id", sessionId)
         .select(SCHEDULED_SESSION_SELECT)
         .single();
+      const { data: updatedSession, error: updateError } = parentTrainingConfirmResult;
 
       if (updateError || !updatedSession) {
         return res.status(500).json({ message: "Failed to confirm session" });
@@ -10054,7 +10123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .order("updated_at", { ascending: false })
         .limit(1);
 
-      let row = result.data?.[0] || null;
+      let row: any = result.data?.[0] || null;
       let rowError: any = result.error || null;
 
       if (
@@ -10073,7 +10142,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .limit(1);
 
         row = fallbackResult.data?.[0]
-          ? { ...fallbackResult.data[0], assigned_student_id: null }
+          ? { ...(fallbackResult.data[0] as any), assigned_student_id: null }
           : null;
         rowError = fallbackResult.error || null;
       }
@@ -10149,7 +10218,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .order("updated_at", { ascending: false })
       .limit(1);
 
-    let data = primaryResult.data?.[0] || null;
+    let data: any = primaryResult.data?.[0] || null;
     let error: any = primaryResult.error || null;
 
     if (
@@ -10168,7 +10237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .limit(1);
 
       data = fallbackResult.data?.[0]
-        ? { ...fallbackResult.data[0], assigned_student_id: null }
+        ? { ...(fallbackResult.data[0] as any), assigned_student_id: null }
         : null;
       error = fallbackResult.error || null;
     }
@@ -10203,7 +10272,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .limit(1);
 
           data = emailFallbackResult.data?.[0]
-            ? { ...emailFallbackResult.data[0], assigned_student_id: null }
+            ? { ...(emailFallbackResult.data[0] as any), assigned_student_id: null }
             : null;
           error = emailFallbackResult.error || null;
         }
@@ -10731,7 +10800,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         link: "/operational/tutor/my-pod",
         entityType: "student_communication",
         entityId: inserted.id,
-      });
+      } as any);
     }
 
     return inserted;
@@ -12833,7 +12902,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const weekStartDate = new Date(data.weekStartDate);
 
         // Use Drizzle ORM insert for weeklyCheckIns
-        await storage.db.insert(storage.weeklyCheckIns).values({
+        await (storage.db as any).insert(storage.weeklyCheckIns).values({
           tutorId,
           podId: data.podId,
           weekStartDate,
@@ -12867,7 +12936,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Use Drizzle ORM select for weeklyCheckIns
-        const checkIns = await storage.db
+        const checkIns = await (storage.db as any)
           .select()
           .from(storage.weeklyCheckIns)
           .where((wci) => wci.tutorId === tutorId && wci.podId === podId)
@@ -15919,7 +15988,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         authKey: subscription.keys.auth,
         expirationTime: subscription.expirationTime ?? null,
         userAgent: req.get("user-agent") || null,
-      });
+      } as any);
 
       res.status(204).send();
     } catch (error) {
@@ -16276,7 +16345,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Verify the application belongs to this user
         const applications = await storage.getTutorApplicationsByUser(userId);
-        const app = applications.find(a => a.id === applicationId);
+        const app = applications.find(a => a.id === applicationId) as any;
         if (!app) {
           return res.status(403).json({ message: "Application not found or access denied" });
         }
@@ -19645,7 +19714,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: Request, res: Response) => {
       try {
         const affiliateId = (req.session as any).userId;
-        const parsed = insertAffiliateReflectionSchema.parse(req.body);
+        const parsed = insertAffiliateReflectionSchema.parse(req.body) as any;
         const reflectionText = parsed.reflectionText || parsed.reflection_text;
         const result = await storage.saveAffiliateReflection(affiliateId, reflectionText);
         res.json(result);
@@ -20708,7 +20777,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ? topicConditioningStore.topics
             : {};
 
-        const latestTopic = Object.entries(topicsStore)
+        const latestTopic = Object.entries(topicsStore as Record<string, any>)
           .map(([topicKey, entry]) => {
             const topic = String(topicKey || entry?.topic || "").trim();
             if (!topic) return null;
@@ -21327,11 +21396,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const transactionMode = await isSandboxPaymentTransaction(transaction);
       const payfastConfig = getPayfastConfig(transactionMode);
-      const signatureValid = verifyPayfastSignature(payload, payfastConfig.passphrase);
+      const signatureValid = verifyPayfastSignature(payload as any, payfastConfig.passphrase);
       const merchantIdMatches =
         String(payload.merchant_id || "").trim() === payfastConfig.merchantId;
       const amountMatches =
-        formatAmountForPayfast(payload.amount_gross || payload.amount_fee || payload.amount) ===
+        formatAmountForPayfast((payload as any).amount_gross || (payload as any).amount_fee || (payload as any).amount) ===
         formatAmountForPayfast(transaction.amount);
       const sandboxValidationAccepted = transactionMode && amountMatches;
 
@@ -21789,7 +21858,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from("scheduled_sessions")
           .select("id")
           .eq("parent_id", req.body.parentId || null)
-          .eq("tutor_id", proposal.tutor_id)
+          .eq("tutor_id", (proposal as any).tutor_id)
           .is("student_id", null)
           .eq("type", "intro");
         if (sessionFetchError) {
@@ -23126,7 +23195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       res.json({
-        introDiagnosisCompleted: stats.introDiagnosisCompleted,
+        introDiagnosisCompleted: (stats as any).introDiagnosisCompleted ?? 0,
         bossBattlesCompleted: stats.bossBattlesCompleted,
         solutionsUnlocked: stats.solutionsUnlocked,
         confidenceGrowth: 50,

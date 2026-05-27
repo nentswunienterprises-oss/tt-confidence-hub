@@ -1,5 +1,6 @@
 import { Pool } from "pg";
-import * as schema from "../dist/shared/schema.js";
+import { drizzle } from "drizzle-orm/node-postgres";
+import * as schema from "../shared/schema";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL is not set");
@@ -11,11 +12,4 @@ export const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// Minimal Drizzle compatibility: mimic .execute for debug/test
-export const db = {
-  async execute(sql: string) {
-    const result = await pool.query(sql);
-    return result.rows;
-  },
-  insert: (...args: any[]) => { throw new Error('Use pool.query for inserts in this patch'); },
-};
+export const db = drizzle(pool, { schema });

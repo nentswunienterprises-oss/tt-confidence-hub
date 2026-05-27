@@ -121,6 +121,8 @@ interface ReportRecord {
   strengths?: string | null;
   areasForGrowth?: string | null;
   nextSteps?: string | null;
+  parentFeedback?: string | null;
+  parentFeedbackAt?: string | null;
 }
 
 interface ReportsCenterData {

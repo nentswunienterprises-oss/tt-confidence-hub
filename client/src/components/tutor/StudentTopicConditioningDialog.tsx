@@ -2628,7 +2628,7 @@ export default function StudentTopicConditioningDialog({
                               className="mt-0.5 rounded border-gray-300"
                             />
                             <span>
-                              I prepared the full drill set for <span className="font-medium">{topic}</span> and I am ready to run this weekly training lesson without improvising.
+                              I prepared the full drill set for <span className="font-medium">{topic}</span> and I am ready to run this weekly training lesson.
                             </span>
                           </label>
                         </div>
