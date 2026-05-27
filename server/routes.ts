@@ -4348,6 +4348,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
             return "increase timed exposure while protecting structure and pace control.";
           };
+          const buildParentNextMoveForContext = ({
+            phaseBefore,
+            phaseAfter,
+            stabilityBefore,
+            stabilityAfter,
+            transitionReasons,
+          }: {
+            phaseBefore: TopicPhase;
+            phaseAfter: TopicPhase;
+            stabilityBefore: TopicStability;
+            stabilityAfter: TopicStability;
+            transitionReasons: TransitionReason[];
+          }) => {
+            const latestTransitionReason = transitionReasons[transitionReasons.length - 1] || "remain";
+            const enteredMaintenanceCheckpoint =
+              latestTransitionReason === "stability advance" &&
+              phaseBefore === phaseAfter &&
+              stabilityBefore === "High" &&
+              stabilityAfter === "High Maintenance";
+
+            if (!enteredMaintenanceCheckpoint) {
+              return buildParentNextMove(phaseAfter, stabilityAfter);
+            }
+
+            if (phaseAfter === "Clarity") {
+              return "run a Clarity High Maintenance check before introducing Structured Execution.";
+            }
+            if (phaseAfter === "Structured Execution") {
+              return "run a Structured Execution High Maintenance check before introducing Controlled Discomfort.";
+            }
+            if (phaseAfter === "Controlled Discomfort") {
+              return "run a Controlled Discomfort High Maintenance check before introducing Time Pressure Stability.";
+            }
+            return "run a final maintenance check and confirm transfer before broadening timed demands.";
+          };
           const getTopicMovementPriority = (transitionReasons: TransitionReason[], lastDrillState: { phase: string; stability: string }) => {
             const latestTransitionReason = transitionReasons[transitionReasons.length - 1] || "remain";
             if (latestTransitionReason === "phase progress") return 0;
@@ -4550,10 +4585,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const snapshot = topicSnapshots[topic];
               return formatTopicScopedLine(
                 topic,
-                buildParentNextMove(
-                  snapshot.lastDrillState.phase as TopicPhase,
-                  snapshot.lastDrillState.stability as TopicStability
-                ),
+                buildParentNextMoveForContext({
+                  phaseBefore: snapshot.firstDrillState.phase as TopicPhase,
+                  phaseAfter: snapshot.lastDrillState.phase as TopicPhase,
+                  stabilityBefore: snapshot.firstDrillState.stability as TopicStability,
+                  stabilityAfter: snapshot.lastDrillState.stability as TopicStability,
+                  transitionReasons: snapshot.transitionReasons,
+                }),
                 includeTopicLabels
               );
             });
