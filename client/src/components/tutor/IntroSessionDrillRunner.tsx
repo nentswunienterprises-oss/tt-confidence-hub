@@ -1992,7 +1992,7 @@ export default function IntroSessionDrillRunner() {
           >
             Back to Pod
           </button>
-          {drillMode === "diagnosis" && diagnosisSessionKind === "intro" && (
+          {drillMode === "diagnosis" && (
             <button
               type="button"
               className="px-4 py-2 rounded bg-primary text-white"
