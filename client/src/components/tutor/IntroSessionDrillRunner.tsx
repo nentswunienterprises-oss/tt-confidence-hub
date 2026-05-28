@@ -778,9 +778,12 @@ export default function IntroSessionDrillRunner() {
     : introTopic;
   const { data: workflow, isLoading: workflowLoading } = useStudentWorkflowState(studentId || "");
   const assignmentAccepted = workflow?.assignmentAccepted ?? true;
-  const diagnosisSessionKind = requestedContext === "training" ? "training" : "intro";
+  // Determine the session kind explicitly from the requested drill mode.
+  // Diagnosis runs should be treated as an "intro"/adaptive diagnosis flow,
+  // never as a plain training session. This prevents mixing training and
+  // diagnosis semantics when launching drills.
   const sessionKind =
-    drillMode === "diagnosis" ? diagnosisSessionKind : drillMode === "handover" ? "handover" : "training";
+    drillMode === "diagnosis" ? "intro" : drillMode === "handover" ? "handover" : "training";
 
   useEffect(() => {
     setShowModeInstructions(true);
@@ -875,20 +878,13 @@ export default function IntroSessionDrillRunner() {
   const isLastRep = set ? currentRep === set.reps - 1 : false;
   const isLastSet = drillStructure ? currentSet === drillStructure.length - 1 : false;
   const showSessionInstructions = isSessionMode && sessionTopicIndex === 0 && isFirstSet;
-  const activeRunnerLabel = isSessionMode
-    ? "Training session"
-    : drillMode === "training"
-      ? "Training drill"
-      : drillMode === "handover"
-        ? handoverReDiagnosisMode
-          ? "Targeted re-diagnosis"
-          : "Handover verification"
-        : "Adaptive intro diagnosis";
   const scheduledSessionTypeLabel = scheduledSession?.type === "training"
-    ? "Training lesson"
-    : scheduledSession?.type === "handover"
-      ? "Handover lesson"
-      : "Intro lesson";
+    ? "Training"
+    : scheduledSession?.type === "intro"
+      ? "Intro Adaptive Diagnosis"
+      : scheduledSession?.type === "handover"
+        ? "Handover"
+        : "Unknown";
 
   useEffect(() => {
     if (!drillStructure) return;
@@ -1394,7 +1390,6 @@ export default function IntroSessionDrillRunner() {
           <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
             <span>Status: {scheduledSession.status}</span>
             <span>Lesson Context: {scheduledSessionTypeLabel}</span>
-            <span>Runner: {activeRunnerLabel}</span>
           </div>
         </div>
       )}
