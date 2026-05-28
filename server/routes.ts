@@ -10355,6 +10355,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     return {
       ...student,
+      conceptMastery:
+        student.conceptMastery ??
+        student.concept_mastery ??
+        {},
+      personalProfile:
+        student.personalProfile ??
+        student.personal_profile ??
+        null,
+      emotionalInsights:
+        student.emotionalInsights ??
+        student.emotional_insights ??
+        null,
+      academicDiagnosis:
+        student.academicDiagnosis ??
+        student.academic_diagnosis ??
+        null,
       tutorId: student.tutorId || student.tutor_id || null,
       parentId: student.parentId || student.parent_id || null,
       parentEnrollmentId: student.parentEnrollmentId || student.parent_enrollment_id || null,
