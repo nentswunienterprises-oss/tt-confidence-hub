@@ -778,12 +778,9 @@ export default function IntroSessionDrillRunner() {
     : introTopic;
   const { data: workflow, isLoading: workflowLoading } = useStudentWorkflowState(studentId || "");
   const assignmentAccepted = workflow?.assignmentAccepted ?? true;
-  // Determine the session kind explicitly from the requested drill mode.
-  // Diagnosis runs should be treated as an "intro"/adaptive diagnosis flow,
-  // never as a plain training session. This prevents mixing training and
-  // diagnosis semantics when launching drills.
+  const diagnosisSessionKind = requestedContext === "training" ? "training" : "intro";
   const sessionKind =
-    drillMode === "diagnosis" ? "intro" : drillMode === "handover" ? "handover" : "training";
+    drillMode === "diagnosis" ? diagnosisSessionKind : drillMode === "handover" ? "handover" : "training";
 
   useEffect(() => {
     setShowModeInstructions(true);
@@ -1145,6 +1142,7 @@ export default function IntroSessionDrillRunner() {
               startingPhase: phase,
               adaptiveBlocks: finalAdaptiveBlocks,
               scheduledSessionId,
+              sessionContextKind: diagnosisSessionKind,
             };
         const { data: { session } } = await supabase.auth.getSession();
         const headers: HeadersInit = {
@@ -1272,6 +1270,7 @@ export default function IntroSessionDrillRunner() {
               introTopic: currentDrill.trainingTopic,
               phase: currentDrill.phase,
               scheduledSessionId,
+              sessionContextKind: diagnosisSessionKind,
             }
           : isHandoverMode
             ? {
@@ -1992,7 +1991,7 @@ export default function IntroSessionDrillRunner() {
           >
             Back to Pod
           </button>
-          {drillMode === "diagnosis" && (
+          {drillMode === "diagnosis" && diagnosisSessionKind === "intro" && (
             <button
               type="button"
               className="px-4 py-2 rounded bg-primary text-white"

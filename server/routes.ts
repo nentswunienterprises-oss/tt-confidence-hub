@@ -4933,6 +4933,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 return res.status(400).json({ message: drillValidationError });
               }
 
+              const requestedSessionContextKind = String(req.body.sessionContextKind || "").trim().toLowerCase();
+              const sessionContextKindOverride =
+                requestedSessionContextKind === "training" ? "training" : requestedSessionContextKind === "intro" ? "intro" : null;
+
               // Validate student ownership
               const student = await storage.getStudent(studentId);
               if (!student || student.tutorId !== tutorId) {
@@ -4949,7 +4953,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 typeof scheduledSessionId === "string" && String(scheduledSessionId).trim().length > 0
                   ? String(scheduledSessionId).trim()
                   : null;
-              let diagnosisSessionKind: "intro" | "training" = "intro";
+              let diagnosisSessionKind: "intro" | "training" = sessionContextKindOverride === "training" ? "training" : "intro";
               let scheduledSession: any = null;
 
               const { session: pendingTrainingConfirmation, error: pendingTrainingConfirmationError } =
