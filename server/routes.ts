@@ -6726,6 +6726,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "tutor intro session confirmed by parent",
       );
 
+      try {
+        const parent = updatedSession?.parent_id ? await storage.getUser(updatedSession.parent_id) : null;
+        const parentName = getDisplayNameForUser(parent, "Parent");
+        const notificationPayload: any = {
+          recipientUserId: updatedSession?.tutor_id,
+          actorUserId: userId,
+          channel: "informational",
+          title: `Session confirmed by ${parentName}`,
+          message: `${parentName} confirmed the ${getSessionDisplayLabel(updatedSession?.type)}. Open Response Integrity for the latest schedule.`,
+          link: "/operational/tutor/pod",
+          entityType: "scheduled_session",
+          entityId: sessionId,
+        };
+
+        await storage.createNotification(notificationPayload);
+      } catch (error) {
+        console.error("Failed to create tutor intro-session confirmation notification:", error);
+      }
+
       if (String(updatedSession?.type || "").toLowerCase() === "handover") {
         await supabase
           .from("parent_enrollments")
@@ -9844,6 +9863,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         "tutor training session confirmed by parent",
       );
+
+      try {
+        const parent = updatedSession.parent_id ? await storage.getUser(updatedSession.parent_id) : null;
+        const parentName = getDisplayNameForUser(parent, "Parent");
+        const notificationPayload: any = {
+          recipientUserId: updatedSession.tutor_id,
+          actorUserId: userId,
+          channel: "informational",
+          title: `Session confirmed by ${parentName}`,
+          message: `${parentName} confirmed the training session. Open Response Integrity for the latest schedule.`,
+          link: "/operational/tutor/pod",
+          entityType: "scheduled_session",
+          entityId: sessionId,
+        };
+
+        await storage.createNotification(notificationPayload);
+      } catch (error) {
+        console.error("Failed to create tutor training-session confirmation notification:", error);
+      }
 
       const assignedStudent = updatedSession.student_id ? await storage.getStudent(updatedSession.student_id) : null;
       const meetSync =
