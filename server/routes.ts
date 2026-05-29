@@ -4323,7 +4323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               if (stability === "High Maintenance") {
                 return "introduce Structured Execution while protecting recognition and step choice.";
               }
-              return "reinforce recognition and first-step decisions before increasing difficulty.";
+              return "reinforce recognition and first-step decisions before introducing independent problem-solving.";
             }
             if (phase === "Structured Execution") {
               if (stability === "High Maintenance") {
