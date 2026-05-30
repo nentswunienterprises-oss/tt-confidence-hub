@@ -1668,14 +1668,14 @@ async function recalculateMembershipMonthUsage(options: {
     .gte("scheduled_time", `${monthStart}T00:00:00.000Z`)
     .lt("scheduled_time", `${nextMonth}T00:00:00.000Z`);
 
+  const completedSessionKeys = new Set<string>();
   // Filter sessions by sandbox flag (resolve enrollment per session)
-  let completedUsed = 0;
   for (const row of (completedSessions || [])) {
     try {
       const sessionEnrollmentId = await resolveEnrollmentIdForSession({ parent_id: options.parentId, student_id: options.studentId, id: row.id });
       if (!sessionEnrollmentId) {
         // No enrollment, count as production
-        completedUsed++;
+        completedSessionKeys.add(`training:${row.id}`);
         continue;
       }
       const { data: linkedEnrollment } = await supabase
@@ -1686,15 +1686,56 @@ async function recalculateMembershipMonthUsage(options: {
 
       const isSandbox = isSandboxPaymentEnrollment(linkedEnrollment);
       if (!!options.isSandbox) {
-        if (isSandbox) completedUsed++;
+        if (isSandbox) completedSessionKeys.add(`training:${row.id}`);
       } else {
-        if (!isSandbox) completedUsed++;
+        if (!isSandbox) completedSessionKeys.add(`training:${row.id}`);
       }
     } catch (err) {
       // On error, be conservative and count the session
-      completedUsed++;
+      completedSessionKeys.add(`training:${row.id}`);
     }
   }
+
+  const { data: trainingRuns } = await supabase
+    .from("training_session_runs")
+    .select("id, scheduled_session_id")
+    .eq("student_id", options.studentId)
+    .in("status", ["submitted", "completed"])
+    .gte("submitted_at", `${monthStart}T00:00:00.000Z`)
+    .lt("submitted_at", `${nextMonth}T00:00:00.000Z`);
+
+  for (const row of (trainingRuns || [])) {
+    const scheduledId = String(row?.scheduled_session_id || "").trim();
+    if (scheduledId) {
+      completedSessionKeys.add(`training:${scheduledId}`);
+    } else if (row?.id) {
+      completedSessionKeys.add(`training-run:${row.id}`);
+    }
+  }
+
+  const { data: drills } = await supabase
+    .from("intro_session_drills")
+    .select("id, scheduled_session_id, training_session_run_id, drill")
+    .eq("student_id", options.studentId)
+    .gte("submitted_at", `${monthStart}T00:00:00.000Z`)
+    .lt("submitted_at", `${nextMonth}T00:00:00.000Z`);
+
+  for (const row of (drills || [])) {
+    if (!isTrainingDrillRecord(row)) continue;
+    const scheduledId = String(row?.scheduled_session_id || "").trim();
+    const runId = String(row?.training_session_run_id || "").trim();
+    const drillId = String(row?.id || "").trim();
+
+    if (scheduledId) {
+      completedSessionKeys.add(`training:${scheduledId}`);
+    } else if (runId) {
+      completedSessionKeys.add(`training:${runId}`);
+    } else if (drillId) {
+      completedSessionKeys.add(`training-drill:${drillId}`);
+    }
+  }
+
+  const completedUsed = completedSessionKeys.size;
 
   const { data: eventRows } = await supabase
     .from("session_billing_events")
