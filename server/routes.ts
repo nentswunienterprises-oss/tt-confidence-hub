@@ -385,6 +385,18 @@ async function getTutorOperationalMode(tutorId: string): Promise<"training" | "c
   return mode === "certified_live" ? "certified_live" : "training";
 }
 
+function normalizeTutorTrainingMode(mode?: string | null): TutorTrainingMode {
+  const normalized = String(mode || "").trim().toLowerCase();
+  if (normalized === "certified_live") return "certified_live";
+  if (normalized === "sandbox") return "sandbox";
+  if (normalized === "applicant") return "applicant";
+  if (normalized === "suspended") return "suspended";
+  if (normalized === "training") return "training";
+  // Watchlist is an audit state, not an operational mode.
+  if (normalized === "watchlist") return "training";
+  return "training";
+}
+
 async function getTutorCertificationMode(tutorId: string): Promise<TutorTrainingMode> {
   const assignment = await storage.getTutorAssignment(tutorId);
   if (!assignment?.id) {
@@ -396,7 +408,7 @@ async function getTutorCertificationMode(tutorId: string): Promise<TutorTraining
       .limit(1)
       .maybeSingle();
 
-    return (portableSnapshot?.mode as TutorTrainingMode | undefined) || "training";
+    return normalizeTutorTrainingMode(portableSnapshot?.mode as TutorTrainingMode | undefined);
   }
 
   const { data: certificationStatus } = await supabase
@@ -406,36 +418,7 @@ async function getTutorCertificationMode(tutorId: string): Promise<TutorTraining
     .maybeSingle();
 
   if (certificationStatus?.mode) {
-    const persistedMode = certificationStatus.mode as TutorTrainingMode;
-    if (persistedMode !== "watchlist" && persistedMode !== "training") {
-      return persistedMode;
-    }
-
-    try {
-      const tutor = await storage.getUser(tutorId);
-      const students = await storage.getStudentsByTutor(tutorId);
-      const summary = await buildPodBattleTestingSummary(
-        assignment.podId,
-        [
-          {
-            assignmentId: assignment.id,
-            tutorId,
-            tutorName: tutor?.name || tutor?.firstName || "Unknown Tutor",
-            tutorEmail: tutor?.email || "",
-            studentCount: students.length,
-          },
-        ],
-        null
-      );
-      const reconciledMode = summary.tutorSummaries.find((entry) => entry.assignmentId === assignment.id)?.mode;
-      if (reconciledMode) {
-        return reconciledMode;
-      }
-    } catch (error) {
-      console.error("Failed to reconcile tutor certification mode:", error);
-    }
-
-    return persistedMode;
+    return normalizeTutorTrainingMode(certificationStatus.mode as TutorTrainingMode);
   }
 
   const { data: portableSnapshot } = await supabase
@@ -447,12 +430,12 @@ async function getTutorCertificationMode(tutorId: string): Promise<TutorTraining
     .maybeSingle();
 
   if (portableSnapshot?.mode) {
-    return portableSnapshot.mode as TutorTrainingMode;
+    return normalizeTutorTrainingMode(portableSnapshot.mode as TutorTrainingMode);
   }
 
-  return (assignment?.operationalMode as "training" | "certified_live" | undefined) === "certified_live"
-    ? "certified_live"
-    : "training";
+  return normalizeTutorTrainingMode(
+    (assignment as any)?.operational_mode || assignment?.operationalMode || "training"
+  );
 }
 
 async function createPortableTutorAssignment(tutorId: string, podId: string) {
@@ -15166,11 +15149,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const tutorsData = await Promise.all(
           assignments.map(async (assignment: any) => {
             const tutor = await storage.getUser(assignment.tutorId);
+            const certificationMode = await getTutorCertificationMode(assignment.tutorId);
             const tutorSummary =
               podSummary.tutorSummaries.find((entry) => entry.assignmentId === assignment.id) ||
               podSummary.tutorSummaries.find((entry) => entry.tutorId === assignment.tutorId) ||
               null;
             const loadStats = await loadTutorAssignmentLoadStats(assignment.tutorId);
+            const assignmentMode = normalizeTutorTrainingMode(
+              assignment.operational_mode || assignment.operationalMode || null
+            );
+            const operationalMode =
+              assignmentMode === "sandbox" ||
+              assignmentMode === "certified_live" ||
+              assignmentMode === "applicant" ||
+              assignmentMode === "suspended"
+                ? assignmentMode
+                : certificationMode;
 
             return {
               ...assignment,
@@ -15178,13 +15172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               tutorEmail: tutor?.email || "",
               student_count: loadStats.activeAssignmentCount,
               studentCount: loadStats.activeAssignmentCount,
-              operational_mode:
-                (assignment.operational_mode && String(assignment.operational_mode).toLowerCase() !== "watchlist"
-                  ? assignment.operational_mode
-                  : assignment.operationalMode && String(assignment.operationalMode).toLowerCase() !== "watchlist"
-                  ? assignment.operationalMode
-                  : tutorSummary?.mode) ||
-                "training",
+              operational_mode: operationalMode,
               sandbox_parent_count: loadStats.sandboxParentCount,
               live_parent_count: loadStats.liveParentCount,
               awaiting_tutor_acceptance_count: loadStats.awaitingTutorAcceptanceCount,
@@ -15413,7 +15401,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
             })
           ).values()
         );
-        res.json(dedupedStudentsWithEnrollment);
+        const existingEnrollmentIds = new Set(
+          dedupedStudentsWithEnrollment
+            .map((student: any) => String(student.assignedEnrollmentId || "").trim())
+            .filter(Boolean)
+        );
+        const synthesizedFromEnrollments = (assignedEnrollments || [])
+          .filter((enrollment: any) => {
+            const enrollmentId = String(enrollment?.id || "").trim();
+            return !!enrollmentId && !existingEnrollmentIds.has(enrollmentId);
+          })
+          .map((enrollment: any) => ({
+            id: String(enrollment.assigned_student_id || enrollment.id || "").trim() || `enrollment-${enrollment.id}`,
+            name: enrollment.student_full_name || "Assigned Student",
+            grade: null,
+            sessionProgress: 0,
+            assignedEnrollmentId: enrollment.id || null,
+            parentName: enrollment.parent_full_name || null,
+            parentEmail: enrollment.parent_email || null,
+            enrollmentStatus: enrollment.status || null,
+            enrollmentCurrentStep: enrollment.current_step || null,
+            isSandboxAssignment: isSandboxEnrollmentForTutor(enrollment, tutorId),
+            isReassignmentPreserved: Boolean(
+              enrollment?.current_step &&
+                String(enrollment.current_step).trim().toLowerCase().startsWith(REASSIGNMENT_RESUME_PREFIX)
+            ),
+          }));
+
+        res.json([...dedupedStudentsWithEnrollment, ...synthesizedFromEnrollments]);
       } catch (error) {
         console.error("Error fetching tutor students:", error);
         res.status(500).json({ message: "Failed to fetch tutor students" });

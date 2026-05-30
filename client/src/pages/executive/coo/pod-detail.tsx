@@ -90,16 +90,19 @@ function formatOperationalModeLabel(mode?: string | null) {
   return "Training";
 }
 
-function getTutorActualMode(assignment: any, tutorAudit?: any) {
-  const assignmentMode = assignment.operational_mode || assignment.operationalMode;
-  if (assignmentMode && assignmentMode !== "watchlist") {
-    return assignmentMode;
-  }
-  const auditMode = tutorAudit?.mode;
-  if (auditMode && auditMode !== "watchlist") {
-    return auditMode;
-  }
-  return assignmentMode || "training";
+function resolveTutorMode(assignmentMode?: string | null) {
+  const normalizedAssignment = String(assignmentMode || "").toLowerCase();
+  if (normalizedAssignment === "certified_live") return "certified_live";
+  if (normalizedAssignment === "sandbox") return "sandbox";
+  if (normalizedAssignment === "applicant") return "applicant";
+  if (normalizedAssignment === "suspended") return "suspended";
+  if (normalizedAssignment === "training") return "training";
+  // Legacy/invalid values (including "watchlist") should not become the mode.
+  return "training";
+}
+
+function getTutorActualMode(assignment: any) {
+  return resolveTutorMode(assignment.operational_mode || assignment.operationalMode);
 }
 
 function isTutorEligibleForParentAssignment(mode?: string | null) {
@@ -119,7 +122,6 @@ function formatModeCapability(mode?: string | null) {
   const normalized = String(mode || "").toLowerCase();
   if (normalized === "certified_live") return "Live parents allowed";
   if (normalized === "sandbox") return "Sandbox-only parents";
-  if (normalized === "watchlist") return "Restricted and under review";
   if (normalized === "suspended") return "Removed from active responsibility";
   if (normalized === "applicant") return "Onboarding not complete";
   return "Training only";
@@ -153,15 +155,6 @@ function getTutorResponsibilityView(
       primary: `${sandboxCount} sandbox parent${sandboxCount === 1 ? "" : "s"}`,
       secondary: liveCount > 0 ? `${liveCount} live assignment${liveCount === 1 ? "" : "s"} should not be here` : "Live parent assignments blocked",
       toneClass: "border-sky-200/70 bg-sky-50/40",
-    };
-  }
-
-  if (normalized === "watchlist") {
-    return {
-      title: "Current Responsibility",
-      primary: "Restricted under review",
-      secondary: awaitingCount > 0 ? `${awaitingCount} acceptance item${awaitingCount === 1 ? "" : "s"} pending` : "Live responsibility should stay restricted until recovery",
-      toneClass: "border-amber-200/70 bg-amber-50/40",
     };
   }
 
@@ -1131,9 +1124,8 @@ export default function PodDetail() {
                           const tutorAudit = battleTestingSummary?.tutorSummaries.find(
                             (entry) => entry.assignmentId === assignment.id
                           );
-                          const operationalMode = getTutorActualMode(assignment, tutorAudit);
+                          const operationalMode = getTutorActualMode(assignment);
                           const isWatchlistState = tutorAudit?.state === "watchlist";
-                          const canAssignParents = isTutorEligibleForParentAssignment(operationalMode);
                           const transformationProgress = (assignment.module_progress || []).find(
                             (entry: any) => entry.moduleKey === "transformation_phases"
                           );
@@ -1174,7 +1166,7 @@ export default function PodDetail() {
                                         <Badge variant={getOperationalModeBadge(operationalMode)}>
                                           {formatOperationalModeLabel(operationalMode)}
                                         </Badge>
-                                        {isWatchlistState && operationalMode !== "watchlist" ? (
+                                        {isWatchlistState ? (
                                           <Badge className="bg-amber-100 text-amber-900 border-amber-200">
                                             Watchlist state
                                           </Badge>
@@ -1474,7 +1466,7 @@ export default function PodDetail() {
                                     studentCount={assignment.student_count || 0}
                                     maxStudentsPerTutor={maxStudentsPerTutor}
                                     awaitingAssignments={awaitingAssignments}
-                                    canAssignParents={canAssignParents}
+                                    operationalMode={operationalMode}
                                     unassignStudentMutation={unassignStudentMutation}
                                     assignAwaitingEnrollmentMutation={assignAwaitingEnrollmentMutation}
                                     onViewTrackingSystems={(studentId, studentName) => {
@@ -1699,7 +1691,7 @@ interface TutorStudentsSectionProps {
   studentCount: number;
   maxStudentsPerTutor: number;
   awaitingAssignments: ParentEnrollment[];
-  canAssignParents: boolean;
+  operationalMode?: string | null;
   unassignStudentMutation: any;
   assignAwaitingEnrollmentMutation: any;
   onViewTrackingSystems: (studentId: string, studentName: string) => void;
@@ -1714,6 +1706,7 @@ function TutorStudentsSection({
   studentCount,
   maxStudentsPerTutor,
   awaitingAssignments,
+  operationalMode,
   unassignStudentMutation,
   assignAwaitingEnrollmentMutation,
   onViewTrackingSystems,
@@ -1721,6 +1714,7 @@ function TutorStudentsSection({
   onViewCommunication,
 }: TutorStudentsSectionProps) {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const canAssignParents = isTutorEligibleForParentAssignment(operationalMode);
   const { data: students, isLoading } = useQuery<any[]>({
     queryKey: [`/api/coo/tutors/${tutorId}/students`],
     enabled: !!tutorId,
