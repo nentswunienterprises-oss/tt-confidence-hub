@@ -490,11 +490,51 @@ export default function ParentSessions() {
                   </div>
 
                   {session.status === "pending_tutor_confirmation" ? (
-                    <p className="text-sm text-blue-700">
-                      {trainingModeScheduling
-                        ? "Waiting for tutor confirmation. Training stays locked until both parties confirm this date."
-                        : "Waiting for tutor confirmation. Meet link will only appear after both parties confirm this date."}
-                    </p>
+                    <div className="space-y-2">
+                      <p className="text-sm text-blue-700">
+                        Waiting for tutor confirmation. If one of the proposed times is wrong, adjust or cancel it now before your tutor confirms.
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setCancelSessionTarget(session)}
+                          disabled={cancellingSessionId === session.id}
+                        >
+                          {cancellingSessionId === session.id ? "Cancelling..." : "Cancel Session"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setEditingSessionId((current) => (current === session.id ? null : session.id));
+                            setAdjustedTime(new Date(session.scheduled_time).toISOString().slice(0, 16));
+                          }}
+                          disabled={adjustingSessionId === session.id}
+                        >
+                          {editingSessionId === session.id ? "Hide adjustment" : "Adjust Time"}
+                        </Button>
+                      </div>
+                      {editingSessionId === session.id ? (
+                        <div className="rounded-md border border-amber-200 bg-amber-50 p-3 space-y-2">
+                          <Input
+                            type="datetime-local"
+                            value={adjustedTime}
+                            onChange={(e) => setAdjustedTime(e.target.value)}
+                          />
+                          <div className="flex justify-end">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleAdjustSession(session.id)}
+                              disabled={adjustingSessionId === session.id}
+                            >
+                              {adjustingSessionId === session.id ? "Sending..." : "Send New Time"}
+                            </Button>
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
                   ) : null}
 
                   {session.status === "pending_parent_confirmation" ? (
