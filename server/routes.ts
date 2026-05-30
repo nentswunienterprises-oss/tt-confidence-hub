@@ -9714,16 +9714,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
         });
 
+        const cancellingParent = cancelledSession.parent_id ? await storage.getUser(cancelledSession.parent_id) : null;
+        const cancellingParentName = getDisplayNameForUser(cancellingParent, "Parent");
+
         await safeSendPush(
           cancelledSession.tutor_id,
           {
-            title: "Session cancelled",
-            body: "A parent cancelled a training session. Open Response Integrity to review the updated week.",
+            title: `Session cancelled by ${cancellingParentName}`,
+            body: `${cancellingParentName} cancelled a training session. Open Response Integrity to review the updated week.`,
             url: "/operational/tutor/pod",
             tag: `tutor-training-session-cancelled-${sessionId}`,
           },
           "tutor training session cancelled by parent",
         );
+
+        try {
+          await storage.createNotification({
+            recipientUserId: cancelledSession.tutor_id,
+            actorUserId: userId,
+            channel: "informational",
+            title: `Session cancelled by ${cancellingParentName}`,
+            message: `${cancellingParentName} cancelled a training session. Open Response Integrity to review the updated week.`,
+            link: "/operational/tutor/pod",
+            entityType: "scheduled_session",
+            entityId: sessionId,
+          } as any);
+        } catch (error) {
+          console.error("Failed to create tutor training-session cancellation notification:", error);
+        }
 
         return res.json({
           success: true,
@@ -9853,16 +9871,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
         });
 
+        const reschedulingParent = updatedSession.parent_id ? await storage.getUser(updatedSession.parent_id) : null;
+        const reschedulingParentName = getDisplayNameForUser(reschedulingParent, "Parent");
+
         await safeSendPush(
           updatedSession.tutor_id,
           {
-            title: "Session rescheduled by parent",
-            body: "A parent proposed a new training-session time. Open Response Integrity to review and confirm.",
+            title: `Session rescheduled by ${reschedulingParentName}`,
+            body: `${reschedulingParentName} proposed a new training-session time. Open Response Integrity to review and confirm.`,
             url: "/operational/tutor/pod",
             tag: `tutor-training-session-rescheduled-${sessionId}`,
           },
           "tutor training session rescheduled by parent",
         );
+
+        try {
+          await storage.createNotification({
+            recipientUserId: updatedSession.tutor_id,
+            actorUserId: userId,
+            channel: "action_required",
+            title: `Session rescheduled by ${reschedulingParentName}`,
+            message: `${reschedulingParentName} proposed a new training-session time. Open Response Integrity to review and confirm.`,
+            link: "/operational/tutor/pod",
+            entityType: "scheduled_session",
+            entityId: sessionId,
+          } as any);
+        } catch (error) {
+          console.error("Failed to create tutor training-session reschedule notification:", error);
+        }
 
         return res.json({
           success: true,
@@ -10918,11 +10954,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .eq("id", thread.id);
 
     const tutor = student?.tutorId ? await storage.getUser(student.tutorId) : null;
+    const parentUser =
+      (senderRole === "parent" && senderUserId)
+        ? await storage.getUser(senderUserId)
+        : null;
     const senderLabel =
       senderRole === "tutor"
         ? getDisplayNameForUser(tutor, "Tutor")
         : senderRole === "parent"
-          ? "Parent"
+          ? getDisplayNameForUser(parentUser, "Parent")
           : String(student?.name || "Student").trim() || "Student";
 
     if ((senderRole === "parent" || senderRole === "student") && student?.tutorId) {
@@ -16118,7 +16158,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req as any).dbUser.id;
       const userCreatedAt = (req as any).dbUser?.createdAt;
       const notifications = await storage.getNotifications(userId, userCreatedAt);
-      res.json(notifications);
+
+      const actorIds = Array.from(
+        new Set(
+          (notifications || [])
+            .map((notification: any) => String(notification?.actorUserId || "").trim())
+            .filter(Boolean)
+        )
+      );
+
+      const actorNameById = new Map<string, string>();
+      await Promise.all(
+        actorIds.map(async (actorId) => {
+          try {
+            const actor = await storage.getUser(actorId);
+            actorNameById.set(actorId, getDisplayNameForUser(actor, "User"));
+          } catch (error) {
+            console.error("Failed to resolve actor display name for notification:", { actorId, error });
+          }
+        })
+      );
+
+      const enrichedNotifications = (notifications || []).map((notification: any) => {
+        const actorId = String(notification?.actorUserId || "").trim();
+        const actorName = actorId ? actorNameById.get(actorId) : null;
+        if (!actorName) return notification;
+
+        const entityType = String(notification?.entityType || "");
+        const title = String(notification?.title || "");
+        const message = String(notification?.message || "");
+
+        if (entityType === "scheduled_session") {
+          let nextTitle = title;
+          let nextMessage = message;
+
+          if (/^lesson confirmed$/i.test(title) || /^session confirmed$/i.test(title)) {
+            nextTitle = `Session confirmed by ${actorName}`;
+          } else if (/new lesson awaiting confirmation/i.test(title)) {
+            nextTitle = `Lesson proposed by ${actorName}`;
+          } else if (/session rescheduled by parent/i.test(title)) {
+            nextTitle = `Session rescheduled by ${actorName}`;
+          } else if (/^session cancelled$/i.test(title) && /a parent/i.test(message)) {
+            nextTitle = `Session cancelled by ${actorName}`;
+          }
+
+          if (/^you have a new .* lesson to confirm:/i.test(message)) {
+            nextMessage = `${actorName} proposed this lesson. ${message}`;
+          } else if (/^your .* lesson has been confirmed:/i.test(message)) {
+            nextMessage = `${actorName} confirmed this lesson. ${message}`;
+          } else if (/a parent proposed/i.test(message)) {
+            nextMessage = message.replace(/a parent/gi, actorName);
+          } else if (/a parent cancelled/i.test(message)) {
+            nextMessage = message.replace(/a parent/gi, actorName);
+          }
+
+          return {
+            ...notification,
+            title: nextTitle,
+            message: nextMessage,
+          };
+        }
+
+        if (/^message from parent$/i.test(title)) {
+          return {
+            ...notification,
+            title: `Message from ${actorName}`,
+          };
+        }
+
+        return notification;
+      });
+
+      res.json(enrichedNotifications);
     } catch (error) {
       console.error("Error fetching notifications:", error);
       res.status(500).json({ message: "Failed to fetch notifications" });
