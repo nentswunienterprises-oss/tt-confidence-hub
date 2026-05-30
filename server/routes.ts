@@ -4595,10 +4595,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
 
             const breakdownPattern = topics.map(topic => {
-              const weakSignals = buildTopicWeakSignals(topicSnapshots[topic].allBehaviors);
+              const snapshot = topicSnapshots[topic];
+              const latestTransitionReason = snapshot.transitionReasons[snapshot.transitionReasons.length - 1] || "remain";
+              const midpoint = Math.max(1, Math.floor(snapshot.drillBehaviors.length / 2));
+              const lateBehaviors = snapshot.drillBehaviors.slice(midpoint).flat();
+              const weakSignals = buildTopicWeakSignals(lateBehaviors);
+              const endedWithStabilityAdvance =
+                latestTransitionReason === "stability advance" &&
+                (snapshot.lastDrillState.stability === "High" || snapshot.lastDrillState.stability === "High Maintenance");
+              const breakdownText =
+                weakSignals.length > 0 && !endedWithStabilityAdvance
+                  ? naturalJoin(weakSignals)
+                  : "no consistent breakdown pattern identified";
               return formatTopicScopedLine(
                 topic,
-                weakSignals.length > 0 ? naturalJoin(weakSignals) : "no consistent breakdown pattern identified",
+                breakdownText,
                 includeTopicLabels
               );
             });
