@@ -48,7 +48,8 @@ export default function ParentSessions() {
   const [adjustingSessionId, setAdjustingSessionId] = useState<string | null>(null);
   const [cancellingSessionId, setCancellingSessionId] = useState<string | null>(null);
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
-  const [adjustedTime, setAdjustedTime] = useState("");
+  const [adjustedDate, setAdjustedDate] = useState<Date | undefined>(undefined);
+  const [adjustedTime, setAdjustedTime] = useState("15:00");
   const [cancelSessionTarget, setCancelSessionTarget] = useState<ParentTrainingSession | null>(null);
 
   const formatScheduleLabel = (value?: string | Date | null) => {
@@ -83,6 +84,36 @@ export default function ParentSessions() {
     const combined = new Date(date);
     combined.setHours(hours, minutes, 0, 0);
     return combined.toISOString();
+  };
+
+  const isSelectableSessionDate = (date: Date) => {
+    const day = date.getDay();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return day >= 1 && day <= 6 && date >= today;
+  };
+
+  const openAdjustmentEditor = (session: ParentTrainingSession) => {
+    if (editingSessionId === session.id) {
+      setEditingSessionId(null);
+      setAdjustedDate(undefined);
+      setAdjustedTime("15:00");
+      return;
+    }
+
+    setEditingSessionId(session.id);
+
+    const scheduledDate = new Date(session.scheduled_time);
+    if (Number.isNaN(scheduledDate.getTime())) {
+      setAdjustedDate(undefined);
+      setAdjustedTime("15:00");
+      return;
+    }
+
+    setAdjustedDate(scheduledDate);
+    const hours = String(scheduledDate.getHours()).padStart(2, "0");
+    const minutes = String(scheduledDate.getMinutes()).padStart(2, "0");
+    setAdjustedTime(`${hours}:${minutes}`);
   };
 
   const getWeekValidationMessage = (values: string[]) => {
@@ -252,20 +283,49 @@ export default function ParentSessions() {
   };
 
   const handleAdjustSession = async (sessionId: string) => {
-    if (!adjustedTime) {
+    if (!adjustedDate || !adjustedTime) {
       toast({
-        title: "Missing time",
-        description: "Choose a new date and time before sending the adjustment.",
+        title: "Missing date or time",
+        description: "Choose both a new date and time before sending the adjustment.",
         variant: "destructive",
       });
       return;
     }
 
-    const weekValidationMessage = getWeekValidationMessage([adjustedTime, adjustedTime]);
-    if (weekValidationMessage) {
+    const scheduledStart = combineDateAndTime(adjustedDate, adjustedTime);
+    if (!scheduledStart) {
+      toast({
+        title: "Invalid date or time",
+        description: "Choose a valid date and time for the new session.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const parsedStart = new Date(scheduledStart);
+    if (Number.isNaN(parsedStart.getTime())) {
       toast({
         title: "Invalid date",
-        description: weekValidationMessage,
+        description: "Choose a valid date and time for the new session.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const day = parsedStart.getDay();
+    if (day < 1 || day > 6) {
+      toast({
+        title: "Invalid day",
+        description: "Session dates must fall between Monday and Saturday.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (parsedStart.getTime() <= Date.now()) {
+      toast({
+        title: "Invalid date",
+        description: "Rescheduled sessions must be in the future.",
         variant: "destructive",
       });
       return;
@@ -286,7 +346,7 @@ export default function ParentSessions() {
         body: JSON.stringify({
           sessionId,
           action: "reschedule",
-          scheduledStart: new Date(adjustedTime).toISOString(),
+          scheduledStart,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Africa/Johannesburg",
         }),
       });
@@ -301,7 +361,8 @@ export default function ParentSessions() {
         description: "The new time was sent back to the tutor for confirmation.",
       });
 
-      setAdjustedTime("");
+      setAdjustedDate(undefined);
+      setAdjustedTime("15:00");
       setAdjustingSessionId(null);
       setEditingSessionId(null);
       queryClient.invalidateQueries({ queryKey: ["/api/parent/training-sessions"] });
@@ -410,10 +471,7 @@ export default function ParentSessions() {
                       mode="single"
                       selected={slotOneDate}
                       onSelect={setSlotOneDate}
-                      disabled={(date) => {
-                        const day = date.getDay();
-                        return day < 1 || day > 6 || date < new Date(new Date().setHours(0, 0, 0, 0));
-                      }}
+                      disabled={(date) => !isSelectableSessionDate(date)}
                       initialFocus
                     />
                   </PopoverContent>
@@ -437,10 +495,7 @@ export default function ParentSessions() {
                       mode="single"
                       selected={slotTwoDate}
                       onSelect={setSlotTwoDate}
-                      disabled={(date) => {
-                        const day = date.getDay();
-                        return day < 1 || day > 6 || date < new Date(new Date().setHours(0, 0, 0, 0));
-                      }}
+                      disabled={(date) => !isSelectableSessionDate(date)}
                       initialFocus
                     />
                   </PopoverContent>
@@ -506,10 +561,7 @@ export default function ParentSessions() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => {
-                            setEditingSessionId((current) => (current === session.id ? null : session.id));
-                            setAdjustedTime(new Date(session.scheduled_time).toISOString().slice(0, 16));
-                          }}
+                          onClick={() => openAdjustmentEditor(session)}
                           disabled={adjustingSessionId === session.id}
                         >
                           {editingSessionId === session.id ? "Hide adjustment" : "Adjust Time"}
@@ -517,11 +569,32 @@ export default function ParentSessions() {
                       </div>
                       {editingSessionId === session.id ? (
                         <div className="rounded-md border border-amber-200 bg-amber-50 p-3 space-y-2">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button type="button" variant="outline" className="w-full justify-start text-left font-normal bg-white">
+                                <CalendarDays className="mr-2 h-4 w-4" />
+                                {formatScheduleLabel(adjustedDate)}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent align="start" className="w-auto p-0">
+                              <Calendar
+                                mode="single"
+                                selected={adjustedDate}
+                                onSelect={setAdjustedDate}
+                                disabled={(date) => !isSelectableSessionDate(date)}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
                           <Input
-                            type="datetime-local"
+                            type="time"
                             value={adjustedTime}
                             onChange={(e) => setAdjustedTime(e.target.value)}
+                            className="bg-white"
                           />
+                          <p className="text-xs text-muted-foreground">
+                            {adjustedDate ? `${formatScheduleLabel(adjustedDate)} at ${adjustedTime}` : "Pick a Monday-Saturday date and time."}
+                          </p>
                           <div className="flex justify-end">
                             <Button
                               size="sm"
@@ -553,10 +626,7 @@ export default function ParentSessions() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => {
-                            setEditingSessionId((current) => current === session.id ? null : session.id);
-                            setAdjustedTime(new Date(session.scheduled_time).toISOString().slice(0, 16));
-                          }}
+                          onClick={() => openAdjustmentEditor(session)}
                           disabled={adjustingSessionId === session.id}
                         >
                           Adjust Time
@@ -564,11 +634,32 @@ export default function ParentSessions() {
                       </div>
                       {editingSessionId === session.id ? (
                         <div className="rounded-md border border-amber-200 bg-amber-50 p-3 space-y-2">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button type="button" variant="outline" className="w-full justify-start text-left font-normal bg-white">
+                                <CalendarDays className="mr-2 h-4 w-4" />
+                                {formatScheduleLabel(adjustedDate)}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent align="start" className="w-auto p-0">
+                              <Calendar
+                                mode="single"
+                                selected={adjustedDate}
+                                onSelect={setAdjustedDate}
+                                disabled={(date) => !isSelectableSessionDate(date)}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
                           <Input
-                            type="datetime-local"
+                            type="time"
                             value={adjustedTime}
                             onChange={(e) => setAdjustedTime(e.target.value)}
+                            className="bg-white"
                           />
+                          <p className="text-xs text-muted-foreground">
+                            {adjustedDate ? `${formatScheduleLabel(adjustedDate)} at ${adjustedTime}` : "Pick a Monday-Saturday date and time."}
+                          </p>
                           <div className="flex justify-end">
                             <Button
                               size="sm"
@@ -621,10 +712,7 @@ export default function ParentSessions() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => {
-                              setEditingSessionId((current) => (current === session.id ? null : session.id));
-                              setAdjustedTime(new Date(session.scheduled_time).toISOString().slice(0, 16));
-                            }}
+                            onClick={() => openAdjustmentEditor(session)}
                             disabled={adjustingSessionId === session.id}
                           >
                             {editingSessionId === session.id ? "Hide reschedule" : "Request New Time"}
@@ -633,11 +721,32 @@ export default function ParentSessions() {
                       </div>
                       {editingSessionId === session.id ? (
                         <div className="rounded-md border border-amber-200 bg-amber-50 p-3 space-y-2">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button type="button" variant="outline" className="w-full justify-start text-left font-normal bg-white">
+                                <CalendarDays className="mr-2 h-4 w-4" />
+                                {formatScheduleLabel(adjustedDate)}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent align="start" className="w-auto p-0">
+                              <Calendar
+                                mode="single"
+                                selected={adjustedDate}
+                                onSelect={setAdjustedDate}
+                                disabled={(date) => !isSelectableSessionDate(date)}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
                           <Input
-                            type="datetime-local"
+                            type="time"
                             value={adjustedTime}
                             onChange={(e) => setAdjustedTime(e.target.value)}
+                            className="bg-white"
                           />
+                          <p className="text-xs text-muted-foreground">
+                            {adjustedDate ? `${formatScheduleLabel(adjustedDate)} at ${adjustedTime}` : "Pick a Monday-Saturday date and time."}
+                          </p>
                           <div className="flex justify-end">
                             <Button
                               size="sm"
