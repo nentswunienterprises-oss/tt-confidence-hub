@@ -3364,6 +3364,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
               return `The student ${combined} during ${context}.`;
             };
 
+            const narrativeStabilityFromScore = (score: number, fallback?: string) => {
+              if (Number.isFinite(score)) {
+                if (score >= 80) return "High";
+                if (score >= 45) return "Medium";
+                return "Low";
+              }
+              return normalizeStability(fallback || "Low");
+            };
+
             const rawBehaviorPatterns = (signals: ObservationSignal[]) =>
               mapObservationsToBehavior(signals).filter(
                 (behavior) => behavior !== "no mapped observation signal detected"
@@ -3430,7 +3439,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 deterministicLog: {
                   topicFocus: `This session focused on ${topic}, targeting baseline diagnosis in ${diagnosisPhase}.`,
                   whatWasTrained: `A diagnosis drill was used to identify ${DRILL_PURPOSE_BY_PHASE[diagnosisPhase] || "phase-specific response patterns"}.`,
-                  behaviorSummary: buildBehaviorSummary(observationSignals, "diagnosis", stability),
+                  behaviorSummary: buildBehaviorSummary(
+                    observationSignals,
+                    "diagnosis",
+                    narrativeStabilityFromScore(diagnosisScore, stability),
+                  ),
                   performanceResult: describePerformanceResult({
                     phaseBefore: diagnosisPhase,
                     phaseAfter: trainingEntryPhase,
@@ -3506,7 +3519,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 deterministicLog: {
                 topicFocus: `This session focused on ${topic}, targeting ${observedPhase} phase skills.`,
                   whatWasTrained: `A training drill was used to train ${DRILL_PURPOSE_BY_PHASE[observedPhase] || "phase-specific behavior"}.`,
-                  behaviorSummary: buildBehaviorSummary(observationSignals, "the drill", stability),
+                  behaviorSummary: buildBehaviorSummary(
+                    observationSignals,
+                    "the drill",
+                    narrativeStabilityFromScore(sessionScore, stability),
+                  ),
                   performanceResult: describePerformanceResult({
                     phaseBefore: observedPhase,
                     phaseAfter: resultingPhase,

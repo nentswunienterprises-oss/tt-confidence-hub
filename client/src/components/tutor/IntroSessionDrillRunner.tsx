@@ -1909,7 +1909,7 @@ export default function IntroSessionDrillRunner() {
         </div>
         <div className="text-xs text-muted-foreground mb-2 sm:mb-3">{set?.purpose}</div>
         <div className="p-2 rounded-md border border-primary/20 bg-primary/5 mb-2 sm:mb-3">
-          <div className="text-xs font-semibold text-primary mb-0.5">→ Rep instruction</div>
+          <div className="text-xs font-semibold text-primary mb-0.5">Rep instruction</div>
           <div className="text-xs sm:text-sm text-foreground font-medium">{set?.repInstruction}</div>
         </div>
         <div className="flex flex-wrap gap-1">
