@@ -78,7 +78,6 @@ function getOperationalModeBadge(mode?: string | null) {
   const normalized = String(mode || "").toLowerCase();
   if (normalized === "certified_live") return "default";
   if (normalized === "suspended") return "destructive";
-  if (normalized === "watchlist") return "destructive";
   return "secondary";
 }
 
@@ -86,10 +85,26 @@ function formatOperationalModeLabel(mode?: string | null) {
   const normalized = String(mode || "").toLowerCase();
   if (normalized === "certified_live") return "Certified Live";
   if (normalized === "sandbox") return "Sandbox";
-  if (normalized === "watchlist") return "Watchlist";
   if (normalized === "suspended") return "Suspended";
   if (normalized === "applicant") return "Applicant";
   return "Training";
+}
+
+function getTutorActualMode(assignment: any, tutorAudit?: any) {
+  const assignmentMode = assignment.operational_mode || assignment.operationalMode;
+  if (assignmentMode && assignmentMode !== "watchlist") {
+    return assignmentMode;
+  }
+  const auditMode = tutorAudit?.mode;
+  if (auditMode && auditMode !== "watchlist") {
+    return auditMode;
+  }
+  return assignmentMode || "training";
+}
+
+function isTutorEligibleForParentAssignment(mode?: string | null) {
+  const normalized = String(mode || "").toLowerCase();
+  return normalized === "certified_live" || normalized === "sandbox";
 }
 
 function getOperatingStateBadgeClass(stateKey?: string | null) {
@@ -1116,11 +1131,9 @@ export default function PodDetail() {
                           const tutorAudit = battleTestingSummary?.tutorSummaries.find(
                             (entry) => entry.assignmentId === assignment.id
                           );
-                          const operationalMode =
-                            tutorAudit?.mode ||
-                            assignment.operational_mode ||
-                            assignment.operationalMode ||
-                            "training";
+                          const operationalMode = getTutorActualMode(assignment, tutorAudit);
+                          const isWatchlistState = tutorAudit?.state === "watchlist";
+                          const canAssignParents = isTutorEligibleForParentAssignment(operationalMode);
                           const transformationProgress = (assignment.module_progress || []).find(
                             (entry: any) => entry.moduleKey === "transformation_phases"
                           );
@@ -1161,6 +1174,11 @@ export default function PodDetail() {
                                         <Badge variant={getOperationalModeBadge(operationalMode)}>
                                           {formatOperationalModeLabel(operationalMode)}
                                         </Badge>
+                                        {isWatchlistState && operationalMode !== "watchlist" ? (
+                                          <Badge className="bg-amber-100 text-amber-900 border-amber-200">
+                                            Watchlist state
+                                          </Badge>
+                                        ) : null}
                                         <Badge className={getBattleTestStateBadgeClass(tutorAudit?.state)}>
                                           {getBattleTestStateLabel(tutorAudit?.state)}
                                         </Badge>
@@ -1456,6 +1474,7 @@ export default function PodDetail() {
                                     studentCount={assignment.student_count || 0}
                                     maxStudentsPerTutor={maxStudentsPerTutor}
                                     awaitingAssignments={awaitingAssignments}
+                                    canAssignParents={canAssignParents}
                                     unassignStudentMutation={unassignStudentMutation}
                                     assignAwaitingEnrollmentMutation={assignAwaitingEnrollmentMutation}
                                     onViewTrackingSystems={(studentId, studentName) => {
@@ -1680,6 +1699,7 @@ interface TutorStudentsSectionProps {
   studentCount: number;
   maxStudentsPerTutor: number;
   awaitingAssignments: ParentEnrollment[];
+  canAssignParents: boolean;
   unassignStudentMutation: any;
   assignAwaitingEnrollmentMutation: any;
   onViewTrackingSystems: (studentId: string, studentName: string) => void;
@@ -1865,11 +1885,21 @@ function TutorStudentsSection({
               <Button
                 size="sm"
                 variant="outline"
-                disabled={awaitingAssignments.length === 0 || assignAwaitingEnrollmentMutation.isPending || tutorAtCapacity}
+                disabled={
+                  awaitingAssignments.length === 0 ||
+                  assignAwaitingEnrollmentMutation.isPending ||
+                  tutorAtCapacity ||
+                  !canAssignParents
+                }
               >
                 Assign Parent
               </Button>
             </DialogTrigger>
+            {!canAssignParents ? (
+              <p className="mt-2 text-xs text-rose-900">
+                Parent assignment is blocked until this tutor is in Sandbox or Certified Live mode.
+              </p>
+            ) : null}
             <DialogContent className="w-[min(96vw,72rem)] max-w-6xl">
               <DialogHeader>
                 <DialogTitle>Assign Parent to {tutorName}</DialogTitle>

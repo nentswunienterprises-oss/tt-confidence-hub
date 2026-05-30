@@ -114,7 +114,6 @@ function getOperationalModeBadge(mode?: string | null) {
   const normalized = String(mode || "").toLowerCase();
   if (normalized === "certified_live") return "default";
   if (normalized === "suspended") return "destructive";
-  if (normalized === "watchlist") return "destructive";
   return "secondary";
 }
 
@@ -122,8 +121,8 @@ function formatOperationalModeLabel(mode?: string | null) {
   const normalized = String(mode || "").toLowerCase();
   if (normalized === "certified_live") return "Certified Live";
   if (normalized === "sandbox") return "Sandbox Mode";
-  if (normalized === "watchlist") return "Watchlist";
   if (normalized === "suspended") return "Suspended";
+  if (normalized === "applicant") return "Applicant";
   return "Training Mode";
 }
 

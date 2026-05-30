@@ -9745,11 +9745,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      if (session.status !== "pending_parent_confirmation") {
+      if (action === "confirm" && session.status !== "pending_parent_confirmation") {
         return res.status(400).json({ message: "This session is not waiting for parent confirmation" });
       }
 
       if (action === "reschedule") {
+        if (!["pending_parent_confirmation", "pending_tutor_confirmation"].includes(String(session.status || ""))) {
+          return res.status(400).json({ message: "This session cannot be rescheduled at this time" });
+        }
+
         const nextStart = String(scheduledStart || "").trim();
         if (!nextStart) {
           return res.status(400).json({ message: "New scheduled time is required" });
@@ -15174,7 +15178,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
               tutorEmail: tutor?.email || "",
               student_count: loadStats.activeAssignmentCount,
               studentCount: loadStats.activeAssignmentCount,
-              operational_mode: tutorSummary?.mode || assignment.operationalMode || "training",
+              operational_mode:
+                (assignment.operational_mode && String(assignment.operational_mode).toLowerCase() !== "watchlist"
+                  ? assignment.operational_mode
+                  : assignment.operationalMode && String(assignment.operationalMode).toLowerCase() !== "watchlist"
+                  ? assignment.operationalMode
+                  : tutorSummary?.mode) ||
+                "training",
               sandbox_parent_count: loadStats.sandboxParentCount,
               live_parent_count: loadStats.liveParentCount,
               awaiting_tutor_acceptance_count: loadStats.awaitingTutorAcceptanceCount,
