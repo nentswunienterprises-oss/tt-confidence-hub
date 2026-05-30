@@ -524,6 +524,7 @@ export default function ParentDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [proposalDialogOpen, setProposalDialogOpen] = useState(false);
+  const [topicConditioningDialogOpen, setTopicConditioningDialogOpen] = useState(false);
 
   const { data: proposal, isLoading: proposalLoading, error: proposalError } = useQuery<any>({
     queryKey: ["/api/parent/proposal"],
@@ -916,8 +917,18 @@ export default function ParentDashboard() {
               );
             })}
           </div>
-          <div className="mt-3 rounded-lg bg-muted/40 p-3 text-sm text-muted-foreground">
-            Parent view note: stage is tracked per topic, not as one global student stage.
+          <div className="mt-3 rounded-lg bg-muted/40 p-3">
+            <div className="flex items-start justify-between gap-3">
+              <p className="text-sm text-muted-foreground">
+                Parent view note: stage is tracked per topic, not as one global student stage.{" "}
+                <button
+                  onClick={() => setTopicConditioningDialogOpen(true)}
+                  className="text-primary hover:underline font-medium"
+                >
+                  What is Topic Conditioning?
+                </button>
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -1126,6 +1137,165 @@ export default function ParentDashboard() {
           </DialogContent>
         </Dialog>
       )}
+
+      <Dialog open={topicConditioningDialogOpen} onOpenChange={setTopicConditioningDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Topic Conditioning in Response Integrity</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-sm text-foreground/90 leading-relaxed">
+            <div>
+              <h3 className="font-semibold text-base mb-2">What it is</h3>
+              <p>
+                Topic Conditioning is how Response Integrity uses the student's real school topics to train a stable response under pressure.
+              </p>
+              <ul className="mt-3 space-y-2 ml-4 text-sm">
+                <li className="flex gap-2">
+                  <span className="text-muted-foreground">•</span>
+                  <span>It is not random tutoring.</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-muted-foreground">•</span>
+                  <span>It is not extra practice.</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-muted-foreground">•</span>
+                  <span>It is not "covering work."</span>
+                </li>
+              </ul>
+              <p className="mt-3">It is this:</p>
+              <ul className="mt-3 space-y-2 ml-4">
+                <li className="flex gap-2">
+                  <span className="text-muted-foreground">1.</span>
+                  <span>Take the topic the student is currently struggling with.</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-muted-foreground">2.</span>
+                  <span>Find where their response breaks inside that topic.</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-muted-foreground">3.</span>
+                  <span>Run the Response Integrity system until their response becomes stable.</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-muted-foreground">4.</span>
+                  <span>That first diagnosis happens in the intro session. Training starts after the entry phase has been identified.</span>
+                </li>
+              </ul>
+              <p className="mt-3 font-medium">That is Topic Conditioning.</p>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-base mb-2">The simplest way to understand it</h3>
+              <p className="font-medium mb-2">A topic is the training arena.</p>
+              <p className="mb-2">Examples:</p>
+              <ul className="space-y-1 ml-4 mb-3">
+                <li className="flex gap-2"><span className="text-muted-foreground">•</span> <span>Fractions</span></li>
+                <li className="flex gap-2"><span className="text-muted-foreground">•</span> <span>Algebra</span></li>
+                <li className="flex gap-2"><span className="text-muted-foreground">•</span> <span>Exponents</span></li>
+                <li className="flex gap-2"><span className="text-muted-foreground">•</span> <span>Word problems</span></li>
+                <li className="flex gap-2"><span className="text-muted-foreground">•</span> <span>Linear equations</span></li>
+              </ul>
+              <p className="font-medium mb-2">The OS is the conditioning process.</p>
+              <p className="mb-2">The phases are:</p>
+              <ul className="space-y-1 ml-4">
+                <li className="flex gap-2"><span className="text-muted-foreground">•</span> <span>Clarity</span></li>
+                <li className="flex gap-2"><span className="text-muted-foreground">•</span> <span>Structured Execution</span></li>
+                <li className="flex gap-2"><span className="text-muted-foreground">•</span> <span>Controlled Discomfort</span></li>
+                <li className="flex gap-2"><span className="text-muted-foreground">•</span> <span>Time Pressure Stability</span></li>
+              </ul>
+              <p className="mt-3">So Topic Conditioning means: A school topic becomes the arena where Response Integrity-OS trains the student's response.</p>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-base mb-2">Why this matters</h3>
+              <p className="mb-3">Most tutoring asks: "Does the student understand this topic?"</p>
+              <p className="mb-3 font-medium">Response Integrity asks a harder and more useful question:</p>
+              <p className="mb-3 text-primary font-semibold">"In this topic, where does the student break?"</p>
+              <p className="mb-3">That changes everything.</p>
+              <p className="mb-2">Because a student can:</p>
+              <ul className="space-y-1 ml-4 mb-3">
+                <li className="flex gap-2"><span className="text-muted-foreground">•</span> <span>understand some parts of a topic</span></li>
+                <li className="flex gap-2"><span className="text-muted-foreground">•</span> <span>still freeze in that topic</span></li>
+                <li className="flex gap-2"><span className="text-muted-foreground">•</span> <span>still guess in that topic</span></li>
+                <li className="flex gap-2"><span className="text-muted-foreground">•</span> <span>still rush in that topic</span></li>
+                <li className="flex gap-2"><span className="text-muted-foreground">•</span> <span>still collapse under time in that topic</span></li>
+              </ul>
+              <p className="mb-2">So the real issue is not just topic knowledge.</p>
+              <p className="font-medium">The real issue is:</p>
+              <p className="mb-3">How the student behaves inside that topic when difficulty appears.</p>
+              <p className="font-medium mb-3">That is what Response Integrity conditions.</p>
+              <p className="mb-2 font-medium">Response Integrity is not trying to:</p>
+              <ul className="space-y-1 ml-4 mb-3">
+                <li className="flex gap-2"><span className="text-muted-foreground">•</span> <span>teach as much content as possible in one session</span></li>
+                <li className="flex gap-2"><span className="text-muted-foreground">•</span> <span>move through the syllabus as fast as possible</span></li>
+                <li className="flex gap-2"><span className="text-muted-foreground">•</span> <span>finish topics for the sake of progress</span></li>
+                <li className="flex gap-2"><span className="text-muted-foreground">•</span> <span>impress parents with volume</span></li>
+              </ul>
+              <p className="font-medium mb-2">Response Integrity is doing something more precise.</p>
+              <p className="font-medium mb-3">Response Integrity is asking:</p>
+              <ul className="space-y-1 ml-4">
+                <li className="flex gap-2"><span className="text-muted-foreground">•</span> <span>Inside this topic, is the student clear?</span></li>
+                <li className="flex gap-2"><span className="text-muted-foreground">•</span> <span>Can they execute?</span></li>
+                <li className="flex gap-2"><span className="text-muted-foreground">•</span> <span>Can they stay stable when difficulty appears?</span></li>
+                <li className="flex gap-2"><span className="text-muted-foreground">•</span> <span>Can they stay stable when time pressure appears?</span></li>
+              </ul>
+              <p className="mt-3">If not, the topic is not conditioned yet.</p>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-base mb-2">The core structure</h3>
+              <p className="mb-3">Topic Conditioning in Response Integrity works like this:</p>
+              <ul className="space-y-2 ml-4 mb-3">
+                <li className="flex gap-2">
+                  <span className="font-medium min-w-20">Topic:</span>
+                  <span>The exact school concept the student is facing now.</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-medium min-w-20">Phase:</span>
+                  <span>The point in the Response Integrity system where the student currently breaks in that topic.</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-medium min-w-20">Stability:</span>
+                  <span>How reliable the student's response is inside that topic.</span>
+                </li>
+              </ul>
+              <p className="mb-3">Put together: Topic + Phase + Stability = Response Integrity conditioning map</p>
+              <div className="rounded-lg border border-muted-foreground/20 p-3 bg-muted/10 overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-muted-foreground/20">
+                      <th className="text-left py-2 px-2 font-semibold">Topic</th>
+                      <th className="text-left py-2 px-2 font-semibold">Phase</th>
+                      <th className="text-left py-2 px-2 font-semibold">Stability</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b border-muted-foreground/10">
+                      <td className="py-2 px-2">Algebraic expressions</td>
+                      <td className="py-2 px-2">Structured Execution</td>
+                      <td className="py-2 px-2">Low</td>
+                    </tr>
+                    <tr className="border-b border-muted-foreground/10">
+                      <td className="py-2 px-2">Fractions</td>
+                      <td className="py-2 px-2">Clarity</td>
+                      <td className="py-2 px-2">Medium</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 px-2">Exponents</td>
+                      <td className="py-2 px-2">Time Pressure Stability</td>
+                      <td className="py-2 px-2">High</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p className="mt-3">This is elite because it is precise.</p>
+              <p className="mt-2 mb-2">It does not say: "The student is weak" or "The student struggles with math."</p>
+              <p>It says: In this specific topic, the student's response breaks here. That is useful.</p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
