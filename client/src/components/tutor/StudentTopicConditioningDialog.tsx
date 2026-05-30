@@ -462,16 +462,41 @@ function deriveTransitionStatus(phase: PhaseLabel, stability: StabilityLabel, tr
   const advanceTo = getNextActionData(phase, stability).advanceTo;
   if (trend === "Regressing") return "Regressed" as const;
   if (phase === "Time Pressure Stability" && stability === "High Maintenance") return "Transfer Ready" as const;
-    if (stability === "High Maintenance" && advanceTo) return "Advance Threshold Met" as const;
+  if (stability === "High Maintenance" && advanceTo) return "Advance Threshold Met" as const;
   if (stability === "High Maintenance") return "Maintain" as const;
   if (stability === "High") return "Maintenance Check" as const;
   if (stability === "Medium") return "Building" as const;
   return "Reinforce" as const;
 }
 
-function interpretTopicState(phase: PhaseLabel, stability: StabilityLabel, trend?: TopicTrend) {
-  const nextAction = nextActionFor(phase, stability);
-  const rules = getNextActionData(phase, stability).rules;
+function enteredMaintenanceCheckpoint(
+  phase: PhaseLabel,
+  stability: StabilityLabel,
+  timeline: TopicRow["timeline"] | undefined,
+) {
+  if (stability !== "High Maintenance") return false;
+  const events = Array.isArray(timeline) ? timeline : [];
+  if (events.length < 2) return false;
+  const latest = events[events.length - 1];
+  const previous = events[events.length - 2];
+  return (
+    latest.phase === phase &&
+    latest.stability === "High Maintenance" &&
+    previous.phase === phase &&
+    previous.stability === "High"
+  );
+}
+
+function interpretTopicState(
+  phase: PhaseLabel,
+  stability: StabilityLabel,
+  trend?: TopicTrend,
+  options?: { enteredMaintenanceCheckpoint?: boolean },
+) {
+  const enteredMaintenance = !!options?.enteredMaintenanceCheckpoint;
+  const requiresMaintenanceCheck = phase !== "Time Pressure Stability" && stability === "High Maintenance";
+  const nextAction = requiresMaintenanceCheck ? nextActionFor(phase, "High") : nextActionFor(phase, stability);
+  const rules = requiresMaintenanceCheck ? getNextActionData(phase, "High").rules : getNextActionData(phase, stability).rules;
 
   const tutorMeaningByPhase: Record<PhaseLabel, Record<StabilityLabel, string>> = {
     Clarity: {
@@ -508,7 +533,10 @@ function interpretTopicState(phase: PhaseLabel, stability: StabilityLabel, trend
     "Time Pressure Stability": "Their child is strengthening performance under time pressure.",
   };
 
-  const transitionStatus = deriveTransitionStatus(phase, stability, trend);
+  const transitionStatus =
+    enteredMaintenance || requiresMaintenanceCheck
+      ? ("Maintenance Check" as const)
+      : deriveTransitionStatus(phase, stability, trend);
 
   return {
     nextAction,
@@ -1264,7 +1292,13 @@ export default function StudentTopicConditioningDialog({
     : sanitizeTopic(manualTopicField) || "";
 
   const selectedInterpretation = selectedRow && hasObservedSelection
-    ? interpretTopicState(selectedRow.phase, selectedRow.stability)
+    ? interpretTopicState(selectedRow.phase, selectedRow.stability, selectedRow.trend, {
+        enteredMaintenanceCheckpoint: enteredMaintenanceCheckpoint(
+          selectedRow.phase,
+          selectedRow.stability,
+          selectedRow.timeline,
+        ),
+      })
     : null;
 
   const prepPlan = selectedRow
@@ -1581,7 +1615,13 @@ export default function StudentTopicConditioningDialog({
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
                   {prioritizedTopics.map((row) => {
-                    const topicIntel = interpretTopicState(row.phase, row.stability, row.trend);
+                    const topicIntel = interpretTopicState(row.phase, row.stability, row.trend, {
+                      enteredMaintenanceCheckpoint: enteredMaintenanceCheckpoint(
+                        row.phase,
+                        row.stability,
+                        row.timeline,
+                      ),
+                    });
                     const rowPrepPlan = tutorPrepPlanFor(row.phase, row.stability, row.hasObservedState);
                     const isExpanded = expandedTopics.has(row.topic);
                     const phaseLabel = row.hasObservedState ? row.phase : "Unknown";

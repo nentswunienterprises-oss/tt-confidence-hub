@@ -4038,6 +4038,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (isFinalPhaseMaintenanceState(phaseAfter, stabilityAfter)) {
               return "Student is sustaining final-phase control and is now in maintenance and transfer territory.";
             }
+            if (stabilityAfter === "High Maintenance") {
+              const nextPhaseByPhase: Partial<Record<TopicPhase, TopicPhase>> = {
+                Clarity: "Structured Execution",
+                "Structured Execution": "Controlled Discomfort",
+                "Controlled Discomfort": "Time Pressure Stability",
+              };
+              const nextPhase = nextPhaseByPhase[phaseAfter];
+              if (nextPhase) {
+                return `Student improved from High to High Maintenance in ${phaseAfter}. This means ${phaseAfter} responses are now consistent in this topic, and the High Maintenance check now decides whether it moves into ${nextPhase}.`;
+              }
+              return `Student improved from High to High Maintenance in ${phaseAfter}. This means responses are now consistent in this topic and are being sustained in High Maintenance.`;
+            }
             return TUTOR_ONGOING_MEANING_BY_PHASE[phaseAfter];
           };
 

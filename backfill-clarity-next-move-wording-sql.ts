@@ -9,18 +9,24 @@ if (!databaseUrl) {
 
 const pool = new Pool({ connectionString: databaseUrl });
 
-const OLD_WORDING = "reinforce recognition and first-step decisions before increasing difficulty.";
-const NEW_WORDING = "reinforce recognition and first-step decisions before introducing independent problem-solving.";
+const PHRASE_UPDATES = [
+  {
+    old: "Reinforce recognition and first-step decisions before increasing difficulty.",
+    replacement: "Reinforce recognition and first-step decisions before introducing independent problem-solving.",
+  },
+];
 
 async function backfillClarityNextMoves() {
   const client = await pool.connect();
   try {
-    console.log("🔍 Searching for reports with old Clarity next move wording...");
+    console.log("🔍 Searching for reports with legacy Clarity next-move wording...");
 
-    // Find all reports with the old wording
+    const oldPatterns = PHRASE_UPDATES.map((item) => `%${item.old}%`);
     const result = await client.query(
-      `SELECT id, next_steps, summary FROM parent_reports WHERE next_steps ILIKE $1`,
-      [`%${OLD_WORDING}%`]
+      `SELECT id, next_steps, summary FROM parent_reports WHERE ${PHRASE_UPDATES
+        .map((_, index) => `next_steps ILIKE $${index + 1}`)
+        .join(" OR ")}`,
+      oldPatterns
     );
 
     if (!result.rows || result.rows.length === 0) {
@@ -35,35 +41,33 @@ async function backfillClarityNextMoves() {
 
     for (const row of result.rows) {
       try {
-        // Replace old wording with new wording in next_steps
-        const updatedNextSteps = (row.next_steps || "").replaceAll(
-          OLD_WORDING,
-          NEW_WORDING
-        );
-
-        // Also update the summary JSON if it contains the old wording
+        let updatedNextSteps = row.next_steps || "";
         let updatedSummary = row.summary;
-        if (row.summary && row.summary.includes(OLD_WORDING)) {
-          try {
-            const summaryObj = typeof row.summary === "string"
-              ? JSON.parse(row.summary)
-              : row.summary;
 
-            if (summaryObj.nextMove) {
-              if (Array.isArray(summaryObj.nextMove)) {
-                summaryObj.nextMove = summaryObj.nextMove.map((move: string) =>
-                  move.replaceAll(OLD_WORDING, NEW_WORDING)
-                );
-              } else if (typeof summaryObj.nextMove === "string") {
-                summaryObj.nextMove = summaryObj.nextMove.replaceAll(
-                  OLD_WORDING,
-                  NEW_WORDING
-                );
+        for (const { old, replacement } of PHRASE_UPDATES) {
+          if (updatedNextSteps.includes(old)) {
+            updatedNextSteps = updatedNextSteps.replaceAll(old, replacement);
+          }
+
+          if (row.summary && row.summary.includes(old)) {
+            try {
+              const summaryObj = typeof row.summary === "string"
+                ? JSON.parse(row.summary)
+                : row.summary;
+
+              if (summaryObj.nextMove) {
+                if (Array.isArray(summaryObj.nextMove)) {
+                  summaryObj.nextMove = summaryObj.nextMove.map((move: string) =>
+                    move.replaceAll(old, replacement)
+                  );
+                } else if (typeof summaryObj.nextMove === "string") {
+                  summaryObj.nextMove = summaryObj.nextMove.replaceAll(old, replacement);
+                }
               }
+              updatedSummary = JSON.stringify(summaryObj);
+            } catch (parseError) {
+              console.warn(`⚠️  Could not parse summary JSON for ${row.id}, skipping summary update`);
             }
-            updatedSummary = JSON.stringify(summaryObj);
-          } catch (parseError) {
-            console.warn(`⚠️  Could not parse summary JSON for ${row.id}, skipping summary update`);
           }
         }
 

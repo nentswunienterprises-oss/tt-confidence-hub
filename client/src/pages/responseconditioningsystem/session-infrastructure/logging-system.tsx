@@ -29,6 +29,7 @@ type DrillSetConfig = {
   activeRules: string[];
   observationBlock?: ObservationField[];
   repObservationBlocks?: ObservationField[][];
+  isModelingSet?: boolean;
 };
 
 type DemoMode = "diagnosis" | "training" | "handover";
@@ -765,7 +766,7 @@ function buildDemoSummary(
         const optionIndex = field.options.indexOf(selected);
         if (optionIndex >= 0) {
           const phaseWeight = INTRO_PHASE_WEIGHTS[phase].find((item) => item.aliases.includes(field.key))?.weight || 0;
-          repScore += weightedScoreFor(field, phaseWeight, optionIndex, value);
+          repScore += weightedScoreFor(field, phaseWeight, optionIndex, selected);
         }
       });
 
