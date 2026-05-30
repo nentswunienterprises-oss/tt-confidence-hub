@@ -1757,6 +1757,9 @@ function TutorStudentsSection({
                 .join("")
                 .toUpperCase()
                 .slice(0, 2);
+              const isUnassigningThisStudent =
+                unassignStudentMutation.isPending &&
+                unassignStudentMutation.variables === student.assignedEnrollmentId;
 
               return (
                 <div
@@ -1851,7 +1854,7 @@ function TutorStudentsSection({
                       }}
                     >
                       <UserMinus className="w-3 h-3 mr-1.5" />
-                      {unassignStudentMutation.isPending ? "Unassigning..." : "Unassign"}
+                      {isUnassigningThisStudent ? "Unassigning..." : "Unassign"}
                     </Button>
                   </div>
                 </div>
@@ -1931,6 +1934,10 @@ function TutorStudentsSection({
                           topics.length === 1 && fallbackSymptoms.length > 0 && !topicSymptoms[topics[0]]
                             ? { ...topicSymptoms, [topics[0]]: fallbackSymptoms }
                             : topicSymptoms;
+                        const isAssigningThisEnrollment =
+                          assignAwaitingEnrollmentMutation.isPending &&
+                          assignAwaitingEnrollmentMutation.variables?.enrollmentId === enrollment.id &&
+                          assignAwaitingEnrollmentMutation.variables?.tutorId === tutorId;
 
                         return (
                           <>
@@ -2132,8 +2139,8 @@ function TutorStudentsSection({
                                     }
                                   }}
                                 >
-                                  {assignAwaitingEnrollmentMutation.isPending ? "Assigning..." : `Assign to ${tutorName}`}
-                                  {!assignAwaitingEnrollmentMutation.isPending ? <ArrowRight className="ml-2 h-4 w-4" /> : null}
+                                  {isAssigningThisEnrollment ? "Assigning..." : `Assign to ${tutorName}`}
+                                  {!isAssigningThisEnrollment ? <ArrowRight className="ml-2 h-4 w-4" /> : null}
                                 </Button>
                               </div>
                             </div>

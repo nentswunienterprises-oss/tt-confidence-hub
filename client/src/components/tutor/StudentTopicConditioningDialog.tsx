@@ -1404,6 +1404,8 @@ export default function StudentTopicConditioningDialog({
         new Date(a.scheduled_time || a.updated_at || 0).getTime()
     )[0] || null;
   const pendingTutorConfirmationSessions = actionableTrainingSessions.filter((session: any) => session.status === "pending_tutor_confirmation");
+  const isConfirmingTrainingSession = (sessionId: string) =>
+    confirmTrainingSession.isPending && confirmTrainingSession.variables?.sessionId === sessionId;
   const pendingTrainingConfirmationSession = actionableTrainingSessions.find((session: any) => session.status === "pending_parent_confirmation") || null;
   const activeTrainingSession = isTrainingMode
     ? confirmedTrainingSessions[0] || null
@@ -2182,7 +2184,7 @@ export default function StudentTopicConditioningDialog({
                                     }}
                                     disabled={confirmTrainingSession.isPending || respondTrainingSession.isPending}
                                   >
-                                    {confirmTrainingSession.isPending ? "Confirming..." : "Confirm Date"}
+                                    {isConfirmingTrainingSession(session.id) ? "Confirming..." : "Confirm Date"}
                                   </Button>
                                   <Button
                                     size="sm"
@@ -2386,7 +2388,7 @@ export default function StudentTopicConditioningDialog({
                                     }}
                                     disabled={confirmTrainingSession.isPending || respondTrainingSession.isPending}
                                   >
-                                    {confirmTrainingSession.isPending ? "Confirming..." : "Confirm Date"}
+                                    {isConfirmingTrainingSession(session.id) ? "Confirming..." : "Confirm Date"}
                                   </Button>
                                   <Button
                                     size="sm"
