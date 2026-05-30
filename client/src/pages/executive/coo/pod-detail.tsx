@@ -1865,8 +1865,8 @@ function TutorStudentsSection({
       </div>
 
       <div className="border-t pt-4">
-        <div className="flex items-center justify-between gap-3">
-          <div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1">
             <p className="text-xs font-medium text-muted-foreground uppercase">Awaiting Parents</p>
             <p className="text-sm text-muted-foreground">
               Assign directly from the unassigned parent queue without leaving this pod.
@@ -1877,27 +1877,24 @@ function TutorStudentsSection({
               </p>
             )}
           </div>
-          <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
-            <DialogTrigger asChild>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={
-                  awaitingAssignments.length === 0 ||
-                  assignAwaitingEnrollmentMutation.isPending ||
-                  tutorAtCapacity ||
-                  !canAssignParents
-                }
-              >
-                Assign Parent
-              </Button>
-            </DialogTrigger>
-            {!canAssignParents ? (
-              <p className="mt-2 text-xs text-rose-900">
-                Parent assignment is blocked until this tutor is in Sandbox or Certified Live mode.
-              </p>
-            ) : null}
-            <DialogContent className="w-[min(96vw,72rem)] max-w-6xl">
+          <div className="w-full sm:w-auto sm:max-w-xs">
+            <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                  disabled={
+                    awaitingAssignments.length === 0 ||
+                    assignAwaitingEnrollmentMutation.isPending ||
+                    tutorAtCapacity ||
+                    !canAssignParents
+                  }
+                >
+                  Assign Parent
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="w-[min(96vw,72rem)] max-w-6xl">
               <DialogHeader>
                 <DialogTitle>Assign Parent to {tutorName}</DialogTitle>
                 <DialogDescription>
@@ -2152,7 +2149,13 @@ function TutorStudentsSection({
                 </div>
               )}
             </DialogContent>
-          </Dialog>
+            </Dialog>
+            {!canAssignParents ? (
+              <p className="mt-2 text-xs text-rose-900 break-words sm:text-right">
+                Parent assignment is blocked until this tutor is in Sandbox or Certified Live mode.
+              </p>
+            ) : null}
+          </div>
         </div>
       </div>
     </div>
