@@ -7467,6 +7467,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const certificationMode = await getTutorCertificationMode(tutorId);
+        const canTutorHoldAssignments =
+          certificationMode === "sandbox" || certificationMode === "certified_live";
+        const cleanupResult = await cleanupLegacyLiveEnrollmentsForNonLiveTutor(tutorId, certificationMode);
         const { data: assignedEnrollments, error: assignedEnrollmentsError } =
           await loadTutorAssignedEnrollments(tutorId, {
             sandboxOnly: certificationMode === "sandbox",
@@ -7476,6 +7479,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (assignedEnrollmentsError) {
           console.error("Error loading assigned enrollments for pod:", assignedEnrollmentsError);
           return res.status(500).json({ message: "Failed to load assigned enrollments" });
+        }
+
+        if (!canTutorHoldAssignments) {
+          return res.json({ assignment, students: [] });
         }
 
         let students = await hydrateStudentsWithSessionProgress(tutorId, await storage.getStudentsByTutor(tutorId));
@@ -7560,7 +7567,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return arr.findIndex((candidate) => String(candidate.student.id || "") === studentId) === index;
           });
 
-        if (certificationMode !== "sandbox" && canonicalStudents.length === 0 && students.length > 0) {
+        if (certificationMode === "certified_live" && canonicalStudents.length === 0 && students.length > 0) {
           const unmatchedEnrollments = [...(assignedEnrollments || [])];
           canonicalStudents = students.map((student: any) => {
             const explicitEnrollmentId = String(
@@ -7719,8 +7726,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         void (async () => {
           try {
-            const cleanupResult = await cleanupLegacyLiveEnrollmentsForNonLiveTutor(tutorId, certificationMode);
-
             if (certificationMode === "sandbox") {
               try {
                 await ensureVisibleSandboxStudentsForTutor(
@@ -13346,8 +13351,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             (!!studentName && assignedEnrollmentByStudentName.has(studentName))
           );
         });
+        const visibleStudents =
+          certificationMode === "certified_live" &&
+          (assignedEnrollments?.length || 0) === 0 &&
+          students.length > 0
+            ? students
+            : activeStudents;
 
-        res.json(activeStudents);
+        res.json(visibleStudents);
       } catch (error) {
         console.error("Error fetching TD tutor students:", error);
         res.status(500).json({ message: "Failed to fetch tutor students" });
@@ -15342,8 +15353,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             (!!studentName && assignedEnrollmentByStudentName.has(studentName))
           );
         });
+        const visibleStudents =
+          certificationMode === "certified_live" &&
+          (assignedEnrollments?.length || 0) === 0 &&
+          students.length > 0
+            ? students
+            : activeStudents;
 
-        const studentsWithEnrollment = activeStudents.map((student: any) => {
+        const studentsWithEnrollment = visibleStudents.map((student: any) => {
           const studentId = String(student.id || "");
           const parentId = String((student as any).parentId || "");
           const parentEnrollmentId = String((student as any).parentEnrollmentId || (student as any).parent_enrollment_id || "");
