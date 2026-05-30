@@ -6715,11 +6715,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "Failed to confirm session" });
       }
 
+      const introParent = updatedSession?.parent_id ? await storage.getUser(updatedSession.parent_id) : null;
+      const introParentName = getDisplayNameForUser(introParent, "Parent");
+
       await safeSendPush(
         updatedSession?.tutor_id,
         {
-          title: "Session confirmed",
-          body: `A parent confirmed the ${getSessionDisplayLabel(updatedSession?.type)}. Open Response Integrity for the latest schedule.`,
+          title: `Session confirmed by ${introParentName}`,
+          body: `${introParentName} confirmed the ${getSessionDisplayLabel(updatedSession?.type)}. Open Response Integrity for the latest schedule.`,
           url: "/operational/tutor/pod",
           tag: `tutor-intro-session-confirmed-${sessionId}`,
         },
@@ -9853,11 +9856,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "Failed to confirm session" });
       }
 
+      const trainingParent = updatedSession.parent_id ? await storage.getUser(updatedSession.parent_id) : null;
+      const trainingParentName = getDisplayNameForUser(trainingParent, "Parent");
+
       await safeSendPush(
         updatedSession.tutor_id,
         {
-          title: "Session confirmed",
-          body: "A parent confirmed the training session. Open Response Integrity for the latest schedule.",
+          title: `Session confirmed by ${trainingParentName}`,
+          body: `${trainingParentName} confirmed the training session. Open Response Integrity for the latest schedule.`,
           url: "/operational/tutor/pod",
           tag: `tutor-training-session-confirmed-${sessionId}`,
         },
