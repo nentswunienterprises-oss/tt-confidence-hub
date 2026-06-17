@@ -118,22 +118,26 @@ export default function TeamPage() {
             Back to About
           </Button>
 
-          <div className="mt-8 grid gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
-            <div>
-              <div className="max-w-sm" style={{ transform: "scale(0.9)", transformOrigin: "left center" }}>
+          <div className="mt-8">
+            <div className="w-full flex justify-center">
+              <div className="max-w-sm" style={{ transform: "scale(0.9)", transformOrigin: "center" }}>
                 <ResponseIntegrityLogo size="lg" variant="integrity" />
               </div>
-              <p className="mt-8 text-sm uppercase tracking-[0.35em] text-[#E63946]">
-                Meet The Team
-              </p>
-              <h1 className="mt-5 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
-                The leadership behind Response Integrity.
-              </h1>
-              <p className="mt-6 max-w-2xl text-base leading-8 text-[#5A5A5A] sm:text-lg">
-                Our executive team carries the company across growth, people, execution, and
-                technology, with each seat protecting a core part of how the system moves.
-              </p>
             </div>
+
+            <div className="mt-8 grid gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
+              <div>
+                <p className="mt-8 text-sm uppercase tracking-[0.35em] text-[#E63946]">
+                  Meet The Team
+                </p>
+                <h1 className="mt-5 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
+                  The leadership behind Response Integrity.
+                </h1>
+                <p className="mt-6 max-w-2xl text-base leading-8 text-[#5A5A5A] sm:text-lg">
+                  Our executive team carries the company across growth, people, execution, and
+                  technology, with each seat protecting a core part of how the system moves.
+                </p>
+              </div>
 
             <div className="rounded-[2rem] border border-[#E8D7CB] bg-white/75 p-8 shadow-[0_30px_80px_rgba(26,26,26,0.08)] backdrop-blur">
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#8A4B35]">
