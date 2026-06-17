@@ -14,6 +14,7 @@ const leadershipTeam = [
     role: "Chief Marketing Officer",
     focus: "Brand strategy, growth visibility, and market-facing momentum.",
     accent: "#E63946",
+    imagePosition: "center 22%",
   },
   {
     id: "ntandoyenkosi-dlamini",
@@ -21,6 +22,7 @@ const leadershipTeam = [
     role: "Head of HR",
     focus: "People operations, talent stewardship, and internal culture rhythm.",
     accent: "#B56576",
+    imagePosition: "center 24%",
   },
   {
     id: "kevin-lubanda",
@@ -28,6 +30,7 @@ const leadershipTeam = [
     role: "Chief Operating Officer",
     focus: "Operational execution, delivery standards, and organizational discipline.",
     accent: "#8A4B35",
+    imagePosition: "center 18%",
   },
   {
     id: "lawrence-zwenyere",
@@ -35,6 +38,7 @@ const leadershipTeam = [
     role: "Chief Technology Officer",
     focus: "Technical architecture, systems reliability, and product infrastructure.",
     accent: "#264653",
+    imagePosition: "center 12%",
   },
 ] as const;
 
@@ -181,6 +185,7 @@ export default function TeamPage() {
                       src={portraitSrc}
                       alt={`${member.name}, ${member.role}`}
                       className="relative aspect-[4/5] w-full object-cover"
+                      style={{ objectPosition: member.imagePosition }}
                       onError={() =>
                         setPortraitIndexes((current) => {
                           const currentIndex = current[member.id] ?? 0;
