@@ -12,6 +12,7 @@ import {
   VerificationDoc, InsertVerificationDoc,
   TutorApplication, InsertTutorApplication,
   Broadcast, InsertBroadcast,
+  CooBrainLibraryItem, InsertCooBrainLibraryItem,
   Notification, InsertNotification,
   PushSubscriptionRecord, InsertPushSubscriptionRecord,
   TutorOnboardingAcceptance,
@@ -324,6 +325,8 @@ export interface IStorage {
 
   createBroadcast(broadcast: InsertBroadcast): Promise<Broadcast>;
   getBroadcasts(userCreatedAt?: string): Promise<Broadcast[]>;
+  getCooBrainLibraryItems(): Promise<CooBrainLibraryItem[]>;
+  createCooBrainLibraryItem(item: InsertCooBrainLibraryItem): Promise<CooBrainLibraryItem>;
   
   markBroadcastAsRead(userId: string, broadcastId: string): Promise<void>;
   getUnreadBroadcastCount(userId: string, userCreatedAt?: string): Promise<number>;
@@ -1302,6 +1305,44 @@ export class SupabaseStorage implements IStorage {
     });
     
     return transformed;
+  }
+
+  async getCooBrainLibraryItems(): Promise<CooBrainLibraryItem[]> {
+    const { data, error } = await supabase
+      .from("coo_brain_library_items")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching COO brain library items:", error);
+      throw new Error(`Failed to fetch COO brain library items: ${error.message}`);
+    }
+
+    return (data || []).map((item: any) => transformSnakeToCamel(item) as CooBrainLibraryItem);
+  }
+
+  async createCooBrainLibraryItem(item: InsertCooBrainLibraryItem): Promise<CooBrainLibraryItem> {
+    const payload = {
+      name: item.name,
+      kind: item.kind,
+      content: item.content ?? null,
+      pdf_url: item.pdfUrl ?? null,
+      pdf_file_name: item.pdfFileName ?? null,
+      created_by: item.createdBy,
+    };
+
+    const { data, error } = await supabase
+      .from("coo_brain_library_items")
+      .insert(payload)
+      .select()
+      .single();
+
+    if (error || !data) {
+      console.error("Error creating COO brain library item:", error);
+      throw new Error(`Failed to create COO brain library item: ${error?.message || "No data returned"}`);
+    }
+
+    return transformSnakeToCamel(data) as CooBrainLibraryItem;
   }
 
   // Notifications

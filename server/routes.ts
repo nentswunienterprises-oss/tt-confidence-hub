@@ -18,11 +18,13 @@ import {
   insertAcademicProfileSchema,
   insertStruggleTargetSchema,
   insertBroadcastSchema,
+  insertCooBrainRichTextSchema,
   insertStudentCommunicationMessageSchema,
   insertTutorApplicationSchema,
   roleAuthorizationSchema,
   insertEncounterSchema,
   insertAffiliateReflectionSchema,
+  uploadCooBrainPdfSchema,
 } from "@shared/schema";
 import {
   NEXT_ACTION_ENGINE,
@@ -16073,6 +16075,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "Validation failed", errors: error.errors });
         }
         res.status(400).json({ message: "Failed to create broadcast" });
+      }
+    }
+  );
+
+  app.get(
+    "/api/coo/brain/library",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (_req: Request, res: Response) => {
+      try {
+        const items = await storage.getCooBrainLibraryItems();
+        res.json(items);
+      } catch (error) {
+        console.error("Error fetching COO brain library items:", error);
+        res.status(500).json({ message: "Failed to fetch COO brain library items" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/coo/brain/library",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req as any).dbUser.id;
+        const parsed = insertCooBrainRichTextSchema.parse(req.body);
+        const item = await storage.createCooBrainLibraryItem({
+          name: parsed.name.trim(),
+          kind: "rich_text",
+          content: parsed.content,
+          createdBy: userId,
+        });
+        res.json(item);
+      } catch (error: any) {
+        console.error("Error creating COO brain rich text item:", error);
+        if (error.errors) {
+          return res.status(400).json({ message: "Validation failed", errors: error.errors });
+        }
+        res.status(400).json({ message: error instanceof Error ? error.message : "Failed to create library item" });
+      }
+    }
+  );
+
+  app.post(
+    "/api/coo/brain/library/upload-pdf",
+    isAuthenticated,
+    requireRole(["coo"]),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = (req as any).dbUser.id;
+        const parsed = uploadCooBrainPdfSchema.parse(req.body);
+        const normalizedFileName = parsed.fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const lowerFileName = normalizedFileName.toLowerCase();
+        const normalizedFileType = String(parsed.fileType || "").trim().toLowerCase();
+
+        if (!lowerFileName.endsWith(".pdf") && normalizedFileType !== "application/pdf") {
+          return res.status(400).json({ message: "Only PDF uploads are supported in the COO Library." });
+        }
+
+        const normalizedBase64 = parsed.fileData.includes(",")
+          ? parsed.fileData.split(",").pop() || ""
+          : parsed.fileData;
+        const buffer = Buffer.from(normalizedBase64, "base64");
+
+        if (!buffer.byteLength) {
+          return res.status(400).json({ message: "Uploaded PDF file was empty." });
+        }
+
+        if (buffer.byteLength > 25 * 1024 * 1024) {
+          return res.status(400).json({ message: "Uploaded PDF must be 25 MB or smaller." });
+        }
+
+        const bucketName = "coo-brain-library";
+        const { error: bucketError } = await supabase.storage.createBucket(bucketName, { public: true });
+        if (bucketError && !/already exists|duplicate/i.test(String(bucketError.message || ""))) {
+          console.warn("Could not pre-create COO brain library bucket:", bucketError);
+        }
+
+        const storagePath = `coo/${userId}/${Date.now()}-${normalizedFileName}`;
+        const { error: uploadError } = await supabase.storage
+          .from(bucketName)
+          .upload(storagePath, buffer, {
+            contentType: "application/pdf",
+            upsert: true,
+          });
+
+        if (uploadError) {
+          console.error("Supabase storage upload error (COO brain PDF):", uploadError);
+          return res.status(500).json({ message: "Storage upload failed", error: uploadError.message });
+        }
+
+        const { data: urlData } = supabase.storage.from(bucketName).getPublicUrl(storagePath);
+        if (!urlData?.publicUrl) {
+          return res.status(500).json({ message: "Upload succeeded but file URL could not be generated" });
+        }
+
+        const item = await storage.createCooBrainLibraryItem({
+          name: parsed.name.trim(),
+          kind: "pdf",
+          pdfUrl: urlData.publicUrl,
+          pdfFileName: parsed.fileName,
+          createdBy: userId,
+        });
+
+        res.json(item);
+      } catch (error: any) {
+        console.error("Error uploading COO brain PDF:", error);
+        if (error.errors) {
+          return res.status(400).json({ message: "Validation failed", errors: error.errors });
+        }
+        res.status(400).json({ message: error instanceof Error ? error.message : "Failed to upload PDF" });
       }
     }
   );

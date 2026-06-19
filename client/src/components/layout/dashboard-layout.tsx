@@ -321,10 +321,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   ];
 
   const cooNav: NavItem[] = [
-    { label: "Dashboard", path: "/coo/dashboard", icon: <Home className="w-5 h-5" /> },
-    { label: "Traffic", path: "/coo/traffic", icon: <Users className="w-5 h-5" /> },
-    { label: "Pods", path: "/coo/pods", icon: <FolderKanban className="w-5 h-5" /> },
-    { label: "Broadcast", path: "/coo/broadcast", icon: <MessageSquare className="w-5 h-5" /> },
+    { label: "Dashboard", path: "/executive/coo/dashboard", icon: <Home className="w-5 h-5" /> },
+    { label: "Traffic", path: "/executive/coo/traffic", icon: <Users className="w-5 h-5" /> },
+    { label: "Pods", path: "/executive/coo/pods", icon: <FolderKanban className="w-5 h-5" /> },
+    { label: "Brain", path: "/executive/coo/brain", icon: <Lightbulb className="w-5 h-5" /> },
+    { label: "Broadcast", path: "/executive/coo/broadcast", icon: <MessageSquare className="w-5 h-5" /> },
   ];
 
   const studentNav: NavItem[] = [
@@ -400,11 +401,25 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     }
     
     // Map role navigation items to NavItems with icons
-    return roleNav.map((item) => ({
-      label: item.label,
-      path: item.path,
-      icon: getNavIcon(item.label),
-    }));
+    // Normalize any generic executive dashboard route to the role-specific route
+    return roleNav.map((item) => {
+      let resolvedPath = item.path;
+
+      // If upstream config uses a generic executive dashboard path, map it to a role-specific route
+      if (item.path === "/executive/dashboard") {
+        if (effectiveUser.role === "ceo") {
+          resolvedPath = "/executive/ceo/board"; // CEO uses /board route
+        } else {
+          resolvedPath = `/executive/${effectiveUser.role}/dashboard`;
+        }
+      }
+
+      return {
+        label: item.label,
+        path: resolvedPath,
+        icon: getNavIcon(item.label),
+      };
+    });
   };
 
   const navItems = getRoleNavigation();

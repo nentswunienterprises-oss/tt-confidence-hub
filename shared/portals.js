@@ -96,6 +96,7 @@ export var ROLE_NAVIGATION = {
         { label: "Dashboard", path: "/executive/coo/dashboard" },
         { label: "Traffic", path: "/executive/coo/traffic" },
         { label: "Pods", path: "/executive/coo/pods" },
+        { label: "Brain", path: "/executive/coo/brain" },
         { label: "Broadcast", path: "/executive/coo/broadcast" },
     ],
     // Executive Portal - HR
