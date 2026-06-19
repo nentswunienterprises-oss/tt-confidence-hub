@@ -18,7 +18,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, Users, Mail, Trash2, Archive, TrendingUp, ChevronDown, ChevronUp } from "lucide-react";
-import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { getQueryFn } from "@/lib/queryClient";
 import {
   Dialog,
@@ -506,8 +505,27 @@ export default function COODashboard() {
   };
 
   return (
-    <DashboardLayout>
       <div className="space-y-8">
+        {/* Contribution Integrity quick launch */}
+        <section>
+          <Card className="border-slate-200 bg-gradient-to-br from-[#F9FAFB] via-white to-[#FFF8F0]">
+            <CardHeader>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <CardTitle>Contribution Integrity</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Open the executive command rhythm system for role onboarding, weekly records, and contribution review.
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Link to="/executive/coo/command-rhythm">
+                    <Button>Open Command Rhythm</Button>
+                  </Link>
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+        </section>
         {/* Grade Monitoring System Link - hidden */}
         {false && <section>
           <Card className="mb-4">
@@ -948,6 +966,5 @@ export default function COODashboard() {
           </Card>
         </section>
       </div>
-    </DashboardLayout>
   );
 }

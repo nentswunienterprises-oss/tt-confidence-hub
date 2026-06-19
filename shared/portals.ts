@@ -12,7 +12,9 @@ export type Role =
   | "od"
   | "coo"
   | "hr"
-  | "ceo";
+  | "ceo"
+  | "cto"
+  | "cmo";
 
 export type Portal = "client" | "affiliate" | "operational" | "executive";
 
@@ -45,10 +47,10 @@ export const PORTAL_CONFIG: Record<
     dashboardRoute: "/operational/tutor/gateway",
   },
   executive: {
-    roles: ["coo", "hr", "ceo"],
+    roles: ["coo", "hr", "ceo", "cto", "cmo"],
     isPublic: false,
-    description: "Executive Portal - COO, HR & CEO Interface",
-    dashboardRoute: "/executive/coo/dashboard",
+    description: "Executive Portal - Core executive command interface",
+    dashboardRoute: "/executive/gateway",
   },
 };
 
@@ -63,6 +65,8 @@ export const ROLE_TO_PORTAL: Record<Role, Portal> = {
   coo: "executive",
   hr: "executive",
   ceo: "executive",
+  cto: "executive",
+  cmo: "executive",
 };
 
 // Navigation structure for each role
@@ -123,6 +127,7 @@ export const ROLE_NAVIGATION: Record<
 
   // Executive Portal - COO
   coo: [
+    { label: "Gateway", path: "/executive/gateway" },
     { label: "Dashboard", path: "/executive/coo/dashboard" },
     { label: "Traffic", path: "/executive/coo/traffic" },
     { label: "Pods", path: "/executive/coo/pods" },
@@ -131,6 +136,7 @@ export const ROLE_NAVIGATION: Record<
 
   // Executive Portal - HR
   hr: [
+    { label: "Gateway", path: "/executive/gateway" },
     { label: "Dashboard", path: "/executive/hr/dashboard" },
     { label: "Brain", path: "/executive/hr/brain" },
     { label: "Disputes", path: "/executive/hr/disputes" },
@@ -138,14 +144,25 @@ export const ROLE_NAVIGATION: Record<
   ],
 
   // Executive Portal - CEO
-  ceo: [{ label: "Dashboard", path: "/executive/ceo/dashboard" }],
+  ceo: [
+    { label: "Board", path: "/executive/ceo/board" },
+    { label: "Dashboard", path: "/executive/ceo/dashboard" },
+  ],
+  cto: [
+    { label: "Gateway", path: "/executive/gateway" },
+    { label: "Dashboard", path: "/executive/cto/dashboard" },
+  ],
+  cmo: [
+    { label: "Gateway", path: "/executive/gateway" },
+    { label: "Dashboard", path: "/executive/cmo/dashboard" },
+  ],
 };
 
 // Public roles (can sign up without invitation)
 export const PUBLIC_ROLES: Role[] = ["parent", "tutor", "affiliate"];
 
 // Roles that require invitation/admin assignment
-export const ADMIN_ASSIGNED_ROLES: Role[] = ["student", "td", "od", "coo", "hr", "ceo"];
+export const ADMIN_ASSIGNED_ROLES: Role[] = ["student", "td", "od", "coo", "hr", "ceo", "cto", "cmo"];
 
 /**
  * Get the portal for a given role
@@ -192,9 +209,11 @@ export function getDefaultDashboardRoute(role: Role | undefined | null): string 
     od: "/affiliate/od/dashboard",
     tutor: "/operational/tutor/gateway", // Tutors go to gateway first
     td: "/operational/td/gateway",
-    coo: "/executive/coo/dashboard",
-    hr: "/executive/hr/dashboard",
-    ceo: "/executive/ceo/dashboard",
+    coo: "/executive/gateway",
+    hr: "/executive/gateway",
+    ceo: "/executive/ceo/board",
+    cto: "/executive/gateway",
+    cmo: "/executive/gateway",
   };
   
   const route = roleSpecificRoutes[role];

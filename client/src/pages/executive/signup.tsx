@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ExecutiveAuthForm } from "@/components/auth/executive-auth-form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
-import { Building2, Users, TrendingUp, ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Building2, Users, TrendingUp, ArrowLeft, ArrowRight, Check, Cpu, Megaphone } from "lucide-react";
 
-type Role = "coo" | "hr" | "ceo";
+type Role = "coo" | "hr" | "ceo" | "cto" | "cmo";
 
 const roleData = {
   coo: {
@@ -29,12 +29,34 @@ const roleData = {
     icon: TrendingUp,
     features: ["Executive Dashboard", "Strategic Insights", "Growth Metrics", "Company Analytics"],
   },
+  cto: {
+    title: "Chief Technology Officer",
+    shortTitle: "CTO",
+    description: "Track system execution, proof-backed delivery, and technical operating truth",
+    icon: Cpu,
+    features: ["Command Dashboard", "Technical Tasks", "Proof Archive", "Delivery Visibility"],
+  },
+  cmo: {
+    title: "Chief Marketing Officer",
+    shortTitle: "CMO",
+    description: "Track campaigns, content output, growth experiments, and proof of market work",
+    icon: Megaphone,
+    features: ["Command Dashboard", "Campaign Tasks", "Proof Archive", "Weekly Records"],
+  },
 };
 
 export default function ExecutiveSignup() {
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [mode, setMode] = useState<"signup" | "login">("login");
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const requestedRole = searchParams.get("role");
+    if (requestedRole && requestedRole in roleData) {
+      setSelectedRole(requestedRole as Role);
+    }
+  }, [searchParams]);
 
   if (!selectedRole) {
     return (
@@ -73,14 +95,14 @@ export default function ExecutiveSignup() {
                 </span>
               </div>
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ color: "#1A1A1A" }}>
-                Access Your <span style={{ color: "#E63946" }}>Executive Dashboard</span>
+                Access Your <span style={{ color: "#E63946" }}>Executive Gateway</span>
               </h2>
               <p className="text-sm sm:text-base" style={{ color: "#5A5A5A" }}>
-                Choose your role to access the appropriate dashboard and management tools
+                Choose your role to access the appropriate gateway and command tools
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid sm:grid-cols-2 xl:grid-cols-5 gap-4 sm:gap-6">
               {(Object.keys(roleData) as Role[]).map((roleKey) => {
                 const role = roleData[roleKey];
                 const Icon = role.icon;
@@ -217,6 +239,10 @@ export default function ExecutiveSignup() {
 
           {/* Footer Info */}
           <p className="text-xs text-center mt-4" style={{ color: "#5A5A5A" }}>
+            Executive identity does not equal command authority. CEO appointment activates the Core 5 seat.
+          </p>
+
+          <p className="text-xs text-center" style={{ color: "#5A5A5A" }}>
             By signing up, you agree to our{" "}
             <a href="/terms-of-use" target="_blank" className="underline hover:text-[#E63946]" style={{ color: "#1A1A1A" }}>
               Terms of Use

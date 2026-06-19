@@ -1,4 +1,5 @@
 import { Navigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import {
   PORTAL_CONFIG,
   ROLE_TO_PORTAL,
@@ -6,6 +7,8 @@ import {
   type Role,
   type Portal,
 } from "@shared/portals";
+import { getQueryFn } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 
 /**
  * Portal-based route guard
@@ -36,7 +39,7 @@ export function PortalGuard({
 
 /**
  * Executive portal specific guard
- * Only COO, HR, and CEO can access the executive portal
+ * Only executive roles can access the executive portal
  * All others get redirected to their assigned portal
  */
 export function ExecutivePortalGuard({
@@ -50,9 +53,57 @@ export function ExecutivePortalGuard({
     return <Navigate to="/" replace />;
   }
 
-  const executiveRoles: Role[] = ["coo", "hr", "ceo"];
+  const executiveRoles: Role[] = ["coo", "hr", "ceo", "cto", "cmo"];
   if (!executiveRoles.includes(role)) {
     return <Navigate to={getDefaultDashboardRoute(role)} replace />;
+  }
+
+  return children;
+}
+
+export function ExecutiveSeatGuard({
+  role,
+  children,
+}: {
+  role: Role;
+  children: React.ReactNode;
+}) {
+  const { user, isLoading: authLoading } = useAuth();
+  const actualRole = (user?.role as Role | undefined) || null;
+  const executiveRoles: Role[] = ["coo", "hr", "ceo", "cto", "cmo"];
+  const isExecutiveRole = actualRole ? executiveRoles.includes(actualRole) : false;
+
+  const { data, isLoading } = useQuery<{
+    mySeat: { isCurrentUserAppointed: boolean } | null;
+  }>({
+    queryKey: ["/api/executive/gateway"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    enabled: !!actualRole && isExecutiveRole,
+    refetchOnWindowFocus: false,
+  });
+
+  if (authLoading) {
+    return <div className="p-8">Loading executive access...</div>;
+  }
+
+  if (!actualRole) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (!isExecutiveRole) {
+    return <Navigate to={getDefaultDashboardRoute(actualRole)} replace />;
+  }
+
+  if (actualRole !== role) {
+    return <Navigate to={getDefaultDashboardRoute(actualRole)} replace />;
+  }
+
+  if (isLoading) {
+    return <div className="p-8">Loading executive seat status...</div>;
+  }
+
+  if (!data?.mySeat?.isCurrentUserAppointed) {
+    return <Navigate to="/executive/gateway" replace />;
   }
 
   return children;

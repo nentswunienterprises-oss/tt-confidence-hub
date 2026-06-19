@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Building2, Users, TrendingUp, Check, ArrowRight, ArrowLeft, Shield } from "lucide-react";
+import { Building2, Users, TrendingUp, Check, ArrowRight, ArrowLeft, Shield, Cpu, Megaphone } from "lucide-react";
 import { useEffect } from "react";
 
 export default function ExecutiveLanding() {
@@ -54,6 +54,34 @@ export default function ExecutiveLanding() {
         "Company-Wide Analytics",
       ],
     },
+    {
+      id: "cto",
+      title: "Chief Technology Officer",
+      shortTitle: "CTO",
+      description: "Track system execution, app delivery, infrastructure health, and technical proof of implementation",
+      icon: Cpu,
+      features: [
+        "Command Rhythm Dashboard",
+        "Technical Task Tracking",
+        "Proof-Backed Delivery",
+        "Infrastructure Visibility",
+        "System Documentation",
+      ],
+    },
+    {
+      id: "cmo",
+      title: "Chief Marketing Officer",
+      shortTitle: "CMO",
+      description: "Own campaigns, content output, outreach proof, and brand execution with visible accountability",
+      icon: Megaphone,
+      features: [
+        "Command Rhythm Dashboard",
+        "Campaign Task Tracking",
+        "Proof Archive",
+        "Growth Experiment Visibility",
+        "Weekly Marketing Records",
+      ],
+    },
   ];
 
   const handleRoleSelect = (role: string) => {
@@ -86,7 +114,7 @@ export default function ExecutiveLanding() {
             style={{ backgroundColor: "#E63946", color: "white" }}
             onClick={() => navigate("/executive/signup")}
           >
-            Sign In
+            Enter Gateway
           </Button>
         </div>
       </header>
@@ -117,7 +145,7 @@ export default function ExecutiveLanding() {
           </h1>
           
           <p className="text-base sm:text-lg md:text-xl leading-relaxed" style={{ color: "#5A5A5A" }}>
-            Run the Response Integrity operating system with role-based control over pods, tutor performance, parent experience, and growth execution.
+            Enter the executive gateway, verify seat authority, and run the Response Integrity operating system through appointed command roles.
           </p>
 
           <Button
@@ -126,7 +154,7 @@ export default function ExecutiveLanding() {
             style={{ backgroundColor: "#E63946", color: "white" }}
             onClick={() => navigate("/executive/signup")}
           >
-            Access Executive Command
+            Enter Executive Gateway
             <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
           </Button>
         </div>
@@ -140,11 +168,11 @@ export default function ExecutiveLanding() {
               Select Executive Access
             </h2>
             <p className="text-sm sm:text-lg" style={{ color: "#A0A0A0" }}>
-              Enter the control surface for your executive function
+              Create or access your executive identity. Only CEO-appointed seats enter live command.
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-8 max-w-6xl mx-auto">
+          <div className="grid sm:grid-cols-2 xl:grid-cols-5 gap-4 sm:gap-8 max-w-7xl mx-auto">
             {roles.map((role) => {
               const Icon = role.icon;
               return (

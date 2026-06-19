@@ -93,6 +93,7 @@ import {
   restoreDetachedEnrollmentToTutor,
   safelyUnassignEnrollmentFromTutor,
 } from "./tutorAssignmentProtection";
+import { registerExecutiveCommandRhythmRoutes } from "./routes/executiveCommandRhythm";
 
 const PREMIUM_PLAN_NAME = "Premium";
 const PREMIUM_PLAN_AMOUNT = "1000.00";
@@ -24058,6 +24059,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(400).json({ message: error instanceof Error ? error.message : "Failed to send message" });
     }
   });
+
+  registerExecutiveCommandRhythmRoutes(app, isAuthenticated);
 
   const httpServer = createServer(app);
   return httpServer;
