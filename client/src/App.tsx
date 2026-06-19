@@ -12,6 +12,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { DashboardLayoutSimple } from "@/components/layout/dashboard-layout-simple";
 import { ProtectedParentRoute } from "@/lib/parentGuard";
+import { ExecutiveSeatGuard } from "@/lib/portalGuard";
 import { TdGatewayGuard } from "@/lib/tdGatewayGuard";
 import { TutorGatewayGuard } from "@/lib/tutorGatewayGuard";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
@@ -137,8 +138,9 @@ import ExecutiveHRUpdates from "@/pages/executive/hr/updates";
 import ExecutiveHRApplications from "@/pages/executive/hr/applications";
 import ExecutiveHRBrain from "@/pages/executive/hr/brain";
 import ExecutiveHRDisputes from "@/pages/executive/hr/disputes";
-import ExecutiveCEODashboard from "@/pages/executive/ceo/dashboard";
-import ExecutiveDashboard from "@/pages/executive/dashboard";
+import ExecutiveCommandRhythmDashboard from "@/pages/executive/command-rhythm-dashboard";
+import ExecutiveCEOBoard from "@/pages/executive/ceo/board";
+import ExecutiveGateway from "@/pages/executive/gateway";
 import RecruitmentPrivacy from "@/pages/executive/recruitment-privacy";
 
 // NEW: Portal Landing Pages
@@ -451,27 +453,31 @@ function Router() {
       <Route path="/executive/signup" element={<ExecutiveSignup />} />
       {/* Executive Legal */}
       <Route path="/executive/recruitment-privacy" element={<RecruitmentPrivacy />} />
-      {/* Generic Executive Dashboard (used after signup) */}
-      <Route path="/executive/dashboard" element={<DashboardLayout><ExecutiveDashboard /></DashboardLayout>} />
+      <Route path="/executive/gateway" element={<DashboardLayout><ExecutiveGateway /></DashboardLayout>} />
+      <Route path="/executive/dashboard" element={<Navigate to="/executive/gateway" replace />} />
 
       {/* COO Routes */}
-      <Route path="/executive/coo/dashboard" element={<ExecutiveCOODashboard />} />
-      <Route path="/executive/coo/traffic" element={<DashboardLayout><ExecutiveHRTraffic /></DashboardLayout>} />
+      <Route path="/executive/coo/dashboard" element={<ExecutiveSeatGuard role="coo"><DashboardLayout><ExecutiveCOODashboard /></DashboardLayout></ExecutiveSeatGuard>} />
+      <Route path="/executive/coo/command-rhythm" element={<ExecutiveSeatGuard role="coo"><DashboardLayout><ExecutiveCommandRhythmDashboard /></DashboardLayout></ExecutiveSeatGuard>} />
+      <Route path="/executive/coo/traffic" element={<ExecutiveSeatGuard role="coo"><DashboardLayout><ExecutiveHRTraffic /></DashboardLayout></ExecutiveSeatGuard>} />
       <Route path="/executive/coo/applications" element={<Navigate to="/executive/coo/traffic" replace />} />
-      <Route path="/executive/coo/pods" element={<DashboardLayout><ExecutiveCOODashboard /></DashboardLayout>} />
-      <Route path="/executive/coo/broadcast" element={<DashboardLayout><ExecutiveCOODashboard /></DashboardLayout>} />
-      <Route path="/executive/coo/track-leads" element={<ExecutiveCOOTrackLeads />} />
+      <Route path="/executive/coo/pods" element={<ExecutiveSeatGuard role="coo"><COOPods /></ExecutiveSeatGuard>} />
+      <Route path="/executive/coo/broadcast" element={<ExecutiveSeatGuard role="coo"><COOBroadcast /></ExecutiveSeatGuard>} />
+      <Route path="/executive/coo/track-leads" element={<ExecutiveSeatGuard role="coo"><ExecutiveCOOTrackLeads /></ExecutiveSeatGuard>} />
 
       {/* HR Routes */}
-      <Route path="/executive/hr/dashboard" element={<DashboardLayout><ExecutiveHRDashboard /></DashboardLayout>} />
-      <Route path="/executive/hr/traffic" element={<DashboardLayout><ExecutiveHRTraffic /></DashboardLayout>} />
-      <Route path="/executive/hr/updates" element={<DashboardLayout><ExecutiveHRUpdates /></DashboardLayout>} />
-      <Route path="/executive/hr/applications" element={<DashboardLayout><ExecutiveHRApplications /></DashboardLayout>} />
-      <Route path="/executive/hr/brain" element={<DashboardLayout><ExecutiveHRBrain /></DashboardLayout>} />
-      <Route path="/executive/hr/disputes" element={<DashboardLayout><ExecutiveHRDisputes /></DashboardLayout>} />
+      <Route path="/executive/hr/dashboard" element={<ExecutiveSeatGuard role="hr"><DashboardLayout><ExecutiveHRDashboard /></DashboardLayout></ExecutiveSeatGuard>} />
+      <Route path="/executive/hr/traffic" element={<ExecutiveSeatGuard role="hr"><DashboardLayout><ExecutiveHRTraffic /></DashboardLayout></ExecutiveSeatGuard>} />
+      <Route path="/executive/hr/updates" element={<ExecutiveSeatGuard role="hr"><DashboardLayout><ExecutiveHRUpdates /></DashboardLayout></ExecutiveSeatGuard>} />
+      <Route path="/executive/hr/applications" element={<ExecutiveSeatGuard role="hr"><DashboardLayout><ExecutiveHRApplications /></DashboardLayout></ExecutiveSeatGuard>} />
+      <Route path="/executive/hr/brain" element={<ExecutiveSeatGuard role="hr"><DashboardLayout><ExecutiveHRBrain /></DashboardLayout></ExecutiveSeatGuard>} />
+      <Route path="/executive/hr/disputes" element={<ExecutiveSeatGuard role="hr"><DashboardLayout><ExecutiveHRDisputes /></DashboardLayout></ExecutiveSeatGuard>} />
 
       {/* CEO Routes */}
-      <Route path="/executive/ceo/dashboard" element={<DashboardLayout><ExecutiveCEODashboard /></DashboardLayout>} />
+      <Route path="/executive/ceo/board" element={<DashboardLayout><ExecutiveCEOBoard /></DashboardLayout>} />
+      <Route path="/executive/ceo/dashboard" element={<ExecutiveSeatGuard role="ceo"><DashboardLayout><ExecutiveCommandRhythmDashboard /></DashboardLayout></ExecutiveSeatGuard>} />
+      <Route path="/executive/cto/dashboard" element={<ExecutiveSeatGuard role="cto"><DashboardLayout><ExecutiveCommandRhythmDashboard /></DashboardLayout></ExecutiveSeatGuard>} />
+      <Route path="/executive/cmo/dashboard" element={<ExecutiveSeatGuard role="cmo"><DashboardLayout><ExecutiveCommandRhythmDashboard /></DashboardLayout></ExecutiveSeatGuard>} />
 
       {/* ==================== MEDIA PORTAL ==================== */}
       <Route path="/media" element={<MediaLanding />} />

@@ -24,7 +24,7 @@ import { z } from "zod";
 // Client Portal: parent, student
 // Affiliate Portal: affiliate, od (outreach director)
 // Operational Portal: tutor, td (territory director)
-// Executive Portal: coo, hr, ceo
+// Executive Portal: coo, hr, ceo, cto, cmo
 export const roleEnum = pgEnum("role", [
   "parent",
   "student",
@@ -35,6 +35,8 @@ export const roleEnum = pgEnum("role", [
   "coo",
   "hr",
   "ceo",
+  "cto",
+  "cmo",
 ]);
 export const podTypeEnum = pgEnum("pod_type", ["training", "paid"]);
 export const vehicleEnum = pgEnum("vehicle", ["4_seater", "5_seater", "6_seater"]);
@@ -800,6 +802,252 @@ export const insertBroadcastSchema = z.object({
   message: z.string().min(1, "Message is required"),
   senderRole: z.enum(["parent", "student", "tutor", "td", "affiliate", "od", "coo", "hr", "ceo"]),
   visibility: z.enum(["all", "tds", "tutors", "parents", "students", "affiliates", "od", "hr", "ceo"]),
+});
+
+// ============================================
+// EXECUTIVE COMMAND RHYTHM OS
+// ============================================
+
+export const executiveDepartmentEnum = pgEnum("executive_department", [
+  "ceo",
+  "coo",
+  "hr",
+  "cto",
+  "cmo",
+]);
+
+export const executiveOnboardingStatusEnum = pgEnum("executive_onboarding_status", [
+  "not_started",
+  "in_progress",
+  "completed",
+]);
+
+export const executiveContributionStatusEnum = pgEnum("executive_contribution_status", [
+  "not_contributing",
+  "building",
+  "contributing",
+  "at_risk",
+]);
+
+export const executiveTaskPriorityEnum = pgEnum("executive_task_priority", [
+  "critical",
+  "high",
+  "normal",
+  "low",
+]);
+
+export const executiveTaskStatusEnum = pgEnum("executive_task_status", [
+  "not_started",
+  "in_progress",
+  "blocked",
+  "submitted",
+  "approved",
+  "missed",
+]);
+
+export const executiveTaskCompletionResultEnum = pgEnum("executive_task_completion_result", [
+  "done",
+  "delayed",
+  "failed",
+  "moved",
+]);
+
+export const executiveProofStatusEnum = pgEnum("executive_proof_status", [
+  "submitted",
+  "approved",
+  "rejected",
+]);
+
+export const executiveTimeLogValueTypeEnum = pgEnum("executive_time_log_value_type", [
+  "strategic",
+  "support",
+  "activity",
+]);
+
+export const executiveWeeklyRecordTypeEnum = pgEnum("executive_weekly_record_type", [
+  "coo_operational_report",
+  "ceo_feedback_record",
+  "executive_direction_report",
+  "department_report",
+]);
+
+export const executiveProfiles = pgTable("executive_profiles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id)
+    .unique(),
+  department: executiveDepartmentEnum("department").notNull(),
+  title: varchar("title").notNull(),
+  mission: text("mission"),
+  reportingLine: varchar("reporting_line"),
+  authorityLevel: varchar("authority_level"),
+  coreResponsibilities: jsonb("core_responsibilities").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  communicationRhythm: text("communication_rhythm"),
+  onboardingStatus: executiveOnboardingStatusEnum("onboarding_status").notNull().default("not_started"),
+  contributionStatus: executiveContributionStatusEnum("contribution_status").notNull().default("not_contributing"),
+  doctrineAcknowledged: boolean("doctrine_acknowledged").notNull().default(false),
+  consequenceLogicAcknowledged: boolean("consequence_logic_acknowledged").notNull().default(false),
+  onboardingCompletedAt: timestamp("onboarding_completed_at"),
+  contributionActivatedAt: timestamp("contribution_activated_at"),
+  lastContributionAt: timestamp("last_contribution_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type ExecutiveProfile = typeof executiveProfiles.$inferSelect;
+export type InsertExecutiveProfile = typeof executiveProfiles.$inferInsert;
+
+export const insertExecutiveProfileSchema = createInsertSchema(executiveProfiles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const executiveCommandTasks = pgTable("executive_command_tasks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  department: executiveDepartmentEnum("department").notNull(),
+  ownerUserId: varchar("owner_user_id")
+    .notNull()
+    .references(() => users.id),
+  createdByUserId: varchar("created_by_user_id")
+    .notNull()
+    .references(() => users.id),
+  approvedByUserId: varchar("approved_by_user_id").references(() => users.id),
+  supportingUserIds: jsonb("supporting_user_ids").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  deadline: timestamp("deadline").notNull(),
+  priority: executiveTaskPriorityEnum("priority").notNull().default("normal"),
+  requiredProof: text("required_proof").notNull(),
+  proofRequiredForApproval: boolean("proof_required_for_approval").notNull().default(true),
+  status: executiveTaskStatusEnum("status").notNull().default("not_started"),
+  completionPercent: integer("completion_percent").notNull().default(0),
+  blockerSummary: text("blocker_summary"),
+  blockerNeeds: text("blocker_needs"),
+  blockerDecisionNeeded: text("blocker_decision_needed"),
+  blockerReportedAt: timestamp("blocker_reported_at"),
+  ceoVisible: boolean("ceo_visible").notNull().default(true),
+  ceoNotes: text("ceo_notes"),
+  cooNotes: text("coo_notes"),
+  consequenceIfIncomplete: text("consequence_if_incomplete"),
+  completionResult: executiveTaskCompletionResultEnum("completion_result"),
+  directionSource: text("direction_source"),
+  weekStartDate: timestamp("week_start_date"),
+  submittedAt: timestamp("submitted_at"),
+  approvedAt: timestamp("approved_at"),
+  lastUpdatedAt: timestamp("last_updated_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  ownerIdx: index("idx_executive_command_tasks_owner").on(table.ownerUserId),
+  departmentIdx: index("idx_executive_command_tasks_department").on(table.department),
+  deadlineIdx: index("idx_executive_command_tasks_deadline").on(table.deadline),
+}));
+
+export type ExecutiveCommandTask = typeof executiveCommandTasks.$inferSelect;
+export type InsertExecutiveCommandTask = typeof executiveCommandTasks.$inferInsert;
+
+export const insertExecutiveCommandTaskSchema = createInsertSchema(executiveCommandTasks).omit({
+  id: true,
+  createdAt: true,
+  lastUpdatedAt: true,
+  submittedAt: true,
+  approvedAt: true,
+  approvedByUserId: true,
+});
+
+export const executiveTaskTimeLogs = pgTable("executive_task_time_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  taskId: varchar("task_id")
+    .notNull()
+    .references(() => executiveCommandTasks.id),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id),
+  workDate: timestamp("work_date").notNull(),
+  minutesSpent: integer("minutes_spent").notNull(),
+  outcomeProduced: text("outcome_produced").notNull(),
+  proofReference: text("proof_reference"),
+  roleAligned: boolean("role_aligned").notNull().default(true),
+  valueType: executiveTimeLogValueTypeEnum("value_type").notNull().default("support"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  taskIdx: index("idx_executive_task_time_logs_task").on(table.taskId),
+  userIdx: index("idx_executive_task_time_logs_user").on(table.userId),
+}));
+
+export type ExecutiveTaskTimeLog = typeof executiveTaskTimeLogs.$inferSelect;
+export type InsertExecutiveTaskTimeLog = typeof executiveTaskTimeLogs.$inferInsert;
+
+export const insertExecutiveTaskTimeLogSchema = createInsertSchema(executiveTaskTimeLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const executiveTaskProofs = pgTable("executive_task_proofs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  taskId: varchar("task_id")
+    .notNull()
+    .references(() => executiveCommandTasks.id),
+  submittedByUserId: varchar("submitted_by_user_id")
+    .notNull()
+    .references(() => users.id),
+  reviewedByUserId: varchar("reviewed_by_user_id").references(() => users.id),
+  label: varchar("label").notNull(),
+  proofType: varchar("proof_type").notNull().default("link"),
+  proofUrl: text("proof_url").notNull(),
+  notes: text("notes"),
+  status: executiveProofStatusEnum("status").notNull().default("submitted"),
+  rejectionReason: text("rejection_reason"),
+  submittedAt: timestamp("submitted_at").defaultNow().notNull(),
+  reviewedAt: timestamp("reviewed_at"),
+}, (table) => ({
+  taskIdx: index("idx_executive_task_proofs_task").on(table.taskId),
+  submitterIdx: index("idx_executive_task_proofs_submitter").on(table.submittedByUserId),
+}));
+
+export type ExecutiveTaskProof = typeof executiveTaskProofs.$inferSelect;
+export type InsertExecutiveTaskProof = typeof executiveTaskProofs.$inferInsert;
+
+export const insertExecutiveTaskProofSchema = createInsertSchema(executiveTaskProofs).omit({
+  id: true,
+  submittedAt: true,
+  reviewedAt: true,
+  reviewedByUserId: true,
+});
+
+export const executiveWeeklyRecords = pgTable("executive_weekly_records", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  weekStartDate: timestamp("week_start_date").notNull(),
+  recordType: executiveWeeklyRecordTypeEnum("record_type").notNull(),
+  department: executiveDepartmentEnum("department"),
+  createdByUserId: varchar("created_by_user_id")
+    .notNull()
+    .references(() => users.id),
+  title: varchar("title").notNull(),
+  summary: text("summary").notNull(),
+  keyDecisions: text("key_decisions"),
+  risks: text("risks"),
+  nextDirections: text("next_directions"),
+  needsAttention: text("needs_attention"),
+  sourceTaskIds: jsonb("source_task_ids").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  payload: jsonb("payload").notNull().default(sql`'{}'::jsonb`),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  weekIdx: index("idx_executive_weekly_records_week").on(table.weekStartDate),
+  typeIdx: index("idx_executive_weekly_records_type").on(table.recordType),
+}));
+
+export type ExecutiveWeeklyRecord = typeof executiveWeeklyRecords.$inferSelect;
+export type InsertExecutiveWeeklyRecord = typeof executiveWeeklyRecords.$inferInsert;
+
+export const insertExecutiveWeeklyRecordSchema = createInsertSchema(executiveWeeklyRecords).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  payload: z.record(z.any()).optional(),
 });
 
 // ============================================

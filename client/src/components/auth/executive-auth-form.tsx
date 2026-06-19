@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { API_URL } from "@/lib/config";
 import { clearAllCache, queryClient, setCurrentUserId } from "@/lib/queryClient";
 
-type Role = "coo" | "hr" | "ceo";
+type Role = "coo" | "hr" | "ceo" | "cto" | "cmo";
 
 interface ExecutiveAuthFormProps {
   role: Role;
@@ -29,12 +29,16 @@ export function ExecutiveAuthForm({ role, mode, setMode }: ExecutiveAuthFormProp
     coo: "Chief Operating Officer",
     hr: "Human Resources",
     ceo: "Chief Executive Officer",
+    cto: "Chief Technology Officer",
+    cmo: "Chief Marketing Officer",
   };
 
   const dashboardRoutes: Record<Role, string> = {
-    coo: "/executive/coo/dashboard",
-    hr: "/executive/hr/dashboard",
-    ceo: "/executive/ceo/dashboard",
+    coo: "/executive/gateway",
+    hr: "/executive/gateway",
+    ceo: "/executive/ceo/board",
+    cto: "/executive/gateway",
+    cmo: "/executive/gateway",
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -88,7 +92,9 @@ export function ExecutiveAuthForm({ role, mode, setMode }: ExecutiveAuthFormProp
 
         toast({
           title: "Welcome!",
-          description: "Your executive account has been created successfully.",
+          description: role === "ceo"
+            ? "Your executive identity has been created. Open the CEO board to manage command seats."
+            : "Your executive identity has been created. CEO appointment is still required before command access.",
         });
 
         // Navigate using React Router instead of full page reload
@@ -275,6 +281,10 @@ export function ExecutiveAuthForm({ role, mode, setMode }: ExecutiveAuthFormProp
           {loading ? "Please wait..." : mode === "signup" ? "Create Account" : "Sign In"}
         </Button>
       </form>
+
+      <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        Executive account creation does not activate a command seat. The CEO controls active appointments for the Core 5.
+      </div>
 
       {/* Toggle Mode - Hidden since parent handles toggle */}
       <div className="text-center">

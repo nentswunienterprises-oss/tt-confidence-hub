@@ -34,6 +34,14 @@ export function getRoleName(role: string): string {
       return "Chief Operations Officer";
     case "hr":
       return "Head of HR";
+    case "ceo":
+      return "Chief Executive Officer";
+    case "cto":
+      return "Chief Technology Officer";
+    case "cmo":
+      return "Chief Marketing Officer";
+    case "od":
+      return "Outreach Director";
     case "affiliate":
       return "Affiliate";
     case "parent":
@@ -55,6 +63,14 @@ export function getRoleNameShort(role: string): string {
       return "COO";
     case "hr":
       return "HoHR";
+    case "ceo":
+      return "CEO";
+    case "cto":
+      return "CTO";
+    case "cmo":
+      return "CMO";
+    case "od":
+      return "OD";
     case "affiliate":
       return "Affiliate";
     case "parent":
@@ -76,6 +92,14 @@ export function getRoleColor(role: string): string {
       return "bg-amber-100 text-amber-800 border-amber-200";
     case "hr":
       return "bg-pink-100 text-pink-800 border-pink-200";
+    case "ceo":
+      return "bg-slate-100 text-slate-800 border-slate-200";
+    case "cto":
+      return "bg-cyan-100 text-cyan-800 border-cyan-200";
+    case "cmo":
+      return "bg-orange-100 text-orange-800 border-orange-200";
+    case "od":
+      return "bg-lime-100 text-lime-800 border-lime-200";
     case "affiliate":
       return "bg-green-100 text-green-800 border-green-200";
     case "parent":

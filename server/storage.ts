@@ -422,7 +422,7 @@ export class SupabaseStorage implements IStorage {
         updatedAt: data.updated_at,
       };
       // Validate role is one of the expected values
-      const validRoles = ["parent", "student", "tutor", "td", "affiliate", "od", "coo", "hr", "ceo"];
+      const validRoles = ["parent", "student", "tutor", "td", "affiliate", "od", "coo", "hr", "ceo", "cto", "cmo"];
       if (!validRoles.includes(data.role as string)) {
         console.error("❌ INVALID ROLE DETECTED:", data.role, "for user", id);
         console.error("   Full user data:", JSON.stringify(data));
@@ -474,7 +474,7 @@ export class SupabaseStorage implements IStorage {
       };
       
       // Validate role is one of the expected values
-      const validRoles = ["parent", "student", "tutor", "td", "affiliate", "od", "coo", "hr", "ceo"];
+      const validRoles = ["parent", "student", "tutor", "td", "affiliate", "od", "coo", "hr", "ceo", "cto", "cmo"];
       if (!validRoles.includes(data.role as string)) {
         console.error("❌ INVALID ROLE DETECTED:", data.role, "for email", email);
         console.error("   Full user data:", JSON.stringify(data));
