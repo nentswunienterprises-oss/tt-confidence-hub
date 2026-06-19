@@ -1,7 +1,7 @@
 import IntroSessionDrillRunner from "@/components/tutor/IntroSessionDrillRunner";
 import ExecutiveCOOTrackLeads from "@/pages/executive/coo/track-leads";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
@@ -16,6 +16,7 @@ import { ExecutiveSeatGuard } from "@/lib/portalGuard";
 import { TdGatewayGuard } from "@/lib/tdGatewayGuard";
 import { TutorGatewayGuard } from "@/lib/tutorGatewayGuard";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
+import { DeepDiveDeterrent } from "@/components/responseconditioning/DeepDiveDeterrent";
 
 // Clean up old localStorage cache on startup (we now use sessionStorage which is tab-specific)
 if (typeof window !== 'undefined') {
@@ -172,6 +173,10 @@ function ScrollToTop() {
   return null;
 }
 
+function withDeepDiveDeterrent(page: ReactNode) {
+  return <DeepDiveDeterrent>{page}</DeepDiveDeterrent>;
+}
+
 function Router() {
   return (
     <Routes>
@@ -205,22 +210,22 @@ function Router() {
       <Route path="/aboutTT" element={<Navigate to="/about" replace />} />
       <Route path="/leadershipdevelopmentpilot" element={<LeadershipDevelopmentPilot />} />
       <Route path="/foundingtutorswanted" element={<Navigate to="/operational/tutor/landing" replace />} />
-      <Route path="/responseconditioningsystem" element={<ResponseConditioningSystem />} />
+      <Route path="/responseconditioningsystem" element={withDeepDiveDeterrent(<ResponseConditioningSystem />)} />
       <Route
         path="/responseconditioningsystem/clarity"
-        element={<ResponseConditioningClarity />}
+        element={withDeepDiveDeterrent(<ResponseConditioningClarity />)}
       />
       <Route
         path="/responseconditioningsystem/structured-execution"
-        element={<ResponseConditioningStructuredExecution />}
+        element={withDeepDiveDeterrent(<ResponseConditioningStructuredExecution />)}
       />
       <Route
         path="/responseconditioningsystem/controlled-discomfort"
-        element={<ResponseConditioningControlledDiscomfort />}
+        element={withDeepDiveDeterrent(<ResponseConditioningControlledDiscomfort />)}
       />
       <Route
         path="/responseconditioningsystem/time-pressure-stability"
-        element={<ResponseConditioningTimePressureStability />}
+        element={withDeepDiveDeterrent(<ResponseConditioningTimePressureStability />)}
       />
       <Route
         path="/responseconditioningsystem/transformation-phases"
@@ -228,123 +233,123 @@ function Router() {
       />
       <Route
         path="/responseconditioningsystem/transformation-phases/topic-conditioning"
-        element={<ResponseConditioningTopicConditioning />}
+        element={withDeepDiveDeterrent(<ResponseConditioningTopicConditioning />)}
       />
       <Route
         path="/responseconditioningsystem/transformation-phases/clarity"
-        element={<ResponseConditioningClarity />}
+        element={withDeepDiveDeterrent(<ResponseConditioningClarity />)}
       />
       <Route
         path="/responseconditioningsystem/transformation-phases/structured-execution"
-        element={<ResponseConditioningStructuredExecution />}
+        element={withDeepDiveDeterrent(<ResponseConditioningStructuredExecution />)}
       />
       <Route
         path="/responseconditioningsystem/transformation-phases/controlled-discomfort"
-        element={<ResponseConditioningControlledDiscomfort />}
+        element={withDeepDiveDeterrent(<ResponseConditioningControlledDiscomfort />)}
       />
       <Route
         path="/responseconditioningsystem/transformation-phases/time-pressure-stability"
-        element={<ResponseConditioningTimePressureStability />}
+        element={withDeepDiveDeterrent(<ResponseConditioningTimePressureStability />)}
       />
       <Route
         path="/responseconditioningsystem/how-to-model"
-        element={<ResponseConditioningHowToModel />}
+        element={withDeepDiveDeterrent(<ResponseConditioningHowToModel />)}
       />
       <Route
         path="/responseconditioningsystem/execution-standards/how-to-model"
-        element={<ResponseConditioningHowToModel />}
+        element={withDeepDiveDeterrent(<ResponseConditioningHowToModel />)}
       />
       <Route
         path="/responseconditioningsystem/how-to-guide"
-        element={<ResponseConditioningHowToGuide />}
+        element={withDeepDiveDeterrent(<ResponseConditioningHowToGuide />)}
       />
       <Route
         path="/responseconditioningsystem/execution-standards/how-to-guide"
-        element={<ResponseConditioningHowToGuide />}
+        element={withDeepDiveDeterrent(<ResponseConditioningHowToGuide />)}
       />
       <Route
         path="/responseconditioningsystem/how-to-use-boss-battles"
-        element={<ResponseConditioningHowToUseBossBattles />}
+        element={withDeepDiveDeterrent(<ResponseConditioningHowToUseBossBattles />)}
       />
       <Route
         path="/responseconditioningsystem/execution-standards/how-to-use-boss-battles"
-        element={<ResponseConditioningHowToUseBossBattles />}
+        element={withDeepDiveDeterrent(<ResponseConditioningHowToUseBossBattles />)}
       />
       <Route
         path="/responseconditioningsystem/what-not-to-do"
-        element={<ResponseConditioningWhatNotToDo />}
+        element={withDeepDiveDeterrent(<ResponseConditioningWhatNotToDo />)}
       />
       <Route
         path="/responseconditioningsystem/execution-standards/what-not-to-do"
-        element={<ResponseConditioningWhatNotToDo />}
+        element={withDeepDiveDeterrent(<ResponseConditioningWhatNotToDo />)}
       />
       <Route
         path="/responseconditioningsystem/emotional-discipline-under-discomfort"
-        element={<ResponseConditioningEmotionalDisciplineUnderDiscomfort />}
+        element={withDeepDiveDeterrent(<ResponseConditioningEmotionalDisciplineUnderDiscomfort />)}
       />
       <Route
         path="/responseconditioningsystem/execution-standards/emotional-discipline-under-discomfort"
-        element={<ResponseConditioningEmotionalDisciplineUnderDiscomfort />}
+        element={withDeepDiveDeterrent(<ResponseConditioningEmotionalDisciplineUnderDiscomfort />)}
       />
       <Route
         path="/responseconditioningsystem/what-changes-in-the-student"
-        element={<ResponseConditioningWhatChangesInTheStudent />}
+        element={withDeepDiveDeterrent(<ResponseConditioningWhatChangesInTheStudent />)}
       />
       <Route
         path="/responseconditioningsystem/system-intelligence/what-changes-in-the-student"
-        element={<ResponseConditioningWhatChangesInTheStudent />}
+        element={withDeepDiveDeterrent(<ResponseConditioningWhatChangesInTheStudent />)}
       />
       <Route
         path="/responseconditioningsystem/signs-of-progress"
-        element={<ResponseConditioningSignsOfProgress />}
+        element={withDeepDiveDeterrent(<ResponseConditioningSignsOfProgress />)}
       />
       <Route
         path="/responseconditioningsystem/system-intelligence/signs-of-progress"
-        element={<ResponseConditioningSignsOfProgress />}
+        element={withDeepDiveDeterrent(<ResponseConditioningSignsOfProgress />)}
       />
       <Route
         path="/responseconditioningsystem/breakdown-patterns"
-        element={<ResponseConditioningBreakdownPatterns />}
+        element={withDeepDiveDeterrent(<ResponseConditioningBreakdownPatterns />)}
       />
       <Route
         path="/responseconditioningsystem/system-intelligence/breakdown-patterns"
-        element={<ResponseConditioningBreakdownPatterns />}
+        element={withDeepDiveDeterrent(<ResponseConditioningBreakdownPatterns />)}
       />
       <Route
         path="/responseconditioningsystem/before-vs-after"
-        element={<ResponseConditioningBeforeVsAfter />}
+        element={withDeepDiveDeterrent(<ResponseConditioningBeforeVsAfter />)}
       />
       <Route
         path="/responseconditioningsystem/system-intelligence/before-vs-after"
-        element={<ResponseConditioningBeforeVsAfter />}
+        element={withDeepDiveDeterrent(<ResponseConditioningBeforeVsAfter />)}
       />
       <Route
         path="/responseconditioningsystem/intro-session-structure"
-        element={<ResponseConditioningIntroSessionStructure />}
+        element={withDeepDiveDeterrent(<ResponseConditioningIntroSessionStructure />)}
       />
       <Route
         path="/responseconditioningsystem/session-infrastructure/intro-session-structure"
-        element={<ResponseConditioningIntroSessionStructure />}
+        element={withDeepDiveDeterrent(<ResponseConditioningIntroSessionStructure />)}
       />
       <Route
         path="/responseconditioningsystem/session-flow-control"
-        element={<ResponseConditioningSessionFlowControl />}
+        element={withDeepDiveDeterrent(<ResponseConditioningSessionFlowControl />)}
       />
       <Route
         path="/responseconditioningsystem/session-infrastructure/session-flow-control"
-        element={<ResponseConditioningSessionFlowControl />}
+        element={withDeepDiveDeterrent(<ResponseConditioningSessionFlowControl />)}
       />
       <Route
         path="/responseconditioningsystem/drill-library"
-        element={<ResponseConditioningDrillLibrary />}
+        element={withDeepDiveDeterrent(<ResponseConditioningDrillLibrary />)}
       />
       <Route
         path="/responseconditioningsystem/session-infrastructure/drill-library"
-        element={<ResponseConditioningDrillLibrary />}
+        element={withDeepDiveDeterrent(<ResponseConditioningDrillLibrary />)}
       />
       <Route
         path="/responseconditioningsystem/topic-conditioning"
-        element={<ResponseConditioningTopicConditioning />}
+        element={withDeepDiveDeterrent(<ResponseConditioningTopicConditioning />)}
       />
       <Route
         path="/responseconditioningsystem/session-infrastructure/topic-conditioning"
@@ -352,27 +357,27 @@ function Router() {
       />
       <Route
         path="/responseconditioningsystem/logging-system"
-        element={<ResponseConditioningLoggingSystem />}
+        element={withDeepDiveDeterrent(<ResponseConditioningLoggingSystem />)}
       />
       <Route
         path="/responseconditioningsystem/session-infrastructure/logging-system"
-        element={<ResponseConditioningLoggingSystem />}
+        element={withDeepDiveDeterrent(<ResponseConditioningLoggingSystem />)}
       />
       <Route
         path="/responseconditioningsystem/handover-verification"
-        element={<ResponseConditioningHandoverVerification />}
+        element={withDeepDiveDeterrent(<ResponseConditioningHandoverVerification />)}
       />
       <Route
         path="/responseconditioningsystem/session-infrastructure/handover-verification"
-        element={<ResponseConditioningHandoverVerification />}
+        element={withDeepDiveDeterrent(<ResponseConditioningHandoverVerification />)}
       />
       <Route
         path="/responseconditioningsystem/tools-required"
-        element={<ResponseConditioningToolsRequired />}
+        element={withDeepDiveDeterrent(<ResponseConditioningToolsRequired />)}
       />
       <Route
         path="/responseconditioningsystem/session-infrastructure/tools-required"
-        element={<ResponseConditioningToolsRequired />}
+        element={withDeepDiveDeterrent(<ResponseConditioningToolsRequired />)}
       />
 
       {/* ==================== CLIENT PORTAL ==================== */}
@@ -454,6 +459,7 @@ function Router() {
       <Route path="/executive/signup" element={<ExecutiveSignup />} />
       {/* Executive Legal */}
       <Route path="/executive/recruitment-privacy" element={<RecruitmentPrivacy />} />
+
       <Route path="/executive/gateway" element={<DashboardLayout><ExecutiveGateway /></DashboardLayout>} />
       <Route path="/executive/dashboard" element={<Navigate to="/executive/gateway" replace />} />
 
@@ -509,7 +515,7 @@ function Router() {
       <Route path="/td/updates" element={<TdGatewayGuard><TDUpdates /></TdGatewayGuard>} />
 
       {/* Legacy COO Routes */}
-      <Route path="/coo/dashboard" element={<COODashboard />} />
+      <Route path="/coo/dashboard" element={<DashboardLayout><COODashboard /></DashboardLayout>} />
       <Route path="/coo/traffic" element={<DashboardLayout><ExecutiveHRTraffic /></DashboardLayout>} />
       <Route path="/coo/applications" element={<Navigate to="/coo/traffic" replace />} />
       <Route path="/coo/tutor-applications" element={<Navigate to="/coo/traffic" replace />} />
@@ -518,7 +524,7 @@ function Router() {
       <Route path="/coo/verification" element={<COOVerification />} />
       <Route path="/coo/brain" element={<COOBrain />} />
       <Route path="/coo/broadcast" element={<COOBroadcast />} />
-      <Route path="/coo/leadership-pilot-requests" element={<LeadershipPilotRequests />} />
+      <Route path="/coo/leadership-pilot-requests" element={<DashboardLayout><LeadershipPilotRequests /></DashboardLayout>} />
 
       {/* 404 Route */}
       <Route path="*" element={<NotFound />} />

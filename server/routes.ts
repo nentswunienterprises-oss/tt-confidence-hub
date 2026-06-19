@@ -388,18 +388,6 @@ async function getTutorOperationalMode(tutorId: string): Promise<"training" | "c
   return mode === "certified_live" ? "certified_live" : "training";
 }
 
-function normalizeTutorTrainingMode(mode?: string | null): TutorTrainingMode {
-  const normalized = String(mode || "").trim().toLowerCase();
-  if (normalized === "certified_live") return "certified_live";
-  if (normalized === "sandbox") return "sandbox";
-  if (normalized === "applicant") return "applicant";
-  if (normalized === "suspended") return "suspended";
-  if (normalized === "training") return "training";
-  // Watchlist is an audit state, not an operational mode.
-  if (normalized === "watchlist") return "training";
-  return "training";
-}
-
 async function getTutorCertificationMode(tutorId: string): Promise<TutorTrainingMode> {
   const assignment = await storage.getTutorAssignment(tutorId);
   if (!assignment?.id) {
@@ -411,7 +399,7 @@ async function getTutorCertificationMode(tutorId: string): Promise<TutorTraining
       .limit(1)
       .maybeSingle();
 
-    return normalizeTutorTrainingMode(portableSnapshot?.mode as TutorTrainingMode | undefined);
+    return (portableSnapshot?.mode as TutorTrainingMode | undefined) || "training";
   }
 
   const { data: certificationStatus } = await supabase
@@ -421,7 +409,36 @@ async function getTutorCertificationMode(tutorId: string): Promise<TutorTraining
     .maybeSingle();
 
   if (certificationStatus?.mode) {
-    return normalizeTutorTrainingMode(certificationStatus.mode as TutorTrainingMode);
+    const persistedMode = certificationStatus.mode as TutorTrainingMode;
+    if (persistedMode !== "watchlist" && persistedMode !== "training") {
+      return persistedMode;
+    }
+
+    try {
+      const tutor = await storage.getUser(tutorId);
+      const students = await storage.getStudentsByTutor(tutorId);
+      const summary = await buildPodBattleTestingSummary(
+        assignment.podId,
+        [
+          {
+            assignmentId: assignment.id,
+            tutorId,
+            tutorName: tutor?.name || tutor?.firstName || "Unknown Tutor",
+            tutorEmail: tutor?.email || "",
+            studentCount: students.length,
+          },
+        ],
+        null
+      );
+      const reconciledMode = summary.tutorSummaries.find((entry) => entry.assignmentId === assignment.id)?.mode;
+      if (reconciledMode) {
+        return reconciledMode;
+      }
+    } catch (error) {
+      console.error("Failed to reconcile tutor certification mode:", error);
+    }
+
+    return persistedMode;
   }
 
   const { data: portableSnapshot } = await supabase
@@ -433,12 +450,12 @@ async function getTutorCertificationMode(tutorId: string): Promise<TutorTraining
     .maybeSingle();
 
   if (portableSnapshot?.mode) {
-    return normalizeTutorTrainingMode(portableSnapshot.mode as TutorTrainingMode);
+    return portableSnapshot.mode as TutorTrainingMode;
   }
 
-  return normalizeTutorTrainingMode(
-    (assignment as any)?.operational_mode || assignment?.operationalMode || "training"
-  );
+  return (assignment?.operationalMode as "training" | "certified_live" | undefined) === "certified_live"
+    ? "certified_live"
+    : "training";
 }
 
 async function createPortableTutorAssignment(tutorId: string, podId: string) {
@@ -3367,15 +3384,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
               return `The student ${combined} during ${context}.`;
             };
 
-            const narrativeStabilityFromScore = (score: number, fallback?: string) => {
-              if (Number.isFinite(score)) {
-                if (score >= 80) return "High";
-                if (score >= 45) return "Medium";
-                return "Low";
-              }
-              return normalizeStability(fallback || "Low");
-            };
-
             const rawBehaviorPatterns = (signals: ObservationSignal[]) =>
               mapObservationsToBehavior(signals).filter(
                 (behavior) => behavior !== "no mapped observation signal detected"
@@ -3442,11 +3450,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 deterministicLog: {
                   topicFocus: `This session focused on ${topic}, targeting baseline diagnosis in ${diagnosisPhase}.`,
                   whatWasTrained: `A diagnosis drill was used to identify ${DRILL_PURPOSE_BY_PHASE[diagnosisPhase] || "phase-specific response patterns"}.`,
-                  behaviorSummary: buildBehaviorSummary(
-                    observationSignals,
-                    "diagnosis",
-                    narrativeStabilityFromScore(diagnosisScore, stability),
-                  ),
+                  behaviorSummary: buildBehaviorSummary(observationSignals, "diagnosis", stability),
                   performanceResult: describePerformanceResult({
                     phaseBefore: diagnosisPhase,
                     phaseAfter: trainingEntryPhase,
@@ -3522,11 +3526,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 deterministicLog: {
                 topicFocus: `This session focused on ${topic}, targeting ${observedPhase} phase skills.`,
                   whatWasTrained: `A training drill was used to train ${DRILL_PURPOSE_BY_PHASE[observedPhase] || "phase-specific behavior"}.`,
-                  behaviorSummary: buildBehaviorSummary(
-                    observationSignals,
-                    "the drill",
-                    narrativeStabilityFromScore(sessionScore, stability),
-                  ),
+                  behaviorSummary: buildBehaviorSummary(observationSignals, "the drill", stability),
                   performanceResult: describePerformanceResult({
                     phaseBefore: observedPhase,
                     phaseAfter: resultingPhase,
@@ -4057,18 +4057,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
             if (isFinalPhaseMaintenanceState(phaseAfter, stabilityAfter)) {
               return "Student is sustaining final-phase control and is now in maintenance and transfer territory.";
-            }
-            if (stabilityAfter === "High Maintenance") {
-              const nextPhaseByPhase: Partial<Record<TopicPhase, TopicPhase>> = {
-                Clarity: "Structured Execution",
-                "Structured Execution": "Controlled Discomfort",
-                "Controlled Discomfort": "Time Pressure Stability",
-              };
-              const nextPhase = nextPhaseByPhase[phaseAfter];
-              if (nextPhase) {
-                return `Student improved from High to High Maintenance in ${phaseAfter}. This means ${phaseAfter} responses are now consistent in this topic, and the High Maintenance check now decides whether it moves into ${nextPhase}.`;
-              }
-              return `Student improved from High to High Maintenance in ${phaseAfter}. This means responses are now consistent in this topic and are being sustained in High Maintenance.`;
             }
             return TUTOR_ONGOING_MEANING_BY_PHASE[phaseAfter];
           };
@@ -4615,21 +4603,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
 
             const breakdownPattern = topics.map(topic => {
-              const snapshot = topicSnapshots[topic];
-              const latestTransitionReason = snapshot.transitionReasons[snapshot.transitionReasons.length - 1] || "remain";
-              const midpoint = Math.max(1, Math.floor(snapshot.drillBehaviors.length / 2));
-              const lateBehaviors = snapshot.drillBehaviors.slice(midpoint).flat();
-              const weakSignals = buildTopicWeakSignals(lateBehaviors);
-              const endedWithStabilityAdvance =
-                latestTransitionReason === "stability advance" &&
-                (snapshot.lastDrillState.stability === "High" || snapshot.lastDrillState.stability === "High Maintenance");
-              const breakdownText =
-                weakSignals.length > 0 && !endedWithStabilityAdvance
-                  ? naturalJoin(weakSignals)
-                  : "no consistent breakdown pattern identified";
+              const weakSignals = buildTopicWeakSignals(topicSnapshots[topic].allBehaviors);
               return formatTopicScopedLine(
                 topic,
-                breakdownText,
+                weakSignals.length > 0 ? naturalJoin(weakSignals) : "no consistent breakdown pattern identified",
                 includeTopicLabels
               );
             });
@@ -7510,9 +7487,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const certificationMode = await getTutorCertificationMode(tutorId);
-        const canTutorHoldAssignments =
-          certificationMode === "sandbox" || certificationMode === "certified_live";
-        const cleanupResult = await cleanupLegacyLiveEnrollmentsForNonLiveTutor(tutorId, certificationMode);
         const { data: assignedEnrollments, error: assignedEnrollmentsError } =
           await loadTutorAssignedEnrollments(tutorId, {
             sandboxOnly: certificationMode === "sandbox",
@@ -7522,10 +7496,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (assignedEnrollmentsError) {
           console.error("Error loading assigned enrollments for pod:", assignedEnrollmentsError);
           return res.status(500).json({ message: "Failed to load assigned enrollments" });
-        }
-
-        if (!canTutorHoldAssignments) {
-          return res.json({ assignment, students: [] });
         }
 
         let students = await hydrateStudentsWithSessionProgress(tutorId, await storage.getStudentsByTutor(tutorId));
@@ -7610,7 +7580,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return arr.findIndex((candidate) => String(candidate.student.id || "") === studentId) === index;
           });
 
-        if (certificationMode === "certified_live" && canonicalStudents.length === 0 && students.length > 0) {
+        if (certificationMode !== "sandbox" && canonicalStudents.length === 0 && students.length > 0) {
           const unmatchedEnrollments = [...(assignedEnrollments || [])];
           canonicalStudents = students.map((student: any) => {
             const explicitEnrollmentId = String(
@@ -7769,6 +7739,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         void (async () => {
           try {
+            const cleanupResult = await cleanupLegacyLiveEnrollmentsForNonLiveTutor(tutorId, certificationMode);
+
             if (certificationMode === "sandbox") {
               try {
                 await ensureVisibleSandboxStudentsForTutor(
@@ -9757,34 +9729,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
         });
 
-        const cancellingParent = cancelledSession.parent_id ? await storage.getUser(cancelledSession.parent_id) : null;
-        const cancellingParentName = getDisplayNameForUser(cancellingParent, "Parent");
-
         await safeSendPush(
           cancelledSession.tutor_id,
           {
-            title: `Session cancelled by ${cancellingParentName}`,
-            body: `${cancellingParentName} cancelled a training session. Open Response Integrity to review the updated week.`,
+            title: "Session cancelled",
+            body: "A parent cancelled a training session. Open Response Integrity to review the updated week.",
             url: "/operational/tutor/pod",
             tag: `tutor-training-session-cancelled-${sessionId}`,
           },
           "tutor training session cancelled by parent",
         );
-
-        try {
-          await storage.createNotification({
-            recipientUserId: cancelledSession.tutor_id,
-            actorUserId: userId,
-            channel: "informational",
-            title: `Session cancelled by ${cancellingParentName}`,
-            message: `${cancellingParentName} cancelled a training session. Open Response Integrity to review the updated week.`,
-            link: "/operational/tutor/pod",
-            entityType: "scheduled_session",
-            entityId: sessionId,
-          } as any);
-        } catch (error) {
-          console.error("Failed to create tutor training-session cancellation notification:", error);
-        }
 
         return res.json({
           success: true,
@@ -9914,34 +9868,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
         });
 
-        const reschedulingParent = updatedSession.parent_id ? await storage.getUser(updatedSession.parent_id) : null;
-        const reschedulingParentName = getDisplayNameForUser(reschedulingParent, "Parent");
-
         await safeSendPush(
           updatedSession.tutor_id,
           {
-            title: `Session rescheduled by ${reschedulingParentName}`,
-            body: `${reschedulingParentName} proposed a new training-session time. Open Response Integrity to review and confirm.`,
+            title: "Session rescheduled by parent",
+            body: "A parent proposed a new training-session time. Open Response Integrity to review and confirm.",
             url: "/operational/tutor/pod",
             tag: `tutor-training-session-rescheduled-${sessionId}`,
           },
           "tutor training session rescheduled by parent",
         );
-
-        try {
-          await storage.createNotification({
-            recipientUserId: updatedSession.tutor_id,
-            actorUserId: userId,
-            channel: "action_required",
-            title: `Session rescheduled by ${reschedulingParentName}`,
-            message: `${reschedulingParentName} proposed a new training-session time. Open Response Integrity to review and confirm.`,
-            link: "/operational/tutor/pod",
-            entityType: "scheduled_session",
-            entityId: sessionId,
-          } as any);
-        } catch (error) {
-          console.error("Failed to create tutor training-session reschedule notification:", error);
-        }
 
         return res.json({
           success: true,
@@ -10997,15 +10933,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .eq("id", thread.id);
 
     const tutor = student?.tutorId ? await storage.getUser(student.tutorId) : null;
-    const parentUser =
-      (senderRole === "parent" && senderUserId)
-        ? await storage.getUser(senderUserId)
-        : null;
     const senderLabel =
       senderRole === "tutor"
         ? getDisplayNameForUser(tutor, "Tutor")
         : senderRole === "parent"
-          ? getDisplayNameForUser(parentUser, "Parent")
+          ? "Parent"
           : String(student?.name || "Student").trim() || "Student";
 
     if ((senderRole === "parent" || senderRole === "student") && student?.tutorId) {
@@ -13434,14 +13366,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             (!!studentName && assignedEnrollmentByStudentName.has(studentName))
           );
         });
-        const visibleStudents =
-          certificationMode === "certified_live" &&
-          (assignedEnrollments?.length || 0) === 0 &&
-          students.length > 0
-            ? students
-            : activeStudents;
 
-        res.json(visibleStudents);
+        res.json(activeStudents);
       } catch (error) {
         console.error("Error fetching TD tutor students:", error);
         res.status(500).json({ message: "Failed to fetch tutor students" });
@@ -15243,22 +15169,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const tutorsData = await Promise.all(
           assignments.map(async (assignment: any) => {
             const tutor = await storage.getUser(assignment.tutorId);
-            const certificationMode = await getTutorCertificationMode(assignment.tutorId);
             const tutorSummary =
               podSummary.tutorSummaries.find((entry) => entry.assignmentId === assignment.id) ||
               podSummary.tutorSummaries.find((entry) => entry.tutorId === assignment.tutorId) ||
               null;
             const loadStats = await loadTutorAssignmentLoadStats(assignment.tutorId);
-            const assignmentMode = normalizeTutorTrainingMode(
-              assignment.operational_mode || assignment.operationalMode || null
-            );
-            const operationalMode =
-              assignmentMode === "sandbox" ||
-              assignmentMode === "certified_live" ||
-              assignmentMode === "applicant" ||
-              assignmentMode === "suspended"
-                ? assignmentMode
-                : certificationMode;
 
             return {
               ...assignment,
@@ -15266,7 +15181,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
               tutorEmail: tutor?.email || "",
               student_count: loadStats.activeAssignmentCount,
               studentCount: loadStats.activeAssignmentCount,
-              operational_mode: operationalMode,
+              operational_mode:
+                (assignment.operational_mode && String(assignment.operational_mode).toLowerCase() !== "watchlist"
+                  ? assignment.operational_mode
+                  : assignment.operationalMode && String(assignment.operationalMode).toLowerCase() !== "watchlist"
+                  ? assignment.operationalMode
+                  : tutorSummary?.mode) ||
+                "training",
               sandbox_parent_count: loadStats.sandboxParentCount,
               live_parent_count: loadStats.liveParentCount,
               awaiting_tutor_acceptance_count: loadStats.awaitingTutorAcceptanceCount,
@@ -15436,14 +15357,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             (!!studentName && assignedEnrollmentByStudentName.has(studentName))
           );
         });
-        const visibleStudents =
-          certificationMode === "certified_live" &&
-          (assignedEnrollments?.length || 0) === 0 &&
-          students.length > 0
-            ? students
-            : activeStudents;
 
-        const studentsWithEnrollment = visibleStudents.map((student: any) => {
+        const studentsWithEnrollment = activeStudents.map((student: any) => {
           const studentId = String(student.id || "");
           const parentId = String((student as any).parentId || "");
           const parentEnrollmentId = String((student as any).parentEnrollmentId || (student as any).parent_enrollment_id || "");
@@ -15501,34 +15416,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             })
           ).values()
         );
-        const existingEnrollmentIds = new Set(
-          dedupedStudentsWithEnrollment
-            .map((student: any) => String(student.assignedEnrollmentId || "").trim())
-            .filter(Boolean)
-        );
-        const synthesizedFromEnrollments = (assignedEnrollments || [])
-          .filter((enrollment: any) => {
-            const enrollmentId = String(enrollment?.id || "").trim();
-            return !!enrollmentId && !existingEnrollmentIds.has(enrollmentId);
-          })
-          .map((enrollment: any) => ({
-            id: String(enrollment.assigned_student_id || enrollment.id || "").trim() || `enrollment-${enrollment.id}`,
-            name: enrollment.student_full_name || "Assigned Student",
-            grade: null,
-            sessionProgress: 0,
-            assignedEnrollmentId: enrollment.id || null,
-            parentName: enrollment.parent_full_name || null,
-            parentEmail: enrollment.parent_email || null,
-            enrollmentStatus: enrollment.status || null,
-            enrollmentCurrentStep: enrollment.current_step || null,
-            isSandboxAssignment: isSandboxEnrollmentForTutor(enrollment, tutorId),
-            isReassignmentPreserved: Boolean(
-              enrollment?.current_step &&
-                String(enrollment.current_step).trim().toLowerCase().startsWith(REASSIGNMENT_RESUME_PREFIX)
-            ),
-          }));
-
-        res.json([...dedupedStudentsWithEnrollment, ...synthesizedFromEnrollments]);
+        res.json(dedupedStudentsWithEnrollment);
       } catch (error) {
         console.error("Error fetching tutor students:", error);
         res.status(500).json({ message: "Failed to fetch tutor students" });
@@ -16313,78 +16201,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req as any).dbUser.id;
       const userCreatedAt = (req as any).dbUser?.createdAt;
       const notifications = await storage.getNotifications(userId, userCreatedAt);
-
-      const actorIds = Array.from(
-        new Set(
-          (notifications || [])
-            .map((notification: any) => String(notification?.actorUserId || "").trim())
-            .filter(Boolean)
-        )
-      );
-
-      const actorNameById = new Map<string, string>();
-      await Promise.all(
-        actorIds.map(async (actorId) => {
-          try {
-            const actor = await storage.getUser(actorId);
-            actorNameById.set(actorId, getDisplayNameForUser(actor, "User"));
-          } catch (error) {
-            console.error("Failed to resolve actor display name for notification:", { actorId, error });
-          }
-        })
-      );
-
-      const enrichedNotifications = (notifications || []).map((notification: any) => {
-        const actorId = String(notification?.actorUserId || "").trim();
-        const actorName = actorId ? actorNameById.get(actorId) : null;
-        if (!actorName) return notification;
-
-        const entityType = String(notification?.entityType || "");
-        const title = String(notification?.title || "");
-        const message = String(notification?.message || "");
-
-        if (entityType === "scheduled_session") {
-          let nextTitle = title;
-          let nextMessage = message;
-
-          if (/^lesson confirmed$/i.test(title) || /^session confirmed$/i.test(title)) {
-            nextTitle = `Session confirmed by ${actorName}`;
-          } else if (/new lesson awaiting confirmation/i.test(title)) {
-            nextTitle = `Lesson proposed by ${actorName}`;
-          } else if (/session rescheduled by parent/i.test(title)) {
-            nextTitle = `Session rescheduled by ${actorName}`;
-          } else if (/^session cancelled$/i.test(title) && /a parent/i.test(message)) {
-            nextTitle = `Session cancelled by ${actorName}`;
-          }
-
-          if (/^you have a new .* lesson to confirm:/i.test(message)) {
-            nextMessage = `${actorName} proposed this lesson. ${message}`;
-          } else if (/^your .* lesson has been confirmed:/i.test(message)) {
-            nextMessage = `${actorName} confirmed this lesson. ${message}`;
-          } else if (/a parent proposed/i.test(message)) {
-            nextMessage = message.replace(/a parent/gi, actorName);
-          } else if (/a parent cancelled/i.test(message)) {
-            nextMessage = message.replace(/a parent/gi, actorName);
-          }
-
-          return {
-            ...notification,
-            title: nextTitle,
-            message: nextMessage,
-          };
-        }
-
-        if (/^message from parent$/i.test(title)) {
-          return {
-            ...notification,
-            title: `Message from ${actorName}`,
-          };
-        }
-
-        return notification;
-      });
-
-      res.json(enrichedNotifications);
+      res.json(notifications);
     } catch (error) {
       console.error("Error fetching notifications:", error);
       res.status(500).json({ message: "Failed to fetch notifications" });
