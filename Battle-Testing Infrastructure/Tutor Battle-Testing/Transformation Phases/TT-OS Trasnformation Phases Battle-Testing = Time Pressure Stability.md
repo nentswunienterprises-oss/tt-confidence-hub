@@ -26,13 +26,14 @@ To force improvement
 When the tutor wants speed
 
 Q3
-What fields matter most in Time Pressure Stability?
+Why can't Time Pressure Stability be judged by speed alone?
 
 Expected Answer
-Completion integrity, structure under time, pace control, and start under time.
+Because this phase tests whether structure holds when urgency rises. The tutor must read start under time, structure under time, pace control, and completion integrity. Fast finishing alone can hide breakdown.
 
 Fail Answer
-Speed, marks, confidence
+Speed is enough
+marks decide it
 how quickly they finish
 
 SECTION 2: FIELDS AND BREAKDOWN
@@ -50,21 +51,21 @@ Correct answer means stable
 Ignore skipped steps
 
 Q5
-In a timed rep, the student panics before reading the question properly. What field is weak?
+A student is clear on the topic untimed, but once the timer starts they lunge at the question before orienting properly. What is the live instability?
 
 Expected Answer
-Start under time is weak. The student's initial response collapses under time pressure.
+Time Pressure Stability is the live instability, specifically start under time. If recognition is already secure untimed, the timer is what is destabilizing the opening response.
 
 Fail Answer
-They are slow
-they lack content knowledge
+Always Clarity
+they are slow
 they need motivation
 
 Q6
-A student rushes the first half and then freezes. What is weak?
+Across repeated timed reps, the student starts controlled, then speeds up too hard and loses shape near the end. What should the tutor log as weakest?
 
 Expected Answer
-Pace control is weak. Their speed is uneven and structure is not being managed under time.
+Pace control is weakest. The student is not regulating speed under the timer, and the structure drifts as urgency rises.
 
 Fail Answer
 They need to go faster
@@ -131,14 +132,14 @@ pressure builds skill
 SECTION 4: SUCCESS AND PROGRESSION
 
 Q12
-What does a stable time-pressure response look like?
+A student finishes the timed rep, but halfway through needed a live tutor rescue to restart the method. Does that count as strong Time Pressure Stability evidence?
 
 Expected Answer
-The student reads, identifies, starts calmly, follows the method, controls pace, and completes without abandoning structure.
+No. Strong evidence requires the student to sustain structure independently under the timer. If the tutor had to rescue the method during the rep, timed stability did not hold cleanly.
 
 Fail Answer
+Yes, because they still finished
 Fast answer
-no hesitation
 finishes before time
 
 Q13
@@ -153,16 +154,16 @@ speed is the only goal
 fail because incomplete
 
 Q14
-What evidence should the tutor log to show strong Time Pressure Stability?
+What repeated pattern should exist before the tutor logs strong Time Pressure Stability evidence?
 
 Expected Answer
-The student starts without panic, keeps structure under time, controls pace, and preserves completion integrity across timed reps. The tutor logs this evidence; RI-OS determines the next action.
+The tutor should see stable starts, maintained method, controlled pace, and intact completion across repeated timed reps under a real, consistent timer. One fast or clean rep is not enough.
 
 Fail Answer
 They finished fast once
 They got a high mark
 They felt confident
-The tutor decides they are done
+one clean rep is enough
 
 FINAL TEST
 

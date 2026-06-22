@@ -582,10 +582,10 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "time_pressure_stability_q3",
         section: "Core Purpose",
-        prompt: "What fields matter most in Time Pressure Stability?",
+        prompt: "Why can't Time Pressure Stability be judged by speed alone?",
         expectedAnswer:
-          "Completion integrity, structure under time, pace control, and start under time.",
-        failIndicators: ["Speed, marks, confidence", "how quickly they finish"],
+          "Because this phase tests whether structure holds when urgency rises. The tutor must read start under time, structure under time, pace control, and completion integrity. Fast finishing alone can hide breakdown.",
+        failIndicators: ["Speed is enough", "marks decide it", "how quickly they finish"],
       },
       {
         key: "time_pressure_stability_q4",
@@ -597,15 +597,16 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "time_pressure_stability_q5",
         section: "Fields and Breakdown",
-        prompt: "In a timed rep, the student panics before reading the question properly. What field is weak?",
-        expectedAnswer: "Start under time is weak. The student's initial response collapses under time pressure.",
-        failIndicators: ["They are slow", "they lack content knowledge", "they need motivation"],
+        prompt: "A student is clear on the topic untimed, but once the timer starts they lunge at the question before orienting properly. What is the live instability?",
+        expectedAnswer:
+          "Time Pressure Stability is the live instability, specifically start under time. If recognition is already secure untimed, the timer is what is destabilizing the opening response.",
+        failIndicators: ["Always Clarity", "they are slow", "they need motivation"],
       },
       {
         key: "time_pressure_stability_q6",
         section: "Fields and Breakdown",
-        prompt: "A student rushes the first half and then freezes. What is weak?",
-        expectedAnswer: "Pace control is weak. Their speed is uneven and structure is not being managed under time.",
+        prompt: "Across repeated timed reps, the student starts controlled, then speeds up too hard and loses shape near the end. What should the tutor log as weakest?",
+        expectedAnswer: "Pace control is weakest. The student is not regulating speed under the timer, and the structure drifts as urgency rises.",
         failIndicators: ["They need to go faster", "they need harder drills", "they are careless"],
       },
       {
@@ -646,9 +647,10 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "time_pressure_stability_q12",
         section: "Success and Stability",
-        prompt: "What does a stable time-pressure response look like?",
-        expectedAnswer: "The student reads, identifies, starts calmly, follows the method, controls pace, and completes without abandoning structure.",
-        failIndicators: ["Fast answer", "no hesitation", "finishes before time"],
+        prompt: "A student finishes the timed rep, but halfway through needed a live tutor rescue to restart the method. Does that count as strong Time Pressure Stability evidence?",
+        expectedAnswer:
+          "No. Strong evidence requires the student to sustain structure independently under the timer. If the tutor had to rescue the method during the rep, timed stability did not hold cleanly.",
+        failIndicators: ["Yes, because they still finished", "Fast answer", "finishes before time"],
       },
       {
         key: "time_pressure_stability_q13",
@@ -660,9 +662,10 @@ const tutorPhaseDefinitions: BattleTestPhaseDefinition[] = [
       {
         key: "time_pressure_stability_q14",
         section: "Progression",
-        prompt: "What evidence should the tutor log to show strong Time Pressure Stability?",
-        expectedAnswer: "The student starts without panic, keeps structure under time, controls pace, and preserves completion integrity across timed reps. The tutor logs this evidence; RI-OS determines the next action.",
-        failIndicators: ["They finished fast once", "They got a high mark", "They felt confident", "The tutor decides they are done"],
+        prompt: "What repeated pattern should exist before the tutor logs strong Time Pressure Stability evidence?",
+        expectedAnswer:
+          "The tutor should see stable starts, maintained method, controlled pace, and intact completion across repeated timed reps under a real, consistent timer. One fast or clean rep is not enough.",
+        failIndicators: ["They finished fast once", "They got a high mark", "They felt confident", "one clean rep is enough"],
       },
       {
         key: "time_pressure_stability_q15",
