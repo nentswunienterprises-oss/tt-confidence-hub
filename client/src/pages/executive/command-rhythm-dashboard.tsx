@@ -174,6 +174,7 @@ type OverviewPayload = {
 };
 
 type TaskDialogMode = "create" | "update" | "proof";
+type ProofTypeOption = "link" | "screenshot" | "image" | "doc";
 
 const ROLE_LABELS: Record<ExecutiveRole, string> = {
   ceo: "CEO",
@@ -194,6 +195,13 @@ const RECORD_LABELS: Record<WeeklyRecordType, string> = {
   executive_direction_report: "Executive Direction Report",
   department_report: "Department Report",
 };
+
+const PROOF_TYPE_OPTIONS: Array<{ value: ProofTypeOption; label: string }> = [
+  { value: "link", label: "Link" },
+  { value: "screenshot", label: "Screenshot" },
+  { value: "image", label: "Image" },
+  { value: "doc", label: "Document" },
+];
 
 function formatDate(value: string | null | undefined) {
   if (!value) return "No update";
@@ -340,10 +348,57 @@ function defaultUpdateForm(task?: HydratedExecutiveTask | null) {
 function defaultProofForm() {
   return {
     label: "",
-    proofType: "link",
+    proofType: "link" as ProofTypeOption,
     proofUrl: "",
+    file: null as File | null,
     notes: "",
   };
+}
+
+function getProofFileAcceptValue(proofType: ProofTypeOption) {
+  switch (proofType) {
+    case "screenshot":
+    case "image":
+      return "image/*";
+    case "doc":
+      return ".pdf,.doc,.docx,.txt,.md,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown";
+    default:
+      return "";
+  }
+}
+
+function readFileAsBase64(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = String(reader.result || "");
+      const base64 = result.includes(",") ? result.split(",")[1] || "" : result;
+      if (!base64) {
+        reject(new Error("Failed to read proof file"));
+        return;
+      }
+      resolve(base64);
+    };
+    reader.onerror = () => reject(new Error("Failed to read proof file"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function getProofFileContentType(file: File) {
+  if (file.type) return file.type;
+
+  const lowerName = file.name.toLowerCase();
+  if (lowerName.endsWith(".pdf")) return "application/pdf";
+  if (lowerName.endsWith(".doc")) return "application/msword";
+  if (lowerName.endsWith(".docx")) return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  if (lowerName.endsWith(".txt")) return "text/plain";
+  if (lowerName.endsWith(".md")) return "text/markdown";
+  if (lowerName.endsWith(".png")) return "image/png";
+  if (lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg")) return "image/jpeg";
+  if (lowerName.endsWith(".webp")) return "image/webp";
+  if (lowerName.endsWith(".gif")) return "image/gif";
+  if (lowerName.endsWith(".svg")) return "image/svg+xml";
+  return "application/octet-stream";
 }
 
 function defaultWeeklyRecordForm(department: ExecutiveDepartment) {
@@ -579,15 +634,33 @@ export default function ExecutiveCommandRhythmDashboard(props: { hideTabs?: bool
   const addProofMutation = useMutation({
     mutationFn: async () => {
       if (!selectedTask) throw new Error("No task selected");
+      const isLinkProof = proofForm.proofType === "link";
+      if (isLinkProof && !proofForm.proofUrl.trim()) {
+        throw new Error("Proof link is required");
+      }
+      if (!isLinkProof && !proofForm.file) {
+        throw new Error("Please choose a file to upload as proof");
+      }
+      const payload = isLinkProof
+        ? {
+            label: proofForm.label,
+            proofType: proofForm.proofType,
+            proofUrl: proofForm.proofUrl.trim(),
+            notes: proofForm.notes || null,
+          }
+        : {
+            label: proofForm.label,
+            proofType: proofForm.proofType,
+            fileData: proofForm.file ? await readFileAsBase64(proofForm.file) : "",
+            fileName: proofForm.file?.name || "",
+            contentType: proofForm.file ? getProofFileContentType(proofForm.file) : "",
+            notes: proofForm.notes || null,
+          };
+
       const response = await apiRequest(
         "POST",
         `/api/executive/command-rhythm/tasks/${selectedTask.id}/proofs`,
-        {
-          label: proofForm.label,
-          proofType: proofForm.proofType,
-          proofUrl: proofForm.proofUrl,
-          notes: proofForm.notes || null,
-        }
+        payload
       );
       return response.json();
     },
@@ -1396,12 +1469,57 @@ export default function ExecutiveCommandRhythmDashboard(props: { hideTabs?: bool
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                       <Label>Proof type</Label>
-                      <Input value={proofForm.proofType} onChange={(event) => setProofForm((current) => ({ ...current, proofType: event.target.value }))} />
+                      <Select
+                        value={proofForm.proofType}
+                        onValueChange={(value) =>
+                          setProofForm((current) => ({
+                            ...current,
+                            proofType: value as ProofTypeOption,
+                            proofUrl: "",
+                            file: null,
+                          }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PROOF_TYPE_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label>Proof link / path</Label>
-                      <Input value={proofForm.proofUrl} onChange={(event) => setProofForm((current) => ({ ...current, proofUrl: event.target.value }))} />
+                      <Label>{proofForm.proofType === "link" ? "Proof link" : "Proof file"}</Label>
+                      {proofForm.proofType === "link" ? (
+                        <Input
+                          placeholder="https://..."
+                          value={proofForm.proofUrl}
+                          onChange={(event) => setProofForm((current) => ({ ...current, proofUrl: event.target.value }))}
+                        />
+                      ) : (
+                        <Input
+                          type="file"
+                          accept={getProofFileAcceptValue(proofForm.proofType)}
+                          onChange={(event) =>
+                            setProofForm((current) => ({
+                              ...current,
+                              file: event.target.files?.[0] || null,
+                            }))
+                          }
+                        />
+                      )}
                     </div>
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    {proofForm.proofType === "link"
+                      ? "Use a direct link to the evidence."
+                      : proofForm.proofType === "doc"
+                        ? "Upload a PDF, Word document, text file, or markdown file."
+                        : "Upload an image file as visual proof."}
                   </div>
                   <div className="space-y-2">
                     <Label>Notes</Label>

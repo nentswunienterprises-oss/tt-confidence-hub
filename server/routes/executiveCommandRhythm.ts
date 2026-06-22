@@ -3,10 +3,12 @@ import { z } from "zod";
 import { supabase } from "../storage";
 
 const EXECUTIVE_ROLES = ["ceo", "coo", "hr", "cto", "cmo"] as const;
+const EXECUTIVE_PROOF_TYPES = ["link", "screenshot", "image", "doc"] as const;
 const APPROVER_ROLES = new Set(["ceo", "coo"]);
 
 type ExecutiveRole = (typeof EXECUTIVE_ROLES)[number];
 type ExecutiveDepartment = ExecutiveRole;
+type ExecutiveProofType = (typeof EXECUTIVE_PROOF_TYPES)[number];
 
 type ExecutiveUser = {
   id: string;
@@ -250,8 +252,11 @@ const executiveTimeLogSchema = z.object({
 
 const executiveProofSchema = z.object({
   label: z.string().min(1),
-  proofType: z.string().min(1).optional().default("link"),
-  proofUrl: z.string().min(1),
+  proofType: z.enum(EXECUTIVE_PROOF_TYPES).optional().default("link"),
+  proofUrl: z.string().optional(),
+  fileData: z.string().optional(),
+  fileName: z.string().optional(),
+  contentType: z.string().optional(),
   notes: z.string().optional().nullable(),
 });
 
@@ -341,6 +346,68 @@ function isMissingExecutiveInfrastructureError(error: any) {
     "relation",
     "column",
   ].some((fragment) => message.includes(fragment));
+}
+
+function normalizeProofUrlOrThrow(value: string) {
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(value);
+  } catch {
+    throw new Error("Proof link must be a valid URL");
+  }
+
+  if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+    throw new Error("Proof link must use http or https");
+  }
+
+  return parsedUrl.toString();
+}
+
+async function ensurePublicBucket(bucketName: string) {
+  const { error } = await supabase.storage.createBucket(bucketName, { public: true });
+  if (error && !/already exists|duplicate/i.test(String(error.message || ""))) {
+    throw error;
+  }
+}
+
+function normalizeBase64Payload(raw: string) {
+  return raw.includes(",") ? raw.split(",").pop() || "" : raw;
+}
+
+function getAllowedProofUpload(contentType: string, proofType: ExecutiveProofType) {
+  const normalizedType = String(contentType || "").toLowerCase();
+
+  if (proofType === "screenshot" || proofType === "image") {
+    if (!normalizedType.startsWith("image/")) {
+      throw new Error(`${proofType === "screenshot" ? "Screenshot" : "Image"} proof must be an image file`);
+    }
+
+    return {
+      bucketName: "executive-task-proofs",
+      maxBytes: 10 * 1024 * 1024,
+    };
+  }
+
+  if (proofType === "doc") {
+    const allowedTypes = new Set([
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "text/plain",
+      "text/markdown",
+    ]);
+
+    if (!allowedTypes.has(normalizedType)) {
+      throw new Error("Document proof must be a PDF, DOC, DOCX, TXT, or Markdown file");
+    }
+
+    return {
+      bucketName: "executive-task-proofs",
+      maxBytes: 25 * 1024 * 1024,
+    };
+  }
+
+  throw new Error("Uploaded proof type is not supported");
 }
 
 function normalizeExecutiveUser(row: any): ExecutiveUser {
@@ -1358,6 +1425,54 @@ export function registerExecutiveCommandRhythmRoutes(app: Express, isAuthenticat
         }
 
         const parsed = executiveProofSchema.parse(req.body || {});
+        let persistedProofUrl = "";
+
+        if (parsed.proofType === "link") {
+          if (!parsed.proofUrl?.trim()) {
+            return res.status(400).json({ message: "Proof link is required" });
+          }
+
+          persistedProofUrl = normalizeProofUrlOrThrow(parsed.proofUrl.trim());
+        } else {
+          if (!parsed.fileData || !parsed.fileName || !parsed.contentType) {
+            return res.status(400).json({ message: "Uploaded proof file is required for this proof type" });
+          }
+
+          const safeFileName = parsed.fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+          const { bucketName, maxBytes } = getAllowedProofUpload(parsed.contentType, parsed.proofType);
+          const buffer = Buffer.from(normalizeBase64Payload(parsed.fileData), "base64");
+
+          if (!buffer.byteLength) {
+            return res.status(400).json({ message: "Uploaded proof file was empty" });
+          }
+
+          if (buffer.byteLength > maxBytes) {
+            const maxMb = Math.round(maxBytes / (1024 * 1024));
+            return res.status(400).json({ message: `Uploaded proof must be ${maxMb} MB or smaller` });
+          }
+
+          await ensurePublicBucket(bucketName);
+
+          const storagePath = `task-proofs/${task.id}/${Date.now()}-${safeFileName}`;
+          const { error: uploadError } = await supabase.storage
+            .from(bucketName)
+            .upload(storagePath, buffer, {
+              contentType: parsed.contentType,
+              upsert: true,
+            });
+
+          if (uploadError) {
+            throw new Error(`Failed to upload proof file: ${uploadError.message}`);
+          }
+
+          const { data: urlData } = supabase.storage.from(bucketName).getPublicUrl(storagePath);
+          if (!urlData?.publicUrl) {
+            throw new Error("Proof upload succeeded but file URL could not be generated");
+          }
+
+          persistedProofUrl = urlData.publicUrl;
+        }
+
         const { data, error } = await supabase
           .from("executive_task_proofs")
           .insert({
@@ -1365,7 +1480,7 @@ export function registerExecutiveCommandRhythmRoutes(app: Express, isAuthenticat
             submitted_by_user_id: currentUser.id,
             label: parsed.label,
             proof_type: parsed.proofType,
-            proof_url: parsed.proofUrl,
+            proof_url: persistedProofUrl,
             notes: parsed.notes || null,
           })
           .select("*")
