@@ -172,6 +172,9 @@ function PortalLanding() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <div className="rounded-[30px] border border-[#E5D3C5] bg-white/82 p-5 sm:p-6 md:p-8 shadow-sm">
             <div className="max-w-2xl">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em]" style={{ color: "#8A4B35" }}>
+                Protected Rhythm
+              </p>
               <h2 className="mt-2 text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
                 Two annual intakes. One standard.
               </h2>
