@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageSeo, SITE_NAME, SITE_ORIGIN } from "@/components/PageSeo";
 import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
-import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function AboutIndex() {
@@ -30,16 +29,6 @@ export default function AboutIndex() {
         }}
       />
       <section className="max-w-5xl mx-auto px-6 py-20 text-center">
-        <div className="mb-8 flex justify-start">
-          <Button
-            variant="ghost"
-            className="rounded-full px-0 text-sm font-medium text-[#5A5A5A] hover:bg-transparent hover:text-[#1A1A1A]"
-            onClick={() => navigate("/")}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
-        </div>
         <div className="mx-auto" style={{ transform: "scale(0.85)" }}>
           <ResponseIntegrityLogo size="lg" variant="integrity" />
         </div>
