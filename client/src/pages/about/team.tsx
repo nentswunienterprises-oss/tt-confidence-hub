@@ -138,7 +138,6 @@ export default function TeamPage() {
                   technology, with each seat protecting a core part of how the system moves.
                 </p>
               </div>
-            </div>
 
             <div className="rounded-[2rem] border border-[#E8D7CB] bg-white/75 p-8 shadow-[0_30px_80px_rgba(26,26,26,0.08)] backdrop-blur">
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#8A4B35]">
