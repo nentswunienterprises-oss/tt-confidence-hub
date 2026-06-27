@@ -72,7 +72,7 @@ export default function AboutIndex() {
                   className="mt-8 w-full rounded-full border-[#1A1A1A] text-[#1A1A1A] bg-[#FCF6F2]"
                   onClick={() => navigate(item.href)}
                 >
-                  Read {item.title}
+                  {item.title === "Meet the Team" ? "View the Team" : `Read ${item.title}`}
                 </Button>
               </CardContent>
             </Card>
