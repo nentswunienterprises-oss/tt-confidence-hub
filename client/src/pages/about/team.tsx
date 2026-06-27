@@ -124,11 +124,6 @@ export default function TeamPage() {
           </Button>
 
           <div className="mt-8">
-            <div className="w-full flex justify-center">
-              <div className="max-w-sm" style={{ transform: "scale(0.9)", transformOrigin: "center" }}>
-                <ResponseIntegrityLogo size="lg" variant="integrity" />
-              </div>
-            </div>
 
             <div className="mt-8 grid gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
               <div>
