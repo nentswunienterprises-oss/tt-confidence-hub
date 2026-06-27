@@ -42,6 +42,7 @@ import TutorTermsOfUse from "@/pages/tutor-terms-of-use";
 import TdTermsOfUse from "@/pages/td-terms-of-use";
 import EgpTermsOfUse from "@/pages/egp-terms-of-use";
 import EarlyInterventionReferralProgram from "@/pages/earlyinterventionreferralprogram";
+import ServicesPage from "@/pages/services";
 import AboutIndex from "@/pages/about/index";
 import WhoWeAre from "@/pages/about/who-we-are";
 import HowWeOperate from "@/pages/about/how-we-operate";
@@ -199,6 +200,7 @@ function Router() {
       <Route path="/td-terms-of-use" element={<TdTermsOfUse />} />
       <Route path="/egp-terms-of-use" element={<EgpTermsOfUse />} />
       <Route path="/faq" element={<FAQPage />} />
+      <Route path="/services" element={<ServicesPage />} />
       <Route path="/onlinetutors-wanted" element={<OnlineTutorsWanted />} />
       <Route path="/onlinetutorswanted" element={<OnlineTutorsWantedPlain />} />
       <Route path="/earlyinterventionreferralprogram" element={<EarlyInterventionReferralProgram />} />

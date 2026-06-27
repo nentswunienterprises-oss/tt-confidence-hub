@@ -144,6 +144,30 @@ export const routeSeoDefinitions: RouteSeoDefinition[] = [
     includeInSitemap: true,
   },
   {
+    path: "/services",
+    title: "Services | Nenterprises Specialist Ventures",
+    description:
+      "Explore Nenterprises' institutional transformation model across capability architecture, digital infrastructure, and institutional positioning.",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      name: "Nenterprises Specialist Ventures",
+      serviceType: "Institutional transformation and specialist capability delivery",
+      provider: {
+        "@type": "Organization",
+        name: "Nenterprises (Pty) Ltd",
+        url: SITE_ORIGIN,
+      },
+      areaServed: "South Africa",
+      description:
+        "Nenterprises coordinates specialist ventures across organisational capability, digital infrastructure, and institutional positioning to deliver unified transformation outcomes.",
+      url: toAbsoluteSiteUrl("/services"),
+    },
+    prerender: true,
+    injectInSpa: false,
+    includeInSitemap: true,
+  },
+  {
     path: "/operational/tutor/landing",
     title: "Become a Response Integrity Tutor | Operator Certification",
     description:

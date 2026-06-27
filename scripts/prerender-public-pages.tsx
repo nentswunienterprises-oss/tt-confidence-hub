@@ -5,6 +5,7 @@ import React from "react";
 import { renderToString } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import AboutIndex from "../client/src/pages/about/index";
+import ServicesPage from "../client/src/pages/services";
 import WhoWeAre from "../client/src/pages/about/who-we-are";
 import HowWeOperate from "../client/src/pages/about/how-we-operate";
 import HowWeTeach from "../client/src/pages/about/how-we-teach";
@@ -25,6 +26,7 @@ import {
 
 const COMPONENT_BY_PATH = {
   "/about": AboutIndex,
+  "/services": ServicesPage,
   "/about/who-we-are": WhoWeAre,
   "/about/how-we-operate": HowWeOperate,
   "/about/how-we-teach": HowWeTeach,
