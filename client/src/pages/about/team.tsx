@@ -109,11 +109,6 @@ export default function TeamPage() {
         />
 
         <div className="relative mx-auto max-w-7xl px-6 py-20">
-          <div className="w-full flex justify-center mb-8">
-            <div className="max-w-sm" style={{ transform: "scale(0.9)", transformOrigin: "center" }}>
-              <ResponseIntegrityLogo size="lg" variant="integrity" />
-            </div>
-          </div>
           <Button
             variant="ghost"
             className="rounded-full px-0 text-sm font-medium text-[#5A5A5A] hover:bg-transparent hover:text-[#1A1A1A]"
@@ -147,7 +142,7 @@ export default function TeamPage() {
 
             <div className="rounded-[2rem] border border-[#E8D7CB] bg-white/75 p-8 shadow-[0_30px_80px_rgba(26,26,26,0.08)] backdrop-blur">
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#8A4B35]">
-                Leadership
+                Leadership Seats
               </p>
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 {leadershipTeam.map((member) => (
