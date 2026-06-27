@@ -49,7 +49,7 @@ export default function AboutIndex() {
       </section>
 
       <section className="max-w-7xl mx-auto px-6 pb-24">
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
           {[
             {
               title: "Who We Are",
@@ -71,11 +71,6 @@ export default function AboutIndex() {
               description: "Get to know the leadership team guiding Response Integrity across marketing, people, operations, and technology.",
               href: "/about/team",
             },
-            {
-              title: "Services",
-              description: "Explore the specialist venture model across capability design, digital infrastructure, and institutional positioning.",
-              href: "/services",
-            },
           ].map((item) => (
             <Card key={item.title} className="rounded-2xl border border-slate-200 bg-[#F7F0EA] shadow-sm">
               <CardContent className="p-8">
@@ -88,11 +83,7 @@ export default function AboutIndex() {
                   className="mt-8 w-full rounded-full border-[#1A1A1A] text-[#1A1A1A] bg-[#FCF6F2]"
                   onClick={() => navigate(item.href)}
                 >
-                  {item.title === "Meet the Team"
-                    ? "View the Team"
-                    : item.title === "Services"
-                      ? "Explore Services"
-                      : `Read ${item.title}`}
+                  {item.title === "Meet the Team" ? "View the Team" : `Read ${item.title}`}
                 </Button>
               </CardContent>
             </Card>

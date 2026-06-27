@@ -52,9 +52,6 @@ function PortalLanding() {
   const aboutUrl = buildTrackedPath("/about", location.search, {
     returnTo: landingReturnTo,
   });
-  const servicesUrl = buildTrackedPath("/services", location.search, {
-    returnTo: landingReturnTo,
-  });
 
   const wallpaperSvg = "";
   const svgEncoded = encodeURIComponent(wallpaperSvg);
@@ -377,9 +374,6 @@ function PortalLanding() {
                 </a>
                 <a href={aboutUrl} className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
                   More About Us
-                </a>
-                <a href={servicesUrl} className="text-xs sm:text-sm block hover:underline" style={{ color: "#5A5A5A" }}>
-                  Services
                 </a>
               </div>
             </div>
