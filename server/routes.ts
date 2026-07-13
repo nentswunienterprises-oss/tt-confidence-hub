@@ -5157,9 +5157,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
 
               if (!scheduledSession) {
-                if (operationalMode === "training") {
-                  diagnosisSessionKind = "training";
-                } else {
+                if (operationalMode !== "training") {
                   const { session: resolvedIntroSession, error: scheduledSessionError } = await resolveTutorScheduledSession(
                     tutorId,
                     studentId,
@@ -20968,13 +20966,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           parsed = null;
         }
         const isDiagnosis = (parsed?.drillType || "diagnosis") === "diagnosis";
+        const resolvedScheduledSessionId = String(
+          row.scheduled_session_id || parsed?.scheduledSessionId || ""
+        ).trim();
         const scheduledSessionMatch =
-          String(row.scheduled_session_id || parsed?.scheduledSessionId || "").trim() === String(confirmedIntroSession.id);
+          resolvedScheduledSessionId === String(confirmedIntroSession.id);
         const sessionContextKind = String(parsed?.sessionContextKind || "intro").trim().toLowerCase();
         const isAcceptedProposalContext = sessionContextKind === "intro";
         const explicitDrillMatch = introDrillId && String(row.id) === String(introDrillId);
+        const isLegacyDirectIntroContext =
+          sessionContextKind === "training" &&
+          !resolvedScheduledSessionId &&
+          (
+            explicitDrillMatch ||
+            String((workflow as any)?.introCompletedAt || "").trim().length > 0
+          );
 
-        if (isDiagnosis && isAcceptedProposalContext && explicitDrillMatch) {
+        if (isDiagnosis && (isAcceptedProposalContext || isLegacyDirectIntroContext) && explicitDrillMatch) {
           latestIntroDrill = row;
           parsedIntro = parsed;
           break;
@@ -20983,14 +20991,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (
           isDiagnosis &&
           scheduledSessionMatch &&
-          isAcceptedProposalContext
+          (isAcceptedProposalContext || isLegacyDirectIntroContext)
         ) {
           latestIntroDrill = row;
           parsedIntro = parsed;
           break;
         }
 
-        if (!fallbackIntroDiagnosis && isDiagnosis && isAcceptedProposalContext) {
+        if (!fallbackIntroDiagnosis && isDiagnosis && (isAcceptedProposalContext || isLegacyDirectIntroContext)) {
           fallbackIntroDiagnosis = row;
           fallbackParsedIntro = parsed;
         }
