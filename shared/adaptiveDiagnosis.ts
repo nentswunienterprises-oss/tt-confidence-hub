@@ -57,6 +57,9 @@ const resolveObservationLevel = (repObs: Record<string, string>, aliases: string
   for (const alias of aliases) {
     const explicitLevel = String(repObs?.[`${alias}_level`] || "").trim();
     if (explicitLevel) return normalizeObservationLevelValue(explicitLevel);
+
+    const rawValue = String(repObs?.[alias] || "").trim();
+    if (rawValue) return normalizeObservationLevelValue(rawValue);
   }
   return normalizeObservationLevelValue("");
 };

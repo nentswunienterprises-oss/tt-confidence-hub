@@ -60,6 +60,33 @@ test("adaptive diagnosis places on middle-band scores", () => {
   assert.equal(summary.stability, "Medium");
 });
 
+test("adaptive diagnosis accepts raw observation labels when explicit *_level fields are absent", () => {
+  const summary = computeAdaptiveDiagnosisPhaseSummary("Structured Execution", [
+    {
+      startBehavior: "Starts after a short pause",
+      stepExecution: "Partially structured steps",
+      repeatability: "Mostly repeated with a missed step",
+      independence: "Needed occasional support",
+    },
+    {
+      startBehavior: "Starts independently",
+      stepExecution: "Fully structured steps",
+      repeatability: "Fully repeatable",
+      independence: "Independent throughout",
+    },
+    {
+      startBehavior: "Starts after a short pause",
+      stepExecution: "Partially structured steps",
+      repeatability: "Mostly repeated with a missed step",
+      independence: "Needed occasional support",
+    },
+  ]);
+
+  assert.equal(summary.phaseScore, 73);
+  assert.equal(summary.band, "place");
+  assert.equal(summary.stability, "Medium");
+});
+
 test("adaptive diagnosis escalates on high scores", () => {
   const summary = computeAdaptiveDiagnosisPhaseSummary("Controlled Discomfort", [
     {

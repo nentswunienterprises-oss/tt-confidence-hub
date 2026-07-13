@@ -843,7 +843,11 @@ function serializeDemoSetObservations(
     const fields = getObservationBlockForRep(setConfig, repIndex);
     const repObs: Record<string, string> = {};
     fields.forEach((field) => {
-      repObs[field.key] = observations[observationKey(setIndex, repIndex, field.key)] || "";
+      const selectedLabel = observations[observationKey(setIndex, repIndex, field.key)] || "";
+      const optionIndex = field.options.findIndex((option) => option === selectedLabel);
+      const selectedLevel = observationLevelForField(field, optionIndex, selectedLabel);
+      repObs[field.key] = selectedLabel;
+      repObs[`${field.key}_level`] = selectedLevel;
     });
     return repObs;
   });
