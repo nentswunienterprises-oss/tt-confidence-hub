@@ -172,7 +172,7 @@ function getTutorBattleTestHealthState(score: number | null): TutorBattleTestDee
   return "drift";
 }
 
-function buildTutorDeepDiveProgress(phaseScores: BattleTestPhaseScore[], runs: BattleTestRunRow[]): TutorBattleTestDeepDiveProgress[] {
+export function buildTutorDeepDiveProgress(phaseScores: BattleTestPhaseScore[], runs: BattleTestRunRow[]): TutorBattleTestDeepDiveProgress[] {
   const progressByPhaseKey = new Map<string, TutorBattleTestDeepDiveProgress>();
   const phaseTitleByKey = new Map(phaseScores.map((phase) => [phase.phaseKey, phase.title] as const));
 
@@ -215,9 +215,8 @@ function buildTutorDeepDiveProgress(phaseScores: BattleTestPhaseScore[], runs: B
           )
         : false;
       entry.currentHealthState = criticalReasonMatch ? "drift" : getTutorBattleTestHealthState(entry.latestScore);
-      if (run.has_critical_fail) {
-        if (criticalReasonMatch) entry.criticalFlag = true;
-      }
+      // Only the most recent attempt for a phase should decide whether a critical fail is still active.
+      entry.criticalFlag = criticalReasonMatch;
 
       const nextStreak =
         phase.percent >= 96 && !criticalReasonMatch ? (consecutiveByPhase.get(phase.phaseKey) || 0) + 1 : 0;
@@ -814,6 +813,47 @@ function chooseMoreCompleteModuleProgress(
   return computedWins ? computedModuleProgress : persistedModuleProgress;
 }
 
+export function choosePreferredDeepDiveProgress(
+  computedDeepDiveProgress: TutorBattleTestDeepDiveProgress[],
+  persistedDeepDiveProgress: TutorBattleTestDeepDiveProgress[]
+): TutorBattleTestDeepDiveProgress[] {
+  if (!persistedDeepDiveProgress.length) {
+    return computedDeepDiveProgress;
+  }
+
+  const computedAttempts = computedDeepDiveProgress.reduce((sum, entry) => sum + entry.attemptsCount, 0);
+  const persistedAttempts = persistedDeepDiveProgress.reduce((sum, entry) => sum + entry.attemptsCount, 0);
+
+  if (computedAttempts === 0) {
+    return persistedDeepDiveProgress;
+  }
+
+  if (persistedAttempts === 0) {
+    return computedDeepDiveProgress;
+  }
+
+  const getLatestTestedAt = (progress: TutorBattleTestDeepDiveProgress[]) =>
+    progress.reduce<number | null>((latest, entry) => {
+      if (!entry.lastTestedAt) return latest;
+      const timestamp = new Date(entry.lastTestedAt).getTime();
+      if (Number.isNaN(timestamp)) return latest;
+      return latest == null ? timestamp : Math.max(latest, timestamp);
+    }, null);
+
+  const computedLatest = getLatestTestedAt(computedDeepDiveProgress);
+  const persistedLatest = getLatestTestedAt(persistedDeepDiveProgress);
+
+  if (computedLatest != null && persistedLatest != null && computedLatest !== persistedLatest) {
+    return computedLatest > persistedLatest ? computedDeepDiveProgress : persistedDeepDiveProgress;
+  }
+
+  if (computedAttempts !== persistedAttempts) {
+    return computedAttempts > persistedAttempts ? computedDeepDiveProgress : persistedDeepDiveProgress;
+  }
+
+  return computedDeepDiveProgress;
+}
+
 function deriveTutorTrainingMode(
   moduleProgress: TutorBattleTestModuleProgress[],
   deepDiveProgress: TutorBattleTestDeepDiveProgress[],
@@ -1316,20 +1356,21 @@ export async function buildPodBattleTestingSummary(
       Array.from(latestPhaseRunMap.values());
     const deepDiveProgress = buildTutorDeepDiveProgress(phaseScores, contributingRuns);
     const moduleProgress = buildTutorModuleProgress(deepDiveProgress);
-    const derivedHasCriticalFail = contributingRuns.some((run) => run.has_critical_fail);
     const derivedLastAuditAt = contributingRuns.length
       ? contributingRuns
           .map((run) => new Date(run.completed_at).getTime())
           .reduce((latest, current) => Math.max(latest, current), 0)
       : null;
-    const derivedSummary = deriveTutorSummaryFromPhaseScores(phaseScores, derivedHasCriticalFail);
     const persistedStatus = statusByAssignmentId.get(meta.assignmentId);
+    const persistedDeepDiveProgress = deepDiveProgressByAssignmentId.get(meta.assignmentId) || [];
+    const effectiveDeepDiveProgress = choosePreferredDeepDiveProgress(deepDiveProgress, persistedDeepDiveProgress);
+    const derivedHasCriticalFail = effectiveDeepDiveProgress.some((entry) => entry.criticalFlag);
+    const derivedSummary = deriveTutorSummaryFromPhaseScores(phaseScores, derivedHasCriticalFail);
     const persistedModuleProgress = persistedStatus?.module_progress;
     const effectiveModuleProgress =
       Array.isArray(persistedModuleProgress) && persistedModuleProgress.length > 0
         ? chooseMoreCompleteModuleProgress(moduleProgress, persistedModuleProgress)
         : moduleProgress;
-    const effectiveDeepDiveProgress = deepDiveProgressByAssignmentId.get(meta.assignmentId) || deepDiveProgress;
     const effectiveState = deriveTutorAuditStateFromProgress(
       effectiveDeepDiveProgress,
       derivedSummary.state || latestRun?.state || null

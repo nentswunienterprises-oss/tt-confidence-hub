@@ -1,7 +1,12 @@
 import "dotenv/config";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { hasCompleteTutorDocumentation, reconcileTutorTrainingMode } from "./battleTesting";
+import {
+  buildTutorDeepDiveProgress,
+  choosePreferredDeepDiveProgress,
+  hasCompleteTutorDocumentation,
+  reconcileTutorTrainingMode,
+} from "./battleTesting";
 import type { TutorBattleTestDeepDiveProgress, TutorBattleTestModuleProgress } from "@shared/battleTesting";
 
 test("reconcileTutorTrainingMode keeps applicant when documentation is incomplete", () => {
@@ -88,4 +93,106 @@ test("hasCompleteTutorDocumentation accepts legacy records that only stored appr
     }),
     true
   );
+});
+
+test("buildTutorDeepDiveProgress clears a resolved critical fail after later clean passes", () => {
+  const runs = [
+    {
+      completed_at: "2026-07-12T15:29:12.812Z",
+      has_critical_fail: true,
+      critical_fail_reasons: ["Clarity Deep Dive: broke the recognition rule"],
+      phase_scores: [
+        {
+          phaseKey: "clarity",
+          title: "Clarity Deep Dive",
+          percent: 80,
+        },
+      ],
+    },
+    {
+      completed_at: "2026-07-13T09:03:49.059Z",
+      has_critical_fail: false,
+      critical_fail_reasons: [],
+      phase_scores: [
+        {
+          phaseKey: "clarity",
+          title: "Clarity Deep Dive",
+          percent: 100,
+        },
+      ],
+    },
+    {
+      completed_at: "2026-07-13T09:06:19.806Z",
+      has_critical_fail: false,
+      critical_fail_reasons: [],
+      phase_scores: [
+        {
+          phaseKey: "clarity",
+          title: "Clarity Deep Dive",
+          percent: 100,
+        },
+      ],
+    },
+    {
+      completed_at: "2026-07-13T09:07:56.688Z",
+      has_critical_fail: false,
+      critical_fail_reasons: [],
+      phase_scores: [
+        {
+          phaseKey: "clarity",
+          title: "Clarity Deep Dive",
+          percent: 100,
+        },
+      ],
+    },
+  ] as any[];
+
+  const progress = buildTutorDeepDiveProgress(
+    [
+      {
+        phaseKey: "clarity",
+        title: "Clarity Deep Dive",
+        pointsEarned: 15,
+        pointsPossible: 15,
+        percent: 100,
+        state: "locked",
+      },
+    ],
+    runs as any
+  );
+
+  const clarity = progress.find((entry) => entry.phaseKey === "clarity");
+  assert.ok(clarity);
+  assert.equal(clarity.criticalFlag, false);
+  assert.equal(clarity.currentStreak, 3);
+  assert.equal(clarity.historicalState, "completed");
+});
+
+test("choosePreferredDeepDiveProgress favors recomputed progress when persisted data is stale", () => {
+  const computed: TutorBattleTestDeepDiveProgress[] = [
+    {
+      phaseKey: "clarity",
+      title: "Clarity Deep Dive",
+      moduleKey: "transformation_phases",
+      moduleTitle: "Transformation Phases",
+      historicalState: "completed",
+      currentHealthState: "locked",
+      currentStreak: 3,
+      consecutiveDriftCount: 0,
+      latestScore: 100,
+      completedAt: "2026-07-13T09:03:49.059Z",
+      lastTestedAt: "2026-07-13T09:07:56.688Z",
+      attemptsCount: 4,
+      criticalFlag: false,
+    },
+  ];
+
+  const persisted: TutorBattleTestDeepDiveProgress[] = [
+    {
+      ...computed[0],
+      criticalFlag: true,
+    },
+  ];
+
+  assert.deepEqual(choosePreferredDeepDiveProgress(computed, persisted), computed);
 });
