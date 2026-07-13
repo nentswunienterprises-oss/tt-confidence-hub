@@ -2052,6 +2052,8 @@ export class SupabaseStorage implements IStorage {
     }
 
     const isAcceptanceOnlyStep = hasAcceptanceOnlyStep(input.documentStep);
+    const documentFields = getSequentialTutorDocumentFields(input.documentStep);
+    const acceptanceRecordedAt = new Date();
     documentsStatus[input.documentStep.toString()] = isAcceptanceOnlyStep ? "approved" : "pending_upload";
     if (isAcceptanceOnlyStep && input.documentStep < 6) {
       const nextStep = (input.documentStep + 1).toString();
@@ -2064,8 +2066,15 @@ export class SupabaseStorage implements IStorage {
       documents_status: documentsStatus,
       document_submission_step:
         isAcceptanceOnlyStep && input.documentStep < 6 ? input.documentStep + 1 : input.documentStep,
-      updated_at: new Date(),
+      updated_at: acceptanceRecordedAt,
     };
+
+    if (isAcceptanceOnlyStep) {
+      updateData[documentFields.verified] = true;
+      updateData[documentFields.verifiedBy] = input.userId;
+      updateData[documentFields.verifiedAt] = acceptanceRecordedAt;
+      updateData[documentFields.rejectionReason] = null;
+    }
 
     const acceptedIdType = String(input.formSnapshotJson?.idType ?? "")
       .trim()
@@ -2074,13 +2083,7 @@ export class SupabaseStorage implements IStorage {
       updateData.id_type = acceptedIdType;
     }
 
-    const rejectionField =
-      input.documentStep === 1 ? "doc_1_submission_rejection_reason" :
-      input.documentStep === 2 ? "doc_2_submission_rejection_reason" :
-      input.documentStep === 3 ? "doc_3_submission_rejection_reason" :
-      input.documentStep === 4 ? "doc_4_submission_rejection_reason" :
-      "doc_5_submission_rejection_reason";
-    updateData[rejectionField] = null;
+    updateData[documentFields.rejectionReason] = null;
 
     const { data: updatedApplication, error: updateError } = await supabase
       .from("tutor_applications")

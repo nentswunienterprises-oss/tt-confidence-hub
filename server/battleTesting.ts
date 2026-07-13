@@ -297,8 +297,17 @@ function mapPersistedDeepDiveProgressRows(rows: any[]): TutorBattleTestDeepDiveP
     );
 }
 
-function hasCompleteTutorDocumentation(row: any): boolean {
-  return !!(
+function hasAllApprovedTutorDocumentStatuses(rawStatuses: unknown): boolean {
+  if (!rawStatuses || typeof rawStatuses !== "object") return false;
+
+  const statuses = rawStatuses as Record<string, unknown>;
+  return ["1", "2", "3", "4", "5", "6"].every(
+    (step) => String(statuses[step] || "").trim().toLowerCase() === "approved"
+  );
+}
+
+export function hasCompleteTutorDocumentation(row: any): boolean {
+  const hasVerifiedFlags = !!(
     row?.doc_1_submission_verified &&
     row?.doc_2_submission_verified &&
     row?.doc_3_submission_verified &&
@@ -306,6 +315,12 @@ function hasCompleteTutorDocumentation(row: any): boolean {
     row?.doc_5_submission_verified &&
     row?.doc_6_submission_verified
   );
+
+  if (hasVerifiedFlags) {
+    return true;
+  }
+
+  return hasAllApprovedTutorDocumentStatuses(row?.documents_status || row?.documentsStatus);
 }
 
 function isLegacyApplicantModePersistenceError(error: { message?: string } | null | undefined) {
@@ -321,16 +336,15 @@ function isLegacyApplicantModePersistenceError(error: { message?: string } | nul
 async function checkTutorDocumentationComplete(tutorId: string): Promise<boolean> {
   const { data, error } = await supabase
     .from("tutor_applications")
-    .select("doc_1_submission_verified, doc_2_submission_verified, doc_3_submission_verified, doc_4_submission_verified, doc_5_submission_verified, doc_6_submission_verified")
-    .eq("user_id", tutorId)
-    .single();
+    .select("doc_1_submission_verified, doc_2_submission_verified, doc_3_submission_verified, doc_4_submission_verified, doc_5_submission_verified, doc_6_submission_verified, documents_status")
+    .eq("user_id", tutorId);
 
-  if (error || !data) {
+  if (error || !data?.length) {
     return false;
   }
 
-  // All 6 documents must be verified to move past applicant mode
-  return hasCompleteTutorDocumentation(data);
+  // Any completed tutor application should unlock applicant mode.
+  return data.some((row) => hasCompleteTutorDocumentation(row));
 }
 
 async function loadTutorDocumentationCompleteMap(tutorIds: string[]) {
@@ -348,7 +362,7 @@ async function loadTutorDocumentationCompleteMap(tutorIds: string[]) {
   const { data, error } = await supabase
     .from("tutor_applications")
     .select(
-      "user_id, doc_1_submission_verified, doc_2_submission_verified, doc_3_submission_verified, doc_4_submission_verified, doc_5_submission_verified, doc_6_submission_verified"
+      "user_id, doc_1_submission_verified, doc_2_submission_verified, doc_3_submission_verified, doc_4_submission_verified, doc_5_submission_verified, doc_6_submission_verified, documents_status"
     )
     .in("user_id", uniqueTutorIds);
 
@@ -359,7 +373,8 @@ async function loadTutorDocumentationCompleteMap(tutorIds: string[]) {
   for (const row of data) {
     const tutorId = String((row as any).user_id || "");
     if (!tutorId) continue;
-    completionMap.set(tutorId, hasCompleteTutorDocumentation(row));
+    const currentValue = completionMap.get(tutorId) ?? false;
+    completionMap.set(tutorId, currentValue || hasCompleteTutorDocumentation(row));
   }
 
   return completionMap;

@@ -421,7 +421,36 @@ async function getTutorCertificationMode(tutorId: string): Promise<TutorTraining
     .maybeSingle();
 
   if (certificationStatus?.mode) {
-    return normalizeTutorTrainingMode(certificationStatus.mode as TutorTrainingMode);
+    const persistedMode = normalizeTutorTrainingMode(certificationStatus.mode as TutorTrainingMode);
+    if (persistedMode !== "watchlist" && persistedMode !== "training" && persistedMode !== "applicant") {
+      return persistedMode;
+    }
+
+    try {
+      const tutor = await storage.getUser(tutorId);
+      const students = await storage.getStudentsByTutor(tutorId);
+      const summary = await buildPodBattleTestingSummary(
+        assignment.podId,
+        [
+          {
+            assignmentId: assignment.id,
+            tutorId,
+            tutorName: tutor?.name || tutor?.firstName || "Unknown Tutor",
+            tutorEmail: tutor?.email || "",
+            studentCount: students.length,
+          },
+        ],
+        null
+      );
+      const reconciledMode = summary.tutorSummaries.find((entry) => entry.assignmentId === assignment.id)?.mode;
+      if (reconciledMode) {
+        return reconciledMode;
+      }
+    } catch (error) {
+      console.error("Failed to reconcile tutor certification mode:", error);
+    }
+
+    return persistedMode;
   }
 
   const { data: portableSnapshot } = await supabase
