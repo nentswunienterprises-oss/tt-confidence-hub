@@ -1291,6 +1291,7 @@ function IntroDiagnosticTopicSection({
   recommendedStartingReason,
   secondarySignal,
 }) {
+  const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [diagnosticTopic, setDiagnosticTopic] = useState("");
   const [activationError, setActivationError] = useState("");
