@@ -1258,6 +1258,66 @@ function extractReassignmentResumeStatus(currentStep: string | null | undefined)
   return restored || null;
 }
 
+async function promoteAcceptedEnrollmentIfNeeded(student: any, tutorId: string) {
+  const workflow = ((student?.personalProfile as any) || {}).workflow || {};
+  if (!workflow.assignmentAcceptedAt) {
+    return null;
+  }
+
+  const enrollmentId = String(
+    (student as any)?.parentEnrollmentId || (student as any)?.parent_enrollment_id || ""
+  ).trim();
+  if (!enrollmentId) {
+    return null;
+  }
+
+  const { data: enrollment, error: enrollmentError } = await supabase
+    .from("parent_enrollments")
+    .select("id, assigned_tutor_id, status, current_step")
+    .eq("id", enrollmentId)
+    .maybeSingle();
+
+  if (enrollmentError || !enrollment) {
+    return null;
+  }
+
+  if (String(enrollment.assigned_tutor_id || "").trim() !== String(tutorId || "").trim()) {
+    return enrollment;
+  }
+
+  const normalizedStatus = String(enrollment.status || "").trim().toLowerCase();
+  const normalizedStep = String(enrollment.current_step || "").trim().toLowerCase();
+  if (normalizedStatus !== "awaiting_tutor_acceptance" && normalizedStep !== "awaiting_tutor_acceptance") {
+    return enrollment;
+  }
+
+  const resumedStatus = extractReassignmentResumeStatus(enrollment.current_step) || null;
+  const nextEnrollmentStatus = resumedStatus || "assigned";
+  const nextCurrentStep =
+    resumedStatus && resumedStatus !== "assigned"
+      ? "handover_not_scheduled"
+      : nextEnrollmentStatus;
+
+  const { data: updatedEnrollment, error: updateError } = await supabase
+    .from("parent_enrollments")
+    .update({
+      assigned_tutor_id: tutorId,
+      status: nextEnrollmentStatus,
+      current_step: nextCurrentStep,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", enrollmentId)
+    .select("*")
+    .maybeSingle();
+
+  if (updateError) {
+    console.error("Failed to promote accepted enrollment:", enrollmentId, updateError);
+    return enrollment;
+  }
+
+  return updatedEnrollment || enrollment;
+}
+
 function isHandoverStep(currentStep: string | null | undefined): boolean {
   return String(currentStep || "").trim().toLowerCase().startsWith(HANDOVER_STEP_PREFIX);
 }
@@ -4573,13 +4633,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const isTutorAssignmentAcceptedForStudent = async (student: any, tutorId: string) => {
             let enrollmentForStudent: { status: string } | null = null;
 
-            const { data: enrollmentByStudent } = await supabase
-              .from("parent_enrollments")
-              .select("status")
-              .eq("assigned_tutor_id", tutorId)
-              .eq("assigned_student_id", student.id)
-              .maybeSingle();
-            enrollmentForStudent = enrollmentByStudent;
+            const explicitEnrollmentId = String(
+              (student as any)?.parentEnrollmentId || (student as any)?.parent_enrollment_id || ""
+            ).trim();
+            if (explicitEnrollmentId) {
+              const { data: enrollmentById } = await supabase
+                .from("parent_enrollments")
+                .select("status")
+                .eq("assigned_tutor_id", tutorId)
+                .eq("id", explicitEnrollmentId)
+                .maybeSingle();
+              enrollmentForStudent = enrollmentById;
+            }
 
             if (!enrollmentForStudent) {
               const parentId = (student as any)?.parentId || (student as any)?.parent_id || null;
@@ -12202,6 +12267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "intro"
         );
 
+        await promoteAcceptedEnrollmentIfNeeded(student, dbUser.id);
 
         let { data: latestProposal } = await supabase
           .from("onboarding_proposals")
@@ -12212,13 +12278,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .maybeSingle();
 
         let enrollmentForStudent: { status: string } | null = null;
-        const { data: enrollmentByStudent } = await supabase
-          .from("parent_enrollments")
-          .select("status")
-          .eq("assigned_tutor_id", dbUser.id)
-          .eq("assigned_student_id", studentId)
-          .maybeSingle();
-        enrollmentForStudent = enrollmentByStudent;
+        const explicitEnrollmentId = String(
+          (student as any).parentEnrollmentId || (student as any).parent_enrollment_id || ""
+        ).trim();
+        if (explicitEnrollmentId) {
+          const { data: enrollmentById } = await supabase
+            .from("parent_enrollments")
+            .select("status")
+            .eq("assigned_tutor_id", dbUser.id)
+            .eq("id", explicitEnrollmentId)
+            .maybeSingle();
+          enrollmentForStudent = enrollmentById;
+        }
 
         if (!enrollmentForStudent) {
           const parentId = (student as any).parentId || null;
@@ -12434,7 +12505,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (requestedEnrollmentId) {
             const { data } = await supabase
               .from("parent_enrollments")
-              .select("id, user_id, status, current_step, proposal_id, assigned_student_id, assigned_tutor_id, parent_email, student_full_name, is_sandbox_account")
+              .select("id, user_id, status, current_step, proposal_id, assigned_tutor_id, parent_email, student_full_name, is_sandbox_account")
               .eq("id", requestedEnrollmentId)
               .maybeSingle();
             const matchesStudentContext =
@@ -12452,7 +12523,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (!parentEnrollment && explicitEnrollmentId) {
             const { data } = await supabase
               .from("parent_enrollments")
-              .select("id, user_id, status, current_step, proposal_id, assigned_student_id, assigned_tutor_id")
+              .select("id, user_id, status, current_step, proposal_id, assigned_tutor_id")
               .eq("id", explicitEnrollmentId)
               .maybeSingle();
             parentEnrollment =
@@ -12464,12 +12535,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 : null;
           }
 
-          if (!parentEnrollment && studentId) {
+          if (!parentEnrollment && explicitEnrollmentId) {
             const { data } = await supabase
               .from("parent_enrollments")
-              .select("id, user_id, status, current_step, proposal_id, assigned_student_id")
+              .select("id, user_id, status, current_step, proposal_id, parent_email, student_full_name")
               .eq("assigned_tutor_id", dbUser.id)
-              .eq("assigned_student_id", studentId)
+              .eq("id", explicitEnrollmentId)
               .maybeSingle();
             parentEnrollment = data;
           }
@@ -12477,7 +12548,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (!parentEnrollment) {
             let compositeLookup = supabase
               .from("parent_enrollments")
-              .select("id, user_id, status, current_step, proposal_id, assigned_student_id, parent_email, student_full_name")
+              .select("id, user_id, status, current_step, proposal_id, parent_email, student_full_name")
               .eq("assigned_tutor_id", dbUser.id)
               .order("updated_at", { ascending: false })
               .limit(10);
@@ -12513,7 +12584,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (!parentEnrollment && normalizedParentEmail) {
             const { data } = await supabase
                 .from("parent_enrollments")
-                .select("id, user_id, status, current_step, proposal_id, assigned_student_id")
+                .select("id, user_id, status, current_step, proposal_id, parent_email, student_full_name")
                 .eq("assigned_tutor_id", dbUser.id)
                 .eq("parent_email", normalizedParentEmail)
                 .order("updated_at", { ascending: false })
@@ -12530,7 +12601,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (!parentEnrollment && normalizedStudentName) {
             const { data } = await supabase
               .from("parent_enrollments")
-              .select("id, user_id, status, current_step, proposal_id, assigned_student_id")
+              .select("id, user_id, status, current_step, proposal_id, parent_email, student_full_name")
               .eq("assigned_tutor_id", dbUser.id)
               .eq("student_full_name", normalizedStudentName)
               .order("updated_at", { ascending: false })
@@ -12611,16 +12682,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 ? "handover_not_scheduled"
                 : nextEnrollmentStatus;
 
-            await supabase
+            const { error: enrollmentUpdateError } = await supabase
               .from("parent_enrollments")
               .update({
                 assigned_tutor_id: dbUser.id,
                 status: nextEnrollmentStatus,
                 current_step: nextCurrentStep,
-                assigned_student_id: studentId,
                 updated_at: new Date().toISOString(),
               })
               .eq("id", parentEnrollment.id);
+
+            if (enrollmentUpdateError) {
+              console.error("Failed to update accepted enrollment:", parentEnrollment.id, enrollmentUpdateError);
+              return res.status(500).json({
+                message: "Assignment acceptance saved on the student, but the enrollment state could not be advanced.",
+              });
+            }
 
             await safeSendPush(
               parentEnrollment.user_id,
