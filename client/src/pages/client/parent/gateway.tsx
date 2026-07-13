@@ -1736,6 +1736,7 @@ export default function ParentGateway() {
                       return (
                         <ProposalView 
                           proposal={proposal} 
+                          forceDiagnosisView={true}
                           showActions={true}
                           onAccept={handleAcceptProposal}
                           onDecline={handleDeclineProposal}
