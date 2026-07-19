@@ -11,6 +11,83 @@ import { buildTrackedPath, buildTrackedReturnTo } from "@/lib/publicTracking";
 import { ArrowRight, Check, Instagram } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+const whyWeExistResponsePatterns = [
+  "Some freeze.",
+  "Some rush.",
+  "Some guess.",
+  "Some avoid difficult questions.",
+  "Some leave blanks.",
+  "Some understand slowly, but lose structure under pressure.",
+];
+
+const responseIntegrityDifferentiators = [
+  {
+    label: "Attention",
+    title: "Individual Attention At The Learner's Pace",
+    paragraphs: [
+      "In class, a learner can easily get hidden inside the speed of the group.",
+      "With Response Integrity, the learner gets direct attention on how they think, where they pause, where they rush, where they lose structure, and what needs to be repeated.",
+      "The session moves according to the learner's actual response state, not the pace of the classroom.",
+    ],
+  },
+  {
+    label: "Safety",
+    title: "A Safe Space To Make Mistakes",
+    paragraphs: [
+      "Many learners are afraid to ask questions in class because they do not want to look slow, be laughed at, or feel embarrassed.",
+      "But learning requires mistakes.",
+      "Response Integrity creates a private, judgment-free space where mistakes become training data, not shame.",
+      "The learner can ask, try, fail, repeat, and grow without classroom social pressure.",
+    ],
+  },
+  {
+    label: "Observation",
+    title: "Good Pressure Through Observation",
+    paragraphs: [
+      "When a learner practises alone, it is easy to skip hard questions, leave blanks, avoid discomfort, or only practise what feels familiar.",
+      "With a Response Integrity Operator watching each rep, the learner cannot hide from the work.",
+      "The Operator sees where the learner freezes, rushes, guesses, skips steps, avoids difficulty, or loses structure.",
+      "That creates good pressure.",
+      "Not shame.",
+      "Not panic.",
+      "Good pressure means the learner is observed closely enough for their real response pattern to become visible and trainable.",
+    ],
+  },
+  {
+    label: "Execution",
+    title: "Execution Under Difficulty",
+    paragraphs: [
+      "Response Integrity is not only about helping learners understand mathematics.",
+      "It trains them to stay calm, structured, and operational when mathematics becomes difficult.",
+      "The goal is not blind speed.",
+      "The goal is stable execution.",
+      "We train learners to keep thinking, keep attempting, and keep structure when pressure rises.",
+    ],
+  },
+  {
+    label: "Preparation",
+    title: "Preparation Before Pressure",
+    paragraphs: [
+      "Most academic support begins too late - when the test is close, the marks have dropped, or the parent is already worried.",
+      "Response Integrity prepares the learner before pressure arrives.",
+      "Through rhythm, repetition, exposure, correction, and structured practice, learners build confidence through evidence.",
+      "They do not just hope they will cope in the exam.",
+      "They train their response before the exam.",
+    ],
+  },
+  {
+    label: "System",
+    title: "A System-Led Method",
+    paragraphs: [
+      "Ordinary tutoring often depends on the tutor's personality, mood, teaching style, or natural ability.",
+      "Response Integrity is different.",
+      "Our Operators work through a structured operating model based on the learner's topic, phase, and stability level.",
+      "That means each session is not random.",
+      "The learner receives the type of support, challenge, observation, and correction required for where they are in their development.",
+    ],
+  },
+];
+
 function PortalLanding() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -178,6 +255,152 @@ function PortalLanding() {
               <p className="mt-4 text-sm sm:text-base leading-7" style={{ color: "#5A5A5A" }}>
                 Families enter through a defined intake and continue on a cadence that prepares response ahead of pressure.
               </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="pb-12 sm:pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
+          <div className="relative overflow-hidden rounded-[38px] border border-[#2F2621] bg-[#1A1412] shadow-[0_24px_70px_rgba(26,20,18,0.18)]">
+            <div className="absolute inset-0 opacity-100">
+              <div className="absolute -top-16 right-0 h-44 w-44 rounded-full bg-[#E63946]/18 blur-3xl" />
+              <div className="absolute bottom-0 left-0 h-52 w-52 rounded-full bg-[#F6C1A9]/14 blur-3xl" />
+            </div>
+
+            <div className="relative p-6 sm:p-8 md:p-10 lg:p-12">
+              <div className="grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)] lg:items-start">
+                <div className="space-y-6">
+                  <div className="max-w-3xl">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em]" style={{ color: "#F3B39D" }}>
+                      Why We Exist
+                    </p>
+                    <h2 className="mt-3 text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight" style={{ color: "#FFF7F1" }}>
+                      Response training for the gap between understanding and execution.
+                    </h2>
+                  </div>
+
+                  <div className="max-w-2xl space-y-5 text-sm sm:text-base leading-7" style={{ color: "#D9C8BD" }}>
+                    <p>Most students do not only struggle because they "do not understand."</p>
+                    <p>Many students know more than they can show when mathematics becomes difficult, unfamiliar, timed, or uncomfortable.</p>
+                    <p className="text-base sm:text-lg font-semibold leading-8" style={{ color: "#FFF7F1" }}>
+                      That is the gap Response Integrity exists to train.
+                    </p>
+                    <p>
+                      The classroom is built to move the group forward. A teacher may care deeply, but one teacher cannot condition 30 individual learner
+                      responses at once. They must continue the curriculum, manage the class, and keep the group progressing.
+                    </p>
+                    <p>But every child has their own response pattern.</p>
+                  </div>
+
+                  <div className="rounded-[28px] border border-[#59433A] bg-[#241B18] p-5 sm:p-6 shadow-sm">
+                    <p className="text-sm sm:text-base leading-7" style={{ color: "#F3DDD1" }}>
+                      Response Integrity gives the learner a private, one-on-one online training environment where their individual response can be observed,
+                      corrected, repeated, and strengthened.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:gap-5">
+                  <Card className="rounded-[28px] border-[#E5C6B6] bg-[#FFF4EC] p-5 sm:p-6 md:p-7 shadow-none">
+                    <div className="space-y-4">
+                      <div className="inline-flex rounded-full border border-[#E9CFC2] bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: "#A04736" }}>
+                        Response Patterns
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-bold" style={{ color: "#1A1A1A" }}>
+                        Common learner reactions under difficulty
+                      </h3>
+                      <div className="grid gap-3">
+                        {whyWeExistResponsePatterns.map((item) => (
+                          <div key={item} className="flex gap-3 sm:gap-4 rounded-2xl border border-[#ECD9CE] bg-white/90 px-4 py-3">
+                            <div className="mt-0.5 h-7 w-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "#FFF0F0" }}>
+                              <Check className="w-3.5 h-3.5" style={{ color: "#E63946" }} />
+                            </div>
+                            <p className="text-sm sm:text-base leading-6" style={{ color: "#4E4E4E" }}>
+                              {item}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </Card>
+
+                  <Card className="rounded-[28px] border-[#44201F] bg-[#A8323B] p-5 sm:p-6 md:p-7 shadow-none">
+                    <div className="space-y-4">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: "#FFD8DB" }}>
+                        The Actual Difference
+                      </p>
+                      <p className="text-lg sm:text-xl font-semibold leading-8" style={{ color: "white" }}>
+                        We do not exist to replace the classroom.
+                      </p>
+                      <p className="text-sm sm:text-base leading-7" style={{ color: "#FFE9EB" }}>
+                        We exist to train what the classroom cannot always slow down long enough to condition: the individual learner's response under
+                        difficulty.
+                      </p>
+                    </div>
+                  </Card>
+                </div>
+              </div>
+
+              <div className="mt-8 rounded-[30px] border border-[#E8D2C3] bg-[#FFF8F3] p-6 sm:p-7 md:p-8 shadow-sm">
+                <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)] lg:items-center">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em]" style={{ color: "#E63946" }}>
+                      What Makes Response Integrity Different
+                    </p>
+                    <h3 className="mt-3 text-2xl sm:text-3xl md:text-[2.1rem] font-bold tracking-tight leading-tight" style={{ color: "#1A1A1A" }}>
+                      A system built to observe the response, not just explain the topic.
+                    </h3>
+                  </div>
+                  <p className="text-sm sm:text-base leading-7" style={{ color: "#5A5A5A" }}>
+                    The learner is watched closely enough, challenged carefully enough, and repeated consistently
+                    enough for stability to become trainable.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 grid gap-4 sm:gap-5 lg:grid-cols-2">
+                {responseIntegrityDifferentiators.map((item, index) => {
+                  const isDark = index === 2 || index === 5;
+                  const isRose = index === 1 || index === 4;
+
+                  const cardStyle = isDark
+                    ? { borderColor: "#4A3A33", backgroundColor: "#241B18" }
+                    : isRose
+                      ? { borderColor: "#E7C8BF", backgroundColor: "#F7E7E2" }
+                      : { borderColor: "#E9D8CC", backgroundColor: "#FFFCF8" };
+
+                  const labelStyle = isDark
+                    ? { borderColor: "#5A443A", backgroundColor: "rgba(255,255,255,0.06)", color: "#F3B39D" }
+                    : isRose
+                      ? { borderColor: "#E5C1B6", backgroundColor: "rgba(255,255,255,0.56)", color: "#9D3C2D" }
+                      : { borderColor: "#E7D3C7", backgroundColor: "#FFF4EE", color: "#A04736" };
+
+                  const headingColor = isDark ? "#FFF7F1" : "#1A1A1A";
+                  const bodyColor = isDark ? "#E4D4CA" : "#4E4E4E";
+
+                  return (
+                    <Card key={item.title} className="rounded-[28px] p-5 sm:p-6 md:p-7 shadow-none" style={cardStyle}>
+                      <div className="space-y-4">
+                        <div
+                          className="inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]"
+                          style={labelStyle}
+                        >
+                          {item.label}
+                        </div>
+                        <h4 className="text-lg sm:text-xl font-bold leading-tight" style={{ color: headingColor }}>
+                          {item.title}
+                        </h4>
+                        <div className="space-y-3 text-sm sm:text-base leading-7" style={{ color: bodyColor }}>
+                          {item.paragraphs.map((paragraph) => (
+                            <p key={paragraph}>{paragraph}</p>
+                          ))}
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
