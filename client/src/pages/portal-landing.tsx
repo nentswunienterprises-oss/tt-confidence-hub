@@ -27,7 +27,7 @@ const responseIntegrityDifferentiators = [
     paragraphs: [
       "In class, a learner can easily get hidden inside the speed of the group.",
       "With Response Integrity, the learner gets direct attention on how they think, where they pause, where they rush, where they lose structure, and what needs to be repeated.",
-      "The session moves according to the learner's actual response state, not the pace of the classroom.",
+      "The session moves according to how the learner is actually responding, not the pace of the classroom.",
     ],
   },
   {
@@ -45,8 +45,8 @@ const responseIntegrityDifferentiators = [
     title: "Good Pressure Through Observation",
     paragraphs: [
       "When a learner practises alone, it is easy to skip hard questions, leave blanks, avoid discomfort, or only practise what feels familiar.",
-      "With a Response Integrity Operator watching each rep, the learner cannot hide from the work.",
-      "The Operator sees where the learner freezes, rushes, guesses, skips steps, avoids difficulty, or loses structure.",
+      "With a Response Integrity tutor watching each rep, the learner cannot hide from the work.",
+      "The tutor sees where the learner freezes, rushes, guesses, skips steps, avoids difficulty, or loses structure.",
       "That creates good pressure.",
       "Not shame.",
       "Not panic.",
@@ -77,11 +77,11 @@ const responseIntegrityDifferentiators = [
   },
   {
     label: "System",
-    title: "A System-Led Method",
+    title: "A Structured Method",
     paragraphs: [
       "Ordinary tutoring often depends on the tutor's personality, mood, teaching style, or natural ability.",
       "Response Integrity is different.",
-      "Our Operators work through a structured operating model based on the learner's topic, phase, and stability level.",
+      "Our tutors work through a structured operating model shaped by what the learner is working on and how much support or challenge they need in that moment.",
       "That means each session is not random.",
       "The learner receives the type of support, challenge, observation, and correction required for where they are in their development.",
     ],
@@ -193,7 +193,7 @@ function PortalLanding() {
           <div className="space-y-5 sm:space-y-8 max-w-[calc(100vw-32px)]">
             <div className="mx-auto flex w-fit items-center gap-2 rounded-full px-3 py-1.5 sm:mx-0 sm:px-4 sm:py-2" style={{ backgroundColor: "#FFF0F0" }}>
               <span className="text-xs sm:text-sm font-medium" style={{ color: "#E63946" }}>
-                For Parents of Grade 6-9 Students
+                For Parents of Grades 6-9 Students
               </span>
             </div>
 

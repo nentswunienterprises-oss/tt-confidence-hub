@@ -1,14 +1,14 @@
 # Our Mission - Response-Conditioning Institutional Dream
 
-We are building an external academic leadership institution that prevents downstream failure by training how students respond when uncertainty appears.
+We are building an academic support institution that makes calm, reliable execution the default long before panic hardens into identity.
 
-Our mission is to make calm, reliable execution the default for learners long before panic hardens into identity.
+Our mission is to help Grades 6-9 learners stay structured when mathematics becomes difficult, while building a system that can later support a high-school leadership track and a primary-school referral pilot.
 
 ## How we operate (Response Integrity-OS)
 
-- **Clarity**: teach vocabulary, method, and reason. Model -> Apply -> Guide is most visible here because the student is still learning how to see the topic clearly.
+- **Clarity**: teach vocabulary, method, and reason. Model -> Apply -> Guide is most visible here because the learner is still learning how to see the topic clearly.
 - **Structured Execution**: train independent starts, step order, repeatability, and reduced guessing without turning the session into a rescue loop.
-- **Controlled Discomfort**: hold the student inside difficulty with phase-appropriate support. Boss Battles belong here when discomfort is the correct load.
+- **Controlled Discomfort**: hold the learner inside difficulty with phase-appropriate support. Boss Battles belong here when discomfort is the correct load.
 - **Time Pressure Stability**: test whether trained structure survives urgency. Timed work belongs here when pressure is the live instability.
 
 ## Who we serve and how
@@ -21,25 +21,27 @@ Outcome: calmer test behaviour, repeatable problem execution, and observable sta
 
 ### Parents
 
-We provide predictable outcomes and reduced cognitive load through measurable behavioural change, not marks talk alone.
+We provide predictable cadence and reduced cognitive load through measurable behavioural change, not marks talk alone.
 
 Expectation: support cadence, environment, and consistency rather than emergency session management.
 
-### Tutors (System Executors)
+### Tutors (Current live validation track)
 
-Selected high-school students are trained intensively to run Response Integrity-OS with discipline and precision.
+Matric-completed or young-adult candidates are trained intensively to run Response Integrity-OS with discipline and precision.
 
-Offer: performance-linked income, elite cognitive training, and a leadership pathway.
+Offer: performance-linked income, structured development, and a real operating pathway.
 
-### Primary schools (partners)
+### Primary schools (referral pilot)
 
 We support referred learners showing early panic or execution collapse without interfering with school authority.
 
 Benefit: early intervention without stigma, visible behavioural improvement, and clear observational feedback.
 
-### High schools (feeder partners)
+### Future high-school track
 
-High schools nominate top candidates and receive leadership development, institutional reputation, and a low-risk talent pipeline.
+The high-school leadership-development track will come later.
+
+That track will expand the system without changing the current public story.
 
 ## Pilot structure
 

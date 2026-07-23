@@ -10,7 +10,7 @@
 
 Supporting line:
 
-> **Response Integrity enables high schools to develop academic leaders who prevent failure upstream before panic becomes identity.**
+> **Response Integrity is a calm-performance academic support brand for Grades 6-9 learners.**
 
 ## Tone pillars
 
@@ -64,7 +64,7 @@ Supporting line:
   CTA: **Apply / Refer a School**
 
 - Tutor ad microcopy:
-  *Selected high-school students are trained as System Executors inside a disciplined response-conditioning system. Earn while building real leadership, communication, and execution skill. This is not casual tutoring. It is structured operating work.*
+  *Selected matric-completed tutor candidates are trained inside a disciplined response-conditioning system. Earn while building real leadership, communication, and execution skill. This is not casual tutoring. It is structured operating work.*
 
 - School partnership microcopy:
   *Limited intake. No admin burden. Measurable behavioural feedback. We help schools prepare student response before panic hardens into identity.*

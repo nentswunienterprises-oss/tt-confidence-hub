@@ -25,7 +25,7 @@ const SITUATIONS = [
 const AUDIENCES = [
   { id: "parent", label: "Parent", description: "Decision maker, seeks relief" },
   { id: "student", label: "Student", description: "Performer, needs structure" },
-  { id: "tutor", label: "Tutor", description: "Operator, executes system" },
+  { id: "tutor", label: "Tutor", description: "Tutor, executes the system" },
 ] as const;
 
 // Platforms

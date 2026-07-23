@@ -514,7 +514,7 @@ function Router() {
       <Route path="/td/updates" element={<TdGatewayGuard><TDUpdates /></TdGatewayGuard>} />
 
       {/* Legacy COO Routes */}
-      <Route path="/coo/dashboard" element={<COODashboard />} />
+      <Route path="/coo/dashboard" element={<DashboardLayout><COODashboard /></DashboardLayout>} />
       <Route path="/coo/traffic" element={<DashboardLayout><ExecutiveHRTraffic /></DashboardLayout>} />
       <Route path="/coo/applications" element={<Navigate to="/coo/traffic" replace />} />
       <Route path="/coo/tutor-applications" element={<Navigate to="/coo/traffic" replace />} />
@@ -523,7 +523,7 @@ function Router() {
       <Route path="/coo/verification" element={<COOVerification />} />
       <Route path="/coo/brain" element={<COOBrain />} />
       <Route path="/coo/broadcast" element={<COOBroadcast />} />
-      <Route path="/coo/leadership-pilot-requests" element={<LeadershipPilotRequests />} />
+      <Route path="/coo/leadership-pilot-requests" element={<DashboardLayout><LeadershipPilotRequests /></DashboardLayout>} />
 
       {/* 404 Route */}
       <Route path="*" element={<NotFound />} />

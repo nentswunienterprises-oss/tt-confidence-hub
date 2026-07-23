@@ -362,6 +362,66 @@ export default function ParentGateway() {
   const sessionTitle = isHandoverFlow ? "Continuity Check" : "Introductory Session";
   const sessionCompletedLabel = isHandoverFlow ? "continuity check" : "introductory session";
   const isTrainingMode = effectiveIntroSessionConfirmation?.operationalMode === "training";
+  const showProposalActions = enrollmentStatus?.status === "proposal_sent";
+  const showProposalPanel =
+    enrollmentStatus?.status === "proposal_sent" ||
+    enrollmentStatus?.status === "session_booked" ||
+    enrollmentStatus?.status === "report_received" ||
+    enrollmentStatus?.status === "confirmed";
+
+  const proposalPanel = (() => {
+    if (!showProposalPanel) return null;
+
+    if (proposalLoading) {
+      return (
+        <div className="bg-muted/30 rounded-lg p-4 text-center mb-4 sm:mb-6">
+          <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground">
+            {showProposalActions ? "Loading your proposal..." : "Loading your diagnosis and training plan..."}
+          </p>
+        </div>
+      );
+    }
+
+    if (proposalError) {
+      return (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center mb-4 sm:mb-6">
+          <p className="text-sm text-red-600">Failed to load proposal. Please refresh the page.</p>
+          <p className="text-xs text-red-500 mt-2">{proposalError.message}</p>
+        </div>
+      );
+    }
+
+    if (proposal) {
+      return (
+        <div className="mb-4 sm:mb-6">
+          {!showProposalActions && (
+            <p className="text-sm text-muted-foreground mb-4">
+              Your diagnosis and training plan remain available below.
+            </p>
+          )}
+          <ProposalView
+            proposal={proposal}
+            forceDiagnosisView={true}
+            showActions={showProposalActions}
+            onAccept={showProposalActions ? handleAcceptProposal : undefined}
+            onDecline={showProposalActions ? handleDeclineProposal : undefined}
+            isProcessing={isProcessingProposal}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center mb-4 sm:mb-6">
+        <p className="text-sm text-yellow-600">
+          {showProposalActions
+            ? "Proposal is being prepared. Check back soon."
+            : "Diagnosis details are not available yet. Please refresh the page shortly."}
+        </p>
+      </div>
+    );
+  })();
 
   // Auto-set step based on enrollment status and intro session confirmation
   useEffect(() => {
@@ -1709,53 +1769,14 @@ export default function ParentGateway() {
                   <p className="text-muted-foreground mb-4">
                     Your training proposal is ready.
                   </p>
-                  
-                  {(() => {
-                    console.log("ðŸ“‹ Proposal status - Loading:", proposalLoading, "Error:", proposalError, "Data:", proposal);
-                    
-                    if (proposalLoading) {
-                      return (
-                        <div className="bg-muted/30 rounded-lg p-4 text-center">
-                          <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-3" />
-                          <p className="text-sm text-muted-foreground">Loading your proposal...</p>
-                        </div>
-                      );
-                    }
-                    
-                    if (proposalError) {
-                      return (
-                        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-                          <p className="text-sm text-red-600">Failed to load proposal. Please refresh the page.</p>
-                          <p className="text-xs text-red-500 mt-2">{proposalError.message}</p>
-                        </div>
-                      );
-                    }
-                    
-                    if (proposal) {
-                      console.log("ðŸ“‹ Rendering ProposalView with:", proposal);
-                      return (
-                        <ProposalView 
-                          proposal={proposal} 
-                          forceDiagnosisView={true}
-                          showActions={true}
-                          onAccept={handleAcceptProposal}
-                          onDecline={handleDeclineProposal}
-                          isProcessing={isProcessingProposal}
-                        />
-                      );
-                    }
-                    
-                    return (
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-                        <p className="text-sm text-yellow-600">Proposal is being prepared. Check back soon.</p>
-                      </div>
-                    );
-                  })()}
+
+                  {proposalPanel}
                 </>
               )}
               {(enrollmentStatus.status === "session_booked" || enrollmentStatus.status === "report_received" || enrollmentStatus.status === "confirmed") && (
                 <>
-                  {proposalLoading && !effectiveParentCode ? (
+                  {proposalPanel}
+                  {proposalLoading && !proposal && !effectiveParentCode ? (
                     <div className="bg-muted/30 rounded-lg p-4 text-center mb-4 sm:mb-6">
                       <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-3" />
                       <p className="text-sm text-muted-foreground">Loading your student access code...</p>

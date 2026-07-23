@@ -162,15 +162,15 @@ export function getDefaultDashboardRoute(role) {
     var roleSpecificRoutes = {
         parent: "/client/parent/gateway", // Parents go to gateway first, not dashboard
         student: "/client/student/dashboard",
-        affiliate: "/affiliate/gateway",
-        od: "/affiliate/od/dashboard",
-        tutor: "/operational/tutor/gateway", // Tutors go to gateway first
-        td: "/operational/td/gateway",
-        coo: "/executive/gateway",
-        hr: "/executive/gateway",
-        ceo: "/executive/ceo/board",
-        cto: "/executive/gateway",
-        cmo: "/executive/gateway",
+    affiliate: "/affiliate/gateway",
+    od: "/affiliate/od/dashboard",
+    tutor: "/operational/tutor/gateway", // Tutors go to gateway first
+    td: "/operational/td/gateway",
+    coo: "/executive/gateway",
+    hr: "/executive/gateway",
+    ceo: "/executive/ceo/board",
+    cto: "/executive/gateway",
+    cmo: "/executive/gateway",
     };
     var route = roleSpecificRoutes[role];
     if (!route) {

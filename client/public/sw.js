@@ -8,7 +8,6 @@ self.addEventListener("push", (event) => {
   const options = {
     body: payload.body || "",
     icon: payload.icon || "/tt-logo.png",
-    badge: payload.badge || "/favicon.png",
     image: payload.image,
     data: {
       url: payload.url || "/operational/tutor/gateway",

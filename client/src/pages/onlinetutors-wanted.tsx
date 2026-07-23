@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
+import { RISymbolLogo } from "@/components/RISymbolLogo";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Check } from "lucide-react";
 
@@ -13,8 +14,8 @@ export default function OnlineTutorsWanted() {
     <div className="min-h-screen" style={{ backgroundColor: "#FFF5ED" }}>
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-center md:justify-between relative">
-          <ResponseIntegrityLogo size="lg" variant="integrity" />
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between relative">
+          <RISymbolLogo size="xl" className="shrink-0" />
 
           <div className="absolute right-4 top-2 md:absolute md:right-12 md:top-4">
             <Button
@@ -48,7 +49,7 @@ export default function OnlineTutorsWanted() {
           </h1>
 
           <p className="max-w-2xl mx-auto text-base sm:text-lg mt-6" style={{ color: "#5A5A5A" }}>
-            We run a structured online response-conditioning operation and we're selecting a small number of disciplined Grade 10 students to train as <strong>System Executors</strong>  not casual tutors - with real accountability and earning potential.
+            We run a structured online response-conditioning operation and we're selecting a small number of disciplined, matric-completed tutor candidates to train as <strong>tutors</strong> - not casual tutors - with real accountability and earning potential.
           </p>
 
 
@@ -100,12 +101,13 @@ export default function OnlineTutorsWanted() {
         {/* Who For / Not For */}
         <div className="grid md:grid-cols-2 gap-6 mt-6 items-start">
           <Card className="p-6" style={{ backgroundColor: "white" }}>
-            <h3 className="text-lg font-bold mb-3">FOR TEENS WHO:</h3>
+            <h3 className="text-lg font-bold mb-3">FOR APPLICANTS WHO:</h3>
             <ul className="space-y-3 text-sm" style={{ color: "#5A5A5A" }}>
               <li> Are strong in Grades 6-9 Mathematics</li>
               <li> Can explain concepts clearly when the phase calls for it</li>
               <li> Are comfortable following a structured system</li>
               <li> Take feedback seriously and apply it quickly</li>
+              <li> Have completed matric or are a young adult ready for structured tutor training</li>
               <li> Want real teaching skill development (not just pocket money)</li>
               <li> Are disciplined, reliable, and coachable</li>
             </ul>

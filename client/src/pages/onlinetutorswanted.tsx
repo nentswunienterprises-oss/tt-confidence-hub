@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ResponseIntegrityLogo } from "@/components/ResponseIntegrityLogo";
+import { RISymbolLogo } from "@/components/RISymbolLogo";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { useEffect } from "react";
@@ -16,7 +17,7 @@ export default function OnlineTutorsWantedPlain() {
       {/* Header (portal-landing style) */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255, 245, 237, 0.95)" }}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 h-16 sm:h-20 flex items-center justify-between">
-          <ResponseIntegrityLogo size="lg" variant="integrity" />
+          <RISymbolLogo size="xl" className="shrink-0" />
           <div className="hidden md:block">
             <span className="text-2xl lg:text-4xl font-bold tracking-tight" style={{ color: "#1A1A1A" }}>
               RESPONSE-CONDITIONING
@@ -47,7 +48,7 @@ export default function OnlineTutorsWantedPlain() {
           </div>
 
           <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold leading-tight mt-6" style={{ color: "#1A1A1A" }}>
-            Become a Response Integrity System Executor
+            Become a Response Integrity Tutor
             <div className="text-base sm:text-xl font-semibold mt-2" style={{ color: "#5A5A5A" }}>
               Not everyone qualifies. That's the point.
             </div>
@@ -64,7 +65,7 @@ export default function OnlineTutorsWantedPlain() {
           </div> 
 
           <p className="max-w-2xl mx-auto text-sm sm:text-base mt-4" style={{ color: "#5A5A5A" }}>
-            Response Integrity is selecting a small number of high-performing, disciplined students to train as System Executors inside our structured response-conditioning operation.
+            Response Integrity is selecting a small number of matric-completed, disciplined tutor candidates to train inside our structured response-conditioning operation.
           </p>
 
           <div className="mt-6 space-y-2">
@@ -81,7 +82,7 @@ export default function OnlineTutorsWantedPlain() {
             Response Integrity runs a structured online response-conditioning programme for Grades 6-9.
           </p>
           <p>We rely on clear systems, repetition, and standards.</p>
-          <p className="mt-2">As a System Executor, your job is to run that system precisely - every session, every student.</p>
+          <p className="mt-2">As a tutor, your job is to run that system precisely - every session, every student.</p>
         </Card>
 
         <Card className="p-6 mb-6" style={{ backgroundColor: "white" }}>
@@ -103,7 +104,7 @@ export default function OnlineTutorsWantedPlain() {
           <p className="mb-3" style={{ color: "#5A5A5A" }}>This opportunity is for you if you:</p>
           <ul className="list-disc pl-5 space-y-2 text-sm sm:text-base" style={{ color: "#5A5A5A" }}>
             <li>Are strong in Grades 6-9 Mathematics</li>
-            <li>Are currently in Grade 10-11 or recently finished school</li>
+            <li>Have completed matric or are a young adult ready for structured tutor training</li>
             <li>Follow structure well</li>
             <li>Take correction without ego</li>
             <li>Want real skill development, not quick cash</li>

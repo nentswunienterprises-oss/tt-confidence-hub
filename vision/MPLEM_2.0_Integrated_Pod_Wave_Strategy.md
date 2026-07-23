@@ -10,7 +10,7 @@ MPLEM 2.0 is the next-generation Multi Pod-Launching Expansion Model for Respons
 - **System, not agency:** Response Integrity is a performance-conditioning platform, not a tutoring company.
 - **Pods as modular units:** Each pod is a self-contained, replicable revenue and impact engine.
 - **Automation-first ops:** Scheduling, payments, session logging, and reporting are fully automated.
-- **Institutional integration:** High schools supply and develop academic leaders; primary schools receive early intervention.
+- **Institutional integration:** The current live model serves families first, primary schools can refer learners now, and the high-school leadership track comes later.
 - **Financial discipline:** Every pod is self-funding, with fixed central ops and variable pod costs.
 
 ---
@@ -58,18 +58,18 @@ MPLEM 2.0 is the next-generation Multi Pod-Launching Expansion Model for Respons
 ---
 
 ## 6. Offer Structure (Business Model Integration)
-- **Standard Track:** R600/month, R450 to tutor, R150 to platform (response stability)
-- **Premium Track:** R1,000/month, R750 to tutor, R250 to platform (response conditioning)
-- **Pro Track:** R1,200/month, R900 to tutor, R300 to platform (exam response conditioning)
-- **Pod economics based on Premium Track for scaling; Standard/Pro as margin levers**
+- **Live family offer:** R1,000/month per student, 8 sessions per month, 2 sessions per week
+- **Tutor split:** R750 to tutor, R250 to platform
+- **Parent-facing label:** Premium plan for the single live paid family offer
+- **The old Standard / Premium / Pro ladder is not the current live truth**
 
 ---
 
 ## 7. Institutional Partnership Model
-- High schools nominate and train System Executors (tutors)
+- Current live tutor candidates are matric-completed or young-adult operators in the validation track
 - Primary schools refer students for early intervention
 - Response Integrity governs, trains, and quality-controls the system
-- Pilot cohorts enable low-risk, high-signal adoption
+- The high-school leadership-development track is a future expansion, not the current public story
 
 ---
 

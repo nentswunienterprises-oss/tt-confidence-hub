@@ -164,7 +164,7 @@ export default function LeadershipDevelopmentPilot() {
             </ul>
 
             <p>
-              At this stage, high schools are forced into damage control.
+            At this stage, high schools are often forced into damage control.
             </p>
 
             <p>
@@ -189,11 +189,11 @@ export default function LeadershipDevelopmentPilot() {
 
             <p>
               Response Integrity is not a tutoring company.
-              We are an external academic leadership institution that enables high schools to solve a primary-school problem - upstream.
+              We are building a future academic leadership institution that will help high schools solve an upstream primary-school problem.
             </p>
 
             <p>
-              Instead of treating symptoms in Grade 9-12, we help high schools:
+              Instead of treating symptoms in Grade 9-12, the future pilot will help high schools:
             </p>
 
             <p>
@@ -212,16 +212,16 @@ export default function LeadershipDevelopmentPilot() {
                 <p>High-performing, high-potential learners are selected - not recruited. Selection itself becomes a mark of distinction.</p>
               </li>
               <li>
-                <strong>Response Integrity trains them as Response-Conditioning Executives</strong>
+                <strong>Response Integrity trains them as response-conditioning leaders</strong>
                 <p>Selected students undergo structured training in execution under pressure, response-control during uncertainty, teaching clarity, and psychological leadership.</p>
               </li>
               <li>
                 <strong>These Students Serve Primary Learners</strong>
-                <p>High school leaders work with referred Grade 6-7 learners, train calm execution, intercept panic habits early, and model composure.</p>
+                <p>High school leaders would work with referred Grade 6-7 learners, train calm execution, intercept panic habits early, and model composure.</p>
               </li>
             </ol>
 
-            <h2>WHY THIS BENEFITS HIGH SCHOOLS DIRECTLY</h2>
+            <h2>WHY THIS FUTURE TRACK BENEFITS HIGH SCHOOLS</h2>
 
             <ol>
               <li>
@@ -266,7 +266,7 @@ export default function LeadershipDevelopmentPilot() {
             </ul>
 
             <h2>POSITIONING</h2>
-            <p className="font-semibold">Response Integrity enables high schools to develop academic leaders who execute under pressure and apply those skills to real educational challenges.</p>
+            <p className="font-semibold">The future high-school leadership track would help schools develop academic leaders who execute under pressure and apply those skills to real educational challenges.</p>
 
             <div className="text-center mt-6">
               <div className="flex flex-col items-center mt-8 mb-4 px-2">
@@ -276,7 +276,7 @@ export default function LeadershipDevelopmentPilot() {
                   style={{ backgroundColor: "#E63946", color: "white" }}
                   onClick={() => setShowForm(true)}
                 >
-                  Initiate High School Leadership Pilot Consideration
+                  Initiate Future High School Leadership Pilot Consideration
                 </Button>
                 <p className="text-xs text-gray-600 mt-2 text-center">This submission registers interest only. No obligation. No activation without alignment.</p>
               </div>

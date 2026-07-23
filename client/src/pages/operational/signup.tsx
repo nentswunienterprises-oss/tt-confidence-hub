@@ -169,10 +169,10 @@ export default function OperationalSignup() {
       ? "Existing tutors continue here. This route is reserved for login only."
       : lockedMode === "signup"
         ? fastTrackEnabled && !urlParams.get("cycle")
-          ? fastTrackDescription ?? "Direct tutor signup is temporarily unlocked outside the standard operator window."
+          ? fastTrackDescription ?? "Direct tutor signup is temporarily unlocked outside the standard tutor window."
           : `${cycleLabel} entry continues here. This route is reserved for application only.`
         : fastTrackEnabled
-          ? fastTrackDescription ?? "Direct tutor signup is temporarily unlocked outside the standard operator window."
+          ? fastTrackDescription ?? "Direct tutor signup is temporarily unlocked outside the standard tutor window."
         : "Help transform students and condition reliable responses to math pressure."
     : "Lead a territory and oversee multiple pods and tutors.";
   const badgeText = isTutorRole

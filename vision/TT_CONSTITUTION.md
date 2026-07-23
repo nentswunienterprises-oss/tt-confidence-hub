@@ -123,7 +123,7 @@ Schools should feel relief, not exposure.
 
 ### ARTICLE VII: HIGH-SCHOOL LEADERSHIP INTEGRITY
 
-Because Response Integrity trains top-performing high-school students:
+Because Response Integrity's future high-school leadership track will train top-performing high-school students:
 
 - Any system must protect their own academic performance first.
 - No workload that risks academic decline.

@@ -14,14 +14,14 @@ import { buildTrackedPath, buildTrackedReturnTo } from "@/lib/publicTracking";
 
 const operatorCycles = [
   {
-    title: "Annual Operator Certification Cycle",
+    title: "Annual Tutor Certification Cycle",
     support: "Supports the Full-Year Conditioning Intake",
     applicationWindow: "1 October - 31 October",
     conditioningWindow: "1 November - 15 January",
     deploymentBegins: "1 February",
   },
   {
-    title: "Mid-Year Operator Certification Cycle",
+    title: "Mid-Year Tutor Certification Cycle",
     support: "Supports the Mid-Year Conditioning Intake",
     applicationWindow: "1 April - 30 April",
     conditioningWindow: "1 May - 20 May",
@@ -158,7 +158,7 @@ export default function TutorLanding() {
                 <div className="mt-5 grid gap-6 lg:grid-cols-[1fr_240px] lg:items-start">
                   <div className="max-w-2xl space-y-3 text-base leading-7 text-[#534A43] sm:text-[17px]">
                     <p>Response Integrity is looking for disciplined young people who are strong in math, coachable under pressure, and serious about building real skill.</p>
-                    <p>Tutor entry happens through two certification cycles tied to the student intake rhythm. Existing tutors use the login path directly. New tutors first check the current operator window.</p>
+                    <p>Tutor entry happens through two certification cycles tied to the student intake rhythm. Existing tutors use the login path directly. New tutors first check the current tutor window.</p>
                   </div>
                   <div className="rounded-[24px] border border-[#E0CCBE] bg-white/58 p-4">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8A4B35]">Role core</p>
@@ -179,7 +179,7 @@ export default function TutorLanding() {
                     style={{ backgroundColor: "#E63946" }}
                     onClick={() => navigate(intakeEntryPath)}
                   >
-                    Check Current Operator Window
+                    Check Current Tutor Window
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                   <Button
@@ -224,10 +224,10 @@ export default function TutorLanding() {
         <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 md:px-12">
           <div className="rounded-[30px] border border-[#E5D3C5] bg-white/86 p-7 shadow-sm sm:p-8">
             <div className="max-w-3xl">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Operator windows</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Tutor windows</p>
               <h2 className="mt-1 text-3xl font-bold tracking-tight text-[#171311]">Two certification cycles. Two deployment moments.</h2>
               <p className="mt-3 text-sm leading-7 text-[#4F4742] sm:text-base">
-                Tutor intake follows the same disciplined rhythm as student entry. Applications open inside defined windows, conditioning happens by deadline, and only certified live operators become deployable.
+                Tutor intake follows the same disciplined rhythm as student entry. Applications open inside defined windows, conditioning happens by deadline, and only certified live tutors become deployable.
               </p>
             </div>
 
@@ -327,10 +327,10 @@ export default function TutorLanding() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8A4B35]">Entry point</p>
             <h2 className="mt-4 text-3xl font-bold leading-tight text-[#171311] sm:text-4xl">
               Want to become a response-training specialist?
-              <span className="block text-[#E63946]">Check the current operator window first.</span>
+              <span className="block text-[#E63946]">Check the current tutor window first.</span>
             </h2>
             <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-[#57504B] sm:text-lg">
-              New applicants begin through the intake-aware operator gate. Existing tutors use the login button to open directly on the tutor login side.
+                New applicants begin through the intake-aware tutor gate. Existing tutors use the login button to open directly on the tutor login side.
             </p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
               <Button
@@ -339,7 +339,7 @@ export default function TutorLanding() {
                 style={{ backgroundColor: "#E63946" }}
                 onClick={() => navigate(intakeEntryPath)}
               >
-                Check Current Operator Window
+                Check Current Tutor Window
               </Button>
               <Button
                 size="lg"

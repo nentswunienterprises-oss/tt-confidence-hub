@@ -456,18 +456,18 @@ Execution Season
 Mid-year students enter the same execution environment as full-year students, but with a shorter runway behind them.
 Core belief:
 Pressure should not be the first serious exposure.
-3. Two Operator Certification Cycles
+3. Two Tutor Certification Cycles
 Response Integrity does not hire tutors casually.
-RI develops operators.
+RI develops tutors.
 Tutors must enter through certification windows that match the student intake rhythm.
-Annual Operator Certification Cycle
+Annual Tutor Certification Cycle
 Supports the Full-Year Conditioning Intake.
-Operator Application Window
+Tutor Application Window
 1 October - 31 October
 Tutors apply, submit documents, complete agreements, and are screened.
 Mode:
 Applicant Mode
-Operator Conditioning Window
+Tutor Conditioning Window
 1 November - 15 January
 Tutors enter training, complete modules, undergo battle testing, and move through sandbox preparation where eligible.
 Mode:
@@ -480,21 +480,21 @@ Principle:
 Time does not certify you. Evidence certifies you. But the window determines deployment.
 Deployment Lock-In
 16 January - 31 January
-Only certified live operators are matched with students.
+Only certified live tutors are matched with students.
 Schedules, student loads, TD oversight, and capacity are locked before training begins.
 Student Deployment
 1 February
 Full-Year Conditioning students begin training with certified RI operators.
-Mid-Year Operator Certification Cycle
+Mid-Year Tutor Certification Cycle
 Supports the Mid-Year Conditioning Intake.
-Operator Application Window
+Tutor Application Window
 1 April - 30 April
 Tutors apply or return for mid-year capacity preparation.
 Mode:
 Applicant Mode
-Operator Conditioning Window
+Tutor Conditioning Window
 1 May - 20 May
-Selected candidates undergo accelerated operator conditioning, battle testing, sandbox readiness, and certification pressure.
+Selected candidates undergo accelerated tutor conditioning, battle testing, sandbox readiness, and certification pressure.
 Mode:
 Training Mode → Sandbox Mode
 Certification Deadline
@@ -502,7 +502,7 @@ Certification Deadline
 Tutors must meet the standard by this date to qualify for the June deployment pool.
 Deployment Lock-In
 21 May - 31 May
-Only certified live operators are matched with mid-year students.
+Only certified live tutors are matched with mid-year students.
 Schedules and capacity are locked before training begins.
 Student Deployment
 1 June

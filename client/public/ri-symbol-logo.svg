@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="78 28 224 382" role="img" aria-label="Response Integrity symbol logo">
+  <defs>
+    <clipPath id="ri-symbol-clip">
+      <path d="M90 85C90 56 126 36 190 36C254 36 290 56 290 85V255C290 302 265 332 230 359L190 388L150 359C115 332 90 302 90 255V85Z"/>
+    </clipPath>
+    <linearGradient id="ri-body-fill" x1="151" y1="186" x2="229" y2="388" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F44E57"/>
+      <stop offset="1" stop-color="#D91F2D"/>
+    </linearGradient>
+    <linearGradient id="ri-body-sheen" x1="188" y1="197" x2="223" y2="383" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <g clip-path="url(#ri-symbol-clip)">
+    <circle cx="136" cy="198" r="20" fill="#F7DAD6" fill-opacity="0.72"/>
+    <circle cx="244" cy="198" r="20" fill="#F7DAD6" fill-opacity="0.72"/>
+    <circle cx="190" cy="151" r="28" fill="#E93643"/>
+    <path d="M150 228C150 200 170 182 190 182C210 182 230 200 230 228V360L190 404L150 360Z" fill="url(#ri-body-fill)"/>
+    <path d="M190 182L230 228V360L190 404Z" fill="#BF1624" fill-opacity="0.18"/>
+    <path d="M161 228C168 207 177 196 190 196C203 196 212 207 219 228C220 231 218 235 213 235H167C162 235 160 231 161 228Z" fill="url(#ri-body-sheen)"/>
+  </g>
+
+  <path
+    d="M90 85C90 56 126 36 190 36C254 36 290 56 290 85V255C290 302 265 332 230 359L190 388L150 359C115 332 90 302 90 255V85Z"
+    fill="none"
+    stroke="#232323"
+    stroke-width="12"
+    stroke-linejoin="round"
+    stroke-linecap="round"
+  />
+</svg>

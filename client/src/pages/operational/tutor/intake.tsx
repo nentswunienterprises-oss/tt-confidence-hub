@@ -28,7 +28,7 @@ const pathwayStages = [
   },
   {
     title: "Certified Live",
-    body: "Only evidence-backed operators become deployable into the live student pool.",
+    body: "Only evidence-backed tutors become deployable into the live student pool.",
   },
 ] as const;
 
@@ -122,7 +122,7 @@ export default function TutorIntakeEntry() {
                 Tutor intake gateway
               </div>
               <h1 className="mt-5 max-w-4xl text-4xl font-bold leading-[0.95] tracking-[-0.05em] text-[#171311] sm:text-5xl lg:text-[4.15rem]">
-                {status.isOpen ? "Check the current operator window." : "Tutor entry is protected by window."}
+                {status.isOpen ? "Check the current tutor window." : "Tutor entry is protected by window."}
               </h1>
               <div className="mt-6 max-w-3xl space-y-3 text-base leading-7 text-[#534A43] sm:text-[17px]">
                 <p className="font-semibold text-[#E63946]">{status.heading}</p>
@@ -166,7 +166,7 @@ export default function TutorIntakeEntry() {
 
           <div className="grid gap-4 xl:content-start">
             <Card className="rounded-[28px] border border-[#2A211D] bg-[#1F1814] p-5 text-white shadow-[0_18px_50px_rgba(25,19,16,0.18)]">
-              <p className="text-sm font-bold uppercase tracking-tight text-[#E63946]">Today In The Operator Rhythm</p>
+              <p className="text-sm font-bold uppercase tracking-tight text-[#E63946]">Today In The Tutor Rhythm</p>
               <div className="mt-6 space-y-4 text-sm text-white/82">
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.18em] text-white/55">Date</p>
@@ -191,7 +191,7 @@ export default function TutorIntakeEntry() {
                   <br />
                   Evidence before trust.
                   <br />
-                  No casual operator entry.
+                  No casual tutor entry.
                 </p>
               </div>
             </Card>
